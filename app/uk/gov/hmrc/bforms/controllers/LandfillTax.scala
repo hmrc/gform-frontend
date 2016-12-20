@@ -23,10 +23,10 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-object AggregatesLevy extends AggregatesLevy
+object LandfillTax extends LandfillTax
 
-trait AggregatesLevy extends FrontendController {
-  val aggregatesLevy = Action.async { implicit request =>
-		Future.successful(Ok(uk.gov.hmrc.bforms.views.html.aggregates_levy()))
+trait LandfillTax extends FrontendController {
+  def landfillTax (registrationNumber : String) = Action.async { implicit request =>
+		Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber)))
   }
 }
