@@ -19,6 +19,7 @@ package uk.gov.hmrc.bforms.controllers
 import play.api.Play.current
 import play.api.mvc._
 import uk.gov.hmrc.bforms.models.LandfillTaxDetails
+import uk.gov.hmrc.bforms.service.{SubmissionResult, TaxFormSubmission}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -34,6 +35,23 @@ trait LandfillTaxForm extends FrontendController {
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
   }
 
-  val landfillTaxFormSubmitContinue = Action.async { Future.successful(Ok) }
+  def landfillTaxFormSubmitContinue(registrationNumber : String) = Action.async {  implicit request =>
+    LandfillTaxDetails.form.bindFromRequest().fold(
+      formWithErrors =>
+        Future.successful(
+          BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
+        ),
+      formData =>
+        TaxFormSubmission.submitTaxForm(formData).map {
+          case SubmissionResult(Some(errorMessage), _) =>
+            val formWithErrors = LandfillTaxDetails.form.withGlobalError(errorMessage)
+            BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
+          case SubmissionResult(noErrors, Some(submissionAcknowledgement)) =>
+            Redirect(routes.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(registrationNumber, submissionAcknowledgement))
+        }
+    )
+  }
+
+
 
 }
