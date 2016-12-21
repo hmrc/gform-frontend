@@ -16,20 +16,68 @@
 
 package uk.gov.hmrc.bforms.models
 
+import java.time.LocalDate
+
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
 
+
+
 case class LandfillTaxDetails(
-  firstName: String,
-  lastName: String
-)
+                               firstName: String,
+                               lastName: String,
+                               telephoneNumber: String,
+                               status: String,
+                               nameOfBusiness: String,
+                               accountingPeriodStartDate: LocalDate,
+                               accountingPeriodEndDate: LocalDate,
+                               taxDueForThisPeriod: String,
+                               underDeclarationsFromPreviousPeriod: String,
+                               overDeclarationsForThisPeriod: String,
+                               taxCreditClaimedForEnvironment: String,
+                               badDebtReliefClaimed: String,
+                               otherCredits: String,
+                               standardRateWaste: String,
+                               lowerRateWaste: String,
+                               exemptWaste: String,
+                               environmentalBody1: String,
+                               environmentalBody2: Option[String],
+                               emailAddress: Option[String],
+                               confirmEmailAddress: Option[String]
+
+
+                             )
 
 object LandfillTaxDetails {
   implicit val formats = Json.format[LandfillTaxDetails]
 
   val form = Form(mapping(
     "firstName" -> text,
-    "lastName" -> text
+    "lastName" -> text,
+    "telephoneNumber" -> text,
+    "status" -> text,
+    "nameOfBusiness" -> text,
+    "accountingPeriodStartDate" -> localDate,
+    "accountingPeriodEndDate" -> localDate,
+    "taxDueForThisPeriod" -> text,
+    "underDeclarationsFromPreviousPeriod" -> text,
+    "overDeclarationsForThisPeriod" -> text,
+    "taxCreditClaimedForEnvironment" -> text,
+    "badDebtReliefClaimed" -> text,
+    "otherCredits" -> text,
+    "standardRateWaste" -> text,
+    "lowerRateWaste" -> text,
+    "exemptWaste" -> text,
+    "environmentalBody1" -> text,
+    "environmentalBody2" -> optional(text),
+    "emailAddress" -> optional(text),
+    "confirmEmailAddress" -> optional(text)
+
+
+
+
+
+
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))
 }
