@@ -27,6 +27,7 @@ object LandfillTax extends LandfillTax
 
 trait LandfillTax extends FrontendController {
   def landfillTax (registrationNumber : String) = Action.async { implicit request =>
-		Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber)))
+		Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
   }
+  val continue = Action.async { Future.successful(Ok) }
 }

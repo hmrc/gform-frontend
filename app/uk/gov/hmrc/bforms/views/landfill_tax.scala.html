@@ -1,6 +1,22 @@
 @(registrationNumber : String)(implicit request: Request[_], messages: Messages))
 
-@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend aggregates levy", bodyClasses = None) {
-    <h1>Hello from bforms-frontend landfill tax</h1>
-    <div>Registration number: @registrationNumber</div>
+@import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
+@import uk.gov.hmrc.bforms.controllers.routes
+
+@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax", bodyClasses = None) {
+    <header class="page-header text">
+        <h1>Landfill Tax Return</h1>
+    </header>
+    <p class="subsection">
+        <h2>Your Details</h2>
+    </p>
+    <p class="subsection">
+        landfill Tax registration number: @registrationNumber
+    </p>
+
+    @form(routes.LandfillTax.continue(), 'class -> "group") {
+        @submit('_buttonClass -> "button--get-started"){"Save and continue"}
+    }
+
+
 }

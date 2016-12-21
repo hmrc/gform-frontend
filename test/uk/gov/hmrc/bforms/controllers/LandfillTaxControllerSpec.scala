@@ -22,12 +22,12 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 
 
-class LandfillTaxControllerSpec extends UnitSpec with WithFakeApplication{
+class LandfillTaxControllerSpec extends UnitSpec with WithFakeApplication with CSRFTest {
 
-  val fakeRequest = FakeRequest("GET", "/")
+  val fakeRequest = addToken(FakeRequest("GET", "/"))(fakeApplication)
 
 
-  "GET /aggregates-levy" should {
+  "GET /landfill" should {
     "return 200" in {
       val result = LandfillTax.landfillTax("")(fakeRequest)
       status(result) shouldBe Status.OK
@@ -37,7 +37,9 @@ class LandfillTaxControllerSpec extends UnitSpec with WithFakeApplication{
       val result = LandfillTax.landfillTax("YZAL123")(fakeRequest)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
-      contentAsString(result) should include("aggregates levy")    }
+      contentAsString(result) should include("landfill tax")
+      contentAsString(result) should include("YZAL123")
+    }
   }
 
 

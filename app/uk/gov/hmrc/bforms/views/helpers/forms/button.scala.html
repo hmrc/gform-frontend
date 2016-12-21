@@ -1,0 +1,14 @@
+@*
+ Html Button as per HRMC Component Library
+    http://hmrc.github.io/assets-frontend/section-buttons.html
+
+    @param args Additional arguments to apply style class or add to the button tag
+        '_modifierClass modifier class to add to button class:
+            button--get-started, button-secondary, button--alert, button--small, button--table,
+            button--link, button--spaced, button--padded, button--full-width, button--link-style, button--notification
+        Any additional args with names NOT starting with underscore (_) will be applied as button element arguments
+    @param content The Html inside the button
+*@
+@(args: (Symbol, String)*)(content: Html)
+@argsMap = @{ args.toMap }
+<button class="@{("button " + argsMap.getOrElse('_modifierClass, "").trim)}" @toHtmlArgs(argsMap.filterNot(entry => entry._1.name.startsWith("_")))>@content</button>
