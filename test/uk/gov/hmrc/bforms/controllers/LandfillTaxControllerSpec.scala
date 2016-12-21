@@ -29,12 +29,12 @@ class LandfillTaxControllerSpec extends UnitSpec with WithFakeApplication with C
 
   "GET /landfill" should {
     "return 200" in {
-      val result = LandfillTax.landfillTax("")(fakeRequest)
+      val result = LandfillTax.landfillTaxDisplay("")(fakeRequest)
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val result = LandfillTax.landfillTax("YZAL123")(fakeRequest)
+      val result = LandfillTax.landfillTaxDisplay("YZAL123")(fakeRequest)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
       contentAsString(result) should include("landfill tax")

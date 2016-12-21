@@ -1,0 +1,63 @@
+@import uk.gov.hmrc.bforms.models.LandfillTaxDetails
+@(landfillTaxForm: Form[LandfillTaxDetails], registrationNumber : String)(implicit request: Request[_], messages: Messages)
+
+
+@import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
+@import uk.gov.hmrc.play.views.html.helpers._
+@import views.html.helper.CSRF
+
+@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
+    <header class="page-header text">
+        <h1>Landfill Tax Return</h1>
+    </header>
+    <p class="subsection">
+        <h2>About you</h2>
+    </p>
+
+    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue.url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+
+        @{CSRF.formField}
+
+        @landfillTaxForm.globalError.map { error =>
+            <div class="flash error-summary error-summary--show">
+                @error.message
+            </div>
+        }
+
+        <fieldset class="form-field-group@if(landfillTaxForm("firstName").hasErrors){ form-field-group--error}">
+            <label for="arn">
+                First name
+                @errorInline("firstName", "Please enter your first name", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="firstName"
+                id="firstname"
+                value="@landfillTaxForm("firstName").value"
+                class="form-control form-control--block"
+                required
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxForm("lastName").hasErrors){ form-field-group--error}">
+            <label for="arn">
+                Last name
+                @errorInline("lastName", "Please enter your last name", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="lastName"
+                id="lastname"
+                value="@landfillTaxForm("lastName").value"
+                class="form-control form-control--block"
+                required
+                >
+            </label>
+        </fieldset>
+
+        <input type="hidden" name="registrationNumber" value="@registrationNumber" />
+
+        <input type="submit" class="button" value="Submit" />
+
+    </form>
+
+}

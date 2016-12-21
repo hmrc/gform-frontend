@@ -1,5 +1,7 @@
 # microservice specific routes
 
-GET         /landfill-tax/:rn             uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTax(rn : String)
+GET         /landfill-tax/:rn             uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxDisplay(rn : String)
+GET         /landfill-tax-form/:rn        uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxFormDisplay(rn : String)
 
-POST        /landfill-tax/continue        uk.gov.hmrc.bforms.controllers.LandfillTax.continue
+POST        /landfill-tax/continue/:rn        uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxSubmitContinue(rn : String)
+POST        /landfill-tax-form/continue   uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxFormSubmitContinue

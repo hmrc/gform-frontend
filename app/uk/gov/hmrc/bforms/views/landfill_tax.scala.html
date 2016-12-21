@@ -14,7 +14,7 @@
         landfill Tax registration number: @registrationNumber
     </p>
 
-    @form(routes.LandfillTax.continue(), 'class -> "group") {
+    @form(routes.LandfillTax.landfillTaxSubmitContinue(registrationNumber), 'class -> "group") {
         @submit('_buttonClass -> "button--get-started"){"Save and continue"}
     }
 
