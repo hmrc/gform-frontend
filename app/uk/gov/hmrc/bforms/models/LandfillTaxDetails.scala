@@ -23,7 +23,6 @@ import play.api.data.Forms._
 import play.api.libs.json.Json
 
 
-
 case class LandfillTaxDetails(
                                firstName: String,
                                lastName: String,
@@ -73,10 +72,6 @@ object LandfillTaxDetails {
     "environmentalBody2" -> optional(text),
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
-
-
-
-
 
 
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))
