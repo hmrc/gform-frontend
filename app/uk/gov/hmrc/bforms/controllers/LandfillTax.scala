@@ -26,8 +26,11 @@ import scala.concurrent.Future
 object LandfillTax extends LandfillTax
 
 trait LandfillTax extends FrontendController {
-  def landfillTaxDisplay (registrationNumber : String) = Action.async { implicit request =>
-		Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
+  def landfillTaxDisplay(registrationNumber: String) = Action.async { implicit request =>
+    Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
   }
-  def landfillTaxSubmitContinue(registrationNumber : String) = Action.async { Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber))) }
+
+  def landfillTaxSubmitContinue(registrationNumber: String) = Action.async {
+    Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber)))
+  }
 }

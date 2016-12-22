@@ -1,5 +1,5 @@
 @import uk.gov.hmrc.bforms.models.LandfillTaxDetails
-@(landfillTaxForm: Form[LandfillTaxDetails], registrationNumber : String)(implicit request: Request[_], messages: Messages)
+@(landfillTaxForm: Form[LandfillTaxDetails], registrationNumber: String)(implicit request: Request[_], messages: Messages)
 
 
 @import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
@@ -11,12 +11,14 @@
         <h1>Landfill Tax Return</h1>
     </header>
     <p class="subsection">
-        <h2>About you</h2>
+<h2>About you</h2>
     </p>
 
     <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue.url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
-        @{CSRF.formField}
+        @{
+            CSRF.formField
+        }
 
         @landfillTaxForm.globalError.map { error =>
             <div class="flash error-summary error-summary--show">
@@ -24,7 +26,7 @@
             </div>
         }
 
-        <fieldset class="form-field-group@if(landfillTaxForm("firstName").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("firstName").hasErrors) { form-field-group--error}">
             <label for="arn">
                 First name
                 @errorInline("firstName", "Please enter your first name", Seq("optional-extra-css-classes"))
@@ -39,7 +41,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("lastName").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("lastName").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Last name
                 @errorInline("lastName", "Please enter your last name", Seq("optional-extra-css-classes"))
@@ -54,7 +56,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("telephoneNumber").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("telephoneNumber").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Telephone Number
                 @errorInline("telephoneNumber", "Please enter your telephone number", Seq("optional-extra-css-classes"))
@@ -69,7 +71,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("status").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("status").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Status
                 @errorInline("status", "Please enter your status", Seq("optional-extra-css-classes"))
@@ -84,7 +86,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("nameOfBusiness").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("nameOfBusiness").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Name of Business
                 @errorInline("nameOfBusiness", "Please enter the name of your business", Seq("optional-extra-css-classes"))
@@ -99,12 +101,12 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("accountingPeriodStartDate").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("accountingPeriodStartDate").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Accounting Period Start Date
                 @errorInline("accountingPeriodStartDate", "Please enter the start date of the accounting period", Seq("optional-extra-css-classes"))
                 <input
-                type="localDate"
+                type="text"
                 name="accountingPeriodStartDate"
                 id="accountingPeriodStartDate"
                 value="@landfillTaxForm("accountingPeriodStartDate").value"
@@ -114,12 +116,12 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("accountingPeriodEndDate").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("accountingPeriodEndDate").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Accounting Period End Date
                 @errorInline("accountingPeriodEndDate", "Please enter the end date of the accounting period", Seq("optional-extra-css-classes"))
                 <input
-                type="localDate"
+                type="text"
                 name="accountingPeriodEndDate"
                 id="accountingPeriodEndDate"
                 value="@landfillTaxForm("accountingPeriodEndDate").value"
@@ -129,7 +131,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("taxDueForThisPeriod").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("taxDueForThisPeriod").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Tax Due For This Period
                 @errorInline("taxDueForThisPeriod", "Please enter the start date of the accounting period", Seq("optional-extra-css-classes"))
@@ -144,7 +146,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("underDeclarationsFromPreviousPeriod").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("underDeclarationsFromPreviousPeriod").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Under Declarations From Previous Period
                 @errorInline("underDeclarationsFromPreviousPeriod", "Please Enter Under Declarations From Previous Period", Seq("optional-extra-css-classes"))
@@ -159,7 +161,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("overDeclarationsForThisPeriod").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("overDeclarationsForThisPeriod").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Over Declarations For This Period
                 @errorInline("overDeclarationsForThisPeriod", "Please Enter Over Declarations For This Period", Seq("optional-extra-css-classes"))
@@ -174,7 +176,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("taxCreditClaimedForEnvironment").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("taxCreditClaimedForEnvironment").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Tax Credit Claimed For Environment
                 @errorInline("taxCreditClaimedForEnvironment", "Please Enter Tax Credit Claimed For Environment", Seq("optional-extra-css-classes"))
@@ -189,7 +191,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("badDebtReliefClaimed").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("badDebtReliefClaimed").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Bad Debt Relief Claimed
                 @errorInline("badDebtReliefClaimed", "Please Enter Bad Debt Relief Claimed", Seq("optional-extra-css-classes"))
@@ -204,7 +206,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("otherCredits").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("otherCredits").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Other Credits
                 @errorInline("otherCredits", "Please Enter any Other Credits", Seq("optional-extra-css-classes"))
@@ -219,7 +221,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("standardRateWaste").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("standardRateWaste").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Standard Rate Waste
                 @errorInline("standardRateWaste", "Please Enter Standard Rate Waste", Seq("optional-extra-css-classes"))
@@ -234,7 +236,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("lowerRateWaste").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("lowerRateWaste").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Lower Rate Waste
                 @errorInline("lowerRateWaste", "Please Enter Lower Rate Waste", Seq("optional-extra-css-classes"))
@@ -249,7 +251,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("exemptWaste").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("exemptWaste").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Exempt Waste
                 @errorInline("exemptWaste", "Please Enter Exempt Waste", Seq("optional-extra-css-classes"))
@@ -264,7 +266,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody1").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody1").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Environmental Body 1
                 @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
@@ -279,7 +281,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody2").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody2").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Environmental Body 2
                 @errorInline("environmentalBody2", "Please Enter Environmental Body 2", Seq("optional-extra-css-classes"))
@@ -294,7 +296,7 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("emailAddress").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("emailAddress").hasErrors) { form-field-group--error}">
             <label for="arn">
                 Email Address (Optional)
                 @errorInline("emailAddress", "Please Enter a Valid Email Address", Seq("optional-extra-css-classes"))
@@ -309,9 +311,9 @@
             </label>
         </fieldset>
 
-        <fieldset class="form-field-group@if(landfillTaxForm("confirmEmailAddress").hasErrors){ form-field-group--error}">
+        <fieldset class="form-field-group@if(landfillTaxForm("confirmEmailAddress").hasErrors) { form-field-group--error}">
             <label for="arn">
-               Confirm Email Address (Optional)
+                Confirm Email Address (Optional)
                 @errorInline("emailAddress", "Please Confirm Email Address", Seq("optional-extra-css-classes"))
                 <input
                 type="text"
