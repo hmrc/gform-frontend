@@ -17,15 +17,16 @@
 package uk.gov.hmrc.bforms.controllers
 
 import play.api.Play.current
-import play.api.mvc._
 import uk.gov.hmrc.bforms.models.LandfillTaxDetails
-import uk.gov.hmrc.bforms.service.{SubmissionResult, TaxFormSubmission}
+import uk.gov.hmrc.bforms.service.{SaveContinueResult, SubmissionResult, TaxFormSaveContinue, TaxFormSubmission}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
-
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
+import play.api.mvc._
+import uk.gov.hmrc.bforms.repositories.LandFillTaxDetails
+
 
 object LandfillTaxForm extends LandfillTaxForm
 
@@ -33,6 +34,24 @@ trait LandfillTaxForm extends FrontendController {
 
   def landfillTaxFormDisplay(registrationNumber : String) = Action.async { implicit request =>
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
+  }
+
+  def landfillTaxFormExitAndSave(registrationNumber : String) = Action.async { implicit request =>
+    LandfillTaxDetails.form.bindFromRequest().fold(
+      formWithErrors =>
+        Future.successful(
+          BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
+        ),
+      formData =>
+        TaxFormSaveContinue.saveContinueForm(formData).map {
+          case SaveContinueResult(Some(errorMessage), _) =>
+            val formWithErrors = LandfillTaxDetails.form.withGlobalError(errorMessage)
+            BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
+          case SubmissionResult(noErrors, Some(saveContinueAcknowledgement)) =>
+            LandFillTaxDetails.storeForm(formData)
+            Ok(views.(uk.gov.hmrc.bforms.views.html.landfill_tax_confirmation)
+        }
+    )
   }
 
   def landfillTaxFormSubmitContinue(registrationNumber : String) = Action.async {  implicit request =>
@@ -45,9 +64,9 @@ trait LandfillTaxForm extends FrontendController {
         TaxFormSubmission.submitTaxForm(formData).map {
           case SubmissionResult(Some(errorMessage), _) =>
             val formWithErrors = LandfillTaxDetails.form.withGlobalError(errorMessage)
-            BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
+            Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber)))
           case SubmissionResult(noErrors, Some(submissionAcknowledgement)) =>
-            Redirect(routes.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(registrationNumber, submissionAcknowledgement))
+            Future.successful(Redirect(routes.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(registrationNumber, submissionAcknowledgement)))
         }
     )
   }

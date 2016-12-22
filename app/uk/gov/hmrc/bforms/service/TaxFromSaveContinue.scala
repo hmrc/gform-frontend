@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.service
 
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.libs.json.Json
+import uk.gov.hmrc.bforms.models.LandfillTaxDetails
 
-case class LandfillTaxDetails(
-  firstName: String,
-  lastName: String
-)
+import scala.concurrent.Future
 
-object LandfillTaxDetails {
-  implicit val formats = Json.format[LandfillTaxDetails]
+/**
+  * Created by daniel-connelly on 22/12/16.
+  */
+object TaxFormSaveContinue extends TaxFormSaveContinue
 
-  val form = LandfillTaxDetailsForm(
-    mapping("firstName" -> text,
-    "lastName" -> text
-  ))//(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))
+case class SaveContinueResult(errorMessage : Option[String], saveContinueAcknowledgement : Option[String])
 
+trait TaxFormSaveContinue {
+
+  def saveContinueForm(formData: LandfillTaxDetails) : Future[SaveContinueResult] = Future.successful(SaveContinueResult(None, Some("KAKAKAKAXXX")))
 }

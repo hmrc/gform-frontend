@@ -20,6 +20,7 @@ object FrontendBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "logback-json-logger" % "3.1.0",
     "uk.gov.hmrc" %% "govuk-template" % "5.0.0",
     "uk.gov.hmrc" %% "play-health" % "2.0.0",
+    "uk.gov.hmrc" %% "play-reactivemongo" % "4.8.0",
     "uk.gov.hmrc" %% "play-ui" % "5.3.0"
   )
 
