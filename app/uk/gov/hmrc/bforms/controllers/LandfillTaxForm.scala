@@ -18,8 +18,12 @@ package uk.gov.hmrc.bforms.controllers
 
 import play.api.Play.current
 import play.api.mvc._
+import uk.gov.hmrc.bforms.FrontendAuthConnector
+import uk.gov.hmrc.bforms.controllers.auth.BFormsAuth
 import uk.gov.hmrc.bforms.models.LandfillTaxDetails
 import uk.gov.hmrc.bforms.service.{SubmissionResult, TaxFormSubmission}
+import uk.gov.hmrc.play.frontend.auth.Actions
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -27,15 +31,14 @@ import scala.concurrent.Future
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 
-object LandfillTaxForm extends LandfillTaxForm
+trait LandfillTaxForm extends FrontendController with Actions {
+  self: BFormsAuth =>
 
-trait LandfillTaxForm extends FrontendController {
-
-  def landfillTaxFormDisplay(registrationNumber : String) = Action.async { implicit request =>
+  def landfillTaxFormDisplay(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext => implicit request =>
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
   }
 
-  def landfillTaxFormSubmitContinue(registrationNumber : String) = Action.async {  implicit request =>
+  def landfillTaxFormSubmitContinue(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext => implicit request =>
     LandfillTaxDetails.form.bindFromRequest().fold(
       formWithErrors =>
         Future.successful(
@@ -51,7 +54,9 @@ trait LandfillTaxForm extends FrontendController {
         }
     )
   }
-
-
-
 }
+
+object LandfillTaxForm extends LandfillTaxForm with BFormsAuth {
+  protected def authConnector: AuthConnector = FrontendAuthConnector
+}
+

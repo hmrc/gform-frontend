@@ -19,14 +19,23 @@ package uk.gov.hmrc.bforms.controllers
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc._
+import uk.gov.hmrc.bforms.FrontendAuthConnector
+import uk.gov.hmrc.bforms.controllers.auth.BFormsAuth
+import uk.gov.hmrc.play.frontend.auth.Actions
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-object LandfillTaxConfirmation extends LandfillTaxConfirmation
+trait LandfillTaxConfirmation extends FrontendController with Actions {
+  self: BFormsAuth =>
 
-trait LandfillTaxConfirmation extends FrontendController {
   def landfillTaxConfirmationDisplay(registrationNumber : String, submissionAcknowledgement : String) = Action.async { implicit request =>
 		Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_confirmation(registrationNumber.filter(Character.isLetterOrDigit), submissionAcknowledgement)))
   }
 }
+
+object LandfillTaxConfirmation extends LandfillTaxConfirmation with BFormsAuth {
+  protected def authConnector: AuthConnector = FrontendAuthConnector
+}
+

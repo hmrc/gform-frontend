@@ -16,31 +16,55 @@
 
 package uk.gov.hmrc.bforms.controllers
 
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.play.OneAppPerSuite
 import play.api.http.Status
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
+import uk.gov.hmrc.play.http.{HttpReads, HttpGet, HeaderCarrier, HttpPost}
 import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import uk.gov.hmrc.bforms.controllers.auth.{ TestBFormsAuth, TestUsers }
+
+import scala.concurrent.{Future, ExecutionContext}
 
 
-class LandfillTaxControllerSpec extends UnitSpec with WithFakeApplication with CSRFTest {
+class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with TestUsers with CSRFTest {
 
   val fakeRequest = addToken(FakeRequest("GET", "/"))(fakeApplication)
 
 
   "GET /landfill" should {
     "return 200" in {
-      val result = LandfillTax.landfillTaxDisplay("")(fakeRequest)
+      val controller = landfillTaxController(agentUser)
+
+      val result = controller.landfillTaxDisplay("")(fakeRequest).futureValue
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val result = LandfillTax.landfillTaxDisplay("YZAL123")(fakeRequest)
+      val controller = landfillTaxController(agentUser)
+
+      val result = controller.landfillTaxDisplay("YZAL123")(fakeRequest)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
       contentAsString(result) should include("landfill tax")
       contentAsString(result) should include("YZAL123")
     }
   }
+
+  def landfillTaxController(user: AuthContext) =
+    new LandfillTax with TestBFormsAuth {
+
+      protected def authConnector: AuthConnector = new AuthConnector {
+        def http: HttpGet = ???
+        val serviceUrl: String = "test-service-url"
+
+      }
+
+      def authContext: AuthContext = user
+    }
 
 
 }

@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms
+package uk.gov.hmrc.bforms.controllers
 
-import play.api.Play.{configuration, current}
+import play.api.Play.{ configuration, current }
 import uk.gov.hmrc.play.config.ServicesConfig
 
 trait AppConfig {
-  val analyticsToken: String
-  val analyticsHost: String
-  val reportAProblemPartialUrl: String
-  val reportAProblemNonJSUrl: String
+  def assetsPrefix: String
+  def analyticsToken: String
+  def analyticsHost: String
+  def reportAProblemPartialUrl: String
+  def reportAProblemNonJSUrl: String
   def governmentGatewaySignInUrl: String
   def bFormsFrontendBaseUrl: String
 }
@@ -35,6 +36,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   private val contactHost = configuration.getString(s"contact-frontend.host").getOrElse("")
   private val contactFormServiceIdentifier = "MyService"
 
+  override lazy val assetsPrefix = loadConfig(s"assets.url") + loadConfig(s"assets.version")
   override lazy val analyticsToken = loadConfig(s"google-analytics.token")
   override lazy val analyticsHost = loadConfig(s"google-analytics.host")
   override lazy val reportAProblemPartialUrl = s"$contactHost/contact/problem_reports_ajax?service=$contactFormServiceIdentifier"
@@ -44,5 +46,6 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   //  override lazy val governmentGatewaySignInUrl = "http://localhost:9025/gg/sign-in"
 
   // this will be empty in non-local environments
-  override lazy val bFormsFrontendBaseUrl = configuration.getString("bforms-frontend-base-url").getOrElse("")
+  override lazy val bFormsFrontendBaseUrl = configuration.getString("bform-frontend-base-url").getOrElse("")
+
 }
