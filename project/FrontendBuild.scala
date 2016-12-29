@@ -32,7 +32,7 @@ object FrontendBuild extends Build with MicroService {
     "org.jsoup" % "jsoup" % "1.8.1" % scope,
 //    "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-    "org.scalatestplus" % "play_2.11" % "1.5.0-SNAP1" % scope
+    "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % scope
   )
 
 }
