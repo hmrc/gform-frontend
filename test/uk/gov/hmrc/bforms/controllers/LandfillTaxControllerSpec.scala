@@ -24,7 +24,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.{HttpReads, HttpGet, HeaderCarrier, HttpPost}
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.bforms.controllers.auth.{ TestBFormsAuth, TestUsers }
 
 import scala.concurrent.{Future, ExecutionContext}
@@ -32,7 +32,7 @@ import scala.concurrent.{Future, ExecutionContext}
 
 class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with TestUsers with CSRFTest {
 
-  val fakeRequest = addToken(FakeRequest("GET", "/"))(fakeApplication)
+  val fakeRequest = addToken(FakeRequest("GET", "/"))
 
 
   "GET /landfill" should {
