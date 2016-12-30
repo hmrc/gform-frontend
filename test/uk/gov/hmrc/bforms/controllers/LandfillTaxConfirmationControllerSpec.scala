@@ -22,43 +22,44 @@ import play.api.http.Status
 import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.bforms.controllers.auth.{TestBFormsAuth, TestUsers}
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HttpGet
 import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.bforms.controllers.auth.{TestBFormsAuth, TestUsers}
 
 import scala.concurrent.ExecutionContext
 
 
-class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with TestUsers with CSRFTest {
+class LandfillTaxConfirmationControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with TestUsers with CSRFTest {
 
   implicit val ec = app.injector.instanceOf[ExecutionContext]
   implicit val messagesApi = app.injector.instanceOf[MessagesApi]
 
-  val fakeRequest = addToken(FakeRequest("GET", "/landfill-tax"))
+  val fakeRequest = addToken(FakeRequest("GET", "/landfill-tax-confirmation"))
 
-  "GET /landfill-tax" should {
+  "GET /landfill-tax-confirmation" should {
     "return 200" in {
-      val controller = landfillTaxController(agentUser)
+      val controller = landfillTaxConfirmationController(agentUser)
 
-      val result = controller.landfillTaxDisplay("")(fakeRequest).futureValue
+      val result = controller.landfillTaxConfirmationDisplay("", "")(fakeRequest).futureValue
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val controller = landfillTaxController(agentUser)
+      val controller = landfillTaxConfirmationController(agentUser)
 
-      val result = controller.landfillTaxDisplay("YZAL123")(fakeRequest)
+      val result = controller.landfillTaxConfirmationDisplay("YZAL123", "CONF987CONF")(fakeRequest)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
       contentAsString(result) should include("landfill tax")
       contentAsString(result) should include("YZAL123")
+      contentAsString(result) should include("CONF987CONF")
     }
   }
 
-  def landfillTaxController(user: AuthContext)(implicit messagesApi: MessagesApi) = {
-    new LandfillTax(messagesApi) with TestBFormsAuth {
+  def landfillTaxConfirmationController(user: AuthContext)(implicit messagesApi: MessagesApi) = {
+    new LandfillTaxConfirmation(messagesApi) with TestBFormsAuth {
 
       override lazy val authConnector: AuthConnector = new AuthConnector {
         def http: HttpGet = ???
