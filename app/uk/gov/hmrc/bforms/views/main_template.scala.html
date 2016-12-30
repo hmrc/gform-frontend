@@ -3,7 +3,7 @@
   contentHeader: Option[Html] = None,
   bodyClasses: Option[String] = None,
   mainClass: Option[String] = None,
-  scriptElem: Option[Html] = None)(mainContent: Html)(implicit request : Request[_], messages: Messages)
+  scriptElem: Option[Html] = None)(mainContent: Html)(implicit request : Request[_], messagesApi: Messages)
 
 @import uk.gov.hmrc.play.views.html.layouts
 
