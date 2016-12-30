@@ -19,21 +19,24 @@ package uk.gov.hmrc.bforms.controllers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.OneAppPerSuite
 import play.api.http.Status
+import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
-import uk.gov.hmrc.play.http.{HttpReads, HttpGet, HeaderCarrier, HttpPost}
+import uk.gov.hmrc.play.http.HttpGet
 import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.bforms.controllers.auth.{ TestBFormsAuth, TestUsers }
+import uk.gov.hmrc.bforms.controllers.auth.{TestBFormsAuth, TestUsers}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 
 class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with TestUsers with CSRFTest {
 
-  val fakeRequest = addToken(FakeRequest("GET", "/"))
+  implicit val ec = app.injector.instanceOf[ExecutionContext]
+  implicit val messagesApi = app.injector.instanceOf[MessagesApi]
 
+  val fakeRequest = addToken(FakeRequest("GET", "/"))
 
   "GET /landfill" should {
     "return 200" in {
@@ -54,17 +57,19 @@ class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPe
     }
   }
 
-  def landfillTaxController(user: AuthContext) =
-    new LandfillTax with TestBFormsAuth {
+  def landfillTaxController(user: AuthContext)(implicit messagesApi : MessagesApi) = {
+    new LandfillTax(messagesApi) with TestBFormsAuth {
 
-      protected def authConnector: AuthConnector = new AuthConnector {
+      override lazy val authConnector: AuthConnector = new AuthConnector {
         def http: HttpGet = ???
+
         val serviceUrl: String = "test-service-url"
 
       }
 
       def authContext: AuthContext = user
     }
+  }
 
 
 }
