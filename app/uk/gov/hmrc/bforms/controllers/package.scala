@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.bforms
 
-import play.api.mvc.{ AnyContent, Request, Result }
+import play.api.mvc.{AnyContent, Request, Result}
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 
 import scala.concurrent.Future

@@ -18,7 +18,7 @@ package uk.gov.hmrc.bforms.controllers
 
 import javax.inject.{Inject, Singleton}
 
-import play.api.i18n._
+import play.api.i18n.{I18nSupport, MessagesApi}
 import uk.gov.hmrc.bforms.FrontendAuthConnector
 import uk.gov.hmrc.bforms.controllers.auth.BFormsAuth
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -28,15 +28,20 @@ import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class LandfillTax @Inject() (val messagesApi: MessagesApi)(implicit  ec: ExecutionContext)
-  extends FrontendController with I18nSupport with Actions { self: BFormsAuth=>
+class LandfillTax @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
+  extends FrontendController with I18nSupport with Actions {
+  self: BFormsAuth =>
 
   override lazy val authConnector: AuthConnector = FrontendAuthConnector
 
-  def landfillTaxDisplay (registrationNumber : String) = AsyncAuthenticatedAction { implicit authContext => implicit request =>
-		val filteredRegistrationNumber = registrationNumber.filter(Character.isLetterOrDigit)
-    Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(filteredRegistrationNumber)))
+  def landfillTaxDisplay(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext =>
+    implicit request =>
+      val filteredRegistrationNumber = registrationNumber.filter(Character.isLetterOrDigit)
+      Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(filteredRegistrationNumber)))
   }
-  def landfillTaxSubmitContinue(registrationNumber : String) = AsyncAuthenticatedAction { implicit authContext => implicit request =>
-    Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber))) }
+
+  def landfillTaxSubmitContinue(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext =>
+    implicit request =>
+      Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber)))
+  }
 }

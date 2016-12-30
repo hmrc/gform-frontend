@@ -57,7 +57,7 @@ class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPe
     }
   }
 
-  def landfillTaxController(user: AuthContext)(implicit messagesApi : MessagesApi) = {
+  def landfillTaxController(user: AuthContext)(implicit messagesApi: MessagesApi) = {
     new LandfillTax(messagesApi) with TestBFormsAuth {
 
       override lazy val authConnector: AuthConnector = new AuthConnector {

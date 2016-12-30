@@ -18,8 +18,6 @@ package uk.gov.hmrc.bforms.controllers
 
 import javax.inject.{Inject, Singleton}
 
-import play.api.Play.current
-import play.api.mvc._
 import uk.gov.hmrc.bforms.FrontendAuthConnector
 import uk.gov.hmrc.bforms.controllers.auth.BFormsAuth
 import uk.gov.hmrc.bforms.models.LandfillTaxDetails
@@ -28,34 +26,36 @@ import uk.gov.hmrc.play.frontend.auth.Actions
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.Future
-import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
+import scala.concurrent.{ExecutionContext, Future}
+import play.api.i18n.{I18nSupport, MessagesApi}
 
 @Singleton
-class LandfillTaxForm @Inject() extends FrontendController with Actions {
+class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
+  extends FrontendController with I18nSupport with Actions {
   self: BFormsAuth =>
 
   override lazy val authConnector: AuthConnector = FrontendAuthConnector
 
-  def landfillTaxFormDisplay(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext => implicit request =>
-    Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
+  def landfillTaxFormDisplay(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext =>
+    implicit request =>
+      Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
   }
 
-  def landfillTaxFormSubmitContinue(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext => implicit request =>
-    LandfillTaxDetails.form.bindFromRequest().fold(
-      formWithErrors =>
-        Future.successful(
-          BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
-        ),
-      formData =>
-        TaxFormSubmission.submitTaxForm(formData).map {
-          case SubmissionResult(Some(errorMessage), _) =>
-            val formWithErrors = LandfillTaxDetails.form.withGlobalError(errorMessage)
+  def landfillTaxFormSubmitContinue(registrationNumber: String) = AsyncAuthenticatedAction { implicit authContext =>
+    implicit request =>
+      LandfillTaxDetails.form.bindFromRequest().fold(
+        formWithErrors =>
+          Future.successful(
             BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
-          case SubmissionResult(noErrors, Some(submissionAcknowledgement)) =>
-            Redirect(routes.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(registrationNumber, submissionAcknowledgement))
-        }
-    )
+          ),
+        formData =>
+          TaxFormSubmission.submitTaxForm(formData).map {
+            case SubmissionResult(Some(errorMessage), _) =>
+              val formWithErrors = LandfillTaxDetails.form.withGlobalError(errorMessage)
+              BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
+            case SubmissionResult(noErrors, Some(submissionAcknowledgement)) =>
+              Redirect(routes.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(registrationNumber, submissionAcknowledgement))
+          }
+      )
   }
 }
