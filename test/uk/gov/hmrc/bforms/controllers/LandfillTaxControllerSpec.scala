@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,12 @@ import play.api.http.Status
 import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.frontend.auth.AuthContext
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
-import uk.gov.hmrc.play.http.HttpGet
 import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.bforms.controllers.auth.{TestBFormsAuth, TestUsers}
 
 import scala.concurrent.ExecutionContext
 
 
-class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with TestUsers with CSRFTest {
+class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with CSRFTest {
 
   implicit val ec = app.injector.instanceOf[ExecutionContext]
   implicit val messagesApi = app.injector.instanceOf[MessagesApi]
@@ -40,14 +36,14 @@ class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPe
 
   "GET /landfill-tax" should {
     "return 200" in {
-      val controller = landfillTaxController(agentUser)
+      val controller = landfillTaxController
 
       val result = controller.landfillTaxDisplay("")(fakeRequest).futureValue
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val controller = landfillTaxController(agentUser)
+      val controller = landfillTaxController
 
       val result = controller.landfillTaxDisplay("YZAL123")(fakeRequest)
       contentType(result) shouldBe Some("text/html")
@@ -57,18 +53,8 @@ class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPe
     }
   }
 
-  def landfillTaxController(user: AuthContext)(implicit messagesApi: MessagesApi) = {
-    new LandfillTax(messagesApi) with TestBFormsAuth {
-
-      override lazy val authConnector: AuthConnector = new AuthConnector {
-        def http: HttpGet = ???
-
-        val serviceUrl: String = "test-service-url"
-
-      }
-
-      def authContext: AuthContext = user
-    }
+  def landfillTaxController(implicit messagesApi: MessagesApi) = {
+    new LandfillTax(messagesApi)
   }
 
 
