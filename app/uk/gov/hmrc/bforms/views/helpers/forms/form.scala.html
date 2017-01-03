@@ -1,0 +1,18 @@
+@*
+Create an HTML form element with specified content.
+
+The form includes the Cross Site Request Filter (CSRF) to be added to yout application:
+https://www.playframework.com/documentation/2.3.x/ScalaCsrf
+
+    @param action Call The reverse route to the form's submit controller method
+    @param args (Symbol, String) HTML element attributes to apply directly to the form tag
+    @param body Html content of the form, including fields, labels, etc
+*@
+@import play.twirl.api.Html
+@(action: play.api.mvc.Call, args: (Symbol,String)*)(body:Html)(implicit requestHeader:RequestHeader)
+@import views.html.helper.CSRF
+<form action="@action.url" method="@action.method" @toHtmlArgs(args.toMap) autocomplete="off" novalidate="novalidate">
+    @{CSRF.formField}
+    @body
+</form>
+

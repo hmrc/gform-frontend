@@ -1,0 +1,16 @@
+@(registrationNumber : String, submissionAcknowledgement : String)(implicit request: Request[_], messages: Messages))
+
+@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax", bodyClasses = None) {
+    <header class="page-header text">
+        <h1>Landfill Tax Return</h1>
+    </header>
+    <p class="subsection">
+        <h2>Submission confirmation</h2>
+    </p>
+    <p class="subsection">
+        Landfill Tax registration number: @registrationNumber
+    </p>
+    <p class="subsection">
+        Landfill Tax acknowledgement code: @submissionAcknowledgement
+    </p>
+}
