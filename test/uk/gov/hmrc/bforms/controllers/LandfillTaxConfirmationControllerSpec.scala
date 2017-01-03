@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,12 @@ import play.api.http.Status
 import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.bforms.controllers.auth.{TestBFormsAuth, TestUsers}
-import uk.gov.hmrc.play.frontend.auth.AuthContext
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
-import uk.gov.hmrc.play.http.HttpGet
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.ExecutionContext
 
 
-class LandfillTaxConfirmationControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with TestUsers with CSRFTest {
+class LandfillTaxConfirmationControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with CSRFTest {
 
   implicit val ec = app.injector.instanceOf[ExecutionContext]
   implicit val messagesApi = app.injector.instanceOf[MessagesApi]
@@ -40,14 +36,14 @@ class LandfillTaxConfirmationControllerSpec extends UnitSpec with ScalaFutures w
 
   "GET /landfill-tax-confirmation" should {
     "return 200" in {
-      val controller = landfillTaxConfirmationController(agentUser)
+      val controller = landfillTaxConfirmationController
 
       val result = controller.landfillTaxConfirmationDisplay("", "")(fakeRequest).futureValue
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val controller = landfillTaxConfirmationController(agentUser)
+      val controller = landfillTaxConfirmationController
 
       val result = controller.landfillTaxConfirmationDisplay("YZAL123", "CONF987CONF")(fakeRequest)
       contentType(result) shouldBe Some("text/html")
@@ -58,18 +54,8 @@ class LandfillTaxConfirmationControllerSpec extends UnitSpec with ScalaFutures w
     }
   }
 
-  def landfillTaxConfirmationController(user: AuthContext)(implicit messagesApi: MessagesApi) = {
-    new LandfillTaxConfirmation(messagesApi) with TestBFormsAuth {
-
-      override lazy val authConnector: AuthConnector = new AuthConnector {
-        def http: HttpGet = ???
-
-        val serviceUrl: String = "test-service-url"
-
-      }
-
-      def authContext: AuthContext = user
-    }
+  def landfillTaxConfirmationController(implicit messagesApi: MessagesApi) = {
+    new LandfillTaxConfirmation(messagesApi)
   }
 
 
