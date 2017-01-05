@@ -18,7 +18,7 @@ package uk.gov.hmrc.bforms.repositories
 
 import reactivemongo.api.DB
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.bforms.models.LandfillTaxDetailsForm
+import uk.gov.hmrc.bforms.models.{LandFillTaxDetailsPersistence, LandfillTaxDetailsForm}
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
 
@@ -37,9 +37,9 @@ trait LandFillTaxDetails {
 
 class LandFillTaxDetailsRepository(implicit mongo : () => DB) extends ReactiveRepository[LandfillTaxDetailsForm, BSONObjectID]("formData", mongo, LandfillTaxDetailsForm.oFormat) with LandFillTaxDetailsObject {
 
-  def storeForm(form : ): Future[Either[String, Unit]] = {
+  def storeForm(form : LandFillTaxDetailsForm): Future[Either[String, Unit]] = {
 
-   val store = LandfillTaxDetailsForm(form.firstName, form.secondName)
+   val store = LandFillTaxDetailsPersistence(form.firstName, form.secondName, form.)
    insert(store) map {
      case r if r.ok =>
        logger.info(s"form with details of '${form.firstName}' & '${form.secondName}' was successfully stored")
