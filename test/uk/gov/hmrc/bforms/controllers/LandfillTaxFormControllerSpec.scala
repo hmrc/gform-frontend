@@ -27,25 +27,25 @@ import uk.gov.hmrc.play.test.UnitSpec
 import scala.concurrent.ExecutionContext
 
 
-class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with CSRFTest {
+class LandfillTaxFormControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with CSRFTest {
 
   implicit val ec = app.injector.instanceOf[ExecutionContext]
   implicit val messagesApi = app.injector.instanceOf[MessagesApi]
 
-  val fakeRequest = addToken(FakeRequest("GET", "/landfill-tax"))
+  val fakeRequest = addToken(FakeRequest("GET", "/landfill-tax-form"))
 
-  "GET /landfill-tax" should {
+  "GET /landfill-tax-form" should {
     "return 200" in {
-      val controller = landfillTaxController
+      val controller = landfillTaxFormController
 
-      val result = controller.landfillTaxDisplay("")(fakeRequest).futureValue
+      val result = controller.landfillTaxFormDisplay("")(fakeRequest).futureValue
       status(result) shouldBe Status.OK
     }
 
     "return HTML" in {
-      val controller = landfillTaxController
+      val controller = landfillTaxFormController
 
-      val result = controller.landfillTaxDisplay("YZAL123")(fakeRequest)
+      val result = controller.landfillTaxFormDisplay("YZAL123")(fakeRequest)
       contentType(result) shouldBe Some("text/html")
       charset(result) shouldBe Some("utf-8")
       contentAsString(result) should include("landfill tax")
@@ -53,8 +53,8 @@ class LandfillTaxControllerSpec extends UnitSpec with ScalaFutures with OneAppPe
     }
   }
 
-  def landfillTaxController(implicit messagesApi: MessagesApi) = {
-    new LandfillTax(messagesApi)
+  def landfillTaxFormController(implicit messagesApi: MessagesApi) = {
+    new LandfillTaxForm(messagesApi)
   }
 
 

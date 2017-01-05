@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,23 @@
 
 package uk.gov.hmrc.bforms.controllers
 
-import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
-import play.api.mvc._
+import javax.inject.{Inject, Singleton}
+
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.mvc.Action
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object LandfillTax extends LandfillTax
+@Singleton
+class LandfillTax @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
+  extends FrontendController with I18nSupport {
 
-trait LandfillTax extends FrontendController {
-  def landfillTaxDisplay (registrationNumber : String) = Action.async { implicit request =>
-		Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
+  def landfillTaxDisplay(registrationNumber: String) = Action.async { implicit request =>
+    Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
   }
-  def landfillTaxSubmitContinue(registrationNumber : String) = Action.async { Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber))) }
+
+  def landfillTaxSubmitContinue(registrationNumber: String) = Action.async {
+    Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber)))
+  }
 }
