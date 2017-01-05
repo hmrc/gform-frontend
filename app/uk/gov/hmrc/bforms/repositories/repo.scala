@@ -37,7 +37,7 @@ trait LandFillTaxDetails {
 
 class LandFillTaxDetailsRepository(implicit mongo : () => DB) extends ReactiveRepository[LandfillTaxDetailsForm, BSONObjectID]("formData", mongo, LandfillTaxDetailsForm.oFormat) with LandFillTaxDetailsObject {
 
-  def storeForm(form : LandfillTaxDetails): Future[Either[String, Unit]] = {
+  def storeForm(form : ): Future[Either[String, Unit]] = {
 
    val store = LandfillTaxDetailsForm(form.firstName, form.secondName)
    insert(store) map {
@@ -55,5 +55,5 @@ class LandFillTaxDetailsRepository(implicit mongo : () => DB) extends ReactiveRe
   }
 }
 
-object somethingObject extends LandFillTaxDetailsRepository
+object LandFillTaxDetailsObject extends LandFillTaxDetailsRepository
 
