@@ -39,7 +39,7 @@ class LandfillTax @Inject()(val messagesApi: MessagesApi)(implicit ec: Execution
       case _ => Future.successful(Ok("Failed"))
       case _ => Future.successful(Ok("Worked"))
     }
-    Future.successful(Ok())
+    Future.successful(Ok("something"))
   }
 
   def landfillTaxSubmitContinue(registrationNumber: String) = Action.async {

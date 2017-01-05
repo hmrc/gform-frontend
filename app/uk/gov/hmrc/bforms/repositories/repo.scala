@@ -35,11 +35,11 @@ trait LandFillTaxDetails {
 
 }
 
-class LandFillTaxDetailsRepository(implicit mongo : () => DB) extends ReactiveRepository[LandfillTaxDetailsForm, BSONObjectID]("formData", mongo, LandfillTaxDetailsForm.oFormat) with LandFillTaxDetailsObject {
+class LandFillTaxDetailsRepository(implicit mongo : () => DB) extends ReactiveRepository[LandfillTaxDetailsForm, BSONObjectID]("formData", mongo, LandfillTaxDetailsForm.oFormat)  {
 
   def storeForm(form : LandFillTaxDetailsForm): Future[Either[String, Unit]] = {
 
-   val store = LandFillTaxDetailsPersistence(form.firstName, form.secondName, form.)
+   val store = LandFillTaxDetailsPersistence(form.firstName, form.secondName, form.blue)
    insert(store) map {
      case r if r.ok =>
        logger.info(s"form with details of '${form.firstName}' & '${form.secondName}' was successfully stored")
@@ -56,4 +56,3 @@ class LandFillTaxDetailsRepository(implicit mongo : () => DB) extends ReactiveRe
 }
 
 object LandFillTaxDetailsObject extends LandFillTaxDetailsRepository
-
