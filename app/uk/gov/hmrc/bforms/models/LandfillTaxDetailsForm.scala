@@ -24,15 +24,10 @@ import play.api.libs.json._
   * Created by daniel-connelly on 22/12/16.
   */
 
-case class LandfillTaxDetailsForm(firstName:FirstName, secondName : SecondName)
+case class LandfillTaxDetailsForm(firstName:String, secondName : String)
 
 // does this just turn the case class into a json format ?
-object LandFillTaxDetailsParser {
 
-//  def splitUpFormData[A](something:Seq[A]): LandfillTaxDetailsForm = {
-//  }
-
-}
 object LandfillTaxDetailsForm {
 
   implicit val oFormat : OFormat[LandfillTaxDetailsForm] = Json.format[LandfillTaxDetailsForm]
