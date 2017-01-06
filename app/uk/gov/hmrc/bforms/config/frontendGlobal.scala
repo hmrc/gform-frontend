@@ -73,12 +73,12 @@ object AuditFilter extends FrontendAuditFilter with RunMode with AppName with Mi
   override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
 }
 
-class GuiceModule() extends AbstractModule {
+class Module() extends AbstractModule {
   def configure() = {
-    bind(classOf[DB]).toProvider(classOf[MongoDBProvider]).asEagerSingleton()
+    bind(classOf[DB]).toProvider(classOf[MongoDbProvider]).asEagerSingleton()
   }
 }
 
-class MongoDBProvider @Inject()(reactiveMongoComponent: ReactiveMongoComponent) extends Provider[DB] {
+class MongoDbProvider @Inject()(reactiveMongoComponent : ReactiveMongoComponent) extends Provider[DB] {
   def get = reactiveMongoComponent.mongoConnector.db()
 }

@@ -52,10 +52,6 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
 
 }
 
-object LandFillTaxDetailsPersistence {
-  implicit val oFormat: OFormat[LandFillTaxDetailsPersistence] = Json.format[LandFillTaxDetailsPersistence]
-}
-
 class FirstName(val value:String) extends AnyVal
 class LastName(val value:String) extends AnyVal
 class TelephoneNumber(val value:String) extends AnyVal

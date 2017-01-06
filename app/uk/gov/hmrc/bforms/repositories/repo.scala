@@ -19,7 +19,6 @@ package uk.gov.hmrc.bforms.repositories
 import javax.inject.Inject
 
 import com.google.inject.Singleton
-import com.sun.xml.internal.bind.v2.TODO
 import play.api.libs.json.{Format, Json}
 import reactivemongo.api.DB
 import uk.gov.hmrc.bforms.models.{FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName}
@@ -31,35 +30,6 @@ import scala.concurrent.Future
 /**
   * Created by daniel-connelly on 22/12/16.
   */
-//trait LandFillTaxDetailRepository {
-//
-//
-//  def storeForm(form : LandfillTaxDetails) : Future[Either[String, Unit]]
-//
-////  def deleteSubmittedForm(governmentGateWay : String)
-//}
-//
-//class LandFillTaxDetailsRepository(implicit mongo : () => DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, BSONObjectID]("formData", mongo, LandFillTaxDetailsPersistence.oFormat) with LandFillTaxDetailRepository  {
-//
-//  def storeForm(form : LandfillTaxDetails): Future[Either[String, Unit]] = {
-//
-//   val store = LandFillTaxDetailsPersistence("Something" , FirstName(form.firstName), LastName(form.lastName))
-//   insert(store) map {
-//     case r if r.ok =>
-//       logger.info(s"form with details of '${form.firstName}' & '${form.lastName}' was successfully stored")
-//       Right(())
-//     case r =>
-//       logger.error(s"form with details of '${form.firstName}' & '${form.lastName}' was not successfully stored")
-//       Left(r.message)
-//   }
-//  }
-//
-//  //Confirm what BSON object is.
-////  def deleteSubmittedForm(governmentGateway: String) = { //Change to GG
-////    removeById(new BSONObjectID(governmentGateway))
-////  }
-//}
-
 @Singleton
 class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepo {
 
@@ -74,13 +44,14 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
        }
   }
 
-  def get() = { TODO }
+  def get() = { ??? }
 }
 
-
-
-
 object LandFillTaxDetailsPersistence {
+
+  def apply(bleh : String, firstName:FirstName, lastName:LastName) = {
+    new LandFillTaxDetailsPersistence(bleh, firstName, lastName)
+  }
   val mongoFormat = Json.format[LandFillTaxDetailsPersistence]
 }
 

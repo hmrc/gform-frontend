@@ -14,9 +14,8 @@ landfillTaxFormSubmitContinue
 <h2>About you</h2>
     </p>
 
-    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
-
-        <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxSaveAndExit(rn : String).url method="POST">
+<form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+        <!--<form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.saveAndExit(registrationNumber : String).url method="POST"> -->
         @{
             CSRF.formField
         }
@@ -370,8 +369,6 @@ landfillTaxFormSubmitContinue
         <input type="hidden" name="registrationNumber" value="@registrationNumber" />
 
             <input type="submit" class="button" value="Save And Exit"/>
-            </form>
-        <input type="submit" class="button" value="Submit" />
 
     </form>
 

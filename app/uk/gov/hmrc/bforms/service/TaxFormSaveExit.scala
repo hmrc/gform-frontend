@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.bforms.service
 
-import uk.gov.hmrc.bforms.repositories.LandFillTaxDetailRepository
+import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
 import uk.gov.hmrc.bforms.models.LandfillTaxDetails
 
 import scala.concurrent.Future
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -38,18 +37,17 @@ object TaxFormSaveExit {
     }
   }
 
-  implicit def fasfsaf(implicit repository: LandFillTaxDetailRepository): TaxFormSaveExit[LandfillTaxDetails] = {
-    getTaxFormSaveExit((r : LandfillTaxDetails) =>  Future.successful(Right(())))
+  implicit def fasfsaf(implicit repository: LandFillTaxRepository): TaxFormSaveExit[LandfillTaxDetails] = {
+    getTaxFormSaveExit((r : LandfillTaxDetails) =>  repository.store(r))
   }
 }
 
 object SaveExit {
 
-  def SaveForm[A](formDetails:String)(implicit taxFormSaveExit:TaxFormSaveExit[A]):Future[Unit] = {
-//    taxFormSaveExit(formDetails).map {
-//      case Right(_) => ()
-//      case Left(x) => x
-//    }
-    Future.successful(())
+  def SaveForm[A](formDetails:A)(implicit taxFormSaveExit:TaxFormSaveExit[A]):Future[Boolean] = {
+    taxFormSaveExit(formDetails).map {
+      case _ => true
+      case x => false
+    }
   }
 }
