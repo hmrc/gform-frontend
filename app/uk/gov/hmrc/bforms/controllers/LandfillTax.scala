@@ -20,7 +20,8 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
-import uk.gov.hmrc.bforms.repositories.LandFillTaxDetailsObject
+import uk.gov.hmrc.bforms.models.LandfillTaxDetails
+import uk.gov.hmrc.bforms.service._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,14 +34,6 @@ class LandfillTax @Inject()(val messagesApi: MessagesApi)(implicit ec: Execution
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
   }
 
-  def landfillTaxSaveAndExit(registrationNumber : String) = Action.async { implicit request =>
-//    LandFillTaxForm.
-    LandFillTaxDetailsObject.storeForm() map {
-      case _ => Future.successful(Ok("Failed"))
-      case _ => Future.successful(Ok("Worked"))
-    }
-    Future.successful(Ok("something"))
-  }
 
   def landfillTaxSubmitContinue(registrationNumber: String) = Action.async {
     Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber)))
