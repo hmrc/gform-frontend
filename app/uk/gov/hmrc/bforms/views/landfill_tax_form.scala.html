@@ -5,7 +5,6 @@
 @import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import views.html.helper.CSRF
-
 landfillTaxFormSubmitContinue
 @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
     <header class="page-header text">
@@ -76,8 +75,6 @@ landfillTaxFormSubmitContinue
                 >
             </label>
         </fieldset>
-
-
 
         <fieldset class="form-field-group@if(landfillTaxForm("status").hasErrors) { form-field-group--error}">
             <label for="arn">
