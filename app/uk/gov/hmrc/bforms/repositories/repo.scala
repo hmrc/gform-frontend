@@ -22,7 +22,7 @@ import javax.inject.Inject
 import com.google.inject.Singleton
 import play.api.libs.json.{Format, Json}
 import reactivemongo.api.DB
-import uk.gov.hmrc.bforms.models.{AccountingPeriodEndDate, AccountingPeriodStartDate, BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody1, EnvironmentalBody2, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
+import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody1, EnvironmentalBody2, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,8 +38,8 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
     val store = LandFillTaxDetailsPersistence("Something" , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
       Status(form.status),
       NameOfBusiness(form.nameOfBusiness),
-      AccountingPeriodStartDate(form.accountingPeriodStartDate),
-      AccountingPeriodEndDate(form.accountingPeriodEndDate),
+      form.accountingPeriodStartDate,
+      form.accountingPeriodEndDate,
       TaxDueForThisPeriod(form.taxDueForThisPeriod),
       UnderDeclarationsFromPreviousPeriod(form.underDeclarationsFromPreviousPeriod),
       OverDeclarationsForThisPeriod(form.overDeclarationsForThisPeriod),
@@ -47,12 +47,13 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
       BadDebtReliefClaimed(form.badDebtReliefClaimed),
       OtherCredits(form.otherCredits),
       StandardRateWaste(form.standardRateWaste),
-      lowerRateWaste: String,
-      exemptWaste: String,
-      environmentalBody1: String,
-      environmentalBody2: Option[String],
-      emailAddress: Option[String],
-      confirmEmailAddress: Option[String])
+      LowerRateWaste(form.lowerRateWaste),
+      ExemptWaste(form.exemptWaste),
+      EnvironmentalBody1(form.environmentalBody1),
+      EnvironmentalBody2(form.environmentalBody2.getOrElse("None")),
+      EmailAddress(form.emailAddress.getOrElse("None")),
+      ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
+    )
        insert(store) map {
          case r if r.ok =>
            logger.info(s"form with details of '${form.firstName}' & '${form.lastName}' was successfully stored")
@@ -68,14 +69,14 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
 
 object LandFillTaxDetailsPersistence {
 
-  def apply(bleh : String,
+  def apply(id : String,
             firstName:FirstName,
             lastName:LastName,
             telephoneNumber:TelephoneNumber,
             status: Status,
             nameOfBusiness: NameOfBusiness,
-            accountingPeriodStartDate: AccountingPeriodStartDate,
-            accountingPeriodEndDate: AccountingPeriodEndDate,
+            accountingPeriodStartDate: LocalDate,
+            accountingPeriodEndDate: LocalDate,
             taxDueForThisPeriod: TaxDueForThisPeriod,
             underDeclarationsFromPreviousPeriod: UnderDeclarationsFromPreviousPeriod,
             overDeclarationsForThisPeriod: OverDeclarationsForThisPeriod,
@@ -89,7 +90,7 @@ object LandFillTaxDetailsPersistence {
             environmentalBody2: EnvironmentalBody2,
             emailAddress: EmailAddress,
             confirmEmailAddress: ConfirmEmailAddress) = {
-    new LandFillTaxDetailsPersistence(bleh,
+    new LandFillTaxDetailsPersistence(id,
       firstName,
       lastName,
       telephoneNumber,

@@ -18,6 +18,7 @@ package uk.gov.hmrc.bforms.models
 
 import java.time.LocalDate
 
+import akka.util.Helpers.Requiring
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
@@ -44,8 +45,6 @@ case class LandfillTaxDetails(
                                environmentalBody2: Option[String],
                                emailAddress: Option[String],
                                confirmEmailAddress: Option[String]
-
-
                              )
 
 object LandfillTaxDetails {
@@ -57,8 +56,8 @@ object LandfillTaxDetails {
     "telephoneNumber" -> text,
     "status" -> text,
     "nameOfBusiness" -> text,
-    "accountingPeriodStartDate" -> localDate,
-    "accountingPeriodEndDate" -> localDate,
+    "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
+    "accountingPeriodEndDate" -> localDate("dd/MM/yyyy"),
     "taxDueForThisPeriod" -> text,
     "underDeclarationsFromPreviousPeriod" -> text,
     "overDeclarationsForThisPeriod" -> text,

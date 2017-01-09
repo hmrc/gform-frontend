@@ -34,7 +34,6 @@ class LandfillTax @Inject()(val messagesApi: MessagesApi)(implicit ec: Execution
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
   }
 
-
   def landfillTaxSubmitContinue(registrationNumber: String) = Action.async {
     Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber)))
   }

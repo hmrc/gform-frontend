@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.bforms.models
 
-
-import com.sun.xml.internal.bind.v2.TODO
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, OFormat, _}
 import org.apache.commons.lang3.RandomStringUtils
-import org.joda.time.LocalDate
-import play.api.Logger
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+import play.data.format.Formats.DateFormatter
 
 /**
   * Created by daniel-connelly on 05/01/17.
@@ -32,8 +32,8 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          telephoneNumber: TelephoneNumber = new TelephoneNumber(""),
                                          status: Status = new Status(""),
                                          nameOfBusiness: NameOfBusiness = new NameOfBusiness(""),
-                                         accountingPeriodStartDate: AccountingPeriodStartDate = new AccountingPeriodStartDate(new LocalDate()),
-                                         accountingPeriodEndDate: AccountingPeriodEndDate = new AccountingPeriodEndDate(new LocalDate()),
+                                         accountingPeriodStartDate: LocalDate = LocalDate.now,
+                                         accountingPeriodEndDate: LocalDate = LocalDate.now,
                                          taxDueForThisPeriod: TaxDueForThisPeriod = new TaxDueForThisPeriod(""),
                                          underDeclarationsFromPreviousPeriod: UnderDeclarationsFromPreviousPeriod = new UnderDeclarationsFromPreviousPeriod(""),
                                          overDeclarationsForThisPeriod: OverDeclarationsForThisPeriod = new OverDeclarationsForThisPeriod(""),
@@ -47,9 +47,8 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          environmentalBody2: EnvironmentalBody2 = new EnvironmentalBody2(Some("")),
                                          emailAddress: EmailAddress = new EmailAddress(Some("")),
                                          confirmEmailAddress: ConfirmEmailAddress = new ConfirmEmailAddress(Some("")),
-                                         datePersisted : LocalDate = new LocalDate
+                                         datePersisted : LocalDate = LocalDate.now
                                         ){
-
 }
 
 class FirstName(val value:String) extends AnyVal
@@ -57,8 +56,8 @@ class LastName(val value:String) extends AnyVal
 class TelephoneNumber(val value:String) extends AnyVal
 class Status (val value:String) extends AnyVal
 class NameOfBusiness(val value:String) extends AnyVal
-class AccountingPeriodStartDate(val value:LocalDate) extends AnyVal
-class AccountingPeriodEndDate(val value:LocalDate) extends AnyVal
+//class AccountingPeriodStartDate(val value:LocalDate) extends AnyVal
+//class AccountingPeriodEndDate(val value:LocalDate) extends AnyVal
 class TaxDueForThisPeriod(val value:String) extends AnyVal
 class UnderDeclarationsFromPreviousPeriod(val value:String) extends AnyVal
 class OverDeclarationsForThisPeriod(val value:String) extends AnyVal
@@ -104,17 +103,17 @@ object NameOfBusiness {
   implicit val format : Format[NameOfBusiness] = ValueClassFormat.format(NameOfBusiness.apply)(_.value)
 }
 
-object AccountingPeriodStartDate {
-  def apply(value: LocalDate) = new AccountingPeriodStartDate(value)
-
-//  implicit val format : Format[AccountingPeriodStartDate] = ValueClassFormat.format(AccountingPeriodStartDate.apply)(_.value)
-}
-
-object AccountingPeriodEndDate {
-  def apply(value: LocalDate) = new AccountingPeriodEndDate(value)
-
-//  implicit val format : Format[AccountingPeriodEndDate] = ValueClassFormat.format(AccountingPeriodEndDate.apply)(_.value)
-}
+//object AccountingPeriodStartDate {
+//  def apply(value: LocalDate) = new AccountingPeriodStartDate(value)
+//
+//  implicit val format : Format[AccountingPeriodStartDate] = ValueClassFormatLocalDate.format(AccountingPeriodStartDate.apply)(_.value)
+//}
+//
+//object AccountingPeriodEndDate {
+//  def apply(value: LocalDate) = new AccountingPeriodEndDate(value)
+//
+//  implicit val format : Format[AccountingPeriodEndDate] =  ValueClassFormatLocalDate.format(AccountingPeriodEndDate.apply)(_.value)
+//}
 
 object TaxDueForThisPeriod {
   def apply(value: String) = new TaxDueForThisPeriod(value)
@@ -179,12 +178,7 @@ object EnvironmentalBody1 {
 object EnvironmentalBody2 {
   def apply(value: String) = new EnvironmentalBody2(Some(value))
 
-//  try {
     implicit val format: Format[EnvironmentalBody2] = ValueClassFormat.format(EnvironmentalBody2.apply)(_.value.getOrElse("None"))
-//  } catch {
-//    case e : Exception => Logger.error("None.get exception met need some message here.")
-//  }
-  //Possible to have a None.get Exeption here discuss with dave on various solutions.
 }
 
 object EmailAddress {
@@ -213,18 +207,12 @@ object ValueClassFormat {
   }
 }
 
-//Ask Dave ***
-//object ValueClassFormat {
-//  def format[A: Format](fromDateToA: LocalDate => A)(fromAToLocalDate: A => LocalDate) = {
-//    new Format[A] {
-//      def reads(json: JsValue): JsResult[A] = {
-//        json match {
-//          case JsString(str) => JsSuccess(fromDateToA(str))
-//          case unknown => JsError(s"JsString value expected, got: $unknown")
-//        }
-//      }
-//      TODO
-//      def writes(a: A): JsValue = JsString(fromAToLocalDate(a))
-//    }
-//  }
-//}
+object ValueClassFormatLocalDate {
+  def format[A: Format](fromDateToA: LocalDate => A)(fromAToDate: A => LocalDate) = {
+    new Format[LocalDate] {
+      override def reads(json: JsValue) : JsResult[LocalDate]= json.validate[String].map(LocalDate.parse)
+
+      override def writes(a: LocalDate): JsValue = Json.toJson(a.toString)
+    }
+  }
+}
