@@ -38,6 +38,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("firstName").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[A-Za-z][A-zÀ-ú]"
                 >
             </label>
         </fieldset>
@@ -53,6 +54,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("lastName").value"
                 class="form-control form-control--block"
                 required
+                pattern="[A-Za-z][A-zÀ-ú]"
                 >
             </label>
         </fieldset>
@@ -69,6 +71,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("telephoneNumber").value"
                 class="form-control form-control--block"
                 required
+                    pattern=".{3,}"
                 >
             </label>
         </fieldset>
@@ -116,6 +119,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("accountingPeriodStartDate").value"
                 class="form-control form-control--block"
                 required
+                    pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
                 >
             </label>
         </fieldset>
@@ -132,6 +136,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("accountingPeriodEndDate").value"
                 class="form-control form-control--block"
                 required
+                pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
                 >
             </label>
         </fieldset>
@@ -140,7 +145,7 @@ landfillTaxFormSubmitContinue
             <label for="arn">
                 <h3> Tax Due For This Period </h3>
                 <p>Do not include any bad debt relief or credits</p>
-                @errorInline("taxDueForThisPeriod", "Please enter the start date of the accounting period", Seq("optional-extra-css-classes"))
+                @errorInline("taxDueForThisPeriod", "Please enter a valid amount", Seq("optional-extra-css-classes"))
                 <input
                 type="text"
                 name="taxDueForThisPeriod"
@@ -148,6 +153,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("taxDueForThisPeriod").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -185,6 +191,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("underDeclarationsFromPreviousPeriod").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -200,6 +207,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("overDeclarationsForThisPeriod").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -216,6 +224,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("taxCreditClaimedForEnvironment").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -231,6 +240,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("badDebtReliefClaimed").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -247,6 +257,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("otherCredits").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -263,6 +274,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("standardRateWaste").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -278,6 +290,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("lowerRateWaste").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -293,6 +306,7 @@ landfillTaxFormSubmitContinue
                 value="@landfillTaxForm("exemptWaste").value"
                 class="form-control form-control--block"
                 required
+                    pattern="[0-9 .]"
                 >
             </label>
         </fieldset>
@@ -322,7 +336,6 @@ landfillTaxFormSubmitContinue
                 id="environmentalBody2"
                 value="@landfillTaxForm("environmentalBody2").value"
                 class="form-control form-control--block"
-                required
                 >
             </label>
         </fieldset>
@@ -345,7 +358,6 @@ landfillTaxFormSubmitContinue
                 id="emailAddress"
                 value="@landfillTaxForm("emailAddress").value"
                 class="form-control form-control--block"
-                required
                 >
             </label>
         </fieldset>
@@ -360,7 +372,6 @@ landfillTaxFormSubmitContinue
                 id="confirmEmailAddress"
                 value="@landfillTaxForm("confirmEmailAddress").value"
                 class="form-control form-control--block"
-                required
                 >
             </label>
         </fieldset>
