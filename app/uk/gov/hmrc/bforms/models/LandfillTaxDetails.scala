@@ -22,7 +22,9 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
 
+
 case class environmentalBody(bodyName: String, amount: String)
+
 object environmentalBody{
   implicit val formats = Json.format[environmentalBody]
 }
