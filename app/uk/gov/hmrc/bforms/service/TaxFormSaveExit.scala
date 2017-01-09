@@ -37,7 +37,7 @@ object TaxFormSaveExit {
     }
   }
 
-  implicit def fasfsaf(implicit repository: LandFillTaxRepository): TaxFormSaveExit[LandfillTaxDetails] = {
+  implicit def nameLater(implicit repository: LandFillTaxRepository): TaxFormSaveExit[LandfillTaxDetails] = {
     getTaxFormSaveExit((r : LandfillTaxDetails) =>  repository.store(r))
   }
 }

@@ -25,6 +25,7 @@ import play.api.libs.json.Json
 
 
 case class LandfillTaxDetails(
+                              save:String,
                                firstName: String,
                                lastName: String,
                                telephoneNumber: String,
@@ -51,27 +52,27 @@ object LandfillTaxDetails {
   implicit val formats = Json.format[LandfillTaxDetails]
 
   val form = Form(mapping(
-    "firstName" -> text,
-    "lastName" -> text,
-    "telephoneNumber" -> text,
-    "status" -> text,
-    "nameOfBusiness" -> text,
+    "save" -> nonEmptyText,
+    "firstName" -> nonEmptyText,
+    "lastName" -> nonEmptyText,
+    "telephoneNumber" -> nonEmptyText(minLength = 3),
+    "status" -> nonEmptyText,
+    "nameOfBusiness" -> nonEmptyText,
     "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
     "accountingPeriodEndDate" -> localDate("dd/MM/yyyy"),
-    "taxDueForThisPeriod" -> text,
-    "underDeclarationsFromPreviousPeriod" -> text,
-    "overDeclarationsForThisPeriod" -> text,
-    "taxCreditClaimedForEnvironment" -> text,
-    "badDebtReliefClaimed" -> text,
-    "otherCredits" -> text,
-    "standardRateWaste" -> text,
-    "lowerRateWaste" -> text,
-    "exemptWaste" -> text,
-    "environmentalBody1" -> text,
+    "taxDueForThisPeriod" -> nonEmptyText,
+    "underDeclarationsFromPreviousPeriod" -> nonEmptyText,
+    "overDeclarationsForThisPeriod" -> nonEmptyText,
+    "taxCreditClaimedForEnvironment" -> nonEmptyText,
+    "badDebtReliefClaimed" -> nonEmptyText,
+    "otherCredits" -> nonEmptyText,
+    "standardRateWaste" -> nonEmptyText,
+    "lowerRateWaste" -> nonEmptyText,
+    "exemptWaste" -> nonEmptyText,
+    "environmentalBody1" -> nonEmptyText,
+//>>>>>>> cb3d39df3f42eaa6a3e612a75266e5eb5035ba96
     "environmentalBody2" -> optional(text),
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
-
-
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))
 }

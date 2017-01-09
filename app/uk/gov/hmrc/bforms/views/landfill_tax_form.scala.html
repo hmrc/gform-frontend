@@ -16,7 +16,7 @@ landfillTaxFormSubmitContinue
 
 <!--<form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">-->
 
-    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.saveAndExit(registrationNumber : String).url method="POST" >
+    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxForms(registrationNumber : String).url method="POST" >
     @{
     CSRF.formField
     }
@@ -37,6 +37,7 @@ landfillTaxFormSubmitContinue
                 name="firstName"
                 id="firstname"
                 value="@landfillTaxForm("firstName").value"
+
         class="form-control form-control--block"
         >
     </label>
@@ -47,14 +48,12 @@ landfillTaxFormSubmitContinue
         <h3> Your Last name </h3>
         @errorInline("lastName", "Please enter your last name", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="lastName"
-                id="lastname"
-                value="@landfillTaxForm("lastName").value"
-        class="form-control form-control--block"
-        >
-    </label>
-    </fieldset>
+
+                class="form-control form-control--block"
+                    pattern="[A-Za-z][A-zÀ-ú]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("telephoneNumber").hasErrors) { form-field-group--error}">
     <label for="arn">
@@ -62,14 +61,12 @@ landfillTaxFormSubmitContinue
         <p>If this is a UK landline or an overseas number, you must include the area or dialling code.</p>
         @errorInline("telephoneNumber", "Please enter your telephone number", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="telephoneNumber"
-                id="telephoneNumber"
-                value="@landfillTaxForm("telephoneNumber").value"
-        class="form-control form-control--block"
-        >
-    </label>
-    </fieldset>
+
+                class="form-control form-control--block"
+                pattern="[A-Za-z][A-zÀ-ú]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("status").hasErrors) { form-field-group--error}">
     <label for="arn">
@@ -77,15 +74,12 @@ landfillTaxFormSubmitContinue
         <p>For example Director, Company Secretary, Agent</p>
         @errorInline("status", "Please enter your status", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="status"
-                id="status"
-                value="@landfillTaxForm("status").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+                    pattern=".{3,}"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("nameOfBusiness").hasErrors) { form-field-group--error}">
     <label for="arn">
@@ -112,6 +106,7 @@ landfillTaxFormSubmitContinue
                 name="accountingPeriodStartDate"
                 id="accountingPeriodStartDate"
                 value="@landfillTaxForm("accountingPeriodStartDate").value"
+
         class="form-control form-control--block"
         >
     </label>
@@ -123,14 +118,12 @@ landfillTaxFormSubmitContinue
         <p>For example 20/03/2015</p>
         @errorInline("accountingPeriodEndDate", "Please enter the end date of the accounting period", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="accountingPeriodEndDate"
-                id="accountingPeriodEndDate"
-                value="@landfillTaxForm("accountingPeriodEndDate").value"
-        class="form-control form-control--block"
-        >
-    </label>
-    </fieldset>
+
+                class="form-control form-control--block"
+                    pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("taxDueForThisPeriod").hasErrors) { form-field-group--error}">
     <label for="arn">
@@ -138,14 +131,12 @@ landfillTaxFormSubmitContinue
         <p>Do not include any bad debt relief or credits</p>
         @errorInline("taxDueForThisPeriod", "Please enter a valid amount", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="taxDueForThisPeriod"
-                id="taxDueForThisPeriod"
-                value="@landfillTaxForm("taxDueForThisPeriod").value"
-        class="form-control form-control--block"
-        >
-    </label>
-    </fieldset>
+
+                class="form-control form-control--block"
+                pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
+                >
+            </label>
+        </fieldset>
 
     <p>If you have declared the wrong amount on any of your previous returns, you can include errors of up to £10,000.<br>
         <br>
@@ -174,30 +165,26 @@ landfillTaxFormSubmitContinue
         <h3>Under Declarations From Previous Period </h3>
         @errorInline("underDeclarationsFromPreviousPeriod", "Please Enter Under Declarations From Previous Period", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="underDeclarationsFromPreviousPeriod"
-                id="underDeclarationsFromPreviousPeriod"
-                value="@landfillTaxForm("underDeclarationsFromPreviousPeriod").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("overDeclarationsForThisPeriod").hasErrors) { form-field-group--error}">
     <label for="arn">
         <h3> Over Declarations For This Period</h3>
         @errorInline("overDeclarationsForThisPeriod", "Please Enter Over Declarations For This Period", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="overDeclarationsForThisPeriod"
-                id="overDeclarationsForThisPeriod"
-                value="@landfillTaxForm("overDeclarationsForThisPeriod").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("taxCreditClaimedForEnvironment").hasErrors) { form-field-group--error}">
     <label for="arn">
@@ -205,30 +192,25 @@ landfillTaxFormSubmitContinue
         <p>The rules for claiming credit are set out in notice LFT1</p>
         @errorInline("taxCreditClaimedForEnvironment", "Please Enter Tax Credit Claimed For Environment", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="taxCreditClaimedForEnvironment"
-                id="taxCreditClaimedForEnvironment"
-                value="@landfillTaxForm("taxCreditClaimedForEnvironment").value"
-        class="form-control form-control--block"
+                class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("badDebtReliefClaimed").hasErrors) { form-field-group--error}">
     <label for="arn">
         <h3>  Bad Debt Relief Claimed </h3>
         @errorInline("badDebtReliefClaimed", "Please Enter Bad Debt Relief Claimed", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="badDebtReliefClaimed"
-                id="badDebtReliefClaimed"
-                value="@landfillTaxForm("badDebtReliefClaimed").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("otherCredits").hasErrors) { form-field-group--error}">
     <label for="arn">
@@ -236,15 +218,14 @@ landfillTaxFormSubmitContinue
         <p>This is the amount of landfill tax credits you are claiming this period in respect of landfill tax paid waste, removed from site for environmental reasons or for reuse</p>
         @errorInline("otherCredits", "Please Enter any Other Credits", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="otherCredits"
-                id="otherCredits"
-                value="@landfillTaxForm("otherCredits").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
+
     <h2>Weight of waste per category, landfilled in this return period</h2>
     <p>Where we have agreed a scheme to discount the water content of waste for tax calculation purposes, you should not include the weight of this water.</p>
     <fieldset class="form-field-group@if(landfillTaxForm("standardRateWaste").hasErrors) { form-field-group--error}">
@@ -252,60 +233,52 @@ landfillTaxFormSubmitContinue
         <h3>   Standard Rate Waste </h3>
         @errorInline("standardRateWaste", "Please Enter Standard Rate Waste", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="standardRateWaste"
-                id="standardRateWaste"
-                value="@landfillTaxForm("standardRateWaste").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("lowerRateWaste").hasErrors) { form-field-group--error}">
     <label for="arn">
         <h3> Lower Rate Waste </h3>
         @errorInline("lowerRateWaste", "Please Enter Lower Rate Waste", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="lowerRateWaste"
-                id="lowerRateWaste"
-                value="@landfillTaxForm("lowerRateWaste").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("exemptWaste").hasErrors) { form-field-group--error}">
     <label for="arn">
         <h3> Exempt Waste </h3>
         @errorInline("exemptWaste", "Please Enter Exempt Waste", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="exemptWaste"
-                id="exemptWaste"
-                value="@landfillTaxForm("exemptWaste").value"
-        class="form-control form-control--block"
 
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody1").hasErrors) { form-field-group--error}">
     <label for="arn">
         <h3>  Environmental Body 1
             @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
             <input
-                    type="text"
-                    name="environmentalBody1"
-                    id="environmentalBody1"
-                    value="@landfillTaxForm("environmentalBody1").value"
-            class="form-control form-control--block"
 
-            >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+
+                    pattern="[0-9 .]"
+                >
+            </label>
+        </fieldset>
 
     <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody2").hasErrors) { form-field-group--error}">
     <label for="arn">
@@ -320,8 +293,16 @@ landfillTaxFormSubmitContinue
         >
     </label>
     </fieldset>
+
     <h1>Declaration</h1>
     <h4>You can avoid financial penalty, or even prosecution, by making sure that you have given complete and accurate information on this form.
+
+                class="form-control form-control--block"
+                >
+            </label>
+        </fieldset>
+        <h1>Declaration</h1>
+        <h4>You can avoid financial penalty, or even prosecution, by making sure that you have given complete and accurate information on this form.
 
         You have the right to appeal if we impose one.
 
@@ -348,19 +329,18 @@ landfillTaxFormSubmitContinue
         <h3>  Confirm Email Address (Optional) </h3>
         @errorInline("emailAddress", "Please Confirm Email Address", Seq("optional-extra-css-classes"))
         <input
-                type="text"
-                name="confirmEmailAddress"
-                id="confirmEmailAddress"
-                value="@landfillTaxForm("confirmEmailAddress").value"
-        class="form-control form-control--block"
-        >
-    </label>
-    </fieldset>
+                class="form-control form-control--block"
+                >
+            </label>
+        </fieldset>
+
 
     <br>
     <input type="hidden" name="registrationNumber" value="@registrationNumber" />
 
-    <input type="submit" class="button" value="Submit" />
+        <input type="submit" class="button" value="Exit" name="save" />
+
+    <input type="submit" class="button" value="Continue" name="save" />
 
 </form>
 
