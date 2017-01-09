@@ -14,8 +14,9 @@ landfillTaxFormSubmitContinue
 <h2>About you</h2>
 </p>
 
-<form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+<!--<form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">-->
 
+    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.saveAndExit(registrationNumber : String).url method="POST" >
     @{
     CSRF.formField
     }
@@ -37,8 +38,6 @@ landfillTaxFormSubmitContinue
                 id="firstname"
                 value="@landfillTaxForm("firstName").value"
         class="form-control form-control--block"
-        required
-        pattern="[A-Za-z][A-zÀ-ú]"
         >
     </label>
     </fieldset>
@@ -53,8 +52,6 @@ landfillTaxFormSubmitContinue
                 id="lastname"
                 value="@landfillTaxForm("lastName").value"
         class="form-control form-control--block"
-        required
-        pattern="[A-Za-z][A-zÀ-ú]"
         >
     </label>
     </fieldset>
@@ -70,8 +67,6 @@ landfillTaxFormSubmitContinue
                 id="telephoneNumber"
                 value="@landfillTaxForm("telephoneNumber").value"
         class="form-control form-control--block"
-        required
-        pattern=".{3,}"
         >
     </label>
     </fieldset>
@@ -87,7 +82,7 @@ landfillTaxFormSubmitContinue
                 id="status"
                 value="@landfillTaxForm("status").value"
         class="form-control form-control--block"
-        required
+
         >
     </label>
     </fieldset>
@@ -102,7 +97,7 @@ landfillTaxFormSubmitContinue
                 id="nameOfBusiness"
                 value="@landfillTaxForm("nameOfBusiness").value"
         class="form-control form-control--block"
-        required
+
         >
     </label>
     </fieldset>
@@ -148,8 +143,6 @@ landfillTaxFormSubmitContinue
                 id="taxDueForThisPeriod"
                 value="@landfillTaxForm("taxDueForThisPeriod").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
         >
     </label>
     </fieldset>
@@ -186,8 +179,7 @@ landfillTaxFormSubmitContinue
                 id="underDeclarationsFromPreviousPeriod"
                 value="@landfillTaxForm("underDeclarationsFromPreviousPeriod").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -202,8 +194,7 @@ landfillTaxFormSubmitContinue
                 id="overDeclarationsForThisPeriod"
                 value="@landfillTaxForm("overDeclarationsForThisPeriod").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -219,8 +210,7 @@ landfillTaxFormSubmitContinue
                 id="taxCreditClaimedForEnvironment"
                 value="@landfillTaxForm("taxCreditClaimedForEnvironment").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -235,8 +225,7 @@ landfillTaxFormSubmitContinue
                 id="badDebtReliefClaimed"
                 value="@landfillTaxForm("badDebtReliefClaimed").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -252,8 +241,7 @@ landfillTaxFormSubmitContinue
                 id="otherCredits"
                 value="@landfillTaxForm("otherCredits").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -269,8 +257,7 @@ landfillTaxFormSubmitContinue
                 id="standardRateWaste"
                 value="@landfillTaxForm("standardRateWaste").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -285,8 +272,7 @@ landfillTaxFormSubmitContinue
                 id="lowerRateWaste"
                 value="@landfillTaxForm("lowerRateWaste").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -301,8 +287,7 @@ landfillTaxFormSubmitContinue
                 id="exemptWaste"
                 value="@landfillTaxForm("exemptWaste").value"
         class="form-control form-control--block"
-        required
-        pattern="[0-9 .]"
+
         >
     </label>
     </fieldset>
@@ -317,7 +302,7 @@ landfillTaxFormSubmitContinue
                     id="environmentalBody1"
                     value="@landfillTaxForm("environmentalBody1").value"
             class="form-control form-control--block"
-            required
+
             >
     </label>
     </fieldset>
