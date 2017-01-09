@@ -70,7 +70,6 @@ object LandfillTaxDetails {
     "lowerRateWaste" -> nonEmptyText,
     "exemptWaste" -> nonEmptyText,
     "environmentalBody1" -> nonEmptyText,
-//>>>>>>> cb3d39df3f42eaa6a3e612a75266e5eb5035ba96
     "environmentalBody2" -> optional(text),
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)

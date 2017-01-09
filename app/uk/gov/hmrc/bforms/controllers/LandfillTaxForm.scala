@@ -47,16 +47,25 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: Execu
 
     val requestData = LandfillTaxDetails.form.bindFromRequest()
     val requestInfo = request.body
+
       LandfillTaxDetails.form.bindFromRequest.fold(
         error => {
           println("inside Error")
+          println(error.errors.toString)
+          println(error.data.toString)
           Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(error, registrationNumber)))
         },
         content => {
           if (content.save.equals("Exit")) {
             SaveExit.SaveForm(content)(x) map {
-              case false => Ok("Failed")
-              case true => Ok("Worked")
+              case false => {
+                println(content.save)
+                Ok("Failed")
+              }
+              case true => {
+
+                Ok("Worked")
+              }
             }
           } else if(content.save.equals("Continue")) {
             TaxFormSubmission.submitTaxForm(content).map {
