@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 
 
 case class LandfillTaxDetails(
+                              save:String,
                                firstName: String,
                                lastName: String,
                                telephoneNumber: String,
@@ -44,14 +45,13 @@ case class LandfillTaxDetails(
                                environmentalBody2: Option[String],
                                emailAddress: Option[String],
                                confirmEmailAddress: Option[String]
-
-
                              )
 
 object LandfillTaxDetails {
   implicit val formats = Json.format[LandfillTaxDetails]
 
   val form = Form(mapping(
+    "save" -> nonEmptyText,
     "firstName" -> nonEmptyText,
     "lastName" -> nonEmptyText,
     "telephoneNumber" -> nonEmptyText(minLength = 3),
@@ -72,7 +72,5 @@ object LandfillTaxDetails {
     "environmentalBody2" -> optional(text),
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
-
-
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))
 }
