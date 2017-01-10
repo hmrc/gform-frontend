@@ -25,31 +25,31 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
-<<<<<<< HEAD
-=======
+import reactivemongo.api.DB
 import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
 
 
->>>>>>> 1b8975c1390fb523a221795dd3f8a6fd040db992
 
 @Singleton
-class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
+class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFillTaxRepository)(implicit ec: ExecutionContext, db : DB)
   extends FrontendController with I18nSupport {
 
-  implicit val x : TaxFormSaveExit[LandfillTaxDetails] = TaxFormSaveExit.nameLater
+//  implicit val repo : LandFillTaxRepository = LandFillTaxRepository.apply(db
+
+  implicit val x : TaxFormSaveExit[LandfillTaxDetails] = TaxFormSaveExit.nameLater(repository)
 
   def landfillTaxFormDisplay(registrationNumber : String) = Action.async { implicit request =>
-    val form = LandfillTaxDetails.form
-    if (TaxFormRetrieve.) {
-      form.fill(object?)
-    }
+//    val form = LandfillTaxDetails.form
+//    if (RetrieveService.retrieve(registrationNumber)) {
+//      form.fill(object?)
+//    }
     //Need a check of the database before continuing.
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
   }
 
 //  def saveAndExit(rn: String) = landfillTaxSaveAndExit[LandfillTaxDetails](rn)
 
-  def landfillTaxForms(rn: String) = landfillTax(rn)
+  def landfillTaxForms(rn: String) = landfillTax(rn)(x)
 
   private def landfillTax[A](registrationNumber : String)(implicit taxFormSaveExit:TaxFormSaveExit[A]) = Action.async { implicit request =>
       LandfillTaxDetails.form.bindFromRequest.fold(
@@ -58,7 +58,7 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: Execu
         },
         content => {
           if (content.save.equals("Exit")) {
-            SaveExit.SaveForm(content) map {
+            SaveExit.SaveForm(content)(x) map {
               case false => Ok("Failed")
               case true => Ok("Worked")
             }

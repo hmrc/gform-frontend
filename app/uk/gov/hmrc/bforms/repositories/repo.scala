@@ -32,7 +32,7 @@ import scala.concurrent.Future
   * Created by daniel-connelly on 22/12/16.
   */
 @Singleton
-class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepo {
+class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepository {
 
   def store(form: LandfillTaxDetails) = {
     val store = LandFillTaxDetailsPersistence(GovernmentGatewayId("Something") , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
@@ -70,7 +70,7 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
     )
   }
 
-  def get(id : String) = {
+  def get(id : String) :Future[List[LandFillTaxDetailsPersistence]] = {
     findById(GovernmentGatewayId(id))
   }
 }
@@ -125,10 +125,10 @@ object LandFillTaxDetailsPersistence {
   val mongoFormat = Json.format[LandFillTaxDetailsPersistence]
 }
 
-trait LandFillTaxRepo {
+trait LandFillTaxRepository {
 
   def store(form : LandfillTaxDetails) : Future[Either[String, Unit]]
 
-  def get(registrationNumber : String) : Future[Either[String, Unit]]
+  def get(registrationNumber : String) : Future[List[LandFillTaxDetailsPersistence]]
 }
 
