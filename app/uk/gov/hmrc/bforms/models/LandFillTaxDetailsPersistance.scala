@@ -43,8 +43,7 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          standardRateWaste: StandardRateWaste = new StandardRateWaste(""),
                                          lowerRateWaste: LowerRateWaste = new LowerRateWaste(""),
                                          exemptWaste: ExemptWaste = new ExemptWaste(""),
-                                         environmentalBody1: EnvironmentalBody1 = new EnvironmentalBody1(""),
-                                         environmentalBody2: EnvironmentalBody2 = new EnvironmentalBody2(Some("")),
+                                         environmentalBody1: Seq[environmentalBody] =  Seq(new environmentalBody("" , "")),
                                          emailAddress: EmailAddress = new EmailAddress(Some("")),
                                          confirmEmailAddress: ConfirmEmailAddress = new ConfirmEmailAddress(Some("")),
                                          datePersisted : LocalDate = LocalDate.now
@@ -67,8 +66,6 @@ class OtherCredits(val value:String) extends AnyVal
 class StandardRateWaste(val value:String) extends AnyVal
 class LowerRateWaste(val value:String) extends AnyVal
 class ExemptWaste(val value:String) extends AnyVal
-class EnvironmentalBody1(val value:String) extends AnyVal
-class EnvironmentalBody2(val value:Option[String]) extends AnyVal
 class EmailAddress(val value:Option[String]) extends AnyVal
 class ConfirmEmailAddress(val value:Option[String]) extends AnyVal
 
@@ -169,17 +166,8 @@ object ExemptWaste {
   implicit val format : Format[ExemptWaste] = ValueClassFormat.format(ExemptWaste.apply)(_.value)
 }
 
-object EnvironmentalBody1 {
-  def apply(value: String) = new EnvironmentalBody1(value)
 
-  implicit val format : Format[EnvironmentalBody1] = ValueClassFormat.format(EnvironmentalBody1.apply)(_.value)
-}
 
-object EnvironmentalBody2 {
-  def apply(value: String) = new EnvironmentalBody2(Some(value))
-
-    implicit val format: Format[EnvironmentalBody2] = ValueClassFormat.format(EnvironmentalBody2.apply)(_.value.getOrElse("None"))
-}
 
 object EmailAddress {
   def apply(value: String) = new EmailAddress(Some(value))

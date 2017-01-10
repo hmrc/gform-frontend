@@ -23,7 +23,6 @@ import play.api.data.Forms._
 import play.api.libs.json.Json
 
 case class environmentalBody(bodyName: String, amount: String)
-
 object environmentalBody{
   implicit val formats = Json.format[environmentalBody]
 }
@@ -46,7 +45,7 @@ case class LandfillTaxDetails(
                                standardRateWaste: String,
                                lowerRateWaste: String,
                                exemptWaste: String,
-                               environmentalBody1: Seq[environmentalBody],
+                               environmentalBody1: Option[Seq[environmentalBody]],
                                emailAddress: Option[String],
                                confirmEmailAddress: Option[String]
                              )
@@ -72,11 +71,11 @@ object LandfillTaxDetails {
     "standardRateWaste" -> nonEmptyText,
     "lowerRateWaste" -> nonEmptyText,
     "exemptWaste" -> nonEmptyText,
-    "environmentalBody1" -> seq(
+    "environmentalBody1" -> optional(seq(
       mapping(
       "bodyName" -> nonEmptyText,
         "amount" -> nonEmptyText
-    )(environmentalBody.apply)(environmentalBody.unapply)),
+    )(environmentalBody.apply)(environmentalBody.unapply))),
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))

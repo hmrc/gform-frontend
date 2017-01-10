@@ -1,13 +1,11 @@
 @import uk.gov.hmrc.bforms.models.LandfillTaxDetails
-@import uk.gov.hmrc.bforms.models.environmentalBody
 @(landfillTaxForm: Form[LandfillTaxDetails], registrationNumber: String)(implicit request: Request[_], messages: Messages)
 
 
 @import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import views.html.helper.CSRF
-@import uk.gov.hmrc.bforms.models.LandfillTaxDetails
-landfillTaxFormSubmitContinue
+    landfillTaxFormSubmitContinue
 @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
     <header class="page-header text">
         <h1>Landfill Tax Return</h1>
@@ -316,14 +314,14 @@ landfillTaxFormSubmitContinue
 
         <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody1").hasErrors) { form-field-group--error}">
             <label for="arn">
-                <h3>  Environmental Bodies </h3>
+                <h3>  Environmental Body 1
                     @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
                     <input
                     type="text"
                     name="environmentalBody1"
                     id="environmentalBody1"
                     value="@landfillTaxForm("environmentalBody1").value"
-                    class="hidden"
+                    class="form-control form-control--block"
                     required
                     >
             </label>
@@ -333,19 +331,16 @@ landfillTaxFormSubmitContinue
         @helper.repeat(landfillTaxForm("Name"), min = landfillTaxForm("Name").indexes.length + 6) { dataField =>
             @dataField("Name").value.map { _ =>
                 @dataField("Amount").value.map { _ =>
-
                     <div><a href="#">delete</a></div>
                 }
             }
-
-            @helper.inputText(dataField("Name"), '_label -> "Name", 'labelClass -> "col-sm-3 float-right", 'inputDivClass -> "float-right", 'placeholder -> "", 'class -> "form-control form-control--block")
-            @helper.inputText(dataField("Amount"), '_label -> "Amount", 'labelClass -> "col-sm-3 float-left", 'inputDivClass -> "float-left", 'placeholder -> "", 'class -> "form-control form-control--block")
-
+        <div style="float: left;">
+        @helper.inputText(dataField("Name"), '_label -> "Name", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group@if(landfillTaxForm(\"bodyName\").hasErrors) { form-field-group--error}")
+        </div>
+        <div style="float: right;">
+        @helper.inputText(dataField("Amount"), '_label -> "Amount", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group@if(landfillTaxForm(\"amount\").hasErrors) { form-field-group--error}")
+        </div>
         }
-
-        <div><a href=”#”>add</a></div>
-    </div>
-
         <h1>Declaration</h1>
         <h4>You can avoid financial penalty, or even prosecution, by making sure that you have given complete and accurate information on this form.
 
