@@ -25,10 +25,6 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
-import play.data.DynamicForm
-import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
-
-
 
 @Singleton
 class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext, bel : LandFillTaxRepository)
