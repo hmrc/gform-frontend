@@ -324,6 +324,16 @@ landfillTaxFormSubmitContinue
                     class="form-control form-control--block"
                     required
                     >
+         <h3>  Environmental Bodies </h3>
+                @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="environmentalBody1"
+                id="environmentalBody1"
+                value="@landfillTaxForm("environmentalBody1").value"
+                class="hidden"
+                required
+                >
             </label>
         </fieldset>
 
@@ -340,10 +350,6 @@ landfillTaxFormSubmitContinue
             @helper.inputText(dataField("Amount"), '_label -> "Amount", 'labelClass -> "col-sm-3 float-left", 'inputDivClass -> "float-left", 'placeholder -> "", 'class -> "form-control form-control--block")
 
         }
-
-        <div><a href=”#”>add</a></div>
-    </div>
-
         <h1>Declaration</h1>
         <h4>You can avoid financial penalty, or even prosecution, by making sure that you have given complete and accurate information on this form.
 

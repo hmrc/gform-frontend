@@ -50,10 +50,14 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
       LowerRateWaste(form.lowerRateWaste),
       ExemptWaste(form.exemptWaste),
 <<<<<<< HEAD
+<<<<<<< HEAD
       form.environmentalBody1.get,
 =======
       form.environmentalBody1,
 >>>>>>> I have added a name and amount field to the form and model the environmental bodies now display in pairs
+=======
+      form.environmentalBody1.get,
+>>>>>>> commit adds 6 pairs of environmental body fields to the form
       EmailAddress(form.emailAddress.getOrElse("None")),
       ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
     )
