@@ -22,10 +22,6 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
 
-<<<<<<< HEAD
-
-=======
->>>>>>> I have added a name and amount field to the form and model the environmental bodies now display in pairs
 case class environmentalBody(bodyName: String, amount: String)
 object environmentalBody{
   implicit val formats = Json.format[environmentalBody]
@@ -79,15 +75,8 @@ object LandfillTaxDetails {
       mapping(
       "bodyName" -> nonEmptyText,
         "amount" -> nonEmptyText
-<<<<<<< HEAD
-<<<<<<< HEAD
     )(environmentalBody.apply)(environmentalBody.unapply))),
-=======
-    )(environmentalBody.apply)(environmentalBody.unapply)),
->>>>>>> I have added a name and amount field to the form and model the environmental bodies now display in pairs
-=======
-    )(environmentalBody.apply)(environmentalBody.unapply))),
->>>>>>> commit adds 6 pairs of environmental body fields to the form
+
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))
