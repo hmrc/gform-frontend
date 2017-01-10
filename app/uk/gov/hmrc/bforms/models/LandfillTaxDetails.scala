@@ -22,7 +22,10 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> I have added a name and amount field to the form and model the environmental bodies now display in pairs
 case class environmentalBody(bodyName: String, amount: String)
 
 object environmentalBody{
@@ -77,7 +80,11 @@ object LandfillTaxDetails {
       mapping(
       "bodyName" -> nonEmptyText,
         "amount" -> nonEmptyText
+<<<<<<< HEAD
     )(environmentalBody.apply)(environmentalBody.unapply))),
+=======
+    )(environmentalBody.apply)(environmentalBody.unapply)),
+>>>>>>> I have added a name and amount field to the form and model the environmental bodies now display in pairs
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))

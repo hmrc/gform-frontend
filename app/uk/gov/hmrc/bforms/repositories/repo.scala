@@ -49,7 +49,11 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
       StandardRateWaste(form.standardRateWaste),
       LowerRateWaste(form.lowerRateWaste),
       ExemptWaste(form.exemptWaste),
+<<<<<<< HEAD
       form.environmentalBody1.get,
+=======
+      form.environmentalBody1,
+>>>>>>> I have added a name and amount field to the form and model the environmental bodies now display in pairs
       EmailAddress(form.emailAddress.getOrElse("None")),
       ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
     )

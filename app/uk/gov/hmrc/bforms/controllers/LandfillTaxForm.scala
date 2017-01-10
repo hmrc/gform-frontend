@@ -17,7 +17,6 @@
 package uk.gov.hmrc.bforms.controllers
 
 import javax.inject.{Inject, Singleton}
-
 import uk.gov.hmrc.bforms.models.LandfillTaxDetails
 import uk.gov.hmrc.bforms.service.{SaveExit, SubmissionResult, TaxFormSaveExit, TaxFormSubmission}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -33,72 +32,73 @@ import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
 class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext, bel : LandFillTaxRepository)
   extends FrontendController with I18nSupport {
 
-  def landfillTaxFormDisplay(registrationNumber : String) = Action.async { implicit request =>
+  def landfillTaxFormDisplay(registrationNumber: String) = Action.async { implicit request =>
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
   }
- implicit val x : TaxFormSaveExit[LandfillTaxDetails] = TaxFormSaveExit.nameLater
-//  implicit val bel:LandFillTaxDetailRepository = null
+
+  implicit val x: TaxFormSaveExit[LandfillTaxDetails] = TaxFormSaveExit.nameLater
+
+  //  implicit val bel:LandFillTaxDetailRepository = null
   def saveAndExit(rn: String) = landfillTaxSaveAndExit[LandfillTaxDetails](rn)
 
   def landfillTaxForms(rn: String) = landfillTax(rn)(x)
 
-  private def landfillTax[A](registrationNumber : String)(implicit taxFormSaveExit:TaxFormSaveExit[A]) = Action.async { implicit request =>
+  private def landfillTax[A](registrationNumber: String)(implicit taxFormSaveExit: TaxFormSaveExit[A]) = Action.async { implicit request =>
 
     val requestData = LandfillTaxDetails.form.bindFromRequest()
     val requestInfo = request.body
 
-      LandfillTaxDetails.form.bindFromRequest.fold(
-        error => {
-          println("inside Error")
-          println(error.errors.toString)
-          println(error.data.toString)
-          Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(error, registrationNumber)))
-        },
-        content => {
-          if (content.save.equals("Exit")) {
-            SaveExit.SaveForm(content)(x) map {
-              case false => {
-                println(content.save)
-                Ok("Failed")
-              }
-              case true => {
+    LandfillTaxDetails.form.bindFromRequest.fold(
+      error => {
+        println("inside Error")
+        println(error.errors.toString)
+        println(error.data.toString)
+        Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(error, registrationNumber)))
+      },
+      content => {
+        if (content.save.equals("Exit")) {
+          SaveExit.SaveForm(content)(x) map {
+            case false => {
+              println(content.save)
+              Ok("Failed")
+            }
+            case true => {
 
-                Ok("Worked")
-              }
+              Ok("Worked")
             }
-          } else if(content.save.equals("Continue")) {
-            TaxFormSubmission.submitTaxForm(content).map {
-              case SubmissionResult(Some(errorMessage), _) =>
-                val formWithErrors = LandfillTaxDetails.form.withGlobalError(errorMessage)
-                BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
-              case SubmissionResult(noErrors, Some(submissionAcknowledgement)) =>
-                Redirect(routes.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(registrationNumber, submissionAcknowledgement))
-            }
-          } else {
-            Future.successful(Ok("Failed"))
           }
-//          println("inside content")
+        } else if (content.save.equals("Continue")) {
+          TaxFormSubmission.submitTaxForm(content).map {
+            case SubmissionResult(Some(errorMessage), _) =>
+              val formWithErrors = LandfillTaxDetails.form.withGlobalError(errorMessage)
+              BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formWithErrors, registrationNumber))
+            case SubmissionResult(noErrors, Some(submissionAcknowledgement)) =>
+              Redirect(routes.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(registrationNumber, submissionAcknowledgement))
+          }
+        } else {
+          Future.successful(Ok("Failed"))
         }
-      )
-    }
+        //          println("inside content")
+      }
+    )
+  }
 
 
-
-  private def landfillTaxSaveAndExit[A](registrationNumber : String)(implicit taxFormSaveExit:TaxFormSaveExit[A]) = Action.async { implicit request =>
+  private def landfillTaxSaveAndExit[A](registrationNumber: String)(implicit taxFormSaveExit: TaxFormSaveExit[A]) = Action.async { implicit request =>
     LandfillTaxDetails.form.bindFromRequest.fold(
       error => {
         println("inside Error")
         val errors = error
-//        Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(error, registrationNumber)))
+        //        Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(error, registrationNumber)))
         SaveExit.SaveForm(error.get)(x).map {
           case false => Ok("Failed")
           case true => Ok("Worked")
         }
       },
-        content => {
-          println("inside content")
-          Future.successful(Ok("Failed"))
-  }
+      content => {
+        println("inside content")
+        Future.successful(Ok("Failed"))
+      }
     )
   }
 
@@ -119,3 +119,6 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: Execu
     )
   }
 }
+
+
+
