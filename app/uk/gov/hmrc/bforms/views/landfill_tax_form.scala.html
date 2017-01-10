@@ -38,7 +38,7 @@ landfillTaxFormSubmitContinue
                 id="firstname"
                 value="@landfillTaxForm("firstName").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[A-Za-z][A-zÀ-ú]"
                 >
             </label>
@@ -54,7 +54,8 @@ landfillTaxFormSubmitContinue
                 id="lastname"
                 value="@landfillTaxForm("lastName").value"
                 class="form-control form-control--block"
-                    pattern="[A-Za-z][A-zÀ-ú]"
+                required
+                pattern="[A-Za-z][A-zÀ-ú]"
                 >
             </label>
         </fieldset>
@@ -70,7 +71,7 @@ landfillTaxFormSubmitContinue
                 id="telephoneNumber"
                 value="@landfillTaxForm("telephoneNumber").value"
                 class="form-control form-control--block"
-
+                required
                     pattern=".{3,}"
                 >
             </label>
@@ -87,7 +88,7 @@ landfillTaxFormSubmitContinue
                 id="status"
                 value="@landfillTaxForm("status").value"
                 class="form-control form-control--block"
-
+                required
                 >
             </label>
         </fieldset>
@@ -102,6 +103,7 @@ landfillTaxFormSubmitContinue
                 id="nameOfBusiness"
                 value="@landfillTaxForm("nameOfBusiness").value"
                 class="form-control form-control--block"
+                required
                 >
             </label>
         </fieldset>
@@ -117,6 +119,7 @@ landfillTaxFormSubmitContinue
                 id="accountingPeriodStartDate"
                 value="@landfillTaxForm("accountingPeriodStartDate").value"
                 class="form-control form-control--block"
+                required
                     pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
                 >
             </label>
@@ -133,6 +136,7 @@ landfillTaxFormSubmitContinue
                 id="accountingPeriodEndDate"
                 value="@landfillTaxForm("accountingPeriodEndDate").value"
                 class="form-control form-control--block"
+                required
                 pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
                 >
             </label>
@@ -149,6 +153,7 @@ landfillTaxFormSubmitContinue
                 id="taxDueForThisPeriod"
                 value="@landfillTaxForm("taxDueForThisPeriod").value"
                 class="form-control form-control--block"
+                required
                     pattern="[0-9 .]"
                 >
             </label>
@@ -186,7 +191,7 @@ landfillTaxFormSubmitContinue
                 id="underDeclarationsFromPreviousPeriod"
                 value="@landfillTaxForm("underDeclarationsFromPreviousPeriod").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[0-9 .]"
                 >
             </label>
@@ -202,7 +207,7 @@ landfillTaxFormSubmitContinue
                 id="overDeclarationsForThisPeriod"
                 value="@landfillTaxForm("overDeclarationsForThisPeriod").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[0-9 .]"
                 >
             </label>
@@ -219,7 +224,7 @@ landfillTaxFormSubmitContinue
                 id="taxCreditClaimedForEnvironment"
                 value="@landfillTaxForm("taxCreditClaimedForEnvironment").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[0-9 .]"
                 >
             </label>
@@ -235,7 +240,7 @@ landfillTaxFormSubmitContinue
                 id="badDebtReliefClaimed"
                 value="@landfillTaxForm("badDebtReliefClaimed").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[0-9 .]"
                 >
             </label>
@@ -252,7 +257,7 @@ landfillTaxFormSubmitContinue
                 id="otherCredits"
                 value="@landfillTaxForm("otherCredits").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[0-9 .]"
                 >
             </label>
@@ -269,7 +274,7 @@ landfillTaxFormSubmitContinue
                 id="standardRateWaste"
                 value="@landfillTaxForm("standardRateWaste").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[0-9 .]"
                 >
             </label>
@@ -285,7 +290,7 @@ landfillTaxFormSubmitContinue
                 id="lowerRateWaste"
                 value="@landfillTaxForm("lowerRateWaste").value"
                 class="form-control form-control--block"
-
+                required
                     pattern="[0-9 .]"
                 >
             </label>
