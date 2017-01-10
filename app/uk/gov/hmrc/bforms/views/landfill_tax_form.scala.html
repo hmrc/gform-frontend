@@ -14,9 +14,7 @@ landfillTaxFormSubmitContinue
 <h2>About you</h2>
 </p>
 
-<!--<form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">-->
-
-    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxForms(registrationNumber : String).url method="POST" >
+    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxForms(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
     @{
     CSRF.formField
     }

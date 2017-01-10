@@ -19,14 +19,11 @@ package uk.gov.hmrc.bforms.models
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, OFormat, _}
 import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
-import play.data.format.Formats.DateFormatter
 
 /**
   * Created by daniel-connelly on 05/01/17.
   */
-case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(4),
+case class LandFillTaxDetailsPersistence(ID : GovernmentGatewayId = GovernmentGatewayId(RandomStringUtils.random(4)),
                                          firstName : FirstName = new FirstName(""),
                                          lastName : LastName = new LastName(""),
                                          telephoneNumber: TelephoneNumber = new TelephoneNumber(""),
@@ -51,6 +48,7 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                         ){
 }
 
+class GovernmentGatewayId(val value:String) extends AnyVal
 class FirstName(val value:String) extends AnyVal
 class LastName(val value:String) extends AnyVal
 class TelephoneNumber(val value:String) extends AnyVal
@@ -71,6 +69,12 @@ class EnvironmentalBody1(val value:String) extends AnyVal
 class EnvironmentalBody2(val value:Option[String]) extends AnyVal
 class EmailAddress(val value:Option[String]) extends AnyVal
 class ConfirmEmailAddress(val value:Option[String]) extends AnyVal
+
+object GovernmentGatewayId {
+  def apply(value: String) = new GovernmentGatewayId(value)
+
+  implicit val format: Format[GovernmentGatewayId] = ValueClassFormat.format(GovernmentGatewayId.apply)(_.value)
+}
 
 object FirstName {
   def apply(value: String) = new FirstName(value)

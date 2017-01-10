@@ -22,7 +22,7 @@ import javax.inject.Inject
 import com.google.inject.Singleton
 import play.api.libs.json.{Format, Json}
 import reactivemongo.api.DB
-import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody1, EnvironmentalBody2, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
+import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody1, EnvironmentalBody2, ExemptWaste, FirstName, GovernmentGatewayId, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +35,7 @@ import scala.concurrent.Future
 class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepo {
 
   def store(form: LandfillTaxDetails) = {
-    val store = LandFillTaxDetailsPersistence("Something" , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
+    val store = LandFillTaxDetailsPersistence(GovernmentGatewayId("Something") , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
       Status(form.status),
       NameOfBusiness(form.nameOfBusiness),
       form.accountingPeriodStartDate,
@@ -64,12 +64,20 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
        }
   }
 
-  def get() = { ??? }
+  private def findById(id : GovernmentGatewayId): Future[List[LandFillTaxDetailsPersistence]] = {
+    find(
+      "GovernmentGatewayId" -> id
+    )
+  }
+
+  def get(id : String) = {
+    findById(GovernmentGatewayId(id))
+  }
 }
 
 object LandFillTaxDetailsPersistence {
 
-  def apply(id : String,
+  def apply(governmentGateway : GovernmentGatewayId,
             firstName:FirstName,
             lastName:LastName,
             telephoneNumber:TelephoneNumber,
@@ -90,7 +98,8 @@ object LandFillTaxDetailsPersistence {
             environmentalBody2: EnvironmentalBody2,
             emailAddress: EmailAddress,
             confirmEmailAddress: ConfirmEmailAddress) = {
-    new LandFillTaxDetailsPersistence(id,
+
+    new LandFillTaxDetailsPersistence(governmentGateway,
       firstName,
       lastName,
       telephoneNumber,
@@ -120,6 +129,6 @@ trait LandFillTaxRepo {
 
   def store(form : LandfillTaxDetails) : Future[Either[String, Unit]]
 
-  def get() : Future[Either[String, Unit]]
+  def get(registrationNumber : String) : Future[Either[String, Unit]]
 }
 
