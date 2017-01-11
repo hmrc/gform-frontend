@@ -50,7 +50,7 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
       LowerRateWaste(form.lowerRateWaste),
       ExemptWaste(form.exemptWaste),
       EnvironmentalBody1(form.environmentalBody1),
-      EnvironmentalBody2(form.environmentalBody2.getOrElse("None")),
+      EnvironmentalBody2(form.environmentalBody2.getOrElse(0)),
       EmailAddress(form.emailAddress.getOrElse("None")),
       ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
     )
