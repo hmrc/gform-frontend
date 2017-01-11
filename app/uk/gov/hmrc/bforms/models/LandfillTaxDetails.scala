@@ -20,15 +20,13 @@ import java.time.LocalDate
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, Json}
 
 case class EnvironmentalBody(bodyName: String, amount: String)
 
-
-object EnvironmentalBody{
-  implicit val formats = Json.format[EnvironmentalBody]
+object EnvironmentalBody {
+  implicit val formats : Format[EnvironmentalBody] = Json.format[EnvironmentalBody]
 }
-
 case class LandfillTaxDetails(
                                save:String,
                                firstName: String,
@@ -47,7 +45,7 @@ case class LandfillTaxDetails(
                                standardRateWaste: String,
                                lowerRateWaste: String,
                                exemptWaste: String,
-                               environmentalBodies: Option[Seq[EnvironmentalBody]],
+                               environmentalBodies: Seq[EnvironmentalBody],
                                emailAddress: Option[String],
                                confirmEmailAddress: Option[String]
                              )
@@ -73,12 +71,10 @@ object LandfillTaxDetails {
     "standardRateWaste" -> nonEmptyText,
     "lowerRateWaste" -> nonEmptyText,
     "exemptWaste" -> nonEmptyText,
-    "environmentalBody1" -> optional(seq(
-      mapping(
+    "environmentalBody1" -> seq(mapping(
       "bodyName" -> text,
         "amount" -> text
-    )(EnvironmentalBody.apply)(EnvironmentalBody.unapply))),
-
+    )(EnvironmentalBody.apply)(EnvironmentalBody.unapply)),
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))

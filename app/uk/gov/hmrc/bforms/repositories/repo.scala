@@ -22,7 +22,7 @@ import javax.inject.Inject
 import com.google.inject.Singleton
 import play.api.libs.json.{Format, Json}
 import reactivemongo.api.DB
-import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
+import uk.gov.hmrc.bforms.models.{Amount, BadDebtReliefClaimed, BodyName, ConfirmEmailAddress, EmailAddress, EnvironmentalBody, EnvironmentalBodyPersistence, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,6 +35,7 @@ import scala.concurrent.Future
 class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepo {
 
   def store(form: LandfillTaxDetails) = {
+    println(form.environmentalBodies)
     val store = LandFillTaxDetailsPersistence("Something" , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
       Status(form.status),
       NameOfBusiness(form.nameOfBusiness),
@@ -49,7 +50,8 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
       StandardRateWaste(form.standardRateWaste),
       LowerRateWaste(form.lowerRateWaste),
       ExemptWaste(form.exemptWaste),
-      form.environmentalBodies.getOrElse(Seq(EnvironmentalBody(" ", " "))),
+      form.environmentalBodies,
+//      EnvironmentalBodyPersistence(BodyName(form.environmentalBodies.get(0).bodyName), Amount(form.environmentalBodies.get(0).amount)),//OrElse(Seq(EnvironmentalBody(" ", " "))),
       EmailAddress(form.emailAddress.getOrElse("None")),
       ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
     )

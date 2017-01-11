@@ -43,12 +43,14 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          standardRateWaste: StandardRateWaste = new StandardRateWaste(""),
                                          lowerRateWaste: LowerRateWaste = new LowerRateWaste(""),
                                          exemptWaste: ExemptWaste = new ExemptWaste(""),
-                                         environmentalBody1: Seq[EnvironmentalBody] =  Seq(new EnvironmentalBody("" , "")),
+                                         environmentalBody1: Seq[EnvironmentalBody] =  Seq(EnvironmentalBody("default" , "default")),
                                          emailAddress: EmailAddress = new EmailAddress(Some("")),
                                          confirmEmailAddress: ConfirmEmailAddress = new ConfirmEmailAddress(Some("")),
                                          datePersisted : LocalDate = LocalDate.now
                                         ){
 }
+
+case class EnvironmentalBodyPersistence(bodyName:BodyName, amount:Amount)
 
 class FirstName(val value:String) extends AnyVal
 class LastName(val value:String) extends AnyVal
@@ -68,6 +70,25 @@ class LowerRateWaste(val value:String) extends AnyVal
 class ExemptWaste(val value:String) extends AnyVal
 class EmailAddress(val value:Option[String]) extends AnyVal
 class ConfirmEmailAddress(val value:Option[String]) extends AnyVal
+class BodyName(val value:String) extends AnyVal
+class Amount(val value:String) extends AnyVal
+
+object BodyName {
+  def apply(value:String) = new BodyName(value)
+
+  implicit val format: Format[BodyName] = ValueClassFormat.format(BodyName.apply)(_.value)
+}
+
+object Amount {
+  def apply(value:String) = new Amount(value)
+
+  implicit val format : Format[Amount] = ValueClassFormat.format(Amount.apply)(_.value)
+}
+
+object EnvironmentalBodyPersistence{
+  implicit val formats : Format[EnvironmentalBodyPersistence] = Json.format[EnvironmentalBodyPersistence]
+}
+
 
 object FirstName {
   def apply(value: String) = new FirstName(value)
