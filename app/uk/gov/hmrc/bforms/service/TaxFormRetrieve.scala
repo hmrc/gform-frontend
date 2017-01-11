@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.bforms.service
 
+import play.api.libs.functional.syntax.toApplicativeOps
 import uk.gov.hmrc.bforms.models.LandFillTaxDetailsPersistence
 import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
 
@@ -38,16 +39,16 @@ object TaxFormRetrieve {
   }
 
   implicit def somethingElse(implicit repository: LandFillTaxRepository) : TaxFormRetrieve[String, LandFillTaxDetailsPersistence]  = {
-    retrieveTaxForm((r : String) =>  repository.get(r))
+    retrieveTaxForm((f : String) =>  repository.get(f))
   }
 }
 
 object RetrieveService {
 
-  def retrieve[A, B](registrationNumber:A)(implicit taxFormRetrieve:TaxFormRetrieve[A, B]):Future[Either[String, List[LandFillTaxDetailsPersistence]]] = {
+  def retrieve[A, B](registrationNumber:A)(implicit taxFormRetrieve:TaxFormRetrieve[A, B]):Future[Either[Unit, List[B]]] = {
     taxFormRetrieve(registrationNumber).flatMap{
-      case user:List[LandFillTaxDetailsPersistence] => Future.successful(Right(user))
-      case _ => Future.successful(Left("Bob"))
+      case form => Future.successful(Right(form))
+      case _ => Future.successful(Left(()))
     }
   }
 }

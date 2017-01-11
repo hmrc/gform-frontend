@@ -36,19 +36,54 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
 
 //  implicit val repo : LandFillTaxRepository = LandFillTaxRepository.apply(db
 
+  implicit val y : TaxFormRetrieve[String, LandFillTaxDetailsPersistence] = TaxFormRetrieve.somethingElse(repository)
   implicit val x : TaxFormSaveExit[LandfillTaxDetails] = TaxFormSaveExit.nameLater(repository)
 
   def landfillTaxFormDisplay(registrationNumber : String) = Action.async { implicit request =>
     val form = LandfillTaxDetails.form
-    if (!RetrieveService.retrieve(registrationNumber).value.get.get.right.get.isEmpty) {
-      val formData:List[LandFillTaxDetailsPersistence] = RetrieveService.retrieve(registrationNumber).value.get.get.right.get
-      form.fill() //Plug in a partially filled object for LandfillTaxDetails.
-    }
-    //Need a check of the database before continuing.
-    Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
-  }
 
-//  def saveAndExit(rn: String) = landfillTaxSaveAndExit[LandfillTaxDetails](rn)
+    RetrieveService.retrieve(registrationNumber).flatMap {
+      case x : Either[Unit, List[LandFillTaxDetailsPersistence]] => {
+        x match {
+          case Right(Nil) => {
+            println("Right(Nil)")
+            Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(form, registrationNumber.filter(Character.isLetterOrDigit))))
+          }
+          case Right(list) => {
+            println("Right(list)")
+            val formData : LandFillTaxDetailsPersistence = list(0)
+            println(formData.firstName.value)
+            val filledForm = new LandfillTaxDetails("",
+              formData.firstName.value,
+              formData.lastName.value,
+              formData.telephoneNumber.value,
+              formData.status.value,
+              formData.nameOfBusiness.value,
+              formData.accountingPeriodStartDate,
+              formData.accountingPeriodEndDate,
+              formData.taxDueForThisPeriod.value,
+              formData.underDeclarationsFromPreviousPeriod.value,
+              formData.overDeclarationsForThisPeriod.value,
+              formData.taxCreditClaimedForEnvironment.value,
+              formData.badDebtReliefClaimed.value,
+              formData.otherCredits.value,
+              formData.standardRateWaste.value,
+              formData.lowerRateWaste.value,
+              formData.exemptWaste.value,
+              formData.environmentalBody1.value,
+              formData.environmentalBody2.value,
+              formData.emailAddress.value, formData.confirmEmailAddress.value)
+            val formFilled = form.fill(filledForm)
+            Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formFilled, registrationNumber.filter(Character.isLetterOrDigit))))
+          }
+          case Left(_) => {
+            println("left(_)")
+            Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(form, registrationNumber.filter(Character.isLetterOrDigit))))
+          }
+        }
+      }
+    }
+  }
 
   def landfillTaxForms(rn: String) = landfillTax(rn)(x)
 

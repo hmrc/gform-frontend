@@ -66,7 +66,7 @@ class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveReposi
 
   private def findById(id : GovernmentGatewayId): Future[List[LandFillTaxDetailsPersistence]] = {
     find(
-      "GovernmentGatewayId" -> id
+      "ID" -> id
     )
   }
 
