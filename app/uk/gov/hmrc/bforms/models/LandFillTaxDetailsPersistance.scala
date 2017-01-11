@@ -37,14 +37,14 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          taxDueForThisPeriod: TaxDueForThisPeriod = new TaxDueForThisPeriod(""),
                                          underDeclarationsFromPreviousPeriod: UnderDeclarationsFromPreviousPeriod = new UnderDeclarationsFromPreviousPeriod(""),
                                          overDeclarationsForThisPeriod: OverDeclarationsForThisPeriod = new OverDeclarationsForThisPeriod(""),
-                                         taxCreditClaimedForEnvironment: TaxCreditClaimedForEnvironment = new TaxCreditClaimedForEnvironment(""),
+                                         taxCreditClaimedForEnvironment: TaxCreditClaimedForEnvironment = new TaxCreditClaimedForEnvironment(0),
                                          badDebtReliefClaimed: BadDebtReliefClaimed = new BadDebtReliefClaimed(""),
                                          otherCredits: OtherCredits = new OtherCredits(""),
                                          standardRateWaste: StandardRateWaste = new StandardRateWaste(""),
                                          lowerRateWaste: LowerRateWaste = new LowerRateWaste(""),
                                          exemptWaste: ExemptWaste = new ExemptWaste(""),
-                                         environmentalBody1: EnvironmentalBody1 = new EnvironmentalBody1(""),
-                                         environmentalBody2: EnvironmentalBody2 = new EnvironmentalBody2(Some("")),
+                                         environmentalBody1: EnvironmentalBody1 = new EnvironmentalBody1(0),
+                                         environmentalBody2: EnvironmentalBody2 = new EnvironmentalBody2(Some(0)),
                                          emailAddress: EmailAddress = new EmailAddress(Some("")),
                                          confirmEmailAddress: ConfirmEmailAddress = new ConfirmEmailAddress(Some("")),
                                          datePersisted : LocalDate = LocalDate.now
@@ -61,14 +61,14 @@ class NameOfBusiness(val value:String) extends AnyVal
 class TaxDueForThisPeriod(val value:String) extends AnyVal
 class UnderDeclarationsFromPreviousPeriod(val value:String) extends AnyVal
 class OverDeclarationsForThisPeriod(val value:String) extends AnyVal
-class TaxCreditClaimedForEnvironment(val value:String) extends AnyVal
+class TaxCreditClaimedForEnvironment(val value:BigDecimal) extends AnyVal
 class BadDebtReliefClaimed(val value:String) extends AnyVal
 class OtherCredits(val value:String) extends AnyVal
 class StandardRateWaste(val value:String) extends AnyVal
 class LowerRateWaste(val value:String) extends AnyVal
 class ExemptWaste(val value:String) extends AnyVal
-class EnvironmentalBody1(val value:String) extends AnyVal
-class EnvironmentalBody2(val value:Option[String]) extends AnyVal
+class EnvironmentalBody1(val value:BigDecimal) extends AnyVal
+class EnvironmentalBody2(val value:Option[BigDecimal]) extends AnyVal
 class EmailAddress(val value:Option[String]) extends AnyVal
 class ConfirmEmailAddress(val value:Option[String]) extends AnyVal
 
@@ -134,9 +134,9 @@ object OverDeclarationsForThisPeriod {
 }
 
 object TaxCreditClaimedForEnvironment {
-  def apply(value: String) = new TaxCreditClaimedForEnvironment(value)
+  def apply(value: BigDecimal) = new TaxCreditClaimedForEnvironment(value)
 
-  implicit val format : Format[TaxCreditClaimedForEnvironment] = ValueClassFormat.format(TaxCreditClaimedForEnvironment.apply)(_.value)
+  implicit val format : Format[TaxCreditClaimedForEnvironment] = ValueClassFormatBigDecimal.format(TaxCreditClaimedForEnvironment.apply)(_.value)
 }
 
 object BadDebtReliefClaimed {
@@ -170,15 +170,15 @@ object ExemptWaste {
 }
 
 object EnvironmentalBody1 {
-  def apply(value: String) = new EnvironmentalBody1(value)
+  def apply(value: BigDecimal) = new EnvironmentalBody1(value)
 
-  implicit val format : Format[EnvironmentalBody1] = ValueClassFormat.format(EnvironmentalBody1.apply)(_.value)
+  implicit val format : Format[EnvironmentalBody1] = ValueClassFormatBigDecimal.format(EnvironmentalBody1.apply)(_.value)
 }
 
 object EnvironmentalBody2 {
-  def apply(value: String) = new EnvironmentalBody2(Some(value))
+  def apply(value: BigDecimal) = new EnvironmentalBody2(Some(value))
 
-    implicit val format: Format[EnvironmentalBody2] = ValueClassFormat.format(EnvironmentalBody2.apply)(_.value.getOrElse("None"))
+    implicit val format: Format[EnvironmentalBody2] = ValueClassFormatBigDecimal.format(EnvironmentalBody2.apply)(_.value.getOrElse(0))
 }
 
 object EmailAddress {
@@ -216,3 +216,20 @@ object ValueClassFormatLocalDate {
     }
   }
 }
+
+object ValueClassFormatBigDecimal {
+  def format[A: Format](fromBigDecimalToA: BigDecimal => A)(fromAToBigDecimal: A => BigDecimal) = {
+    new Format[A] {
+      def reads(json: JsValue): JsResult[A] = {
+        json match {
+          case JsNumber(num) => JsSuccess(fromBigDecimalToA(num))
+          case unknown => JsError(s"JsNumber value expected, got: $unknown")
+        }
+      }
+      def writes(a: A): JsValue = JsNumber(fromAToBigDecimal(a))
+    }
+  }
+}
+
+
+
