@@ -1,31 +1,30 @@
-@import uk.gov.hmrc.bforms.models.LandfillTaxDetails
-@(landfillTaxForm: Form[LandfillTaxDetails], registrationNumber: String)(implicit request: Request[_], messages: Messages)
+ @import uk.gov.hmrc.bforms.models.LandfillTaxDetails
+    @(landfillTaxForm: Form[LandfillTaxDetails], registrationNumber: String)(implicit request: Request[_], messages: Messages)
 
 
-@import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
-@import uk.gov.hmrc.play.views.html.helpers._
-@import views.html.helper.CSRF
-landfillTaxFormSubmitContinue
-@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
-    <header class="page-header text">
-        <h1>Landfill Tax Return</h1>
-    </header>
-    <p class="subsection">
-<h2>About you</h2>
-    </p>
+    @import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
+    @import uk.gov.hmrc.play.views.html.helpers._
+    @import views.html.helper.CSRF
+    landfillTaxFormSubmitContinue
+    @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
+        <header class="page-header text">
+            <h1>Landfill Tax Return</h1>
+        </header>
+        <p class="subsection">
+    <h2>About you</h2>
+        </p>
 
-<!--<form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxFormSubmitContinue(registrationNumber : String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">-->
+        <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxForms(registrationNumber:String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
-    <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxForm.landfillTaxForms(registrationNumber : String).url method="POST" >
-        @{
-            CSRF.formField
-        }
+            @{
+                CSRF.formField
+            }
 
-        @landfillTaxForm.globalError.map { error =>
-            <div class="flash error-summary error-summary--show">
-                @error.message
-            </div>
-        }
+            @landfillTaxForm.globalError.map { error =>
+                <div class="flash error-summary error-summary--show">
+                    @error.message
+                </div>
+            }
 
         <fieldset class="form-field-group@if(landfillTaxForm("firstName").hasErrors) { form-field-group--error}">
             <p>This information is about the person completing the form.</p>
@@ -313,33 +312,23 @@ landfillTaxFormSubmitContinue
         </fieldset>
 
         <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody1").hasErrors) { form-field-group--error}">
-            <label for="arn">
-                <h3>  Environmental Body 1
-                    @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
-                    <input
-                    type="text"
-                    name="environmentalBody1"
-                    id="environmentalBody1"
-                    value="@landfillTaxForm("environmentalBody1").value"
-                    class="form-control form-control--block"
-                    required
-                    >
-            </label>
+         <h3>  Environmental Bodies </h3>
+                @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
+           
         </fieldset>
+        @helper.repeat(landfillTaxForm("environmentalBody1"), min = landfillTaxForm("environmentalBody1").indexes.length + 1) { dataField =>
+            @dataField("bodyName").value.map { _ =>
+                @dataField("amount").value.map { _ =>
+            }
+            }
 
-        <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody2").hasErrors) { form-field-group--error}">
-            <label for="arn">
-                <h3> Environmental Body 2 </h3>
-                @errorInline("environmentalBody2", "Please Enter Environmental Body 2", Seq("optional-extra-css-classes"))
-                <input
-                type="text"
-                name="environmentalBody2"
-                id="environmentalBody2"
-                value="@landfillTaxForm("environmentalBody2").value"
-                class="form-control form-control--block"
-                >
-            </label>
-        </fieldset>
+        <div style="float: left;">
+        @helper.inputText(dataField("bodyName"), '_label -> "Name", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group")
+        </div>
+        <div style="float: right;">
+        @helper.inputText(dataField("amount"), '_label -> "Amount", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group")
+        </div>
+        }
         <h1>Declaration</h1>
         <h4>You can avoid financial penalty, or even prosecution, by making sure that you have given complete and accurate information on this form.
 
@@ -380,12 +369,12 @@ landfillTaxFormSubmitContinue
         </fieldset>
 
         <br>
-        <input type="hidden" name="registrationNumber" value="@registrationNumber" />
+            <input type="hidden" name="registrationNumber" value="@registrationNumber" />
 
-        <button name="save" value="Exit">Exit</button>
+            <button name="save" value="Exit">Exit</button>
 
-        <button name="save" value="Continue">Continue</button>
+            <button name="save" value="Continue">Continue</button>
 
-    </form>
+        </form>
 
-}
+    }

@@ -19,13 +19,16 @@ package uk.gov.hmrc.bforms.models
 import java.time.LocalDate
 
 import play.api.data.{Form, Mapping}
-import play.api.data.validation._
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, Json}
 
+case class EnvironmentalBody(bodyName: String, amount: BigDecimal)
 
+object EnvironmentalBody {
+  implicit val formats : Format[EnvironmentalBody] = Json.format[EnvironmentalBody]
+}
 case class LandfillTaxDetails(
-                              save:String,
+                               save:String,
                                firstName: String,
                                lastName: String,
                                telephoneNumber: String,
@@ -42,8 +45,7 @@ case class LandfillTaxDetails(
                                standardRateWaste: String,
                                lowerRateWaste: String,
                                exemptWaste: String,
-                               environmentalBody1: BigDecimal,
-                               environmentalBody2: Option[BigDecimal],
+                               environmentalBodies: Seq[EnvironmentalBody],
                                emailAddress: Option[String],
                                confirmEmailAddress: Option[String]
                              )
@@ -52,35 +54,32 @@ object LandfillTaxDetails {
   implicit val formats = Json.format[LandfillTaxDetails]
 
   val landfillTaxDetailsMapping : Mapping[LandfillTaxDetails]
-  = {
-    mapping(
-      "save" -> nonEmptyText,
-      "firstName" -> nonEmptyText,
-      "lastName" -> nonEmptyText,
-      "telephoneNumber" -> nonEmptyText(minLength = 3),
-      // N.b. a minLength error should render a constraint.minLength to our users, but we are not seeing that shown.
-      // For constraint.pattern we are seeing "Please match the format requested." whereas the play default is instead
-      // "Required pattern: {0}".  This suggest uk.gov template or ui is definit a message for patter but perhaps none
-      // for minlength.  This needs investigating
-      "status" -> nonEmptyText,
-      "nameOfBusiness" -> nonEmptyText,
-      "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
-      "accountingPeriodEndDate" -> localDate("dd/MM/yyyy"),
-      "taxDueForThisPeriod" -> nonEmptyText,
-      "underDeclarationsFromPreviousPeriod" -> nonEmptyText,
-      "overDeclarationsForThisPeriod" -> nonEmptyText,
-      "taxCreditClaimedForEnvironment" -> bigDecimal,
-      "badDebtReliefClaimed" -> nonEmptyText,
-      "otherCredits" -> nonEmptyText,
-      "standardRateWaste" -> nonEmptyText,
-      "lowerRateWaste" -> nonEmptyText,
-      "exemptWaste" -> nonEmptyText,
-      "environmentalBody1" -> bigDecimal,
-      "environmentalBody2" -> optional(bigDecimal),
-      "emailAddress" -> optional(text),
-      "confirmEmailAddress" -> optional(text)
-    )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply)
-  }
+  = {mapping(
+    "save" -> nonEmptyText,
+    "firstName" -> nonEmptyText,
+    "lastName" -> nonEmptyText,
+    "telephoneNumber" -> nonEmptyText(minLength = 3),
+    "status" -> nonEmptyText,
+    "nameOfBusiness" -> nonEmptyText,
+    "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
+    "accountingPeriodEndDate" -> localDate("dd/MM/yyyy"),
+    "taxDueForThisPeriod" -> nonEmptyText,
+    "underDeclarationsFromPreviousPeriod" -> nonEmptyText,
+    "overDeclarationsForThisPeriod" -> nonEmptyText,
+    "taxCreditClaimedForEnvironment" -> bigDecimal,
+    "badDebtReliefClaimed" -> nonEmptyText,
+    "otherCredits" -> nonEmptyText,
+    "standardRateWaste" -> nonEmptyText,
+    "lowerRateWaste" -> nonEmptyText,
+    "exemptWaste" -> nonEmptyText,
+    "environmentalBody1" -> seq(mapping(
+      "bodyName" -> text,
+        "amount" -> bigDecimal
+    )(EnvironmentalBody.apply)(EnvironmentalBody.unapply)),
+    "emailAddress" -> optional(text),
+    "confirmEmailAddress" -> optional(text)
+  )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply)
+}
 
   def validateEmail(landfillTaxDetails: LandfillTaxDetails): Boolean = {
     landfillTaxDetails.emailAddress match {
@@ -90,8 +89,7 @@ object LandfillTaxDetails {
   }
 
   def validateEnvironmentalTotal(landfillTaxDetails : LandfillTaxDetails) : Boolean =
-    landfillTaxDetails.taxCreditClaimedForEnvironment == landfillTaxDetails.environmentalBody1 + landfillTaxDetails.environmentalBody2.getOrElse(0)
-
+    landfillTaxDetails.taxCreditClaimedForEnvironment == landfillTaxDetails.environmentalBodies.map(_.amount).sum
   val form = Form(landfillTaxDetailsMapping
     .verifying("Environmental credit claimed does not match total for environmental bodies", validateEnvironmentalTotal _)
     .verifying("Email address does not match", validateEmail _)
