@@ -78,19 +78,19 @@ object LandfillTaxDetails {
     )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply)
   }
 
-  def validateEmail(fields : LandfillTaxDetails) : Boolean = {
-    fields match {
-      case landfillTaxDetails => landfillTaxDetails.emailAddress match {
-        case Some(e) if (e != landfillTaxDetails.confirmEmailAddress.getOrElse("")) => false
-        case _ => true
-      }
+  def validateEmail(landfillTaxDetails: LandfillTaxDetails): Boolean = {
+    landfillTaxDetails.emailAddress match {
+      case Some(e) if (e != landfillTaxDetails.confirmEmailAddress.getOrElse("")) => false
+      case _ => true
     }
   }
 
+  def validateEnvironmentalTotal(landfillTaxDetails : LandfillTaxDetails) : Boolean =
+    landfillTaxDetails.taxCreditClaimedForEnvironment == landfillTaxDetails.environmentalBody1 + landfillTaxDetails.environmentalBody2.getOrElse(0)
+
   val form = Form(landfillTaxDetailsMapping
-      .verifying("Email address does not match", validateEmail _)
-
+    .verifying("Environmental credit claimed does not match total for environmental bodies", validateEnvironmentalTotal _)
+    .verifying("Email address does not match", validateEmail _)
   )
-
 
 }
