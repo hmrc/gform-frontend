@@ -58,6 +58,10 @@ object LandfillTaxDetails {
       "firstName" -> nonEmptyText,
       "lastName" -> nonEmptyText,
       "telephoneNumber" -> nonEmptyText(minLength = 3),
+      // N.b. a minLength error should render a constraint.minLength to our users, but we are not seeing that shown.
+      // For constraint.pattern we are seeing "Please match the format requested." whereas the play default is instead
+      // "Required pattern: {0}".  This suggest uk.gov template or ui is definit a message for patter but perhaps none
+      // for minlength.  This needs investigating
       "status" -> nonEmptyText,
       "nameOfBusiness" -> nonEmptyText,
       "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
