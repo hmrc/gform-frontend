@@ -316,7 +316,7 @@
                 @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
            
         </fieldset>
-        @helper.repeat(landfillTaxForm("environmentalBody1"), min = landfillTaxForm("environmentalBody1").indexes.length + 6) { dataField =>
+        @helper.repeat(landfillTaxForm("environmentalBody1"), min = landfillTaxForm("environmentalBody1").indexes.length + 1) { dataField =>
             @dataField("bodyName").value.map { _ =>
                 @dataField("amount").value.map { _ =>
             }

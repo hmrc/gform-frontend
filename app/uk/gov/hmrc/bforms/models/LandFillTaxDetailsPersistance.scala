@@ -22,6 +22,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import play.data.format.Formats.DateFormatter
+import uk.gov.hmrc.bforms.models.ValueClassFormatLocalDate.ValueClassFormatBigDecimal
 
 /**
   * Created by daniel-connelly on 05/01/17.
@@ -37,13 +38,13 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          taxDueForThisPeriod: TaxDueForThisPeriod = new TaxDueForThisPeriod(""),
                                          underDeclarationsFromPreviousPeriod: UnderDeclarationsFromPreviousPeriod = new UnderDeclarationsFromPreviousPeriod(""),
                                          overDeclarationsForThisPeriod: OverDeclarationsForThisPeriod = new OverDeclarationsForThisPeriod(""),
-                                         taxCreditClaimedForEnvironment: TaxCreditClaimedForEnvironment = new TaxCreditClaimedForEnvironment(""),
+                                         taxCreditClaimedForEnvironment: TaxCreditClaimedForEnvironment = new TaxCreditClaimedForEnvironment(0),
                                          badDebtReliefClaimed: BadDebtReliefClaimed = new BadDebtReliefClaimed(""),
                                          otherCredits: OtherCredits = new OtherCredits(""),
                                          standardRateWaste: StandardRateWaste = new StandardRateWaste(""),
                                          lowerRateWaste: LowerRateWaste = new LowerRateWaste(""),
                                          exemptWaste: ExemptWaste = new ExemptWaste(""),
-                                         environmentalBody1: Seq[EnvironmentalBody] =  Seq(EnvironmentalBody("default" , "default")),
+                                         environmentalBody1: Seq[EnvironmentalBody] =  Seq(EnvironmentalBody("default" , 0)),
                                          emailAddress: EmailAddress = new EmailAddress(Some("")),
                                          confirmEmailAddress: ConfirmEmailAddress = new ConfirmEmailAddress(Some("")),
                                          datePersisted : LocalDate = LocalDate.now
@@ -62,7 +63,7 @@ class AccountingPeriodEndDate(val value:LocalDate) extends AnyVal
 class TaxDueForThisPeriod(val value:String) extends AnyVal
 class UnderDeclarationsFromPreviousPeriod(val value:String) extends AnyVal
 class OverDeclarationsForThisPeriod(val value:String) extends AnyVal
-class TaxCreditClaimedForEnvironment(val value:String) extends AnyVal
+class TaxCreditClaimedForEnvironment(val value:BigDecimal) extends AnyVal
 class BadDebtReliefClaimed(val value:String) extends AnyVal
 class OtherCredits(val value:String) extends AnyVal
 class StandardRateWaste(val value:String) extends AnyVal
@@ -71,7 +72,7 @@ class ExemptWaste(val value:String) extends AnyVal
 class EmailAddress(val value:Option[String]) extends AnyVal
 class ConfirmEmailAddress(val value:Option[String]) extends AnyVal
 class BodyName(val value:String) extends AnyVal
-class Amount(val value:String) extends AnyVal
+class Amount(val value:BigDecimal) extends AnyVal
 
 object BodyName {
   def apply(value:String) = new BodyName(value)
@@ -80,9 +81,9 @@ object BodyName {
 }
 
 object Amount {
-  def apply(value:String) = new Amount(value)
+  def apply(value:BigDecimal) = new Amount(value)
 
-  implicit val format : Format[Amount] = ValueClassFormat.format(Amount.apply)(_.value)
+  implicit val format : Format[Amount] = ValueClassFormatBigDecimal.format(Amount.apply)(_.value)
 }
 
 object EnvironmentalBodyPersistence{
@@ -152,9 +153,9 @@ object OverDeclarationsForThisPeriod {
 }
 
 object TaxCreditClaimedForEnvironment {
-  def apply(value: String) = new TaxCreditClaimedForEnvironment(value)
+  def apply(value: BigDecimal) = new TaxCreditClaimedForEnvironment(value)
 
-  implicit val format : Format[TaxCreditClaimedForEnvironment] = ValueClassFormat.format(TaxCreditClaimedForEnvironment.apply)(_.value)
+  implicit val format : Format[TaxCreditClaimedForEnvironment] = ValueClassFormatBigDecimal.format(TaxCreditClaimedForEnvironment.apply)(_.value)
 }
 
 object BadDebtReliefClaimed {
@@ -219,9 +220,26 @@ object ValueClassFormat {
 object ValueClassFormatLocalDate {
   def format[A: Format](fromDateToA: LocalDate => A)(fromAToDate: A => LocalDate) = {
     new Format[LocalDate] {
-      override def reads(json: JsValue) : JsResult[LocalDate]= json.validate[String].map(LocalDate.parse)
+      override def reads(json: JsValue): JsResult[LocalDate] = json.validate[String].map(LocalDate.parse)
 
       override def writes(a: LocalDate): JsValue = Json.toJson(a.toString)
     }
   }
+
+  object ValueClassFormatBigDecimal {
+    def format[A: Format](fromBigDecimalToA: BigDecimal => A)(fromAToBigDecimal: A => BigDecimal) = {
+      new Format[A] {
+        def reads(json: JsValue): JsResult[A] = {
+          json match {
+            case JsNumber(num) => JsSuccess(fromBigDecimalToA(num))
+            case unknown => JsError(s"JsNumber value expected, got: $unknown")
+          }
+        }
+
+        def writes(a: A): JsValue = JsNumber(fromAToBigDecimal(a))
+      }
+    }
+  }
+
 }
+
