@@ -18,7 +18,7 @@ package uk.gov.hmrc.bforms.controllers
 
 import javax.inject.{Inject, Singleton}
 
-import uk.gov.hmrc.bforms.models.LandfillTaxDetails
+import uk.gov.hmrc.bforms.models.{LandFillTaxDetailsPersistence, LandfillTaxDetails}
 import uk.gov.hmrc.bforms.service._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
@@ -39,10 +39,11 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
   implicit val x : TaxFormSaveExit[LandfillTaxDetails] = TaxFormSaveExit.nameLater(repository)
 
   def landfillTaxFormDisplay(registrationNumber : String) = Action.async { implicit request =>
-//    val form = LandfillTaxDetails.form
-//    if (RetrieveService.retrieve(registrationNumber)) {
-//      form.fill(object?)
-//    }
+    val form = LandfillTaxDetails.form
+    if (!RetrieveService.retrieve(registrationNumber).value.get.get.right.get.isEmpty) {
+      val formData:List[LandFillTaxDetailsPersistence] = RetrieveService.retrieve(registrationNumber).value.get.get.right.get
+      form.fill() //Plug in a partially filled object for LandfillTaxDetails.
+    }
     //Need a check of the database before continuing.
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(LandfillTaxDetails.form, registrationNumber.filter(Character.isLetterOrDigit))))
   }
