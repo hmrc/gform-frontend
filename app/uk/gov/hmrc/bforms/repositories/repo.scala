@@ -22,7 +22,7 @@ import javax.inject.Inject
 import com.google.inject.Singleton
 import play.api.libs.json.{Format, Json}
 import reactivemongo.api.DB
-import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod, environmentalBody}
+import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -49,15 +49,7 @@ class LandFillTaxRepository @Inject()(db:DB) extends ReactiveRepository[LandFill
       StandardRateWaste(form.standardRateWaste),
       LowerRateWaste(form.lowerRateWaste),
       ExemptWaste(form.exemptWaste),
-<<<<<<< HEAD
-<<<<<<< HEAD
-      form.environmentalBody1.get,
-=======
-      form.environmentalBody1,
->>>>>>> I have added a name and amount field to the form and model the environmental bodies now display in pairs
-=======
-      form.environmentalBody1.get,
->>>>>>> commit adds 6 pairs of environmental body fields to the form
+      form.environmentalBodies.getOrElse(Seq(EnvironmentalBody(" ", " "))),
       EmailAddress(form.emailAddress.getOrElse("None")),
       ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
     )
@@ -93,7 +85,7 @@ object LandFillTaxDetailsPersistence {
             standardRateWaste: StandardRateWaste,
             lowerRateWaste: LowerRateWaste,
             exemptWaste: ExemptWaste,
-            environmentalBody1: Seq[environmentalBody],
+            environmentalBodies: Seq[EnvironmentalBody],
             emailAddress: EmailAddress,
             confirmEmailAddress: ConfirmEmailAddress) = {
     new LandFillTaxDetailsPersistence(id,
@@ -113,7 +105,7 @@ object LandFillTaxDetailsPersistence {
       standardRateWaste,
       lowerRateWaste,
       exemptWaste,
-      environmentalBody1,
+      environmentalBodies,
       emailAddress,
       confirmEmailAddress)
   }

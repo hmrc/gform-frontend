@@ -43,7 +43,7 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          standardRateWaste: StandardRateWaste = new StandardRateWaste(""),
                                          lowerRateWaste: LowerRateWaste = new LowerRateWaste(""),
                                          exemptWaste: ExemptWaste = new ExemptWaste(""),
-                                         environmentalBody1: Seq[environmentalBody] =  Seq(new environmentalBody("" , "")),
+                                         environmentalBody1: Seq[EnvironmentalBody] =  Seq(new EnvironmentalBody("" , "")),
                                          emailAddress: EmailAddress = new EmailAddress(Some("")),
                                          confirmEmailAddress: ConfirmEmailAddress = new ConfirmEmailAddress(Some("")),
                                          datePersisted : LocalDate = LocalDate.now
@@ -55,8 +55,8 @@ class LastName(val value:String) extends AnyVal
 class TelephoneNumber(val value:String) extends AnyVal
 class Status (val value:String) extends AnyVal
 class NameOfBusiness(val value:String) extends AnyVal
-//class AccountingPeriodStartDate(val value:LocalDate) extends AnyVal
-//class AccountingPeriodEndDate(val value:LocalDate) extends AnyVal
+class AccountingPeriodStartDate(val value:LocalDate) extends AnyVal
+class AccountingPeriodEndDate(val value:LocalDate) extends AnyVal
 class TaxDueForThisPeriod(val value:String) extends AnyVal
 class UnderDeclarationsFromPreviousPeriod(val value:String) extends AnyVal
 class OverDeclarationsForThisPeriod(val value:String) extends AnyVal
