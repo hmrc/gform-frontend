@@ -16,13 +16,10 @@
 
 package uk.gov.hmrc.bforms.models
 
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, OFormat, _}
-import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
-import play.data.format.Formats.DateFormatter
-import uk.gov.hmrc.bforms.models.ValueClassFormatLocalDate.ValueClassFormatBigDecimal
+import org.apache.commons.lang3.RandomStringUtils
+import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, _}
 
 /**
   * Created by daniel-connelly on 05/01/17.
@@ -189,8 +186,6 @@ object ExemptWaste {
 }
 
 
-
-
 object EmailAddress {
   def apply(value: String) = new EmailAddress(Some(value))
 
@@ -225,21 +220,19 @@ object ValueClassFormatLocalDate {
       override def writes(a: LocalDate): JsValue = Json.toJson(a.toString)
     }
   }
+}
 
-  object ValueClassFormatBigDecimal {
-    def format[A: Format](fromBigDecimalToA: BigDecimal => A)(fromAToBigDecimal: A => BigDecimal) = {
-      new Format[A] {
-        def reads(json: JsValue): JsResult[A] = {
-          json match {
-            case JsNumber(num) => JsSuccess(fromBigDecimalToA(num))
-            case unknown => JsError(s"JsNumber value expected, got: $unknown")
-          }
+object ValueClassFormatBigDecimal {
+  def format[A: Format](fromBigDecimalToA: BigDecimal => A)(fromAToBigDecimal: A => BigDecimal) = {
+    new Format[A] {
+      def reads(json: JsValue): JsResult[A] = {
+        json match {
+          case JsNumber(num) => JsSuccess(fromBigDecimalToA(num))
+          case unknown => JsError(s"JsNumber value expected, got: $unknown")
         }
-
-        def writes(a: A): JsValue = JsNumber(fromAToBigDecimal(a))
       }
+      def writes(a: A): JsValue = JsNumber(fromAToBigDecimal(a))
     }
   }
-
 }
 
