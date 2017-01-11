@@ -18,7 +18,8 @@ package uk.gov.hmrc.bforms.models
 
 import java.time.LocalDate
 
-import play.api.data.Form
+import play.api.data.{Form, Mapping}
+import play.api.data.validation._
 import play.api.data.Forms._
 import play.api.libs.json.Json
 
@@ -50,27 +51,46 @@ case class LandfillTaxDetails(
 object LandfillTaxDetails {
   implicit val formats = Json.format[LandfillTaxDetails]
 
-  val form = Form(mapping(
-    "save" -> nonEmptyText,
-    "firstName" -> nonEmptyText,
-    "lastName" -> nonEmptyText,
-    "telephoneNumber" -> nonEmptyText(minLength = 3),
-    "status" -> nonEmptyText,
-    "nameOfBusiness" -> nonEmptyText,
-    "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
-    "accountingPeriodEndDate" -> localDate("dd/MM/yyyy"),
-    "taxDueForThisPeriod" -> nonEmptyText,
-    "underDeclarationsFromPreviousPeriod" -> nonEmptyText,
-    "overDeclarationsForThisPeriod" -> nonEmptyText,
-    "taxCreditClaimedForEnvironment" -> nonEmptyText,
-    "badDebtReliefClaimed" -> nonEmptyText,
-    "otherCredits" -> nonEmptyText,
-    "standardRateWaste" -> nonEmptyText,
-    "lowerRateWaste" -> nonEmptyText,
-    "exemptWaste" -> nonEmptyText,
-    "environmentalBody1" -> nonEmptyText,
-    "environmentalBody2" -> optional(text),
-    "emailAddress" -> optional(text),
-    "confirmEmailAddress" -> optional(text)
-  )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply))
+  val landfillTaxDetailsMapping : Mapping[LandfillTaxDetails]
+  = {
+    mapping(
+      "save" -> nonEmptyText,
+      "firstName" -> nonEmptyText,
+      "lastName" -> nonEmptyText,
+      "telephoneNumber" -> nonEmptyText(minLength = 3),
+      "status" -> nonEmptyText,
+      "nameOfBusiness" -> nonEmptyText,
+      "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
+      "accountingPeriodEndDate" -> localDate("dd/MM/yyyy"),
+      "taxDueForThisPeriod" -> nonEmptyText,
+      "underDeclarationsFromPreviousPeriod" -> nonEmptyText,
+      "overDeclarationsForThisPeriod" -> nonEmptyText,
+      "taxCreditClaimedForEnvironment" -> nonEmptyText,
+      "badDebtReliefClaimed" -> nonEmptyText,
+      "otherCredits" -> nonEmptyText,
+      "standardRateWaste" -> nonEmptyText,
+      "lowerRateWaste" -> nonEmptyText,
+      "exemptWaste" -> nonEmptyText,
+      "environmentalBody1" -> nonEmptyText,
+      "environmentalBody2" -> optional(text),
+      "emailAddress" -> optional(text),
+      "confirmEmailAddress" -> optional(text)
+    )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply)
+  }
+
+  def validateEmail(fields : LandfillTaxDetails) : Boolean = {
+    fields match {
+      case landfillTaxDetails => landfillTaxDetails.emailAddress match {
+        case Some(e) if (e != landfillTaxDetails.confirmEmailAddress.getOrElse("")) => false
+        case _ => true
+      }
+    }
+  }
+
+  val form = Form(landfillTaxDetailsMapping
+      .verifying("Email address does not match", validateEmail _)
+
+  )
+
+
 }

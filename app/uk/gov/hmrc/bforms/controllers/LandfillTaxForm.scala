@@ -44,9 +44,6 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: Execu
 
   private def landfillTax[A](registrationNumber : String)(implicit taxFormSaveExit:TaxFormSaveExit[A]) = Action.async { implicit request =>
 
-    val requestData = LandfillTaxDetails.form.bindFromRequest()
-    val requestInfo = request.body
-
       LandfillTaxDetails.form.bindFromRequest.fold(
         error => {
           println("inside Error")
