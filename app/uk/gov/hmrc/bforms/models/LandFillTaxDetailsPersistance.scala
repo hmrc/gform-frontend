@@ -17,12 +17,9 @@
 package uk.gov.hmrc.bforms.models
 
 import java.time.LocalDate
-<<<<<<< HEAD
-=======
 
 import org.apache.commons.lang3.RandomStringUtils
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, _}
->>>>>>> 150df37631579a358b36efe8c94448d18b49e1c4
 
 /**
   * Created by daniel-connelly on 05/01/17.
@@ -51,12 +48,10 @@ case class LandFillTaxDetailsPersistence(ID : GovernmentGatewayId = GovernmentGa
                                         ){
 }
 
-<<<<<<< HEAD
 class GovernmentGatewayId(val value:String) extends AnyVal
-=======
+
 case class EnvironmentalBodyPersistence(bodyName:BodyName, amount:Amount)
 
->>>>>>> 150df37631579a358b36efe8c94448d18b49e1c4
 class FirstName(val value:String) extends AnyVal
 class LastName(val value:String) extends AnyVal
 class TelephoneNumber(val value:String) extends AnyVal
