@@ -24,7 +24,7 @@ import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsVal
 /**
   * Created by daniel-connelly on 05/01/17.
   */
-case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(4),
+case class LandFillTaxDetailsPersistence(ID : GovernmentGatewayId = GovernmentGatewayId(RandomStringUtils.random(4)),
                                          firstName : FirstName = new FirstName(""),
                                          lastName : LastName = new LastName(""),
                                          telephoneNumber: TelephoneNumber = new TelephoneNumber(""),
@@ -47,6 +47,8 @@ case class LandFillTaxDetailsPersistence(ID : String = RandomStringUtils.random(
                                          datePersisted : LocalDate = LocalDate.now
                                         ){
 }
+
+class GovernmentGatewayId(val value:String) extends AnyVal
 
 case class EnvironmentalBodyPersistence(bodyName:BodyName, amount:Amount)
 
@@ -87,6 +89,12 @@ object EnvironmentalBodyPersistence{
   implicit val formats : Format[EnvironmentalBodyPersistence] = Json.format[EnvironmentalBodyPersistence]
 }
 
+
+object GovernmentGatewayId {
+  def apply(value: String) = new GovernmentGatewayId(value)
+
+  implicit val format: Format[GovernmentGatewayId] = ValueClassFormat.format(GovernmentGatewayId.apply)(_.value)
+}
 
 object FirstName {
   def apply(value: String) = new FirstName(value)
