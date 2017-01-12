@@ -94,6 +94,7 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
           Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(error, registrationNumber)))
         },
         content => {
+          println(content)
           if (content.save.equals("Exit")) {
             SaveExit.SaveForm(content)(x) map {
               case false => Ok("Failed")

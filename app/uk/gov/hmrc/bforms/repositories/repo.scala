@@ -22,7 +22,11 @@ import javax.inject.Inject
 import com.google.inject.Singleton
 import play.api.libs.json.{Format, Json}
 import reactivemongo.api.DB
+<<<<<<< HEAD
 import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody1, EnvironmentalBody2, ExemptWaste, FirstName, GovernmentGatewayId, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
+=======
+import uk.gov.hmrc.bforms.models.{Amount, BadDebtReliefClaimed, BodyName, ConfirmEmailAddress, EmailAddress, EnvironmentalBody, EnvironmentalBodyPersistence, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
+>>>>>>> 150df37631579a358b36efe8c94448d18b49e1c4
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +39,12 @@ import scala.concurrent.Future
 class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepository {
 
   def store(form: LandfillTaxDetails) = {
+<<<<<<< HEAD
     val store = LandFillTaxDetailsPersistence(GovernmentGatewayId("Something") , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
+=======
+    println(form.environmentalBodies)
+    val store = LandFillTaxDetailsPersistence("Something" , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
+>>>>>>> 150df37631579a358b36efe8c94448d18b49e1c4
       Status(form.status),
       NameOfBusiness(form.nameOfBusiness),
       form.accountingPeriodStartDate,
@@ -49,19 +58,20 @@ class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveReposi
       StandardRateWaste(form.standardRateWaste),
       LowerRateWaste(form.lowerRateWaste),
       ExemptWaste(form.exemptWaste),
-      EnvironmentalBody1(form.environmentalBody1),
-      EnvironmentalBody2(form.environmentalBody2.getOrElse(0)),
+      form.environmentalBodies,
+//      EnvironmentalBodyPersistence(BodyName(form.environmentalBodies.get(0).bodyName), Amount(form.environmentalBodies.get(0).amount)),//OrElse(Seq(EnvironmentalBody(" ", " "))),
+
       EmailAddress(form.emailAddress.getOrElse("None")),
       ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
     )
-       insert(store) map {
-         case r if r.ok =>
-           logger.info(s"form with details of '${form.firstName}' & '${form.lastName}' was successfully stored")
-           Right(())
-         case r =>
-           logger.error(s"form with details of '${form.firstName}' & '${form.lastName}' was not successfully stored")
-           Left(r.message)
-       }
+    insert(store) map {
+      case r if r.ok =>
+        logger.info(s"form with details of '${form.firstName}' & '${form.lastName}' was successfully stored")
+        Right(())
+      case r =>
+        logger.error(s"form with details of '${form.firstName}' & '${form.lastName}' was not successfully stored")
+        Left(r.message)
+    }
   }
 
   private def findById(id : GovernmentGatewayId): Future[List[LandFillTaxDetailsPersistence]] = {
@@ -94,8 +104,7 @@ object LandFillTaxDetailsPersistence {
             standardRateWaste: StandardRateWaste,
             lowerRateWaste: LowerRateWaste,
             exemptWaste: ExemptWaste,
-            environmentalBody1: EnvironmentalBody1,
-            environmentalBody2: EnvironmentalBody2,
+            environmentalBodies: Seq[EnvironmentalBody],
             emailAddress: EmailAddress,
             confirmEmailAddress: ConfirmEmailAddress) = {
 
@@ -116,8 +125,7 @@ object LandFillTaxDetailsPersistence {
       standardRateWaste,
       lowerRateWaste,
       exemptWaste,
-      environmentalBody1,
-      environmentalBody2,
+      environmentalBodies,
       emailAddress,
       confirmEmailAddress)
   }
