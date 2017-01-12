@@ -22,11 +22,7 @@ import javax.inject.Inject
 import com.google.inject.Singleton
 import play.api.libs.json.{Format, Json}
 import reactivemongo.api.DB
-<<<<<<< HEAD
-import uk.gov.hmrc.bforms.models.{BadDebtReliefClaimed, ConfirmEmailAddress, EmailAddress, EnvironmentalBody1, EnvironmentalBody2, ExemptWaste, FirstName, GovernmentGatewayId, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
-=======
-import uk.gov.hmrc.bforms.models.{Amount, BadDebtReliefClaimed, BodyName, ConfirmEmailAddress, EmailAddress, EnvironmentalBody, EnvironmentalBodyPersistence, ExemptWaste, FirstName, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
->>>>>>> 150df37631579a358b36efe8c94448d18b49e1c4
+import uk.gov.hmrc.bforms.models.{Amount, BadDebtReliefClaimed, BodyName, ConfirmEmailAddress, EmailAddress, EnvironmentalBody, EnvironmentalBodyPersistence, ExemptWaste, FirstName, GovernmentGatewayId, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,12 +35,8 @@ import scala.concurrent.Future
 class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepository {
 
   def store(form: LandfillTaxDetails) = {
-<<<<<<< HEAD
+
     val store = LandFillTaxDetailsPersistence(GovernmentGatewayId("Something") , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
-=======
-    println(form.environmentalBodies)
-    val store = LandFillTaxDetailsPersistence("Something" , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
->>>>>>> 150df37631579a358b36efe8c94448d18b49e1c4
       Status(form.status),
       NameOfBusiness(form.nameOfBusiness),
       form.accountingPeriodStartDate,
