@@ -314,21 +314,45 @@
         <fieldset class="form-field-group@if(landfillTaxForm("environmentalBody1").hasErrors) { form-field-group--error}">
          <h3>  Environmental Bodies </h3>
                 @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
-           
+
         </fieldset>
-        @helper.repeat(landfillTaxForm("environmentalBody1"), min = landfillTaxForm("environmentalBody1").indexes.length + 1) { dataField =>
+        @helper.repeat(landfillTaxForm("environmentalBody1"), min =  1) { dataField =>
             @dataField("bodyName").value.map { _ =>
                 @dataField("amount").value.map { _ =>
             }
             }
 
-        <div style="float: left;">
+
+        <script src="@routes.Assets.versioned("javascripts/addInput.js")" language="Javascript" type="text/javascript"></script>
+        <div id="dynamicInput">
+        <div style="float: left;" id="name_0">
         @helper.inputText(dataField("bodyName"), '_label -> "Name", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group")
         </div>
-        <div style="float: right;">
+
+        <div style="float: right;" id="amount_0">
         @helper.inputText(dataField("amount"), '_label -> "Amount", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group")
         </div>
+        </div>
+                <div id="newField">
+                </div>
+                <br>
+            <br>
+            <br>
+            <br>
+            <br>
+          <div style="float:right">
+              <button type="button" value="Add" onClick="addInput('dynamicInput');">Add</button>
+              <button type="button" value="remove" onClick="removeField('dynamicInput');">Delete</button>
+          </div>
+
         }
+
+
+
+
+
+
+
         <h1>Declaration</h1>
         <h4>You can avoid financial penalty, or even prosecution, by making sure that you have given complete and accurate information on this form.
 
