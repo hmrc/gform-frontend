@@ -58,7 +58,7 @@ object LandfillTaxDetails {
     "save" -> nonEmptyText,
     "firstName" -> nonEmptyText,
     "lastName" -> nonEmptyText,
-    "telephoneNumber" -> nonEmptyText(minLength = 3),
+    "telephoneNumber" -> nonEmptyText,
     "status" -> nonEmptyText,
     "nameOfBusiness" -> nonEmptyText,
     "accountingPeriodStartDate" -> localDate("dd/MM/yyyy"),
