@@ -18,8 +18,16 @@ function addInput(divName){
 }
 
 function removeField(divName) {
-    var element = document.getElementById('name_'+ counter +''); // notice the change
-    element.parentNode.removeChild(element);
-    counter --;
+    if (counter == 1){
+        alert("One field is mandatory")
+    }
+    else {
+        counter--;
+        var nameElement = document.getElementById('name_' + counter + ''); // notice the change
+        nameElement.parentNode.removeChild(nameElement);
+        var amountElement = document.getElementById('amount_' + counter + ''); // notice the change
+        amountElement.parentNode.removeChild(amountElement);
+    }
+
 
 }
