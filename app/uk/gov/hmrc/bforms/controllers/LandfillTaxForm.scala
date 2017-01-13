@@ -70,8 +70,7 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
               formData.standardRateWaste.value,
               formData.lowerRateWaste.value,
               formData.exemptWaste.value,
-              formData.environmentalBody1.value,
-              formData.environmentalBody2.value,
+              formData.environmentalBody1,
               formData.emailAddress.value, formData.confirmEmailAddress.value)
             val formFilled = form.fill(filledForm)
             Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(formFilled, registrationNumber.filter(Character.isLetterOrDigit))))
