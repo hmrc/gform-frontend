@@ -27,7 +27,7 @@ case class EnvironmentalBody(bodyName: String, amount: BigDecimal)
 object EnvironmentalBody {
   implicit val formats : Format[EnvironmentalBody] = Json.format[EnvironmentalBody]
 }
-case class LandfillTaxDetails(
+case class LandfillTaxDetails(registrationNumber: String,
                                save:String,
                                firstName: String,
                                lastName: String,
@@ -55,6 +55,7 @@ object LandfillTaxDetails {
 
   val landfillTaxDetailsMapping : Mapping[LandfillTaxDetails]
   = {mapping(
+    "registrationNumber" -> nonEmptyText,
     "save" -> nonEmptyText,
     "firstName" -> nonEmptyText,
     "lastName" -> nonEmptyText,
