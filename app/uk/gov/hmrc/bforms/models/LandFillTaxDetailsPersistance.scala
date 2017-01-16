@@ -24,7 +24,7 @@ import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsVal
 /**
   * Created by daniel-connelly on 05/01/17.
   */
-case class LandFillTaxDetailsPersistence(ID : GovernmentGatewayId = GovernmentGatewayId(RandomStringUtils.random(4)),
+case class LandFillTaxDetailsPersistence(registrationNumber : GovernmentGatewayId = GovernmentGatewayId(RandomStringUtils.random(4)),
                                          firstName : FirstName = new FirstName(""),
                                          lastName : LastName = new LastName(""),
                                          telephoneNumber: TelephoneNumber = new TelephoneNumber(""),
@@ -89,6 +89,109 @@ object EnvironmentalBodyPersistence{
   implicit val formats : Format[EnvironmentalBodyPersistence] = Json.format[EnvironmentalBodyPersistence]
 }
 
+
+case class EitherLandfillTaxDetailsPersistenceMapStringString(value : Either[LandFillTaxDetailsPersistence, Map[String, String]])
+
+object LandFillTaxDetailsPersistence {
+
+  def apply(governmentGateway : GovernmentGatewayId,
+            firstName:FirstName,
+            lastName:LastName,
+            telephoneNumber:TelephoneNumber,
+            status: Status,
+            nameOfBusiness: NameOfBusiness,
+            accountingPeriodStartDate: LocalDate,
+            accountingPeriodEndDate: LocalDate,
+            taxDueForThisPeriod: TaxDueForThisPeriod,
+            underDeclarationsFromPreviousPeriod: UnderDeclarationsFromPreviousPeriod,
+            overDeclarationsForThisPeriod: OverDeclarationsForThisPeriod,
+            taxCreditClaimedForEnvironment: TaxCreditClaimedForEnvironment,
+            badDebtReliefClaimed: BadDebtReliefClaimed,
+            otherCredits: OtherCredits,
+            standardRateWaste: StandardRateWaste,
+            lowerRateWaste: LowerRateWaste,
+            exemptWaste: ExemptWaste,
+            environmentalBody: Seq[EnvironmentalBody],
+            emailAddress: EmailAddress,
+            confirmEmailAddress: ConfirmEmailAddress) = {
+
+    new LandFillTaxDetailsPersistence(governmentGateway,
+      firstName,
+      lastName,
+      telephoneNumber,
+      status,
+      nameOfBusiness,
+      accountingPeriodStartDate,
+      accountingPeriodEndDate,
+      taxDueForThisPeriod,
+      underDeclarationsFromPreviousPeriod,
+      overDeclarationsForThisPeriod,
+      taxCreditClaimedForEnvironment,
+      badDebtReliefClaimed,
+      otherCredits,
+      standardRateWaste,
+      lowerRateWaste,
+      exemptWaste,
+      environmentalBody,
+      emailAddress,
+      confirmEmailAddress)
+  }
+
+  val mongoFormat = Json.format[LandFillTaxDetailsPersistence]
+}
+
+object EitherLandfillTaxDetailsPersistenceMapStringString {
+
+  implicit val formatLandfill : Format[LandFillTaxDetailsPersistence] = LandFillTaxDetailsPersistence.mongoFormat
+
+  def apply(value: LandFillTaxDetailsPersistence) = new EitherLandfillTaxDetailsPersistenceMapStringString(Left(value))
+
+  def apply(value: Map[String, String]) = new EitherLandfillTaxDetailsPersistenceMapStringString(Right(value))
+
+  implicit val format : Format[Either[LandFillTaxDetailsPersistence, Map[String, String]]] = ValueClassFormatEitherLandfillTaxDetailsPersistenceMapStringString.format[LandFillTaxDetailsPersistence, Map[String, String]]
+}
+
+object ValueClassFormatEitherLandfillTaxDetailsPersistenceMapStringString {
+
+  def format[A <:LandFillTaxDetailsPersistence, B <:Map[String, String]](implicit readL: Reads[A], readR: Reads[B], writeL: Writes[A], writeR: Writes[B]) : Format[Either[A, B]] = {
+    new Format[Either[A, B]] {
+      def reads(json: JsValue) : JsResult[Either[A, B]] = {
+        json match {
+          case o @ JsObject(_) =>
+            (o.value.get("object"), o.value.get("map")) match {
+              case (Some(obj), None) => {
+                println("object")
+                readL.reads(obj).map(Left(_))
+              }
+              case (None, Some(obj)) => {
+                println("map")
+                readR.reads(obj).map(Right(_))
+              }
+              case (unknownL, unknownR) => JsError(
+                s"""|Expected 'object' or 'map' for Either[L, R] type.
+                    |UnknownL: $unknownL
+                    |UnkownR : $unknownR
+                   """.stripMargin)
+            }
+          case unknown => JsError(s"JsObject expected got $unknown")
+        }
+      }
+
+      def writes(v: Either[A, B]) : JsValue = {
+        v match {
+          case Left(left) => {
+            println("Left(left)")
+            Json.obj("object" -> writeL.writes(left))
+          }
+          case Right(right) => {
+            println("Right(right)")
+            Json.obj("map" -> writeR.writes(right))
+          }
+        }
+      }
+    }
+  }
+}
 
 object GovernmentGatewayId {
   def apply(value: String) = new GovernmentGatewayId(value)

@@ -20,9 +20,10 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 import com.google.inject.Singleton
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json._
 import reactivemongo.api.DB
-import uk.gov.hmrc.bforms.models.{Amount, BadDebtReliefClaimed, BodyName, ConfirmEmailAddress, EmailAddress, EnvironmentalBody, EnvironmentalBodyPersistence, ExemptWaste, FirstName, GovernmentGatewayId, LandFillTaxDetailsPersistence, LandfillTaxDetails, LastName, LowerRateWaste, NameOfBusiness, OtherCredits, OverDeclarationsForThisPeriod, StandardRateWaste, Status, TaxCreditClaimedForEnvironment, TaxDueForThisPeriod, TelephoneNumber, UnderDeclarationsFromPreviousPeriod}
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import uk.gov.hmrc.bforms.models._
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,48 +33,86 @@ import scala.concurrent.Future
   * Created by daniel-connelly on 22/12/16.
   */
 @Singleton
-class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveRepository[LandFillTaxDetailsPersistence, String]("formData", () => db, LandFillTaxDetailsPersistence.mongoFormat, implicitly[Format[String]]) with LandFillTaxRepository {
+class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveRepository[Either[LandFillTaxDetailsPersistence, Map[String, String]] , String]("formData", () => db, EitherLandfillTaxDetailsPersistenceMapStringString.format, implicitly[Format[String]]) with LandFillTaxRepository {
 
-  def store(form: LandfillTaxDetails) = {
-
-    val store = LandFillTaxDetailsPersistence(GovernmentGatewayId("Something") , FirstName(form.firstName), LastName(form.lastName), TelephoneNumber(form.telephoneNumber),
-      Status(form.status),
-      NameOfBusiness(form.nameOfBusiness),
-      form.accountingPeriodStartDate,
-      form.accountingPeriodEndDate,
-      TaxDueForThisPeriod(form.taxDueForThisPeriod),
-      UnderDeclarationsFromPreviousPeriod(form.underDeclarationsFromPreviousPeriod),
-      OverDeclarationsForThisPeriod(form.overDeclarationsForThisPeriod),
-      TaxCreditClaimedForEnvironment(form.taxCreditClaimedForEnvironment),
-      BadDebtReliefClaimed(form.badDebtReliefClaimed),
-      OtherCredits(form.otherCredits),
-      StandardRateWaste(form.standardRateWaste),
-      LowerRateWaste(form.lowerRateWaste),
-      ExemptWaste(form.exemptWaste),
-      form.environmentalBodies,
-//      EnvironmentalBodyPersistence(BodyName(form.environmentalBodies.get(0).bodyName), Amount(form.environmentalBodies.get(0).amount)),//OrElse(Seq(EnvironmentalBody(" ", " "))),
-
-      EmailAddress(form.emailAddress.getOrElse("None")),
-      ConfirmEmailAddress(form.confirmEmailAddress.getOrElse("None"))
+  def store(form:Either[LandfillTaxDetails, Map[String, String]]) = {
+    form.fold(
+      landfilltaxdetails => {
+        val store = LandFillTaxDetailsPersistence(GovernmentGatewayId("Something"),
+          FirstName(landfilltaxdetails.firstName),
+          LastName(landfilltaxdetails.lastName),
+          TelephoneNumber(landfilltaxdetails.telephoneNumber),
+          Status(landfilltaxdetails.status),
+          NameOfBusiness(landfilltaxdetails.nameOfBusiness),
+          landfilltaxdetails.accountingPeriodStartDate,
+          landfilltaxdetails.accountingPeriodEndDate,
+          TaxDueForThisPeriod(landfilltaxdetails.taxDueForThisPeriod),
+          UnderDeclarationsFromPreviousPeriod(landfilltaxdetails.underDeclarationsFromPreviousPeriod),
+          OverDeclarationsForThisPeriod(landfilltaxdetails.overDeclarationsForThisPeriod),
+          TaxCreditClaimedForEnvironment(landfilltaxdetails.taxCreditClaimedForEnvironment),
+          BadDebtReliefClaimed(landfilltaxdetails.badDebtReliefClaimed),
+          OtherCredits(landfilltaxdetails.otherCredits),
+          StandardRateWaste(landfilltaxdetails.standardRateWaste),
+          LowerRateWaste(landfilltaxdetails.lowerRateWaste),
+          ExemptWaste(landfilltaxdetails.exemptWaste),
+          landfilltaxdetails.environmentalBodies,
+          EmailAddress(landfilltaxdetails.emailAddress.getOrElse("None")),
+          ConfirmEmailAddress(landfilltaxdetails.confirmEmailAddress.getOrElse("None"))
+        )
+        insert(Left(store)) map {
+          case r if r.ok =>
+            logger.info(s"form with details of '${landfilltaxdetails.firstName}' & '${landfilltaxdetails.lastName}' was successfully stored")
+            Right(())
+          case r =>
+            logger.error(s"form with details of '${landfilltaxdetails.firstName}' & '${landfilltaxdetails.lastName}' was not successfully stored")
+            Left(r.message)
+        }
+      },
+      Map => {
+        insert(Right(Map)) map {
+          case r if r.ok =>
+            logger.info(s"map of a form in database")
+            Right(())
+          case r =>
+            logger.error(s"map not put into databse")
+            Left(r.message)
+        }
+      }
     )
-    insert(store) map {
-      case r if r.ok =>
-        logger.info(s"form with details of '${form.firstName}' & '${form.lastName}' was successfully stored")
-        Right(())
-      case r =>
-        logger.error(s"form with details of '${form.firstName}' & '${form.lastName}' was not successfully stored")
-        Left(r.message)
+  }
+
+  private def findByIdObject(id : GovernmentGatewayId): Future[List[Either[LandFillTaxDetailsPersistence, Map[String, String]]]] = {
+    find("object.registrationNumber" -> id)
+  }
+
+  private def findByIdMap(id : GovernmentGatewayId): Future[List[Either[LandFillTaxDetailsPersistence, Map[String, String]]]] = {
+    find("map.registrationNumber" -> id)
+  }
+
+  def get(id : String) :Future[List[Either[LandFillTaxDetailsPersistence, Map[String, String]]]] = {
+    findByIdMap(GovernmentGatewayId(id)).flatMap {
+      case empty if(empty.isEmpty) => {
+        println("empty")
+        findByIdObject(GovernmentGatewayId(id)).flatMap{
+          case emptyList if(emptyList.isEmpty) => {
+            println("emptyList")
+            Future.successful(emptyList)
+          }
+          case fullList => {
+            println("fullList")
+            Future.successful(fullList)
+          }
+          case _ =>{
+            println("someResponse")
+            Future.successful(empty)
+          }
+        }
+      }
+      case list : List[Either[LandFillTaxDetailsPersistence, Map[String, String]]] => {
+        println("list")
+        Future.successful(list)
+      }
     }
-  }
-
-  private def findById(id : GovernmentGatewayId): Future[List[LandFillTaxDetailsPersistence]] = {
-    find(
-      "ID" -> id
-    )
-  }
-
-  def get(id : String) :Future[List[LandFillTaxDetailsPersistence]] = {
-    findById(GovernmentGatewayId(id))
   }
 }
 
@@ -127,8 +166,8 @@ object LandFillTaxDetailsPersistence {
 
 trait LandFillTaxRepository {
 
-  def store(form : LandfillTaxDetails) : Future[Either[String, Unit]]
+  def store(form : Either[LandfillTaxDetails, Map[String, String]]) : Future[Either[String, Unit]]
 
-  def get(registrationNumber : String) : Future[List[LandFillTaxDetailsPersistence]]
+  def get(registrationNumber : String) : Future[List[Either[LandFillTaxDetailsPersistence, Map[String, String]]]]
+
 }
-

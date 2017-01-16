@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.bforms.service
 
-import play.api.libs.functional.syntax.toApplicativeOps
+import play.api.Logger
 import uk.gov.hmrc.bforms.models.LandFillTaxDetailsPersistence
 import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
 
@@ -26,29 +26,41 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by daniel-connelly on 10/01/17.
   */
-trait TaxFormRetrieve[A, B] {
-  def apply(a: A) : Future[List[B]]
+trait TaxFormRetrieve[A, B, C] {
+  def apply(a: A) : Future[List[Either[B, C]]]
 }
 
 object TaxFormRetrieve {
 
-  private def retrieveTaxForm[A, B](f: A => Future[List[B]]) : TaxFormRetrieve[A, B] = {
-    new TaxFormRetrieve[A, B] {
-      def apply(params: A) : Future[List[B]]= f(params)
+  private def retrieveTaxForm[A, B, C](f: A => Future[List[Either[B, C]]]) : TaxFormRetrieve[A, B, C] = {
+    new TaxFormRetrieve[A, B, C] {
+      def apply(params: A) : Future[List[Either[B, C]]] = f(params)
     }
   }
 
-  implicit def somethingElse(implicit repository: LandFillTaxRepository) : TaxFormRetrieve[String, LandFillTaxDetailsPersistence]  = {
+  implicit def somethingElse(implicit repository: LandFillTaxRepository) : TaxFormRetrieve[String, LandFillTaxDetailsPersistence, Map[String, String]]  = {
     retrieveTaxForm((f : String) =>  repository.get(f))
   }
 }
 
 object RetrieveService {
 
-  def retrieve[A, B](registrationNumber:A)(implicit taxFormRetrieve:TaxFormRetrieve[A, B]):Future[Either[Unit, List[B]]] = {
-    taxFormRetrieve(registrationNumber).flatMap{
-      case form => Future.successful(Right(form))
-      case _ => Future.successful(Left(()))
-    }
+  def retrieve[A, B, C](registrationNumber:A)(implicit taxFormRetrieve:TaxFormRetrieve[A, LandFillTaxDetailsPersistence, Map[String, String]]) : Future[Either[Unit, Either[LandFillTaxDetailsPersistence, Map[String, String]]]] = {
+    taxFormRetrieve(registrationNumber).flatMap {
+      case obj: List[Either[LandFillTaxDetailsPersistence, Map[String, String]]] if(obj.isEmpty) => {
+        println("emptyList")
+        Future.successful(Left(()))
+      }
+      case obj: List[Either[LandFillTaxDetailsPersistence, Map[String, String]]] => obj(0).fold(
+        left => {
+          println("left")
+          Future.successful(Right(Left(left)))
+        },
+        right => {
+          println("right")
+          Future.successful(Right(Right(right)))
+        }
+      )
+      }
   }
 }

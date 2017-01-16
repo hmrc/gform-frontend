@@ -37,14 +37,14 @@ object TaxFormSaveExit {
     }
   }
 
-  implicit def nameLater(implicit repository: LandFillTaxRepository): TaxFormSaveExit[LandfillTaxDetails] = {
-    getTaxFormSaveExit((r : LandfillTaxDetails) =>  repository.store(r))
+  implicit def nameLater(implicit repository: LandFillTaxRepository): TaxFormSaveExit[Either[LandfillTaxDetails, Map[String, String]]] = {
+    getTaxFormSaveExit((r : Either[LandfillTaxDetails, Map[String, String]]) =>  repository.store(r))
   }
 }
 
 object SaveExit {
 
-  def SaveForm[A](formDetails:A)(implicit taxFormSaveExit:TaxFormSaveExit[A]):Future[Boolean] = {
+  def SaveForm[A, B](formDetails:Either[A, B])(implicit taxFormSaveExit:TaxFormSaveExit[Either[A, B]]):Future[Boolean] = {
     taxFormSaveExit(formDetails).map {
       case _ => true
       case x => false

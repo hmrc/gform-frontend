@@ -45,6 +45,7 @@
 
     <logger name="com.google.inject" level="INFO"/>
 
+    <logger name="play.core.netty.utils.ServerCookieDecoder" level="INFO"/>
 
     <logger name="uk.gov" level="INFO"/>
 
