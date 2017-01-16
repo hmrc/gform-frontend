@@ -103,13 +103,7 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
                 case s => BigDecimal(s)
               }
             }
-            if(accountPeriodStartDate.toString.equals("01/01/+1000000000")){
-              println("hello")
-            } else {
-              println("world")
-            }
 
-            println(formData.apply("firstName"))
             val filledForm = new LandfillTaxDetails("",
               formData("firstName"),
               formData("lastName"),

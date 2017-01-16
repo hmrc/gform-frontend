@@ -23,9 +23,6 @@ import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/**
-  * Created by daniel-connelly on 10/01/17.
-  */
 trait TaxFormRetrieve[A, B, C] {
   def apply(a: A) : Future[List[Either[B, C]]]
 }
