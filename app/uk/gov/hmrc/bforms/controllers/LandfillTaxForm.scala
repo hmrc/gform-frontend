@@ -146,10 +146,12 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
 
   def landfillTaxForms(rn: String) = landfillTax(rn)(x)
 
+  def bformsConnector : BformsConnector =
   private def landfillTax[A](registrationNumber : String)(implicit taxFormSaveExit:TaxFormSaveExit[A]) = Action.async { implicit request =>
       LandfillTaxDetails.form.bindFromRequest.fold(
         error => {
           println(error.data)
+
           repository.store(Right(error.data))
           Future.successful(BadRequest(uk.gov.hmrc.bforms.views.html.landfill_tax_form(error, registrationNumber)))
         },
