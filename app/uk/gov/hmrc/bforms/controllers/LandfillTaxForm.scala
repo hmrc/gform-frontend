@@ -50,7 +50,6 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
           case Right(Left(obj)) => {
             println("Right(list)")
             val formData : LandFillTaxDetailsPersistence = obj
-            println(formData.firstName.value)
             val filledForm = new LandfillTaxDetails(formData.registrationNumber.value,
               "",
               formData.firstName.value,

@@ -434,7 +434,7 @@
                 type="text"
                 name="emailAddress"
                 id="emailAddress"
-                value="@landfillTaxForm("emailAddress").value"
+                value="@{if(landfillTaxForm("emailAddress").value.toString.equals("Some(None)")){""}else{landfillTaxForm("emailAddress").value}}"
                 class="form-control form-control--block"
                 pattern="([^ @@]+@@[^ @@]+)?"
                 >
@@ -449,7 +449,7 @@
                 type="text"
                 name="confirmEmailAddress"
                 id="confirmEmailAddress"
-                value="@landfillTaxForm("confirmEmailAddress").value"
+                value="@{if(landfillTaxForm("confirmEmailAddress").value.toString.equals("Some(None)")){""}else{landfillTaxForm("confirmEmailAddress").value}}"
                 class="form-control form-control--block"
                 pattern="([^ @@]+@@[^ @@]+)?"
                 >
