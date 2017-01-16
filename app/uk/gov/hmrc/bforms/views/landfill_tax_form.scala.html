@@ -185,6 +185,7 @@
                 <h3>Under Declarations From Previous Period </h3>
                 @errorInline("underDeclarationsFromPreviousPeriod", "Please Enter Under Declarations From Previous Period", Seq("optional-extra-css-classes"))
                 <input
+                onblur="findTotal()"
                 type="text"
                 name="underDeclarationsFromPreviousPeriod"
                 id="underDeclarationsFromPreviousPeriod"
@@ -195,6 +196,22 @@
                 >
             </label>
         </fieldset>
+
+            <fieldset>
+                Total: £ <input type="label" name="total" id="total"/>
+            </fieldset>
+
+            <script type="text/javascript">
+                function findTotal(){
+                    var taxDue = document.getElementById('taxDueForThisPeriod').value;
+                    var underDec = document.getElementById('underDeclarationsFromPreviousPeriod').value;
+                    var tot = parseInt(taxDue) + parseInt(underDec);
+
+                    document.getElementById('total').value = tot;
+                   }
+
+            </script>
+
 
         <fieldset class="form-field-group@if(landfillTaxForm("overDeclarationsForThisPeriod").hasErrors) { form-field-group--error}">
             <label for="arn">
@@ -251,6 +268,7 @@
                 <p>This is the amount of landfill tax credits you are claiming this period in respect of landfill tax paid waste, removed from site for environmental reasons or for reuse</p>
                 @errorInline("otherCredits", "Please Enter any Other Credits", Seq("optional-extra-css-classes"))
                 <input
+                onblur="findTotalCredits(); findNetTax()"
                 type="text"
                 name="otherCredits"
                 id="otherCredits"
@@ -261,6 +279,49 @@
                 >
             </label>
         </fieldset>
+
+            <fieldset>
+                Total credits: £ <input type="label" name="totalCredits" id="totalCredits"/>
+            </fieldset>
+
+            <br>
+
+            <fieldset>
+                Net tax due:   £ <input type="label" name="netDue" id="netDue"/>
+            </fieldset>
+
+            <br>
+
+
+
+            <script type="text/javascript">
+                function findTotalCredits(){
+                    var overDec = document.getElementById('overDeclarationsForThisPeriod').value;
+                    var taxCredClaimed = document.getElementById('taxCreditClaimedForEnvironment').value;
+                    var badDebt = document.getElementById('badDebtReliefClaimed').value;
+                    var otherCred = document.getElementById('otherCredits').value;
+
+                    var tot= parseInt(overDec) + parseInt(taxCredClaimed) + parseInt(badDebt) + parseInt(otherCred);
+
+                    document.getElementById('totalCredits').value = tot;
+                   }
+
+            </script>
+
+
+            <script type="text/javascript">
+                function findNetTax(){
+                    var totalTax = document.getElementById('total').value;
+                    var totalCredits = document.getElementById('totalCredits').value;
+                    var tot = totalTax - totalCredits;
+
+                    document.getElementById('netDue').value = tot;
+                   }
+
+            </script>
+
+
+
         <h2>Weight of waste per category, landfilled in this return period</h2>
         <p>Where we have agreed a scheme to discount the water content of waste for tax calculation purposes, you should not include the weight of this water.</p>
         <fieldset class="form-field-group@if(landfillTaxForm("standardRateWaste").hasErrors) { form-field-group--error}">
