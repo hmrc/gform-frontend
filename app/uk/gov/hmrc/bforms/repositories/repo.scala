@@ -35,7 +35,7 @@ import scala.concurrent.Future
 @Singleton
 class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveRepository[Either[LandFillTaxDetailsPersistence, Map[String, String]] , String]("formData", () => db, EitherLandfillTaxDetailsPersistenceMapStringString.format, implicitly[Format[String]]) with LandFillTaxRepository {
 
-  def store(form:Either[LandfillTaxDetails, Map[String, String]], registrationNumber: String) = {
+  def store(form:Either[LandfillTaxDetails, Map[String, String]]) = {
     form.fold(
       landfilltaxdetails => {
         val store = LandFillTaxDetailsPersistence(GovernmentGatewayId(landfilltaxdetails.registrationNumber),

@@ -51,7 +51,8 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
             println("Right(list)")
             val formData : LandFillTaxDetailsPersistence = obj
             println(formData.firstName.value)
-            val filledForm = new LandfillTaxDetails("",
+            val filledForm = new LandfillTaxDetails(formData.registrationNumber.value,
+              "",
               formData.firstName.value,
               formData.lastName.value,
               formData.telephoneNumber.value,
@@ -104,7 +105,8 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi, repository: LandFi
               }
             }
 
-            val filledForm = new LandfillTaxDetails("",
+            val filledForm = new LandfillTaxDetails(formData("registrationNumber"),
+              "",
               formData("firstName"),
               formData("lastName"),
               formData("telephoneNumber"),
