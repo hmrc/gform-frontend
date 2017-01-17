@@ -37,7 +37,7 @@
                 id="firstname"
                 value="@landfillTaxForm("firstName").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="\S+"
                 >
             </label>
@@ -70,7 +70,7 @@
                 id="telephoneNumber"
                 value="@landfillTaxForm("telephoneNumber").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[+]?[\d ]{2,}"
                 >
             </label>
@@ -102,7 +102,7 @@
                 id="nameOfBusiness"
                 value="@landfillTaxForm("nameOfBusiness").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                 >
             </label>
         </fieldset>
@@ -118,7 +118,7 @@
                 id="accountingPeriodStartDate"
                 value="@{if(landfillTaxForm("accountingPeriodStartDate").value.toString.equals("Some(01/01/+1000000000)")){""}else{landfillTaxForm("accountingPeriodStartDate").value}}"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
                 >
             </label>
@@ -133,9 +133,9 @@
                 type="text"
                 name="accountingPeriodEndDate"
                 id="accountingPeriodEndDate"
-                value=""@{if(landfillTaxForm("accountingPeriodEndDate").value.toString.equals("Some(01/01/+1000000000)")){""}else{landfillTaxForm("accountingPeriodEndDate").value}}""
+                value="@{if(landfillTaxForm("accountingPeriodEndDate").value.toString.equals("Some(01/01/+1000000000)")){""}else{landfillTaxForm("accountingPeriodEndDate").value}}"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                 pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
                 >
             </label>
@@ -152,7 +152,7 @@
                 id="taxDueForThisPeriod"
                 value="@landfillTaxForm("taxDueForThisPeriod").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -190,11 +190,27 @@
                 id="underDeclarationsFromPreviousPeriod"
                 value="@landfillTaxForm("underDeclarationsFromPreviousPeriod").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
         </fieldset>
+
+            <fieldset>
+                Total: £ <input type="label" name="total" id="total"/>
+            </fieldset>
+
+            <script type="text/javascript">
+                <!--function findTotal(){-->
+                    var taxDue = document.getElementById('taxDueForThisPeriod').value;
+                    var underDec = document.getElementById('underDeclarationsFromPreviousPeriod').value;
+                    var tot = parseInt(taxDue) + parseInt(underDec);
+
+                    document.getElementById('total').value = tot;
+                   }
+
+            </script>
+
 
         <fieldset class="form-field-group@if(landfillTaxForm("overDeclarationsForThisPeriod").hasErrors) { form-field-group--error}">
             <label for="arn">
@@ -206,7 +222,7 @@
                 id="overDeclarationsForThisPeriod"
                 value="@landfillTaxForm("overDeclarationsForThisPeriod").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -223,7 +239,7 @@
                 id="taxCreditClaimedForEnvironment"
                 value="@{if(landfillTaxForm("taxCreditClaimedForEnvironment").value.toString.equals(Some("-1"))){""} else {landfillTaxForm("taxCreditClaimedForEnvironment").value.toString}}"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -239,7 +255,7 @@
                 id="badDebtReliefClaimed"
                 value="@landfillTaxForm("badDebtReliefClaimed").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -256,7 +272,7 @@
                 id="otherCredits"
                 value="@landfillTaxForm("otherCredits").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -273,7 +289,7 @@
                 id="standardRateWaste"
                 value="@landfillTaxForm("standardRateWaste").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -289,7 +305,7 @@
                 id="lowerRateWaste"
                 value="@landfillTaxForm("lowerRateWaste").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -305,7 +321,7 @@
                 id="exemptWaste"
                 value="@landfillTaxForm("exemptWaste").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
