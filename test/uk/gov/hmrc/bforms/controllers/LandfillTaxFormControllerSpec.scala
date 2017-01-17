@@ -22,9 +22,13 @@ import play.api.http.Status
 import play.api.i18n.MessagesApi
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.bforms.models.LandfillTaxDetails
+import uk.gov.hmrc.bforms.models.persistence.LandfillTaxDetailsPersistence
 import uk.gov.hmrc.play.test.UnitSpec
 
-import scala.concurrent.ExecutionContext
+import helpers.Mongo
+
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class LandfillTaxFormControllerSpec extends UnitSpec with ScalaFutures with OneAppPerSuite with CSRFTest {

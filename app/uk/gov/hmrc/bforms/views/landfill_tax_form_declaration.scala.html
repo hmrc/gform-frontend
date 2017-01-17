@@ -1,0 +1,399 @@
+ @import uk.gov.hmrc.bforms.models.LandfillTaxDetailsDeclaration
+    @(landfillTaxFormDeclaration: Form[LandfillTaxDetailsDeclaration], registrationNumber: String)(implicit request: Request[_], messages: Messages)
+
+
+    @import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
+    @import uk.gov.hmrc.play.views.html.helpers._
+    @import views.html.helper.CSRF
+    landfillTaxFormDeclarationSubmitContinue
+    @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form declaration", bodyClasses = None) {
+        <header class="page-header text">
+            <h1>Landfill Tax Return</h1>
+        </header>
+        <p class="subsection">
+        <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxFormDeclaration.landfillTaxFormDeclaration(registrationNumber:String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+
+            @{
+                CSRF.formField
+            }
+
+            @landfillTaxFormDeclaration.globalError.map { error =>
+                <div class="flash error-summary error-summary--show">
+                    @error.message
+                </div>
+            }
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("nameOfBusiness").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>  Name of Business </h3>
+                @errorInline("nameOfBusiness", "Please enter the name of your business", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="nameOfBusiness"
+                id="nameOfBusiness"
+                value="@landfillTaxFormDeclaration("nameOfBusiness").value"
+                class="form-control form-control--block"
+                required
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("accountingPeriodStartDate").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Accounting Period Start Date </h3>
+                <p>For example 20/03/2010</p>
+                @errorInline("accountingPeriodStartDate", "Please enter the start date of the accounting period", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="accountingPeriodStartDate"
+                id="accountingPeriodStartDate"
+                value="@{if(landfillTaxFormDeclaration("accountingPeriodStartDate").value.toString.equals("Some(01/01/+1000000000)")){""}else{landfillTaxFormDeclaration("accountingPeriodStartDate").value}}"
+                class="form-control form-control--block"
+                required
+                    pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("accountingPeriodEndDate").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Accounting Period End Date </h3>
+                <p>For example 20/03/2015</p>
+                @errorInline("accountingPeriodEndDate", "Please enter the end date of the accounting period", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="accountingPeriodEndDate"
+                id="accountingPeriodEndDate"
+                value="@{if(landfillTaxFormDeclaration("accountingPeriodEndDate").value.toString.equals("Some(01/01/+1000000000)")){""}else{landfillTaxFormDeclaration("accountingPeriodEndDate").value}}"
+                class="form-control form-control--block"
+                required
+                pattern="^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)\d\d$"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("taxDueForThisPeriod").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Tax Due For This Period </h3>
+                <p>Do not include any bad debt relief or credits</p>
+                @errorInline("taxDueForThisPeriod", "Please enter a valid amount", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="taxDueForThisPeriod"
+                id="taxDueForThisPeriod"
+                value="@landfillTaxFormDeclaration("taxDueForThisPeriod").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+        <p>If you have declared the wrong amount on any of your previous returns, you can include errors of up to £10,000.<br>
+            <br>
+            Errors above £10,000 can be included up to a maximum limit of £50,000. This only applies if the errors are below 1% of the bad debt relief turnover figure (before correction) of your VAT return for the VAT return period in which you are making the correction.<br>
+            <br>
+            If you are not VAT registered the limit is £10,000.<br>
+            <br>
+            If the net amount is over these limits, do not include the amount on this return. Instead you must tell us by a disclosure in writing and send it to the following Central Collection Unit address.<br>
+            <br>
+            HM Revenue and Customs <br>
+            <br>
+            Environmental Taxes Team <br>
+            <br>
+            Room ELG-03 <br>
+            <br>
+            St Mungos Road <br>
+            <br>
+            Cumbernauld <br>
+            <br>
+            Strathclyde <br>
+            <br>
+            G70 5TR</p>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("underDeclarationsFromPreviousPeriod").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>Under Declarations From Previous Period </h3>
+                @errorInline("underDeclarationsFromPreviousPeriod", "Please Enter Under Declarations From Previous Period", Seq("optional-extra-css-classes"))
+                <input
+                onblur="findTotal()"
+                type="text"
+                name="underDeclarationsFromPreviousPeriod"
+                id="underDeclarationsFromPreviousPeriod"
+                value="@landfillTaxFormDeclaration("underDeclarationsFromPreviousPeriod").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+            <fieldset>
+                Total: £ <input type="label" name="total" id="total"/>
+            </fieldset>
+
+            <script type="text/javascript">
+                function findTotal(){
+                    var taxDue = document.getElementById('taxDueForThisPeriod').value;
+                    var underDec = document.getElementById('underDeclarationsFromPreviousPeriod').value;
+                    var tot = parseInt(taxDue) + parseInt(underDec);
+
+                    document.getElementById('total').value = tot;
+                   }
+
+            </script>
+
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("overDeclarationsForThisPeriod").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Over Declarations For This Period</h3>
+                @errorInline("overDeclarationsForThisPeriod", "Please Enter Over Declarations For This Period", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="overDeclarationsForThisPeriod"
+                id="overDeclarationsForThisPeriod"
+                value="@landfillTaxFormDeclaration("overDeclarationsForThisPeriod").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("taxCreditClaimedForEnvironment").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Tax Credit Claimed For Environment</h3>
+                <p>The rules for claiming credit are set out in notice LFT1</p>
+                @errorInline("taxCreditClaimedForEnvironment", "Please Enter Tax Credit Claimed For Environment", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="taxCreditClaimedForEnvironment"
+                id="taxCreditClaimedForEnvironment"
+                value="@{if(landfillTaxFormDeclaration("taxCreditClaimedForEnvironment").value.toString.equals(Some("-1"))){""} else {landfillTaxFormDeclaration("taxCreditClaimedForEnvironment").value}}"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("badDebtReliefClaimed").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>  Bad Debt Relief Claimed </h3>
+                @errorInline("badDebtReliefClaimed", "Please Enter Bad Debt Relief Claimed", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="badDebtReliefClaimed"
+                id="badDebtReliefClaimed"
+                value="@landfillTaxFormDeclaration("badDebtReliefClaimed").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("otherCredits").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>Other Credits </h3>
+                <p>This is the amount of landfill tax credits you are claiming this period in respect of landfill tax paid waste, removed from site for environmental reasons or for reuse</p>
+                @errorInline("otherCredits", "Please Enter any Other Credits", Seq("optional-extra-css-classes"))
+                <input
+                onblur="findTotalCredits(); findNetTax()"
+                type="text"
+                name="otherCredits"
+                id="otherCredits"
+                value="@landfillTaxFormDeclaration("otherCredits").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+            <fieldset>
+                Total credits: £ <input type="label" name="totalCredits" id="totalCredits"/>
+            </fieldset>
+
+            <br>
+
+            <fieldset>
+                Net tax due:   £ <input type="label" name="netDue" id="netDue"/>
+            </fieldset>
+
+            <br>
+
+
+
+            <script type="text/javascript">
+                function findTotalCredits(){
+                    var overDec = document.getElementById('overDeclarationsForThisPeriod').value;
+                    var taxCredClaimed = document.getElementById('taxCreditClaimedForEnvironment').value;
+                    var badDebt = document.getElementById('badDebtReliefClaimed').value;
+                    var otherCred = document.getElementById('otherCredits').value;
+
+                    var tot= parseInt(overDec) + parseInt(taxCredClaimed) + parseInt(badDebt) + parseInt(otherCred);
+
+                    document.getElementById('totalCredits').value = tot;
+                   }
+
+            </script>
+
+
+            <script type="text/javascript">
+                function findNetTax(){
+                    var totalTax = document.getElementById('total').value;
+                    var totalCredits = document.getElementById('totalCredits').value;
+                    var tot = totalTax - totalCredits;
+
+                    document.getElementById('netDue').value = tot;
+                   }
+
+            </script>
+
+
+
+        <h2>Weight of waste per category, landfilled in this return period</h2>
+        <p>Where we have agreed a scheme to discount the water content of waste for tax calculation purposes, you should not include the weight of this water.</p>
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("standardRateWaste").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>   Standard Rate Waste </h3>
+                @errorInline("standardRateWaste", "Please Enter Standard Rate Waste", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="standardRateWaste"
+                id="standardRateWaste"
+                value="@landfillTaxFormDeclaration("standardRateWaste").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("lowerRateWaste").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Lower Rate Waste </h3>
+                @errorInline("lowerRateWaste", "Please Enter Lower Rate Waste", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="lowerRateWaste"
+                id="lowerRateWaste"
+                value="@landfillTaxFormDeclaration("lowerRateWaste").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("exemptWaste").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Exempt Waste </h3>
+                @errorInline("exemptWaste", "Please Enter Exempt Waste", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="exemptWaste"
+                id="exemptWaste"
+                value="@landfillTaxFormDeclaration("exemptWaste").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[\d.]+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("environmentalBody1").hasErrors) { form-field-group--error}">
+         <h3>  Environmental Bodies </h3>
+                @errorInline("environmentalBody1", "Please Enter Environmental Body1", Seq("optional-extra-css-classes"))
+
+        </fieldset>
+        @helper.repeat(landfillTaxFormDeclaration("environmentalBody1"), min =  1) { dataField =>
+            @dataField("bodyName").value.map { _ =>
+                @dataField("amount").value.map { _ =>
+            }
+            }
+
+
+        <script src='@routes.Assets.versioned("javascripts/addInput.js")' language="Javascript" type="text/javascript"></script>
+        <div id="dynamicInput">
+        <div style="float: left;" id="name_0">
+        @helper.inputText(dataField("bodyName"), '_label -> "Name", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group")
+        </div>
+
+        <div style="float: right;" id="amount_0">
+            <dl class="" id='@dataField("amount").id'>
+                <dt>
+                    <label for='@dataField("amount").id'>Amount</label>
+                </dt>
+                <dd>
+                    <input type="text" id='@dataField("amount").id' name='@dataField("amount").name' value='@{if(dataField("amount").value.toString.equals("Some(-1)")){""}else{dataField("amount").value}}' inputdivclass="col-sm-8" class="form-field-group"/>
+                </dd>
+            </dl>
+        <!--@helper.inputText(dataField("amount"), '_label -> "Amount", 'inputDivClass -> "col-sm-8", 'placeholder -> "", 'class -> "form-field-group")-->
+
+
+        </div>
+        </div>
+                <div id="newField">
+                </div>
+                <br>
+            <br>
+            <br>
+            <br>
+            <br>
+          <div style="float:right">
+              <button type="button" value="Add" onClick="addInput('dynamicInput');">Add</button>
+              <button type="button" value="remove" onClick="removeField('newField');">Delete</button>
+          </div>
+
+        }
+        <h1>Declaration</h1>
+        <h4>You can avoid financial penalty, or even prosecution, by making sure that you have given complete and accurate information on this form.
+
+            You have the right to appeal if we impose one.
+
+            By selecting Confirm and send, you declare that the information that you have provided is true and complete </h4>
+
+
+        <p>If you provide your email address, we'll send you an email to confirm your application has been sent.</p>
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("emailAddress").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>  Email Address (Optional) </h3>
+                @errorInline("emailAddress", "Please Enter a Valid Email Address", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="emailAddress"
+                id="emailAddress"
+                value="@{if(landfillTaxFormDeclaration("emailAddress").value.toString.equals("Some(None)")){""}else{landfillTaxFormDeclaration("emailAddress").value}}"
+                class="form-control form-control--block"
+                pattern="([^ @@]+@@[^ @@]+)?"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormDeclaration("confirmEmailAddress").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>  Confirm Email Address (Optional) </h3>
+                @errorInline("emailAddress", "Please Confirm Email Address", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="confirmEmailAddress"
+                id="confirmEmailAddress"
+                value="@{if(landfillTaxFormDeclaration("confirmEmailAddress").value.toString.equals("Some(None)")){""}else{landfillTaxFormDeclaration("confirmEmailAddress").value}}"
+                class="form-control form-control--block"
+                pattern="([^ @@]+@@[^ @@]+)?"
+                >
+            </label>
+        </fieldset>
+
+        <br>
+            <input type="hidden" name="registrationNumber" value="@registrationNumber" />
+
+            <button name="save" value="Exit">Exit</button>
+
+            <button name="save" value="Continue">Continue</button>
+
+        </form>
+
+    }

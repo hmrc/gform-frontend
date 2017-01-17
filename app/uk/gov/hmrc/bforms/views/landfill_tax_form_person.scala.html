@@ -1,0 +1,105 @@
+ @import uk.gov.hmrc.bforms.models.LandfillTaxDetailsPerson
+    @(landfillTaxFormPerson: Form[LandfillTaxDetailsPerson], registrationNumber: String)(implicit request: Request[_], messages: Messages)
+
+
+    @import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
+    @import uk.gov.hmrc.play.views.html.helpers._
+    @import views.html.helper.CSRF
+    landfillTaxFormPersonSubmitContinue
+    @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
+        <header class="page-header text">
+            <h1>Landfill Tax Return</h1>
+        </header>
+        <p class="subsection">
+    <h2>About you</h2>
+        </p>
+
+        <form action=@uk.gov.hmrc.bforms.controllers.routes.LandfillTaxFormPerson.landfillTaxFormPerson(registrationNumber:String).url method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+
+            @{
+                CSRF.formField
+            }
+
+            @landfillTaxFormPerson.globalError.map { error =>
+                <div class="flash error-summary error-summary--show">
+                    @error.message
+                </div>
+            }
+
+        <fieldset class="form-field-group@if(landfillTaxFormPerson("firstName").hasErrors) { form-field-group--error}">
+            <p>This information is about the person completing the form.</p>
+            <label for="arn">
+                <h3> Your First name </h3>
+                @errorInline("firstName", "Please enter your first name", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="firstName"
+                id="firstname"
+                value="@landfillTaxFormPerson("firstName").value"
+                class="form-control form-control--block"
+                required
+                    pattern="\S+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormPerson("lastName").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Your Last name </h3>
+                @errorInline("lastName", "Please enter your last name", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="lastName"
+                id="lastname"
+                value="@landfillTaxFormPerson("lastName").value"
+                class="form-control form-control--block"
+                required
+                pattern="\S+"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormPerson("telephoneNumber").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3>Telephone Number</h3>
+                <p>If this is a UK landline or an overseas number, you must include the area or dialling code.</p>
+                @errorInline("telephoneNumber", "Please enter your telephone number", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="telephoneNumber"
+                id="telephoneNumber"
+                value="@landfillTaxFormPerson("telephoneNumber").value"
+                class="form-control form-control--block"
+                required
+                    pattern="[+]?[\d ]{2,}"
+                >
+            </label>
+        </fieldset>
+
+        <fieldset class="form-field-group@if(landfillTaxFormPerson("status").hasErrors) { form-field-group--error}">
+            <label for="arn">
+                <h3> Status </h3>
+                <p>For example Director, Company Secretary, Agent</p>
+                @errorInline("status", "Please enter your status", Seq("optional-extra-css-classes"))
+                <input
+                type="text"
+                name="status"
+                id="status"
+                value="@landfillTaxFormPerson("status").value"
+                class="form-control form-control--block"
+                required
+                >
+            </label>
+        </fieldset>
+
+
+        <br>
+            <input type="hidden" name="registrationNumber" value="@registrationNumber" />
+
+            <button name="save" value="Exit">Exit</button>
+
+            <button name="save" value="Continue">Continue</button>
+
+        </form>
+
+    }

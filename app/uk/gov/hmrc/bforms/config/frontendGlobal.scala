@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.bforms
 
+import javax.inject.{Inject, Provider}
+
+import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api.mvc.Request
@@ -66,4 +69,9 @@ object AuditFilter extends FrontendAuditFilter with RunMode with AppName with Mi
   override lazy val auditConnector = FrontendAuditConnector
 
   override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
+}
+
+class Module() extends AbstractModule {
+  def configure() = {
+  }
 }
