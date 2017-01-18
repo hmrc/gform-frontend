@@ -321,10 +321,11 @@ object ValueClassFormat {
       def writes(a: A): JsValue = JsString(fromAToString(a))
     }
   }
+
 }
 
 object ValueClassFormatLocalDate {
-  def format[A: Format](fromDateToA: LocalDate => A)(fromAToDate: A => LocalDate) = {
+  def format[A: Format] = {
     new Format[LocalDate] {
       override def reads(json: JsValue): JsResult[LocalDate] = json.validate[String].map(LocalDate.parse)
 

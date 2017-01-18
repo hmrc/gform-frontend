@@ -237,7 +237,7 @@
                 type="text"
                 name="taxCreditClaimedForEnvironment"
                 id="taxCreditClaimedForEnvironment"
-                value="@{if(landfillTaxForm("taxCreditClaimedForEnvironment").value.toString.equals(Some("-1"))){""} else {landfillTaxForm("taxCreditClaimedForEnvironment").value.toString}}"
+                value="@{if(landfillTaxForm("taxCreditClaimedForEnvironment").value.toString.equals(Some("-1"))){""} else {landfillTaxForm("taxCreditClaimedForEnvironment").value}}"
                 class="form-control form-control--block"
                 <!--required-->
                     pattern="[\d.]+"

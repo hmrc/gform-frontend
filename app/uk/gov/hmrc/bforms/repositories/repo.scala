@@ -38,7 +38,7 @@ class LandFillTaxRepositoryImpl @Inject()(implicit db:DB) extends ReactiveReposi
   def store(form:Either[LandfillTaxDetails, Map[String, String]]) = {
     form.fold(
       landfilltaxdetails => {
-        val store = LandFillTaxDetailsPersistence(GovernmentGatewayId("Something"),
+        val store = LandFillTaxDetailsPersistence(GovernmentGatewayId(landfilltaxdetails.registrationNumber),
           FirstName(landfilltaxdetails.firstName),
           LastName(landfilltaxdetails.lastName),
           TelephoneNumber(landfilltaxdetails.telephoneNumber),

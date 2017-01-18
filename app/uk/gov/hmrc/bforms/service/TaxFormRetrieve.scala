@@ -17,11 +17,15 @@
 package uk.gov.hmrc.bforms.service
 
 import play.api.Logger
+import play.api.libs.json.{JsObject, JsValue, Json}
+import uk.gov.hmrc.bforms.connectors.BformsConnector
 import uk.gov.hmrc.bforms.models.LandFillTaxDetailsPersistence
 import uk.gov.hmrc.bforms.repositories.LandFillTaxRepository
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.http.Status._
 
 trait TaxFormRetrieve[A, B, C] {
   def apply(a: A) : Future[List[Either[B, C]]]
@@ -41,6 +45,18 @@ object TaxFormRetrieve {
 }
 
 object RetrieveService {
+
+  def bformsConnector = BformsConnector
+
+  def retrieveFromBackEnd(registrationNumber: String)(implicit hc : HeaderCarrier): Future[Either[JsObject, Unit]] = {
+    bformsConnector.retrieveForm(registrationNumber).map{ response =>
+      if(response.value.isEmpty){
+        Right(())
+      } else {
+        Left(response)
+      }
+    }
+  }
 
   def retrieve[A, B, C](registrationNumber:A)(implicit taxFormRetrieve:TaxFormRetrieve[A, LandFillTaxDetailsPersistence, Map[String, String]]) : Future[Either[Unit, Either[LandFillTaxDetailsPersistence, Map[String, String]]]] = {
     taxFormRetrieve(registrationNumber).flatMap {
