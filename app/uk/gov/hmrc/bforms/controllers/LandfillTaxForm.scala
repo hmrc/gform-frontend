@@ -28,13 +28,12 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import reactivemongo.api.DB
 import uk.gov.hmrc.bforms.connectors.VerificationResult
 import play.api.libs.json._
 import play.api.mvc.Action
 
 @Singleton
-class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext, db : DB)
+class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
   extends FrontendController with I18nSupport {
 
   def landfillTaxFormDisplay(registrationNumber : String) = Action.async { implicit request =>

@@ -20,14 +20,12 @@ import uk.gov.hmrc.bforms.models.LandfillTaxDetails
 
 import scala.concurrent.Future
 
-/**
-  * Created by daniel-connelly on 22/12/16.
-  */
 object TaxFormSaveContinue extends TaxFormSaveContinue
 
 case class SaveContinueResult(errorMessage : Option[String], saveContinueAcknowledgement : Option[String])
 
 trait TaxFormSaveContinue {
 
-  def saveContinueForm(formData: LandfillTaxDetails) : Future[SaveContinueResult] = Future.successful(SaveContinueResult(None, Some("KAKAKAKAXXX")))
+  def saveContinueForm(formData: LandfillTaxDetails) : Future[SaveContinueResult] =
+    Future.successful(SaveContinueResult(None, Some("KAKAKAKAXXX")))
 }

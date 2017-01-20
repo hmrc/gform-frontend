@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.bforms
 
-import javax.inject.{Inject, Provider}
-
-import com.google.inject.AbstractModule
-import play.modules.reactivemongo.ReactiveMongoComponent
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api.mvc.Request
@@ -33,7 +29,6 @@ import uk.gov.hmrc.play.http.logging.filters.FrontendLoggingFilter
 import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
 import play.api.i18n.Messages.Implicits._
 import play.api.Play.current
-import reactivemongo.api.DB
 
 
 object FrontendGlobal
@@ -71,14 +66,4 @@ object AuditFilter extends FrontendAuditFilter with RunMode with AppName with Mi
   override lazy val auditConnector = FrontendAuditConnector
 
   override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
-}
-
-class Module() extends AbstractModule {
-  def configure() = {
-    bind(classOf[DB]).toProvider(classOf[MongoDbProvider]).asEagerSingleton()
-  }
-}
-
-class MongoDbProvider @Inject()(reactiveMongoComponent : ReactiveMongoComponent) extends Provider[DB] {
-  def get = reactiveMongoComponent.mongoConnector.db()
 }
