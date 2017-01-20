@@ -55,6 +55,7 @@ class LandfillTaxForm @Inject()(val messagesApi: MessagesApi)(implicit ec: Execu
           case JsError(err) =>
             print("JsError(err)")
             Logger.warn(s"$err")
+
             Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax_form(form, registrationNumber.filter(Character.isLetterOrDigit))))
         }
       case Right(_) =>
