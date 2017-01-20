@@ -22,6 +22,13 @@ import play.api.data.{Form, Mapping}
 import play.api.data.Forms._
 import play.api.libs.json.{Format, JsPath, Json}
 
+case class KeyPair(id: String, value: String)
+
+object KeyPair {
+
+  implicit val keyPairReader = Json.reads[KeyPair]
+}
+
 case class EnvironmentalBody(bodyName: String, amount: BigDecimal)
 
 object EnvironmentalBody {

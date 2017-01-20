@@ -20,7 +20,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Action
 import uk.gov.hmrc.bforms.WSHttp
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpPost, HttpResponse}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,21 +32,28 @@ object VerificationResult {
 
 trait BformsConnector {
 
+  def httpGet : HttpGet
+
   def httpPost: HttpPost
 
   def bformsUrl: String
 
-  def saveForm(formDetails : JsValue)(implicit hc : HeaderCarrier, ec : ExecutionContext) : Future[VerificationResult] = {
-    httpPost.POST[JsValue, VerificationResult](bformsUrl + "/saveForm", formDetails)
+  def saveForm(formDetails : JsValue, registrationNumber: String)(implicit hc : HeaderCarrier, ec : ExecutionContext) : Future[VerificationResult] = {
+    httpPost.POST[JsValue, VerificationResult](bformsUrl + s"/saveForm/$registrationNumber", formDetails)
   }
 
   def retrieveForm(registrationNumber: String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[JsObject] = {
     httpPost.POSTString[JsObject](bformsUrl + s"/retrieveForm/$registrationNumber", registrationNumber)
   }
+
+  def submit(registrationNumber :String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[HttpResponse] ={
+    httpGet.GET(bformsUrl+s"/submit/$registrationNumber")
+  }
 }
 
 object BformsConnector extends BformsConnector with ServicesConfig {
 
+  lazy val httpGet = WSHttp
   lazy val httpPost = WSHttp
 
   def bformsUrl: String = s"http://localhost:9090/bforms"
