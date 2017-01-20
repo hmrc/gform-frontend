@@ -197,17 +197,24 @@
             </label>
         </fieldset>
 
-            <fieldset>
-                Total: £ <input type="label" name="total" id="total"/>
-            </fieldset>
+            <div class="panel-indent panel-indent--gutter">
+                Total: £ <input type="label" name="total" id="total" value="0.00" style="border: rgba(1, 1, 1, 0); position: relative; color: black; background-color: white; outline: none !important; box-sizing: border-box;" readonly="readonly"/>
+            </div>
+
 
             <script type="text/javascript">
                 function findTotal(){
                     var taxDue = document.getElementById('taxDueForThisPeriod').value;
                     var underDec = document.getElementById('underDeclarationsFromPreviousPeriod').value;
-                    var tot = parseInt(taxDue) + parseInt(underDec);
 
-                    document.getElementById('total').value = tot;
+                    var tot = parseFloat(taxDue) + parseFloat(underDec);
+
+                    if (!isNaN(tot)) {
+                        document.getElementById('total').value = tot.toFixed(2);
+                    } else {
+                        document.getElementById('total').value = "0.00";
+                    }
+
                    }
 
             </script>
@@ -280,17 +287,13 @@
             </label>
         </fieldset>
 
-            <fieldset>
-                Total credits: £ <input type="label" name="totalCredits" id="totalCredits"/>
-            </fieldset>
+            <div class="panel-indent panel-indent--gutter">
+                Total credits: £ <input type="label" name="totalCredits" id="totalCredits" value="0.00" style="border: rgba(1, 1, 1, 0); position: relative; color: black; background-color: white; outline: none !important; box-sizing: border-box;" readonly="readonly"/>
+            </div>
 
-            <br>
-
-            <fieldset>
-                Net tax due:   £ <input type="label" name="netDue" id="netDue"/>
-            </fieldset>
-
-            <br>
+            <div class="panel-indent panel-indent--gutter">
+                Net tax due:   £ <input type="label" name="netDue" id="netDue" value="0.00" style="border: rgba(1, 1, 1, 0); position: relative; color: black; background-color: white; outline: none !important; box-sizing: border-box;" readonly="readonly"/>
+            </div>
 
 
 
@@ -300,10 +303,14 @@
                     var taxCredClaimed = document.getElementById('taxCreditClaimedForEnvironment').value;
                     var badDebt = document.getElementById('badDebtReliefClaimed').value;
                     var otherCred = document.getElementById('otherCredits').value;
+                    var tot= parseFloat(overDec) + parseFloat(taxCredClaimed)+ parseFloat(badDebt) + parseFloat(otherCred);
 
-                    var tot= parseInt(overDec) + parseInt(taxCredClaimed) + parseInt(badDebt) + parseInt(otherCred);
-
-                    document.getElementById('totalCredits').value = tot;
+                     if (!isNaN(tot)) {
+                        document.getElementById('totalCredits').value = tot.toFixed(2);
+                    } else {
+                        document.getElementById('totalCredits').value = "0.00";
+                    }
+                   
                    }
 
             </script>
@@ -315,7 +322,12 @@
                     var totalCredits = document.getElementById('totalCredits').value;
                     var tot = totalTax - totalCredits;
 
-                    document.getElementById('netDue').value = tot;
+                    if (!isNaN(tot)) {
+                        document.getElementById('netDue').value = tot.toFixed(2);
+                    } else {
+                        document.getElementById('netDue').value = "0.00";
+                    }
+
                    }
 
             </script>
