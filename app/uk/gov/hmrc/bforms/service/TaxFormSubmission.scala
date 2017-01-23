@@ -17,7 +17,6 @@
 package uk.gov.hmrc.bforms.service
 
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.LandfillTaxDetails
 import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -25,24 +24,13 @@ import scala.concurrent.Future
 
 object TaxFormSubmission extends TaxFormSubmission
 
-case class SubmissionResult(errorMessage : Option[String], submissionAcknowledgement : Option[String])
+case class SubmissionResult(errorMessage: Option[String], submissionAcknowledgement: Option[String])
 
 trait TaxFormSubmission {
 
   val bformsconnector = BformsConnector
 
-  def submit(registrationNumber:String)(implicit hc : HeaderCarrier) : Future[SubmissionResult] = {
-    bformsconnector.submit(registrationNumber).map{
-      case x =>
-        SubmissionResult(None, Some(x.body))
-      case _ =>
-        println("what is being sent ?")
-        SubmissionResult(None, Some("dafuq"))
-    }
+  def submit(registrationNumber: String)(implicit hc: HeaderCarrier): Future[SubmissionResult] =
+    bformsconnector.submit(registrationNumber).map { x => SubmissionResult(None, Some(x.body)) }
 
-  }
-
-//  def submitTaxForm(formData: LandfillTaxDetails) : Future[SubmissionResult] = {
-//    Future.successful(SubmissionResult(None, Some("KAKAKAKAXXX")))
-//  }
 }
