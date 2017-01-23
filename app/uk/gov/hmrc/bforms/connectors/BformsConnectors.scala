@@ -19,16 +19,11 @@ package uk.gov.hmrc.bforms.connectors
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Action
 import uk.gov.hmrc.bforms.WSHttp
+import uk.gov.hmrc.bforms.models.VerificationResult
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
-
-case class VerificationResult(error: Option[String])
-
-object VerificationResult {
-  implicit val formats = Json.format[VerificationResult]
-}
 
 trait BformsConnector {
 

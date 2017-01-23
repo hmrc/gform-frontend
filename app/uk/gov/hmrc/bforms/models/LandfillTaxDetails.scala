@@ -22,19 +22,6 @@ import play.api.data.{Form, Mapping}
 import play.api.data.Forms._
 import play.api.libs.json.{Format, JsPath, Json}
 
-case class KeyPair(id: String, value: String)
-
-object KeyPair {
-
-  implicit val keyPairReader = Json.reads[KeyPair]
-}
-
-case class EnvironmentalBody(bodyName: String, amount: BigDecimal)
-
-object EnvironmentalBody {
-  implicit val formats : Format[EnvironmentalBody] = Json.format[EnvironmentalBody]
-}
-
 case class LandfillTaxDetails(
                                registrationNumber : String,
                                save:String,
@@ -89,11 +76,11 @@ object LandfillTaxDetails {
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply)
-}
+  }
 
   def validateEmail(landfillTaxDetails: LandfillTaxDetails): Boolean = {
     landfillTaxDetails.emailAddress match {
-      case Some(e) if (e != landfillTaxDetails.confirmEmailAddress.getOrElse("")) => false
+      case Some(e) if e != landfillTaxDetails.confirmEmailAddress.getOrElse("") => false
       case _ => true
     }
   }

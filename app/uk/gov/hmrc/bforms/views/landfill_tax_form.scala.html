@@ -37,7 +37,7 @@
                 id="firstname"
                 value="@landfillTaxForm("firstName").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="\S+"
                 >
             </label>
@@ -53,7 +53,7 @@
                 id="lastname"
                 value="@landfillTaxForm("lastName").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                 pattern="\S+"
                 >
             </label>
@@ -70,7 +70,7 @@
                 id="telephoneNumber"
                 value="@landfillTaxForm("telephoneNumber").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[+]?[\d ]{2,}"
                 >
             </label>
@@ -87,7 +87,7 @@
                 id="status"
                 value="@landfillTaxForm("status").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                 >
             </label>
         </fieldset>
@@ -102,7 +102,7 @@
                 id="nameOfBusiness"
                 value="@landfillTaxForm("nameOfBusiness").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                 >
             </label>
         </fieldset>
@@ -191,7 +191,7 @@
                 id="underDeclarationsFromPreviousPeriod"
                 value="@landfillTaxForm("underDeclarationsFromPreviousPeriod").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -223,7 +223,7 @@
                 id="overDeclarationsForThisPeriod"
                 value="@landfillTaxForm("overDeclarationsForThisPeriod").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -240,7 +240,7 @@
                 id="taxCreditClaimedForEnvironment"
                 value="@{if(landfillTaxForm("taxCreditClaimedForEnvironment").value.toString.equals("Some(-1)")){""} else {landfillTaxForm("taxCreditClaimedForEnvironment").value}}"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -256,7 +256,7 @@
                 id="badDebtReliefClaimed"
                 value="@landfillTaxForm("badDebtReliefClaimed").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -274,7 +274,7 @@
                 id="otherCredits"
                 value="@landfillTaxForm("otherCredits").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -334,7 +334,7 @@
                 id="standardRateWaste"
                 value="@landfillTaxForm("standardRateWaste").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -350,7 +350,7 @@
                 id="lowerRateWaste"
                 value="@landfillTaxForm("lowerRateWaste").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
@@ -366,7 +366,7 @@
                 id="exemptWaste"
                 value="@landfillTaxForm("exemptWaste").value"
                 class="form-control form-control--block"
-                required
+                <!--required-->
                     pattern="[\d.]+"
                 >
             </label>
