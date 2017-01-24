@@ -51,5 +51,6 @@ object BformsConnector extends BformsConnector with ServicesConfig {
   lazy val httpGet = WSHttp
   lazy val httpPost = WSHttp
 
-  def bformsUrl: String = s"http://localhost:9090/bforms"
+  def bformsUrl: String = s"${baseUrl("bforms")}/bforms"
+
 }
