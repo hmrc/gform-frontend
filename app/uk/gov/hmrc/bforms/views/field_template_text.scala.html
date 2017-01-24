@@ -1,0 +1,16 @@
+@import uk.gov.hmrc.bforms.service.FieldValue
+
+@(fieldValue: FieldValue)
+
+<fieldset class="form-field-group ">
+    <p>@{fieldValue.helpText}</p>
+    <label for="@{fieldValue.id}">
+        <h3>@{fieldValue.label}</h3>
+        <input
+        type="text"
+        name="@fieldValue.id"
+        id="@fieldValue.id"
+        value="@fieldValue.value"
+        class="form-control form-control--block">
+    </label>
+</fieldset>

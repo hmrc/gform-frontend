@@ -1,5 +1,8 @@
 # microservice specific routes
 
+
+GET         /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.form(formTypeId: String, version: String)
+
 GET         /landfill-tax/:rn                   @uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxDisplay(rn : String)
 GET         /landfill-tax-form/:rn              @uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxFormDisplay(rn : String)
 GET         /landfill-tax-confirmation/:rn/:ac  @uk.gov.hmrc.bforms.controllers.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(rn : String, ac : String)
@@ -7,4 +10,3 @@ GET         /assets/*file                      controllers.Assets.versioned(path
 
 POST        /landfill-tax/continue/:rn        @uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxSubmitContinue(rn : String)
 POST        /landfill-tax/save/:rn            @uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxForms(rn: String)
-

@@ -19,20 +19,21 @@ package uk.gov.hmrc.bforms.controllers
 import javax.inject.{Inject, Singleton}
 
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.{JsString,Json}
 import play.api.mvc.Action
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.bforms.service.RetrieveService
 
 @Singleton
-class LandfillTax @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
-    extends FrontendController with I18nSupport {
+class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
+  extends FrontendController with I18nSupport {
+  def form(formTypeId: String, version: String) = Action.async { implicit request =>
 
-  def landfillTaxDisplay(registrationNumber: String) = Action.async { implicit request =>
-    Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))
-  }
-
-  def landfillTaxSubmitContinue(registrationNumber: String) = Action.async {
-    Future.successful(Redirect(routes.LandfillTaxForm.landfillTaxFormDisplay(registrationNumber)))
+    RetrieveService.getFormTemplate(formTypeId, version).map{ res =>
+      res.map(fieldValue => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue))
+      Ok(Json.toJson(res))
+    }
   }
 }

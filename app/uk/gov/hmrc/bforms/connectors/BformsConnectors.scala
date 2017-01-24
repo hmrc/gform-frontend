@@ -33,6 +33,10 @@ trait BformsConnector {
 
   def bformsUrl: String
 
+  def retrieveFormTemplate(formTypeId: String, version: String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[Option[JsObject]] = {
+    httpGet.GET[Option[JsObject]](bformsUrl + s"/formtemplates/$formTypeId/$version")
+  }
+
   def saveForm(formDetails : JsValue, registrationNumber: String)(implicit hc : HeaderCarrier, ec : ExecutionContext) : Future[VerificationResult] = {
     httpPost.POST[JsValue, VerificationResult](bformsUrl + s"/saveForm/$registrationNumber", formDetails)
   }
@@ -42,7 +46,7 @@ trait BformsConnector {
   }
 
   def submit(registrationNumber :String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[HttpResponse] ={
-    httpGet.GET(bformsUrl+s"/submit/$registrationNumber")
+    httpGet.GET[HttpResponse](bformsUrl+s"/submit/$registrationNumber")
   }
 }
 

@@ -29,9 +29,29 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.libs.json._
 
+case class FieldValue(id: String, label: String, value: Option[String], format: Option[String], helpText: Option[String], readOnly: Option[String], mandatory: Option[String])
+
+object FieldValue{
+  implicit val format = Json.format[FieldValue]
+}
+
 object RetrieveService {
 
   def bformsConnector = BformsConnector
+
+  def getFields(formTemplate: JsObject): List[FieldValue] = {
+    (formTemplate \\ "fields").map(_.as[List[FieldValue]]).toList.flatten
+  }
+
+  def getFormTemplate(formTypeId: String, version: String)(implicit hc : HeaderCarrier): Future[List[FieldValue]] = {
+    val templateF = bformsConnector.retrieveFormTemplate(formTypeId, version)
+
+    for {
+      template <- templateF
+    } yield {
+      template.map(getFields).toList.flatten
+    }
+  }
 
   def retrieveFromBackEnd(registrationNumber: String)(implicit hc : HeaderCarrier): Future[Either[LandfillTaxDetails, Unit]] = {
     bformsConnector.retrieveForm(registrationNumber).map {
