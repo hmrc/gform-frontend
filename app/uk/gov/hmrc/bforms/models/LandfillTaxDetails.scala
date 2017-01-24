@@ -20,14 +20,10 @@ import java.time.LocalDate
 
 import play.api.data.{Form, Mapping}
 import play.api.data.Forms._
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsPath, Json}
 
-case class EnvironmentalBody(bodyName: String, amount: BigDecimal)
-
-object EnvironmentalBody {
-  implicit val formats : Format[EnvironmentalBody] = Json.format[EnvironmentalBody]
-}
-case class LandfillTaxDetails(registrationNumber: String,
+case class LandfillTaxDetails(
+                               registrationNumber : String,
                                save:String,
                                firstName: String,
                                lastName: String,
@@ -80,11 +76,11 @@ object LandfillTaxDetails {
     "emailAddress" -> optional(text),
     "confirmEmailAddress" -> optional(text)
   )(LandfillTaxDetails.apply)(LandfillTaxDetails.unapply)
-}
+  }
 
   def validateEmail(landfillTaxDetails: LandfillTaxDetails): Boolean = {
     landfillTaxDetails.emailAddress match {
-      case Some(e) if (e != landfillTaxDetails.confirmEmailAddress.getOrElse("")) => false
+      case Some(e) if e != landfillTaxDetails.confirmEmailAddress.getOrElse("") => false
       case _ => true
     }
   }

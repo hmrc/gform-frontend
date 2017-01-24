@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.service
+package uk.gov.hmrc.bforms.models
 
-import uk.gov.hmrc.bforms.models.LandfillTaxDetails
+import play.api.libs.json.{Format, Json}
 
-import scala.concurrent.Future
+case class EnvironmentalBody(bodyName: String, amount: BigDecimal)
 
-object TaxFormSaveContinue extends TaxFormSaveContinue
-
-case class SaveContinueResult(errorMessage : Option[String], saveContinueAcknowledgement : Option[String])
-
-trait TaxFormSaveContinue {
-
-  def saveContinueForm(formData: LandfillTaxDetails) : Future[SaveContinueResult] =
-    Future.successful(SaveContinueResult(None, Some("KAKAKAKAXXX")))
+object EnvironmentalBody {
+  implicit val formats : Format[EnvironmentalBody] = Json.format[EnvironmentalBody]
 }
