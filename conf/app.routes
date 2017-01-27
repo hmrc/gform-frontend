@@ -1,8 +1,8 @@
 # microservice specific routes
 
 
-GET         /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.form(formTypeId: String, version: String)
-POST        /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.save(formTypeId: String, version: String)
+GET         /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.form(formTypeId: FormTypeId, version: String)
+POST        /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.save(formTypeId: FormTypeId, version: String)
 
 GET         /landfill-tax/:rn                   @uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxDisplay(rn : String)
 GET         /landfill-tax-form/:rn              @uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxFormDisplay(rn : String)

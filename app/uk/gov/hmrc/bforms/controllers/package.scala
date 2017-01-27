@@ -19,14 +19,14 @@ package uk.gov.hmrc.bforms
 
 import play.api.mvc.{ Action, ActionBuilder, ActionRefiner, Request, Result, Results, WrappedRequest }
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.bforms.models.FormTemplate
+import uk.gov.hmrc.bforms.models.{FormTypeId, FormTemplate}
 import uk.gov.hmrc.bforms.service.RetrieveService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 package object controllers {
 
   def ActionWithTemplate(
-    formTypeId: String,
+    formTypeId: FormTypeId,
     version: String
   )(
     implicit ec: ExecutionContext
@@ -39,7 +39,7 @@ package controllers {
 
   case class RequestWithTemplate[B](request: Request[B], formTemplate: FormTemplate) extends WrappedRequest(request)
 
-  class WithFormTemplate private (formTypeId: String, version: String)(implicit ec: ExecutionContext) extends ActionRefiner[Request, RequestWithTemplate] {
+  class WithFormTemplate private (formTypeId: FormTypeId, version: String)(implicit ec: ExecutionContext) extends ActionRefiner[Request, RequestWithTemplate] {
     protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithTemplate[A]]] = {
 
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
@@ -52,6 +52,6 @@ package controllers {
   }
 
   object WithFormTemplate {
-    def apply(formTypeId: String, version: String)(implicit ec: ExecutionContext) = new WithFormTemplate(formTypeId, version)
+    def apply(formTypeId: FormTypeId, version: String)(implicit ec: ExecutionContext) = new WithFormTemplate(formTypeId, version)
   }
 }

@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{EnvironmentalBody, KeyPair, LandfillTaxDetails}
+import uk.gov.hmrc.bforms.models.{ EnvironmentalBody, FormTypeId, KeyPair, LandfillTaxDetails }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,7 +45,7 @@ object RetrieveService {
     }
   }
 
-  def getFormTemplate(formTypeId: String, version: String)(implicit hc : HeaderCarrier): Future[Either[String, FormTemplate]] = {
+  def getFormTemplate(formTypeId: FormTypeId, version: String)(implicit hc : HeaderCarrier): Future[Either[String, FormTemplate]] = {
     val templateF = bformsConnector.retrieveFormTemplate(formTypeId, version)
 
     for {

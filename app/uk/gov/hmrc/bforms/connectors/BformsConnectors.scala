@@ -19,7 +19,7 @@ package uk.gov.hmrc.bforms.connectors
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Action
 import uk.gov.hmrc.bforms.WSHttp
-import uk.gov.hmrc.bforms.models.VerificationResult
+import uk.gov.hmrc.bforms.models.{ FormTypeId, VerificationResult }
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpResponse}
 
@@ -33,7 +33,7 @@ trait BformsConnector {
 
   def bformsUrl: String
 
-  def retrieveFormTemplate(formTypeId: String, version: String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[Option[JsObject]] = {
+  def retrieveFormTemplate(formTypeId: FormTypeId, version: String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[Option[JsObject]] = {
     httpGet.GET[Option[JsObject]](bformsUrl + s"/formtemplates/$formTypeId/$version")
   }
 

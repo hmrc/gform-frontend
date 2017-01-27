@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{ Action, AnyContent }
-import uk.gov.hmrc.bforms.models.FieldValue
+import uk.gov.hmrc.bforms.models.{FieldValue, FormTypeId}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,7 +47,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
   extends FrontendController with I18nSupport {
 
 
-  def form(formTypeId: String, version: String) = ActionWithTemplate(formTypeId, version).apply { implicit request =>
+  def form(formTypeId: FormTypeId, version: String) = ActionWithTemplate(formTypeId, version).apply { implicit request =>
 
     val formTemplate = request.formTemplate
 
@@ -66,7 +66,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
     }
   }
 
-  def save(formTypeId: String, version: String) = ActionWithTemplate(formTypeId, version).apply(parse.urlFormEncoded) { implicit request =>
+  def save(formTypeId: FormTypeId, version: String) = ActionWithTemplate(formTypeId, version).apply(parse.urlFormEncoded) { implicit request =>
 
     val formTemplate = request.formTemplate
     val data = request.body
