@@ -28,28 +28,33 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 import play.api.libs.json._
-
-case class FieldValue(id: String, label: String, value: Option[String], format: Option[String], helpText: Option[String], readOnly: Option[String], mandatory: Option[String])
-
-object FieldValue{
-  implicit val format = Json.format[FieldValue]
-}
+import uk.gov.hmrc.bforms.models.{FieldValue, FormTemplate}
 
 object RetrieveService {
 
   def bformsConnector = BformsConnector
 
-  def getFields(formTemplate: JsObject): List[FieldValue] = {
-    (formTemplate \\ "fields").map(_.as[List[FieldValue]]).toList.flatten
+  def getFields(formTemplate: FormTemplate): List[FieldValue] = {
+    formTemplate.sections.flatMap(_.fields)
   }
 
-  def getFormTemplate(formTypeId: String, version: String)(implicit hc : HeaderCarrier): Future[List[FieldValue]] = {
+  def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
+    formTemplate.validate[FormTemplate] match {
+      case JsSuccess(formTemplate, _) => Right(formTemplate)
+      case JsError(error) => Left(error.toString)
+    }
+  }
+
+  def getFormTemplate(formTypeId: String, version: String)(implicit hc : HeaderCarrier): Future[Either[String, FormTemplate]] = {
     val templateF = bformsConnector.retrieveFormTemplate(formTypeId, version)
 
     for {
       template <- templateF
     } yield {
-      template.map(getFields).toList.flatten
+      template match {
+        case Some(jsonTemplate) => formTemplateFromJson(jsonTemplate)
+        case None => Left(s"No template for formTypeId $formTypeId version $version")
+      }
     }
   }
 

@@ -1,16 +1,20 @@
-@import uk.gov.hmrc.bforms.service.FieldValue
+@import uk.gov.hmrc.bforms.models.FieldValue
+@import uk.gov.hmrc.bforms.controllers.FormFieldValidationResult
+@import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FieldValue)
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
-<fieldset class="form-field-group ">
-    <p>@{fieldValue.helpText}</p>
-    <label for="@{fieldValue.id}">
-        <h3>@{fieldValue.label}</h3>
-        <input
-        type="text"
-        name="@fieldValue.id"
-        id="@fieldValue.id"
-        value="@fieldValue.value"
-        class="form-control form-control--block">
-    </label>
+<fieldset class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error} ">
+  <p>@{fieldValue.helpText}</p>
+  <label for="@{fieldValue.id}">
+    <h3>@{fieldValue.label + validationResult.map(_.getCurrentValue)}</h3>
+    @errorInline(fieldValue.id, "Please enter required data", Seq("optional-extra-css-classes"))
+    <input
+       type="text"
+       name="@fieldValue.id"
+       id="@fieldValue.id"
+       value="@validationResult.map(_.getCurrentValue).getOrElse(fieldValue.value)"
+       class="form-control form-control--block"
+       required>
+  </label>
 </fieldset>

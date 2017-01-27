@@ -19,21 +19,78 @@ package uk.gov.hmrc.bforms.controllers
 import javax.inject.{Inject, Singleton}
 
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsString,Json}
-import play.api.mvc.Action
+import play.api.mvc.{ Action, AnyContent }
+import uk.gov.hmrc.bforms.models.FieldValue
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.bforms.service.RetrieveService
 
+sealed trait FormFieldValidationResult {
+  def isOk = this match {
+    case FieldOk(_, _) => true
+    case _ => false
+  }
+
+  def getCurrentValue = this match {
+    case FieldOk(_, cv) => cv
+    case _ => ""
+  }
+}
+
+case class RequiredField(fieldValue: FieldValue) extends FormFieldValidationResult
+case class WrongFormat(fieldValue: FieldValue) extends FormFieldValidationResult
+case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
+
 @Singleton
 class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
   extends FrontendController with I18nSupport {
-  def form(formTypeId: String, version: String) = Action.async { implicit request =>
 
-    RetrieveService.getFormTemplate(formTypeId, version).map{ res =>
-      res.map(fieldValue => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue))
-      Ok(Json.toJson(res))
+
+  def form(formTypeId: String, version: String) = ActionWithTemplate(formTypeId, version).apply { implicit request =>
+
+    val formTemplate = request.formTemplate
+
+    val fieldValues = RetrieveService.getFields(formTemplate)
+    val snippets = fieldValues.map(fieldValue => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, None))
+
+    Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, snippets))
+  }
+
+
+  def validateFieldValue(fieldValue: FieldValue, formValue: Seq[String]): FormFieldValidationResult = {
+    formValue.filterNot(_.isEmpty()) match {
+      case Nil => RequiredField(fieldValue)
+      case value :: Nil => FieldOk(fieldValue, value)
+      case value :: rest => FieldOk(fieldValue, value) // we don't support multiple values yet
+    }
+  }
+
+  def save(formTypeId: String, version: String) = ActionWithTemplate(formTypeId, version).apply(parse.urlFormEncoded) { implicit request =>
+
+    val formTemplate = request.formTemplate
+    val data = request.body
+
+    val fieldValues = RetrieveService.getFields(formTemplate)
+
+    val validate: Map[FieldValue, Seq[String]] = fieldValues.map(fv => fv -> data.get(fv.id).toList.flatten).toMap
+
+    val validationResults: Map[FieldValue, FormFieldValidationResult] = validate.map {
+      case (fieldValue, values) =>
+        fieldValue -> validateFieldValue(fieldValue, values)
+    }
+
+    val canSave = validationResults.forall(_._2.isOk)
+
+    if (canSave) {
+      Ok("Your form was successfuly submitted")
+    } else {
+      val snippets = fieldValues.map { fieldValue =>
+        val validatioResult: Option[FormFieldValidationResult] = validationResults.get(fieldValue)
+        uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, validatioResult)
+      }
+
+      Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, snippets))
     }
   }
 }
