@@ -18,13 +18,16 @@ package uk.gov.hmrc.bforms.controllers
 
 import javax.inject.{Inject, Singleton}
 
+import cats.instances.either._
+import cats.instances.list._
+import cats.syntax.traverse._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{ Action, AnyContent }
-import uk.gov.hmrc.bforms.models.{FieldValue, FormTypeId}
+import play.api.libs.json.Json
+import uk.gov.hmrc.bforms.models.{ FormField, FieldValue, FormTypeId, FormData }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.bforms.service.RetrieveService
+import uk.gov.hmrc.bforms.service.{SaveService, RetrieveService}
 
 sealed trait FormFieldValidationResult {
   def isOk = this match {
@@ -36,11 +39,16 @@ sealed trait FormFieldValidationResult {
     case FieldOk(_, cv) => cv
     case _ => ""
   }
+
+  def toFormField: Either[String, FormField] = this match {
+    case FieldOk(fieldValue, cv) => Right(FormField(fieldValue.id, cv))
+    case _ => Left("")
+  }
 }
 
+case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
 case class RequiredField(fieldValue: FieldValue) extends FormFieldValidationResult
 case class WrongFormat(fieldValue: FieldValue) extends FormFieldValidationResult
-case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
 
 @Singleton
 class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
@@ -66,7 +74,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
     }
   }
 
-  def save(formTypeId: FormTypeId, version: String) = ActionWithTemplate(formTypeId, version).apply(parse.urlFormEncoded) { implicit request =>
+  def save(formTypeId: FormTypeId, version: String) = ActionWithTemplate(formTypeId, version).async(parse.urlFormEncoded) { implicit request =>
 
     val formTemplate = request.formTemplate
     val data = request.body
@@ -80,17 +88,22 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
         fieldValue -> validateFieldValue(fieldValue, values)
     }
 
-    val canSave = validationResults.forall(_._2.isOk)
+    val canSave: Either[String, List[FormField]] = validationResults.map {
+      case (_, validationResult) => validationResult.toFormField
+    }.toList.sequenceU
 
-    if (canSave) {
-      Ok("Your form was successfuly submitted")
-    } else {
-      val snippets = fieldValues.map { fieldValue =>
-        val validatioResult: Option[FormFieldValidationResult] = validationResults.get(fieldValue)
-        uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, validatioResult)
-      }
+    canSave match {
+      case Right(formFields) =>
+        val formData = FormData(formTypeId, version, "UTF-8", formFields)
 
-      Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, snippets))
+        SaveService.saveFormData(formData).map(response => Ok(Json.toJson(response)))
+      case Left(_) =>
+        val snippets = fieldValues.map { fieldValue =>
+          val validatioResult: Option[FormFieldValidationResult] = validationResults.get(fieldValue)
+          uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, validatioResult)
+        }
+
+        Future.successful(Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, snippets)))
     }
   }
 }
