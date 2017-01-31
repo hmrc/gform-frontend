@@ -1,0 +1,39 @@
+@import uk.gov.hmrc.bforms.models.FormTemplate
+@(formTemplate: FormTemplate, snippets: List[play.twirl.api.Html])(implicit request: Request[_], messages: Messages)
+
+@import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
+@import uk.gov.hmrc.play.views.html.helpers._
+@import views.html.helper.CSRF
+
+@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
+    <header class="page-header text">
+        <h1>@formTemplate.formName</h1>
+    </header>
+    <p class="subsection">
+	<h2>About you</h2>
+    </p>
+
+
+
+    <form action="@uk.gov.hmrc.bforms.controllers.routes.FormGen.save(formTemplate.formTypeId, formTemplate.version).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+
+        @{
+            CSRF.formField
+        }
+
+	@{
+	    snippets
+	}
+
+	<br>
+
+	<p>
+	    <div></div>
+	</p>
+
+	<button name="save" value="Save">Save</button>
+
+	<button name="save" value="Continue">Continue</button>
+
+    </form>
+}

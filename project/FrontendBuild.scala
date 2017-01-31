@@ -21,7 +21,8 @@ object FrontendBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "govuk-template" % "5.0.0",
     "uk.gov.hmrc" %% "play-health" % "2.0.0",
     "uk.gov.hmrc" %% "play-reactivemongo" % "5.0.0",
-    "uk.gov.hmrc" %% "play-ui" % "5.3.0"
+    "uk.gov.hmrc" %% "play-ui" % "5.3.0",
+    "org.typelevel" %% "cats" % "0.9.0"
 //    "uk.gov.hmrc" %% "play-ui" % "5.3.0",
 //    "org.scalatestplus" % "play_2.11" % "1.5.0-SNAP1"
   )

@@ -19,9 +19,9 @@ package uk.gov.hmrc.bforms.connectors
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Action
 import uk.gov.hmrc.bforms.WSHttp
-import uk.gov.hmrc.bforms.models.VerificationResult
+import uk.gov.hmrc.bforms.models.{ FormData, FormId, FormTypeId, VerificationResult, SaveResult }
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpResponse}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,7 +31,13 @@ trait BformsConnector {
 
   def httpPost: HttpPost
 
+  def httpPut: HttpPut
+
   def bformsUrl: String
+
+  def retrieveFormTemplate(formTypeId: FormTypeId, version: String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[Option[JsObject]] = {
+    httpGet.GET[Option[JsObject]](bformsUrl + s"/formtemplates/$formTypeId/$version")
+  }
 
   def saveForm(formDetails : JsValue, registrationNumber: String)(implicit hc : HeaderCarrier, ec : ExecutionContext) : Future[VerificationResult] = {
     httpPost.POST[JsValue, VerificationResult](bformsUrl + s"/saveForm/$registrationNumber", formDetails)
@@ -42,7 +48,15 @@ trait BformsConnector {
   }
 
   def submit(registrationNumber :String)(implicit hc: HeaderCarrier, ec : ExecutionContext) : Future[HttpResponse] ={
-    httpGet.GET(bformsUrl+s"/submit/$registrationNumber")
+    httpGet.GET[HttpResponse](bformsUrl+s"/submit/$registrationNumber")
+  }
+
+  def save(formDetails: FormData)(implicit hc : HeaderCarrier) : Future[SaveResult] = {
+    httpPost.POST[FormData, SaveResult](bformsUrl + s"/forms", formDetails)
+  }
+
+  def update(formId: FormId, formDetails: FormData)(implicit hc : HeaderCarrier) : Future[VerificationResult] = {
+    httpPut.PUT[FormData, VerificationResult](bformsUrl + s"/saveForm/$formId", formDetails)
   }
 }
 
@@ -50,6 +64,7 @@ object BformsConnector extends BformsConnector with ServicesConfig {
 
   lazy val httpGet = WSHttp
   lazy val httpPost = WSHttp
+  lazy val httpPut = WSHttp
 
   def bformsUrl: String = s"${baseUrl("bforms")}/bforms"
 

@@ -26,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class LandfillTax @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
-  extends FrontendController with I18nSupport {
+    extends FrontendController with I18nSupport {
 
   def landfillTaxDisplay(registrationNumber: String) = Action.async { implicit request =>
     Future.successful(Ok(uk.gov.hmrc.bforms.views.html.landfill_tax(registrationNumber.filter(Character.isLetterOrDigit))))

@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.bforms.service
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{LandfillTaxDetails, VerificationResult}
+import uk.gov.hmrc.bforms.models.{ FormData, LandfillTaxDetails, VerificationResult }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -27,6 +28,10 @@ import play.api.libs.json._
 object SaveService {
 
   def bformsConnector : BformsConnector = BformsConnector
+
+  def saveFormData(formData: FormData)(implicit hc : HeaderCarrier) = {
+    bformsConnector.save(formData)
+  }
 
   def save(formDetails: Either[LandfillTaxDetails, Map[String, String]], registrationNumber:String)(implicit hc : HeaderCarrier) = {
     formDetails.fold(

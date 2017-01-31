@@ -21,26 +21,51 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{EnvironmentalBody, KeyPair, LandfillTaxDetails}
+import uk.gov.hmrc.bforms.models.{ EnvironmentalBody, FormTypeId, FormField, LandfillTaxDetails }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 import play.api.libs.json._
+import uk.gov.hmrc.bforms.models.{FieldValue, FormTemplate}
 
 object RetrieveService {
 
   def bformsConnector = BformsConnector
+
+  def getFields(formTemplate: FormTemplate): List[FieldValue] = {
+    formTemplate.sections.flatMap(_.fields)
+  }
+
+  def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
+    formTemplate.validate[FormTemplate] match {
+      case JsSuccess(formTemplate, _) => Right(formTemplate)
+      case JsError(error) => Left(error.toString)
+    }
+  }
+
+  def getFormTemplate(formTypeId: FormTypeId, version: String)(implicit hc : HeaderCarrier): Future[Either[String, FormTemplate]] = {
+    val templateF = bformsConnector.retrieveFormTemplate(formTypeId, version)
+
+    for {
+      template <- templateF
+    } yield {
+      template match {
+        case Some(jsonTemplate) => formTemplateFromJson(jsonTemplate)
+        case None => Left(s"No template for formTypeId $formTypeId version $version")
+      }
+    }
+  }
 
   def retrieveFromBackEnd(registrationNumber: String)(implicit hc : HeaderCarrier): Future[Either[LandfillTaxDetails, Unit]] = {
     bformsConnector.retrieveForm(registrationNumber).map {
       case list if list.value.isEmpty =>
         Right(())
       case list =>
-        list.\("fields").validate[List[KeyPair]] match {
+        list.\("fields").validate[List[FormField]] match {
           case JsSuccess(js, _) =>
-            listKeyPairToLandFillTaxDetails(js).validate[LandfillTaxDetails] match {
+            listFormFieldToLandFillTaxDetails(js).validate[LandfillTaxDetails] match {
               case JsSuccess(jss, _) => Left(jss)
               case JsError(err) =>
                 Left(createfilledObject(js))
@@ -49,19 +74,19 @@ object RetrieveService {
     }
   }
 
-  private def listKeyPairToLandFillTaxDetails(listKeyPair: List[KeyPair]) = {
-    val obj= listKeyPair.foldRight(Json.obj()) { (keypair, acc) =>
-      val something = if (keypair.id == "environmentalBodies") {
-        keypair.id -> Json.parse(keypair.value)
+  private def listFormFieldToLandFillTaxDetails(listFormField: List[FormField]) = {
+    val obj= listFormField.foldRight(Json.obj()) { (formField, acc) =>
+      val something = if (formField.id == "environmentalBodies") {
+        formField.id -> Json.parse(formField.value)
       } else {
-        keypair.id -> JsString(keypair.value)
+        formField.id -> JsString(formField.value)
       }
       acc + something
     }
     obj
   }
 
-  private def createfilledObject(js : List[KeyPair]) ={
+  private def createfilledObject(js : List[FormField]) ={
     val date = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateformatter = date.withLocale(Locale.UK)
     val mapOfValues = js.map(f => f.id -> f.value).toMap

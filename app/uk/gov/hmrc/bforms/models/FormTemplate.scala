@@ -18,9 +18,19 @@ package uk.gov.hmrc.bforms.models
 
 import play.api.libs.json.Json
 
-case class KeyPair(id: String, value: String)
 
-object KeyPair {
+case class FormTemplate(
+  formTypeId: FormTypeId,
+  formName: String,
+  version: String,
+  description: String,
+  characterSet: String,
+  submitTargets: String,
+  submitSuccessUrl: String,
+  submitErrorUrl: String,
+  sections: List[Section]
+)
 
-  implicit val keyPairReader = Json.reads[KeyPair]
+object FormTemplate {
+  implicit val format = Json.format[FormTemplate]
 }
