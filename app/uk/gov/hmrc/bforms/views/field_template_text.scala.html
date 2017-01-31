@@ -7,7 +7,7 @@
 <fieldset class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error} ">
   <p>@{fieldValue.helpText}</p>
   <label for="@{fieldValue.id}">
-    <h3>@{fieldValue.label + validationResult.map(_.getCurrentValue)}</h3>
+    <h3>@localisation(fieldValue.label)</h3>
     @errorInline(fieldValue.id, "Please enter required data", Seq("optional-extra-css-classes"))
     <input
        type="text"
