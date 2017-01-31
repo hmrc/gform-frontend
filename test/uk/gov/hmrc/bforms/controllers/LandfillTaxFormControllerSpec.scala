@@ -26,8 +26,6 @@ import uk.gov.hmrc.bforms.models.LandfillTaxDetails
 import uk.gov.hmrc.bforms.models.persistence.LandfillTaxDetailsPersistence
 import uk.gov.hmrc.play.test.UnitSpec
 
-import helpers.Mongo
-
 import scala.concurrent.{ExecutionContext, Future}
 
 

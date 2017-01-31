@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.bforms.controllers
 
-import helpers.Mongo
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.OneAppPerSuite
 import play.api.http.Status
@@ -57,7 +56,6 @@ class LandfillTaxFormPersonControllerSpec extends UnitSpec with ScalaFutures wit
   }
 
   def landfillTaxFormPersonController(implicit messagesApi: MessagesApi) = {
-    implicit val db = Mongo.stubDb
 
     new LandfillTaxFormPerson(messagesApi)
   }
