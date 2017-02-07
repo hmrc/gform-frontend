@@ -1,9 +1,8 @@
-@import uk.gov.hmrc.bforms.models.FormTemplate
-@(formTemplate: FormTemplate, snippets: List[play.twirl.api.Html])(implicit request: Request[_], messages: Messages)
-
-@import uk.gov.hmrc.bforms.views.html.helpers.forms.{form, submit}
+@import uk.gov.hmrc.bforms.models.{FormTemplate, Page, FormId}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import views.html.helper.CSRF
+
+@(formTemplate: FormTemplate, page: Page, formId: Option[FormId])(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
     <header class="page-header text">
@@ -15,15 +14,24 @@
 
 
 
-    <form action="@uk.gov.hmrc.bforms.controllers.routes.FormGen.save(formTemplate.formTypeId, formTemplate.version).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@uk.gov.hmrc.bforms.controllers.routes.FormGen.save(formTemplate.formTypeId, formTemplate.version, page.curr).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
             CSRF.formField
         }
 
 	@{
-	    snippets
+	    page.snippets
 	}
+
+	@{
+	    page.hiddenFieldsSnippets
+	}
+
+	<input
+          type="hidden"
+	  name="formId"
+	  value="@{formId.map(_.value).getOrElse("")}" />
 
 	<br>
 
@@ -31,9 +39,11 @@
 	    <div></div>
 	</p>
 
-	<button name="save" value="Save">Save</button>
 
-	<button name="save" value="Continue">Continue</button>
+
+	<button name="save" value="Continue">Save and Continue</button>
+
+	<button name="save" value="Save">Save and Exit</button>
 
     </form>
 }

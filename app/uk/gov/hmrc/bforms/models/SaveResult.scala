@@ -18,7 +18,7 @@ package uk.gov.hmrc.bforms.models
 
 import play.api.libs.json.Json
 
-case class SaveResult(success: String)
+case class SaveResult(success: Option[String], error: Option[String])
 
 object SaveResult {
   implicit val formats = Json.format[SaveResult]

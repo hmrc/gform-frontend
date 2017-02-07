@@ -1,0 +1,8 @@
+@import uk.gov.hmrc.bforms.models.FormField
+
+@(formField: FormField)
+
+<input
+  type="hidden"
+  name="@formField.id"
+  value="@formField.value" />

@@ -51,12 +51,16 @@ trait BformsConnector {
     httpGet.GET[HttpResponse](bformsUrl+s"/submit/$registrationNumber")
   }
 
-  def save(formDetails: FormData)(implicit hc : HeaderCarrier) : Future[SaveResult] = {
-    httpPost.POST[FormData, SaveResult](bformsUrl + s"/forms", formDetails)
+  def getById(formTypeId: FormTypeId, version: String, formId: FormId)(implicit hc : HeaderCarrier) : Future[FormData] = {
+    httpGet.GET[FormData](bformsUrl + s"/forms/$formTypeId/$version/$formId")
   }
 
-  def update(formId: FormId, formDetails: FormData)(implicit hc : HeaderCarrier) : Future[VerificationResult] = {
-    httpPut.PUT[FormData, VerificationResult](bformsUrl + s"/saveForm/$formId", formDetails)
+  def save(formDetails: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier) : Future[SaveResult] = {
+    httpPost.POST[FormData, SaveResult](bformsUrl + s"/forms?tolerant=$tolerant", formDetails)
+  }
+
+  def update(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier) : Future[SaveResult] = {
+    httpPut.PUT[FormData, SaveResult](bformsUrl + s"/forms/$formId?tolerant=$tolerant", formData)
   }
 }
 
