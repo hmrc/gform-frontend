@@ -62,6 +62,10 @@ trait BformsConnector {
   def update(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier) : Future[SaveResult] = {
     httpPut.PUT[FormData, SaveResult](bformsUrl + s"/forms/$formId?tolerant=$tolerant", formData)
   }
+
+  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc : HeaderCarrier) : Future[HttpResponse] = {
+    httpPost.POSTEmpty[HttpResponse](bformsUrl + s"/forms/$formTypeId/submission/$formId")
+  }
 }
 
 object BformsConnector extends BformsConnector with ServicesConfig {

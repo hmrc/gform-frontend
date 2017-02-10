@@ -115,6 +115,8 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
     }
   }
 
+  val FormIdExtractor = "bforms/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
+
   def save(formTypeId: FormTypeId, version: String, currentPage: Int) = ActionWithTemplate(formTypeId, version).async(parse.urlFormEncoded) { implicit request =>
 
     val formTemplate = request.formTemplate
@@ -135,7 +137,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
         fieldValue -> validateFieldValue(fieldValue, values)
     }
 
-    def saveAndProcessResponse(continuation: SaveResult => Result)(implicit hc: HeaderCarrier): Future[Result] = {
+    def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
       val canSave: Either[String, List[FormField]] = validationResults.map {
         case (_, validationResult) => validationResult.toFormField
       }.toList.sequenceU
@@ -143,7 +145,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
         case Right(formFields) =>
           val formData = FormData(formTypeId, version, "UTF-8", formFields)
 
-          submitOrUpdate(formIdOpt, formData, false).map(continuation)
+          submitOrUpdate(formIdOpt, formData, false).flatMap(continuation)
 
         case Left(_) =>
           val pageWithErrors = page.copy(snippets = Page.snippetsWithError(page.section, validationResults.get))
@@ -156,15 +158,14 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
         action match {
           case SaveAndContinue =>
             saveAndProcessResponse { saveResult =>
-              formIdOpt match {
-                case Some(formId) => Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, nextPage, Some(formId)))
-                case None =>
-                  val FormIdExtractor = "bforms/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
-                  saveResult.success match {
-                    case Some(FormIdExtractor(formId)) => Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, nextPage, Some(FormId(formId))))
-                    case otherwise => BadRequest(otherwise.toString)
-                  }
-              }
+
+              val result =
+                getFormId(formIdOpt, saveResult) match {
+                  case Right(formId) => Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, nextPage, Some(formId)))
+                  case Left(error) => BadRequest(error)
+                }
+
+              Future.successful(result)
             }
           case SaveAndExit =>
             val formFields: List[FormField] = validationResults.values.map(_.toFormFieldTolerant).toList
@@ -174,7 +175,21 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
 
           case SaveAndSubmit =>
             saveAndProcessResponse { saveResult =>
-              Ok(Json.toJson(saveResult))
+
+              getFormId(formIdOpt, saveResult) match {
+
+                case Right(formId) =>
+                  SaveService.sendSubmission(formTypeId, formId).map { r =>
+                    Ok(
+                      Json.obj(
+                        "envelope" -> r.body,
+                        "formId" -> Json.toJson(saveResult)
+                      )
+                    )
+                  }
+                case Left(error) =>
+                  Future.successful(BadRequest(error))
+              }
             }
         }
 
@@ -189,6 +204,17 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
         SaveService.updateFormData(formId, formData, tolerant)
       case None =>
         SaveService.saveFormData(formData, tolerant)
+    }
+  }
+
+  private def getFormId(formIdOpt: Option[FormId], saveResult: SaveResult): Either[String, FormId] = {
+    formIdOpt match {
+      case Some(formId) => Right(formId)
+      case None => saveResult.success match {
+        case Some(FormIdExtractor(formId)) => Right(FormId(formId))
+        case Some(otherwise) => Left(s"Cannot determine formId from $otherwise")
+        case None => Left(s"Cannot determine formId from ${Json.toJson(saveResult)}")
+      }
     }
   }
 }
