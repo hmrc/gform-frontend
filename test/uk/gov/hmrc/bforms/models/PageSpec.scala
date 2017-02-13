@@ -21,6 +21,7 @@ import play.twirl.api.Html
 
 class PageSpec extends FlatSpec with Matchers with EitherValues {
 
+  val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
   val section0 = Section("Your details", List(FieldValue("iptRegNum", "Insurance Premium Tax (IPT) number", None, None, None, None, None)))
   val section1 = Section("About you", List(FieldValue("firstName", "First Name", None, None, None, None, None)))
   val section2 = Section("Business details", List(FieldValue("nameOfBusiness", "Name of business", None, None, None, None, None)))
@@ -30,7 +31,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
     version= "1.2.3",
     description= "abc",
     characterSet= "UTF-8",
-    submitTargets= "target",
+    dmsSubmission= dmsSubmission,
     submitSuccessUrl= "success-url",
     submitErrorUrl= "error-url",
     sections= List(section0, section1, section2)
