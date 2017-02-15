@@ -19,7 +19,7 @@ package uk.gov.hmrc.bforms.service
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.bforms.connectors.BformsConnector
 import uk.gov.hmrc.bforms.models.{ FormData, FormId, FormTypeId, LandfillTaxDetails, SaveResult, VerificationResult }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,6 +39,10 @@ object SaveService {
 
   def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier): Future[SaveResult] = {
     bformsConnector.update(formId, formData, tolerant)
+  }
+
+  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc : HeaderCarrier): Future[HttpResponse] = {
+    bformsConnector.sendSubmission(formTypeId, formId)
   }
 
   def save(formDetails: Either[LandfillTaxDetails, Map[String, String]], registrationNumber:String)(implicit hc : HeaderCarrier) = {

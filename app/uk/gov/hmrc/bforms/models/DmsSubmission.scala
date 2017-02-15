@@ -18,18 +18,12 @@ package uk.gov.hmrc.bforms.models
 
 import play.api.libs.json.Json
 
-case class FormTemplate(
-  formTypeId: FormTypeId,
-  formName: String,
-  version: String,
-  description: String,
-  characterSet: String,
-  dmsSubmission: DmsSubmission,
-  submitSuccessUrl: String,
-  submitErrorUrl: String,
-  sections: List[Section]
+case class DmsSubmission(
+  customerId: String,
+  classificationType: String,
+  businessArea: String
 )
 
-object FormTemplate {
-  implicit val format = Json.format[FormTemplate]
+object DmsSubmission {
+  implicit val format = Json.format[DmsSubmission]
 }
