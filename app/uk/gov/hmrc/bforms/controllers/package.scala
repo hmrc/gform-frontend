@@ -16,24 +16,17 @@
 
 package uk.gov.hmrc.bforms
 
-
-import play.api.mvc.{ Action, ActionBuilder, ActionRefiner, Request, Result, Results, WrappedRequest }
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.bforms.models.{FormTypeId, FormTemplate}
+import javax.inject.{ Inject, Singleton }
+import play.api.Configuration
+import play.api.mvc.{ Action, ActionBuilder, ActionRefiner, AnyContent, Request, Result, Results, WrappedRequest }
+import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.bforms.models.{ FormTypeId, FormTemplate }
 import uk.gov.hmrc.bforms.service.RetrieveService
 import uk.gov.hmrc.play.http.HeaderCarrier
-
-package object controllers {
-
-  def ActionWithTemplate(
-    formTypeId: FormTypeId,
-    version: String
-  )(
-    implicit ec: ExecutionContext
-  ): ActionBuilder[RequestWithTemplate] =
-    Action.andThen(WithFormTemplate(formTypeId, version))
-}
-
+import uk.gov.hmrc.play.frontend.auth._
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 package controllers {
 
@@ -54,4 +47,63 @@ package controllers {
   object WithFormTemplate {
     def apply(formTypeId: FormTypeId, version: String)(implicit ec: ExecutionContext) = new WithFormTemplate(formTypeId, version)
   }
+
+  object BformsPageVisibilityPredicate extends uk.gov.hmrc.play.frontend.auth.PageVisibilityPredicate {
+    def apply(authContext: AuthContext, request: Request[AnyContent]): Future[PageVisibilityResult] =
+      Future.successful(PageIsVisible)
+  }
+
+  class BformsAuthenticationProvider(configuration: Configuration) extends GovernmentGateway {
+
+    private val bformsFrontendBaseUrl = configuration.getString("bforms-frontend-base-url").getOrElse("")
+    private val governmentGatewaySignInUrl = configuration.getString("government-gateway-sign-in-url").getOrElse("")
+
+    override def redirectToLogin(implicit request: Request[_]): Future[Result] = {
+      val queryStringParams = Map("continue" -> Seq(bformsFrontendBaseUrl + request.uri))
+      Future.successful(Redirect(loginURL, queryStringParams))
+    }
+
+    def continueURL: String = "not used since we override redirectToLogin"
+
+    def loginURL: String = governmentGatewaySignInUrl
+  }
+
+  trait SecuredActions extends uk.gov.hmrc.play.frontend.auth.Actions {
+    val SecureWithTemplate: (FormTypeId, String) => (AuthContext => RequestWithTemplate[AnyContent] => Result) => Action[AnyContent]
+    val SecureWithTemplateAsync: (FormTypeId, String) => (AuthContext => RequestWithTemplate[AnyContent] => Future[Result]) => Action[AnyContent]
+  }
+
+  @Singleton
+  class SecuredActionsImpl @Inject()(configuration: Configuration, val authConnector: AuthConnector) extends SecuredActions {
+
+    private def ActionWithTemplate(
+      formTypeId: FormTypeId,
+      version: String
+    )(
+      implicit ec: ExecutionContext
+    ): ActionBuilder[RequestWithTemplate] =
+      Action.andThen(WithFormTemplate(formTypeId, version))
+
+    // Workaround for impossible Action composition thanks to UserActions#AuthenticatedBy from play-authorised-frontend being no ActionBuilder
+    private def SecureActionWithTemplate(authenticatedBy: UserActions#AuthenticatedBy)(
+      formTypeId: FormTypeId,
+      version: String
+    )(body: AuthContext => RequestWithTemplate[AnyContent] => Result): Action[AnyContent] = authenticatedBy.async { authContext => request =>
+      ActionWithTemplate(formTypeId, version).apply(body(authContext))(request)
+    }
+
+    // Workaround for impossible Action composition thanks to UserActions#AuthenticatedBy from play-authorised-frontend being no ActionBuilder
+    private def SecureActionWithTemplateAsync(authenticatedBy: UserActions#AuthenticatedBy)(
+      formTypeId: FormTypeId,
+      version: String
+    )(body: AuthContext => RequestWithTemplate[AnyContent] => Future[Result]): Action[AnyContent] = authenticatedBy.async { authContext => request =>
+      ActionWithTemplate(formTypeId, version).async(body(authContext))(request)
+    }
+
+    private val authenticatedBy = AuthenticatedBy(new BformsAuthenticationProvider(configuration), BformsPageVisibilityPredicate)
+
+    override val SecureWithTemplate = SecureActionWithTemplate(authenticatedBy) _
+    override val SecureWithTemplateAsync = SecureActionWithTemplateAsync(authenticatedBy) _
+  }
+
 }

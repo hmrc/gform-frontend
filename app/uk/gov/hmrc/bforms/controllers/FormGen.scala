@@ -24,8 +24,12 @@ import cats.syntax.traverse._
 import cats.syntax.either._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.bforms.FrontendAuthConnector
 import uk.gov.hmrc.bforms.models.{ FieldValue, FormData, FormField, FormId, FormTypeId, Page, SaveResult }
+import uk.gov.hmrc.play.frontend.auth._
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -80,20 +84,20 @@ case object SaveAndExit extends FormAction
 case object SaveAndSubmit extends FormAction
 
 @Singleton
-class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionContext)
-  extends FrontendController with I18nSupport {
+class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(implicit ec: ExecutionContext)
+    extends FrontendController with I18nSupport {
 
+  def form(formTypeId: FormTypeId, version: String) =
+    sec.SecureWithTemplate(formTypeId, version) { authContext => implicit request =>
 
-  def form(formTypeId: FormTypeId, version: String) = ActionWithTemplate(formTypeId, version).apply { implicit request =>
+      val formTemplate = request.formTemplate
 
-    val formTemplate = request.formTemplate
+      val page = Page(0, formTemplate, Map.empty[String, Seq[String]])
 
-    val page = Page(0, formTemplate, Map.empty[String, Seq[String]])
+      Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, page, None))
+    }
 
-    Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, page, None))
-  }
-
-  def formById(formTypeId: FormTypeId, version: String, formId: FormId) = ActionWithTemplate(formTypeId, version).async { implicit request =>
+  def formById(formTypeId: FormTypeId, version: String, formId: FormId) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
 
     SaveService.getFormById(formTypeId, version, formId).map { formData =>
 
@@ -117,84 +121,86 @@ class FormGen @Inject()(val messagesApi: MessagesApi)(implicit ec: ExecutionCont
 
   val FormIdExtractor = "bforms/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
 
-  def save(formTypeId: FormTypeId, version: String, currentPage: Int) = ActionWithTemplate(formTypeId, version).async(parse.urlFormEncoded) { implicit request =>
+  def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
+    request.body.asFormUrlEncoded match {
+      case None => Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check
+      case Some(data) =>
+        val formTemplate = request.formTemplate
 
-    val formTemplate = request.formTemplate
-    val data = request.body
+        val page = Page(currentPage, formTemplate, data)
+        val nextPage = Page(page.next, formTemplate, data)
 
-    val page = Page(currentPage, formTemplate, data)
-    val nextPage = Page(page.next, formTemplate, data)
+        val actions: List[String] = data.get("save").toList.flatten
+        val formIdOpt: Option[FormId] = data.get("formId").flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
 
-    val actions: List[String] = data.get("save").toList.flatten
-    val formIdOpt: Option[FormId] = data.get("formId").flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
+        val actionE: Either[String, FormAction] = FormAction.fromAction(actions, page)
 
-    val actionE: Either[String, FormAction] = FormAction.fromAction(actions, page)
+        val validate: Map[FieldValue, Seq[String]] = page.section.fields.map(fv => fv -> data.get(fv.id).toList.flatten).toMap
 
-    val validate: Map[FieldValue, Seq[String]] = page.section.fields.map(fv => fv -> data.get(fv.id).toList.flatten).toMap
-
-    val validationResults: Map[FieldValue, FormFieldValidationResult] = validate.map {
-      case (fieldValue, values) =>
-        fieldValue -> validateFieldValue(fieldValue, values)
-    }
-
-    def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
-      val canSave: Either[String, List[FormField]] = validationResults.map {
-        case (_, validationResult) => validationResult.toFormField
-      }.toList.sequenceU
-      canSave match {
-        case Right(formFields) =>
-          val formData = FormData(formTypeId, version, "UTF-8", formFields)
-
-          submitOrUpdate(formIdOpt, formData, false).flatMap(continuation)
-
-        case Left(_) =>
-          val pageWithErrors = page.copy(snippets = Page.snippetsWithError(page.section, validationResults.get))
-          Future.successful(Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, pageWithErrors, formIdOpt)))
-      }
-    }
-
-    actionE match {
-      case Right(action) =>
-        action match {
-          case SaveAndContinue =>
-            saveAndProcessResponse { saveResult =>
-
-              val result =
-                getFormId(formIdOpt, saveResult) match {
-                  case Right(formId) => Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, nextPage, Some(formId)))
-                  case Left(error) => BadRequest(error)
-                }
-
-              Future.successful(result)
-            }
-          case SaveAndExit =>
-            val formFields: List[FormField] = validationResults.values.map(_.toFormFieldTolerant).toList
-
-            val formData = FormData(formTypeId, version, "UTF-8", formFields)
-            submitOrUpdate(formIdOpt, formData, true).map(response => Ok(Json.toJson(response)))
-
-          case SaveAndSubmit =>
-            saveAndProcessResponse { saveResult =>
-
-              getFormId(formIdOpt, saveResult) match {
-
-                case Right(formId) =>
-                  SaveService.sendSubmission(formTypeId, formId).map { r =>
-                    Ok(
-                      Json.obj(
-                        "envelope" -> r.body,
-                        "formId" -> Json.toJson(saveResult)
-                      )
-                    )
-                  }
-                case Left(error) =>
-                  Future.successful(BadRequest(error))
-              }
-            }
+        val validationResults: Map[FieldValue, FormFieldValidationResult] = validate.map {
+          case (fieldValue, values) =>
+            fieldValue -> validateFieldValue(fieldValue, values)
         }
 
-      case Left(error) =>
-        Future.successful(BadRequest(error))
+        def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+          val canSave: Either[String, List[FormField]] = validationResults.map {
+            case (_, validationResult) => validationResult.toFormField
+          }.toList.sequenceU
+          canSave match {
+            case Right(formFields) =>
+              val formData = FormData(formTypeId, version, "UTF-8", formFields)
+
+              submitOrUpdate(formIdOpt, formData, false).flatMap(continuation)
+
+            case Left(_) =>
+              val pageWithErrors = page.copy(snippets = Page.snippetsWithError(page.section, validationResults.get))
+              Future.successful(Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, pageWithErrors, formIdOpt)))
+          }
+        }
+
+        actionE match {
+          case Right(action) =>
+            action match {
+              case SaveAndContinue =>
+                saveAndProcessResponse { saveResult =>
+
+                  val result =
+                    getFormId(formIdOpt, saveResult) match {
+                      case Right(formId) => Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, nextPage, Some(formId)))
+                      case Left(error) => BadRequest(error)
+                    }
+
+                  Future.successful(result)
+                }
+              case SaveAndExit =>
+                val formFields: List[FormField] = validationResults.values.map(_.toFormFieldTolerant).toList
+
+                val formData = FormData(formTypeId, version, "UTF-8", formFields)
+                submitOrUpdate(formIdOpt, formData, true).map(response => Ok(Json.toJson(response)))
+
+              case SaveAndSubmit =>
+                saveAndProcessResponse { saveResult =>
+
+                  getFormId(formIdOpt, saveResult) match {
+
+                    case Right(formId) =>
+                      SaveService.sendSubmission(formTypeId, formId).map { r =>
+                        Ok(
+                          Json.obj(
+                            "envelope" -> r.body,
+                            "formId" -> Json.toJson(saveResult)
+                          )
+                        )
+                      }
+                    case Left(error) =>
+                      Future.successful(BadRequest(error))
+                  }
+                }
+            }
+
+          case Left(error) =>
+            Future.successful(BadRequest(error))
+        }
     }
   }
 
