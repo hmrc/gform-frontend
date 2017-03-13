@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.core
 
-import play.api.libs.json.Json
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-case class FormField(id: FieldId, value: String)
+sealed trait Expr
 
-object FormField {
+final case class Add(field1: Expr, field2: Expr) extends Expr
+final case class Multiply(field1: Expr, field2: Expr) extends Expr
+final case class FormCtx(value: String) extends Expr
+final case class AuthCtx(value: String) extends Expr
+final case class EeittCtx(value: String) extends Expr
+final case class Constant(value: String) extends Expr
 
-  implicit val format = Json.format[FormField]
+object Expr {
+  implicit val format: OFormat[Expr] = derived.oformat
 }

@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{ EnvironmentalBody, FormTypeId, FormField, LandfillTaxDetails }
+import uk.gov.hmrc.bforms.models.{ EnvironmentalBody, FieldId, FormField, FormTypeId, LandfillTaxDetails }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -76,10 +76,10 @@ object RetrieveService {
 
   private def listFormFieldToLandFillTaxDetails(listFormField: List[FormField]) = {
     val obj= listFormField.foldRight(Json.obj()) { (formField, acc) =>
-      val something = if (formField.id == "environmentalBodies") {
-        formField.id -> Json.parse(formField.value)
+      val something = if (formField.id.value == "environmentalBodies") {
+        formField.id.value -> Json.parse(formField.value)
       } else {
-        formField.id -> JsString(formField.value)
+        formField.id.value -> JsString(formField.value)
       }
       acc + something
     }
@@ -89,7 +89,7 @@ object RetrieveService {
   private def createfilledObject(js : List[FormField]) ={
     val date = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val dateformatter = date.withLocale(Locale.UK)
-    val mapOfValues = js.map(f => f.id -> f.value).toMap
+    val mapOfValues = js.map(f => f.id.value -> f.value).toMap
     new LandfillTaxDetails(
       mapOfValues("registrationNumber"),
       mapOfValues("save"),

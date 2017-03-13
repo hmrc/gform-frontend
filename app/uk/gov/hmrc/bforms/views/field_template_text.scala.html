@@ -8,7 +8,7 @@
   <p>@{fieldValue.helpText}</p>
   <label for="@{fieldValue.id}">
     <h3>@localisation(fieldValue.label)</h3>
-    @errorInline(fieldValue.id, "Please enter required data", Seq("optional-extra-css-classes"))
+    @errorInline(fieldValue.id.value, "Please enter required data", Seq("optional-extra-css-classes"))
     <input
        type="text"
        name="@fieldValue.id"
