@@ -5,19 +5,4 @@ GET         /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.
 GET         /form/:formTypeId/:version/:formId  @uk.gov.hmrc.bforms.controllers.FormGen.formById(formTypeId: FormTypeId, version: String, formId: FormId)
 POST        /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.save(formTypeId: FormTypeId, version: String, currentPage: Int)
 
-GET         /landfill-tax/:rn                   @uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxDisplay(rn : String)
-GET         /landfill-tax-form/:rn              @uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxFormDisplay(rn : String)
-GET         /landfill-tax-form-declaration/:rn              @uk.gov.hmrc.bforms.controllers.LandfillTaxFormDeclaration.landfillTaxFormDeclarationDisplay(rn : String)
-GET         /landfill-tax-form-person/:rn              @uk.gov.hmrc.bforms.controllers.LandfillTaxFormPerson.landfillTaxFormPersonDisplay(rn : String)
-GET         /landfill-tax-confirmation/:rn/:ac  @uk.gov.hmrc.bforms.controllers.LandfillTaxConfirmation.landfillTaxConfirmationDisplay(rn : String, ac : String)
 GET         /assets/*file                      controllers.Assets.versioned(path="/public", file: Asset)
-
-POST        /landfill-tax/continue/:rn        @uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxSubmitContinue(rn : String)
-POST        /landfill-tax/save/:rn            @uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxForms(rn: String)
-#POST        /landfill-tax-declaration/continue/:rn        @uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxDeclarationSubmitContinue(rn : String)
-POST        /landfill-tax-declaration/continue/:rn        @uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxForms(rn : String)
-POST        /landfill-tax-declaration/save/:rn            @uk.gov.hmrc.bforms.controllers.LandfillTaxFormDeclaration.landfillTaxFormDeclaration(rn: String)
-#POST        /landfill-tax-person/continue/:rn        @uk.gov.hmrc.bforms.controllers.LandfillTax.landfillTaxPersonSubmitContinue(rn : String)
-POST        /landfill-tax-person/continue/:rn        @uk.gov.hmrc.bforms.controllers.LandfillTaxForm.landfillTaxForms(rn : String)
-POST        /landfill-tax-person/save/:rn            @uk.gov.hmrc.bforms.controllers.LandfillTaxFormPerson.landfillTaxFormPerson(rn: String)
-

@@ -18,7 +18,7 @@ package uk.gov.hmrc.bforms.service
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{ FormData, FormId, FormTypeId, LandfillTaxDetails, SaveResult, VerificationResult }
+import uk.gov.hmrc.bforms.models.{ FormData, FormId, FormTypeId, SaveResult, VerificationResult }
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.Future
@@ -43,38 +43,6 @@ object SaveService {
 
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc : HeaderCarrier): Future[HttpResponse] = {
     bformsConnector.sendSubmission(formTypeId, formId)
-  }
-
-  def save(formDetails: Either[LandfillTaxDetails, Map[String, String]], registrationNumber:String)(implicit hc : HeaderCarrier) = {
-    formDetails.fold(
-      obj => {
-        saveObject(obj, registrationNumber)
-      },
-      map => {
-        saveMap(map, registrationNumber)
-    }
-    )
-  }
-
-  private def saveObject(formDetails: LandfillTaxDetails, registrationNumber : String)(implicit hc : HeaderCarrier) : Future[VerificationResult] = {
-    val formInfo = implicitly[OWrites[LandfillTaxDetails]].writes(formDetails).value.map {
-      case(key, jsvalue) =>
-      val json = jsvalue match {
-        case JsString(str) => str
-        case JsNumber(num) => num.toString
-        case JsObject(obj) => obj.toString
-        case others => others.toString
-      }
-      Json.obj("id" -> key, "value" -> json)}.toList
-
-    val jsonobject : JsObject = Json.obj(
-      "formTypeId" -> "LF100",
-      "version" -> "0.1.0",
-      "characterSet" -> "UTF-8",
-      "fields" -> Json.toJson(formInfo)
-    )
-
-    bformsConnector.saveForm(jsonobject, registrationNumber)
   }
 
   def saveMap(formDetails : Map[String, String], registrationNumber : String)(implicit hc : HeaderCarrier) : Future[VerificationResult] = {
