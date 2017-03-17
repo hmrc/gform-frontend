@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{ EnvironmentalBody, FormTypeId, FormField }
+import uk.gov.hmrc.bforms.models.{ FormTypeId, FormField }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
