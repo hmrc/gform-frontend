@@ -1,8 +1,8 @@
-@import uk.gov.hmrc.bforms.models.{FormTemplate, Page, FormId}
+@import uk.gov.hmrc.bforms.models.{FormTemplate, PageForRender, FormId}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import views.html.helper.CSRF
 
-@(formTemplate: FormTemplate, page: Page, formId: Option[FormId])(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, page: PageForRender, formId: Option[FormId])(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
     <header class="page-header text">
@@ -46,4 +46,7 @@
 	<button name="save" value="Save">Save and Exit</button>
 
     </form>
+    <script type="text/javascript">
+      @Html(page.javascripts)
+    </script>
 }

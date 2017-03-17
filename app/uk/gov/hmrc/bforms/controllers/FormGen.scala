@@ -27,7 +27,8 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.bforms.FrontendAuthConnector
-import uk.gov.hmrc.bforms.models.{ FieldValue, FormData, FormField, FormId, FormTypeId, Page, SaveResult }
+import uk.gov.hmrc.bforms.core.{ Add, FormCtx, Expr }
+import uk.gov.hmrc.bforms.models.{ FieldId, FieldValue, FormData, FormField, FormId, FormTypeId, Page, SaveResult }
 import uk.gov.hmrc.play.frontend.auth._
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -47,9 +48,9 @@ sealed trait FormFieldValidationResult {
     case _ => ""
   }
 
-  def toFormField: Either[String, FormField] = this match {
+  def toFormField: Either[FieldId, FormField] = this match {
     case FieldOk(fieldValue, cv) => Right(FormField(fieldValue.id, cv))
-    case _ => Left("")
+    case _ => Left(FieldId(""))
   }
 
   def toFormFieldTolerant: FormField = this match {
@@ -92,22 +93,20 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
       val formTemplate = request.formTemplate
 
-      val page = Page(0, formTemplate, Map.empty[String, Seq[String]])
+      Page(0, formTemplate).renderPage(Map.empty[FieldId, Seq[String]], None)
 
-      Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, page, None))
     }
 
   def formById(formTypeId: FormTypeId, version: String, formId: FormId) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
 
     SaveService.getFormById(formTypeId, version, formId).map { formData =>
 
-      val lookup: Map[String, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
+      val lookup: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
       val formTemplate = request.formTemplate
 
-      val page = Page(0, formTemplate, lookup)
+      Page(0, formTemplate).renderPage(lookup, Some(formId))
 
-      Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, page, Some(formId)))
     }
   }
 
@@ -122,16 +121,16 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
   val FormIdExtractor = "bforms/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
 
   def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
-    request.body.asFormUrlEncoded match {
+    request.body.asFormUrlEncoded.map(_.map{ case (a, b) => (FieldId(a), b)}) match {
       case None => Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check
       case Some(data) =>
         val formTemplate = request.formTemplate
 
-        val page = Page(currentPage, formTemplate, data)
-        val nextPage = Page(page.next, formTemplate, data)
+        val page = Page(currentPage, formTemplate)
+        val nextPage = Page(page.next, formTemplate)
 
-        val actions: List[String] = data.get("save").toList.flatten
-        val formIdOpt: Option[FormId] = data.get("formId").flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
+        val actions: List[String] = data.get(FieldId("save")).toList.flatten
+        val formIdOpt: Option[FormId] = data.get(FieldId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
 
         val actionE: Either[String, FormAction] = FormAction.fromAction(actions, page)
 
@@ -143,7 +142,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
         }
 
         def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
-          val canSave: Either[String, List[FormField]] = validationResults.map {
+          val canSave: Either[FieldId, List[FormField]] = validationResults.map {
             case (_, validationResult) => validationResult.toFormField
           }.toList.sequenceU
           canSave match {
@@ -153,8 +152,10 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
               submitOrUpdate(formIdOpt, formData, false).flatMap(continuation)
 
             case Left(_) =>
-              val pageWithErrors = page.copy(snippets = Page.snippetsWithError(page.section, validationResults.get))
-              Future.successful(Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, pageWithErrors, formIdOpt)))
+              val result = page.renderPage(data, formIdOpt)
+              Future.successful(result)
+              //val pageWithErrors = page.copy(snippets = Page.snippetsWithError(page.section, validationResults.get))
+              //Future.successful(Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, pageWithErrors, formIdOpt, "//TODO")))
           }
         }
 
@@ -166,7 +167,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
                   val result =
                     getFormId(formIdOpt, saveResult) match {
-                      case Right(formId) => Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, nextPage, Some(formId)))
+                      case Right(formId) => nextPage.renderPage(data, Some(formId))
                       case Left(error) => BadRequest(error)
                     }
 
