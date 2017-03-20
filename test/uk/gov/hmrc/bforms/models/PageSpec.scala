@@ -22,29 +22,29 @@ import play.twirl.api.Html
 class PageSpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", List(FieldValue(FieldId("iptRegNum"), "Insurance Premium Tax (IPT) number", None, None, None, None, None)))
-  val section1 = Section("About you", List(FieldValue(FieldId("firstName"), "First Name", None, None, None, None, None)))
-  val section2 = Section("Business details", List(FieldValue(FieldId("nameOfBusiness"), "Name of business", None, None, None, None, None)))
+  val section0 = Section("Your details", List(FieldValue(FieldId("iptRegNum"), Some(Text), "Insurance Premium Tax (IPT) number", None, None, None, None, None)))
+  val section1 = Section("About you", List(FieldValue(FieldId("firstName"), Some(Text), "First Name", None, None, None, None, None)))
+  val section2 = Section("Business details", List(FieldValue(FieldId("nameOfBusiness"), Some(Text), "Name of business", None, None, None, None, None)))
   val formTemplate = FormTemplate(
-    formTypeId= FormTypeId(""),
-    formName= "IPT100",
-    version= "1.2.3",
-    description= "abc",
-    characterSet= "UTF-8",
-    dmsSubmission= dmsSubmission,
-    submitSuccessUrl= "success-url",
-    submitErrorUrl= "error-url",
-    sections= List(section0, section1, section2)
+    formTypeId = FormTypeId(""),
+    formName = "IPT100",
+    version = "1.2.3",
+    description = "abc",
+    characterSet = "UTF-8",
+    dmsSubmission = dmsSubmission,
+    submitSuccessUrl = "success-url",
+    submitErrorUrl = "error-url",
+    sections = List(section0, section1, section2)
   )
 
   val NameExtractor = "name=\"(.*)\"".r.unanchored
 
-  def extractNames(html: List[Html]): List[String] = html.flatMap{ html =>
-      html.body match {
-        case NameExtractor(name) => List(name)
-        case otherwise => Nil
-      }
+  def extractNames(html: List[Html]): List[String] = html.flatMap { html =>
+    html.body match {
+      case NameExtractor(name) => List(name)
+      case otherwise => Nil
     }
+  }
 
   "Page" should "display first page" in {
 

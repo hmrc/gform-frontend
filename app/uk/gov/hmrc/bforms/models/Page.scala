@@ -17,12 +17,12 @@
 package uk.gov.hmrc.bforms.models
 
 import play.api.i18n.Messages
-import play.api.mvc.{ Request, Result }
+import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
 import uk.gov.hmrc.bforms.controllers.FormFieldValidationResult
 import uk.gov.hmrc.bforms.controllers.FieldOk
 import play.twirl.api.Html
-import uk.gov.hmrc.bforms.core.{ Add, Expr, FormCtx }
+import uk.gov.hmrc.bforms.core.{Add, Expr, FormCtx}
 
 case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
@@ -30,7 +30,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
   def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId])(implicit request: Request[_], messages: Messages): Result = {
     def toFormField(fieldValue: List[FieldValue]) = {
       fieldValue.map(fv => fv -> formFields.get(fv.id).toList.flatten)
-        .map{ case (fv, v) => FormField(fv.id, v.headOption.getOrElse(""))}
+        .map { case (fv, v) => FormField(fv.id, v.headOption.getOrElse("")) }
     }
 
     val hiddenSections = formTemplate.sections.filterNot(_ == section)
@@ -42,8 +42,8 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
     def snippetsWithError(section: Section, f: FieldValue => Option[FormFieldValidationResult]): List[Html] = {
       section.fields
         .map { fieldValue =>
-        uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f(fieldValue))
-      }
+          uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f(fieldValue))
+        }
     }
 
     val snippets: List[Html] = {
@@ -57,7 +57,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
     val fieldIdWithExpr: List[(FieldId, Expr)] = {
       val fieldNamesValues: List[(FieldId, Option[Expr])] = formTemplate.sections.flatMap(_.fields.map(s => (s.id, s.value)))
 
-      fieldNamesValues.collect{ case (f, Some(value)) => (f, value)}
+      fieldNamesValues.collect { case (f, Some(value)) => (f, value) }
 
     }
 
@@ -72,7 +72,8 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
             for {
               elementId <- List(amountA, amountB)
               event <- List("change", "keyup")
-            } yield s"""document.getElementById("$elementId").addEventListener("$event",$functionName);"""
+            } yield
+              s"""document.getElementById("$elementId").addEventListener("$event",$functionName);"""
 
           s"""|function $functionName() {
               |  var el1 = document.getElementById("$amountA").value;
@@ -97,9 +98,9 @@ object Page {
     val lastPage = formTemplate.sections.size - 1
 
     val curr = currentPage match {
-      case x if x <= 0        => 0
+      case x if x <= 0 => 0
       case x if x >= lastPage => lastPage
-      case _                  => currentPage
+      case _ => currentPage
     }
 
     val section = formTemplate.sections(curr)
