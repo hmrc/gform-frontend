@@ -1,8 +1,12 @@
 # microservice specific routes
 
 
-GET         /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.form(formTypeId: FormTypeId, version: String)
-GET         /form/:formTypeId/:version/:formId  @uk.gov.hmrc.bforms.controllers.FormGen.formById(formTypeId: FormTypeId, version: String, formId: FormId)
-POST        /form/:formTypeId/:version          @uk.gov.hmrc.bforms.controllers.FormGen.save(formTypeId: FormTypeId, version: String, currentPage: Int)
+GET         /form/:formTypeId/:version                  @uk.gov.hmrc.bforms.controllers.FormGen.form(formTypeId: FormTypeId, version: String)
+GET         /form/:formTypeId/:version/:formId          @uk.gov.hmrc.bforms.controllers.FormGen.formById(formTypeId: FormTypeId, version: String, formId: FormId)
+GET         /form/:formTypeId/:version/:formId/:page    @uk.gov.hmrc.bforms.controllers.FormGen.formByIdPage(formTypeId: FormTypeId, version: String, formId: FormId, page: Int)
+POST        /form/:formTypeId/:version                  @uk.gov.hmrc.bforms.controllers.FormGen.save(formTypeId: FormTypeId, version: String, currentPage: Int)
+
+GET         /summary/:formTypeId/:version/:formId       @uk.gov.hmrc.bforms.controllers.SummaryGen.summaryById(formTypeId: FormTypeId, version: String, formId: FormId)
+POST        /summary/:formTypeId/:version/submit        @uk.gov.hmrc.bforms.controllers.SummaryGen.submit(formTypeId: FormTypeId, version: String)
 
 GET         /assets/*file                      controllers.Assets.versioned(path="/public", file: Asset)

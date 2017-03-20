@@ -1,0 +1,14 @@
+@import uk.gov.hmrc.bforms.models.{FormTypeId, FormId}
+@import uk.gov.hmrc.bforms.views.html.localisation
+@import uk.gov.hmrc.play.views.html.helpers._
+
+@(formType: FormTypeId, version: String, formId: FormId, title: String, currentPage: Int)
+
+<section class="section divider--top--thick">
+    <h2>@localisation(title)</h2>
+    <p>
+        <a href="@uk.gov.hmrc.bforms.controllers.routes.FormGen.formByIdPage(formType, version, formId, currentPage).url">
+            Edit</a>
+    </p>
+</section>
+

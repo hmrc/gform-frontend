@@ -4,7 +4,7 @@
 
 @(formTemplate: FormTemplate, page: PageForRender, formId: Option[FormId])(implicit request: Request[_], messages: Messages)
 
-@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend landfill tax form", bodyClasses = None) {
+@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend tax form", bodyClasses = None) {
     <header class="page-header text">
         <h1>@localisation(formTemplate.formName)</h1>
     </header>

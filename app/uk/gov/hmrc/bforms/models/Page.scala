@@ -20,6 +20,8 @@ import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
+import uk.gov.hmrc.bforms.models.helpers.Fields._
+import uk.gov.hmrc.bforms.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.bforms.core._
 
 
@@ -28,95 +30,28 @@ case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
   def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages): Result = {
 
-    val getFormFieldValue: FieldId => FormField = fieldId => {
-      val value = formFields.get(fieldId).toList.flatten.headOption.getOrElse("")
-      FormField(fieldId, value)
-    }
+    val hiddenSectionFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
 
-    def toFormField(fieldValue: List[FieldValue]) = {
-      fieldValue.flatMap { fv =>
-        fv.`type` match {
-          case Address => Address.fields(fv.id).map(getFormFieldValue)
-          case Date => Date.fields(fv.id).map(getFormFieldValue)
-          case Text => List(getFormFieldValue(fv.id))
-        }
-      }
-    }
+    val hiddenFormFields = toFormField(formFields, hiddenSectionFields).map(formField => uk.gov.hmrc.bforms.views.html.hidden_field(formField))
 
-    val hiddenSections = formTemplate.sections.filterNot(_ == section)
-
-    val hiddenFormFields = toFormField(hiddenSections.flatMap(_.fields)).map(formField => uk.gov.hmrc.bforms.views.html.hidden_field(formField)).toList
-
-    val pageFormFields = toFormField(section.fields).map(hf => hf.id -> hf).toMap
-
-    val okValues: FieldValue => Option[FormFieldValidationResult] = fieldValue =>
-      fieldValue.`type` match {
-        case Address | Date =>
-          val fieldOkData =
-            pageFormFields.filter {
-              case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
-            }.map {
-              case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
-            }
-          Some(ComponentField(fieldValue, fieldOkData))
-        case Text => pageFormFields.get(fieldValue.id).map { formField =>
-          FieldOk(fieldValue, formField.value)
-        }
-      }
-
+    val okF: FieldValue => Option[FormFieldValidationResult] = okValues(formFields, section.fields)
 
     val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect{case x: DateExpr => x}
 
     val snippets: List[Html] = {
       section.fields
         .map { fieldValue =>
-
           fieldValue.`type` match {
             case Date =>
-
               val prepopValues = extractDefaultDate(fieldValue.value)
-              uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue), prepopValues)
-            case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okValues)(fieldValue))
-            case Text => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okValues)(fieldValue))
+              uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues)
+            case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue))
+            case Text => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okF)(fieldValue))
           }
         }
     }
 
-    val fieldIdWithExpr: List[(FieldId, Expr)] = {
-      val fieldNamesValues: List[(FieldId, Option[Expr])] = formTemplate.sections.flatMap(_.fields.map(s => (s.id, s.value)))
-
-      fieldNamesValues.collect { case (f, Some(value)) => (f, value) }
-
-    }
-
-    def toJavascriptFn(fieldId: FieldId, expr: Expr): String = {
-
-      expr match {
-        case Add(FormCtx(amountA), FormCtx(amountB)) =>
-
-          val functionName = "add" + fieldId.value;
-
-          val eventListeners =
-            for {
-              elementId <- List(amountA, amountB)
-              event <- List("change", "keyup")
-            } yield
-              s"""document.getElementById("$elementId").addEventListener("$event",$functionName);"""
-
-          s"""|function $functionName() {
-              |  var el1 = document.getElementById("$amountA").value;
-              |  var el2 = document.getElementById("$amountB").value;
-              |  var result = (parseInt(el1) || 0) + (parseInt(el2) || 0);
-              |  return document.getElementById("${fieldId.value}").value = result;
-              |};
-              |${eventListeners.mkString("\n")}
-              |""".stripMargin
-        case otherwise => ""
-      }
-    }
-
-    val rea = fieldIdWithExpr.map((toJavascriptFn _).tupled)
-    val page = PageForRender(curr, hiddenFormFields, snippets, rea.mkString(";\n"))
+    val page = PageForRender(curr, hiddenFormFields, snippets, fieldJavascript(formTemplate.sections.flatMap(_.fields)))
     Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, page, formId))
   }
 }

@@ -1,0 +1,48 @@
+@import uk.gov.hmrc.bforms.models.{FormTemplate, SummaryForRender, FormId}
+@import uk.gov.hmrc.play.views.html.helpers._
+@import views.html.helper.CSRF
+
+@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
+
+@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend tax form", bodyClasses = None) {
+    <header class="page-header text">
+        <h1>@localisation(formTemplate.formName)</h1>
+    </header>
+    <p class="subsection">
+	<h2>About you</h2>
+    </p>
+
+
+
+    <form action="@uk.gov.hmrc.bforms.controllers.routes.SummaryGen.submit(formTemplate.formTypeId, formTemplate.version).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+
+        @{
+            CSRF.formField
+        }
+
+	@{
+	    summary.snippets
+	}
+
+	<input
+          type="hidden"
+	  name="formId"
+	  value="@{formId.value}" />
+
+	<br>
+
+	<p>
+	    <div></div>
+	</p>
+
+
+
+	<button name="save" value="Continue">Continue</button>
+
+	<button name="save" value="Exit">Exit</button>
+
+    </form>
+    <script type="text/javascript">
+      @Html(summary.javascripts)
+    </script>
+}

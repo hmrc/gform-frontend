@@ -24,7 +24,7 @@ object FormAction {
 
     (action, onLastPage) match {
       case ("Save" :: Nil, _) => Right(SaveAndExit)
-      case ("Continue" :: Nil, true) => Right(SaveAndSubmit)
+      case ("Continue" :: Nil, true) => Right(SaveAndSummary)
       case ("Continue" :: Nil, false) => Right(SaveAndContinue)
       case _ => Left("Cannot determite action")
     }
@@ -33,4 +33,4 @@ object FormAction {
 
 case object SaveAndContinue extends FormAction
 case object SaveAndExit extends FormAction
-case object SaveAndSubmit extends FormAction
+case object SaveAndSummary extends FormAction

@@ -27,6 +27,7 @@ import cats.syntax.either._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Result
+import uk.gov.hmrc.bforms.controllers.helpers.FormHelpers._
 import uk.gov.hmrc.bforms.models._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
@@ -61,6 +62,21 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
       }
   }
+
+  def formByIdPage(formTypeId: FormTypeId, version: String, formId: FormId, currPage : Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
+    implicit request =>
+
+      SaveService.getFormById(formTypeId, version, formId).map { formData =>
+
+        val lookup: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
+
+        val formTemplate = request.formTemplate
+
+        Page(currPage, formTemplate).renderPage(lookup, Some(formId), None)
+
+      }
+  }
+
 
   private def alwaysOk(fieldValue: FieldValue)(xs: Seq[String]): FormFieldValidationResult = {
     xs match {
@@ -130,18 +146,15 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
   def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
     implicit request =>
-      request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FieldId(a), b) }) match {
-        case None => Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check
-        case Some(data) =>
+      processResponseDataFromBody(request) { data =>
           val formTemplate = request.formTemplate
 
           val page = Page(currentPage, formTemplate)
           val nextPage = Page(page.next, formTemplate)
 
-          val actions: List[String] = data.get(FieldId("save")).toList.flatten
-          val formIdOpt: Option[FormId] = data.get(FieldId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
+        val formIdOpt: Option[FormId] = anyFormId(data)
 
-          val actionE: Either[String, FormAction] = FormAction.fromAction(actions, page)
+          val actionE: Either[String, FormAction] = FormAction.fromAction(getActions(data, FieldId("save")), page)
 
           val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
 
@@ -213,25 +226,18 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   val formData = FormData(formTypeId, version, "UTF-8", formFields)
                   submitOrUpdate(formIdOpt, formData, true).map(response => Ok(Json.toJson(response)))
 
-                case SaveAndSubmit =>
-                  saveAndProcessResponse { saveResult =>
+              case SaveAndSummary =>
+                saveAndProcessResponse { saveResult =>
 
-                    getFormId(formIdOpt, saveResult) match {
+                  getFormId(formIdOpt, saveResult) match {
 
-                      case Right(formId) =>
-                        SaveService.sendSubmission(formTypeId, formId).map { r =>
-                          Ok(
-                            Json.obj(
-                              "envelope" -> r.body,
-                              "formId" -> Json.toJson(saveResult)
-                            )
-                          )
-                        }
-                      case Left(error) =>
-                        Future.successful(BadRequest(error))
-                    }
+                    case Right(formId) =>
+                      Future.successful(Redirect(routes.SummaryGen.summaryById(formTypeId, version, formId)))
+                    case Left(error) =>
+                      Future.successful(BadRequest(error))
                   }
-              }
+                }
+            }
 
             case Left(error) =>
               Future.successful(BadRequest(error))

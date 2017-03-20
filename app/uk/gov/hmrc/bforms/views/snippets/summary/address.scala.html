@@ -1,0 +1,37 @@
+@import uk.gov.hmrc.bforms.models.FieldValue
+@import uk.gov.hmrc.bforms.models.FormFieldValidationResult
+@import uk.gov.hmrc.bforms.views.html.localisation
+@import uk.gov.hmrc.bforms.views._
+@import uk.gov.hmrc.play.views.html.helpers._
+
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+
+<h3>@localisation(fieldValue.label)</h3>
+
+<p>
+
+@if(validationResult.map(_.getCurrentValue("street1").isEmpty).contains(false)) {
+    <div>@validationResult.map(_.getCurrentValue("street1")).getOrElse("")</div>
+}
+
+@if(validationResult.map(_.getCurrentValue("street2").isEmpty).contains(false)) {
+    <div>@validationResult.map(_.getCurrentValue("street2")).getOrElse("")</div>
+}
+
+@if(validationResult.map(_.getCurrentValue("street3").isEmpty).contains(false)) {
+    <div>@validationResult.map(_.getCurrentValue("street3")).getOrElse("")</div>
+}
+
+@if(validationResult.map(_.getCurrentValue("town").isEmpty).contains(false)) {
+    <div>@validationResult.map(_.getCurrentValue("town")).getOrElse("")</div>
+}
+
+@if(validationResult.map(_.getCurrentValue("county").isEmpty).contains(false)) {
+    <div>@validationResult.map(_.getCurrentValue("county")).getOrElse("")</div>
+}
+
+@if(validationResult.map(_.getCurrentValue("postcode").isEmpty).contains(false)) {
+    <div>@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")</div>
+}
+
+    </P>
