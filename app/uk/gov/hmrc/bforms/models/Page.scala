@@ -42,7 +42,11 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
     def snippetsWithError(section: Section, f: FieldValue => Option[FormFieldValidationResult]): List[Html] = {
       section.fields
         .map { fieldValue =>
-          uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f(fieldValue))
+
+          fieldValue.`type` match {
+            case Some(Date) => uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f(fieldValue))
+            case _ => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f(fieldValue))
+          }
         }
     }
 
