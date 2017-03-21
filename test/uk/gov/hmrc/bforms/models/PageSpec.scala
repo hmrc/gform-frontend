@@ -18,13 +18,14 @@ package uk.gov.hmrc.bforms.models
 
 import org.scalatest._
 import play.twirl.api.Html
+import uk.gov.hmrc.bforms.models.{Text => TextComponent}
 
 class PageSpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", List(FieldValue(FieldId("iptRegNum"), Some(Text), "Insurance Premium Tax (IPT) number", None, None, None, None, None)))
-  val section1 = Section("About you", List(FieldValue(FieldId("firstName"), Some(Text), "First Name", None, None, None, None, None)))
-  val section2 = Section("Business details", List(FieldValue(FieldId("nameOfBusiness"), Some(Text), "Name of business", None, None, None, None, None)))
+  val section0 = Section("Your details", List(FieldValue(FieldId("iptRegNum"), Some(TextComponent), "Insurance Premium Tax (IPT) number", None, None, None, None, None)))
+  val section1 = Section("About you", List(FieldValue(FieldId("firstName"), Some(TextComponent), "First Name", None, None, None, None, None)))
+  val section2 = Section("Business details", List(FieldValue(FieldId("nameOfBusiness"), Some(TextComponent), "Name of business", None, None, None, None, None)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",

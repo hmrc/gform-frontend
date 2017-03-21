@@ -16,21 +16,8 @@
 
 package uk.gov.hmrc.bforms.models
 
-import julienrf.json.derived
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.Json
 import uk.gov.hmrc.bforms.core.Expr
-
-sealed trait ComponentType
-
-case object Text extends ComponentType
-
-case object Date extends ComponentType
-
-case object Address extends ComponentType
-
-object ComponentType {
-  implicit val format: OFormat[ComponentType] = derived.oformat
-}
 
 case class FieldValue(
                        id: FieldId,
