@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.bforms.models
 
-import play.api.libs.json.Json
+sealed trait ComponentData
 
-case class FormField(id: FieldId, value: String) {
-  def withSuffix(suffix: String): FormField = {
-    FormField(id.withSuffix(suffix), value)
-  }
-}
+case class TextData(value: Seq[String]) extends ComponentData
 
-object FormField {
-
-  implicit val format = Json.format[FormField]
-}
+case class AddressComponentData(
+  street1: Seq[String],
+  street2: Seq[String],
+  street3: Seq[String],
+  town: Seq[String],
+  county: Seq[String],
+  postcode: Seq[String]
+) extends ComponentData

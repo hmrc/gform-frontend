@@ -28,7 +28,7 @@ import play.api.mvc.{ Action, AnyContent, Request, Result }
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.bforms.FrontendAuthConnector
 import uk.gov.hmrc.bforms.core.{ Add, FormCtx, Expr }
-import uk.gov.hmrc.bforms.models.{ FieldId, FieldValue, FormData, FormField, FormId, FormTypeId, Page, SaveResult }
+import uk.gov.hmrc.bforms.models._
 import uk.gov.hmrc.play.frontend.auth._
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -36,53 +36,6 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.bforms.service.{SaveService, RetrieveService}
 import uk.gov.hmrc.play.http.HeaderCarrier
-
-sealed trait FormFieldValidationResult {
-  def isOk = this match {
-    case FieldOk(_, _) => true
-    case _ => false
-  }
-
-  def getCurrentValue = this match {
-    case FieldOk(_, cv) => cv
-    case _ => ""
-  }
-
-  def toFormField: Either[FieldId, FormField] = this match {
-    case FieldOk(fieldValue, cv) => Right(FormField(fieldValue.id, cv))
-    case _ => Left(FieldId(""))
-  }
-
-  def toFormFieldTolerant: FormField = this match {
-    case FieldOk(fieldValue, cv) => FormField(fieldValue.id, cv)
-    case RequiredField(fieldValue) => FormField(fieldValue.id, "")
-    case WrongFormat(fieldValue) => FormField(fieldValue.id, "")
-  }
-}
-
-case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
-case class RequiredField(fieldValue: FieldValue) extends FormFieldValidationResult
-case class WrongFormat(fieldValue: FieldValue) extends FormFieldValidationResult
-
-
-sealed trait FormAction
-
-object FormAction {
-  def fromAction(action: List[String], page: Page): Either[String, FormAction] = {
-    val onLastPage = page.curr == page.next
-
-    (action, onLastPage) match {
-      case ("Save" :: Nil, _) => Right(SaveAndExit)
-      case ("Continue" :: Nil, true) => Right(SaveAndSubmit)
-      case ("Continue" :: Nil, false) => Right(SaveAndContinue)
-      case _ => Left("Cannot determite action")
-    }
-  }
-}
-
-case object SaveAndContinue extends FormAction
-case object SaveAndExit extends FormAction
-case object SaveAndSubmit extends FormAction
 
 @Singleton
 class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(implicit ec: ExecutionContext)
@@ -93,7 +46,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
       val formTemplate = request.formTemplate
 
-      Page(0, formTemplate).renderPage(Map.empty[FieldId, Seq[String]], None)
+      Page(0, formTemplate).renderPage(Map.empty[FieldId, Seq[String]], None, None)
 
     }
 
@@ -105,16 +58,45 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
       val formTemplate = request.formTemplate
 
-      Page(0, formTemplate).renderPage(lookup, Some(formId))
+      Page(0, formTemplate).renderPage(lookup, Some(formId), None)
 
     }
   }
 
-  def validateFieldValue(fieldValue: FieldValue, formValue: Seq[String]): FormFieldValidationResult = {
-    formValue.filterNot(_.isEmpty()) match {
+  private def alwaysOk(fieldValue: FieldValue)(xs: Seq[String]): FormFieldValidationResult = {
+    xs match {
+      case Nil => FieldOk(fieldValue, "")
+      case value :: rest => FieldOk(fieldValue, value) // we don't support multiple values yet
+    }
+  }
+
+  private def validateRequired(fieldValue: FieldValue)(xs: Seq[String]): FormFieldValidationResult = {
+    xs.filterNot(_.isEmpty()) match {
       case Nil => RequiredField(fieldValue)
       case value :: Nil => FieldOk(fieldValue, value)
       case value :: rest => FieldOk(fieldValue, value) // we don't support multiple values yet
+    }
+  }
+
+  def validateFieldValue(fieldValue: FieldValue, formValue: ComponentData): FormFieldValidationResult = {
+    formValue match {
+      case AddressComponentData(street1, street2, street3, town, county, postcode) =>
+        val validateRF = validateRequired(fieldValue) _
+        AddressField(
+          fieldValue,
+          Map(
+            "street1" -> validateRF(street1),
+            "street2" -> alwaysOk(fieldValue)(street2),
+            "street3" -> alwaysOk(fieldValue)(street3),
+            "town" -> validateRF(town),
+            "county" -> validateRF(county),
+            "postcode" -> validateRF(postcode)
+          )
+        )
+      case TextData(formValue) => fieldValue.mandatory match {
+        case Some("true") => validateRequired(fieldValue)(formValue)
+        case _ => alwaysOk(fieldValue)(formValue)
+      }
     }
   }
 
@@ -134,7 +116,24 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
         val actionE: Either[String, FormAction] = FormAction.fromAction(actions, page)
 
-        val validate: Map[FieldValue, Seq[String]] = page.section.fields.map(fv => fv -> data.get(fv.id).toList.flatten).toMap
+        val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
+
+        val validate: Map[FieldValue, ComponentData] = page.section.fields.map { fv =>
+          fv.`type` match {
+            case Some(Address) =>
+              val getData = dataGetter(fv)
+              val acd = AddressComponentData(
+                getData("street1"),
+                getData("street2"),
+                getData("street3"),
+                getData("town") ,
+                getData("county") ,
+                getData("postcode")
+              )
+              fv -> acd
+            case None => fv -> TextData(data.get(fv.id).toList.flatten)
+          }
+        }.toMap
 
         val validationResults: Map[FieldValue, FormFieldValidationResult] = validate.map {
           case (fieldValue, values) =>
@@ -142,9 +141,10 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
         }
 
         def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
-          val canSave: Either[FieldId, List[FormField]] = validationResults.map {
+          val canSave: Either[Unit, List[FormField]] = validationResults.map {
             case (_, validationResult) => validationResult.toFormField
-          }.toList.sequenceU
+          }.toList.sequenceU.map(_.flatten)
+
           canSave match {
             case Right(formFields) =>
               val formData = FormData(formTypeId, version, "UTF-8", formFields)
@@ -152,10 +152,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
               submitOrUpdate(formIdOpt, formData, false).flatMap(continuation)
 
             case Left(_) =>
-              val result = page.renderPage(data, formIdOpt)
-              Future.successful(result)
-              //val pageWithErrors = page.copy(snippets = Page.snippetsWithError(page.section, validationResults.get))
-              //Future.successful(Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, pageWithErrors, formIdOpt, "//TODO")))
+              Future.successful(page.renderPage(data, formIdOpt, Some(validationResults.get)))
           }
         }
 
@@ -167,7 +164,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
                   val result =
                     getFormId(formIdOpt, saveResult) match {
-                      case Right(formId) => nextPage.renderPage(data, Some(formId))
+                      case Right(formId) => nextPage.renderPage(data, Some(formId), None)
                       case Left(error) => BadRequest(error)
                     }
 

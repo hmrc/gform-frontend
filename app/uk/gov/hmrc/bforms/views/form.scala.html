@@ -8,11 +8,6 @@
     <header class="page-header text">
         <h1>@localisation(formTemplate.formName)</h1>
     </header>
-    <p class="subsection">
-	<h2>About you</h2>
-    </p>
-
-
 
     <form action="@uk.gov.hmrc.bforms.controllers.routes.FormGen.save(formTemplate.formTypeId, formTemplate.version, page.curr).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
