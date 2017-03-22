@@ -18,7 +18,11 @@ package uk.gov.hmrc.bforms.models
 
 import play.api.libs.json.Json
 
-case class FormField(id: FieldId, value: String)
+case class FormField(id: FieldId, value: String) {
+  def withSuffix(suffix: String): FormField = {
+    FormField(id.withSuffix(suffix), value)
+  }
+}
 
 object FormField {
 

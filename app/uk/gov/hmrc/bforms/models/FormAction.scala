@@ -16,20 +16,21 @@
 
 package uk.gov.hmrc.bforms.models
 
-import play.api.libs.json.Json
+sealed trait FormAction
 
-import uk.gov.hmrc.bforms.core.Expr
+object FormAction {
+  def fromAction(action: List[String], page: Page): Either[String, FormAction] = {
+    val onLastPage = page.curr == page.next
 
-case class FieldValue(
-  id: FieldId,
-  `type`: Option[String],
-  label: String,
-  value: Option[Expr],
-  format: Option[String],
-  helpText: Option[String],
-  readOnly: Option[String],
-  mandatory: Option[String])
-
-object FieldValue{
-  implicit val format = Json.format[FieldValue]
+    (action, onLastPage) match {
+      case ("Save" :: Nil, _) => Right(SaveAndExit)
+      case ("Continue" :: Nil, true) => Right(SaveAndSubmit)
+      case ("Continue" :: Nil, false) => Right(SaveAndContinue)
+      case _ => Left("Cannot determite action")
+    }
+  }
 }
+
+case object SaveAndContinue extends FormAction
+case object SaveAndExit extends FormAction
+case object SaveAndSubmit extends FormAction

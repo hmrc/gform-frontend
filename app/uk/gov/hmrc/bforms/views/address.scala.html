@@ -1,0 +1,43 @@
+@import uk.gov.hmrc.bforms.models.FieldValue
+@import uk.gov.hmrc.bforms.models.FormFieldValidationResult
+@import uk.gov.hmrc.play.views.html.helpers._
+
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+
+<h3>@localisation(fieldValue.label)</h3>
+<p>@{fieldValue.helpText}</p>
+Street <input type="text"
+	      id="@{fieldValue.id}.street1"
+	      name="@{fieldValue.id}.street1"
+	      value="@validationResult.map(_.getCurrentValue("street1")).getOrElse("")"
+	      class="form-control form-control--block" >
+
+<input type="text"
+       id="@{fieldValue.id}.street2"
+       name="@{fieldValue.id}.street2"
+       value="@validationResult.map(_.getCurrentValue("street2")).getOrElse("")"
+       class="form-control form-control--block">
+
+<input type="text"
+       id="@{fieldValue.id}.street3"
+       name="@{fieldValue.id}.street3"
+       value="@validationResult.map(_.getCurrentValue("street3")).getOrElse("")"
+       class="form-control form-control--block">
+
+Town <input type="text"
+	    id="@{fieldValue.id}.town"
+	    name="@{fieldValue.id}.town"
+	    value="@validationResult.map(_.getCurrentValue("town")).getOrElse("")"
+	    class="form-control form-control--block">
+
+County <input type="text"
+	      id="@{fieldValue.id}.county"
+	      name="@{fieldValue.id}.county"
+	      value="@validationResult.map(_.getCurrentValue("county")).getOrElse("")"
+	      class="form-control form-control--block">
+
+Postcode <input type="text"
+		id="@{fieldValue.id}.postcode"
+		name="@{fieldValue.id}.postcode"
+		value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")"
+		class="form-control form-control--block">

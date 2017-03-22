@@ -16,20 +16,15 @@
 
 package uk.gov.hmrc.bforms.models
 
-import play.api.libs.json.Json
+sealed trait ComponentData
 
-import uk.gov.hmrc.bforms.core.Expr
+case class TextData(value: Seq[String]) extends ComponentData
 
-case class FieldValue(
-  id: FieldId,
-  `type`: Option[String],
-  label: String,
-  value: Option[Expr],
-  format: Option[String],
-  helpText: Option[String],
-  readOnly: Option[String],
-  mandatory: Option[String])
-
-object FieldValue{
-  implicit val format = Json.format[FieldValue]
-}
+case class AddressComponentData(
+  street1: Seq[String],
+  street2: Seq[String],
+  street3: Seq[String],
+  town: Seq[String],
+  county: Seq[String],
+  postcode: Seq[String]
+) extends ComponentData
