@@ -16,15 +16,21 @@
 
 package uk.gov.hmrc.bforms.models
 
-import play.api.libs.json.Json
+sealed trait FormAction
 
-case class FormField(id: FieldId, value: String) {
-  def withSuffix(suffix: String): FormField = {
-    FormField(id.withSuffix(suffix), value)
+object FormAction {
+  def fromAction(action: List[String], page: Page): Either[String, FormAction] = {
+    val onLastPage = page.curr == page.next
+
+    (action, onLastPage) match {
+      case ("Save" :: Nil, _) => Right(SaveAndExit)
+      case ("Continue" :: Nil, true) => Right(SaveAndSubmit)
+      case ("Continue" :: Nil, false) => Right(SaveAndContinue)
+      case _ => Left("Cannot determite action")
+    }
   }
 }
 
-object FormField {
-
-  implicit val format = Json.format[FormField]
-}
+case object SaveAndContinue extends FormAction
+case object SaveAndExit extends FormAction
+case object SaveAndSubmit extends FormAction
