@@ -21,10 +21,17 @@ sealed trait ComponentData
 case class TextData(value: Seq[String]) extends ComponentData
 
 case class AddressComponentData(
-  street1: Seq[String],
-  street2: Seq[String],
-  street3: Seq[String],
-  town: Seq[String],
-  county: Seq[String],
-  postcode: Seq[String]
-) extends ComponentData
+                                 street1: Seq[String],
+                                 street2: Seq[String],
+                                 street3: Seq[String],
+                                 town: Seq[String],
+                                 county: Seq[String],
+                                 postcode: Seq[String]
+                               ) extends ComponentData
+
+case class DateComponentData(
+                              day: Seq[String],
+                              month: Seq[String],
+                              year: Seq[String]
+                            ) extends ComponentData
+

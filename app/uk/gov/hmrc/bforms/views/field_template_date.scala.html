@@ -21,27 +21,27 @@
         <tr>
             <td>
                 <input type="text"
-                       name="@fieldValue.id"
-                       id="@fieldValue.id"
-                       value="@validationResult.map(_.getCurrentValue).getOrElse(fieldValue.value)"
+                       name="@{fieldValue.id}.day"
+                       id="@{fieldValue.id}.day"
+                       value="@validationResult.map(_.getCurrentValue("day")).getOrElse("")"
                        class="form-control form-control--block"
                        required>
             </td>
 
             <td>
                 <input type="text"
-                       name="@fieldValue.id"
-                       id="@fieldValue.id"
-                       value="@validationResult.map(_.getCurrentValue).getOrElse(fieldValue.value)"
+                       name="@{fieldValue.id}.month"
+                       id="@{fieldValue.id}.month"
+                       value="@validationResult.map(_.getCurrentValue("month")).getOrElse("")"
                        class="form-control form-control--block"
                        required>
             </td>
 
             <td>
                 <input type="text"
-                       name="@fieldValue.id"
-                       id="@fieldValue.id"
-                       value="@validationResult.map(_.getCurrentValue).getOrElse(fieldValue.value)"
+                       name="@{fieldValue.id}.year"
+                       id="@{fieldValue.id}.year"
+                       value="@validationResult.map(_.getCurrentValue("year")).getOrElse("")"
                        class="form-control form-control--block"
                        required>
             </td>

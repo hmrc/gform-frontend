@@ -33,14 +33,14 @@ sealed trait FormFieldValidationResult {
   }
 
   def getCurrentValue(key: String): String = this match {
-    case AddressField(_, data) => data.get(key).map(_.getCurrentValue).getOrElse("")
+    case ComponentField(_, data) => data.get(key).map(_.getCurrentValue).getOrElse("")
     case _ => ""
   }
 
   def toFormField: Either[Unit, List[FormField]] = this match {
     case FieldOk(fieldValue, cv) => Right(List(FormField(fieldValue.id, cv)))
-    case AddressField(fieldValue, data) =>
-      data.map { case (suffix, value) => value.toFormField.map(_.map(_.withSuffix(suffix)))}.toList.sequenceU.map(_.flatten)
+    case ComponentField(fieldValue, data) =>
+      data.map { case (suffix, value) => value.toFormField.map(_.map(_.withSuffix(suffix))) }.toList.sequenceU.map(_.flatten)
     case _ => Left(())
   }
 
@@ -48,10 +48,14 @@ sealed trait FormFieldValidationResult {
     case FieldOk(fieldValue, cv) => FormField(fieldValue.id, cv)
     case RequiredField(fieldValue) => FormField(fieldValue.id, "")
     case WrongFormat(fieldValue) => FormField(fieldValue.id, "")
+    case ComponentField(fieldValue, _) => FormField(fieldValue.id, "")
   }
 }
 
 case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
+
 case class RequiredField(fieldValue: FieldValue) extends FormFieldValidationResult
+
 case class WrongFormat(fieldValue: FieldValue) extends FormFieldValidationResult
-case class AddressField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
+
+case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
