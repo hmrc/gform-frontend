@@ -9,6 +9,8 @@
         <h1>@localisation(formTemplate.formName)</h1>
     </header>
 
+	  <h2 class="h2-heading">About you</h2>
+
     <form action="@uk.gov.hmrc.bforms.controllers.routes.FormGen.save(formTemplate.formTypeId, formTemplate.version, page.curr).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
