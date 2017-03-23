@@ -19,15 +19,13 @@ package uk.gov.hmrc.bforms.models
 import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
-import uk.gov.hmrc.bforms.controllers.FormFieldValidationResult
-import uk.gov.hmrc.bforms.controllers.FieldOk
 import play.twirl.api.Html
 import uk.gov.hmrc.bforms.core.{Add, Expr, FormCtx}
 
 case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
-  def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId])(implicit request: Request[_], messages: Messages): Result = {
+  def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages): Result = {
     def toFormField(fieldValue: List[FieldValue]) = {
       fieldValue.map(fv => fv -> formFields.get(fv.id).toList.flatten)
         .map { case (fv, v) => FormField(fv.id, v.headOption.getOrElse("")) }
@@ -39,23 +37,21 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
 
     val pageFormFields = toFormField(section.fields).map(hf => hf.id -> hf).toMap
 
-    def snippetsWithError(section: Section, f: FieldValue => Option[FormFieldValidationResult]): List[Html] = {
+    val okValues: FieldValue => Option[FormFieldValidationResult] = fieldValue =>
+      pageFormFields
+        .get(fieldValue.id)
+        .map(formField => FieldOk(fieldValue, formField.value))
+
+    val snippets: List[Html] = {
       section.fields
         .map { fieldValue =>
 
           fieldValue.`type` match {
-            case Some(Date) => uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f(fieldValue))
-            case _ => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f(fieldValue))
+            case Some(Date) => uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue))
+            case Some(Address) => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okValues)(fieldValue))
+            case _ => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okValues)(fieldValue))
           }
         }
-    }
-
-    val snippets: List[Html] = {
-      snippetsWithError(section, fieldValue =>
-        pageFormFields
-          .get(fieldValue.id)
-          .map(formField => FieldOk(fieldValue, formField.value))
-      )
     }
 
     val fieldIdWithExpr: List[(FieldId, Expr)] = {
