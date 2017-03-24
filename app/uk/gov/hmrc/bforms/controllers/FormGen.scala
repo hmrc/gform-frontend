@@ -166,9 +166,10 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
             canSave match {
               case Right(formFields) =>
                 val formData = FormData(formTypeId, version, "UTF-8", formFields)
-
-                submitOrUpdate(formIdOpt, formData, false).flatMap(continuation)
-
+                submitOrUpdate(formIdOpt, formData, false).flatMap {
+                  case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
+                  case result => continuation(result)
+                }
               case Left(_) =>
                 Future.successful(page.renderPage(data, formIdOpt, Some(validationResults.get)))
             }
