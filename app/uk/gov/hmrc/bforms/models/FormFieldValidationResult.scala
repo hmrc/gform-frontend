@@ -22,8 +22,9 @@ import cats.syntax.traverse._
 import cats.syntax.either._
 
 sealed trait FormFieldValidationResult {
-  def isOk = this match {
+  def isOk: Boolean = this match {
     case FieldOk(_, _) => true
+    case ComponentField(_, data) => data.values.forall(_.isOk)
     case _ => false
   }
 
