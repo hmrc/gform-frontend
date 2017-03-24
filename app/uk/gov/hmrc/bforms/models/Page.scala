@@ -26,9 +26,19 @@ case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: 
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
   def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages): Result = {
+
+    val getFormFieldValue: FieldId => FormField = fieldId => {
+      val value = formFields.get(fieldId).toList.flatten.headOption.getOrElse("")
+      FormField(fieldId, value)
+    }
+
     def toFormField(fieldValue: List[FieldValue]) = {
-      fieldValue.map(fv => fv -> formFields.get(fv.id).toList.flatten)
-        .map { case (fv, v) => FormField(fv.id, v.headOption.getOrElse("")) }
+      fieldValue.flatMap { fv =>
+        fv.`type` match {
+          case Some(Address) => Address.fields(fv.id).map(getFormFieldValue)
+          case _ => List(getFormFieldValue(fv.id))
+        }
+      }
     }
 
     val hiddenSections = formTemplate.sections.filterNot(_ == section)
@@ -38,9 +48,19 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
     val pageFormFields = toFormField(section.fields).map(hf => hf.id -> hf).toMap
 
     val okValues: FieldValue => Option[FormFieldValidationResult] = fieldValue =>
-      pageFormFields
-        .get(fieldValue.id)
-        .map(formField => FieldOk(fieldValue, formField.value))
+      fieldValue.`type` match {
+        case Some(Address) =>
+          val fieldOkData =
+            pageFormFields.filter {
+              case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
+            }.map {
+              case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
+            }
+          Some(ComponentField(fieldValue, fieldOkData))
+        case _ => pageFormFields.get(fieldValue.id).map { formField =>
+          FieldOk(fieldValue, formField.value)
+        }
+      }
 
     val snippets: List[Html] = {
       section.fields

@@ -28,7 +28,9 @@ case object Text extends ComponentType
 
 case object Date extends ComponentType
 
-case object Address extends ComponentType
+case object Address extends ComponentType {
+  val fields = (id: FieldId) => List("street1", "street2", "street3", "town", "county", "postcode").map(id.withSuffix)
+}
 
 object ComponentType {
   implicit val format: OFormat[ComponentType] = derived.oformat
