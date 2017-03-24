@@ -36,6 +36,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
       fieldValue.flatMap { fv =>
         fv.`type` match {
           case Some(Address) => Address.fields(fv.id).map(getFormFieldValue)
+          case Some(Date) => Date.fields(fv.id).map(getFormFieldValue)
           case _ => List(getFormFieldValue(fv.id))
         }
       }
@@ -49,7 +50,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
 
     val okValues: FieldValue => Option[FormFieldValidationResult] = fieldValue =>
       fieldValue.`type` match {
-        case Some(Address) =>
+        case Some(Address) | Some(Date) =>
           val fieldOkData =
             pageFormFields.filter {
               case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue

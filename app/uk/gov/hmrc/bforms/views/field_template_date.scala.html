@@ -4,49 +4,50 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
-<div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-  <fieldset>
-    <legend class="h3-heading">@{fieldValue.label}</legend>
+<div class="form-field-group @if(validationResult.map(_.isOk).contains(true)) { form-field-group--error }">
+    <fieldset>
+        <legend class="h3-heading">@{fieldValue.label}</legend>
 
-    @if(fieldValue.helpText) {
-    <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-    }
+        @if(fieldValue.helpText) {
+        <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+        }
 
-    @*@errorInline(fieldValue.id.value, "Please enter required data", Seq(""))*@
+        @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
 
-    <div class="form-date">
-      <div class="form-group">
-        <label class="form-label" for="@{fieldValue.id}.day">Day</label>
 
-        <input type="text"
-               name="@{fieldValue.id}.day"
-               id="@{fieldValue.id}.day"
-               value="@validationResult.map(_.getCurrentValue("day")).getOrElse("")"
-               class="form-control form-control--block"
-               required>
-      </div>
+        <div class="form-date">
+            <div class="form-group">
+                <label class="form-label" for="@{fieldValue.id}.day">Day</label>
 
-      <div class="form-group">
-        <label class="form-label" for="@{fieldValue.id}.month">Month</label>
+                <input type="text"
+                       name="@{fieldValue.id}.day"
+                       id="@{fieldValue.id}.day"
+                       value="@validationResult.map(_.getCurrentValue(" day")).getOrElse("")"
+                class="form-control form-control--block"
+                required >
+            </div>
 
-        <input type="text"
-               name="@{fieldValue.id}.month"
-               id="@{fieldValue.id}.month"
-               value="@validationResult.map(_.getCurrentValue("month")).getOrElse("")"
-               class="form-control form-control--block"
-               required>
-      </div>
+            <div class="form-group">
+                <label class="form-label" for="@{fieldValue.id}.month">Month</label>
 
-      <div class="form-group form-group-year">
-        <label class="form-label" for="@{fieldValue.id}.year">Year</label>
+                <input type="text"
+                       name="@{fieldValue.id}.month"
+                       id="@{fieldValue.id}.month"
+                       value="@validationResult.map(_.getCurrentValue(" month")).getOrElse("")"
+                class= "form-control form-control--block"
+                required>
+            </div>
 
-        <input type="text"
-               name="@{fieldValue.id}.year"
-               id="@{fieldValue.id}.year"
-               value="@validationResult.map(_.getCurrentValue("year")).getOrElse("")"
-               class="form-control form-control--block form-control-error"
-               required>
-      </div>
-    </div>
-  </fieldset>
+            <div class="form-group form-group-year">
+                <label class="form-label" for="@{fieldValue.id}.year">Year</label>
+
+                <input type="text"
+                       name="@{fieldValue.id}.year"
+                       id="@{fieldValue.id}.year"
+                       value="@validationResult.map(_.getCurrentValue(" year")).getOrElse("")"
+                class="form-control form-control--block"
+                required>
+            </div>
+        </div>
+    </fieldset>
 </div>
