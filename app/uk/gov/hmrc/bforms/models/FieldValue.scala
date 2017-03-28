@@ -21,13 +21,13 @@ import uk.gov.hmrc.bforms.core.Expr
 
 case class FieldValue(
                        id: FieldId,
-                       `type`: Option[ComponentType],
+                       `type`: ComponentType,
                        label: String,
                        value: Option[Expr],
                        format: Option[String],
                        helpText: Option[String],
                        readOnly: Option[String],
-                       mandatory: Option[String])
+                       mandatory: Boolean)
 
 object FieldValue {
   implicit val format = Json.format[FieldValue]

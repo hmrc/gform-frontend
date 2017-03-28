@@ -102,8 +102,8 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
           )
         )
       case TextData(formValue) => fieldValue.mandatory match {
-        case Some("true") => validateRequired(fieldValue)(formValue)
-        case _ => alwaysOk(fieldValue)(formValue)
+        case true => validateRequired(fieldValue)(formValue)
+        case false => alwaysOk(fieldValue)(formValue)
       }
     }
   }
@@ -129,7 +129,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
           val validate: Map[FieldValue, ComponentData] = page.section.fields.map { fv =>
             fv.`type` match {
-              case Some(Address) =>
+              case Address =>
                 val getData = dataGetter(fv)
                 val acd = AddressComponentData(
                   getData("street1"),
@@ -140,7 +140,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   getData("postcode")
                 )
                 fv -> acd
-              case Some(Date) =>
+              case Date =>
                 val getData = dataGetter(fv)
 
                 val acd = DateComponentData(
@@ -149,7 +149,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   getData("year")
                 )
                 fv -> acd
-              case _ => fv -> TextData(data.get(fv.id).toList.flatten)
+              case Text => fv -> TextData(data.get(fv.id).toList.flatten)
             }
           }.toMap
 

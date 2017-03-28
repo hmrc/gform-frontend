@@ -35,9 +35,9 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
     def toFormField(fieldValue: List[FieldValue]) = {
       fieldValue.flatMap { fv =>
         fv.`type` match {
-          case Some(Address) => Address.fields(fv.id).map(getFormFieldValue)
-          case Some(Date) => Date.fields(fv.id).map(getFormFieldValue)
-          case _ => List(getFormFieldValue(fv.id))
+          case Address => Address.fields(fv.id).map(getFormFieldValue)
+          case Date => Date.fields(fv.id).map(getFormFieldValue)
+          case Text => List(getFormFieldValue(fv.id))
         }
       }
     }
@@ -50,7 +50,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
 
     val okValues: FieldValue => Option[FormFieldValidationResult] = fieldValue =>
       fieldValue.`type` match {
-        case Some(Address) | Some(Date) =>
+        case Address | Date =>
           val fieldOkData =
             pageFormFields.filter {
               case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
@@ -58,7 +58,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
               case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
             }
           Some(ComponentField(fieldValue, fieldOkData))
-        case _ => pageFormFields.get(fieldValue.id).map { formField =>
+        case Text => pageFormFields.get(fieldValue.id).map { formField =>
           FieldOk(fieldValue, formField.value)
         }
       }
@@ -68,9 +68,9 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
         .map { fieldValue =>
 
           fieldValue.`type` match {
-            case Some(Date) => uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue))
-            case Some(Address) => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okValues)(fieldValue))
-            case _ => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okValues)(fieldValue))
+            case Date => uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue))
+            case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okValues)(fieldValue))
+            case Text => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okValues)(fieldValue))
           }
         }
     }
