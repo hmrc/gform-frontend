@@ -28,13 +28,19 @@ sealed trait FormFieldValidationResult {
     case _ => false
   }
 
-  def getCurrentValue: String = this match {
-    case FieldOk(_, cv) => cv
-    case _ => ""
+  def getCurrentValue: Option[String] = this match {
+    case FieldOk(_, "") => None
+    case FieldOk(_, cv) => Some(cv)
+    case _ => None
+  }
+
+  def getOptionalCurrentValue(key: String): Option[String] = this match{
+    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue)
+    case _ => None
   }
 
   def getCurrentValue(key: String): String = this match {
-    case ComponentField(_, data) => data.get(key).map(_.getCurrentValue).getOrElse("")
+    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue).getOrElse("")
     case _ => ""
   }
 
@@ -53,10 +59,12 @@ sealed trait FormFieldValidationResult {
   }
 }
 
+sealed abstract class DateError
+final case class DayViolation(id: FieldId, message: String) extends DateError
+final case class BeforeDateError(id: FieldId, message: String) extends DateError
+final case class AfterDateError(id: FieldId, message: String) extends DateError
+
 case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
-
 case class RequiredField(fieldValue: FieldValue) extends FormFieldValidationResult
-
 case class WrongFormat(fieldValue: FieldValue) extends FormFieldValidationResult
-
 case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult

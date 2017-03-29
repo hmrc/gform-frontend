@@ -1,10 +1,11 @@
 @import uk.gov.hmrc.bforms.models.FieldValue
 @import uk.gov.hmrc.bforms.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.bforms.core.DateExpr
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr])
 
-<div class="form-field-group @if(validationResult.map(_.isOk).contains(true)) { form-field-group--error }">
+<div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
     <fieldset>
         <legend class="h3-heading">@{fieldValue.label}</legend>
 
@@ -22,9 +23,10 @@
                 <input type="text"
                        name="@{fieldValue.id}.day"
                        id="@{fieldValue.id}.day"
-                       value="@validationResult.map(_.getCurrentValue(" day")).getOrElse("")"
+                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("day")).orElse(prepop.map(_.day)).getOrElse("")"
                 class="form-control form-control--block"
-                required >
+                required>
+
             </div>
 
             <div class="form-group">
@@ -33,7 +35,8 @@
                 <input type="text"
                        name="@{fieldValue.id}.month"
                        id="@{fieldValue.id}.month"
-                       value="@validationResult.map(_.getCurrentValue(" month")).getOrElse("")"
+                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("month")).orElse(prepop.map(_.month)).getOrElse("")"
+
                 class= "form-control form-control--block"
                 required>
             </div>
@@ -44,7 +47,8 @@
                 <input type="text"
                        name="@{fieldValue.id}.year"
                        id="@{fieldValue.id}.year"
-                       value="@validationResult.map(_.getCurrentValue(" year")).getOrElse("")"
+                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("year")).orElse(prepop.map(_.year)).getOrElse("")"
+
                 class="form-control form-control--block"
                 required>
             </div>
