@@ -27,6 +27,7 @@ final case class FormCtx(value: String) extends Expr
 final case class AuthCtx(value: String) extends Expr
 final case class EeittCtx(value: String) extends Expr
 final case class Constant(value: String) extends Expr
+final case class DateExpr(day: String, month: String, year: String) extends Expr
 
 object Expr {
   implicit val format: OFormat[Expr] = derived.oformat

@@ -2,9 +2,9 @@
 @import uk.gov.hmrc.bforms.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[Tuple3[String, String, String]])
 
-<div class="form-field-group @if(validationResult.map(_.isOk).contains(true)) { form-field-group--error }">
+<div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
     <fieldset>
         <legend class="h3-heading">@{fieldValue.label}</legend>
 
@@ -22,9 +22,15 @@
                 <input type="text"
                        name="@{fieldValue.id}.day"
                        id="@{fieldValue.id}.day"
-                       value="@validationResult.map(_.getCurrentValue(" day")).getOrElse("")"
+                       @if(validationResult.map(_.getCurrentValue("day")).getOrElse("")==""){
+                            value = "@prepop.getOrElse(("","",""))._1"
+                        }else{
+                            value="@validationResult.map(_.getCurrentValue("day")).getOrElse("")"
+                        }
+
                 class="form-control form-control--block"
-                required >
+                required>
+
             </div>
 
             <div class="form-group">
@@ -33,7 +39,11 @@
                 <input type="text"
                        name="@{fieldValue.id}.month"
                        id="@{fieldValue.id}.month"
-                       value="@validationResult.map(_.getCurrentValue(" month")).getOrElse("")"
+                       @if(validationResult.map(_.getCurrentValue("month")).getOrElse("")==""){
+                             value = "@prepop.getOrElse(("","",""))._2"
+                        }else{
+                            value="@validationResult.map(_.getCurrentValue("month")).getOrElse("")"
+                        }
                 class= "form-control form-control--block"
                 required>
             </div>
@@ -44,7 +54,11 @@
                 <input type="text"
                        name="@{fieldValue.id}.year"
                        id="@{fieldValue.id}.year"
-                       value="@validationResult.map(_.getCurrentValue(" year")).getOrElse("")"
+                       @if(validationResult.map(_.getCurrentValue("year")).getOrElse("")==""){
+                            value = "@prepop.getOrElse(("","",""))._3"
+                        }else{
+                            value="@validationResult.map(_.getCurrentValue("year")).getOrElse("")"
+                        }
                 class="form-control form-control--block"
                 required>
             </div>

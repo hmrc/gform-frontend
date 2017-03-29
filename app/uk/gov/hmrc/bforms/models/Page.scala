@@ -20,7 +20,8 @@ import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
-import uk.gov.hmrc.bforms.core.{Add, Expr, FormCtx}
+import uk.gov.hmrc.bforms.core._
+
 
 case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
@@ -63,12 +64,20 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
         }
       }
 
+
+    val extractDefaultDate: Option[Expr] => Option[(String, String, String)] = {
+      case Some(dateExpr: DateExpr) => Some((dateExpr.day, dateExpr.month, dateExpr.year))
+      case None => None
+    }
+
     val snippets: List[Html] = {
       section.fields
         .map { fieldValue =>
 
           fieldValue.`type` match {
-            case Some(Date) => uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue))
+            case Some(Date) =>
+              val prepop = extractDefaultDate(fieldValue.value)
+              uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue), prepop)
             case Some(Address) => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okValues)(fieldValue))
             case _ => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okValues)(fieldValue))
           }

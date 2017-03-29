@@ -17,7 +17,6 @@
 package uk.gov.hmrc.bforms.controllers
 
 import javax.inject.{Inject, Singleton}
-
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.traverse._
