@@ -23,13 +23,7 @@
                 <input type="text"
                        name="@{fieldValue.id}.day"
                        id="@{fieldValue.id}.day"
-
-                       @if(validationResult.map(_.getCurrentValue("day")).getOrElse("")==""){
-                            value = "@prepop.getOrElse(DateExpr("","","")).day"
-                        }else{
-                            value="@validationResult.map(_.getCurrentValue("day")).getOrElse("")"
-                        }
-
+                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("day")).orElse(prepop.map(_.day)).getOrElse("")"
                 class="form-control form-control--block"
                 required>
 
@@ -41,12 +35,7 @@
                 <input type="text"
                        name="@{fieldValue.id}.month"
                        id="@{fieldValue.id}.month"
-
-                       @if(validationResult.map(_.getCurrentValue("month")).getOrElse("")==""){
-                             value = "@prepop.getOrElse(DateExpr("","","")).month"
-                        }else{
-                            value="@validationResult.map(_.getCurrentValue("month")).getOrElse("")"
-                        }
+                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("month")).orElse(prepop.map(_.month)).getOrElse("")"
 
                 class= "form-control form-control--block"
                 required>
@@ -58,12 +47,7 @@
                 <input type="text"
                        name="@{fieldValue.id}.year"
                        id="@{fieldValue.id}.year"
-
-                       @if(validationResult.map(_.getCurrentValue("year")).getOrElse("")==""){
-                            value = "@prepop.getOrElse(DateExpr("","","")).year"
-                        }else{
-                            value="@validationResult.map(_.getCurrentValue("year")).getOrElse("")"
-                        }
+                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("year")).orElse(prepop.map(_.year)).getOrElse("")"
 
                 class="form-control form-control--block"
                 required>

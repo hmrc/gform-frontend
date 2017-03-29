@@ -65,17 +65,17 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
       }
 
 
-    val extractDefaultDate: Option[Expr] => Option[DateExpr] = {
-      case Some(dateExpr: DateExpr) => Some(dateExpr)
-      case None => None
-    }
+    val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect{case x: DateExpr => x}
 
     val snippets: List[Html] = {
       section.fields
         .map { fieldValue =>
 
           fieldValue.`type` match {
-            case Date => uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue))
+            case Date =>
+
+              val prepopValues = extractDefaultDate(fieldValue.value)
+              uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okValues)(fieldValue), prepopValues)
             case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okValues)(fieldValue))
             case Text => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okValues)(fieldValue))
           }

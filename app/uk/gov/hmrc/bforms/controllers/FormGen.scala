@@ -118,7 +118,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
     */
   case class DateData(data: Map[FieldValue, DateComponentData]) {
 
-    def parse(fieldValue: FieldValue): Validated[DateError, FormFieldValidationResult] = {
+    def parse(fieldValue: FieldValue): Validated[DateError, FormFieldValidationResult] = { // try List[DateError]
 
       data.get(fieldValue).map(_.day) match{
         case dayViolation => Invalid(DayViolation(fieldValue.id, "error message for day"))

@@ -28,13 +28,19 @@ sealed trait FormFieldValidationResult {
     case _ => false
   }
 
-  def getCurrentValue: String = this match {
-    case FieldOk(_, cv) => cv
-    case _ => ""
+  def getCurrentValue: Option[String] = this match {
+    case FieldOk(_, "") => None
+    case FieldOk(_, cv) => Some(cv)
+    case _ => None
+  }
+
+  def getOptionalCurrentValue(key: String): Option[String] = this match{
+    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue)
+    case _ => None
   }
 
   def getCurrentValue(key: String): String = this match {
-    case ComponentField(_, data) => data.get(key).map(_.getCurrentValue).getOrElse("")
+    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue).getOrElse("")
     case _ => ""
   }
 
