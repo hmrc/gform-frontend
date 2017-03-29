@@ -44,6 +44,9 @@ sealed trait FormFieldValidationResult {
     case _ => ""
   }
 
+  /**
+   * If `this` field is not ok, we want to indicate error by using Left(())
+   */
   def toFormField: Either[Unit, List[FormField]] = this match {
     case FieldOk(fieldValue, cv) => Right(List(FormField(fieldValue.id, cv)))
     case ComponentField(fieldValue, data) =>
@@ -51,11 +54,12 @@ sealed trait FormFieldValidationResult {
     case _ => Left(())
   }
 
-  def toFormFieldTolerant: FormField = this match {
-    case FieldOk(fieldValue, cv) => FormField(fieldValue.id, cv)
-    case RequiredField(fieldValue) => FormField(fieldValue.id, "")
-    case WrongFormat(fieldValue) => FormField(fieldValue.id, "")
-    case ComponentField(fieldValue, _) => FormField(fieldValue.id, "")
+  def toFormFieldTolerant: List[FormField] = this match {
+    case FieldOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
+    case RequiredField(fieldValue) => List(FormField(fieldValue.id, ""))
+    case WrongFormat(fieldValue) => List(FormField(fieldValue.id, ""))
+    case ComponentField(fieldValue, data) => List(FormField(fieldValue.id, ""))
+      data.flatMap { case (suffix, value) => value.toFormFieldTolerant.map(_.withSuffix(suffix)) }.toList
   }
 }
 

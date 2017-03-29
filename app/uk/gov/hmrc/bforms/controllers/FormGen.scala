@@ -208,7 +208,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                     Future.successful(result)
                   }
                 case SaveAndExit =>
-                  val formFields: List[FormField] = validationResults.values.map(_.toFormFieldTolerant).toList
+                  val formFields: List[FormField] = validationResults.values.flatMap(_.toFormFieldTolerant).toList
 
                   val formData = FormData(formTypeId, version, "UTF-8", formFields)
                   submitOrUpdate(formIdOpt, formData, true).map(response => Ok(Json.toJson(response)))
