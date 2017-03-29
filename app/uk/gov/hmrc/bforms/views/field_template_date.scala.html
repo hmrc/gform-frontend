@@ -4,7 +4,7 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[Tuple3[String, String, String]])
 
-<div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+<div class="form-field-group @if(validationResult.map(_.isOk).contains(true)) { form-field-group--error }">
     <fieldset>
         <legend class="h3-heading">@{fieldValue.label}</legend>
 
@@ -22,6 +22,7 @@
                 <input type="text"
                        name="@{fieldValue.id}.day"
                        id="@{fieldValue.id}.day"
+
                        @if(validationResult.map(_.getCurrentValue("day")).getOrElse("")==""){
                             value = "@prepop.getOrElse(("","",""))._1"
                         }else{
@@ -39,11 +40,13 @@
                 <input type="text"
                        name="@{fieldValue.id}.month"
                        id="@{fieldValue.id}.month"
+
                        @if(validationResult.map(_.getCurrentValue("month")).getOrElse("")==""){
                              value = "@prepop.getOrElse(("","",""))._2"
                         }else{
                             value="@validationResult.map(_.getCurrentValue("month")).getOrElse("")"
                         }
+
                 class= "form-control form-control--block"
                 required>
             </div>
@@ -54,11 +57,13 @@
                 <input type="text"
                        name="@{fieldValue.id}.year"
                        id="@{fieldValue.id}.year"
+
                        @if(validationResult.map(_.getCurrentValue("year")).getOrElse("")==""){
                             value = "@prepop.getOrElse(("","",""))._3"
                         }else{
                             value="@validationResult.map(_.getCurrentValue("year")).getOrElse("")"
                         }
+
                 class="form-control form-control--block"
                 required>
             </div>
