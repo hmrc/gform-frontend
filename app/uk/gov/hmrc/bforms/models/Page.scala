@@ -65,8 +65,8 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
       }
 
 
-    val extractDefaultDate: Option[Expr] => Option[(String, String, String)] = {
-      case Some(dateExpr: DateExpr) => Some((dateExpr.day, dateExpr.month, dateExpr.year))
+    val extractDefaultDate: Option[Expr] => Option[DateExpr] = {
+      case Some(dateExpr: DateExpr) => Some(dateExpr)
       case None => None
     }
 

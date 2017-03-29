@@ -53,10 +53,12 @@ sealed trait FormFieldValidationResult {
   }
 }
 
+sealed abstract class DateError
+final case class DayViolation(id: FieldId, message: String) extends DateError
+final case class BeforeDateError(id: FieldId, message: String) extends DateError
+final case class AfterDateError(id: FieldId, message: String) extends DateError
+
 case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
-
 case class RequiredField(fieldValue: FieldValue) extends FormFieldValidationResult
-
 case class WrongFormat(fieldValue: FieldValue) extends FormFieldValidationResult
-
 case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult

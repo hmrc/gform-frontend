@@ -17,6 +17,9 @@
 package uk.gov.hmrc.bforms.controllers
 
 import javax.inject.{Inject, Singleton}
+
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.traverse._
@@ -108,6 +111,22 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
   }
 
   val FormIdExtractor = "bforms/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
+
+  /**
+    *
+    * Validation Process
+    */
+  case class DateData(data: Map[FieldValue, DateComponentData]) {
+
+    def parse(fieldValue: FieldValue): Validated[DateError, FormFieldValidationResult] = {
+
+      data.get(fieldValue).map(_.day) match{
+        case dayViolation => Invalid(DayViolation(fieldValue.id, "error message for day"))
+        case properDatec=> Valid(FieldOk(fieldValue, properDatec.toString))
+      }
+    }
+
+  }
 
   def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
     implicit request =>
