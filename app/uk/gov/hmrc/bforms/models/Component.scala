@@ -26,7 +26,8 @@ case class AddressComponentData(
                                  street3: Seq[String],
                                  town: Seq[String],
                                  county: Seq[String],
-                                 postcode: Seq[String]
+                                 postcode: Seq[String],
+                                 country: Seq[String]
                                ) extends ComponentData
 
 case class DateComponentData(
@@ -34,4 +35,3 @@ case class DateComponentData(
                               month: Seq[String],
                               year: Seq[String]
                             ) extends ComponentData
-

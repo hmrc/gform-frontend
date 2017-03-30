@@ -96,7 +96,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
   def validateFieldValue(fieldValue: FieldValue, formValue: ComponentData): FormFieldValidationResult = {
     formValue match {
-      case AddressComponentData(street1, street2, street3, town, county, postcode) =>
+      case AddressComponentData(street1, street2, street3, town, county, postcode, country) =>
         val validateRF = validateRequired(fieldValue) _
         ComponentField(
           fieldValue,
@@ -105,8 +105,9 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
             "street2" -> alwaysOk(fieldValue)(street2),
             "street3" -> alwaysOk(fieldValue)(street3),
             "town" -> validateRF(town),
-            "county" -> validateRF(county),
-            "postcode" -> validateRF(postcode)
+            "county" -> alwaysOk(fieldValue)(county),
+            "postcode" -> validateRF(postcode),
+            "country" -> alwaysOk(fieldValue)(country)
           )
         )
       case DateComponentData(day, month, year) =>
@@ -168,7 +169,8 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   getData("street3"),
                   getData("town"),
                   getData("county"),
-                  getData("postcode")
+                  getData("postcode"),
+                  getData("country")
                 )
                 fv -> acd
               case Date =>
