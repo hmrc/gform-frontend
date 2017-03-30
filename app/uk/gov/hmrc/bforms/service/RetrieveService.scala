@@ -34,10 +34,6 @@ object RetrieveService {
 
   def bformsConnector = BformsConnector
 
-  def getFields(formTemplate: FormTemplate): List[FieldValue] = {
-    formTemplate.sections.flatMap(_.fields)
-  }
-
   def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
     formTemplate.validate[FormTemplate] match {
       case JsSuccess(formTemplate, _) => Right(formTemplate)
