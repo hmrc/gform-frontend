@@ -27,16 +27,16 @@ import uk.gov.hmrc.bforms.core._
 
 case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
-case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
-  def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages): Result = {
+object PageForRender {
+  def apply(curr: Int, formFields: Map[FieldId, Seq[String]], formTemplate: FormTemplate, section: Section, f: Option[FieldValue => Option[FormFieldValidationResult]]): PageForRender = {
 
-    val hiddenSectionFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
+    val hiddenFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
 
-    val hiddenFormFields = toFormField(formFields, hiddenSectionFields).map(formField => uk.gov.hmrc.bforms.views.html.hidden_field(formField))
+    val hiddenSnippets = toFormField(formFields, hiddenFields).map(formField => uk.gov.hmrc.bforms.views.html.hidden_field(formField))
 
     val okF: FieldValue => Option[FormFieldValidationResult] = okValues(formFields, section.fields)
 
-    val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect{case x: DateExpr => x}
+    val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect { case x: DateExpr => x }
 
     val snippets: List[Html] = {
       section.fields
@@ -50,10 +50,20 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
           }
         }
     }
-
-    val page = PageForRender(curr, hiddenFormFields, snippets, fieldJavascript(formTemplate.sections.flatMap(_.fields)))
-    Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, page, formId))
+    PageForRender(curr, hiddenSnippets, snippets, fieldJavascript(formTemplate.sections.flatMap(_.fields)))
   }
+}
+
+case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
+
+  def pageForRender(formFields: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]]) : PageForRender =
+    PageForRender(curr, formFields, formTemplate, section, f)
+
+  def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])
+                (implicit request: Request[_], messages: Messages): Result = {
+    Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, pageForRender(formFields, f), formId))
+  }
+
 }
 
 object Page {

@@ -25,8 +25,8 @@ import uk.gov.hmrc.bforms.models.helpers.Javascript.fieldJavascript
 
 case class SummaryForRender(snippets: List[Html], javascripts: String)
 
-case class Summary(formTemplate: FormTemplate) {
-  def renderPage(formFields: Map[FieldId, Seq[String]], formId: FormId)(implicit request: Request[_], messages: Messages): Result = {
+object SummaryForRender {
+  def apply(formFields: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate): SummaryForRender = {
 
     val fields: List[FieldValue] = formTemplate.sections.flatMap(s => s.fields)
 
@@ -44,11 +44,17 @@ case class Summary(formTemplate: FormTemplate) {
               }
             } ++
             List(uk.gov.hmrc.bforms.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, s._1.title, s._2))
-
       }
     }
+    SummaryForRender(snippets, fieldJavascript(fields))
+  }
+}
 
-    val page = SummaryForRender(snippets, fieldJavascript(fields))
-    Ok(uk.gov.hmrc.bforms.views.html.summary(formTemplate, page, formId))
+case class Summary(formTemplate: FormTemplate) {
+  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId) : SummaryForRender =
+    SummaryForRender(formFields, formId, formTemplate)
+
+  def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId)(implicit request: Request[_], messages: Messages): Result = {
+    Ok(uk.gov.hmrc.bforms.views.html.summary(formTemplate, summaryForRender(formFields, formId), formId))
   }
 }

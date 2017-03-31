@@ -35,7 +35,7 @@ class SummaryGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions
     sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
       implicit request =>
         SaveService.getFormById(formTypeId, version, formId).map( formData =>
-          Summary(request.formTemplate).renderPage(formDataMap(formData), formId)
+          Summary(request.formTemplate).renderSummary(formDataMap(formData), formId)
         )
     }
 

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.bforms.models
 
 import org.scalatest._
-import play.twirl.api.Html
+import uk.gov.hmrc.bforms.models.helpers.Extractors.extractNames
 
 class PageSpec extends FlatSpec with Matchers with EitherValues {
 
@@ -37,15 +37,6 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
     sections = List(section0, section1, section2)
   )
 
-  val NameExtractor = "name=\"(.*)\"".r.unanchored
-
-  def extractNames(html: List[Html]): List[String] = html.flatMap { html =>
-    html.body match {
-      case NameExtractor(name) => List(name)
-      case otherwise => Nil
-    }
-  }
-
   "Page" should "display first page" in {
 
     val page = Page(0, formTemplate)
@@ -56,15 +47,17 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
 
     page.section should be(section0)
 
-    /* page.hiddenFieldsSnippets.size should be(2)
-     *
-     * val hiddenFieldNames = extractNames(page.hiddenFieldsSnippets)
-     * hiddenFieldNames should be(List("firstName", "nameOfBusiness"))
-     *
-     * page.snippets.size should be(1)
-     *
-     * val fieldNames = extractNames(page.snippets)
-     * fieldNames should be(List("iptRegNum")) */
+    val render = page.pageForRender(Map.empty, None)
+
+    render.hiddenFieldsSnippets.size should be(2)
+
+    val hiddenFieldNames = extractNames(render.hiddenFieldsSnippets)
+    hiddenFieldNames should be(List("firstName", "nameOfBusiness"))
+
+    render.snippets.size should be(1)
+
+    val fieldNames = extractNames(render.snippets)
+    fieldNames should be(List("iptRegNum"))
   }
 
   it should "display second page" in {
@@ -77,15 +70,17 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
 
     page.section should be(section1)
 
-    /* page.hiddenFieldsSnippets.size should be(2)
-     *
-     * val hiddenFieldNames = extractNames(page.hiddenFieldsSnippets)
-     * hiddenFieldNames should be(List("iptRegNum", "nameOfBusiness"))
-     *
-     * page.snippets.size should be(1)
-     *
-     * val fieldNames = extractNames(page.snippets)
-     * fieldNames should be(List("firstName")) */
+    val render = page.pageForRender(Map.empty, None)
+
+    render.hiddenFieldsSnippets.size should be(2)
+
+    val hiddenFieldNames = extractNames(render.hiddenFieldsSnippets)
+    hiddenFieldNames should be(List("iptRegNum", "nameOfBusiness"))
+
+    render.snippets.size should be(1)
+
+    val fieldNames = extractNames(render.snippets)
+    fieldNames should be(List("firstName"))
   }
 
   it should "display third page" in {
@@ -98,15 +93,18 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
 
     page.section should be(section2)
 
-    /* page.hiddenFieldsSnippets.size should be(2)
-     *
-     * val hiddenFieldNames = extractNames(page.hiddenFieldsSnippets)
-     * hiddenFieldNames should be(List("iptRegNum", "firstName"))
-     *
-     * page.snippets.size should be(1)
-     *
-     * val fieldNames = extractNames(page.snippets)
-     * fieldNames should be(List("nameOfBusiness")) */
+    val render = page.pageForRender(Map.empty, None)
+
+    render.hiddenFieldsSnippets.size should be(2)
+
+    val hiddenFieldNames = extractNames(render.hiddenFieldsSnippets)
+    hiddenFieldNames should be(List("iptRegNum", "firstName"))
+
+    render.snippets.size should be(1)
+
+    val fieldNames = extractNames(render.snippets)
+    fieldNames should be(List("nameOfBusiness"))
+
   }
 
   it should "display first page when currentPage is less than 0" in {
