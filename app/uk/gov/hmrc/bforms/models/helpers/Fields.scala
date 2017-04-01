@@ -21,9 +21,9 @@ import uk.gov.hmrc.bforms.models._
 object Fields {
 
 
-    def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue])
-                (fieldValue: FieldValue) : Option[FormFieldValidationResult] = {
-      val formFields = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
+  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue])
+              (fieldValue: FieldValue) : Option[FormFieldValidationResult] = {
+    val formFields = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
     fieldValue.`type` match {
       case Address | Date =>
         val fieldOkData =
@@ -33,9 +33,16 @@ object Fields {
             case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
           }
         Some(ComponentField(fieldValue, fieldOkData))
-      case _ => formFields.get(fieldValue.id).map { formField =>
+      case Text => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
+      case Choice(_, _, _) =>
+        val fieldId = fieldValue.id
+        val fieldOks = formFields.get(fieldId).map { formField =>
+          val selections = formField.value.split(",").toList
+          selections.map(selectedIndex => fieldId.value + selectedIndex -> FieldOk(fieldValue, selectedIndex)).toMap
+        }
+        fieldOks.map(data => ComponentField(fieldValue, data))
     }
   }
 
@@ -50,10 +57,8 @@ object Fields {
       fv.`type` match {
         case Address => Address.fields(fv.id).map(getFormFieldValue)
         case Date => Date.fields(fv.id).map(getFormFieldValue)
-        case _ => List(getFormFieldValue(fv.id))
+        case Text | Choice(_, _, _) => List(getFormFieldValue(fv.id))
       }
     }
   }
-
-
 }

@@ -1,0 +1,12 @@
+@import uk.gov.hmrc.bforms.models.FieldValue
+@import uk.gov.hmrc.bforms.views.html.localisation
+@import uk.gov.hmrc.play.views.html.helpers._
+
+@(fieldValue: FieldValue, selections: List[String])
+
+<h3>@localisation(fieldValue.label)</h3>
+<p>
+  <ul>
+    @selections.map{ selection => <li>@selection</li> }
+  </ul>
+</p>

@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.bforms.models
 
+import cats.data.NonEmptyList
 import julienrf.json.derived
-import play.api.libs.json.OFormat
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import play.api.data.validation.ValidationError
 
-/**
-  * Created by dimitra on 21/03/17.
-  */
+import scala.collection.immutable._
+
 sealed trait ComponentType
 
 case object Text extends ComponentType
@@ -34,6 +36,36 @@ case object Address extends ComponentType {
   val fields = (id: FieldId) => List("street1", "street2", "street3", "town", "county", "postcode", "country").map(id.withSuffix)
 }
 
+sealed trait ChoiceOrientation
+case object Vertical extends ChoiceOrientation
+case object Horizontal extends ChoiceOrientation
+object ChoiceOrientation {
+  implicit val formatExpr: OFormat[ChoiceOrientation] = derived.oformat
+}
+
+sealed trait ChoiceType
+final case object Radio extends ChoiceType
+final case object Checkbox extends ChoiceType
+final case object YesNo extends ChoiceType
+
+object ChoiceType {
+  implicit val formatExpr: OFormat[ChoiceType] = derived.oformat
+}
+
+case class Choice(`type`: ChoiceType, options: NonEmptyList[String], orientation: ChoiceOrientation) extends ComponentType
+
 object ComponentType {
+
+  implicit def readsNonEmptyList[T: Reads] = Reads[NonEmptyList[T]] { json =>
+    Json.fromJson[List[T]](json).flatMap {
+      case Nil => JsError(ValidationError(s"Required at least one element. Got: $json"))
+      case x :: xs => JsSuccess(NonEmptyList(x, xs))
+    }
+  }
+
+  implicit def writesNonEmptyList[T: Writes] = Writes[NonEmptyList[T]] { v =>
+    JsArray((v.head :: v.tail).map(Json.toJson(_)).toList)
+  }
+
   implicit val format: OFormat[ComponentType] = derived.oformat
 }

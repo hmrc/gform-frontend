@@ -50,14 +50,17 @@ sealed trait FormFieldValidationResult {
   def toFormField: Either[Unit, List[FormField]] = this match {
     case FieldOk(fieldValue, cv) => Right(List(FormField(fieldValue.id, cv)))
     case ComponentField(fieldValue, data) =>
-      data.map { case (suffix, value) => value.toFormField.map(_.map(_.withSuffix(suffix))) }.toList.sequenceU.map(_.flatten)
+      fieldValue`type` match {
+        case Choice(_, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
+        case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(_.withSuffix(suffix))) }.toList.sequenceU.map(_.flatten)
+      }
+
     case _ => Left(())
   }
 
   def toFormFieldTolerant: List[FormField] = this match {
     case FieldOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
     case RequiredField(fieldValue) => List(FormField(fieldValue.id, ""))
-    case WrongFormat(fieldValue) => List(FormField(fieldValue.id, ""))
     case ComponentField(fieldValue, data) => List(FormField(fieldValue.id, ""))
       data.flatMap { case (suffix, value) => value.toFormFieldTolerant.map(_.withSuffix(suffix)) }.toList
   }
@@ -70,5 +73,4 @@ final case class AfterDateError(id: FieldId, message: String) extends DateError
 
 case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
 case class RequiredField(fieldValue: FieldValue) extends FormFieldValidationResult
-case class WrongFormat(fieldValue: FieldValue) extends FormFieldValidationResult
 case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult

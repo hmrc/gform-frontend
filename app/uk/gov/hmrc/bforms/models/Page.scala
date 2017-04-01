@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.bforms.models
 
+import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
-import uk.gov.hmrc.bforms.models.helpers.Fields._
+import uk.gov.hmrc.bforms.models.helpers.Fields
 import uk.gov.hmrc.bforms.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.bforms.core._
 
@@ -32,9 +33,9 @@ object PageForRender {
 
     val hiddenFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
 
-    val hiddenSnippets = toFormField(formFields, hiddenFields).map(formField => uk.gov.hmrc.bforms.views.html.hidden_field(formField))
+    val hiddenSnippets = Fields.toFormField(formFields, hiddenFields).map(formField => uk.gov.hmrc.bforms.views.html.hidden_field(formField))
 
-    val okF: FieldValue => Option[FormFieldValidationResult] = okValues(formFields, section.fields)
+    val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(formFields, section.fields)
 
     val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect { case x: DateExpr => x }
 
@@ -47,6 +48,16 @@ object PageForRender {
               uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues)
             case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue))
             case Text => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okF)(fieldValue))
+            case Choice(choice, options, orientation) =>
+              val prepopValues = formFields.get(fieldValue.id) match {
+                case None => fieldValue.value.collect{ case Constant(str) => str.split(',')}.toList.flatten.toSet
+                case Some(_) => Set.empty[String] // Don't prepop something we already submitted
+              }
+
+              choice match {
+                case Radio | YesNo => uk.gov.hmrc.bforms.views.html.choice("radio", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue))
+                case Checkbox => uk.gov.hmrc.bforms.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue))
+              }
           }
         }
     }

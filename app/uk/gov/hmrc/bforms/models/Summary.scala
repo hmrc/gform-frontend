@@ -41,6 +41,12 @@ object SummaryForRender {
                 case Date => uk.gov.hmrc.bforms.views.html.snippets.summary.date(fieldValue, values(fieldValue))
                 case Address => uk.gov.hmrc.bforms.views.html.snippets.summary.address(fieldValue, values(fieldValue))
                 case Text => uk.gov.hmrc.bforms.views.html.snippets.summary.text(fieldValue, values(fieldValue))
+                case Choice(_, options, _) =>
+                  val selections = options.toList.zipWithIndex.map{ case (option, index) =>
+        	    values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
+                  }.collect { case Some(selection) => selection }
+
+                  uk.gov.hmrc.bforms.views.html.snippets.summary.choice(fieldValue, selections)
               }
             } ++
             List(uk.gov.hmrc.bforms.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index))

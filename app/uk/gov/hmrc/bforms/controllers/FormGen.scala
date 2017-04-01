@@ -124,6 +124,15 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
         case true => validateRequired(fieldValue)(formValue)
         case false => alwaysOk(fieldValue)(formValue)
       }
+
+      case ChoiceComponentData(selected) =>
+        (fieldValue.mandatory, selected) match {
+          case (true, Nil) =>
+            RequiredField(fieldValue)
+          case _ =>
+            val data = selected.map(selectedIndex => fieldValue.id.value + selectedIndex -> FieldOk(fieldValue, selectedIndex)).toMap
+            ComponentField(fieldValue, data)
+        }
     }
   }
 
@@ -183,6 +192,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                 )
                 fv -> acd
               case Text => fv -> TextData(data.get(fv.id).toList.flatten)
+              case Choice(_, _, _) => fv -> ChoiceComponentData(data.get(fv.id).toList.flatten)
             }
           }.toMap
 

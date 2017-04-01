@@ -35,3 +35,5 @@ case class DateComponentData(
                               month: Seq[String],
                               year: Seq[String]
                             ) extends ComponentData
+
+case class ChoiceComponentData(selected: Seq[String]) extends ComponentData
