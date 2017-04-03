@@ -33,17 +33,17 @@ object SummaryForRender {
     val values: FieldValue => Option[FormFieldValidationResult] = okValues(formFields, fields)
 
     val snippets: List[Html] = {
-      formTemplate.sections.zipWithIndex.flatMap { s =>
-        uk.gov.hmrc.bforms.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, s._1.title, s._2) ::
-          s._1.fields
+      formTemplate.sections.zipWithIndex.flatMap { case (section, index) =>
+        uk.gov.hmrc.bforms.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index) ::
+          section.fields
             .map { fieldValue =>
               fieldValue.`type` match {
                 case Date => uk.gov.hmrc.bforms.views.html.snippets.summary.date(fieldValue, values(fieldValue))
                 case Address => uk.gov.hmrc.bforms.views.html.snippets.summary.address(fieldValue, values(fieldValue))
-                case _ => uk.gov.hmrc.bforms.views.html.snippets.summary.text(fieldValue, values(fieldValue))
+                case Text => uk.gov.hmrc.bforms.views.html.snippets.summary.text(fieldValue, values(fieldValue))
               }
             } ++
-            List(uk.gov.hmrc.bforms.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, s._1.title, s._2))
+            List(uk.gov.hmrc.bforms.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index))
       }
     }
     SummaryForRender(snippets, fieldJavascript(fields))

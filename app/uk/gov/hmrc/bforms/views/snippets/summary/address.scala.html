@@ -9,29 +9,17 @@
 <h3>@localisation(fieldValue.label)</h3>
 
 <p>
-
-@if(validationResult.map(_.getCurrentValue("street1").isEmpty).contains(false)) {
-    <div>@validationResult.map(_.getCurrentValue("street1")).getOrElse("")</div>
+@List(
+    "street1",
+    "street2",
+    "street3",
+    "town",
+    "county",
+    "postcode"
+).map { suffix =>
+    @if(validationResult.map(_.getCurrentValue(suffix).isEmpty).contains(false)) {
+        <div>@validationResult.map(_.getCurrentValue(suffix)).getOrElse("")</div>
+    }
 }
 
-@if(validationResult.map(_.getCurrentValue("street2").isEmpty).contains(false)) {
-    <div>@validationResult.map(_.getCurrentValue("street2")).getOrElse("")</div>
-}
-
-@if(validationResult.map(_.getCurrentValue("street3").isEmpty).contains(false)) {
-    <div>@validationResult.map(_.getCurrentValue("street3")).getOrElse("")</div>
-}
-
-@if(validationResult.map(_.getCurrentValue("town").isEmpty).contains(false)) {
-    <div>@validationResult.map(_.getCurrentValue("town")).getOrElse("")</div>
-}
-
-@if(validationResult.map(_.getCurrentValue("county").isEmpty).contains(false)) {
-    <div>@validationResult.map(_.getCurrentValue("county")).getOrElse("")</div>
-}
-
-@if(validationResult.map(_.getCurrentValue("postcode").isEmpty).contains(false)) {
-    <div>@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")</div>
-}
-
-    </P>
+</P>
