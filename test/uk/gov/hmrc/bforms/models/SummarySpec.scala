@@ -17,6 +17,7 @@
 package uk.gov.hmrc.bforms.models
 
 import org.scalatest._
+import uk.gov.hmrc.bforms.models.helpers.Extractors._
 
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
@@ -36,16 +37,66 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     sections = List(section0, section1, section2)
   )
 
-  "Summary" should "display the summary" in {
+  "Summary" should "display the summary sections" in {
 
     val summary = Summary(formTemplate)
 
-    val render = summary.summaryForRender(Map.empty, FormId(""))
+    val formFields = Map(FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
+      FieldId("firstName") -> Seq("Test!About you!Test"),
+      FieldId("nameOfBusiness") -> Seq("Test!Business details!Test")
+    )
+    val render = summary.summaryForRender(formFields, FormId(""))
 
     render.snippets.size should be(9)
 
-//    val fieldNames = extractNames(render.snippets)
-//    fieldNames should be(List("iptRegNum"))
+    val testStringValues = extractAllTestStringValues(render.snippets)
+    testStringValues should be(List("Your details", "About you", "Business details"))
   }
+
+  "Summary" should "display links to page sections" in {
+
+    val summary = Summary(
+      formTemplate.copy(
+        formTypeId = FormTypeId("Test!Form Type!Test"),
+        sections = List(section0, section1)
+      )
+    )
+
+    val render = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"))
+//    render should be(List())
+
+    val testStringValues = extractAllTestStringValues(render.snippets)
+    testStringValues should be(List("Form Type", "Form Id", "Form Type", "Form Id"))
+  }
+
+  "Summary" should "display values for each field type" in {
+
+    val section = Section("Personal details", List(
+      FieldValue(FieldId("Surname"), Text, "Surname", None, None, None, None, true),
+      FieldValue(FieldId("BirthDate"), Date, "Birth date", None, None, None, None, true),
+      FieldValue(FieldId("HomeAddress"), Address, "Home address", None, None, None, None, true)
+    ))
+    val summary = Summary(formTemplate.copy(sections = List(section)))
+
+    val formFields = Map(FieldId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
+      FieldId("BirthDate.day") -> Seq("09"),
+      FieldId("BirthDate.month") -> Seq("11"),
+      FieldId("BirthDate.year") -> Seq("1841"),
+      FieldId("HomeAddress.street1") -> Seq("Test!Street!Test"),
+      FieldId("HomeAddress.street2") -> Seq("Test!Second Street!Test"),
+      FieldId("HomeAddress.street3") -> Seq("Test!Third Street!Test"),
+      FieldId("HomeAddress.town") -> Seq("Test!Town!Test"),
+      FieldId("HomeAddress.county") -> Seq("Test!Countyshire!Test"),
+      FieldId("HomeAddress.postcode") -> Seq("Test!PO32 6JX!Test")
+    )
+
+
+    val render = summary.summaryForRender(formFields, FormId(""))
+
+    val testStringValues = extractAllTestStringValues(render.snippets)
+    testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "Countyshire", "PO32 6JX"))
+    extractDates(render.snippets) should be (List(("09", "11", "1841")))
+  }
+
 
 }

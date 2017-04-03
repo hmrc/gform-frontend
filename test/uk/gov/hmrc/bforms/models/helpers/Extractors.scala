@@ -27,4 +27,23 @@ object Extractors {
       case otherwise => Nil
     }
   }
+
+  val testStringValueR = "Test!([^!]*)!Test".r.unanchored
+
+  def extractAllTestStringValues(html: List[Html]): List[String] = {
+    for {
+      h <- html
+      m <- testStringValueR.findAllIn(h.body).matchData
+    } yield m.group(1)
+  }
+
+  val dateR = "(\\d{2})\\s*/\\s*(\\d{2})\\s*/\\s*(\\d{4})".r.unanchored
+
+  def extractDates(html: List[Html]): List[(String, String, String)] = {
+    for {
+      h <- html
+      m <- dateR.findFirstMatchIn(h.body)
+    } yield (m.group(1), m.group(2), m.group(3))
+  }
+
 }
