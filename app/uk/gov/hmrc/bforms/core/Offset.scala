@@ -24,7 +24,7 @@ import play.api.libs.json.OFormat
   */
 sealed trait Offset
 
-final case class OffsetCase(value: String) extends Offset
+final case class OffsetCase(value: Int) extends Offset
 
 object Offset {
   implicit val format: OFormat[Offset] = derived.oformat
