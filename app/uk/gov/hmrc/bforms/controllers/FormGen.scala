@@ -49,19 +49,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
     }
 
-  def formById(formTypeId: FormTypeId, version: String, formId: FormId) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
-    implicit request =>
-
-      SaveService.getFormById(formTypeId, version, formId).map { formData =>
-
-        val lookup: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
-
-        val formTemplate = request.formTemplate
-
-        Page(0, formTemplate).renderPage(lookup, Some(formId), None)
-
-      }
-  }
+  def formById(formTypeId: FormTypeId, version: String, formId: FormId) = formByIdPage(formTypeId, version, formId, 0)
 
   def formByIdPage(formTypeId: FormTypeId, version: String, formId: FormId, currPage : Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
     implicit request =>
