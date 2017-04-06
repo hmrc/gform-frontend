@@ -17,17 +17,18 @@
 package uk.gov.hmrc.bforms.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.bforms.core.Expr
+import uk.gov.hmrc.bforms.core.{Expr, Format, Offset}
 
 case class FieldValue(
                        id: FieldId,
                        `type`: ComponentType,
                        label: String,
                        value: Option[Expr],
-                       format: Option[String],
+                       format: Option[Format],
                        helpText: Option[String],
                        readOnly: Option[String],
-                       mandatory: Boolean)
+                       mandatory: Boolean,
+                       offset: Option[Offset])
 
 object FieldValue {
   implicit val format = Json.format[FieldValue]
