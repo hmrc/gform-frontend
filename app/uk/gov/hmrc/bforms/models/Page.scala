@@ -67,6 +67,8 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
 
     val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect{case x: DateExpr => x}
 
+    // check whether there is offset in order to update DateExpr
+
     val snippets: List[Html] = {
       section.fields
         .map { fieldValue =>
