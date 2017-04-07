@@ -16,16 +16,13 @@
 
 package uk.gov.hmrc.bforms.core
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import play.api.libs.json.{Json, OFormat}
 
 /**
   * Created by dimitra on 05/04/17.
   */
-sealed trait Offset
-
-final case class OffsetCase(value: Int) extends Offset
+final case class Offset(value: Int) extends AnyVal
 
 object Offset {
-  implicit val format: OFormat[Offset] = derived.oformat
+  implicit val format: OFormat[Offset] = Json.format[Offset]
 }

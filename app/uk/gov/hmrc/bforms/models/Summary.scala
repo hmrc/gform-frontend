@@ -38,7 +38,7 @@ object SummaryForRender {
           section.fields
             .map { fieldValue =>
               fieldValue.`type` match {
-                case Date => uk.gov.hmrc.bforms.views.html.snippets.summary.date(fieldValue, values(fieldValue))
+                case Date(_, _) => uk.gov.hmrc.bforms.views.html.snippets.summary.date(fieldValue, values(fieldValue))
                 case Address => uk.gov.hmrc.bforms.views.html.snippets.summary.address(fieldValue, values(fieldValue))
                 case Text => uk.gov.hmrc.bforms.views.html.snippets.summary.text(fieldValue, values(fieldValue))
                 case Choice(_, options, _) =>

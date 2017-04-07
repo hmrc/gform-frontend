@@ -19,7 +19,7 @@ package uk.gov.hmrc.bforms.core.utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import uk.gov.hmrc.bforms.core.{DateExpr, Offset, OffsetCase}
+import uk.gov.hmrc.bforms.core.{DateExpr, Offset}
 
 /**
   * Created by dimitra on 05/04/17.
@@ -37,7 +37,7 @@ object DateHelperFunctions {
   def adjustDate(optionalOffset: Option[Offset], optionalDateExpr: Option[DateExpr]): Option[LocalDate] = {
 
     (optionalOffset, optionalDateExpr) match {
-      case (Some(OffsetCase(offset)), Some(dateExpr)) =>
+      case (Some(Offset(offset)), Some(dateExpr)) =>
 
         val dateExprAsStr = dateExpr.year + "-" + dateExpr.month + "-" + dateExpr.day
 

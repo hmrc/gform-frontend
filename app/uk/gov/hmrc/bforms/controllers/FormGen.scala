@@ -170,7 +170,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   getData("country")
                 )
                 fv -> acd
-              case Date =>
+              case Date(_, _) =>
                 val getData = dataGetter(fv)
 
                 val acd = DateComponentData(

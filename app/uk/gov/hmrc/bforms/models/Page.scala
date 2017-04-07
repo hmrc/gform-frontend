@@ -45,7 +45,7 @@ object PageForRender {
       section.fields
         .map { fieldValue =>
           fieldValue.`type` match {
-            case Date =>
+            case Date(_, _) =>
               val prepopValues = extractDefaultDate(fieldValue.value)
               uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues)
             case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue))

@@ -21,6 +21,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.data.validation.ValidationError
+import uk.gov.hmrc.bforms.core._
 
 import scala.collection.immutable._
 
@@ -28,7 +29,9 @@ sealed trait ComponentType
 
 case object Text extends ComponentType
 
-case object Date extends ComponentType {
+case class Date(constraintType: DateConstraintType, offset: Offset) extends ComponentType
+
+case object Date {
   val fields = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
 }
 

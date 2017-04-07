@@ -20,15 +20,14 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.bforms.core._
 
 case class FieldValue(
-                       id: FieldId,
-                       `type`: ComponentType,
-                       label: String,
-                       value: Option[Expr],
-                       format: Option[FormatExpr],
-                       helpText: Option[String],
-                       readOnly: Option[String],
-                       mandatory: Boolean,
-                       offset: Option[Offset])
+  id: FieldId,
+  `type`: ComponentType,
+  label: String,
+  value: Option[Expr],
+  helpText: Option[String],
+  readOnly: Option[String],
+  mandatory: Boolean
+)
 
 object FieldValue {
   implicit val format = Json.format[FieldValue]
