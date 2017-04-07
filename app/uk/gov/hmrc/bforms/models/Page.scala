@@ -24,6 +24,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.bforms.models.helpers.Fields
 import uk.gov.hmrc.bforms.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.bforms.core._
+import uk.gov.hmrc.bforms.core.utils.DateHelperFunctions
 
 
 case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
@@ -39,20 +40,19 @@ object PageForRender {
 
     val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect { case x: DateExpr => x }
 
-    // check whether there is offset in order to update DateExpr
-
     val snippets: List[Html] = {
       section.fields
         .map { fieldValue =>
           fieldValue.`type` match {
             case Date =>
-              val prepopValues = extractDefaultDate(fieldValue.value)
+              val prepopValues = DateHelperFunctions.adjustDate(fieldValue.offset, extractDefaultDate(fieldValue.value))
               uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues)
+
             case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue))
             case Text => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okF)(fieldValue))
             case Choice(choice, options, orientation) =>
               val prepopValues = formFields.get(fieldValue.id) match {
-                case None => fieldValue.value.collect{ case Constant(str) => str.split(',')}.toList.flatten.toSet
+                case None => fieldValue.value.collect { case Constant(str) => str.split(',') }.toList.flatten.toSet
                 case Some(_) => Set.empty[String] // Don't prepop something we already submitted
               }
 
@@ -69,7 +69,7 @@ object PageForRender {
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
 
-  def pageForRender(formFields: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]]) : PageForRender =
+  def pageForRender(formFields: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]]): PageForRender =
     PageForRender(curr, formFields, formTemplate, section, f)
 
   def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])

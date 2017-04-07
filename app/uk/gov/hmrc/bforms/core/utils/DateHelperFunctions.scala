@@ -19,6 +19,7 @@ package uk.gov.hmrc.bforms.core.utils
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import org.slf4j.LoggerFactory
 import uk.gov.hmrc.bforms.core.{DateExpr, Offset, OffsetCase}
 
 /**
@@ -31,22 +32,31 @@ object DefaultDateFormatter {
 }
 
 object DateHelperFunctions {
+  lazy val log = LoggerFactory.getLogger(DateHelperFunctions.getClass)
 
   import DefaultDateFormatter._
 
-  def adjustDate(optionalOffset: Option[Offset], optionalDateExpr: Option[DateExpr]): Option[LocalDate] = {
+  def convertToDateExpr(localDate: LocalDate): DateExpr = {
+    val splitBy = (str: String) => str.split("-")
+
+    val dateToStr = dateFormatter.format(localDate)
+    val dateArray = splitBy(dateToStr)
+
+    DateExpr(dateArray(2), dateArray(1), dateArray(0))
+  }
+
+  def adjustDate(optionalOffset: Option[Offset], optionalDateExpr: Option[DateExpr]): Option[DateExpr] = {
 
     (optionalOffset, optionalDateExpr) match {
       case (Some(OffsetCase(offset)), Some(dateExpr)) =>
+        val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + dateExpr.month + "-" + dateExpr.day
 
-        val dateExprAsStr = dateExpr.year + "-" + dateExpr.month + "-" + dateExpr.day
+        val dateExprAsLocalDate: LocalDate = LocalDate.parse(dateExprToString(dateExpr), dateFormatter)
+        val dateWithOffset: LocalDate = dateExprAsLocalDate.plusDays(offset)
 
-        val dateExprAsLocalDate: LocalDate = LocalDate.parse(dateExprAsStr, dateFormatter)
+        Some(convertToDateExpr(dateWithOffset))
 
-        val offsetAsInt = offset.toInt
-        val res = dateExprAsLocalDate.plusDays(offsetAsInt)
-
-        Some(res)
+      case (None, Some(dateExpr)) => Some(dateExpr)
 
       case (_, _) => None
     }
