@@ -6,4 +6,4 @@
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
 <h3>@localisation(fieldValue.label)</h3>
-<p>@validationResult.map(_.getCurrentValue).getOrElse(fieldValue.value)</p>
+<p>@validationResult.map(_.getCurrentValue).getOrElse("")</p>

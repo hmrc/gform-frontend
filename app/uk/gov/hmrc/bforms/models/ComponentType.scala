@@ -27,9 +27,9 @@ import scala.collection.immutable._
 
 sealed trait ComponentType
 
-case object Text extends ComponentType
+case class Text(value: Expr) extends ComponentType
 
-case class Date(constraintType: DateConstraintType, offset: Offset) extends ComponentType
+case class Date(constraintType: DateConstraintType, offset: Offset, value: Option[DateValue]) extends ComponentType
 
 case object Date {
   val fields = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
@@ -55,7 +55,7 @@ object ChoiceType {
   implicit val formatExpr: OFormat[ChoiceType] = derived.oformat
 }
 
-case class Choice(`type`: ChoiceType, options: NonEmptyList[String], orientation: ChoiceOrientation) extends ComponentType
+case class Choice(`type`: ChoiceType, options: NonEmptyList[String], orientation: ChoiceOrientation, selections: List[Int]) extends ComponentType
 
 object ComponentType {
 

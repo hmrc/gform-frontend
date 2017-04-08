@@ -38,10 +38,10 @@ object SummaryForRender {
           section.fields
             .map { fieldValue =>
               fieldValue.`type` match {
-                case Date(_, _) => uk.gov.hmrc.bforms.views.html.snippets.summary.date(fieldValue, values(fieldValue))
+                case Date(_, _, _) => uk.gov.hmrc.bforms.views.html.snippets.summary.date(fieldValue, values(fieldValue))
                 case Address => uk.gov.hmrc.bforms.views.html.snippets.summary.address(fieldValue, values(fieldValue))
-                case Text => uk.gov.hmrc.bforms.views.html.snippets.summary.text(fieldValue, values(fieldValue))
-                case Choice(_, options, _) =>
+                case Text(_) => uk.gov.hmrc.bforms.views.html.snippets.summary.text(fieldValue, values(fieldValue))
+                case Choice(_, options, _, _) =>
                   val selections = options.toList.zipWithIndex.map{ case (option, index) =>
         	    values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
                   }.collect { case Some(selection) => selection }

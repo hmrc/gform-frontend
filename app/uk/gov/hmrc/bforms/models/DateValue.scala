@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.core
+package uk.gov.hmrc.bforms.models
 
 import julienrf.json.derived
-import play.api.libs.json.OFormat
+import play.api.libs.json._
 
-sealed trait Expr
+sealed trait DateValue
 
-final case class Add(field1: Expr, field2: Expr) extends Expr
-final case class Multiply(field1: Expr, field2: Expr) extends Expr
-final case class FormCtx(value: String) extends Expr
-final case class AuthCtx(value: String) extends Expr
-final case class EeittCtx(value: String) extends Expr
-final case class Constant(value: String) extends Expr
-final case class DateExpr(day: String, month: String, year: String) extends Expr
+final case object TodayDateValue extends DateValue
+final case class ExactDateValue(year: Int, month: Int, day: Int) extends DateValue
+final case class NextDateValue(month: Int, day: Int) extends DateValue
+final case class PreviousDateValue(month: Int, day: Int) extends DateValue
 
-object Expr {
-  implicit val format: OFormat[Expr] = derived.oformat
+object DateValue {
+  implicit val format: OFormat[DateValue] = derived.oformat
 }

@@ -1,8 +1,8 @@
-@import uk.gov.hmrc.bforms.models.FieldValue
+@import uk.gov.hmrc.bforms.models.{FieldValue, Text}
 @import uk.gov.hmrc.bforms.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult])
 
 <div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
   <label class="form-label" for="@{fieldValue.id}">@localisation(fieldValue.label)</label>
@@ -17,7 +17,7 @@
      type="text"
      name="@fieldValue.id"
      id="@fieldValue.id"
-     value="@validationResult.map(_.getCurrentValue).getOrElse(fieldValue.value)"
+     value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
      class="form-control"
      required>
 </div>

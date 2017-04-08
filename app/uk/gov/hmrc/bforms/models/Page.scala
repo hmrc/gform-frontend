@@ -37,21 +37,23 @@ object PageForRender {
 
     val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(formFields, section.fields)
 
-    val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect { case x: DateExpr => x }
-
     val snippets: List[Html] = {
       section.fields
         .map { fieldValue =>
           fieldValue.`type` match {
-            case Date(_, offset: Offset) =>
-              val prepopValues = DateHelperFunctions.adjustDate(offset, extractDefaultDate(fieldValue.value))
+            case Date(_, offset, dateValue) =>
+              val prepopValues = dateValue.map(DateExpr.fromDateValue) // TODO add Offset to the calculation
               uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues)
-
             case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue))
-            case Text => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, f.getOrElse(okF)(fieldValue))
-            case Choice(choice, options, orientation) =>
+            case t @ Text(expr) =>
+              val prepopValue = (formFields.get(fieldValue.id), expr) match {
+                case (None, Constant(constant)) => constant
+                case _ => "" // Don't prepop something we already submitted
+              }
+              uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue))
+            case Choice(choice, options, orientation, selections) =>
               val prepopValues = formFields.get(fieldValue.id) match {
-                case None => fieldValue.value.collect { case Constant(str) => str.split(',') }.toList.flatten.toSet
+                case None => selections.map(_.toString).toSet
                 case Some(_) => Set.empty[String] // Don't prepop something we already submitted
               }
 

@@ -170,7 +170,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   getData("country")
                 )
                 fv -> acd
-              case Date(_, _) =>
+              case Date(_, _, _) =>
                 val getData = dataGetter(fv)
 
                 val acd = DateComponentData(
@@ -179,8 +179,8 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   getData("year")
                 )
                 fv -> acd
-              case Text => fv -> TextData(data.get(fv.id).toList.flatten)
-              case Choice(_, _, _) => fv -> ChoiceComponentData(data.get(fv.id).toList.flatten)
+              case Text(_) => fv -> TextData(data.get(fv.id).toList.flatten)
+              case Choice(_, _, _, _) => fv -> ChoiceComponentData(data.get(fv.id).toList.flatten)
             }
           }.toMap
 

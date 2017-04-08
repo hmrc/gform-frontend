@@ -16,17 +16,14 @@
 
 package uk.gov.hmrc.bforms.models.helpers
 
-import uk.gov.hmrc.bforms.core.{Add, Expr, FormCtx}
-import uk.gov.hmrc.bforms.models.{FieldId, FieldValue}
+import uk.gov.hmrc.bforms.models._
 
 object Javascript {
 
   def fieldJavascript(fields: List[FieldValue]): String = {
 
-    val fieldIdWithExpr: List[(FieldId, Expr)] = {
-      val fieldNamesValues: List[(FieldId, Option[Expr])] = fields.map(s => (s.id, s.value))
-      fieldNamesValues.collect { case (f, Some(value)) => (f, value) }
-    }
+    val fieldIdWithExpr: List[(FieldId, Expr)] =
+      fields.collect{ case FieldValue(id, Text(expr), _, _, _, _) => (id, expr) }
 
     fieldIdWithExpr.map((toJavascriptFn _).tupled).mkString(";\n")
   }

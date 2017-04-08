@@ -18,7 +18,8 @@ package uk.gov.hmrc.bforms.core.utils
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import uk.gov.hmrc.bforms.core.{DateExpr, Offset}
+
+import uk.gov.hmrc.bforms.models.{DateExpr, Offset}
 
 /**
   * Created by dimitra on 05/04/17.
@@ -39,7 +40,7 @@ object DateHelperFunctions {
     val dateToStr = dateFormatter.format(localDate)
     val dateArray = splitBy(dateToStr)
 
-    DateExpr(dateArray(2), dateArray(1), dateArray(0))
+    DateExpr(dateArray(2).toInt, dateArray(1).toInt, dateArray(0).toInt)
   }
 
   def adjustDate(offset: Offset, optionalDateExpr: Option[DateExpr]): Option[DateExpr] = {
