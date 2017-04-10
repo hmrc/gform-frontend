@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.bforms.models
 
-import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
@@ -44,8 +43,9 @@ object PageForRender {
       section.fields
         .map { fieldValue =>
           fieldValue.`type` match {
-            case Date =>
-              val prepopValues = DateHelperFunctions.adjustDate(fieldValue.offset, extractDefaultDate(fieldValue.value))
+            case Date(dt: DateConstraintType, offset: Offset) =>
+              val prepopValues = extractDefaultDate(fieldValue.value)
+              //val prepopValues = DateHelperFunctions.adjustDate(offset, extractDefaultDate(fieldValue.value))
               uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues)
 
             case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue))

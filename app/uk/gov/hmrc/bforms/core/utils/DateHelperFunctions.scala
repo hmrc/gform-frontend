@@ -18,9 +18,7 @@ package uk.gov.hmrc.bforms.core.utils
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
-import org.slf4j.LoggerFactory
-import uk.gov.hmrc.bforms.core.{DateExpr, Offset, OffsetCase}
+import uk.gov.hmrc.bforms.core.{DateExpr, Offset}
 
 /**
   * Created by dimitra on 05/04/17.
@@ -32,7 +30,6 @@ object DefaultDateFormatter {
 }
 
 object DateHelperFunctions {
-  lazy val log = LoggerFactory.getLogger(DateHelperFunctions.getClass)
 
   import DefaultDateFormatter._
 
@@ -48,7 +45,7 @@ object DateHelperFunctions {
   def adjustDate(optionalOffset: Option[Offset], optionalDateExpr: Option[DateExpr]): Option[DateExpr] = {
 
     (optionalOffset, optionalDateExpr) match {
-      case (Some(OffsetCase(offset)), Some(dateExpr)) =>
+      case (Some(Offset(offset)), Some(dateExpr)) =>
         val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + dateExpr.month + "-" + dateExpr.day
 
         val dateExprAsLocalDate: LocalDate = LocalDate.parse(dateExprToString(dateExpr), dateFormatter)
