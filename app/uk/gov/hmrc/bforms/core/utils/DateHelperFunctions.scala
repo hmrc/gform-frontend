@@ -42,20 +42,19 @@ object DateHelperFunctions {
     DateExpr(dateArray(2), dateArray(1), dateArray(0))
   }
 
-  def adjustDate(optionalOffset: Option[Offset], optionalDateExpr: Option[DateExpr]): Option[DateExpr] = {
+  def adjustDate(offset: Offset, optionalDateExpr: Option[DateExpr]): Option[DateExpr] = {
 
-    (optionalOffset, optionalDateExpr) match {
-      case (Some(Offset(offset)), Some(dateExpr)) =>
+    (offset.value, optionalDateExpr) match {
+      case (0, Some(dateExpr)) => Some(dateExpr)
+      case (nonZero, Some(dateExpr)) =>
         val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + dateExpr.month + "-" + dateExpr.day
 
         val dateExprAsLocalDate: LocalDate = LocalDate.parse(dateExprToString(dateExpr), dateFormatter)
-        val dateWithOffset: LocalDate = dateExprAsLocalDate.plusDays(offset)
+        val dateWithOffset: LocalDate = dateExprAsLocalDate.plusDays(nonZero)
 
         Some(convertToDateExpr(dateWithOffset))
 
-      case (None, Some(dateExpr)) => Some(dateExpr)
-
-      case (_, _) => None
+      case (_, None) => None
     }
 
   }

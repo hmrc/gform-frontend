@@ -18,7 +18,7 @@ package uk.gov.hmrc.bforms.models
 
 import org.scalatest.{EitherValues, FlatSpec, Matchers, OptionValues}
 import uk.gov.hmrc.bforms.core.utils.DateHelperFunctions
-import uk.gov.hmrc.bforms.core.{DateExpr, Expr, OffsetCase}
+import uk.gov.hmrc.bforms.core.{DateExpr, Expr, Offset}
 
 /**
   * Created by dimitra on 07/04/17.
@@ -27,11 +27,11 @@ class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with Optio
 
   val extractDefaultDate: Option[Expr] => Option[DateExpr] = expr => expr.collect { case x: DateExpr => x }
 
-  "if no offset specified, date" should "be prepopulated with value" in {
+  "if offset is 0, date" should "be prepopulated with value" in {
     val value = Some(DateExpr("04", "07", "2017"))
     val dateExpression = extractDefaultDate(value)
 
-    val result = DateHelperFunctions.adjustDate(None, dateExpression)
+    val result = DateHelperFunctions.adjustDate(Offset(0), dateExpression)
 
     result shouldBe value
   }
@@ -40,9 +40,7 @@ class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with Optio
     val value = Some(DateExpr("04", "07", "2017"))
     val dateExpression = extractDefaultDate(value)
 
-    val offset = Some(OffsetCase(-5))
-
-    val result = DateHelperFunctions.adjustDate(offset, dateExpression)
+    val result = DateHelperFunctions.adjustDate(Offset(-5), dateExpression)
 
     result.get shouldBe DateExpr("29", "06", "2017")
   }
@@ -51,15 +49,13 @@ class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with Optio
     val value = Some(DateExpr("04", "07", "2017"))
     val dateExpression = extractDefaultDate(value)
 
-    val offset = Some(OffsetCase(40))
-
-    val result = DateHelperFunctions.adjustDate(offset, dateExpression)
+    val result = DateHelperFunctions.adjustDate(Offset(40), dateExpression)
 
     result.get shouldBe DateExpr("13", "08", "2017")
   }
 
   "if offset date are non defined, no DateExpression" should "be returned" in {
-    val result = DateHelperFunctions.adjustDate(None, None)
+    val result = DateHelperFunctions.adjustDate(Offset(0), None)
 
     result shouldBe None
   }
