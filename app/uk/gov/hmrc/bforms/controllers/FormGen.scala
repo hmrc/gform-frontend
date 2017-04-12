@@ -29,6 +29,8 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import uk.gov.hmrc.bforms.controllers.helpers.FormHelpers._
 import uk.gov.hmrc.bforms.models._
+import uk.gov.hmrc.bforms.models.components._
+import uk.gov.hmrc.bforms.models.form._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}

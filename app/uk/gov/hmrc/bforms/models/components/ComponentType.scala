@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.components
 
 import cats.data.NonEmptyList
 import julienrf.json.derived
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
 import play.api.data.validation.ValidationError
-import uk.gov.hmrc.bforms.core._
+import play.api.libs.json._
+import uk.gov.hmrc.bforms.models._
 
 import scala.collection.immutable._
 

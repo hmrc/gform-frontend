@@ -17,7 +17,6 @@
 package uk.gov.hmrc.bforms.typeclasses
 
 import java.time.{ LocalDate, LocalDateTime }
-import uk.gov.hmrc.bforms.models._
 
 trait Now[T] {
   def apply(): T

@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.components
 
-import play.api.libs.json.{ Format, JsError, JsString, JsSuccess, Reads, Writes }
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-case class FieldId(value: String) extends AnyVal {
-  override def toString = value
+sealed trait Expr
 
-  def withSuffix(suffix: String): FieldId = FieldId(value + "." + suffix)
-}
+final case class Add(field1: Expr, field2: Expr) extends Expr
+final case class Multiply(field1: Expr, field2: Expr) extends Expr
+final case class FormCtx(value: String) extends Expr
+final case class AuthCtx(value: String) extends Expr
+final case class EeittCtx(value: String) extends Expr
+final case class Constant(value: String) extends Expr
 
-object FieldId {
-
-  val writes = Writes[FieldId](id => JsString(id.value))
-  val reads = Reads[FieldId] {
-    case JsString(value) => JsSuccess(FieldId(value))
-    case otherwise => JsError(s"Invalid fieldId, expected JsString, got: $otherwise")
-  }
-
-  implicit val format = Format[FieldId](reads, writes)
+object Expr {
+  implicit val format: OFormat[Expr] = derived.oformat
 }

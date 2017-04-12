@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.bforms.models.helpers
 
-import uk.gov.hmrc.bforms.models._
+import uk.gov.hmrc.bforms.models.components._
 
 object Javascript {
 

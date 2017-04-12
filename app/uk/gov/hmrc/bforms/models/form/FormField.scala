@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.form
 
-import julienrf.json.derived
-import play.api.libs.json._
+import play.api.libs.json.Json
+import uk.gov.hmrc.bforms.models.components.FieldId
 
-sealed trait DateValue
+case class FormField(id: FieldId, value: String) {
+  def withSuffix(suffix: String): FormField = {
+    FormField(id.withSuffix(suffix), value)
+  }
+}
 
-final case object TodayDateValue extends DateValue
-final case class ExactDateValue(year: Int, month: Int, day: Int) extends DateValue
-final case class NextDateValue(month: Int, day: Int) extends DateValue
-final case class PreviousDateValue(month: Int, day: Int) extends DateValue
+object FormField {
 
-object DateValue {
-  implicit val format: OFormat[DateValue] = derived.oformat
+  implicit val format = Json.format[FormField]
 }

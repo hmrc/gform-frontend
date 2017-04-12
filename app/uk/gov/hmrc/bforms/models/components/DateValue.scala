@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.components
 
-import play.api.libs.json.{ Format, JsError, JsString, JsSuccess, Reads, Writes }
+import julienrf.json.derived
+import play.api.libs.json._
 
-case class FormTypeId(value: String) extends AnyVal {
-  override def toString = value
-}
+sealed trait DateValue
 
-object FormTypeId {
-  val writes = Writes[FormTypeId](id => JsString(id.value))
-  val reads = Reads[FormTypeId] {
-    case JsString(value) => JsSuccess(FormTypeId(value))
-    case otherwise => JsError(s"Invalid formTypeId, expected JsString, got: $otherwise")
-  }
+final case object TodayDateValue extends DateValue
+final case class ExactDateValue(year: Int, month: Int, day: Int) extends DateValue
+final case class NextDateValue(month: Int, day: Int) extends DateValue
+final case class PreviousDateValue(month: Int, day: Int) extends DateValue
 
-  implicit val format = Format[FormTypeId](reads, writes)
+object DateValue {
+  implicit val format: OFormat[DateValue] = derived.oformat
 }

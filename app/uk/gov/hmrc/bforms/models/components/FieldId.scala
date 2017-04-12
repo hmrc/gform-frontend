@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.components
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json._
 
-/**
-  * Created by dimitra on 05/04/17.
-  */
-final case class Offset(value: Int) extends AnyVal
+case class FieldId(value: String) extends AnyVal {
+  override def toString = value
 
-object Offset {
-  implicit val format: OFormat[Offset] = Json.format[Offset]
+  def withSuffix(suffix: String): FieldId = FieldId(value + "." + suffix)
+}
+
+object FieldId {
+
+  val writes = Writes[FieldId](id => JsString(id.value))
+  val reads = Reads[FieldId] {
+    case JsString(value) => JsSuccess(FieldId(value))
+    case otherwise => JsError(s"Invalid fieldId, expected JsString, got: $otherwise")
+  }
+
+  implicit val format = Format[FieldId](reads, writes)
 }

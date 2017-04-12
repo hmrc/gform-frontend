@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.form
+
+import uk.gov.hmrc.bforms.models.Page
 
 sealed trait FormAction
 

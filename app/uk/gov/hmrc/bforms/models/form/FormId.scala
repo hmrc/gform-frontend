@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.form
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import play.api.libs.json._
 
-sealed trait Expr
+case class FormId(value: String) extends AnyVal {
+  override def toString = value
+}
 
-final case class Add(field1: Expr, field2: Expr) extends Expr
-final case class Multiply(field1: Expr, field2: Expr) extends Expr
-final case class FormCtx(value: String) extends Expr
-final case class AuthCtx(value: String) extends Expr
-final case class EeittCtx(value: String) extends Expr
-final case class Constant(value: String) extends Expr
+object FormId {
+  val writes = Writes[FormId](id => JsString(id.value))
+  val reads = Reads[FormId] {
+    case JsString(value) => JsSuccess(FormId(value))
+    case otherwise => JsError(s"Invalid formId, expected JsString, got: $otherwise")
+  }
 
-object Expr {
-  implicit val format: OFormat[Expr] = derived.oformat
+  implicit val format = Format[FormId](reads, writes)
 }

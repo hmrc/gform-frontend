@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.core.utils
+package uk.gov.hmrc.bforms.models.helpers
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import uk.gov.hmrc.bforms.models.{DateExpr, Offset}
-
-/**
-  * Created by dimitra on 05/04/17.
-  */
+import uk.gov.hmrc.bforms.models.components.{DateExpr, Offset}
 
 object DefaultDateFormatter {
   val formatPattern = "yyyy-MM-dd"
@@ -40,24 +36,20 @@ object DateHelperFunctions {
     val dateToStr = dateFormatter.format(localDate)
     val dateArray = splitBy(dateToStr)
 
-    DateExpr(dateArray(2).toInt, dateArray(1).toInt, dateArray(0).toInt)
+    DateExpr(dateArray(0).toInt, dateArray(1).toInt, dateArray(2).toInt)
   }
 
-  def adjustDate(offset: Offset, optionalDateExpr: Option[DateExpr]): Option[DateExpr] = {
+  def withOffset(offset: Offset, dateExpr: DateExpr): DateExpr = offset.value match {
+    case 0 => dateExpr
+    case nonZero =>
+      val zeroPadding = (x: Int) => "%02d".format(x)
+      val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)
 
-    (offset.value, optionalDateExpr) match {
-      case (0, Some(dateExpr)) => Some(dateExpr)
-      case (nonZero, Some(dateExpr)) =>
-        val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + dateExpr.month + "-" + dateExpr.day
+      val dateWithOffset = LocalDate
+        .parse(dateExprToString(dateExpr), dateFormatter)
+        .plusDays(nonZero)
 
-        val dateExprAsLocalDate: LocalDate = LocalDate.parse(dateExprToString(dateExpr), dateFormatter)
-        val dateWithOffset: LocalDate = dateExprAsLocalDate.plusDays(nonZero)
-
-        Some(convertToDateExpr(dateWithOffset))
-
-      case (_, None) => None
-    }
-
+      convertToDateExpr(dateWithOffset)
   }
 
 }

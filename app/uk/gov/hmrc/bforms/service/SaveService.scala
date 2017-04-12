@@ -18,12 +18,13 @@ package uk.gov.hmrc.bforms.service
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{ FormData, FormId, FormTypeId, SaveResult, VerificationResult }
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.bforms.models.{SaveResult, VerificationResult}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json._
+import uk.gov.hmrc.bforms.models.form.{FormData, FormId, FormTypeId}
 
 object SaveService {
 

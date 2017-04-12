@@ -17,7 +17,8 @@
 package uk.gov.hmrc.bforms.models
 
 import org.scalatest._
-import uk.gov.hmrc.bforms.models.Constant
+import uk.gov.hmrc.bforms.models.components.{Constant, FieldId, FieldValue, Text}
+import uk.gov.hmrc.bforms.models.form.FormTypeId
 import uk.gov.hmrc.bforms.models.helpers.Extractors.extractNames
 
 class PageSpec extends FlatSpec with Matchers with EitherValues {
