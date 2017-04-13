@@ -17,10 +17,13 @@
 package uk.gov.hmrc.bforms.models
 
 import org.scalatest._
-import uk.gov.hmrc.bforms.models.Constant
+import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.bforms.models.helpers.Extractors.extractNames
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-class PageSpec extends FlatSpec with Matchers with EitherValues {
+class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFutures {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
   val section0 = Section("Your details", List(FieldValue(FieldId("iptRegNum"), Text(Constant("")), "Insurance Premium Tax (IPT) number", None, None, true)))
@@ -38,6 +41,10 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
     sections = List(section0, section1, section2)
   )
 
+  val authority = Authority("uri", Accounts(), None, None, CredentialStrength.None, ConfidenceLevel.L0, None, None, None, "String")
+  implicit val authContext = AuthContext(authority)
+  implicit val headerCarrier = HeaderCarrier()
+
   "Page" should "display first page" in {
 
     val page = Page(0, formTemplate)
@@ -50,14 +57,14 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
 
     val render = page.pageForRender(Map.empty, None)
 
-    render.hiddenFieldsSnippets.size should be(2)
+    render.futureValue.hiddenFieldsSnippets.size should be(2)
 
-    val hiddenFieldNames = extractNames(render.hiddenFieldsSnippets)
+    val hiddenFieldNames = extractNames(render.futureValue.hiddenFieldsSnippets)
     hiddenFieldNames should be(List("firstName", "nameOfBusiness"))
 
-    render.snippets.size should be(1)
+    render.futureValue.snippets.size should be(1)
 
-    val fieldNames = extractNames(render.snippets)
+    val fieldNames = extractNames(render.futureValue.snippets)
     fieldNames should be(List("iptRegNum"))
   }
 
@@ -73,14 +80,14 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
 
     val render = page.pageForRender(Map.empty, None)
 
-    render.hiddenFieldsSnippets.size should be(2)
+    render.futureValue.hiddenFieldsSnippets.size should be(2)
 
-    val hiddenFieldNames = extractNames(render.hiddenFieldsSnippets)
+    val hiddenFieldNames = extractNames(render.futureValue.hiddenFieldsSnippets)
     hiddenFieldNames should be(List("iptRegNum", "nameOfBusiness"))
 
-    render.snippets.size should be(1)
+    render.futureValue.snippets.size should be(1)
 
-    val fieldNames = extractNames(render.snippets)
+    val fieldNames = extractNames(render.futureValue.snippets)
     fieldNames should be(List("firstName"))
   }
 
@@ -96,14 +103,14 @@ class PageSpec extends FlatSpec with Matchers with EitherValues {
 
     val render = page.pageForRender(Map.empty, None)
 
-    render.hiddenFieldsSnippets.size should be(2)
+    render.futureValue.hiddenFieldsSnippets.size should be(2)
 
-    val hiddenFieldNames = extractNames(render.hiddenFieldsSnippets)
+    val hiddenFieldNames = extractNames(render.futureValue.hiddenFieldsSnippets)
     hiddenFieldNames should be(List("iptRegNum", "firstName"))
 
-    render.snippets.size should be(1)
+    render.futureValue.snippets.size should be(1)
 
-    val fieldNames = extractNames(render.snippets)
+    val fieldNames = extractNames(render.futureValue.snippets)
     fieldNames should be(List("nameOfBusiness"))
 
   }

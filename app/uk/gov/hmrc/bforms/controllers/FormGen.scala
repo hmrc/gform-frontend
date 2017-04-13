@@ -40,7 +40,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
   extends FrontendController with I18nSupport {
 
   def form(formTypeId: FormTypeId, version: String) =
-    sec.SecureWithTemplate(formTypeId, version) { authContext =>
+    sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
       implicit request =>
 
         val formTemplate = request.formTemplate
@@ -51,10 +51,11 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
   def formById(formTypeId: FormTypeId, version: String, formId: FormId) = formByIdPage(formTypeId, version, formId, 0)
 
-  def formByIdPage(formTypeId: FormTypeId, version: String, formId: FormId, currPage : Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
+  def formByIdPage(formTypeId: FormTypeId, version: String, formId: FormId, currPage : Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
+    implicit authContext =>
     implicit request =>
 
-      SaveService.getFormById(formTypeId, version, formId).map { formData =>
+      SaveService.getFormById(formTypeId, version, formId).flatMap { formData =>
 
         val lookup: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
@@ -142,7 +143,8 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
   }
 
-  def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
+  def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
+    implicit authContext =>
     implicit request =>
       processResponseDataFromBody(request) { data =>
           val formTemplate = request.formTemplate
@@ -202,7 +204,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   case result => continuation(result)
                 }
               case Left(_) =>
-                Future.successful(page.renderPage(data, formIdOpt, Some(validationResults.get)))
+                page.renderPage(data, formIdOpt, Some(validationResults.get))
             }
           }
 
@@ -211,14 +213,10 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
               action match {
                 case SaveAndContinue =>
                   saveAndProcessResponse { saveResult =>
-
-                    val result =
-                      getFormId(formIdOpt, saveResult) match {
-                        case Right(formId) => nextPage.renderPage(data, Some(formId), None)
-                        case Left(error) => BadRequest(error)
-                      }
-
-                    Future.successful(result)
+                    getFormId(formIdOpt, saveResult) match {
+                      case Right(formId) => nextPage.renderPage(data, Some(formId), None)
+                      case Left(error) => Future.successful(BadRequest(error))
+                    }
                   }
                 case SaveAndExit =>
                   val formFields: List[FormField] = validationResults.values.flatMap(_.toFormFieldTolerant).toList

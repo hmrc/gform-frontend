@@ -16,12 +16,16 @@
 
 package uk.gov.hmrc.bforms.models
 
-import play.api.libs.json.{ Format, JsError, JsString, JsSuccess, Reads, Writes }
+import play.api.libs.json._
 
-case class FormId(value: String) extends AnyVal {
-  override def toString = value
-}
-
-object FormId {
-  implicit val format: Format[FormId] = ValueClassFormat.format(FormId.apply)(_.value)
+object ValueClassFormat {
+  def format[A: Format](fromStringToA: String => A)(fromAToString: A => String) = {
+    Format[A](
+      Reads[A]{
+        case JsString(str) => JsSuccess(fromStringToA(str))
+        case unknown => JsError(s"JsString value expected, got: $unknown")
+      },
+      Writes[A](a => JsString(fromAToString(a)))
+    )
+  }
 }

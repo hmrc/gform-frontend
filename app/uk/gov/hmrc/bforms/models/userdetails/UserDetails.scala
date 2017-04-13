@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.userdetails
 
-import play.api.libs.json.{ Format, JsError, JsString, JsSuccess, Reads, Writes }
+import play.api.libs.json.Json
 
-case class FormId(value: String) extends AnyVal {
-  override def toString = value
-}
+case class UserDetails(affinityGroup: AffinityGroup, groupIdentifier: GroupId)
 
-object FormId {
-  implicit val format: Format[FormId] = ValueClassFormat.format(FormId.apply)(_.value)
+object UserDetails {
+  implicit val reads = Json.reads[UserDetails]
 }

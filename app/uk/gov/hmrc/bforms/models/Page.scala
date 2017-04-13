@@ -20,16 +20,25 @@ import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.bforms.models.helpers.Fields
 import uk.gov.hmrc.bforms.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.bforms.core._
 import uk.gov.hmrc.bforms.core.utils.DateHelperFunctions
-
+import uk.gov.hmrc.bforms.service.PrepopService
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
 object PageForRender {
-  def apply(curr: Int, formFields: Map[FieldId, Seq[String]], formTemplate: FormTemplate, section: Section, f: Option[FieldValue => Option[FormFieldValidationResult]]): PageForRender = {
+  def apply(
+    curr: Int,
+    formFields: Map[FieldId, Seq[String]],
+    formTemplate: FormTemplate,
+    section: Section,
+    f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
 
     val hiddenFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
 
@@ -37,45 +46,49 @@ object PageForRender {
 
     val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(formFields, section.fields)
 
-    val snippets: List[Html] = {
+    val snippetsF: List[Future[Html]] = {
       section.fields
         .map { fieldValue =>
           fieldValue.`type` match {
             case Date(_, offset, dateValue) =>
               val prepopValues = dateValue.map(DateExpr.fromDateValue) // TODO add Offset to the calculation
-              uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues)
-            case Address => uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue))
+              Future.successful(uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
+            case Address =>
+              Future.successful(uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue)))
             case t @ Text(expr) =>
-              val prepopValue = (formFields.get(fieldValue.id), expr) match {
-                case (None, Constant(constant)) => constant
-                case _ => "" // Don't prepop something we already submitted
+              val prepopValueF = formFields.get(fieldValue.id) match {
+                case None  => PrepopService.prepopData(expr, formTemplate.formTypeId)
+                case _ => Future.successful("") // Don't prepop something we already submitted
               }
-              uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue))
+              prepopValueF.map(prepopValue => uk.gov.hmrc.bforms.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue)))
+
             case Choice(choice, options, orientation, selections) =>
               val prepopValues = formFields.get(fieldValue.id) match {
                 case None => selections.map(_.toString).toSet
                 case Some(_) => Set.empty[String] // Don't prepop something we already submitted
               }
 
+              val snippet =
               choice match {
                 case Radio | YesNo => uk.gov.hmrc.bforms.views.html.choice("radio", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue))
                 case Checkbox => uk.gov.hmrc.bforms.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue))
               }
+              Future.successful(snippet)
           }
         }
     }
-    PageForRender(curr, hiddenSnippets, snippets, fieldJavascript(formTemplate.sections.flatMap(_.fields)))
+    Future.sequence(snippetsF).map(snippets => PageForRender(curr, hiddenSnippets, snippets, fieldJavascript(formTemplate.sections.flatMap(_.fields))))
   }
 }
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
 
-  def pageForRender(formFields: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]]): PageForRender =
+  def pageForRender(formFields: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier) : Future[PageForRender] =
     PageForRender(curr, formFields, formTemplate, section, f)
 
   def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])
-                (implicit request: Request[_], messages: Messages): Result = {
-    Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, pageForRender(formFields, f), formId))
+                (implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
+    pageForRender(formFields, f).map(page => Ok(uk.gov.hmrc.bforms.views.html.form(formTemplate, page, formId)))
   }
 
 }

@@ -25,12 +25,5 @@ case class FieldId(value: String) extends AnyVal {
 }
 
 object FieldId {
-
-  val writes = Writes[FieldId](id => JsString(id.value))
-  val reads = Reads[FieldId] {
-    case JsString(value) => JsSuccess(FieldId(value))
-    case otherwise => JsError(s"Invalid fieldId, expected JsString, got: $otherwise")
-  }
-
-  implicit val format = Format[FieldId](reads, writes)
+  implicit val format: Format[FieldId] = ValueClassFormat.format(FieldId.apply)(_.value)
 }

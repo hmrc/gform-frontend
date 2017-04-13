@@ -23,11 +23,5 @@ case class FormTypeId(value: String) extends AnyVal {
 }
 
 object FormTypeId {
-  val writes = Writes[FormTypeId](id => JsString(id.value))
-  val reads = Reads[FormTypeId] {
-    case JsString(value) => JsSuccess(FormTypeId(value))
-    case otherwise => JsError(s"Invalid formTypeId, expected JsString, got: $otherwise")
-  }
-
-  implicit val format = Format[FormTypeId](reads, writes)
+  implicit val format: Format[FormTypeId] = ValueClassFormat.format(FormTypeId.apply)(_.value)
 }
