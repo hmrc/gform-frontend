@@ -19,7 +19,8 @@ package uk.gov.hmrc.bforms.connectors
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Action
 import uk.gov.hmrc.bforms.WSHttp
-import uk.gov.hmrc.bforms.models.{ FormData, FormId, FormTypeId, VerificationResult, SaveResult }
+import uk.gov.hmrc.bforms.models.form.{FormData, FormId, FormTypeId}
+import uk.gov.hmrc.bforms.models.{SaveResult, VerificationResult}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse}
 

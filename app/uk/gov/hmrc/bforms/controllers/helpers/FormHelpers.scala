@@ -19,7 +19,8 @@ package uk.gov.hmrc.bforms.controllers.helpers
 import play.api.mvc.{AnyContent, Result}
 import play.api.mvc.Results._
 import uk.gov.hmrc.bforms.controllers.RequestWithTemplate
-import uk.gov.hmrc.bforms.models.{FieldId, FormData, FormId}
+import uk.gov.hmrc.bforms.models.form.{FormData, FormId}
+import uk.gov.hmrc.bforms.models.components.FieldId
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future

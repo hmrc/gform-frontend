@@ -17,6 +17,7 @@
 package uk.gov.hmrc.bforms.models
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.bforms.models.components.FieldValue
 
 
 case class Section(

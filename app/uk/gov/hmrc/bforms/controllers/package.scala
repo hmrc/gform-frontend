@@ -20,13 +20,14 @@ import javax.inject.{ Inject, Singleton }
 import play.api.Configuration
 import play.api.mvc.{ Action, ActionBuilder, ActionRefiner, AnyContent, Request, Result, Results, WrappedRequest }
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.bforms.models.{ FormTypeId, FormTemplate }
+import uk.gov.hmrc.bforms.models.FormTemplate
 import uk.gov.hmrc.bforms.service.RetrieveService
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.auth._
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.bforms.models.form.FormTypeId
 
 package controllers {
 

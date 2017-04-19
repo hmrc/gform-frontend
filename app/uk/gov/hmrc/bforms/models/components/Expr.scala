@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.components
 
 import julienrf.json.derived
 import play.api.libs.json.OFormat

@@ -17,8 +17,9 @@
 package uk.gov.hmrc.bforms.models
 
 import org.scalatest._
+import uk.gov.hmrc.bforms.models.components._
+import uk.gov.hmrc.bforms.models.form.{FormId, FormTypeId}
 import uk.gov.hmrc.bforms.models.helpers.Extractors._
-import uk.gov.hmrc.bforms.core._
 
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
