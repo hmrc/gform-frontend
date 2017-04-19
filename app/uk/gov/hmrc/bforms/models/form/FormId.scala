@@ -17,6 +17,7 @@
 package uk.gov.hmrc.bforms.models.form
 
 import play.api.libs.json._
+import uk.gov.hmrc.bforms.models.ValueClassFormat
 
 case class FormId(value: String) extends AnyVal {
   override def toString = value
