@@ -17,15 +17,17 @@
 package uk.gov.hmrc.bforms.service
 
 import play.api.Logger
-import play.api.libs.json.JsValue
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.bforms.connectors.{BformsConnector, EeittConnector}
-import uk.gov.hmrc.bforms.models._
-import uk.gov.hmrc.bforms.models.userdetails.{GroupId, UserDetails}
+import uk.gov.hmrc.bforms.connectors.EeittConnector
+import uk.gov.hmrc.bforms.models.userdetails.UserDetails
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.bforms.FrontendAuthConnector
+import uk.gov.hmrc.bforms.models.components._
+import uk.gov.hmrc.bforms.models.form.FormTypeId
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.util.control.NonFatal
 
 object AuthContextPrepop {
