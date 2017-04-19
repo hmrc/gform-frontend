@@ -18,6 +18,9 @@ package uk.gov.hmrc.bforms.models
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
+import uk.gov.hmrc.bforms.models.components.{Constant, FieldId, FieldValue, Text}
+import uk.gov.hmrc.bforms.models.form.FormTypeId
+
 import uk.gov.hmrc.bforms.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }

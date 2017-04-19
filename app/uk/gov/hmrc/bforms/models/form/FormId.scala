@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.form
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json._
 
-/**
-  * Created by dimitra on 05/04/17.
-  */
-final case class Offset(value: Int) extends AnyVal
+case class FormId(value: String) extends AnyVal {
+  override def toString = value
+}
 
-object Offset {
-  implicit val format: OFormat[Offset] = Json.format[Offset]
+object FormId {
+  implicit val format: Format[FormId] = ValueClassFormat.format(FormId.apply)(_.value)
 }

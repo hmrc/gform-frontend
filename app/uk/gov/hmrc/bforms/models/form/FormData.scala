@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.form
 
-import play.api.libs.json.{ Format, JsError, JsString, JsSuccess, Reads, Writes }
+import play.api.libs.json.Json
 
-case class FieldId(value: String) extends AnyVal {
-  override def toString = value
+case class FormData(formTypeId: FormTypeId, version: String, characterSet: String, fields: Seq[FormField])
 
-  def withSuffix(suffix: String): FieldId = FieldId(value + "." + suffix)
-}
+object FormData {
 
-object FieldId {
-  implicit val format: Format[FieldId] = ValueClassFormat.format(FieldId.apply)(_.value)
+  implicit val format = Json.format[FormData]
 }

@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.form
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.bforms.core._
+import play.api.libs.json._
 
-case class FieldValue(
-  id: FieldId,
-  `type`: ComponentType,
-  label: String,
-  helpText: Option[String],
-  readOnly: Option[String],
-  mandatory: Boolean
-)
+case class FormTypeId(value: String) extends AnyVal {
+  override def toString = value
+}
 
-object FieldValue {
-  implicit val format = Json.format[FieldValue]
+object FormTypeId {
+  implicit val format: Format[FormTypeId] = ValueClassFormat.format(FormTypeId.apply)(_.value)
 }

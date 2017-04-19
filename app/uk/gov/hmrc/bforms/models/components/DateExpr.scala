@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.bforms.models
+package uk.gov.hmrc.bforms.models.components
 
 import java.time.LocalDate
 import uk.gov.hmrc.bforms.typeclasses.Now

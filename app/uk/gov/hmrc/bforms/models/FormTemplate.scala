@@ -17,6 +17,7 @@
 package uk.gov.hmrc.bforms.models
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.bforms.models.form.FormTypeId
 
 case class FormTemplate(
   formTypeId: FormTypeId,

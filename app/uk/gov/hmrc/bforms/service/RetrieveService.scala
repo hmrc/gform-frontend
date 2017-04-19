@@ -21,14 +21,13 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 import uk.gov.hmrc.bforms.connectors.BformsConnector
-import uk.gov.hmrc.bforms.models.{ FormTypeId, FormField }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.concurrent.Future
 import play.api.libs.json._
-import uk.gov.hmrc.bforms.models.{FieldValue, FormTemplate}
+import uk.gov.hmrc.bforms.models.form.{FormField, FormTypeId}
+import uk.gov.hmrc.bforms.models.FormTemplate
 
 object RetrieveService {
 

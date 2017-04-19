@@ -37,8 +37,7 @@ trait MicroService {
       routesGenerator := StaticRoutesGenerator,
       routesImport ++= Seq(
         "uk.gov.hmrc.bforms.binders.ValueClassBinder._",
-        "uk.gov.hmrc.bforms.models.FormTypeId",
-        "uk.gov.hmrc.bforms.models.FormId"
+        "uk.gov.hmrc.bforms.models.form._"
       )
     )
     .configs(IntegrationTest)

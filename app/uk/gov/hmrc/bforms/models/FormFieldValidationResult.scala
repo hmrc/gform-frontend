@@ -20,6 +20,8 @@ import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.traverse._
 import cats.syntax.either._
+import uk.gov.hmrc.bforms.models.components.{Choice, FieldId, FieldValue}
+import uk.gov.hmrc.bforms.models.form.FormField
 
 sealed trait FormFieldValidationResult {
   def isOk: Boolean = this match {

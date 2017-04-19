@@ -20,15 +20,20 @@ import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.bforms.models.helpers.Fields
-import uk.gov.hmrc.bforms.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.bforms.core._
-import uk.gov.hmrc.bforms.core.utils.DateHelperFunctions
+
 import uk.gov.hmrc.bforms.service.PrepopService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
+
+import uk.gov.hmrc.bforms.models.components._
+import uk.gov.hmrc.bforms.models.form.FormId
+import uk.gov.hmrc.bforms.models.helpers.Fields
+import uk.gov.hmrc.bforms.models.helpers.Javascript.fieldJavascript
+import uk.gov.hmrc.bforms.models.helpers.DateHelperFunctions._
+
 
 case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
@@ -51,10 +56,13 @@ object PageForRender {
         .map { fieldValue =>
           fieldValue.`type` match {
             case Date(_, offset, dateValue) =>
-              val prepopValues = dateValue.map(DateExpr.fromDateValue) // TODO add Offset to the calculation
+
+              val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
               Future.successful(uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
+
             case Address =>
               Future.successful(uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue)))
+
             case t @ Text(expr) =>
               val prepopValueF = formFields.get(fieldValue.id) match {
                 case None  => PrepopService.prepopData(expr, formTemplate.formTypeId)
