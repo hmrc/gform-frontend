@@ -5,5 +5,11 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
-<h3>@localisation(fieldValue.label)</h3>
-<p>@validationResult.map(_.getCurrentValue).getOrElse("")</p>
+<tr>
+  <td>
+    @localisation(fieldValue.label)
+  </td>
+  <td>
+    @validationResult.map(_.getCurrentValue).getOrElse("")
+  </td>
+</tr>

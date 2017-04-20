@@ -5,19 +5,14 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
-<h3>@localisation(fieldValue.label)</h3>
-@if(validationResult.map(_.getCurrentValue.isEmpty).contains(true)) {
-    <p>
-        @{
-            validationResult.map(_.getCurrentValue("day")).getOrElse("")
-        }
-        /
-        @{
-            validationResult.map(_.getCurrentValue("month")).getOrElse("")
-        }
-        /
-        @{
-            validationResult.map(_.getCurrentValue("year")).getOrElse("")
-        }
-    </p>
-}
+<tr>
+  <td>
+    @localisation(fieldValue.label)
+  </td>
+
+  <td>
+    @if(validationResult.map(_.getCurrentValue.isEmpty).contains(true)) {
+        @{validationResult.map(_.getCurrentValue("day")).getOrElse("")}/@{validationResult.map(_.getCurrentValue("month")).getOrElse("")}/@{validationResult.map(_.getCurrentValue("year")).getOrElse("")}
+    }
+  </td>
+</tr>
