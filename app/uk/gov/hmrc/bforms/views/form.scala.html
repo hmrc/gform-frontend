@@ -6,7 +6,7 @@
 @(formTemplate: FormTemplate, page: PageForRender, formId: Option[FormId])(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend tax form", bodyClasses = None) {
-    <header class="page-header text">
+    <header class="page-header">
         <h1>@localisation(formTemplate.formName)</h1>
     </header>
 
@@ -18,32 +18,27 @@
             CSRF.formField
         }
 
-	@{
-	    page.snippets
-	}
+      	@{
+      	    page.snippets
+      	}
 
-	@{
-	    page.hiddenFieldsSnippets
-	}
+      	@{
+      	    page.hiddenFieldsSnippets
+      	}
 
-	<input
-          type="hidden"
-	  name="formId"
-	  value="@{formId.map(_.value).getOrElse("")}" />
+      	<input type="hidden"
+      	       name="formId"
+      	       value="@{formId.map(_.value).getOrElse("")}" />
 
-	<br>
+        <div class="form-group divider--top--thick">
+            <button type="submit" class="button" name="save" value="Continue">Save and Continue</button>
+        </div>
 
-	<p>
-	    <div></div>
-	</p>
-
-
-
-	<button name="save" value="Continue">Save and Continue</button>
-
-	<button name="save" value="Save">Save and Exit</button>
-
+        <div class="form-group">
+            <button type="submit" class="button--secondary" name="save" value="Save">Save and come back later</button>
+        </div>
     </form>
+
     <script type="text/javascript">
       @Html(page.javascripts)
     </script>

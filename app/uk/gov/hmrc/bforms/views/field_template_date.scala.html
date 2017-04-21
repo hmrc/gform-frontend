@@ -23,9 +23,7 @@
                        name="@{fieldValue.id}.day"
                        id="@{fieldValue.id}.day"
                        value = "@validationResult.flatMap(_.getOptionalCurrentValue("day")).orElse(prepop.map(_.day)).getOrElse("")"
-                class="form-control form-control--block"
-                required>
-
+                       class="input--xxsmall" />
             </div>
 
             <div class="form-group">
@@ -35,9 +33,7 @@
                        name="@{fieldValue.id}.month"
                        id="@{fieldValue.id}.month"
                        value = "@validationResult.flatMap(_.getOptionalCurrentValue("month")).orElse(prepop.map(_.month)).getOrElse("")"
-
-                class= "form-control form-control--block"
-                required>
+                       class= "input--xxsmall" />
             </div>
 
             <div class="form-group form-group-year">
@@ -47,9 +43,7 @@
                        name="@{fieldValue.id}.year"
                        id="@{fieldValue.id}.year"
                        value = "@validationResult.flatMap(_.getOptionalCurrentValue("year")).orElse(prepop.map(_.year)).getOrElse("")"
-
-                class="form-control form-control--block"
-                required>
+                       class="input--xsmall" />
             </div>
         </div>
     </fieldset>
