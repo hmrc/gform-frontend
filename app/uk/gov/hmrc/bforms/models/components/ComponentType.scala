@@ -26,7 +26,7 @@ import scala.collection.immutable._
 
 sealed trait ComponentType
 
-case class Text(value: Expr) extends ComponentType
+case class Text(value: Expr, total: Boolean) extends ComponentType
 
 case class Date(constraintType: DateConstraintType, offset: Offset, value: Option[DateValue]) extends ComponentType
 

@@ -24,9 +24,9 @@ import uk.gov.hmrc.bforms.models.helpers.Extractors._
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", List(FieldValue(FieldId("iptRegNum"), Text(Constant("")), "Insurance Premium Tax (IPT) number", None, None, true)))
-  val section1 = Section("About you", List(FieldValue(FieldId("firstName"), Text(Constant("")), "First Name", None, None, true)))
-  val section2 = Section("Business details", List(FieldValue(FieldId("nameOfBusiness"), Text(Constant("")), "Name of business", None, None, true)))
+  val section0 = Section("Your details", List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true)))
+  val section1 = Section("About you", List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true)))
+  val section2 = Section("Business details", List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
@@ -74,7 +74,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
   "Summary" should "display values for each field type" in {
 
     val section = Section("Personal details", List(
-      FieldValue(FieldId("Surname"), Text(Constant("")), "Surname", None, None, true),
+      FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, None, true),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true),
       FieldValue(FieldId("HomeAddress"), Address, "Home address", None, None, true)
     ))

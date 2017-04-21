@@ -183,7 +183,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   getData("year")
                 )
                 fv -> acd
-              case Text(_) => fv -> TextData(data.get(fv.id).toList.flatten)
+              case Text(_, _) => fv -> TextData(data.get(fv.id).toList.flatten)
               case Choice(_, _, _, _) => fv -> ChoiceComponentData(data.get(fv.id).toList.flatten)
             }
           }.toMap
