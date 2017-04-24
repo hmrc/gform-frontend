@@ -5,10 +5,12 @@
 
 @(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
 
-@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend tax form", bodyClasses = None, mainClass = Some("full-width")) {
-    <header class="page-header text">
-        <h1>@localisation(formTemplate.formName)</h1>
-    </header>
+@uk.gov.hmrc.bforms.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {
+    <h1 class="h1-heading">Check your details</h1>
+
+    <p>
+      Make sure that the information you have given is correct before submitting your return.
+    </p>
 
     <form action="@uk.gov.hmrc.bforms.controllers.routes.SummaryGen.submit(formTemplate.formTypeId, formTemplate.version).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
