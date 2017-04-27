@@ -23,8 +23,9 @@ case class FieldValue(
   `type`: ComponentType,
   label: String,
   helpText: Option[String],
-  readOnly: Option[String],
-  mandatory: Boolean
+  mandatory: Boolean,
+  editable: Boolean,
+  submissible: Boolean
 )
 
 object FieldValue {
