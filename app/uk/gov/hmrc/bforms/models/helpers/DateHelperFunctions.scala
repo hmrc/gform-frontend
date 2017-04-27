@@ -40,7 +40,7 @@ object DateHelperFunctions {
   }
 
   def withOffset(offset: Offset, dateExpr: DateExpr): DateExpr = offset.value match {
-    case 0 => dateExpr
+    case 0 => dateExpr // merge cases
     case nonZero =>
       val zeroPadding = (x: Int) => "%02d".format(x)
       val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)

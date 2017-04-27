@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.bforms.models.helpers
 
+import cats.data.Validated.Valid
 import uk.gov.hmrc.bforms.models._
 import uk.gov.hmrc.bforms.models.components._
 import uk.gov.hmrc.bforms.models.form.FormField

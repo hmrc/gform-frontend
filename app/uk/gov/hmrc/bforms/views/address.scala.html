@@ -5,29 +5,29 @@
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
 <div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-  <fieldset>
-    <legend class="h3-heading">@localisation(fieldValue.label)</legend>
-    @if(fieldValue.helpText) {
-      <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-    }
+    <fieldset>
+        <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+        @if(fieldValue.helpText) {
+        <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+        }
 
-    @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
+        @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
 
-    @List(
-      ("Street", "street1"),
-      ("", "street2"),
-      ("", "street3"),
-      ("Town", "town"),
-      ("County", "county"),
-      ("Postcode", "postcode"),
-      ("Country", "country")
-    ).map { case (label, suffix) =>
+        @List(
+        ("Street", "street1"),
+        ("", "street2"),
+        ("", "street3"),
+        ("Town", "town"),
+        ("County", "county"),
+        ("Postcode", "postcode"),
+        ("Country", "country")
+        ).map { case (label, suffix) =>
 
-    @label <input type="text"
-    	      id="@{fieldValue.id}.@suffix"
-    	      name="@{fieldValue.id}.@suffix"
-    	      value="@validationResult.map(_.getCurrentValue(suffix)).getOrElse("")"
-    	      class="form-control form-control--block"/>
-    }
-  </fieldset>
+        @label <input type="text"
+                      id="@{fieldValue.id}.@suffix"
+                      name="@{fieldValue.id}.@suffix"
+                      value="@validationResult.flatMap(_.getOptionalCurrentValue(suffix))"
+        class="form-control form-control--block"/>
+        }
+    </fieldset>
 </div>
