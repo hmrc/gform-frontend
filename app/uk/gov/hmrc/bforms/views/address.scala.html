@@ -5,82 +5,30 @@
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
 <div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-  <fieldset>
-    <legend class="h3-heading">@localisation(fieldValue.label)</legend>
-    @if(fieldValue.helpText) {
-      <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-    }
+    <fieldset>
+        <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+        @if(fieldValue.helpText) {
+        <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+        }
 
-    @errorInline(fieldValue.id.value, "Please enter your street", Seq(""))
+        @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
 
-    <div class="form-group-compound">
-      <label class="form-label" for="@{fieldValue.id}.street1">Street</label>
+        @List(
+        ("Street", "street1"),
+        ("", "street2"),
+        ("", "street3"),
+        ("Town", "town"),
+        ("County", "county"),
+        ("Postcode", "postcode"),
+        ("Country", "country")
+        ).map { case (label, suffix) =>
 
-      <input type="text"
-             class="input--medium"
-             name="@{fieldValue.id}.street1"
-             id="@{fieldValue.id}.street1"
-             value="@validationResult.map(_.getCurrentValue("street1")).getOrElse("")" />
-    </div>
+        @label <input type="text"
+                      id="@{fieldValue.id}.@suffix"
+                      name="@{fieldValue.id}.@suffix"
+                      value="@validationResult.flatMap(_.getOptionalCurrentValue(suffix))"
+        class="form-control form-control--block"/>
+        }
+    </fieldset>
 
-    <div class="form-group-compound">
-      <label class="form-label visuallyhidden" for="@{fieldValue.id}.street2">Address line 2</label>
-
-      <input type="text"
-             class="input--medium"
-             name="@{fieldValue.id}.street2"
-             id="@{fieldValue.id}.street2"
-             value="@validationResult.map(_.getCurrentValue("street2")).getOrElse("")" />
-    </div>
-
-    <div class="form-group-related">
-      <label class="form-label visuallyhidden" for="@{fieldValue.id}.street3">Address line 3</label>
-
-      <input type="text"
-             class="input--medium"
-             name="@{fieldValue.id}.street3"
-             id="@{fieldValue.id}.street3"
-             value="@validationResult.map(_.getCurrentValue("street3")).getOrElse("")" />
-    </div>
-
-    <div class="form-group-related">
-      <label class="form-label" for="@{fieldValue.id}.town">Town</label>
-
-      <input type="text"
-             class="input--medium"
-             name="@{fieldValue.id}.town"
-             id="@{fieldValue.id}.town"
-             value="@validationResult.map(_.getCurrentValue("town")).getOrElse("")" />
-    </div>
-
-    <div class="form-field-group">
-      <label class="form-label" for="@{fieldValue.id}.county">County (optional)</label>
-
-      <input type="text"
-             class="input--medium"
-             name="@{fieldValue.id}.county"
-             id="@{fieldValue.id}.county"
-             value="@validationResult.map(_.getCurrentValue("county")).getOrElse("")" />
-    </div>
-
-    <div class="form-field-group">
-      <label class="form-label" for="@{fieldValue.id}.postcode">Postcode</label>
-
-      <input type="text"
-             class="input--small"
-             name="@{fieldValue.id}.postcode"
-             id="@{fieldValue.id}.postcode"
-             value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
-    </div>
-
-    <div class="form-field-group">
-      <label class="form-label" for="@{fieldValue.id}.country">Country</label>
-
-      <input type="text"
-             class="input--medium"
-             name="@{fieldValue.id}.country"
-             id="@{fieldValue.id}.country"
-             value="@validationResult.map(_.getCurrentValue("country")).getOrElse("")" />
-    </div>
-  </fieldset>
 </div>

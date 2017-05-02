@@ -23,11 +23,9 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import uk.gov.hmrc.bforms.service.PrepopService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
-
 import uk.gov.hmrc.bforms.models.components._
 import uk.gov.hmrc.bforms.models.form.FormId
 import uk.gov.hmrc.bforms.models.helpers.Fields
@@ -56,7 +54,6 @@ object PageForRender {
         .map { fieldValue =>
           fieldValue.`type` match {
             case Date(_, offset, dateValue) =>
-
               val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
               Future.successful(uk.gov.hmrc.bforms.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
 

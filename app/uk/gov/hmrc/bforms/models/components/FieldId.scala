@@ -23,6 +23,8 @@ case class FieldId(value: String) extends AnyVal {
   override def toString = value
 
   def withSuffix(suffix: String): FieldId = FieldId(value + "." + suffix)
+
+  def getSuffix(replacement: FieldId) = value.replace(replacement + ".", "")
 }
 
 object FieldId {

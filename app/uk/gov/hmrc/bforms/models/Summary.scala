@@ -44,8 +44,8 @@ object SummaryForRender {
                 case Address => uk.gov.hmrc.bforms.views.html.snippets.summary.address(fieldValue, values(fieldValue))
                 case t @ Text(_, _) => uk.gov.hmrc.bforms.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
                 case Choice(_, options, _, _) =>
-                  val selections = options.toList.zipWithIndex.map{ case (option, index) =>
-        	    values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
+                  val selections = options.toList.zipWithIndex.map { case (option, index) =>
+                    values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
                   }.collect { case Some(selection) => selection }
 
                   uk.gov.hmrc.bforms.views.html.snippets.summary.choice(fieldValue, selections)
@@ -59,7 +59,7 @@ object SummaryForRender {
 }
 
 case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId) : SummaryForRender =
+  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId): SummaryForRender =
     SummaryForRender(formFields, formId, formTemplate)
 
   def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId)(implicit request: Request[_], messages: Messages): Result = {
