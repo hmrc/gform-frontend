@@ -19,10 +19,6 @@ package uk.gov.hmrc.bforms.controllers
 import javax.inject.{Inject, Singleton}
 
 import uk.gov.hmrc.bforms.models.ValidationUtil._
-//import cats.Semigroup
-//import cats.data.Validated
-//import cats.data.Validated.{Invalid, Valid}
-//import cats.kernel.Monoid
 import cats.syntax.traverse._
 import cats.syntax.either._
 import cats.kernel.Monoid

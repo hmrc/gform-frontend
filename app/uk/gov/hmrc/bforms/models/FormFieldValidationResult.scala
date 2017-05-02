@@ -170,7 +170,7 @@ object ValidationUtil {
 
           ComponentField(fieldValue, dataMap)
 
-        case Text(_) =>
+        case Text(_, _) =>
 
           val fieldId = fieldValue.id
 

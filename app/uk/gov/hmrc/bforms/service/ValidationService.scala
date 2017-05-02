@@ -23,7 +23,6 @@ import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
-import cats.syntax.validated._
 import cats.instances.all._
 import uk.gov.hmrc.bforms.models.ValidationUtil._
 import uk.gov.hmrc.bforms.models._
@@ -32,10 +31,8 @@ import uk.gov.hmrc.bforms.typeclasses.Now
 
 import scala.util.{Failure, Success, Try}
 
-/**
-  * Created by dimitra on 20/04/17.
-  */
 object ValidationService {
+
   case class CompData(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) {
 
     def validateComponents: ValidatedType = {
@@ -46,7 +43,7 @@ object ValidationService {
 
           Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
 
-        case Text(_) => validateText(fieldValue)(data)
+        case Text(_, _) => validateText(fieldValue)(data)
         case Address => validateAddress(fieldValue)(data)
         case Choice(_, _, _, _) => validateChoice(fieldValue)(data)
       }
@@ -69,7 +66,6 @@ object ValidationService {
       }
     }
 
-    // choice
     def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val choiceValue = data.get(fieldValue.id).toList.flatten
 
@@ -79,7 +75,6 @@ object ValidationService {
       }
     }
 
-    // address
     val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
 
     def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
@@ -105,8 +100,11 @@ object ValidationService {
     }
 
     def validateDate(fieldValue: FieldValue, date: Date)(data: Map[FieldId, Seq[String]]): ValidatedType = {
+
+      val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) => localDate.plusDays(offset.value)
+
       date.constraintType match {
-              case AnyDate => Valid(()) // missing requirements
+        case AnyDate => Valid(()) // missing requirements
         case DateConstraints(dateConstraintList) =>
 
           val result = dateConstraintList.map {
@@ -120,10 +118,10 @@ object ValidationService {
 
                 case (Before, concreteDate: ConcreteDate, offset) =>
                   validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
-                    .andThen(concreteDate =>
+                    .andThen{concreteDate =>
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
-                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set(s"Date should be before $concreteDate")))(isBeforeConcreteDate)))
+                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set("Date should be before "+ dateWithOffset(concreteDate, offset))))(isBeforeConcreteDate))}
 
                 //              case (Before, AnyWord(value)) =>
                 // case (Before, AnyWord(FieldId)) =>
@@ -136,10 +134,11 @@ object ValidationService {
                 case (After, concreteDate: ConcreteDate, offset) =>
 
                   validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
-                    .andThen(concreteDate =>
+                    .andThen{concreteDate =>
+
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
-                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set(s"Date should be after $concreteDate")))(isAfterConcreteDate)))
+                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set("Date should be after "+dateWithOffset(concreteDate, offset))))(isAfterConcreteDate))}
 
                 //              case (After, AnyWord(value)) =>
 
