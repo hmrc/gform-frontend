@@ -6,20 +6,23 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
-<h3>@localisation(fieldValue.label)</h3>
+<tr>
+  <td>
+    @localisation(fieldValue.label)
+  </td>
 
-<p>
-@List(
-    "street1",
-    "street2",
-    "street3",
-    "town",
-    "county",
-    "postcode"
-).map { suffix =>
-    @if(validationResult.map(_.getCurrentValue(suffix).isEmpty).contains(false)) {
-        <div>@validationResult.map(_.getCurrentValue(suffix)).getOrElse("")</div>
+  <td>
+    @List(
+        "street1",
+        "street2",
+        "street3",
+        "town",
+        "county",
+        "postcode"
+    ).map { suffix =>
+        @if(validationResult.map(_.getCurrentValue(suffix).isEmpty).contains(false)) {
+            @validationResult.map(_.getCurrentValue(suffix)).getOrElse("")<br />
+        }
     }
-}
-
-</P>
+  </td>
+</tr>

@@ -89,7 +89,6 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
           val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(page.section.fields, validatedDataResult, data)
 
-
           def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
             finalResult match {

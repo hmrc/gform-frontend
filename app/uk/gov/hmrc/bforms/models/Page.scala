@@ -60,7 +60,7 @@ object PageForRender {
             case Address =>
               Future.successful(uk.gov.hmrc.bforms.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue)))
 
-            case t @ Text(expr) =>
+            case t @ Text(expr, _) =>
               val prepopValueF = formFields.get(fieldValue.id) match {
                 case None  => PrepopService.prepopData(expr, formTemplate.formTypeId)
                 case _ => Future.successful("") // Don't prepop something we already submitted
