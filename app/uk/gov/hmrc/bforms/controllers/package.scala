@@ -54,7 +54,8 @@ package controllers {
       Future.successful(PageIsVisible)
   }
 
-  class BformsAuthenticationProvider(configuration: Configuration) extends GovernmentGateway {
+  @Singleton
+  class BformsAuthenticationProvider @Inject() (configuration: Configuration) extends GovernmentGateway {
 
     private val bformsFrontendBaseUrl = configuration.getString("bforms-frontend-base-url").getOrElse("")
     private val governmentGatewaySignInUrl = configuration.getString("government-gateway-sign-in-url").getOrElse("")
@@ -75,7 +76,7 @@ package controllers {
   }
 
   @Singleton
-  class SecuredActionsImpl @Inject()(configuration: Configuration, val authConnector: AuthConnector) extends SecuredActions {
+  class SecuredActionsImpl @Inject()(configuration: Configuration, val authConnector: AuthConnector, governmentGateway: GovernmentGateway) extends SecuredActions {
 
     private def ActionWithTemplate(
       formTypeId: FormTypeId,
@@ -101,7 +102,7 @@ package controllers {
       ActionWithTemplate(formTypeId, version).async(body(authContext))(request)
     }
 
-    private val authenticatedBy = AuthenticatedBy(new BformsAuthenticationProvider(configuration), BformsPageVisibilityPredicate)
+    private val authenticatedBy = AuthenticatedBy(governmentGateway, BformsPageVisibilityPredicate)
 
     override val SecureWithTemplate = SecureActionWithTemplate(authenticatedBy) _
     override val SecureWithTemplateAsync = SecureActionWithTemplateAsync(authenticatedBy) _

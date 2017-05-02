@@ -4,9 +4,12 @@
 
 @(fieldValue: FieldValue, selections: List[String])
 
-<h3>@localisation(fieldValue.label)</h3>
-<p>
-  <ul>
-    @selections.map{ selection => <li>@selection</li> }
-  </ul>
-</p>
+<tr>
+  <td>
+    @localisation(fieldValue.label)
+  </td>
+
+  <td>
+    @selections.map{ selection => @selection<br /> }
+  </td>
+</tr>

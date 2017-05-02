@@ -36,7 +36,7 @@ object Fields {
             case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
           }
         Some(ComponentField(fieldValue, fieldOkData))
-      case Text(_) => formFields.get(fieldValue.id).map { formField =>
+      case Text(_, _) => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
       case Choice(_, _, _, _) =>
@@ -60,7 +60,7 @@ object Fields {
       fv.`type` match {
         case Address => Address.fields(fv.id).map(getFormFieldValue)
         case Date(_, _, _) => Date.fields(fv.id).map(getFormFieldValue)
-        case Text(_) | Choice(_, _, _, _) => List(getFormFieldValue(fv.id))
+        case Text(_, _) | Choice(_, _, _, _) => List(getFormFieldValue(fv.id))
       }
     }
   }

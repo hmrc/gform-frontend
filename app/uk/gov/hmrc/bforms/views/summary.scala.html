@@ -5,15 +5,12 @@
 
 @(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
 
-@uk.gov.hmrc.bforms.views.html.main_template(title = "bforms-frontend tax form", bodyClasses = None) {
-    <header class="page-header text">
-        <h1>@localisation(formTemplate.formName)</h1>
-    </header>
-    <p class="subsection">
-	<h2>About you</h2>
+@uk.gov.hmrc.bforms.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {
+    <h1 class="h1-heading">Check your details</h1>
+
+    <p>
+      Make sure that the information you have given is correct before submitting your return.
     </p>
-
-
 
     <form action="@uk.gov.hmrc.bforms.controllers.routes.SummaryGen.submit(formTemplate.formTypeId, formTemplate.version).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
@@ -21,28 +18,36 @@
             CSRF.formField
         }
 
-	@{
-	    summary.snippets
-	}
+      	@{
+      	    summary.snippets
+      	}
 
-	<input
-          type="hidden"
-	  name="formId"
-	  value="@{formId.value}" />
-
-	<br>
-
-	<p>
-	    <div></div>
-	</p>
+      	<input type="hidden"
+      	       name="formId"
+      	       value="@{formId.value}" />
 
 
+        <div class="alert alert--info alert--info__light alert--borderless">
+          <h2 class="heading-medium">Review your return</h2>
 
-	<button name="save" value="Continue">Continue</button>
+          <p>You can print this summary page then come back later to complete your submission.</p>
 
-	<button name="save" value="Exit">Exit</button>
+          <p>
+            <a href="javascript:window.print()" class="print-link print-hidden js-visible">Print this summary page</a>
+          </p>
 
+          <div class="form-field-group">
+            <button type="submit" class="button--secondary" name="save" value="Exit">Save and come back later</button>
+          </div>
+        </div>
+
+        <h2 class="heading-medium">Ready to submit your return</h2>
+
+        <p>If you are happy with the return details above, save and continue with your submission.</p>
+
+        <button type="submit" class="button" name="save" value="Continue">Continue</button>
     </form>
+
     <script type="text/javascript">
       @Html(summary.javascripts)
     </script>
