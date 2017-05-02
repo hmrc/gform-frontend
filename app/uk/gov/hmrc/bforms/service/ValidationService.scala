@@ -25,12 +25,10 @@ import cats.kernel.Monoid
 import cats.syntax.cartesian._
 import cats.syntax.validated._
 import cats.instances.all._
-import org.slf4j.LoggerFactory
 import uk.gov.hmrc.bforms.models.ValidationUtil._
 import uk.gov.hmrc.bforms.models._
 import uk.gov.hmrc.bforms.models.components._
 import uk.gov.hmrc.bforms.typeclasses.Now
-
 
 import scala.util.{Failure, Success, Try}
 
@@ -38,8 +36,6 @@ import scala.util.{Failure, Success, Try}
   * Created by dimitra on 20/04/17.
   */
 object ValidationService {
-  lazy val log = LoggerFactory.getLogger(ValidationService.getClass)
-
   case class CompData(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) {
 
     def validateComponents: ValidatedType = {
@@ -56,13 +52,12 @@ object ValidationService {
       }
     }
 
-    // text
     def validateText(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val textData = TextData(data.get(fieldValue.id).toList.flatten)
 
       fieldValue.mandatory match {
         case true => validateRequired(fieldValue.id)(textData.value)
-        case false => Valid()
+        case false => Valid(())
       }
     }
 
@@ -76,9 +71,9 @@ object ValidationService {
 
     // choice
     def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
-      val choiceValue = ChoiceComponentData(data.get(fieldValue.id).toList.flatten)
+      val choiceValue = data.get(fieldValue.id).toList.flatten
 
-      (fieldValue.mandatory, choiceValue.selected) match {
+      (fieldValue.mandatory, choiceValue) match {
         case (true, Nil) => Invalid(Map(fieldValue.id -> Set("RequiredFieldException")))
         case _ => Valid(())
       }
@@ -99,7 +94,7 @@ object ValidationService {
       Monoid[ValidatedType].combineAll(validatedResult)
     }
 
-    def validateDateRequiredField(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType={
+    def validateDateRequiredField(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val dateValueOf = dataGetter(fieldValue)
 
       val validatedResult: List[ValidatedType] = List(validateRF("day")(dateValueOf("day")),
@@ -111,7 +106,7 @@ object ValidationService {
 
     def validateDate(fieldValue: FieldValue, date: Date)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       date.constraintType match {
-        //      case AnyDate =>
+              case AnyDate => Valid(()) // missing requirements
         case DateConstraints(dateConstraintList) =>
 
           val result = dateConstraintList.map {
@@ -121,14 +116,14 @@ object ValidationService {
                 case (Before, Today, offset) =>
                   validateInputDate(fieldValue, data)
                     .andThen(inputDate =>
-                      validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> Set("ConcreteDateException")))(isBeforeToday))
+                      validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> Set("date should be before Today")))(isBeforeToday))
 
                 case (Before, concreteDate: ConcreteDate, offset) =>
                   validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
                     .andThen(concreteDate =>
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
-                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set("ConcreteDateException")))(isBeforeConcreteDate)))
+                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set(s"Date should be before $concreteDate")))(isBeforeConcreteDate)))
 
                 //              case (Before, AnyWord(value)) =>
                 // case (Before, AnyWord(FieldId)) =>
@@ -136,7 +131,7 @@ object ValidationService {
                 case (After, Today, offset) =>
                   validateInputDate(fieldValue, data)
                     .andThen(inputDate =>
-                      validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> Set("ConcreteDateException")))(isAfterToday))
+                      validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> Set("Date should be after today")))(isAfterToday))
 
                 case (After, concreteDate: ConcreteDate, offset) =>
 
@@ -144,7 +139,7 @@ object ValidationService {
                     .andThen(concreteDate =>
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
-                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set("ConcreteDateException")))(isAfterConcreteDate)))
+                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set(s"Date should be after $concreteDate")))(isAfterConcreteDate)))
 
                 //              case (After, AnyWord(value)) =>
 
@@ -194,8 +189,9 @@ object ValidationService {
 
     def validateInputDate(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
       val fieldIdList = Date.fields(fieldValue.id).map(fId => data.get(fId))
+
       fieldIdList match {
-        case Some(year :: Nil) :: Some(month :: Nil) :: Some(day :: Nil) :: Nil =>
+        case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
 
           validateLocalDate(fieldValue, day, month, year) match {
             case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
@@ -207,61 +203,38 @@ object ValidationService {
     }
 
     def validateLocalDate(fv: FieldValue, day: String, month: String, year: String): ValidatedConcreteDate = {
-      val d = isNonNumeric(fv, day).andThen(x => hasValidNumberOfDigits(x, 2, Map(fv.id -> Set("Non2DigitsException")))).andThen(y => isValidNumber(y, 31, Map(fv.id -> Set("DateOuOfBoundsException"))))
-      val m = isNonNumeric(fv, month).andThen(x => hasValidNumberOfDigits(x, 2, Map(fv.id -> Set("Non2DigitsException")))).andThen(y => isValidNumber(y, 12, Map(fv.id -> Set("MonthOutOfBoundsException"))))
-      val y = isNonNumeric(fv, year).andThen(x => hasValidNumberOfDigits(x, 4, Map(fv.id -> Set("Non4DigitsException"))))
 
-      val d2 = isNonNumeric(fv, day).andThen(y => isValidNumber(y, 31))
-
-      // implicit val semigroup: Semigroup[NonEmptyList[DateError]] = SemigroupK[NonEmptyList].algebra[DateError]
+      val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id -> Set(er)))
+      val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id -> Set(er)))
+      val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id -> Set(er)))
 
       parallelWithApplicative(d, m, y)(ConcreteDate.apply)
     }
 
-    def isNonNumeric(fieldValue: FieldValue, str: String): ValidatedNumeric = {
+    def isNumeric(str: String): ValidatedNumeric = {
       Try(str.toInt) match {
         case Success(x) => Valid(x)
-        case Failure(_) => Invalid(Map(fieldValue.id -> Set("NonNumericException")))
+        case Failure(_) => Invalid("NonNumericException")
       }
     }
 
-    def isValidNumber(number: Int, dayOrMonth: Int, dateError: GFormError): ValidatedNumeric = {
-      if (number <= dayOrMonth) {
-        Valid(number)
-      } else {
-        Invalid(dateError)
+    def isWithinBounds(number: Int, dayOrMonth: Int): ValidatedNumeric = {
+      number match {
+        case x if number <= dayOrMonth => Valid(number)
+        case y if number > dayOrMonth => Invalid("IsNotValid")
       }
     }
 
-    def hasValidNumberOfDigits(number: Int, digits: Int, dateError: GFormError): ValidatedNumeric = {
-      (Math.log10(number) + 1) <= digits match {
-        case true => Valid(number)
-        case false => Invalid(dateError)
+    def hasValidNumberOfDigits(number: Int, digits: Int): ValidatedNumeric = {
+      number.toString.length match {
+        case x if x == digits => Valid(number)
+        case y if y != digits => Invalid("Invalid number of digits")
       }
     }
-
-    /* def parallelValidate[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(f: (Int, Int, Int) => ConcreteDate): Validated[E, ConcreteDate] = {
-       (v1, v2, v3) match {
-         case (Valid(day), Valid(month), Valid(year)) => Valid(f(year, month, day))
-         case (Valid(_), Valid(_), i@Invalid(_)) => i
-         case (Valid(_), i@Invalid(_), Valid(_)) => i
-         case (Valid(_), Invalid(e1), Invalid(e2)) => Invalid(Semigroup[E].combine(e1, e2))
-
-         case (i@Invalid(_), Valid(_), Valid(_)) => i
-         case (Invalid(e1), Valid(_), Invalid(e2)) => Invalid(Semigroup[E].combine(e1, e2))
-         case (Invalid(e1), Invalid(e2), Valid(_)) => Invalid(Semigroup[E].combine(e1, e2))
-         case (Invalid(e1), Invalid(e2), Invalid(e3)) => Invalid(e1 |+| e2 |+| e3)
-          /* val comb1 = Semigroup[E].combine(e1, e2)
-           val comb2 = Semigroup[E].combine(comb1, e3)
-           Invalid(comb2)*/
-       }
-     }*/
 
     def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])
                                              (f: (Int, Int, Int) => ConcreteDate):
-    Validated[E, ConcreteDate] = {
-      (v1 |@| v2 |@| v3).map(f)
-    }
+    Validated[E, ConcreteDate] = (v3 |@| v2 |@| v1).map(f)
 
     def alwaysOk(fieldValue: FieldValue)(xs: Seq[String]): FormFieldValidationResult = {
       xs match {

@@ -19,28 +19,26 @@ package uk.gov.hmrc.bforms.controllers
 import javax.inject.{Inject, Singleton}
 
 import uk.gov.hmrc.bforms.models.ValidationUtil._
-import cats.Semigroup
-import cats.data.Validated
-import cats.data.Validated.{Invalid, Valid}
-import cats.kernel.Monoid
+//import cats.Semigroup
+//import cats.data.Validated
+//import cats.data.Validated.{Invalid, Valid}
+//import cats.kernel.Monoid
 import cats.syntax.traverse._
 import cats.syntax.either._
 import cats.kernel.Monoid
-//import cats.syntax.cartesian._
-//import cats.syntax.validated._
 import cats.instances.all._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import uk.gov.hmrc.bforms.controllers.helpers.FormHelpers._
 import uk.gov.hmrc.bforms.models._
-import uk.gov.hmrc.bforms.models.components.{Date, _}
+import uk.gov.hmrc.bforms.models.components._
 import uk.gov.hmrc.bforms.models.form._
 import uk.gov.hmrc.bforms.service.ValidationService.CompData
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.bforms.service.{SaveService, ValidationService}
+import uk.gov.hmrc.bforms.service.SaveService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 @Singleton
@@ -93,7 +91,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
           val validatedData = page.section.fields.map(fv => CompData(fv, data).validateComponents)
           val validatedDataResult = Monoid[ValidatedType].combineAll(validatedData)
 
-          val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.f(page.section.fields, validatedDataResult, data)
+          val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(page.section.fields, validatedDataResult, data)
 
 
           def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
@@ -106,14 +104,16 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                     case FieldOk(fv, _) => fv
                     case FieldError(fv, _, _) => fv
                     case ComponentField(fv, _) => fv
+                    case FieldGlobalOk(fv, _) => fv
+                    case FieldGlobalError(fv, _, _) => fv
                   }
 
                   extractedFieldValue -> validResult
                 }.toMap
+
                 page.renderPage(data, formIdOpt, Some(map.get))
 
               case Right(listFormValidation) =>
-
                 val formFieldIds = listFormValidation.map(_.toFormField)
                 val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
 
@@ -138,7 +138,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                   }
                 case SaveAndExit =>
 
-                  val formFieldsList = finalResult match{
+                  val formFieldsList = finalResult match {
                     case Left(formFieldResultList) => formFieldResultList
                     case Right(formFieldResultList) => formFieldResultList
                   }

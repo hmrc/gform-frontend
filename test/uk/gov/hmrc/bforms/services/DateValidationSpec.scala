@@ -18,8 +18,10 @@ package uk.gov.hmrc.bforms.services
 
 import java.time.LocalDate
 
+import cats.data.Validated.{Invalid, Valid}
 import org.scalatest.{FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
+import uk.gov.hmrc.bforms.models.ValidationUtil.{ValidatedConcreteDate, ValidatedNumeric, ValidatedType}
 import uk.gov.hmrc.bforms.models.components._
 import uk.gov.hmrc.bforms.service.ValidationService
 import uk.gov.hmrc.bforms.service.ValidationService.CompData
@@ -27,9 +29,9 @@ import uk.gov.hmrc.bforms.service.ValidationService.CompData
 /**
   * Created by dimitra on 21/04/17.
   */
-class ValidationServiceSpec extends FlatSpec with Matchers {
+class DateValidationSpec extends FlatSpec with Matchers {
 
-  lazy val log = LoggerFactory.getLogger(classOf[ValidationServiceSpec])
+  lazy val log = LoggerFactory.getLogger(classOf[DateValidationSpec])
 
   "After Today 1" should "accepts dates after tomorrow" in {
     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(1)))
@@ -39,20 +41,21 @@ class ValidationServiceSpec extends FlatSpec with Matchers {
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, None, true)
 
-    val acceptedAfter = (LocalDate.now().getDayOfMonth + 2).toString
+    val acceptedAfter = LocalDate.now().getDayOfMonth + 2
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter),
-      FieldId("accPeriodStartDate.month") -> Seq("4"),
-      FieldId("accPeriodStartDate.year") -> Seq("2017"))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(LocalDate.now().getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(LocalDate.now().getYear.toString))
 
-    val result = CompData(fieldValue, data).validateComponents
+    val result: ValidatedType = CompData(fieldValue, data).validateComponents
 
-    log.info(">>>>> result: " + result)
-//    result.size shouldBe 1
-//    result.map(validated => validated.isValid) shouldBe List(true)
+    val unit: Unit = ()
+
+    result.isValid shouldBe true
+    result.getOrElse("") shouldBe unit
   }
 
-  /*"After Today 0" should "accepts dates after today" in {
+  "After Today 0" should "accepts dates after today" in {
     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(0)))
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
@@ -60,16 +63,18 @@ class ValidationServiceSpec extends FlatSpec with Matchers {
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, None, true)
 
-    val acceptedAfter = (LocalDate.now().getDayOfMonth + 1).toString
+    val acceptedAfter = LocalDate.now().getDayOfMonth + 1
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter),
-      FieldId("accPeriodStartDate.month") -> Seq("4"),
-      FieldId("accPeriodStartDate.year") -> Seq("2017"))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(LocalDate.now.getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(LocalDate.now.getYear.toString))
 
     val result = CompData(fieldValue, data).validateComponents
 
-    result.size shouldBe 1
-    result.map(validated => validated.isValid) shouldBe List(true)
+    val unit: Unit = ()
+
+    result.isValid shouldBe true
+    result.getOrElse("") shouldBe unit
   }
 
   "After 2017-06-16 5" should "accepts dates after 2017-06-21" in {
@@ -87,11 +92,13 @@ class ValidationServiceSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    result.size shouldBe 1
-    result.map(validated => validated.isValid) shouldBe List(true)
+    val unit: Unit = ()
+
+    result.isValid shouldBe true
+    result.getOrElse("") shouldBe unit
   }
 
-  "After Today -1" should "accepts today and dates in future" in {
+  /*"After Today -1" should "accepts today and dates in future" in {
     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(-1)))
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)

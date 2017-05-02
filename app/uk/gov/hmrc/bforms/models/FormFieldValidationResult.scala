@@ -19,17 +19,18 @@ package uk.gov.hmrc.bforms.models
 import java.time.LocalDate
 
 import cats.data.Validated.{Invalid, Valid}
+import uk.gov.hmrc.bforms.models.components.{Address, FieldId, FieldValue, _}
+import uk.gov.hmrc.bforms.models.form.FormField
 import cats.data.Validated
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.traverse._
 import cats.syntax.either._
-import uk.gov.hmrc.bforms.models.components.{Address, _}
-import uk.gov.hmrc.bforms.models.form.FormField
 
 sealed trait FormFieldValidationResult {
   def isOk: Boolean = this match {
     case FieldOk(_, _) => true
+    case FieldGlobalOk(_, _) => true
     case ComponentField(_, data) => data.values.forall(_.isOk)
     case _ => false
   }
@@ -55,6 +56,8 @@ sealed trait FormFieldValidationResult {
     */
   def toFormField: Either[Unit, List[FormField]] = this match {
     case FieldOk(fieldValue, cv) => Right(List(FormField(fieldValue.id, cv)))
+    case FieldGlobalError(_, _, _) => Right(List.empty[FormField])
+    case FieldGlobalOk(_, _) => Right(List.empty[FormField])
     case ComponentField(fieldValue, data) =>
       fieldValue `type` match {
         case Choice(_, _, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
@@ -67,6 +70,8 @@ sealed trait FormFieldValidationResult {
   def toFormFieldTolerant: List[FormField] = this match {
     case FieldOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
     case FieldError(fieldValue, _, _) => List(FormField(fieldValue.id, ""))
+    case FieldGlobalError(_, _, _) => List.empty[FormField]
+    case FieldGlobalOk(_, _) => List.empty[FormField]
     case ComponentField(fieldValue, data) => List(FormField(fieldValue.id, ""))
       data.flatMap { case (suffix, value) => value.toFormFieldTolerant.map(_.withSuffix(suffix)) }.toList
   }
@@ -74,7 +79,11 @@ sealed trait FormFieldValidationResult {
 
 case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
 
+case class FieldGlobalOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
+
 case class FieldError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
+
+case class FieldGlobalError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
 
 case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
 
@@ -82,15 +91,51 @@ object ValidationUtil {
 
   type GFormError = Map[FieldId, Set[String]]
   type ValidatedLocalDate = Validated[GFormError, LocalDate]
-  type ValidatedNumeric = Validated[GFormError, Int]
+  type ValidatedNumeric = Validated[String, Int]
   type ValidatedConcreteDate = Validated[GFormError, ConcreteDate]
 
   type ValidatedType = Validated[GFormError, Unit]
 
-  def f(allFields: List[FieldValue], validationResult: ValidatedType, data: Map[FieldId, Seq[String]]):
+
+  def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])
+                                            (dGetter: (FieldId) => Seq[String]):
+  List[(FieldId, FormFieldValidationResult)] = {
+    component match {
+      case Address => Address.fields(fieldValue.id).map { fieldId =>
+
+        gFormErrors.get(fieldId) match {
+          //with suffix
+          case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
+          case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
+        }
+      }
+
+      case Date(_, _, _) => Date.fields(fieldValue.id).map { fieldId =>
+
+        gFormErrors.get(fieldId) match {
+          //with suffix
+          case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
+          case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
+        }
+      }
+    }
+  }
+
+  def evaluateWithoutSuffix(fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])
+                           (dGetter: (FieldId) => Seq[String]):
+  (FieldId, FormFieldValidationResult) = {
+
+    gFormErrors.get(fieldValue.id) match {
+      //without suffix
+      case Some(errors) => (fieldValue.id, FieldGlobalError(fieldValue, dGetter(fieldValue.id).headOption.getOrElse(""), errors))
+      case None => (fieldValue.id, FieldGlobalOk(fieldValue, dGetter(fieldValue.id).headOption.getOrElse("")))
+    }
+  }
+
+  def evaluateValidationResult(allFields: List[FieldValue], validationResult: ValidatedType, data: Map[FieldId, Seq[String]]):
   Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
 
-    val dataGetter: FieldValue => Seq[String] = fv => data.get(fv.id).toList.flatten
+    val dataGetter: FieldId => Seq[String] = fId => data.get(fId).toList.flatten
 
     val gFormErrors = validationResult match {
       case Invalid(errors) =>
@@ -104,36 +149,24 @@ object ValidationUtil {
       fieldValue.`type` match {
         case Address =>
 
-          val formFieldValRes: List[(FieldId, FormFieldValidationResult)] = Address.fields(fieldValue.id).map { fieldId =>
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(Address, fieldValue, gFormErrors)(dataGetter)
+          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
-            gFormErrors.get(fieldId) match {
-              case Some(errors) => (fieldId, FieldError(fieldValue, dataGetter(fieldValue).headOption.getOrElse(""), errors))
-              case None => (fieldId, FieldOk(fieldValue, dataGetter(fieldValue).headOption.getOrElse("")))
-            }
-
-          }
-          val dataMap = formFieldValRes.map { kv =>
-
-            kv._1.getSuffix(fieldValue.id) -> kv._2
-
-          }.toMap
+          val dataMap = (valWithoutSuffixResult :: valSuffixResult)
+            .map { kv => kv._1.getSuffix(fieldValue.id) -> kv._2
+            }.toMap
 
           ComponentField(fieldValue, dataMap)
 
-        case Date(_, _, _) =>
-          val formFieldValRes: List[(FieldId, FormFieldValidationResult)] = Date.fields(fieldValue.id).map { fieldId =>
+        case date@Date(_, _, _) =>
 
-            gFormErrors.get(fieldId) match {
-              case Some(errors) => (fieldId, FieldError(fieldValue, dataGetter(fieldValue).headOption.getOrElse(""), errors))
-              case None => (fieldId, FieldOk(fieldValue, dataGetter(fieldValue).headOption.getOrElse("")))
-            }
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(date, fieldValue, gFormErrors)(dataGetter)
 
-          }
-          val dataMap = formFieldValRes.map { kv =>
+          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
-            kv._1.getSuffix(fieldValue.id) -> kv._2
-
-          }.toMap
+          val dataMap = (valWithoutSuffixResult :: valSuffixResult)
+            .map { kv => kv._1.getSuffix(fieldValue.id) -> kv._2
+            }.toMap
 
           ComponentField(fieldValue, dataMap)
 
@@ -142,11 +175,27 @@ object ValidationUtil {
           val fieldId = fieldValue.id
 
           gFormErrors.get(fieldId) match {
-            case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue).headOption.getOrElse(""), errors)
-            case None => FieldOk(fieldValue, dataGetter(fieldValue).headOption.getOrElse(""))
+            case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
+            case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
           }
 
-        case Choice(_, _, _, _) => FieldOk(fieldValue, "") // fix me
+        case Choice(_, _, _, _) =>
+
+          gFormErrors.get(fieldValue.id) match {
+            case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
+            case None =>
+
+              val optionalData = data.get(fieldValue.id).map { selectedValue =>
+
+                selectedValue.map { index =>
+
+                  fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+                }.toMap
+
+              }
+
+              ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
+          }
 
       }
 
