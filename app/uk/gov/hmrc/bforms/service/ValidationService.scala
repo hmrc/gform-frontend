@@ -23,7 +23,6 @@ import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
-import cats.syntax.validated._
 import cats.instances.all._
 import uk.gov.hmrc.bforms.models.ValidationUtil._
 import uk.gov.hmrc.bforms.models._
@@ -32,10 +31,8 @@ import uk.gov.hmrc.bforms.typeclasses.Now
 
 import scala.util.{Failure, Success, Try}
 
-/**
-  * Created by dimitra on 20/04/17.
-  */
 object ValidationService {
+
   case class CompData(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) {
 
     def validateComponents: ValidatedType = {
@@ -69,7 +66,6 @@ object ValidationService {
       }
     }
 
-    // choice
     def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val choiceValue = data.get(fieldValue.id).toList.flatten
 
@@ -79,7 +75,6 @@ object ValidationService {
       }
     }
 
-    // address
     val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
 
     def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
@@ -106,7 +101,7 @@ object ValidationService {
 
     def validateDate(fieldValue: FieldValue, date: Date)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       date.constraintType match {
-              case AnyDate => Valid(()) // missing requirements
+        case AnyDate => Valid(()) // missing requirements
         case DateConstraints(dateConstraintList) =>
 
           val result = dateConstraintList.map {
