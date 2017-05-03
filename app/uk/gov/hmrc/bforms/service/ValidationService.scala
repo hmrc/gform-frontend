@@ -114,14 +114,19 @@ object ValidationService {
                 case (Before, Today, offset) =>
                   validateInputDate(fieldValue, data)
                     .andThen(inputDate =>
-                      validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> Set("date should be before Today")))(isBeforeToday))
+                      validateToday(fieldValue, inputDate,
+                        offset, Map(fieldValue.id -> Set("date should be before Today")))(isBeforeToday))
 
                 case (Before, concreteDate: ConcreteDate, offset) =>
                   validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
-                    .andThen{concreteDate =>
+                    .andThen { concreteDate =>
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
-                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set("Date should be before "+ dateWithOffset(concreteDate, offset))))(isBeforeConcreteDate))}
+                          validateConcreteDate(fieldValue, inputDate,
+                            concreteDate, offset,
+                            Map(fieldValue.id ->
+                              Set(s"Date should be before ${dateWithOffset(concreteDate, offset)}")))(isBeforeConcreteDate))
+                    }
 
                 //              case (Before, AnyWord(value)) =>
                 // case (Before, AnyWord(FieldId)) =>
@@ -129,16 +134,19 @@ object ValidationService {
                 case (After, Today, offset) =>
                   validateInputDate(fieldValue, data)
                     .andThen(inputDate =>
-                      validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> Set("Date should be after today")))(isAfterToday))
+                      validateToday(fieldValue, inputDate,
+                        offset, Map(fieldValue.id -> Set("Date should be after today")))(isAfterToday))
 
                 case (After, concreteDate: ConcreteDate, offset) =>
 
                   validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
-                    .andThen{concreteDate =>
-
+                    .andThen { concreteDate =>
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
-                          validateConcreteDate(fieldValue, inputDate, concreteDate, offset, Map(fieldValue.id -> Set("Date should be after "+dateWithOffset(concreteDate, offset))))(isAfterConcreteDate))}
+                          validateConcreteDate(fieldValue, inputDate,
+                            concreteDate, offset,
+                            Map(fieldValue.id -> Set(s"Date should be after ${dateWithOffset(concreteDate, offset)}")))(isAfterConcreteDate))
+                    }
 
                 //              case (After, AnyWord(value)) =>
 
