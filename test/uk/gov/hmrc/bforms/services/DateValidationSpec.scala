@@ -18,12 +18,14 @@ package uk.gov.hmrc.bforms.services
 
 import java.time.LocalDate
 
+import cats.scalatest.EitherMatchers
+import cats.scalatest.ValidatedValues._
 import org.scalatest.{FlatSpec, Matchers}
 import uk.gov.hmrc.bforms.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.bforms.models.components._
 import uk.gov.hmrc.bforms.service.ValidationService.CompData
 
-class DateValidationSpec extends FlatSpec with Matchers {
+class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
   "After Today 1" should "accepts dates after tomorrow" in {
     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(1)))
@@ -41,10 +43,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result: ValidatedType = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.value shouldBe (())
   }
 
   "After Today 0" should "accepts dates after today" in {
@@ -63,10 +62,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.toEither should beRight(())
   }
 
   "After 2017-06-16 5" should "accepts dates after 2017-06-21" in {
@@ -85,10 +81,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.value shouldBe (())
   }
 
   "validation for After 2017-06-16 5" should "return invalid for dates that aren't after 2017-06-21" in {
@@ -107,7 +100,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    result.isInvalid shouldBe true
+    result.toEither should beLeft(Map(fieldValue.id -> Set(s"Date should be after 2017-06-21")))
   }
 
   "After Today -1" should "accepts today and dates in future" in {
@@ -126,10 +119,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.value shouldBe (())
   }
 
   "After 2017-06-16 -5" should "accepts dates after 2017-06-11" in {
@@ -148,10 +138,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.value shouldBe (())
   }
 
 
@@ -171,10 +158,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.value shouldBe (())
   }
 
 
@@ -194,10 +178,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.value shouldBe (())
   }
 
 
@@ -217,10 +198,7 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
-
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+    result.value shouldBe (())
   }
 
   "Before 2017-06-16 -5" should "accepts dates before 2017-06-11" in {
@@ -239,9 +217,42 @@ class DateValidationSpec extends FlatSpec with Matchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    val unit: Unit = ()
+    result.value shouldBe (())
+  }
 
-    result.isValid shouldBe true
-    result.getOrElse("") shouldBe unit
+  "Date 35-12-2017" should "return Is not Valid" in {
+    val dateConstraint = List(DateConstraint(Before, ConcreteDate(2017, 6, 16), OffsetDate(-5)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
+      "sample label", None, true, false, false)
+
+
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq("35"),
+      FieldId("accPeriodStartDate.month") -> Seq("12"),
+      FieldId("accPeriodStartDate.year") -> Seq("2017"))
+
+    val result = CompData(fieldValue, data).validateComponents
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set(s"IsNotValid")))
+  }
+
+  "Date 15-5-222017" should "Invalid number of digits" in {
+    val dateConstraint = List(DateConstraint(Before, ConcreteDate(2017, 6, 16), OffsetDate(-5)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
+      "sample label", None, true, false, false)
+
+
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq("15"),
+      FieldId("accPeriodStartDate.month") -> Seq("5"),
+      FieldId("accPeriodStartDate.year") -> Seq("222017"))
+
+    val result = CompData(fieldValue, data).validateComponents
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set(s"Invalid number of digits")))
   }
 }
