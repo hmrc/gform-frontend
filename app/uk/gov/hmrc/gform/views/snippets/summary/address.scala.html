@@ -1,0 +1,28 @@
+@import uk.gov.hmrc.gform.models.components.FieldValue
+@import uk.gov.hmrc.gform.models.FormFieldValidationResult
+@import uk.gov.hmrc.gform.views.html.localisation
+@import uk.gov.hmrc.gform.views._
+@import uk.gov.hmrc.play.views.html.helpers._
+
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+
+<tr>
+  <td>
+    @localisation(fieldValue.label)
+  </td>
+
+  <td>
+    @List(
+        "street1",
+        "street2",
+        "street3",
+        "town",
+        "county",
+        "postcode"
+    ).map { suffix =>
+        @if(validationResult.map(_.getCurrentValue(suffix).isEmpty).contains(false)) {
+            @validationResult.map(_.getCurrentValue(suffix)).getOrElse("")<br />
+        }
+    }
+  </td>
+</tr>

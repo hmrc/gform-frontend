@@ -36,8 +36,8 @@ trait MicroService {
       evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
       routesGenerator := StaticRoutesGenerator,
       routesImport ++= Seq(
-        "uk.gov.hmrc.bforms.binders.ValueClassBinder._",
-        "uk.gov.hmrc.bforms.models.form._"
+        "uk.gov.hmrc.gform.binders.ValueClassBinder._",
+        "uk.gov.hmrc.gform.models.form._"
       )
     )
     .configs(IntegrationTest)

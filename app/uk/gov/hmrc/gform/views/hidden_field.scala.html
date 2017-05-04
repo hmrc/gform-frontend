@@ -1,0 +1,9 @@
+@import uk.gov.hmrc.gform.models.form.FormField
+
+@(formField: FormField)
+
+<input
+  type="hidden"
+  id="@formField.id"
+  name="@formField.id"
+  value="@formField.value" />
