@@ -1,0 +1,28 @@
+@*
+    Html Submit Button as per HRMC Component Library
+        http://hmrc.github.io/assets-frontend/section-form.html#kssref-form-submit
+        http://hmrc.github.io/assets-frontend/section-buttons.html
+
+    @param args Additional arguments to apply style class or add to the button tag
+        '_modifierClass modifier class to add to wrapper of the submit button
+
+        '_buttonClass: Modifier class to pass to the button as per documentation:
+            button--get-started, button-secondary, button--alert, button--small, button--table,
+            button--link, button--spaced, button--padded, button--full-width, button--link-style, button--notification
+        Any additional args with names NOT starting with underscore (_) will be applied as button element arguments
+    @param content The HTML inside the button
+*@
+@import uk.gov.hmrc.gform.views.html.helpers.forms.{button => formsButton }
+@(args: (Symbol, String)*)(content:Html)
+@argsMap = @{ args.toMap }
+@defining({
+    var a = argsMap.filterNot(entry => entry._1.name.startsWith("_")) + ('type -> "submit")
+    if (argsMap.get('_buttonClass).isDefined) {
+        a = a + ('_modifierClass -> argsMap.get('_buttonClass).get)
+    }
+    a.toVector
+}) { buttonArgs =>
+<div class="form-field form-field--submit@if(argsMap.get('_modifierClass).isDefined){ @argsMap.get('_modifierClass)}">
+    @formsButton(buttonArgs: _*)(content)
+</div>
+}
