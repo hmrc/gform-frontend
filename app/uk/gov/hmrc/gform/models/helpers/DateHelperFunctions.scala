@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
+import uk.gov.hmrc.gform.models.components.{DateExpr, Offset}
+import scala.util.{Failure, Success, Try}
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.Month
 
-import uk.gov.hmrc.gform.models.components.{DateExpr, Offset}
 
 object DefaultDateFormatter {
   val formatPattern = "yyyy-MM-dd"
@@ -52,4 +54,21 @@ object DateHelperFunctions {
       convertToDateExpr(dateWithOffset)
   }
 
+  def toCamelCase(month: String): String = {
+    val m = month
+    val restValue = month.drop(1)
+
+    m.charAt(0) + "" + restValue.toLowerCase
+  }
+
+  val renderMonth: (Option[String]) => Option[String] = (str: Option[String]) => Try(str.getOrElse("").toInt) match {
+    case Success(month) => Some(month.toString)
+    case Failure(_) => None
+  }
+
+  val getMonthValue: Option[String] => Option[String] = (str: Option[String]) => Try(str.getOrElse("").toInt) match {
+    case Success(month) =>
+      Some(toCamelCase(Month.values().apply(month - 1).toString))
+    case Failure(_) => None
+  }
 }

@@ -21,6 +21,7 @@
 
                 <input type="text"
                        name="@{fieldValue.id}.day"
+                       @if(!fieldValue.editable) { readonly="" }
                        id="@{fieldValue.id}.day"
                        value = "@validationResult.flatMap(_.getOptionalCurrentValue("day")).orElse(prepop.map(_.day)).getOrElse("")"
                        class="input--xxsmall" />
@@ -31,6 +32,7 @@
 
                 <input type="text"
                        name="@{fieldValue.id}.month"
+                       @if(!fieldValue.editable) { readonly="" }
                        id="@{fieldValue.id}.month"
                        value = "@validationResult.flatMap(_.getOptionalCurrentValue("month")).orElse(prepop.map(_.month)).getOrElse("")"
                        class= "input--xxsmall" />
@@ -41,6 +43,7 @@
 
                 <input type="text"
                        name="@{fieldValue.id}.year"
+                       @if(!fieldValue.editable) { readonly="" }
                        id="@{fieldValue.id}.year"
                        value = "@validationResult.flatMap(_.getOptionalCurrentValue("year")).orElse(prepop.map(_.year)).getOrElse("")"
                        class="input--xsmall" />
