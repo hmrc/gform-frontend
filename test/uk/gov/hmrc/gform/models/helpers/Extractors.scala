@@ -37,7 +37,7 @@ object Extractors {
     } yield m.group(1)
   }
 
-  val dateR = "(\\d{2})\\s*/\\s*(\\d{2})\\s*/\\s*(\\d{4})".r.unanchored
+  val dateR = "(\\d{2}) (\\w+) (\\d{4})".r.unanchored
 
   def extractDates(html: List[Html]): List[(String, String, String)] = {
     for {

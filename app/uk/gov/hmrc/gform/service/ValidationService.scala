@@ -34,7 +34,6 @@ import scala.util.{Failure, Success, Try}
 object ValidationService {
 
   case class CompData(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) {
-
     def validateComponents: ValidatedType = {
       fieldValue.`type` match {
         case date@Date(_, _, _) =>
@@ -92,9 +91,14 @@ object ValidationService {
     def validateDateRequiredField(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val dateValueOf = dataGetter(fieldValue)
 
-      val validatedResult: List[ValidatedType] = List(validateRF("day")(dateValueOf("day")),
-        validateRF("month")(dateValueOf("month")),
-        validateRF("year")(dateValueOf("year")))
+      val validatedResult = fieldValue.mandatory match {
+        case true =>
+          List(validateRF("day")(dateValueOf("day")),
+            validateRF("month")(dateValueOf("month")),
+            validateRF("year")(dateValueOf("year")))
+
+        case false => List(Valid(()))
+      }
 
       Monoid[ValidatedType].combineAll(validatedResult)
     }
@@ -104,7 +108,7 @@ object ValidationService {
       val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) => localDate.plusDays(offset.value)
 
       date.constraintType match {
-        case AnyDate => Valid(()) // missing requirements
+        case AnyDate => validateInputDate(fieldValue, data).andThen(lDate => Valid(()))
         case DateConstraints(dateConstraintList) =>
 
           val result = dateConstraintList.map {

@@ -1,6 +1,7 @@
 @import uk.gov.hmrc.gform.models.components.FieldValue
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.localisation
+@import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
 @import uk.gov.hmrc.play.views.html.helpers._
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
@@ -12,7 +13,7 @@
 
   <td>
     @if(validationResult.map(_.getCurrentValue.isEmpty).contains(true)) {
-        @{validationResult.map(_.getCurrentValue("day")).getOrElse("")}/@{validationResult.map(_.getCurrentValue("month")).getOrElse("")}/@{validationResult.map(_.getCurrentValue("year")).getOrElse("")}
+        @{renderMonth(validationResult.map(_.getCurrentValue("day"))).getOrElse("")} @{getMonthValue(validationResult.map(_.getCurrentValue("month"))).getOrElse("")} @{validationResult.map(_.getCurrentValue("year")).getOrElse("")}
     }
   </td>
 </tr>
