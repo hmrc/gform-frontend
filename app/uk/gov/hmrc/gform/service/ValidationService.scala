@@ -32,7 +32,6 @@ import uk.gov.hmrc.gform.typeclasses.Now
 import scala.util.{Failure, Success, Try}
 
 object ValidationService {
-
   case class CompData(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) {
     def validateComponents: ValidatedType = {
       fieldValue.`type` match {
@@ -59,7 +58,7 @@ object ValidationService {
 
     def validateRequired(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
       xs.filterNot(_.isEmpty()) match {
-        case Nil => Invalid(Map(fieldId -> Set("RequiredFieldException")))
+        case Nil => Invalid(Map(fieldId -> Set("must be entered")))
         case value :: Nil => Valid(())
         case value :: rest => Valid(()) // we don't support multiple values yet
       }
@@ -215,9 +214,9 @@ object ValidationService {
 
     def validateLocalDate(fv: FieldValue, day: String, month: String, year: String): ValidatedConcreteDate = {
 
-      val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id -> Set(er)))
-      val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id -> Set(er)))
-      val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id -> Set(er)))
+      val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(er)))
+      val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(er)))
+      val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(er)))
 
       parallelWithApplicative(d, m, y)(ConcreteDate.apply)
     }

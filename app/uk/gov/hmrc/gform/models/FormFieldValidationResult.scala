@@ -96,6 +96,18 @@ object ValidationUtil {
 
   type ValidatedType = Validated[GFormError, Unit]
 
+  def renderErrors(value: String, validationResult: FormFieldValidationResult):
+  Map[String, Set[String]] = {
+
+    validationResult match {
+      case FieldError(_, _, errors) => Map(value -> errors)
+      case FieldGlobalError(_, _, errors) => Map(value -> errors)
+      case ComponentField(_, compData) =>
+        compData.flatMap(kv => renderErrors(kv._1, kv._2))
+
+      case _ => Map.empty[String, Set[String]]
+    }
+  }
 
   def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])
                                             (dGetter: (FieldId) => Seq[String]):
