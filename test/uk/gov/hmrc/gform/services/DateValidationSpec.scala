@@ -235,7 +235,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set(s"IsNotValid")))
+    result.toEither should beLeft(Map(fieldValue.id.withSuffix("day") -> Set(s"entered is greater than 31")))
   }
 
   "Date 15-5-222017" should "Invalid number of digits" in {
@@ -253,13 +253,13 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val result = CompData(fieldValue, data).validateComponents
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set(s"Invalid number of digits")))
+    result.toEither should beLeft(Map(fieldValue.id.withSuffix("year") -> Set(s"is not a 4 digit number")))
   }
 
   /**
     * Without Date Constraints
     */
-  "Date validations" should "be applied apparently from mandatory field" in{
+  "Date validations" should "be applied apparently from mandatory field" in {
     val date = Date(AnyDate, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
@@ -272,6 +272,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val result: ValidatedType = CompData(fieldValue, data).validateComponents
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set(s"NonNumericException")))
+    result.toEither should beLeft(Map(fieldValue.id.withSuffix("day") -> Set(s"must be non-numeric"),
+                                      fieldValue.id.withSuffix("month") -> Set(s"must be non-numeric")))
   }
 }
