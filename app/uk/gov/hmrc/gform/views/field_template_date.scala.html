@@ -5,50 +5,51 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr])
 
-<div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-    <fieldset>
-        <legend class="h3-heading">@{fieldValue.label}</legend>
+<div class="form-group">
+    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+        <fieldset>
+            <legend class="h3-heading">@{fieldValue.label}</legend>
 
-        @if(fieldValue.helpText) {
-        <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-        }
+            @if(fieldValue.helpText) {
+            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+            }
 
-        @errorInline(fieldValue.id.value, ValidationUtil.printErrors(validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)), Seq(""))
+            @errorInline(fieldValue.id.value, ValidationUtil.printErrors(validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)), Seq(""))
 
+            <div class="form-date">
+                <div class="form-group">
+                    <label class="form-label" for="@{fieldValue.id}.day">Day</label>
 
-        <div class="form-date">
-            <div class="form-group">
-                <label class="form-label" for="@{fieldValue.id}.day">Day</label>
+                    <input type="text"
+                           name="@{fieldValue.id}.day"
+                           @if(!fieldValue.editable) { readonly="" }
+                           id="@{fieldValue.id}.day"
+                           value = "@validationResult.flatMap(_.getOptionalCurrentValue("day")).orElse(prepop.map(_.day)).getOrElse("")"
+                           class="input--xxsmall" />
+                </div>
 
-                <input type="text"
-                       name="@{fieldValue.id}.day"
-                       @if(!fieldValue.editable) { readonly="" }
-                       id="@{fieldValue.id}.day"
-                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("day")).orElse(prepop.map(_.day)).getOrElse("")"
-                       class="input--xxsmall" />
+                <div class="form-group">
+                    <label class="form-label" for="@{fieldValue.id}.month">Month</label>
+
+                    <input type="text"
+                           name="@{fieldValue.id}.month"
+                           @if(!fieldValue.editable) { readonly="" }
+                           id="@{fieldValue.id}.month"
+                           value = "@validationResult.flatMap(_.getOptionalCurrentValue("month")).orElse(prepop.map(_.month)).getOrElse("")"
+                           class= "input--xxsmall" />
+                </div>
+
+                <div class="form-group form-group-year">
+                    <label class="form-label" for="@{fieldValue.id}.year">Year</label>
+
+                    <input type="text"
+                           name="@{fieldValue.id}.year"
+                           @if(!fieldValue.editable) { readonly="" }
+                           id="@{fieldValue.id}.year"
+                           value = "@validationResult.flatMap(_.getOptionalCurrentValue("year")).orElse(prepop.map(_.year)).getOrElse("")"
+                           class="input--xsmall" />
+                </div>
             </div>
-
-            <div class="form-group">
-                <label class="form-label" for="@{fieldValue.id}.month">Month</label>
-
-                <input type="text"
-                       name="@{fieldValue.id}.month"
-                       @if(!fieldValue.editable) { readonly="" }
-                       id="@{fieldValue.id}.month"
-                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("month")).orElse(prepop.map(_.month)).getOrElse("")"
-                       class= "input--xxsmall" />
-            </div>
-
-            <div class="form-group form-group-year">
-                <label class="form-label" for="@{fieldValue.id}.year">Year</label>
-
-                <input type="text"
-                       name="@{fieldValue.id}.year"
-                       @if(!fieldValue.editable) { readonly="" }
-                       id="@{fieldValue.id}.year"
-                       value = "@validationResult.flatMap(_.getOptionalCurrentValue("year")).orElse(prepop.map(_.year)).getOrElse("")"
-                       class="input--xsmall" />
-            </div>
-        </div>
-    </fieldset>
+        </fieldset>
+    </div>
 </div>

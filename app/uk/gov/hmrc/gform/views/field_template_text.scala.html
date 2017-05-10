@@ -4,21 +4,23 @@
 
 @(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult])
 
-<div class="form-field-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-    @* TODO: What should total style be? *@
-  <label @if(text.total) {class="form-label-bold"} else {class="form-label"} for="@{fieldValue.id}">@localisation(fieldValue.label)</label>
+<div class="form-group">
+    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+        @* TODO: What should total style be? *@
+      <label @if(text.total) {class="form-label-bold"} else {class="form-label"} for="@{fieldValue.id}">@localisation(fieldValue.label)</label>
 
-  @if(fieldValue.helpText) {
-  <div class="form-field--hint">@{fieldValue.helpText}</div>
-  }
+      @if(fieldValue.helpText) {
+      <div class="form-field--hint">@{fieldValue.helpText}</div>
+      }
 
-  @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
+      @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
 
-  <input
-     type="text"
-     name="@fieldValue.id"
-      @if(!fieldValue.editable) { readonly="" }
-     id="@fieldValue.id"
-     value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-     class="input--medium">
+      <input
+         type="text"
+         name="@fieldValue.id"
+          @if(!fieldValue.editable) { readonly="" }
+         id="@fieldValue.id"
+         value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
+         class="input--medium">
+    </div>
 </div>
