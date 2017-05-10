@@ -1,5 +1,5 @@
 # Add all the application routes to the app.routes file
-->         /bforms-frontend        app.Routes
+->         /gform-frontend        app.Routes
 ->         /                       health.Routes
 ->         /template               template.Routes
 

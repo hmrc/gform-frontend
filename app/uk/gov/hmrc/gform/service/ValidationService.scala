@@ -68,7 +68,7 @@ object ValidationService {
       val choiceValue = data.get(fieldValue.id).toList.flatten
 
       (fieldValue.mandatory, choiceValue) match {
-        case (true, Nil) => Invalid(Map(fieldValue.id -> Set("RequiredFieldException")))
+        case (true, Nil) => Invalid(Map(fieldValue.id -> Set("is required")))
         case _ => Valid(())
       }
     }
@@ -118,10 +118,10 @@ object ValidationService {
                   validateInputDate(fieldValue, data)
                     .andThen(inputDate =>
                       validateToday(fieldValue, inputDate,
-                        offset, Map(fieldValue.id -> Set("date should be before Today")))(isBeforeToday))
+                        offset, Map(fieldValue.id -> Set("Date should be before Today")))(isBeforeToday))
 
                 case (Before, concreteDate: ConcreteDate, offset) =>
-                  validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
+                  validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
                     .andThen { concreteDate =>
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
@@ -142,7 +142,7 @@ object ValidationService {
 
                 case (After, concreteDate: ConcreteDate, offset) =>
 
-                  validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
+                  validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
                     .andThen { concreteDate =>
                       validateInputDate(fieldValue, data)
                         .andThen(inputDate =>
@@ -204,11 +204,11 @@ object ValidationService {
         case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
 
           validateLocalDate(fieldValue, day, month, year) match {
-            case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("ConcreteDateException")))
+            case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
             case Invalid(nonEmptyList) => Invalid(nonEmptyList)
           }
 
-        case _ => Invalid(Map(fieldValue.id -> Set("DateMissingException")))
+        case _ => Invalid(Map(fieldValue.id -> Set("Date is missing")))
       }
     }
 
@@ -224,21 +224,21 @@ object ValidationService {
     def isNumeric(str: String): ValidatedNumeric = {
       Try(str.toInt) match {
         case Success(x) => Valid(x)
-        case Failure(_) => Invalid("NonNumericException")
+        case Failure(_) => Invalid("must be non-numeric")
       }
     }
 
     def isWithinBounds(number: Int, dayOrMonth: Int): ValidatedNumeric = {
       number match {
         case x if number <= dayOrMonth => Valid(number)
-        case y if number > dayOrMonth => Invalid("IsNotValid")
+        case y if number > dayOrMonth => Invalid(s"entered is greater than $dayOrMonth")
       }
     }
 
     def hasValidNumberOfDigits(number: Int, digits: Int): ValidatedNumeric = {
       number.toString.length match {
         case x if x == digits => Valid(number)
-        case y if y != digits => Invalid("Invalid number of digits")
+        case y if y != digits => Invalid(s"is not a $digits digit number")
       }
     }
 

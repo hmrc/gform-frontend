@@ -69,7 +69,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
   }
 
 
-  val FormIdExtractor = "bforms/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
+  val FormIdExtractor = "gform/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
 
   def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
     implicit authContext =>
