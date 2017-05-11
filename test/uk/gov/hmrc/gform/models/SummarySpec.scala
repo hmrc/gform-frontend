@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 
+
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
