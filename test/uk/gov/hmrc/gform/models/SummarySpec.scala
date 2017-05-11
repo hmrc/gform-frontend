@@ -71,16 +71,18 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     testStringValues should be(List("Form Type", "Form Id", "Form Type", "Form Id"))
   }
 
-  "Summary" should "display values for each field type" in {
+  "Summary" should "display values for each field type with a submissible field, " in {
 
     val section = Section("Personal details", List(
       FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, true, true, true),
+      FieldValue(FieldId("Info"), Text(Constant(""), total = false), "Info", None, true, true, submissible = false),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, true, true, true),
       FieldValue(FieldId("HomeAddress"), Address, "Home address", None, true, true, true)
     ))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
     val formFields = Map(FieldId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
+      FieldId("Info") -> Seq("Test!Royal!Test"),
       FieldId("BirthDate.day") -> Seq("19"),
       FieldId("BirthDate.month") -> Seq("11"),
       FieldId("BirthDate.year") -> Seq("1841"),
