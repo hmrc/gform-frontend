@@ -57,7 +57,7 @@ package controllers {
   @Singleton
   class BformsAuthenticationProvider @Inject() (configuration: Configuration) extends GovernmentGateway {
 
-    private val bformsFrontendBaseUrl = configuration.getString("bforms-frontend-base-url").getOrElse("")
+    private val bformsFrontendBaseUrl = configuration.getString("gform-frontend-base-url").getOrElse("")
     private val governmentGatewaySignInUrl = configuration.getString("government-gateway-sign-in-url").getOrElse("")
 
     override def redirectToLogin(implicit request: Request[_]): Future[Result] = {

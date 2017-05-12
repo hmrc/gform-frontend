@@ -48,5 +48,5 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   //  override lazy val governmentGatewaySignInUrl = "http://localhost:9025/gg/sign-in"
 
   // this will be empty in non-local environments
-  override lazy val bFormsFrontendBaseUrl = config.getString("bforms-frontend-base-url").getOrElse("")
+  override lazy val bFormsFrontendBaseUrl = config.getString("gform-frontend-base-url").getOrElse("")
 }
