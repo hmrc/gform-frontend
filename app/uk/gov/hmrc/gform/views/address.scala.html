@@ -9,7 +9,7 @@
         <fieldset>
             <legend class="h3-heading">@localisation(fieldValue.label)</legend>
             @if(fieldValue.helpText) {
-            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(List.empty).headOption.getOrElse(""))</div>
+            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
             }
 
             @errorInline(fieldValue.id.value, "Please enter your street", Seq(""))

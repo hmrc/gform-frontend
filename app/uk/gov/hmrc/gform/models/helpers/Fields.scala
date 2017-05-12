@@ -39,7 +39,7 @@ object Fields {
       case Text(_, _) => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
-      case Choice(_, _, _, _) =>
+      case Choice(_, _, _, _, _) =>
         val fieldId = fieldValue.id
         val fieldOks = formFields.get(fieldId).map { formField =>
           val selections = formField.value.split(",").toList
@@ -60,7 +60,7 @@ object Fields {
       fv.`type` match {
         case Address => Address.fields(fv.id).map(getFormFieldValue)
         case Date(_, _, _) => Date.fields(fv.id).map(getFormFieldValue)
-        case Text(_, _) | Choice(_, _, _, _) => List(getFormFieldValue(fv.id))
+        case Text(_, _) | Choice(_, _, _, _,_) => List(getFormFieldValue(fv.id))
       }
     }
   }

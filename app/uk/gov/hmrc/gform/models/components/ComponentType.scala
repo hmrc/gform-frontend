@@ -54,7 +54,8 @@ object ChoiceType {
   implicit val formatExpr: OFormat[ChoiceType] = derived.oformat
 }
 
-case class Choice(`type`: ChoiceType, options: NonEmptyList[String], orientation: ChoiceOrientation, selections: List[Int]) extends ComponentType
+case class Choice(`type`: ChoiceType, options: NonEmptyList[String], orientation: ChoiceOrientation,
+                  selections: List[Int], optionHelpText: Option[List[String]]) extends ComponentType
 
 object ComponentType {
 

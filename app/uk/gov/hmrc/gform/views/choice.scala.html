@@ -8,12 +8,17 @@ fieldValue: FieldValue,
 options: NonEmptyList[String],
 orientation: ChoiceOrientation,
 prepop: Set[String],
-validationResult: Option[FormFieldValidationResult])
+validationResult: Option[FormFieldValidationResult],
+optionHelpText: Option[List[String]])
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
         <fieldset>
             <legend class="h3-heading">@{fieldValue.label}</legend>
+
+            @if(fieldValue.helpText) {
+            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+            }
 
             @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
 
@@ -29,8 +34,8 @@ validationResult: Option[FormFieldValidationResult])
                 @option
             </label>
 
-            <legend class="h3-heading">@if(fieldValue.helpText) {
-                <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(List.empty)(index))</div>
+            <legend class="h3-heading">@if(optionHelpText) {
+                <div class="form-field--hint">@localisation(optionHelpText.getOrElse(List.empty)(index))</div>
                 }
             </legend>
 
