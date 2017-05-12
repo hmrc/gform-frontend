@@ -4,35 +4,38 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 
 @(inputType: String,
-  fieldValue: FieldValue,
-  options: NonEmptyList[String],
-  orientation: ChoiceOrientation,
-  prepop: Set[String],
-  validationResult: Option[FormFieldValidationResult])
+fieldValue: FieldValue,
+options: NonEmptyList[String],
+orientation: ChoiceOrientation,
+prepop: Set[String],
+validationResult: Option[FormFieldValidationResult])
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-      <fieldset>
-        <legend class="h3-heading">@{fieldValue.label}</legend>
+        <fieldset>
+            <legend class="h3-heading">@{fieldValue.label}</legend>
 
-        @if(fieldValue.helpText) {
-          <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-        }
+            @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
 
-        @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
-
-        <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) { inline }">
-          @options.toList.zipWithIndex.map{ case (option, index) =>
+            <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) { inline }">
+            @options.toList.zipWithIndex.map{ case (option, index) =>
             <label for="@{fieldValue.id}@index" class="block-label selection-button-radio">
-              <input id="@{fieldValue.id}@index"
-                     name="@{fieldValue.id}"
-                     value="@index"
-                     type="@inputType"
-                     @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).orElse(prepop.find(_ == index.toString)).map(_ => "checked").getOrElse("") />
-              @option
+                <input id="@{fieldValue.id}@index"
+                       name="@{fieldValue.id}"
+                       value="@index"
+                       type="@inputType"
+                       @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
+                       index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
+                @option
             </label>
-          }
-        </div>
-      </fieldset>
+
+            <legend class="h3-heading">@if(fieldValue.helpText) {
+                <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(List.empty)(index))</div>
+                }
+            </legend>
+
+            }
     </div>
+    </fieldset>
+</div>
 </div>

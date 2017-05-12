@@ -11,7 +11,7 @@
             <legend class="h3-heading">@{fieldValue.label}</legend>
 
             @if(fieldValue.helpText) {
-            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(List.empty).headOption.getOrElse(""))</div>
             }
 
             @errorInline(fieldValue.id.value, ValidationUtil.printErrors(validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)), Seq(""))
