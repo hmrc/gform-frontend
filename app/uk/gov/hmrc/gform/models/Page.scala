@@ -67,7 +67,7 @@ object PageForRender {
               }
               prepopValueF.map(prepopValue => uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue)))
 
-            case Choice(choice, options, orientation, selections) =>
+            case Choice(choice, options, orientation, selections, optionalHelpText) =>
               val prepopValues = formFields.get(fieldValue.id) match {
                 case None => selections.map(_.toString).toSet
                 case Some(_) => Set.empty[String] // Don't prepop something we already submitted
@@ -75,8 +75,8 @@ object PageForRender {
 
               val snippet =
               choice match {
-                case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue))
-                case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue))
+                case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue), optionalHelpText)
+                case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue), optionalHelpText)
               }
               Future.successful(snippet)
           }

@@ -43,7 +43,7 @@ object ValidationService {
 
         case Text(_, _) => validateText(fieldValue)(data)
         case Address => validateAddress(fieldValue)(data)
-        case Choice(_, _, _, _) => validateChoice(fieldValue)(data)
+        case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
       }
     }
 

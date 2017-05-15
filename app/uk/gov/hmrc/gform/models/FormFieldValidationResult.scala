@@ -60,7 +60,7 @@ sealed trait FormFieldValidationResult {
     case FieldGlobalOk(_, _) => Right(List.empty[FormField])
     case ComponentField(fieldValue, data) =>
       fieldValue `type` match {
-        case Choice(_, _, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
+        case Choice(_, _, _, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
         case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(_.withSuffix(suffix))) }.toList.sequenceU.map(_.flatten)
       }
 
@@ -193,7 +193,7 @@ object ValidationUtil {
             case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
           }
 
-        case Choice(_, _, _, _) =>
+        case Choice(_, _, _, _, _) =>
 
           gFormErrors.get(fieldValue.id) match {
             case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
@@ -222,8 +222,3 @@ object ValidationUtil {
   }
 
 }
-
-
-
-
-
