@@ -18,7 +18,8 @@
         "street3",
         "town",
         "county",
-        "postcode"
+        "postcode",
+        "country"
     ).map { suffix =>
         @if(validationResult.map(_.getCurrentValue(suffix).isEmpty).contains(false)) {
             @validationResult.map(_.getCurrentValue(suffix)).getOrElse("")<br />
