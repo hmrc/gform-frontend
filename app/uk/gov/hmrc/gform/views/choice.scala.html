@@ -12,7 +12,7 @@ validationResult: Option[FormFieldValidationResult],
 optionHelpText: Option[List[String]])
 
 <div class="form-group">
-    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
         <fieldset>
             <legend class="h3-heading">@{fieldValue.label}</legend>
 
@@ -22,25 +22,35 @@ optionHelpText: Option[List[String]])
 
             @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
 
-            <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) { inline }">
+            <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
             @options.toList.zipWithIndex.map{ case (option, index) =>
-            <label for="@{fieldValue.id}@index" class="block-label selection-button-radio">
+            <label
+              for="@{fieldValue.id}@index"
+              class="block-label selection-button-radio"
+              @if(optionHelpText) {
+              data-target="helptext-@{fieldValue.id}@index"
+              }
+            >
                 <input id="@{fieldValue.id}@index"
                        name="@{fieldValue.id}"
                        value="@index"
                        type="@inputType"
+                       @if(optionHelpText) {
+                       aria-controls="helptext-@{fieldValue.id}@index"
+                       aria-expanded="false"
+                       }
                        @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
                        index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
                 @option
             </label>
 
-            <legend class="h3-heading">@if(optionHelpText) {
-                <div class="form-field--hint">@localisation(optionHelpText.getOrElse(List.empty)(index))</div>
-                }
-            </legend>
-
+            @if(optionHelpText) {
+                <div id="helptext-@{fieldValue.id}@index" class="panel-indent js-hidden" aria-hidden="true">
+                    @localisation(optionHelpText.getOrElse(List.empty)(index))
+                </div>
             }
-    </div>
+          }
+        </div>
     </fieldset>
 </div>
 </div>

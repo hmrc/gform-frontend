@@ -13,6 +13,10 @@
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
 
+@scriptElement = {
+  <script src="@routes.Assets.versioned("javascripts/gform.js")"></script>
+}
+
 @head = {
     @uiLayouts.head(
       linkElem = None,
@@ -40,7 +44,7 @@
       analyticsToken = Some(appConfig.analyticsToken),
       analyticsHost = appConfig.analyticsHost,
       ssoUrl = None,
-      scriptElem = scriptElem,
+      scriptElem = Some(scriptElement),
       gaCalls = None)
 }
 
