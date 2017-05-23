@@ -1,6 +1,0 @@
-->         /gform                  app.Routes
-->         /                       health.Routes
-->         /template               template.Routes
-
-
-GET        /admin/metrics          @com.kenshoo.play.metrics.MetricsController.metrics
