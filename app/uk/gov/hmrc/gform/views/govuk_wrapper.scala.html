@@ -17,9 +17,13 @@
     <script src="@routes.Assets.versioned("javascripts/gform.js")"></script>
 }
 
+@linkElement = {
+    <link href="@routes.Assets.versioned("stylesheets/gform.css")" rel="stylesheet" />
+}
+
 @head = {
     @uiLayouts.head(
-      linkElem = None,
+      linkElem = Some(linkElement),
       headScripts = None)
     <meta name="format-detection" content="telephone=no" />
 }
