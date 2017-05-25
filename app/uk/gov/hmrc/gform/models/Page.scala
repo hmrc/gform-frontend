@@ -33,26 +33,32 @@ import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
 
 
-case class PageForRender(curr: Int, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
+case class PageForRender(curr: Int, sectionTitle: String, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
 object PageForRender {
   def apply(
     curr: Int,
-    formFields: Map[FieldId, Seq[String]],
+    fieldData: Map[FieldId, Seq[String]],
     formTemplate: FormTemplate,
     section: Section,
     f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
 
-    val hiddenFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
+    val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
 
-    val hiddenSnippets = Fields.toFormField(formFields, hiddenFields).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
+    val hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
 
-    val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(formFields, section.fields)
+    val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields)
 
-    val snippetsF: List[Future[Html]] = {
-      section.fields
-        .map { fieldValue =>
+    def htmlFor(fieldValue: FieldValue): Future[Html] =
           fieldValue.`type` match {
+            case Group(fvs) => {
+              val listofeventualhtmls: List[Future[Html]] = fvs.map {
+                case (fv: FieldValue) => htmlFor(fv)
+              }
+              Future.sequence(listofeventualhtmls).flatMap {
+                case (lhtml) => Future.successful(uk.gov.hmrc.gform.views.html.group(fieldValue, lhtml))
+              }
+            }
             case Date(_, offset, dateValue) =>
               val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
               Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
@@ -61,39 +67,44 @@ object PageForRender {
               Future.successful(uk.gov.hmrc.gform.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue)))
 
             case t @ Text(expr, _) =>
-              val prepopValueF = formFields.get(fieldValue.id) match {
+              val prepopValueF = fieldData.get(fieldValue.id) match {
                 case None  => PrepopService.prepopData(expr, formTemplate.formTypeId)
                 case _ => Future.successful("") // Don't prepop something we already submitted
               }
               prepopValueF.map(prepopValue => uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue)))
 
             case Choice(choice, options, orientation, selections, optionalHelpText) =>
-              val prepopValues = formFields.get(fieldValue.id) match {
+              val prepopValues = fieldData.get(fieldValue.id) match {
                 case None => selections.map(_.toString).toSet
                 case Some(_) => Set.empty[String] // Don't prepop something we already submitted
               }
 
               val snippet =
-              choice match {
-                case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue), optionalHelpText)
-                case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue), optionalHelpText)
-              }
+                choice match {
+                  case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue), optionalHelpText)
+                  case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, f.getOrElse(okF)(fieldValue), optionalHelpText)
+                }
               Future.successful(snippet)
           }
-        }
+
+    val snippetsF: List[Future[Html]] = {
+      val sectionFields: List[FieldValue] = section.fields
+      sectionFields.map {
+        case (fv: FieldValue) => htmlFor(fv)
+      }
     }
-    Future.sequence(snippetsF).map(snippets => PageForRender(curr, hiddenSnippets, snippets, fieldJavascript(formTemplate.sections.flatMap(_.fields))))
+    Future.sequence(snippetsF).map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, fieldJavascript(formTemplate.sections.flatMap(_.atomicFields))))
   }
 }
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
 
-  def pageForRender(formFields: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier) : Future[PageForRender] =
-    PageForRender(curr, formFields, formTemplate, section, f)
+  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier) : Future[PageForRender] =
+    PageForRender(curr, fieldData, formTemplate, section, f)
 
-  def renderPage(formFields: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])
+  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])
                 (implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
-    pageForRender(formFields, f).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
+    pageForRender(fieldData, f).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
   }
 
 }

@@ -17,13 +17,29 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.components.FieldValue
+import uk.gov.hmrc.gform.models.components.{ComponentType, FieldValue, Group}
 
 
 case class Section(
   title: String,
   fields: List[FieldValue]
-)
+) {
+
+  def atomicFields = {
+
+    def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
+      fields.flatMap {
+        case (fv: FieldValue) => fv.`type` match {
+          case Group(fvs) => atomicFields(fvs)
+          case _ => List(fv)
+        }
+      }
+    }
+
+    atomicFields(fields)
+  }
+
+}
 
 object Section {
   implicit val format = Json.format[Section]

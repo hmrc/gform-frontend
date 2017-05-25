@@ -32,7 +32,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
+    val speccedDate = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, true, false, false)
 
     val acceptedAfter = LocalDate.now().plusDays(2).getDayOfMonth
@@ -41,7 +41,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("accPeriodStartDate.month") -> Seq(LocalDate.now().getMonthValue.toString),
       FieldId("accPeriodStartDate.year") -> Seq(LocalDate.now().getYear.toString))
 
-    val result: ValidatedType = CompData(fieldValue, data).validateComponents
+    val result: ValidatedType = CompData(speccedDate, data).validateComponents
 
     result.value shouldBe (())
   }
