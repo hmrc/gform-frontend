@@ -47,7 +47,7 @@
             <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
             }
 
-            @errorInline(fieldValue.id.value, "Please enter your street", Seq(""))
+            @errorInline(fieldValue.id.value, "Please enter your address", Seq(""))
 
             <div class="form-group-compound">
                 <label class="form-label" for="@{fieldValue.id}.street1">Street</label>
