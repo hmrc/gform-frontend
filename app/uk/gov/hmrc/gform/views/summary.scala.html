@@ -27,7 +27,7 @@
       	       value="@{formId.value}" />
 
 
-        <div class="alert alert--info alert--info__light alert--borderless">
+        <div class="alert alert--info alert--info__light alert--borderless print-hidden">
           <h2 class="heading-medium">Review your return</h2>
 
           <p>You can print this summary page then come back later to complete your submission.</p>
@@ -41,11 +41,13 @@
           </div>
         </div>
 
-        <h2 class="heading-medium">Ready to submit your return</h2>
+        <div class="print-hidden">
+          <h2 class="heading-medium">Ready to submit your return</h2>
 
-        <p>If you are happy with the return details above, save and continue with your submission.</p>
+          <p>If you are happy with the return details above, save and continue with your submission.</p>
 
-        <button type="submit" class="button" name="save" value="Continue">Continue</button>
+          <button type="submit" class="button" name="save" value="Continue">Continue</button>
+        </div>
     </form>
 
     <script type="text/javascript">
