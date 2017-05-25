@@ -96,7 +96,9 @@ object ValidationUtil {
 
   type ValidatedType = Validated[GFormError, Unit]
 
-  val printErrors: (Map[String, Set[String]]) => String = (map: Map[String, Set[String]]) => map.map(kv => s"${kv._1}  ${kv._2.foldRight(", ")(_+_)}").fold(" ")(_+_)
+  val printErrors: (Map[String, Set[String]]) => Set[String] = (map: Map[String, Set[String]]) => {
+    map.foldLeft(Set[String]())(_ ++ _._2)
+  }
 
   def renderErrors(value: String, validationResult: FormFieldValidationResult):
   Map[String, Set[String]] = {
