@@ -1,0 +1,22 @@
+@import uk.gov.hmrc.gform.models.components.FieldValue
+@import uk.gov.hmrc.play.views.html.helpers._
+@import views.html.helper.CSRF
+@import scala.concurrent.Future
+
+@(fieldValue: FieldValue, snippets: List[Html])
+
+<div class="group2">
+    <header class="page-header text">
+        <h2>@localisation(fieldValue.label)</h2>
+    </header>
+
+	  <h2 class="h2-heading">Group</h2>
+
+
+	@{
+	    snippets
+	}
+
+</div>
+
+

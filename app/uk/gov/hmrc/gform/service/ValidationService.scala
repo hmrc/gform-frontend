@@ -44,6 +44,7 @@ object ValidationService {
         case Text(_, _) => validateText(fieldValue)(data)
         case Address => validateAddress(fieldValue)(data)
         case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
+        case Group(_) => Valid(())    //a group is read-only
       }
     }
 
@@ -198,7 +199,7 @@ object ValidationService {
     }
 
     def validateInputDate(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
-      val fieldIdList = Date.fields(fieldValue.id).map(fId => data.get(fId))
+      val fieldIdList = Date.allFieldIds(fieldValue.id).map(fId => data.get(fId))
 
       fieldIdList match {
         case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>

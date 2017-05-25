@@ -115,7 +115,7 @@ object ValidationUtil {
                                             (dGetter: (FieldId) => Seq[String]):
   List[(FieldId, FormFieldValidationResult)] = {
     component match {
-      case Address => Address.fields(fieldValue.id).map { fieldId =>
+      case Address => Address.allFieldIds(fieldValue.id).map { fieldId =>
 
         gFormErrors.get(fieldId) match {
           //with suffix
@@ -124,7 +124,7 @@ object ValidationUtil {
         }
       }
 
-      case Date(_, _, _) => Date.fields(fieldValue.id).map { fieldId =>
+      case Date(_, _, _) => Date.allFieldIds(fieldValue.id).map { fieldId =>
 
         gFormErrors.get(fieldId) match {
           //with suffix
@@ -192,6 +192,12 @@ object ValidationUtil {
             case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
             case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
           }
+
+        case Group(_) => {
+
+          FieldOk(fieldValue, "")   //nothing to validate for group (TODO - review)
+
+        }
 
         case Choice(_, _, _, _, _) =>
 

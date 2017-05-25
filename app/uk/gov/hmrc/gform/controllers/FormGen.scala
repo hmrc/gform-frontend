@@ -57,13 +57,13 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
     implicit authContext =>
       implicit request =>
 
-        SaveService.getFormById(formTypeId, version, formId).flatMap { formData =>
+        SaveService.getFormById(formTypeId, version, formId).flatMap { (formData: FormData) =>
 
-          val lookup: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
+          val fieldIdToStrings: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
           val formTemplate = request.formTemplate
 
-          Page(currPage, formTemplate).renderPage(lookup, Some(formId), None)
+          Page(currPage, formTemplate).renderPage(fieldIdToStrings, Some(formId), None)
 
         }
   }
@@ -84,10 +84,10 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
           val actionE: Either[String, FormAction] = FormAction.fromAction(getActions(data, FieldId("save")), page)
 
-          val validatedData = page.section.fields.map(fv => CompData(fv, data).validateComponents)
+          val validatedData = page.section.atomicFields.map(fv => CompData(fv, data).validateComponents)
           val validatedDataResult = Monoid[ValidatedType].combineAll(validatedData)
 
-          val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(page.section.fields, validatedDataResult, data)
+          val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(page.section.atomicFields, validatedDataResult, data)
 
           def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
@@ -138,8 +138,8 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                     case Right(formFieldResultList) => formFieldResultList
                   }
 
-                  val formFieldIds = formFieldsList.map(_.toFormFieldTolerant)
-                  val formFields = formFieldIds.sequenceU.flatten
+                  val formFieldIds: List[List[FormField]] = formFieldsList.map(_.toFormFieldTolerant)
+                  val formFields = formFieldIds.flatten
 
                   val formData = FormData(formTypeId, version, "UTF-8", formFields)
 
