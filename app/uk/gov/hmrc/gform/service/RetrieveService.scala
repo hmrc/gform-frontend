@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-import uk.gov.hmrc.gform.connectors.BformsConnector
+import uk.gov.hmrc.gform.connectors.GformConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.models.FormTemplate
 
 object RetrieveService {
 
-  def bformsConnector = BformsConnector
+  def bformsConnector = GformConnector
 
   def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
     formTemplate.validate[FormTemplate] match {
