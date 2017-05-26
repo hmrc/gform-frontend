@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.service
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.gform.connectors.BformsConnector
+import uk.gov.hmrc.gform.connectors.GformConnector
 import uk.gov.hmrc.gform.models.{SaveResult, VerificationResult}
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.models.form.{FormData, FormId, FormTypeId}
 
 object SaveService {
 
-  def bformsConnector : BformsConnector = BformsConnector
+  def bformsConnector : GformConnector = GformConnector
 
   def getFormById(formTypeId: FormTypeId, version: String, formId: FormId)(implicit hc : HeaderCarrier) = {
     bformsConnector.getById(formTypeId, version, formId)
