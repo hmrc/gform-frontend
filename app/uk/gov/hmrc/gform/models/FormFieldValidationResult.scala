@@ -117,7 +117,7 @@ object ValidationUtil {
                                             (dGetter: (FieldId) => Seq[String]):
   List[(FieldId, FormFieldValidationResult)] = {
     component match {
-      case Address => Address.allFieldIds(fieldValue.id).map { fieldId =>
+      case Address(_) => Address.allFieldIds(fieldValue.id).map { fieldId =>
 
         gFormErrors.get(fieldId) match {
           //with suffix
@@ -163,7 +163,7 @@ object ValidationUtil {
     val resultErrors: List[FormFieldValidationResult] = allFields.map { fieldValue =>
 
       fieldValue.`type` match {
-        case Address =>
+        case Address(_) =>
 
           val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(Address, fieldValue, gFormErrors)(dataGetter)
           val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
