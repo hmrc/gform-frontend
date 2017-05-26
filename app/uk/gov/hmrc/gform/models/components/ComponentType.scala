@@ -49,6 +49,7 @@ sealed trait ChoiceType
 final case object Radio extends ChoiceType
 final case object Checkbox extends ChoiceType
 final case object YesNo extends ChoiceType
+final case object Inline extends ChoiceType
 
 object ChoiceType {
   implicit val formatExpr: OFormat[ChoiceType] = derived.oformat
