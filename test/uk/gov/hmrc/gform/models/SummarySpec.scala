@@ -78,7 +78,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, true, true, true),
       FieldValue(FieldId("Info"), Text(Constant(""), total = false), "Info", None, true, true, submissible = false),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, true, true, true),
-      FieldValue(FieldId("HomeAddress"), Address, "Home address", None, true, true, true)
+      FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, true, true, true)
     ))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 

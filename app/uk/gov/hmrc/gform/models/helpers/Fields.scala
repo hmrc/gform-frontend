@@ -28,7 +28,7 @@ object Fields {
               (fieldValue: FieldValue) : Option[FormFieldValidationResult] = {
     val formFields = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
     fieldValue.`type` match {
-      case Address | Date(_, _, _) =>
+      case Address(_) | Date(_, _, _) =>
         val fieldOkData =
           formFields.filter {
             case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
@@ -62,7 +62,7 @@ object Fields {
           val res: List[FormField] = getFormFields(fvs)
           res
         }
-        case Address => Address.allFieldIds(fv.id).map(getFieldData)
+        case Address(_) => Address.allFieldIds(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.allFieldIds(fv.id).map(getFieldData)
         case Text(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload() => List(getFieldData(fv.id))

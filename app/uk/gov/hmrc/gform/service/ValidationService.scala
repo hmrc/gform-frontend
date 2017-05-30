@@ -42,7 +42,7 @@ object ValidationService {
           Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
 
         case Text(_, _) => validateText(fieldValue)(data)
-        case Address => validateAddress(fieldValue)(data)
+        case Address(_) => validateAddress(fieldValue)(data)
         case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
         case Group(_, _) => Valid(())    //a group is read-only
         case FileUpload() => Valid(()) //TODO validation for file upload
