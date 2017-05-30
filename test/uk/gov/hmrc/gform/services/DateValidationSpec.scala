@@ -35,11 +35,11 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     val speccedDate = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, true, false, false)
 
-    val acceptedAfter = LocalDate.now().plusDays(2).getDayOfMonth
+    val acceptedAfter = LocalDate.now().plusDays(2)
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(LocalDate.now().getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(LocalDate.now().getYear.toString))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString))
 
     val result: ValidatedType = CompData(speccedDate, data).validateComponents
 
@@ -54,11 +54,11 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, true, false, false)
 
-    val acceptedAfter = LocalDate.now().plusDays(1).getDayOfMonth
+    val acceptedAfter = LocalDate.now().plusDays(1)
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(LocalDate.now.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(LocalDate.now.getYear.toString))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString))
 
     val result = CompData(fieldValue, data).validateComponents
 
@@ -111,11 +111,11 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, true, false, false)
 
-    val acceptedAfter = LocalDate.now().getDayOfMonth
+    val acceptedAfter = LocalDate.now()
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
-      FieldId("accPeriodStartDate.month") -> Seq("9"),
-      FieldId("accPeriodStartDate.year") -> Seq("2017"))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString))
 
     val result = CompData(fieldValue, data).validateComponents
 
@@ -150,11 +150,11 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, true, false, false)
 
-    val acceptedAfter = LocalDate.now().getDayOfMonth
+    val acceptedAfter = LocalDate.now()
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
-      FieldId("accPeriodStartDate.month") -> Seq("5"),
-      FieldId("accPeriodStartDate.year") -> Seq("2017"))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString))
 
     val result = CompData(fieldValue, data).validateComponents
 
@@ -170,11 +170,11 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, true, false, false)
 
-    val acceptedAfter = LocalDate.now().plusDays(-1).getDayOfMonth
+    val acceptedAfter = LocalDate.now().plusDays(-1)
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
-      FieldId("accPeriodStartDate.month") -> Seq("2"),
-      FieldId("accPeriodStartDate.year") -> Seq("2017"))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString))
 
     val result = CompData(fieldValue, data).validateComponents
 
@@ -190,11 +190,11 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, true, false, false)
 
-    val acceptedAfter = LocalDate.now().plusDays(-2).getDayOfMonth
+    val acceptedAfter = LocalDate.now().plusDays(-2)
 
-    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.toString),
-      FieldId("accPeriodStartDate.month") -> Seq("1"),
-      FieldId("accPeriodStartDate.year") -> Seq("2017"))
+    val data = Map(FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString))
 
     val result = CompData(fieldValue, data).validateComponents
 
