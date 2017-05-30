@@ -62,8 +62,8 @@ object PageForRender {
         val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
         Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
 
-      case Address =>
-        Future.successful(uk.gov.hmrc.gform.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue)))
+            case Address(international) =>
+              Future.successful(uk.gov.hmrc.gform.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue)))
 
       case t@Text(expr, _) =>
         val prepopValueF = fieldData.get(fieldValue.id) match {

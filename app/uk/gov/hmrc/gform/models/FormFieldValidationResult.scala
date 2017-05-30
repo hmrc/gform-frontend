@@ -163,9 +163,9 @@ object ValidationUtil {
     val resultErrors: List[FormFieldValidationResult] = allFields.map { fieldValue =>
 
       fieldValue.`type` match {
-        case Address(_) =>
+        case address@Address(_) =>
 
-          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(Address, fieldValue, gFormErrors)(dataGetter)
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(address, fieldValue, gFormErrors)(dataGetter)
           val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)

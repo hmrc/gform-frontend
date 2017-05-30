@@ -41,7 +41,7 @@ object SummaryForRender {
             .map { fieldValue =>
               fieldValue.`type` match {
                 case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, values(fieldValue))
-                case Address => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, values(fieldValue))
+                case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, values(fieldValue))
                 case t @ Text(_, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
                 case Choice(_, options, _, _, _) =>
                   val selections = options.toList.zipWithIndex.map { case (option, index) =>
