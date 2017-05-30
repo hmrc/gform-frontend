@@ -11,46 +11,38 @@ prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 optionHelpText: Option[List[String]])
 
+
 <div class="form-group">
-    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
-        <fieldset>
-            <legend class="h3-heading">@{fieldValue.label}</legend>
+  <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
+    <div class="choice-list">
+      <div class="choice-list__item">
+        <div class="choice-list__item__label">
+          <h2 class="form-label">Original invoice from the supplier</h2>
 
-            @if(fieldValue.helpText) {
-            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-            }
+          @if(fieldValue.helpText) {
+          <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+          }
 
-            @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
+          @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
+        </div>
 
-            <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
-            @options.toList.zipWithIndex.map{ case (option, index) =>
-            <label
-              for="@{fieldValue.id}@index"
-              class="block-label selection-button-radio"
-              @if(optionHelpText) {
-              data-target="helptext-@{fieldValue.id}@index"
-              }
-            >
-                <input id="@{fieldValue.id}@index"
-                       name="@{fieldValue.id}"
-                       value="@index"
-                       type="radio"
-                       @if(optionHelpText) {
-                       aria-controls="helptext-@{fieldValue.id}@index"
-                       aria-expanded="false"
-                       }
-                       @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
-                       index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
-                @option
-            </label>
-
-            @if(optionHelpText) {
-                <div id="helptext-@{fieldValue.id}@index" class="panel-indent js-hidden" aria-hidden="true">
-                    @localisation(optionHelpText.getOrElse(List.empty)(index))
-                </div>
-            }
+        <div class="choice-list__item__choices">
+          @options.toList.zipWithIndex.map{ case (option, index) =>
+          <label
+            for="@{fieldValue.id}@index"
+            class="block-label choice-list__item__block-label"
+          >
+              <input id="@{fieldValue.id}@index"
+                     name="@{fieldValue.id}"
+                     value="@index"
+                     type="radio"
+                     @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
+                     index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
+              @option
+          </label>
           }
         </div>
-    </fieldset>
-</div>
+      </div>
+    </div>
+  </div>
 </div>
