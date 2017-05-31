@@ -11,8 +11,8 @@
 
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
-GET        /test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
-POST       /test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
-PUT        /test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
-PATCH      /test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
-DELETE     /test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
+GET        /submissions/test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
+POST       /submissions/test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
+PUT        /submissions/test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
+PATCH      /submissions/test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
+DELETE     /submissions/test-only/proxy-to-gform/*path             @uk.gov.hmrc.gform.controllers.TestOnly.proxyToGform(path: String)
