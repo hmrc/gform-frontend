@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
+package uk.gov.hmrc.gform.controllers.testonly
 
 import javax.inject._
 
