@@ -1,3 +1,37 @@
+
+/* Custom styles for the inline choice component */
+.choice-list .choice-list__item {
+  padding: 10px 0;
+  display: table;
+  width: 100%;
+}
+
+.choice-list .choice-list__item + .choice-list__item {
+  border-top: 1px solid #BFC1C3;
+}
+
+.choice-list .choice-list__item .choice-list__item__label {
+  width: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 0;
+}
+
+.choice-list .choice-list__item .choice-list__item__choices {
+  width: 50%;
+  text-align: right;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 0;
+}
+
+.choice-list .choice-list__item .choice-list__item__block-label {
+  display: inline-block;
+  float: none;
+  margin: 0 0 0 10px;
+}
+
+/* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,
   .header__menu .header__menu__proposition-links,
