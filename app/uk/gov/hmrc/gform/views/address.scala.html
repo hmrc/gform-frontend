@@ -103,7 +103,19 @@
             @if(international) {
                 <label class="form-label" for="@{
                     fieldValue.id
-                }.postcode">Country</label>
+                }.postcode">UK Postcode</label>
+                <input type="text"
+                class="input--small"
+                name="@{
+                    fieldValue.id
+                }.postcode"
+                id="@{
+                    fieldValue.id
+                }.postcode"
+                <label class="form-label" for="@{
+                    fieldValue.id
+                }.country">Non-UK Country</label>
+                value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
                 <input type="hidden"
                 name="@{
                     fieldValue.id
@@ -125,6 +137,14 @@
                     fieldValue.id
                 }.postcode"
                 value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
+                <input type="hidden"
+                name="@{
+                    fieldValue.id
+                }.country"
+                id="@{
+                    fieldValue.id
+                }.country"
+                value="" />
             }
             </div>
 
