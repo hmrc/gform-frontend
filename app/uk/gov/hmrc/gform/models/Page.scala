@@ -63,7 +63,7 @@ object PageForRender {
         Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
 
             case Address(international) =>
-              Future.successful(uk.gov.hmrc.gform.views.html.address(fieldValue, f.getOrElse(okF)(fieldValue)))
+              Future.successful(uk.gov.hmrc.gform.views.html.address(international, fieldValue, f.getOrElse(okF)(fieldValue)))
 
       case t@Text(expr, _) =>
         val prepopValueF = fieldData.get(fieldValue.id) match {
