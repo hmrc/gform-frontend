@@ -14,33 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.controllers
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.components.{ComponentType, FieldValue, Group}
+import javax.inject._
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import play.api.mvc._
+import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
+import uk.gov.hmrc.play.config.ServicesConfig
 
-case class Section(
-  title: String,
-  fields: List[FieldValue]
-) {
+@Singleton
+class TestOnly @Inject()(proxy: ProxyActions ) extends Controller with ServicesConfig {
 
-  def atomicFields = {
+  def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 
-    def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
-      fields.flatMap {
-        case (fv: FieldValue) => fv.`type` match {
-          case Group(fvs) => atomicFields(fvs)
-          case _ => List(fv)
-        }
-      }
-    }
-
-    atomicFields(fields)
-  }
-
-}
-
-object Section {
-  implicit val format = Json.format[Section]
+  private lazy val gformBaseUrl = baseUrl("gform")
 }

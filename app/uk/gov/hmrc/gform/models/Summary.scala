@@ -37,7 +37,7 @@ object SummaryForRender {
     val snippets: List[Html] = {
       formTemplate.sections.zipWithIndex.flatMap { case (section, index) =>
         uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index) ::
-          section.fields.filter(_.submissible)
+          section.atomicFields.filter(_.submissible)
             .map { fieldValue =>
               fieldValue.`type` match {
                 case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, values(fieldValue))

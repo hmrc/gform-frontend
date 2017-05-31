@@ -96,7 +96,9 @@ object ValidationUtil {
 
   type ValidatedType = Validated[GFormError, Unit]
 
-  val printErrors: (Map[String, Set[String]]) => String = (map: Map[String, Set[String]]) => map.map(kv => s"${kv._1}  ${kv._2.foldRight(", ")(_+_)}").fold(" ")(_+_)
+  val printErrors: (Map[String, Set[String]]) => Set[String] = (map: Map[String, Set[String]]) => {
+    map.foldLeft(Set[String]())(_ ++ _._2)
+  }
 
   def renderErrors(value: String, validationResult: FormFieldValidationResult):
   Map[String, Set[String]] = {
@@ -115,7 +117,7 @@ object ValidationUtil {
                                             (dGetter: (FieldId) => Seq[String]):
   List[(FieldId, FormFieldValidationResult)] = {
     component match {
-      case Address => Address.fields(fieldValue.id).map { fieldId =>
+      case Address => Address.allFieldIds(fieldValue.id).map { fieldId =>
 
         gFormErrors.get(fieldId) match {
           //with suffix
@@ -124,7 +126,7 @@ object ValidationUtil {
         }
       }
 
-      case Date(_, _, _) => Date.fields(fieldValue.id).map { fieldId =>
+      case Date(_, _, _) => Date.allFieldIds(fieldValue.id).map { fieldId =>
 
         gFormErrors.get(fieldId) match {
           //with suffix
@@ -192,6 +194,12 @@ object ValidationUtil {
             case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
             case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
           }
+
+        case Group(_) => {
+
+          FieldOk(fieldValue, "")   //nothing to validate for group (TODO - review)
+
+        }
 
         case Choice(_, _, _, _, _) =>
 

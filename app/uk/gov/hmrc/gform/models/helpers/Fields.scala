@@ -36,7 +36,7 @@ object Fields {
             case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
           }
         Some(ComponentField(fieldValue, fieldOkData))
-      case Text(_, _) => formFields.get(fieldValue.id).map { formField =>
+      case Text(_, _) | Group(_) => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
       case Choice(_, _, _, _, _) =>
@@ -49,19 +49,25 @@ object Fields {
     }
   }
 
-  def toFormField(formFields: Map[FieldId, Seq[String]], fieldValue: List[FieldValue]) : List[FormField] = {
+  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue]) : List[FormField] = {
 
-    val getFormFieldValue: FieldId => FormField = fieldId => {
-      val value = formFields.get(fieldId).toList.flatten.headOption.getOrElse("")
+    val getFieldData: FieldId => FormField = fieldId => {
+      val value = fieldData.get(fieldId).toList.flatten.headOption.getOrElse("")
       FormField(fieldId, value)
     }
 
-    fieldValue.flatMap { fv =>
+    def getFormFields(templateFields: List[FieldValue]): List[FormField] = templateFields.flatMap { fv =>
       fv.`type` match {
-        case Address => Address.fields(fv.id).map(getFormFieldValue)
-        case Date(_, _, _) => Date.fields(fv.id).map(getFormFieldValue)
-        case Text(_, _) | Choice(_, _, _, _,_) => List(getFormFieldValue(fv.id))
+        case Group(fvs) => {
+          val res: List[FormField] = getFormFields(fvs)
+          res
+        }
+        case Address => Address.allFieldIds(fv.id).map(getFieldData)
+        case Date(_, _, _) => Date.allFieldIds(fv.id).map(getFieldData)
+        case Text(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
       }
     }
+
+    getFormFields(templateFields)
   }
 }

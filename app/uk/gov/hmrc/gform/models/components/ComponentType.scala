@@ -21,7 +21,6 @@ import julienrf.json.derived
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models._
-
 import scala.collection.immutable._
 
 sealed trait ComponentType
@@ -30,12 +29,14 @@ case class Text(value: Expr, total: Boolean) extends ComponentType
 
 case class Date(constraintType: DateConstraintType, offset: Offset, value: Option[DateValue]) extends ComponentType
 
+case class Group(fields: List[FieldValue]) extends ComponentType
+
 case object Date {
-  val fields = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
+  val allFieldIds = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
 }
 
 case object Address extends ComponentType {
-  val fields = (id: FieldId) => List("street1", "street2", "street3", "town", "county", "postcode", "country").map(id.withSuffix)
+  val allFieldIds = (id: FieldId) => List("street1", "street2", "street3", "town", "county", "postcode", "country").map(id.withSuffix)
 }
 
 sealed trait ChoiceOrientation
