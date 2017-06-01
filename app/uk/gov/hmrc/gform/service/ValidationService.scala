@@ -42,7 +42,7 @@ object ValidationService {
           Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
 
         case Text(_, _) => validateText(fieldValue)(data)
-        case Address(_) => validateAddress(fieldValue)(data)
+        case address@Address(_) => validateAddress(fieldValue, address)(data)
         case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
         case Group(_, _) => Valid(())    //a group is read-only
         case FileUpload() => Valid(()) //TODO validation for file upload
@@ -66,6 +66,16 @@ object ValidationService {
       }
     }
 
+    def validateRequireOneOf(fieldId1: FieldId, fieldId2: FieldId, suffix1: String, suffix2 : String)(xs1: Seq[String], xs2: Seq[String]): ValidatedType = {
+      (xs1.filterNot(_.isEmpty()),xs2.filterNot(_.isEmpty()))  match {
+        case (Nil, Nil) => Invalid(Map(fieldId1 -> Set(s"either $suffix1 or $suffix2 must be entered")))
+        case (value1 :: Nil,value2 :: Nil) => Invalid(Map(fieldId1 -> Set(s"enter one only of $suffix1 and $suffix2")))
+        case (value :: Nil, Nil) => Valid(())
+        case (Nil, value :: Nil) => Valid(())
+        case _ => Valid(()) // we don't support multiple values yet
+      }
+    }
+
     def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val choiceValue = data.get(fieldValue.id).toList.flatten
 
@@ -79,12 +89,19 @@ object ValidationService {
 
     def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
 
-    def validateAddress(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
+    def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val addressValueOf = dataGetter(fieldValue)
 
-      val validatedResult: List[ValidatedType] = List(validateRF("street1")(addressValueOf("street1")),
-        validateRF("town")(addressValueOf("town")),
-        validateRF("postcode")(addressValueOf("postcode")))
+      val validatedResult: List[ValidatedType] = address.international match {
+        case true =>
+          List(validateRF("street1")(addressValueOf("street1")),
+            validateRF("town")(addressValueOf("town")),
+            validateRequireOneOf(fieldValue.id.withSuffix("postcode"), fieldValue.id.withSuffix("country"), "postcode", "country")(addressValueOf("postcode"), addressValueOf("country")))
+        case false =>
+          List(validateRF("street1")(addressValueOf("street1")),
+            validateRF("town")(addressValueOf("town")),
+            validateRF("postcode")(addressValueOf("postcode")))
+      }
 
       Monoid[ValidatedType].combineAll(validatedResult)
     }

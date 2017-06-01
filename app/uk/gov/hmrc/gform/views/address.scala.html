@@ -4,15 +4,16 @@
 
 @(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
-<div class="form-group">
-    <fieldset>
-        <legend class="form-label">
-          Is the address based in the UK?
-        </legend>
+@if(international) {
+    <div class="form-group">
+        <fieldset>
+            <legend class="form-label">
+                Is the address based in the UK?
+            </legend>
 
-        <div class="inline">
-            <label for="address-international-yes" class="block-label" data-target="address-local">
-                <input
+            <div class="inline">
+                <label for="address-international-yes" class="block-label" data-target="address-local">
+                    <input
                     id="address-international-yes"
                     type="radio"
                     name="address-international"
@@ -20,24 +21,25 @@
                     aria-controls="address-local"
                     aria-expanded="true"
                     checked
-                />
-                Yes
-            </label>
+                    />
+                    Yes
+                </label>
 
-            <label for="address-international-no" class="block-label" data-target="address-international">
-                <input
+                <label for="address-international-no" class="block-label" data-target="address-international">
+                    <input
                     id="address-international-no"
                     type="radio"
                     name="address-international"
                     value="false"
                     aria-controls="address-international"
                     aria-expanded="false"
-                />
-                No
-            </label>
-        </div>
-    </fieldset>
-</div>
+                    />
+                    No
+                </label>
+            </div>
+        </fieldset>
+    </div>
+}
 
 <div id="address-local" class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
@@ -112,11 +114,11 @@
                 id="@{
                     fieldValue.id
                 }.postcode"
+                value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
                 <label class="form-label" for="@{
                     fieldValue.id
                 }.country">Non-UK Country</label>
-                value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
-                <input type="hidden"
+                <input type="text"
                 name="@{
                     fieldValue.id
                 }.country"
