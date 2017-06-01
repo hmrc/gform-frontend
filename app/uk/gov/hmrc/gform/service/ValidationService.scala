@@ -69,7 +69,7 @@ object ValidationService {
     def validateRequireOneOf(fieldId1: FieldId, fieldId2: FieldId, suffix1: String, suffix2 : String)(xs1: Seq[String], xs2: Seq[String]): ValidatedType = {
       (xs1.filterNot(_.isEmpty()),xs2.filterNot(_.isEmpty()))  match {
         case (Nil, Nil) => Invalid(Map(fieldId1 -> Set(s"either $suffix1 or $suffix2 must be entered")))
-        case (value1 :: Nil,value2 :: Nil) => Invalid(Map(fieldId1 -> Set(s"enter one only of $suffix1 and $suffix2")))
+        case (value1 :: Nil,value2 :: Nil) => Invalid(Map(fieldId1 -> Set(s"enter only one of $suffix1 or $suffix2, not both")))
         case (value :: Nil, Nil) => Valid(())
         case (Nil, value :: Nil) => Valid(())
         case _ => Valid(()) // we don't support multiple values yet
