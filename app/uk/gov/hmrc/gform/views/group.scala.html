@@ -5,18 +5,10 @@
 
 @(fieldValue: FieldValue, snippets: List[Html])
 
-<div class="group2">
-    <header class="page-header text">
-        <h2>@localisation(fieldValue.label)</h2>
-    </header>
+<fieldset>
+  <legend class="h3-heading">@localisation(fieldValue.label)</legend>
 
-	  <h2 class="h2-heading">Group</h2>
-
-
-	@{
+  @{
 	    snippets
 	}
-
-</div>
-
-
+</fieldset>
