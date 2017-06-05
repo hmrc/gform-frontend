@@ -16,7 +16,7 @@ optionHelpText: Option[List[String]])
     <div class="choice-list">
       <div class="choice-list__item">
         <div class="choice-list__item__label">
-          <h2 class="form-label">Original invoice from the supplier</h2>
+          <h2 class="form-label">@fieldValue.label</h2>
 
           @if(fieldValue.helpText) {
           <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
