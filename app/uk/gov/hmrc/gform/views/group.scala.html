@@ -1,12 +1,14 @@
-@import uk.gov.hmrc.gform.models.components.FieldValue
+@import uk.gov.hmrc.gform.models.components.{FieldValue, ChoiceOrientation, Horizontal, Vertical}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import views.html.helper.CSRF
 @import scala.concurrent.Future
 
-@(fieldValue: FieldValue, snippets: List[Html])
+@(fieldValue: FieldValue, snippets: List[Html], orientation: ChoiceOrientation)
 
 <fieldset>
   <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+
+    @if(orientation==Horizontal) { to be displayed horizontally... }
 
   @{
 	    snippets

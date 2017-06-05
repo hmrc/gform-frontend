@@ -29,7 +29,7 @@ case class Text(value: Expr, total: Boolean) extends ComponentType
 
 case class Date(constraintType: DateConstraintType, offset: Offset, value: Option[DateValue]) extends ComponentType
 
-case class Group(fields: List[FieldValue]) extends ComponentType
+case class Group(fields: List[FieldValue], orientation: ChoiceOrientation) extends ComponentType
 
 case object Date {
   val allFieldIds = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
