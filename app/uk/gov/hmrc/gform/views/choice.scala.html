@@ -1,12 +1,12 @@
 @import cats.data.NonEmptyList
-@import uk.gov.hmrc.gform.models.components.{FieldValue, ChoiceOrientation}
+@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation}
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 
 @(inputType: String,
 fieldValue: FieldValue,
 options: NonEmptyList[String],
-orientation: ChoiceOrientation,
+orientation: Orientation,
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 optionHelpText: Option[List[String]])
