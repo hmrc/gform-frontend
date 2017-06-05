@@ -44,7 +44,7 @@ object ValidationService {
         case Text(_, _) => validateText(fieldValue)(data)
         case Address => validateAddress(fieldValue)(data)
         case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
-        case Group(_) => Valid(())    //a group is read-only
+        case Group(_, _) => Valid(())    //a group is read-only
       }
     }
 

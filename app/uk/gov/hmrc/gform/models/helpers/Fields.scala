@@ -36,7 +36,7 @@ object Fields {
             case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
           }
         Some(ComponentField(fieldValue, fieldOkData))
-      case Text(_, _) | Group(_) => formFields.get(fieldValue.id).map { formField =>
+      case Text(_, _) | Group(_, _) => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
       case Choice(_, _, _, _, _) =>
@@ -58,7 +58,7 @@ object Fields {
 
     def getFormFields(templateFields: List[FieldValue]): List[FormField] = templateFields.flatMap { fv =>
       fv.`type` match {
-        case Group(fvs) => {
+        case Group(fvs, _) => {
           val res: List[FormField] = getFormFields(fvs)
           res
         }

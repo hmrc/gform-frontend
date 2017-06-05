@@ -51,12 +51,12 @@ object PageForRender {
 
     def htmlFor(fieldValue: FieldValue): Future[Html] =
           fieldValue.`type` match {
-            case Group(fvs) => {
+            case Group(fvs, orientation) => {
               val listofeventualhtmls: List[Future[Html]] = fvs.map {
                 case (fv: FieldValue) => htmlFor(fv)
               }
               Future.sequence(listofeventualhtmls).flatMap {
-                case (lhtml) => Future.successful(uk.gov.hmrc.gform.views.html.group(fieldValue, lhtml))
+                case (lhtml) => Future.successful(uk.gov.hmrc.gform.views.html.group(fieldValue, lhtml, orientation))
               }
             }
             case Date(_, offset, dateValue) =>

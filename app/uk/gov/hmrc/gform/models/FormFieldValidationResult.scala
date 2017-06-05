@@ -195,7 +195,7 @@ object ValidationUtil {
             case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
           }
 
-        case Group(_) => {
+        case Group(_, _) => {
 
           FieldOk(fieldValue, "")   //nothing to validate for group (TODO - review)
 
