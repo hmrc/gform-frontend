@@ -218,7 +218,7 @@ object ValidationUtil {
 
               ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
           }
-
+        case FileUpload() => FieldOk(fieldValue, "TODO-I-dont-know-what-to-put-here")
       }
 
     }

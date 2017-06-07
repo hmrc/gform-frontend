@@ -31,6 +31,8 @@ case class Date(constraintType: DateConstraintType, offset: Offset, value: Optio
 
 case class Group(fields: List[FieldValue], orientation: Orientation) extends ComponentType
 
+case class FileUpload() extends ComponentType
+
 case object Date {
   val allFieldIds = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
 }
