@@ -16,11 +16,13 @@
                     <input
                     id="address-international-yes"
                     type="radio"
-                    name="address-international"
+                    name="@{fieldValue.id}.uk"
                     value="true"
                     aria-controls="address-local"
                     aria-expanded="true"
-                    checked
+                    @if(validationResult.map(_.getCurrentValue("uk")) != Some("false")) {
+                        checked
+                    }
                     />
                     Yes
                 </label>
@@ -29,16 +31,29 @@
                     <input
                     id="address-international-no"
                     type="radio"
-                    name="address-international"
+                    name="@{fieldValue.id}.uk"
                     value="false"
                     aria-controls="address-international"
                     aria-expanded="false"
+                    @if(validationResult.map(_.getCurrentValue("uk")) == Some("false")) {
+                        checked
+                    }
                     />
                     No
                 </label>
             </div>
         </fieldset>
     </div>
+} else {
+    <input type="hidden"
+    name="@{
+        fieldValue.id
+    }.uk"
+    id="@{
+        fieldValue.id
+    }.uk"
+    value="true" />
+
 }
 
 <div id="address-local" class="form-group">
@@ -164,7 +179,7 @@
     </div>
 </div>
 
-<div id="address-international" class="form-group js-hidden" aria-hidden="true">
+<div id="address-abroad" class="form-group js-hidden" aria-hidden="true">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
         <fieldset>
             <legend class="h3-heading">@localisation(fieldValue.label)</legend>
@@ -202,6 +217,16 @@
                        name="@{fieldValue.id}.street3"
                        id="@{fieldValue.id}.street3"
                        value="@validationResult.map(_.getCurrentValue("street3")).getOrElse("")" />
+            </div>
+
+            <div class="form-group-related">
+                <label class="form-label" for="@{fieldValue.id}.town">Town</label>
+
+                <input type="text"
+                class="input--medium"
+                name="@{fieldValue.id}.town"
+                id="@{fieldValue.id}.town"
+                value="@validationResult.map(_.getCurrentValue("town")).getOrElse("")" />
             </div>
 
             <div class="form-group">
