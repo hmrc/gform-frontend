@@ -38,6 +38,7 @@ sealed trait FormFieldValidationResult {
   def getCurrentValue: Option[String] = this match {
     case FieldOk(_, "") => None
     case FieldOk(_, cv) => Some(cv)
+    case FieldError(_,cv,_) => Some(cv)
     case _ => None
   }
 
