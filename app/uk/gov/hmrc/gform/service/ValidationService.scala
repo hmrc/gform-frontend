@@ -66,6 +66,14 @@ object ValidationService {
       }
     }
 
+    def validateForbidden(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
+      xs.filterNot(_.isEmpty()) match {
+        case Nil => Valid(())
+        case value :: Nil => Invalid(Map(fieldId -> Set("must not be entered")))
+        case value :: rest => Invalid(Map(fieldId -> Set("must not be entered"))) // we don't support multiple values yet
+      }
+    }
+
     def validateRequireOneOf(fieldId1: FieldId, fieldId2: FieldId, suffix1: String, suffix2 : String)(xs1: Seq[String], xs2: Seq[String]): ValidatedType = {
       (xs1.filterNot(_.isEmpty()),xs2.filterNot(_.isEmpty()))  match {
         case (Nil, Nil) => Invalid(Map(fieldId1 -> Set(s"either $suffix1 or $suffix2 must be entered")))
@@ -88,19 +96,22 @@ object ValidationService {
     val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
 
     def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
+    def validateFF(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
     def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val addressValueOf = dataGetter(fieldValue)
 
-      val validatedResult: List[ValidatedType] = address.international match {
-        case true =>
+      val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
+        case "true" :: Nil =>
           List(validateRF("street1")(addressValueOf("street1")),
             validateRF("town")(addressValueOf("town")),
-            validateRequireOneOf(fieldValue.id.withSuffix("postcode"), fieldValue.id.withSuffix("country"), "postcode", "country")(addressValueOf("postcode"), addressValueOf("country")))
-        case false =>
+            validateRF("postcode")(addressValueOf("postcode")),
+            validateFF("country")(addressValueOf("country")))
+        case _ =>
           List(validateRF("street1")(addressValueOf("street1")),
             validateRF("town")(addressValueOf("town")),
-            validateRF("postcode")(addressValueOf("postcode")))
+            validateFF("postcode")(addressValueOf("postcode")),
+            validateRF("country")(addressValueOf("country")))
       }
 
       Monoid[ValidatedType].combineAll(validatedResult)

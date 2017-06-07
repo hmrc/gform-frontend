@@ -26,6 +26,7 @@ case class AddressComponentData(
                                  street3: Seq[String],
                                  town: Seq[String],
                                  county: Seq[String],
+                                 abroad: Seq[String],
                                  postcode: Seq[String],
                                  country: Seq[String]
                                ) extends ComponentData
