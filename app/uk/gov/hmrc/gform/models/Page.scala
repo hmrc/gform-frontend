@@ -86,6 +86,8 @@ object PageForRender {
           }
 
         Future.successful(snippet)
+
+      case FileUpload() => Future.successful(uk.gov.hmrc.gform.views.html.file_upload(fieldValue))
     }
 
     val snippetsF: List[Future[Html]] = {

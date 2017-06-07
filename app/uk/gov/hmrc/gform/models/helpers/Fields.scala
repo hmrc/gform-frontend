@@ -65,6 +65,7 @@ object Fields {
         case Address => Address.allFieldIds(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.allFieldIds(fv.id).map(getFieldData)
         case Text(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
+        case FileUpload() => List(getFieldData(fv.id))
       }
     }
 
