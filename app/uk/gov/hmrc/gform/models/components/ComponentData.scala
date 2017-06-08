@@ -37,3 +37,5 @@ case class DateComponentData(
                             ) extends ComponentData
 
 case class ChoiceComponentData(selected: Seq[String]) extends ComponentData
+
+case class FileUploadComponentData() extends ComponentData

@@ -47,7 +47,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
         val formTemplate = request.formTemplate
 
-        Page(0, formTemplate).renderPage(Map.empty[FieldId, Seq[String]], None, None)
+        Page(0, formTemplate).renderPage(Map(), None, None)
 
     }
 
@@ -74,7 +74,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
   def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
     implicit authContext =>
       implicit request =>
-        processResponseDataFromBody(request) { data =>
+        processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
           val formTemplate = request.formTemplate
 
           val page = Page(currentPage, formTemplate)
