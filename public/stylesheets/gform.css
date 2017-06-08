@@ -31,6 +31,16 @@
   margin: 0 0 0 10px;
 }
 
+/* Custom group component styles */
+.field-group--inline > .form-group {
+  width: auto;
+  display: inline-block;
+  margin-right: 10px;
+}
+.field-group--inline > .form-group:last-child {
+  margin-right: 0;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,
