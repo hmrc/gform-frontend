@@ -8,9 +8,9 @@
 <fieldset>
   <legend class="h3-heading">@localisation(fieldValue.label)</legend>
 
-    @if(orientation==Horizontal) { to be displayed horizontally... }
-
-  @{
-	    snippets
-	}
+  <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
+    @{
+  	   snippets
+  	}
+  </div>
 </fieldset>
