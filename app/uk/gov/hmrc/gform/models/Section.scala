@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.models.components.{ComponentType, FieldValue, Group}
 
 case class Section(
   title: String,
+  shortName: Option[String],
   fields: List[FieldValue]
 ) {
 
