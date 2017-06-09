@@ -49,6 +49,10 @@ object SummaryForRender {
                   }.collect { case Some(selection) => selection }
 
                   uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
+                case FileUpload() => {
+                  val fieldValue = FieldValue(FieldId("regNum"), Text(Constant(""), total = false), "files uploaded go here...", None, mandatory = true, editable = true, submissible = true)
+                  uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(Constant("file"), false), values(fieldValue))
+                }
               }
             } ++
             List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index))
