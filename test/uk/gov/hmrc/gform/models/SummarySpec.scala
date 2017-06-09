@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.models
 
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.scalatest._
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
@@ -104,5 +106,24 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     extractDates(render.snippets) should be (List(("19", "November", "1841")))
   }
 
+  it should "display the title when shortName is not present in the section" in {
+    val summary = Summary(formTemplate)
+
+    val render = summary.summaryForRender(Map.empty, FormId(""))
+
+    val doc = Jsoup.parse(render.snippets.head.toString())
+    doc.getElementsByTag("H2").text().equalsIgnoreCase("your details") shouldBe true
+  }
+
+  it should "display the shortName as section title if present" in {
+    val shortName = "THIS_IS_A_VERY_VERY_VERY_SHORT_NAME"
+    val section = section0.copy(shortName = Some(shortName))
+    val summary = Summary(formTemplate.copy(sections = List(section)))
+
+    val render = summary.summaryForRender(Map.empty, FormId(""))
+
+    val doc = Jsoup.parse(render.snippets.head.toString())
+    doc.getElementsByTag("H2").text().equalsIgnoreCase(shortName) shouldBe true
+  }
 
 }
