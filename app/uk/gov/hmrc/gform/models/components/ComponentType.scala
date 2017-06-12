@@ -39,7 +39,7 @@ case object Date {
 
 case class Address(international: Boolean) extends ComponentType
 
-case object Address extends ComponentType {
+case object Address {
   val allFieldIds = (id: FieldId) => List("street1", "street2", "street3", "town", "county", "postcode", "country").map(id.withSuffix)
 }
 
