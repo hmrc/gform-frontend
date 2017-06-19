@@ -5,156 +5,261 @@
 @(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
 @if(international) {
-  <div class="form-group">
-      <fieldset>
-          <legend class="form-label">
-              Is the address based in the UK?
-          </legend>
+    <div class="form-group">
+        <fieldset>
+            <legend class="form-label">
+                Is the address based in the UK?
+            </legend>
 
-          <div class="inline">
-              <label for="address-international-yes" class="block-label" data-target="address-local">
-                  <input
-                  id="address-international-yes"
-                  type="radio"
-                  name="@{fieldValue.id}-uk"
-                  value="true"
-                  aria-controls="address-local"
-                  aria-expanded="true"
-                  @if(validationResult.map(_.getCurrentValue("uk")) != Some("false")) {
-                      checked
-                  }
-                  />
-                  Yes
-              </label>
+            <div class="inline">
+                <label for="address-international-yes" class="block-label" data-target="address-local">
+                    <input
+                    id="address-international-yes"
+                    type="radio"
+                    name="@{fieldValue.id}-uk"
+                    value="true"
+                    aria-controls="address-local"
+                    aria-expanded="true"
+                    @if(validationResult.map(_.getCurrentValue("uk")) != Some("false")) {
+                        checked
+                    }
+                    />
+                    Yes
+                </label>
 
-              <label for="address-international-no" class="block-label" data-target="address-international">
-                  <input
-                  id="address-international-no"
-                  type="radio"
-                  name="@{fieldValue.id}-uk"
-                  value="false"
-                  aria-controls="address-international"
-                  aria-expanded="false"
-                  @if(validationResult.map(_.getCurrentValue("uk")) == Some("false")) {
-                      checked
-                  }
-                  />
-                  No
-              </label>
-          </div>
-      </fieldset>
-  </div>
+                <label for="address-international-no" class="block-label" data-target="address-international">
+                    <input
+                    id="address-international-no"
+                    type="radio"
+                    name="@{fieldValue.id}-uk"
+                    value="false"
+                    aria-controls="address-international"
+                    aria-expanded="false"
+                    @if(validationResult.map(_.getCurrentValue("uk")) == Some("false")) {
+                        checked
+                    }
+                    />
+                    No
+                </label>
+            </div>
+        </fieldset>
+    </div>
 } else {
-  <input type="hidden" name="@{fieldValue.id}.uk" id="@{fieldValue.id}.uk" value="true" />
+    <input type="hidden"
+    name="@{
+        fieldValue.id
+    }.uk"
+    id="@{
+        fieldValue.id
+    }.uk"
+    value="true" />
+
 }
 
-<div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-    <fieldset>
-        <legend class="h3-heading">@localisation(fieldValue.label)</legend>
-        @if(fieldValue.helpText) {
-        <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-        }
+<div id="address-local" class="form-group">
+    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+        <fieldset>
+            <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+            @if(fieldValue.helpText) {
+            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+            }
 
-        @errorInline(fieldValue.id.value, "Please enter your address", Seq(""))
+            @errorInline(fieldValue.id.value, "Please enter your address", Seq(""))
 
-        <div class="form-group-compound">
-            <label class="form-label" for="@{fieldValue.id}-street1">Address 1</label>
+            <div class="form-group-compound">
+                <label class="form-label" for="@{fieldValue.id}-street1">Street</label>
 
-            <input type="text"
-                   class="input--medium"
-                   name="@{fieldValue.id}-street1"
-                   id="@{fieldValue.id}-street1"
-                   value="@validationResult.map(_.getCurrentValue("street1")).getOrElse("")" />
-        </div>
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-street1"
+                       id="@{fieldValue.id}-street1"
+                       value="@validationResult.map(_.getCurrentValue("street1")).getOrElse("")" />
+            </div>
 
-        <div class="form-group-compound">
-            <label class="form-label" for="@{fieldValue.id}-street2">Address 2 (optional)</label>
+            <div class="form-group-compound">
+                <label class="form-label visuallyhidden" for="@{fieldValue.id}-street2">Address line 2</label>
 
-            <input type="text"
-                   class="input--medium"
-                   name="@{fieldValue.id}-street2"
-                   id="@{fieldValue.id}-street2"
-                   value="@validationResult.map(_.getCurrentValue("street2")).getOrElse("")" />
-        </div>
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-street2"
+                       id="@{fieldValue.id}-street2"
+                       value="@validationResult.map(_.getCurrentValue("street2")).getOrElse("")" />
+            </div>
 
-        <div class="form-group-related">
-            <label class="form-label" for="@{fieldValue.id}-street3">Address 3 (optional)</label>
+            <div class="form-group-related">
+                <label class="form-label visuallyhidden" for="@{fieldValue.id}-street3">Address line 3</label>
 
-            <input type="text"
-                   class="input--medium"
-                   name="@{fieldValue.id}-street3"
-                   id="@{fieldValue.id}-street3"
-                   value="@validationResult.map(_.getCurrentValue("street3")).getOrElse("")" />
-        </div>
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-street3"
+                       id="@{fieldValue.id}-street3"
+                       value="@validationResult.map(_.getCurrentValue("street3")).getOrElse("")" />
+            </div>
 
-        <div class="form-field-group">
-            <label class="form-label" for="@{fieldValue.id}-town">Town</label>
+            <div class="form-group-related">
+                <label class="form-label" for="@{fieldValue.id}-town">Town</label>
 
-            <input type="text"
-                   class="input--medium"
-                   name="@{fieldValue.id}-town"
-                   id="@{fieldValue.id}-town"
-                   value="@validationResult.map(_.getCurrentValue("town")).getOrElse("")" />
-        </div>
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-town"
+                       id="@{fieldValue.id}-town"
+                       value="@validationResult.map(_.getCurrentValue("town")).getOrElse("")" />
+            </div>
 
-        <div class="form-field-group">
-            <label class="form-label" for="@{fieldValue.id}-county">Address 4 (optional)</label>
+            <div class="form-field-group">
+                <label class="form-label" for="@{fieldValue.id}-county">County (optional)</label>
 
-            <input type="text"
-                   class="input--medium"
-                   name="@{fieldValue.id}-county"
-                   id="@{fieldValue.id}-county"
-                   value="@validationResult.map(_.getCurrentValue("county")).getOrElse("")" />
-        </div>
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-county"
+                       id="@{fieldValue.id}-county"
+                       value="@validationResult.map(_.getCurrentValue("county")).getOrElse("")" />
+            </div>
 
-        @if(international) {
-        <div id="address-local">
-          <div class="form-group">
-            <label class="form-label" for="@{fieldValue.id}-postcode">Postcode</label>
+            <div class="form-group">
+            @if(international) {
+                <label class="form-label" for="@{
+                    fieldValue.id
+                }.postcode">UK Postcode</label>
+                <input type="text"
+                class="input--small"
+                name="@{
+                    fieldValue.id
+                }.postcode"
+                id="@{
+                    fieldValue.id
+                }.postcode"
+                value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
+                <label class="form-label" for="@{
+                    fieldValue.id
+                }.country">Non-UK Country</label>
+                <input type="text"
+                name="@{
+                    fieldValue.id
+                }.country"
+                id="@{
+                    fieldValue.id
+                }.country"
+                value="@validationResult.map(_.getCurrentValue("country")).getOrElse("")" />
+            } else {
+                <label class="form-label" for="@{
+                    fieldValue.id
+                }.postcode">Postcode</label>
+                <input type="text"
+                class="input--small"
+                name="@{
+                    fieldValue.id
+                }.postcode"
+                id="@{
+                    fieldValue.id
+                }.postcode"
+                value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
+                <input type="hidden"
+                name="@{
+                    fieldValue.id
+                }.country"
+                id="@{
+                    fieldValue.id
+                }.country"
+                value="" />
+            }
+            </div>
 
-            <input type="text"
-                   class="input--small"
-                   name="@{fieldValue.id}-postcode"
-                   id="@{fieldValue.id}-postcode"
-                   value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
-          </div>
-        </div>
+            <div class="form-field-group">
+                <label class="form-label" for="phone-number">Phone number</label>
 
-        <div id="address-international">
-          <div class="form-group">
-            <label class="form-label" for="@{fieldValue.id}-country">Country</label>
+                <input type="text"
+                class="input--medium"
+                name="phone-number"
+                id="phone-number"
+                value="" />
+            </div>
 
-            <input type="text"
-                   name="@{fieldValue.id}-country"
-                   id="@{fieldValue.id}-country"
-                   value="@validationResult.map(_.getCurrentValue("country")).getOrElse("")" />
-          </div>
-        </div>
-        } else {
-          <div class="form-group">
-            <label class="form-label" for="@{fieldValue.id}-postcode">Postcode</label>
+        </fieldset>
+    </div>
+</div>
 
-            <input type="text"
-                   class="input--small"
-                   name="@{fieldValue.id}-postcode"
-                   id="@{fieldValue.id}-postcode"
-                   value="@validationResult.map(_.getCurrentValue("postcode")).getOrElse("")" />
+<div id="address-international" class="form-group js-hidden" aria-hidden="true">
+    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+        <fieldset>
+            <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+            @if(fieldValue.helpText) {
+            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+            }
 
-            <input type="hidden"
-                   name="@{fieldValue.id}-country"
-                   id="@{fieldValue.id}-country"
-                   value="" />
-          </div>
-        }
+            @errorInline(fieldValue.id.value, "Please enter your street", Seq(""))
 
-        <div class="form-field-group">
-            <label class="form-label" for="phone-number">Phone number</label>
+            <div class="form-group">
+                <label class="form-field-label" for="@{fieldValue.id}-street1">Addess 1</label>
 
-            <input type="text"
-            class="input--medium"
-            name="phone-number"
-            id="phone-number"
-            value="" />
-        </div>
-    </fieldset>
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-street1"
+                       id="@{fieldValue.id}-street1"
+                       value="@validationResult.map(_.getCurrentValue("street1")).getOrElse("")" />
+            </div>
+
+            <div class="form-field-group">
+                <label class="form-label" for="@{fieldValue.id}-street2">Address 2 (optional)</label>
+
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-street2"
+                       id="@{fieldValue.id}-street2"
+                       value="@validationResult.map(_.getCurrentValue("street2")).getOrElse("")" />
+            </div>
+
+            <div class="form-field-group">
+                <label class="form-label" for="@{fieldValue.id}-street3">Address 3 (optional)</label>
+
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-street3"
+                       id="@{fieldValue.id}-street3"
+                       value="@validationResult.map(_.getCurrentValue("street3")).getOrElse("")" />
+            </div>
+
+            <div class="form-group-related">
+                <label class="form-label" for="@{fieldValue.id}-town">Town</label>
+
+                <input type="text"
+                class="input--medium"
+                name="@{fieldValue.id}-town"
+                id="@{fieldValue.id}-town"
+                value="@validationResult.map(_.getCurrentValue("town")).getOrElse("")" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="@{fieldValue.id}-country">Country</label>
+
+                <input type="text"
+                       class="input--medium"
+                       name="@{fieldValue.id}-country"
+                       id="@{fieldValue.id}-country"
+                       value="@validationResult.map(_.getCurrentValue("country")).getOrElse("United Kingdom")" />
+            </div>
+
+            <div class="form-field-group">
+                <div class="form-field--inline-spaced-right">
+                    <label for="phone-code">Country code</label>
+
+                    + <input type="text"
+                           class="input--xsmall"
+                           name="phone-code"
+                           id="phone-code"
+                           value="" />
+                </div>
+
+                <div class="form-field--inline-spaced-right">
+                    <label for="phone-number">Phone number</label>
+
+                    <input type="text"
+                           class="push--left"
+                           name="phone-number"
+                           id="phone-number"
+                           value="" />
+                </div>
+            </div>
+        </fieldset>
+    </div>
 </div>
