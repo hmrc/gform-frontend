@@ -61,6 +61,7 @@ sealed trait FormFieldValidationResult {
     case FieldGlobalOk(_, _) => Right(List.empty[FormField])
     case ComponentField(fieldValue, data) =>
       fieldValue `type` match {
+        case Address(_) => toAddressFormField(data)
         case Choice(_, _, _, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
         case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(_.withSuffix(suffix))) }.toList.sequenceU.map(_.flatten)
       }
@@ -75,6 +76,14 @@ sealed trait FormFieldValidationResult {
     case FieldGlobalOk(_, _) => List.empty[FormField]
     case ComponentField(fieldValue, data) => List(FormField(fieldValue.id, ""))
       data.flatMap { case (suffix, value) => value.toFormFieldTolerant.map(_.withSuffix(suffix)) }.toList
+  }
+
+  private def toAddressFormField(data: Map[String, FormFieldValidationResult]) = {
+    data.map {
+      case (fieldName, formFieldValidationResult) => formFieldValidationResult.toFormField.map{ formField =>
+        formField.map{ _.copy(id = FieldId(fieldName)) }
+      }
+    }.toList.sequenceU.map(_.flatten)
   }
 }
 
