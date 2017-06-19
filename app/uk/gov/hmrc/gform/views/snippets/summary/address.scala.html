@@ -6,6 +6,10 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
+@safeId(id: String) = @{
+  fieldValue.id.withJSSafeSuffix(id).toString
+}
+
 <tr>
   <td>
     @localisation(fieldValue.label)
@@ -22,8 +26,8 @@
         "country",
         "phone-number"
     ).map { suffix =>
-        @if(validationResult.map(_.getCurrentValue(suffix).isEmpty).contains(false)) {
-            @validationResult.map(_.getCurrentValue(suffix)).getOrElse("")<br />
+        @if(validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
+            @validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")<br />
         }
     }
   </td>
