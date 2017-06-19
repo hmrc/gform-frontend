@@ -85,11 +85,11 @@ object ValidationService {
 
     val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
 
-    def validateRF(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
-    def validateFF(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
+    def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
+    def validateFF(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
     def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): ValidatedType = {
-      val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withJSSafeSuffix(suffix)).toList.flatten
+      val addressValueOf = dataGetter(fieldValue)
 
       val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
         case "true" :: Nil =>

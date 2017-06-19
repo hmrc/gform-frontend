@@ -24,8 +24,7 @@ function handleRadioContent($control,$content){var selector=selectors.radio+'[na
 var $form=$control.closest('form')
 var $radios=$form.length?$form.find(selector):$(selector)
 $radios.each(function(){hideToggledContent($(this))})
-if($control.is('[aria-controls]')){showToggledContent($control,$content)
-getToggledContent($radios.not($control)).find('input[type=text]').val('')}}
+if($control.is('[aria-controls]')){showToggledContent($control,$content)}}
 function handleCheckboxContent($control,$content){if($control.is(':checked')){showToggledContent($control,$content)}else{hideToggledContent($control,$content)}}
 function init($container,elementSelector,eventSelectors,handler){$container=$container||$(document.body)
 function deferred(){var $control=$(this)
