@@ -20,6 +20,7 @@ sealed trait ComponentData
 
 case class TextData(value: Seq[String]) extends ComponentData
 
+/*
 case class AddressComponentData(
                                  street1: Seq[String],
                                  street2: Seq[String],
@@ -40,3 +41,4 @@ case class DateComponentData(
 case class ChoiceComponentData(selected: Seq[String]) extends ComponentData
 
 case class FileUploadComponentData() extends ComponentData
+*/
