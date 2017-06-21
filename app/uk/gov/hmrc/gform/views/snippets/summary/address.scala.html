@@ -20,11 +20,9 @@
         "street1",
         "street2",
         "street3",
-        "town",
-        "county",
+        "street4",
         "postcode",
-        "country",
-        "phone-number"
+        "country"
     ).map { suffix =>
         @if(validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
             @validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")<br />

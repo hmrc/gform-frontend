@@ -40,7 +40,7 @@ case object Date {
 case class Address(international: Boolean) extends ComponentType
 
 case object Address {
-  val allFieldIds = (id: FieldId) => List("uk", "street1", "street2", "street3", "town", "county", "postcode", "country").map(id.withJSSafeSuffix)
+  val allFieldIds = (id: FieldId) => List("uk", "street1", "street2", "street3", "street4", "postcode", "country").map(id.withJSSafeSuffix)
 }
 
 sealed trait Orientation

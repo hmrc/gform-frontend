@@ -93,23 +93,13 @@
         </div>
 
         <div class="form-field-group">
-            <label class="form-label" for="@safeId("town")">Town</label>
+            <label class="form-label" for="@safeId("street4")">Address 4 (optional)</label>
 
             <input type="text"
                    class="input--medium"
-                   name="@safeId("town")"
-                   id="@safeId("town")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("town"))).getOrElse("")" />
-        </div>
-
-        <div class="form-field-group">
-            <label class="form-label" for="@safeId("county")">Address 4 (optional)</label>
-
-            <input type="text"
-                   class="input--medium"
-                   name="@safeId("county")"
-                   id="@safeId("county")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("county"))).getOrElse("")" />
+                   name="@safeId("street4")"
+                   id="@safeId("street4")"
+                   value="@validationResult.map(_.getCurrentValue(safeId("street4"))).getOrElse("")" />
         </div>
 
         @if(international) {
@@ -151,15 +141,5 @@
                    value="" />
           </div>
         }
-
-        <div class="form-field-group">
-            <label class="form-label" for="phone-number">Phone number</label>
-
-            <input type="text"
-            class="input--medium"
-            name="phone-number"
-            id="phone-number"
-            value="" />
-        </div>
     </fieldset>
 </div>
