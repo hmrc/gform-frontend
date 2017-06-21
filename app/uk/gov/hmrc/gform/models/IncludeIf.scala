@@ -16,33 +16,13 @@
 
 package uk.gov.hmrc.gform.models
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.components.{ComponentType, FieldValue, Group}
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
+case class IncludeIf(expr: BooleanExpr)
 
-case class Section(
-  title: String,
-  shortName: Option[String],
-  includeIf: Option[IncludeIf],
-  fields: List[FieldValue]
-) {
+object IncludeIf {
 
-  def atomicFields = {
+  implicit val format = Json.format[IncludeIf]
 
-    def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
-      fields.flatMap {
-        case (fv: FieldValue) => fv.`type` match {
-          case Group(fvs, _) => atomicFields(fvs)
-          case _ => List(fv)
-        }
-      }
-    }
-
-    atomicFields(fields)
-  }
-
-}
-
-object Section {
-  implicit val format = Json.format[Section]
 }

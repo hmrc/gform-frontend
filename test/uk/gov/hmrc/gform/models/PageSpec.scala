@@ -29,9 +29,9 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFutures {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, true, true, true)))
-  val section1 = Section("About you", None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, true, true, true)))
-  val section2 = Section("Business details", None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, true, true, true)))
+  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, true, true, true)))
+  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, true, true, true)))
+  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, true, true, true)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",

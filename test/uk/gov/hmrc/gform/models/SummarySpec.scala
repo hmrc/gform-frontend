@@ -27,9 +27,9 @@ import uk.gov.hmrc.gform.models.helpers.Extractors._
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, true, true, true)))
-  val section1 = Section("About you", None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, true, true, true)))
-  val section2 = Section("Business details", None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, true, true, true)))
+  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, true, true, true)))
+  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, true, true, true)))
+  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, true, true, true)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
@@ -76,7 +76,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   "Summary" should "display values for each field type with a submissible field, " in {
 
-    val section = Section("Personal details", None, List(
+    val section = Section("Personal details", None, None, List(
       FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, true, true, true),
       FieldValue(FieldId("Info"), Text(Constant(""), total = false), "Info", None, true, true, submissible = false),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, true, true, true),

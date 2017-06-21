@@ -68,21 +68,17 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
         }
   }
 
-
   val FormIdExtractor = "gform/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
 
-  def save(formTypeId: FormTypeId, version: String, currentPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
+  def save(formTypeId: FormTypeId, version: String, pageIdx: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
     implicit authContext =>
       implicit request =>
         processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
           val formTemplate = request.formTemplate
 
-          val page = Page(currentPage, formTemplate)
-          val nextPage = Page(page.next, formTemplate)
+          val page = Page(pageIdx, formTemplate)
 
           val formIdOpt: Option[FormId] = anyFormId(data)
-
-          val actionE: Either[String, FormAction] = FormAction.fromAction(getActions(data, FieldId("save")), page)
 
           val validatedData = page.section.atomicFields.map(fv => CompData(fv, data).validateComponents)
           val validatedDataResult = Monoid[ValidatedType].combineAll(validatedData)
@@ -121,13 +117,17 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
           }
 
+          val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
+          val optSectionIdx = BooleanExpr.nextTrueIdxOpt(pageIdx, booleanExprs, data)
+          val optNextPage = optSectionIdx.map(i => Page(i, formTemplate))
+          val actionE = FormAction.determineAction(getActions(data, FieldId("save")), optNextPage)
           actionE match {
             case Right(action) =>
               action match {
-                case SaveAndContinue =>
+                case SaveAndContinue(nextPageToRender) =>
                   saveAndProcessResponse { saveResult =>
                     getFormId(formIdOpt, saveResult) match {
-                      case Right(formId) => nextPage.renderPage(data, Some(formId), None)
+                      case Right(formId) => nextPageToRender.renderPage(data, Some(formId), None)
                       case Left(error) => Future.successful(BadRequest(error))
                     }
                   }
