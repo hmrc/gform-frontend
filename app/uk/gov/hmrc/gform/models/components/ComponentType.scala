@@ -43,6 +43,18 @@ case object Address {
   val allFieldIds = (id: FieldId) => List("uk", "street1", "street2", "street3", "town", "county", "postcode", "country").map(id.withJSSafeSuffix)
 }
 
+case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
+
+sealed trait  InfoType
+case object StandardInfo extends InfoType
+case object LongInfo extends InfoType
+case object ImportantInfo extends InfoType
+case object BannerInfo extends InfoType
+object InfoType {
+  implicit val format: OFormat[InfoType] = derived.oformat
+}
+
+
 sealed trait Orientation
 case object Vertical extends Orientation
 case object Horizontal extends Orientation

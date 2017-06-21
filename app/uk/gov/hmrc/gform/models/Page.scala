@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import com.github.rjeschke.txtmark.{Configuration, Processor}
 import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
@@ -88,6 +89,10 @@ object PageForRender {
         Future.successful(snippet)
 
       case FileUpload() => Future.successful(uk.gov.hmrc.gform.views.html.file_upload(fieldValue))
+      case InformationMessage(infoType, infoText) =>
+        val config = Configuration.builder.forceExtentedProfile.build()
+        val parsedMarkdownText = Processor.process(infoText, config)
+        Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText)))
     }
 
     val snippetsF: List[Future[Html]] = {
