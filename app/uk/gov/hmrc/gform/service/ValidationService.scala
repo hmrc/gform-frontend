@@ -94,12 +94,10 @@ object ValidationService {
       val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
         case "true" :: Nil =>
           List(validateRF("street1")(addressValueOf("street1")),
-            validateRF("town")(addressValueOf("town")),
             validateRF("postcode")(addressValueOf("postcode")),
             validateFF("country")(addressValueOf("country")))
         case _ =>
           List(validateRF("street1")(addressValueOf("street1")),
-            validateRF("town")(addressValueOf("town")),
             validateFF("postcode")(addressValueOf("postcode")),
             validateRF("country")(addressValueOf("country")))
       }

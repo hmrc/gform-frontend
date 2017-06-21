@@ -92,17 +92,15 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       FieldId("HomeAddress-street1") -> Seq("Test!Street!Test"),
       FieldId("HomeAddress-street2") -> Seq("Test!Second Street!Test"),
       FieldId("HomeAddress-street3") -> Seq("Test!Third Street!Test"),
-      FieldId("HomeAddress-town") -> Seq("Test!Town!Test"),
-      FieldId("HomeAddress-county") -> Seq("Test!Countyshire!Test"),
+      FieldId("HomeAddress-street4") -> Seq("Test!Town!Test"),
       FieldId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
       FieldId("HomeAddress-country") -> Seq("Test!UK!Test")
     )
 
-
     val render = summary.summaryForRender(formFields, FormId(""))
 
     val testStringValues = extractAllTestStringValues(render.snippets)
-    testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "Countyshire", "PO32 6JX", "UK"))
+    testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
     extractDates(render.snippets) should be (List(("19", "November", "1841")))
   }
 
