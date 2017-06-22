@@ -28,14 +28,16 @@ import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 case class SummaryForRender(snippets: List[Html], javascripts: String)
 
 object SummaryForRender {
-  def apply(formFields: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate): SummaryForRender = {
+  def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate): SummaryForRender = {
 
     val fields: List[FieldValue] = formTemplate.sections.flatMap(s => s.fields)
 
-    val values: FieldValue => Option[FormFieldValidationResult] = okValues(formFields, fields)
+    val values: FieldValue => Option[FormFieldValidationResult] = okValues(data, fields)
 
     val snippets: List[Html] = {
-      formTemplate.sections.zipWithIndex.flatMap { case (section, index) =>
+      val allSections = formTemplate.sections
+      val sectionsToRender = allSections.filter ( section => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data) )
+      sectionsToRender.zipWithIndex.flatMap { case (section, index) =>
         uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.shortName.getOrElse(section.title), index) ::
           section.atomicFields.filter(_.submissible)
             .map { fieldValue =>
