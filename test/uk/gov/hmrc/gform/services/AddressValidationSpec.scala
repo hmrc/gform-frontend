@@ -141,4 +141,22 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       speccedAddress.id.withJSSafeSuffix("country") -> Set("must not be entered")))
   }
 
+  "Address validation" should "fail when field separator is wrong" in {
+    val address = Address(international = true)
+
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+
+    val data = Map(FieldId("x@uk") -> Seq("true"),
+      FieldId("x@street1") -> Seq("S"),
+      FieldId("x@country") -> Seq("C"))
+
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
+
+    result.toEither should beLeft(
+      Map(
+        FieldId("x-country") -> Set("must be entered"),
+        FieldId("x-street1") -> Set("must be entered")
+      )
+    )
+  }
 }

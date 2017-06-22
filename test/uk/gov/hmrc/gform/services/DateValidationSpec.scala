@@ -275,4 +275,20 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers {
     result.toEither should beLeft(Map(fieldValue.id.withSuffix("day") -> Set(s"must be non-numeric"),
                                       fieldValue.id.withSuffix("month") -> Set(s"must be non-numeric")))
   }
+
+  "Date validations" should "fail if field ids are using wrong separator" in {
+    val date = Date(AnyDate, Offset(0), None)
+
+    val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
+      "sample label", None, false,
+      false, false)
+
+    val data = Map(FieldId("accPeriodStartDate-day") -> Seq("01"),
+      FieldId("accPeriodStartDate-month") -> Seq("01"),
+      FieldId("accPeriodStartDate-year") -> Seq("1970"))
+
+    val result: ValidatedType = CompData(fieldValue, data).validateComponents
+
+    result.toEither should beLeft(Map(FieldId("accPeriodStartDate") -> Set("Date is missing")))
+  }
 }
