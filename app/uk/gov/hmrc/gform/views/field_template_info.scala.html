@@ -5,45 +5,41 @@
 
 @(fieldValue: FieldValue, infoType: InfoType, text: Html)
 
+<div class="subsection">
+  @infoType match {
+    case StandardInfo => {
+      <div class="panel panel-indent">
+        <p>
+            @text
+        </p>
+      </div>
+    }
 
-@infoType match {
-  case StandardInfo => {
-    <div class="alert alert--info alert--info__light">
-      <p>
+    case LongInfo => {
+      <details class="details" role="group">
+        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@fieldValue.label</summary>
+
+        <div class="details__inner" id="details-content-@{fieldValue.id}" aria-hidden="true">
+          <div class="panel panel-indent">
+            @text
+          </div>
+        </div>
+      </details>
+    }
+
+    case ImportantInfo => {
+      <div class="alert alert--info alert--info__light" onerror=""                                                                                                                                                                                      >
+        <p>@text</p>
+      </div>
+    }
+
+    case BannerInfo => {
+      <div class="transaction-banner--complete">
+        <p>
+          <strong class="text--bold">@fieldValue.label</strong><br />
           @text
-      </p>
-    </div>
+        </p>
+      </div>
+    }
   }
-
-  case LongInfo => {
-    <div id="accordionId" data-accordion data-accordion-animate data-accordion-set-hash aria-expanded="false" class="accordion">
-        <div class="accordion__row">
-            <div class="accordion__row__left">
-                <i class="accordion__indicator arrow arrow--right font-small" data-accordion-arrow></i>
-                <a class="accordion__button link--no-underline bold-small" href="" data-accordion-button role="button">
-                    @fieldValue.label
-                </a>
-            </div>
-        </div>
-        <div class="accordion__body hidden" data-accordion-body aria-hidden="true">
-            <div class="accordion__body__row__left">
-                <span class="font-xsmall">@text</span>
-            </div>
-        </div>
-    </div>
-
-  }
-
-  case ImportantInfo => {
-    <div class="highlight-message highlight-message--light">
-      <p>@text</p>
-    </div>
-  }
-
-  case BannerInfo => {
-    <div class="transaction-banner--complete">
-      <label class="form-label-bold">@fieldValue.label</label>
-      <p>@text</p>
-    </div>
-  }
-}
+</div>
