@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.models
 
-import com.github.rjeschke.txtmark.{Configuration, Processor}
 import play.api.i18n.Messages
 import play.api.mvc.{Request, Result}
 import play.api.mvc.Results.Ok
@@ -32,6 +31,9 @@ import uk.gov.hmrc.gform.models.form.FormId
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
+import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 
 
 case class PageForRender(curr: Int, sectionTitle: String, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
@@ -90,8 +92,9 @@ object PageForRender {
 
       case FileUpload() => Future.successful(uk.gov.hmrc.gform.views.html.file_upload(fieldValue))
       case InformationMessage(infoType, infoText) =>
-        val config = Configuration.builder.forceExtentedProfile.build()
-        val parsedMarkdownText = Processor.process(infoText, config)
+        val flavour = new GFMFlavourDescriptor
+        val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(infoText)
+        val parsedMarkdownText = new HtmlGenerator(infoText, parsedTree, flavour, false).generateHtml
         Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText)))
     }
 

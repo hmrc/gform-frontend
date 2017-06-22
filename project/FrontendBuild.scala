@@ -24,7 +24,7 @@ object FrontendBuild extends Build with MicroService {
     "org.julienrf" %% "play-json-derived-codecs" % "3.3",
     "uk.gov.hmrc" %% "play-ui" % "5.3.0",
     "org.typelevel" %% "cats" % "0.9.0",
-    "es.nitaur.markdown" % "txtmark" % "0.16"
+    "org.jetbrains" % "markdown" % "0.1.25"
 
   )
 
