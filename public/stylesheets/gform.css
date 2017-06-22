@@ -41,6 +41,21 @@
   margin-right: 0;
 }
 
+/* Info components */
+.panel-info ul {
+  margin-left: 1em;
+}
+
+.panel-info ul li {
+  list-style-type: disc;
+}
+
+.panel-info pre code {
+  border: none;
+  display: block;
+  line-height: 1.2em;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,

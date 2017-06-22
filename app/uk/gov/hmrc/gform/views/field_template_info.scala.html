@@ -8,7 +8,7 @@
 <div class="subsection">
   @infoType match {
     case StandardInfo => {
-      <div class="panel panel-indent">
+      <div class="panel panel-indent panel-info">
         <p>
             @text
         </p>
@@ -20,7 +20,7 @@
         <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@fieldValue.label</summary>
 
         <div class="details__inner" id="details-content-@{fieldValue.id}" aria-hidden="true">
-          <div class="panel panel-indent">
+          <div class="panel panel-indent panel-info">
             @text
           </div>
         </div>
@@ -28,13 +28,13 @@
     }
 
     case ImportantInfo => {
-      <div class="alert alert--info alert--info__light" onerror=""                                                                                                                                                                                      >
+      <div class="alert alert--info alert--info__light panel-info">                                                                                                                                                                                   >
         <p>@text</p>
       </div>
     }
 
     case BannerInfo => {
-      <div class="transaction-banner--complete">
+      <div class="transaction-banner--complete panel-info">
         <p>
           <strong class="text--bold">@fieldValue.label</strong><br />
           @text
