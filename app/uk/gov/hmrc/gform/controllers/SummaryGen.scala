@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.controllers.helpers.FormHelpers._
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
@@ -44,7 +44,7 @@ class SummaryGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions
   def submit(formTypeId: FormTypeId, version: String) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
     implicit request =>
       processResponseDataFromBody(request) { data =>
-        getActions(data, FieldId("save")) match {
+        get(data, FieldId("save")) match {
             case "Exit" :: Nil =>
               Future.successful(Ok)
             case "Continue" :: Nil =>

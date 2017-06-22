@@ -25,7 +25,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-object FormHelpers {
+object FormDataHelpers {
 
   def formDataMap(formData: FormData): Map[FieldId, Seq[String]] =
     formData.fields.map(fd => fd.id -> List(fd.value)).toMap
@@ -39,7 +39,7 @@ object FormHelpers {
     }
   }
 
-  def getActions(data: Map[FieldId, Seq[String]], id: FieldId): List[String] =
+  def get(data: Map[FieldId, Seq[String]], id: FieldId): List[String] =
     data.get(id).toList.flatten
 
   def anyFormId(data: Map[FieldId, Seq[String]]) : Option[FormId] =

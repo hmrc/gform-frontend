@@ -26,7 +26,7 @@ import cats.instances.all._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import uk.gov.hmrc.gform.controllers.helpers.FormHelpers._
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.form._
@@ -120,7 +120,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
           val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
           val optSectionIdx = BooleanExpr.nextTrueIdxOpt(pageIdx, booleanExprs, data)
           val optNextPage = optSectionIdx.map(i => Page(i, formTemplate))
-          val actionE = FormAction.determineAction(getActions(data, FieldId("save")), optNextPage)
+          val actionE = FormAction.determineAction(data, optNextPage)
           actionE match {
             case Right(action) =>
               action match {

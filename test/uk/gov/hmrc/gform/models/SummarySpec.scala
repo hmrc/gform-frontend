@@ -46,11 +46,11 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val summary = Summary(formTemplate)
 
-    val formFields = Map(FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
+    val formData = Map(FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
       FieldId("firstName") -> Seq("Test!About you!Test"),
       FieldId("nameOfBusiness") -> Seq("Test!Business details!Test")
     )
-    val render = summary.summaryForRender(formFields, FormId(""))
+    val render = summary.summaryForRender(formData, FormId(""))
 
     render.snippets.size should be(9)
 
@@ -122,6 +122,19 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val doc = Jsoup.parse(render.snippets.head.toString())
     doc.getElementsByTag("H2").text().equalsIgnoreCase(shortName) shouldBe true
+  }
+
+  it should "not render sections with includeIf expressions that evaluate to false" in {
+
+    val summary = Summary(formTemplate.copy(
+      sections = List(section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"),Constant("Pete"))))))
+    ))
+
+    val renderWithDataMatching = summary.summaryForRender(Map(FieldId("firstName") -> Seq("Pete")), FormId(""))
+    renderWithDataMatching.snippets.size shouldBe 3
+    val renderWithDataMismatch = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""))
+    renderWithDataMismatch.snippets.size shouldBe 0
+
   }
 
 }

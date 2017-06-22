@@ -16,14 +16,16 @@
 
 package uk.gov.hmrc.gform.models.form
 
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.get
 import uk.gov.hmrc.gform.models.Page
+import uk.gov.hmrc.gform.models.components.FieldId
 
 sealed trait FormAction
 
 object FormAction {
-  def determineAction(action: List[String], nextPage: Option[Page]): Either[String, FormAction] = {
+  def determineAction(data: Map[FieldId, Seq[String]], nextPage: Option[Page]): Either[String, FormAction] = {
 
-    (action, nextPage) match {
+    (get(data, FieldId("save")), nextPage) match {
       case ("Save" :: Nil, _) => Right(SaveAndExit)
       case ("Continue" :: Nil, None) => Right(SaveAndSummary)
       case ("Continue" :: Nil, Some(nextToRender)) => Right(SaveAndContinue(nextToRender))

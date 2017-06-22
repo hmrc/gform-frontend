@@ -28,21 +28,21 @@ import uk.gov.hmrc.gform.models.form.{FormData, FormId, FormTypeId}
 
 object SaveService {
 
-  def bformsConnector : GformConnector = GformConnector
+  def gformConnector : GformConnector = GformConnector
 
   def getFormById(formTypeId: FormTypeId, version: String, formId: FormId)(implicit hc : HeaderCarrier) = {
-    bformsConnector.getById(formTypeId, version, formId)
+    gformConnector.getById(formTypeId, version, formId)
   }
 
   def saveFormData(formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier): Future[SaveResult] = {
-    bformsConnector.save(formData, tolerant)
+    gformConnector.save(formData, tolerant)
   }
 
   def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier): Future[SaveResult] = {
-    bformsConnector.update(formId, formData, tolerant)
+    gformConnector.update(formId, formData, tolerant)
   }
 
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc : HeaderCarrier): Future[HttpResponse] = {
-    bformsConnector.sendSubmission(formTypeId, formId)
+    gformConnector.sendSubmission(formTypeId, formId)
   }
 }

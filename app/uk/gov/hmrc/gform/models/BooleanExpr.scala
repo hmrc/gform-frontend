@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models
 import cats.Monoid
 import julienrf.json.derived
 import play.api.libs.json._
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.models.components._
 
 sealed trait BooleanExpr
@@ -30,35 +31,14 @@ final case object IsTrue extends BooleanExpr
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat
 
-  private def isTrue(expr: BooleanExpr, data: Map[FieldId, Seq[String]]): Boolean =
+  def isTrue(expr: BooleanExpr, data: Map[FieldId, Seq[String]]): Boolean =
     expr match {
-      case Equals(FormCtx(fieldId), Constant(value)) if (data.getOrElse(FieldId(fieldId), Seq("")).head == value) => true
+      case Equals(FormCtx(fieldId), Constant(value)) if FormDataHelpers.get(data, FieldId(fieldId)).contains(value) => true
       case Or(expr1, expr2) => isTrue(expr1, data) | isTrue(expr2, data)
       case And(expr1, expr2) => isTrue(expr1, data) & isTrue(expr2, data)
       case IsTrue => true
       case _ => false
     }
-
-  private def evaluate2(data: Map[FieldId, Seq[String]])(expr: BooleanExpr): Boolean =
-    expr match {
-      case Equals(FormCtx(fieldId), Constant(value)) if (data.getOrElse(FieldId(fieldId), Seq("")).head == value) => true
-      case Or(expr1, expr2) => evaluate2(data)(expr1) | evaluate2(data)(expr2)
-      case And(expr1, expr2) => evaluate2(data)(expr1) & evaluate2(data)(expr2)
-      case IsTrue => true
-      case _ => false
-    }
-
-
-  def sectionIdxAfter(idx: Int, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]): Option[Int] = {
-
-    if (idx >= formTemplate.sections.size-1) None else {
-      val nextSection = formTemplate.sections(idx + 1)
-      val booleanExpr = nextSection.includeIf.getOrElse(IncludeIf(IsTrue)).expr
-      if (isTrue(booleanExpr, data)) Some(idx+1) else {
-        sectionIdxAfter(idx+1, formTemplate, data)
-      }
-    }
-  }
 
   def nextTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
 
