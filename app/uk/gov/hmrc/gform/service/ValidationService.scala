@@ -86,21 +86,23 @@ object ValidationService {
 
     val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
 
-    def validateRF(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
-    def validateFF(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
+    def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
+    def validateFF(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
     def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): ValidatedType = {
       val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withJSSafeSuffix(suffix)).toList.flatten
+      def validateRequiredFied(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
+      def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
 
       val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
         case "true" :: Nil =>
-          List(validateRF("street1")(addressValueOf("street1")),
-            validateRF("postcode")(addressValueOf("postcode")),
-            validateFF("country")(addressValueOf("country")))
+          List(validateRequiredFied("street1")(addressValueOf("street1")),
+            validateRequiredFied("postcode")(addressValueOf("postcode")),
+            validateForbiddenField("country")(addressValueOf("country")))
         case _ =>
-          List(validateRF("street1")(addressValueOf("street1")),
-            validateFF("postcode")(addressValueOf("postcode")),
-            validateRF("country")(addressValueOf("country")))
+          List(validateRequiredFied("street1")(addressValueOf("street1")),
+            validateForbiddenField("postcode")(addressValueOf("postcode")),
+            validateRequiredFied("country")(addressValueOf("country")))
       }
 
       Monoid[ValidatedType].combineAll(validatedResult)
