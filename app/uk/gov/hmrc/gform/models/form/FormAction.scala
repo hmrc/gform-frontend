@@ -16,23 +16,24 @@
 
 package uk.gov.hmrc.gform.models.form
 
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.get
 import uk.gov.hmrc.gform.models.Page
+import uk.gov.hmrc.gform.models.components.FieldId
 
 sealed trait FormAction
 
 object FormAction {
-  def fromAction(action: List[String], page: Page): Either[String, FormAction] = {
-    val onLastPage = page.curr == page.next
+  def determineAction(data: Map[FieldId, Seq[String]], nextPage: Option[Page]): Either[String, FormAction] = {
 
-    (action, onLastPage) match {
+    (get(data, FieldId("save")), nextPage) match {
       case ("Save" :: Nil, _) => Right(SaveAndExit)
-      case ("Continue" :: Nil, true) => Right(SaveAndSummary)
-      case ("Continue" :: Nil, false) => Right(SaveAndContinue)
-      case _ => Left("Cannot determite action")
+      case ("Continue" :: Nil, None) => Right(SaveAndSummary)
+      case ("Continue" :: Nil, Some(nextToRender)) => Right(SaveAndContinue(nextToRender))
+      case _ => Left("Cannot determine action")
     }
   }
 }
 
-case object SaveAndContinue extends FormAction
+case class SaveAndContinue(nextPage: Page) extends FormAction
 case object SaveAndExit extends FormAction
 case object SaveAndSummary extends FormAction

@@ -27,9 +27,9 @@ import uk.gov.hmrc.gform.models.helpers.Extractors._
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, true, true, true)))
-  val section1 = Section("About you", None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, true, true, true)))
-  val section2 = Section("Business details", None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, true, true, true)))
+  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, true, true, true)))
+  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, true, true, true)))
+  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, true, true, true)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
@@ -46,11 +46,11 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val summary = Summary(formTemplate)
 
-    val formFields = Map(FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
+    val formData = Map(FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
       FieldId("firstName") -> Seq("Test!About you!Test"),
       FieldId("nameOfBusiness") -> Seq("Test!Business details!Test")
     )
-    val render = summary.summaryForRender(formFields, FormId(""))
+    val render = summary.summaryForRender(formData, FormId(""))
 
     render.snippets.size should be(9)
 
@@ -76,7 +76,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   "Summary" should "display values for each field type with a submissible field, " in {
 
-    val section = Section("Personal details", None, List(
+    val section = Section("Personal details", None, None, List(
       FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, true, true, true),
       FieldValue(FieldId("Info"), Text(Constant(""), total = false), "Info", None, true, true, submissible = false),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, true, true, true),
@@ -92,17 +92,15 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       FieldId("HomeAddress-street1") -> Seq("Test!Street!Test"),
       FieldId("HomeAddress-street2") -> Seq("Test!Second Street!Test"),
       FieldId("HomeAddress-street3") -> Seq("Test!Third Street!Test"),
-      FieldId("HomeAddress-town") -> Seq("Test!Town!Test"),
-      FieldId("HomeAddress-county") -> Seq("Test!Countyshire!Test"),
+      FieldId("HomeAddress-street4") -> Seq("Test!Town!Test"),
       FieldId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
       FieldId("HomeAddress-country") -> Seq("Test!UK!Test")
     )
 
-
     val render = summary.summaryForRender(formFields, FormId(""))
 
     val testStringValues = extractAllTestStringValues(render.snippets)
-    testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "Countyshire", "PO32 6JX", "UK"))
+    testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
     extractDates(render.snippets) should be (List(("19", "November", "1841")))
   }
 
@@ -124,6 +122,19 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val doc = Jsoup.parse(render.snippets.head.toString())
     doc.getElementsByTag("H2").text().equalsIgnoreCase(shortName) shouldBe true
+  }
+
+  it should "not render sections with includeIf expressions that evaluate to false" in {
+
+    val summary = Summary(formTemplate.copy(
+      sections = List(section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"),Constant("Pete"))))))
+    ))
+
+    val renderWithDataMatching = summary.summaryForRender(Map(FieldId("firstName") -> Seq("Pete")), FormId(""))
+    renderWithDataMatching.snippets.size shouldBe 3
+    val renderWithDataMismatch = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""))
+    renderWithDataMismatch.snippets.size shouldBe 0
+
   }
 
 }
