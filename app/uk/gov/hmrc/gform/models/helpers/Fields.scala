@@ -46,6 +46,8 @@ object Fields {
           selections.map(selectedIndex => fieldId.value + selectedIndex -> FieldOk(fieldValue, selectedIndex)).toMap
         }
         fieldOks.map(data => ComponentField(fieldValue, data))
+
+      case FileUpload() | InformationMessage(_, _) => None
     }
   }
 
@@ -66,6 +68,7 @@ object Fields {
         case Date(_, _, _) => Date.allFieldIds(fv.id).map(getFieldData)
         case Text(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload() => List(getFieldData(fv.id))
+        case InformationMessage(_, _) => List()
       }
     }
 

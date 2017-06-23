@@ -8,7 +8,7 @@
 @* TODO: What should total style be? *@
 <tr @if(text.total) {class="table__row--bold"}>
   <td>
-    @localisation(fieldValue.label)
+    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </td>
   <td>
     @validationResult.map(_.getCurrentValue).getOrElse("")

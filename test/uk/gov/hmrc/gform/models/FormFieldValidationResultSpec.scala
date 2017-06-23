@@ -27,6 +27,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     `type` = Date(AnyDate, Offset(0), Some(ExactDateValue(2010, 10, 10))),
     label = "label",
     helpText = None,
+    shortName = None,
     mandatory = false,
     editable = true,
     submissible = true
@@ -36,9 +37,9 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     val testFieldComponent = ComponentField(
         fieldValue = mockDateFieldValue,
         data = Map(
-          "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false),"label",None,false,true,true), "1"),
-          "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false),"label",None,false,true,true), "1"),
-          "year" -> FieldError(FieldValue(FieldId("year"), Text(Constant(""), false), "label",None,false,true,true), "NOT_RIGHT", Set("NAN"))
+          "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false),"label",None,None,false,true,true), "1"),
+          "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false),"label",None,None,false,true,true), "1"),
+          "year" -> FieldError(FieldValue(FieldId("year"), Text(Constant(""), false), "label",None,None,false,true,true), "NOT_RIGHT", Set("NAN"))
         )
       )
 
@@ -50,9 +51,9 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     val testFieldComponent = ComponentField(
       fieldValue = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false),"day",None,false,true,true), "1"),
-        "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false),"month",None,false,true,true), "1"),
-        "year" -> FieldOk(FieldValue(FieldId("year"), Text(Constant(""), false),"year",None,false,true,true), "2017")
+        "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false),"day",None,None,false,true,true), "1"),
+        "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false),"month",None,None,false,true,true), "1"),
+        "year" -> FieldOk(FieldValue(FieldId("year"), Text(Constant(""), false),"year",None,None,false,true,true), "2017")
       )
     )
 

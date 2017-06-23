@@ -30,7 +30,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
     val address = Address(international = false)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("true"),
       FieldId("x-street1") -> Seq("S1"),
@@ -47,7 +47,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "non-international" should "accept uk, street1 and postcode only" in {
     val address = Address(international = false)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("true"),
       FieldId("x-street1") -> Seq("S"),
@@ -61,7 +61,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "non-international" should "return invalid for postcode, but no street1" in {
     val address = Address(international = false)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("true"),
       FieldId("x-postcode") -> Seq("P1 1P"))
@@ -74,7 +74,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "non-international" should "return invalid for street1 but no postcode" in {
     val address = Address(international = false)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("true"),
       FieldId("x-street1") -> Seq("S"))
@@ -87,7 +87,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "international" should "accept not uk, street1, country" in {
     val address = Address(international = true)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("false"),
       FieldId("x-street1") -> Seq("S"),
@@ -101,7 +101,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "international" should "return invalid for not uk, street1, but no country" in {
     val address = Address(international = true)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("false"),
       FieldId("x-street1") -> Seq("S"))
@@ -114,7 +114,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "international" should "return invalid for not uk, street1, postcode and country" in {
     val address = Address(international = true)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("false"),
       FieldId("x-street1") -> Seq("S"),
@@ -129,7 +129,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "international" should "return invalid for uk, street1, country, but no postcode" in {
     val address = Address(international = true)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x-uk") -> Seq("true"),
       FieldId("x-street1") -> Seq("S"),
@@ -144,7 +144,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
   "Address validation" should "fail when field separator is wrong" in {
     val address = Address(international = true)
 
-    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, true, true, false)
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
     val data = Map(FieldId("x@uk") -> Seq("true"),
       FieldId("x@street1") -> Seq("S"),

@@ -75,6 +75,7 @@ class PageForRenderSpec extends FlatSpec with Matchers {
     `type`= InformationMessage(StandardInfo, markdown),
     label = "This is the field label",
     helpText = None,
+    shortName = None,
     mandatory = true,
     editable = false,
     submissible = false
