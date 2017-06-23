@@ -22,6 +22,7 @@ case class FieldValue(
   id: FieldId,
   `type`: ComponentType,
   label: String,
+  shortName: Option[String],
   helpText: Option[String],
   mandatory: Boolean,
   editable: Boolean,

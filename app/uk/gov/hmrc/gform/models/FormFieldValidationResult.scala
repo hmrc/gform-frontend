@@ -144,6 +144,8 @@ object ValidationUtil {
           case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
         }
       }
+      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _) | InformationMessage(_, _) | Text(_, _) =>
+        List[(FieldId, FormFieldValidationResult)]()
     }
   }
 

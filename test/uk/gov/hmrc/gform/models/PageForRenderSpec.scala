@@ -75,13 +75,14 @@ class PageForRenderSpec extends FlatSpec with Matchers {
     `type`= InformationMessage(StandardInfo, markdown),
     label = "This is the field label",
     helpText = None,
+    shortName = None,
     mandatory = true,
     editable = false,
     submissible = false
   )
 
   val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
-  val section = Section("About you", None, List(infoFieldValue))
+  val section = Section("About you", None, None, List(infoFieldValue))
 
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
