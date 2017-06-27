@@ -53,7 +53,7 @@ object PageForRender {
     val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields)
 
     def htmlFor(fieldValue: FieldValue): Future[Html] = fieldValue.`type` match {
-      case Group(fvs, orientation) => {
+      case Group(fvs, orientation, repeatsMax, repeatsMin, repeatLabel, repeatAddAnotherText) => {
         val listofeventualhtmls: List[Future[Html]] = fvs.map {
           case (fv: FieldValue) => htmlFor(fv)
         }

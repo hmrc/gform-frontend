@@ -26,6 +26,7 @@ import cats.instances.all._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Result
+import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
@@ -34,11 +35,11 @@ import uk.gov.hmrc.gform.service.ValidationService.CompData
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.gform.service.SaveService
+import uk.gov.hmrc.gform.service.{RepeatingComponentService, SaveService}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 @Singleton
-class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(implicit ec: ExecutionContext)
+class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, val repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
   extends FrontendController with I18nSupport {
 
   def form(formTypeId: FormTypeId, version: String) =
@@ -154,6 +155,13 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
                         Future.successful(Redirect(routes.SummaryGen.summaryById(formTypeId, version, formId)))
                       case Left(error) =>
                         Future.successful(BadRequest(error))
+                    }
+                  }
+                case AddGroup(groupId) =>
+                  repeatService.increaseCount(groupId).map { _ =>
+                    formIdOpt match {
+                      case Some(formId) => Redirect(routes.FormGen.formByIdPage(formTypeId, version, formId, pageIdx))
+                      case None => Redirect(routes.FormGen.form(formTypeId, version))
                     }
                   }
               }

@@ -29,7 +29,13 @@ case class Text(value: Expr, total: Boolean) extends ComponentType
 
 case class Date(constraintType: DateConstraintType, offset: Offset, value: Option[DateValue]) extends ComponentType
 
-case class Group(fields: List[FieldValue], orientation: Orientation) extends ComponentType
+case class Group(fields: List[FieldValue],
+                 orientation: Orientation,
+                 repeatsMax: Option[Int] = None,
+                 repeatsMin: Option[Int] = None,
+                 repeatLabel: Option[String] = None,
+                 repeatAddAnotherText: Option[String] = None
+                ) extends ComponentType
 
 case class FileUpload() extends ComponentType
 

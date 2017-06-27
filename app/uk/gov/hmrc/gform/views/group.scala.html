@@ -6,8 +6,10 @@
 @(fieldValue: FieldValue, snippets: List[Html], orientation: Orientation)
 
 <fieldset>
-  <legend class="h3-heading">@localisation(fieldValue.label)</legend>
-
+  <div class="form-group divider--top--thick">
+      <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+      <button type="submit" class="button" name="save" value="AddGroup-@fieldValue.id">Add group</button>
+  </div>
   <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
     @{
   	   snippets

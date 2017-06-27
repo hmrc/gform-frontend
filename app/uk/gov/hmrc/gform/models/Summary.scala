@@ -63,7 +63,7 @@ object SummaryForRender {
                     submissible = true)
                   uk.gov.hmrc.gform.views.html.snippets.summary.text(fuFieldValue, Text(Constant("file"), false), values(fuFieldValue))
                 }
-                case InformationMessage(_, _) | Group(_, _) => Html("")
+                case InformationMessage(_, _) | Group(_, _, _, _, _, _) => Html("")
               }
             } ++
             List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index))

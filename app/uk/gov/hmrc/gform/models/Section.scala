@@ -32,7 +32,7 @@ case class Section(
     def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
       fields.flatMap {
         case (fv: FieldValue) => fv.`type` match {
-          case Group(fvs, _) => atomicFields(fvs)
+          case Group(fvs, _, _, _, _, _) => atomicFields(fvs)
           case _ => List(fv)
         }
       }
