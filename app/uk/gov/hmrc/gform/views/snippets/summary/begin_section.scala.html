@@ -2,9 +2,9 @@
 @import uk.gov.hmrc.gform.views.html.localisation
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(formType: FormTypeId, version: String, formId: FormId, title: String, currentPage: Int)
+@(formType: FormTypeId, version: String, formId: FormId, title: String, idx: Int)
 
-<table class="table--font-reset @if(currentPage == 0) { table--top-border }">
+<table class="table--font-reset @if(idx == 0) { table--top-border }">
   <thead>
     <tr>
       <th class="grid-layout__column--1-2">
@@ -12,7 +12,7 @@
       </th>
 
       <th class="text--right">
-        <a class="print-hidden" href="@uk.gov.hmrc.gform.controllers.routes.FormGen.formByIdPage(formType, version, formId, currentPage).url">
+        <a class="print-hidden" href="@uk.gov.hmrc.gform.controllers.routes.FormGen.formByIdPage(formType, version, formId, idx).url">
           Change <span class="visuallyhidden">@localisation(title)</span>
         </a>
       </th>

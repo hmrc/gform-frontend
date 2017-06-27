@@ -321,4 +321,23 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   }
 
+  "The Change hrefs" should "link to the correct page" in {
+
+    val ftWithOneInclIfSection = formTemplate.copy(
+      sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))), section2)
+    )
+    val summary = Summary(ftWithOneInclIfSection)
+
+    val htmls = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId("")).snippets
+
+    val htmlAheadOfSection2 = htmls(3)
+
+    val doc = Jsoup.parse(htmlAheadOfSection2.toString)
+
+    val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
+
+    urlOfHrefToSection2 should endWith(ftWithOneInclIfSection.sections.indexOf(section2).toString)
+  }
+
+
 }
