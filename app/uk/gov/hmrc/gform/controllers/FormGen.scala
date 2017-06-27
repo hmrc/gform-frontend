@@ -26,7 +26,6 @@ import cats.instances.all._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
@@ -39,7 +38,7 @@ import uk.gov.hmrc.gform.service.{RepeatingComponentService, SaveService}
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 @Singleton
-class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, val repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
+class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
   extends FrontendController with I18nSupport {
 
   def form(formTypeId: FormTypeId, version: String) =
@@ -48,7 +47,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, v
 
         val formTemplate = request.formTemplate
 
-        Page(0, formTemplate).renderPage(Map(), None, None)
+        Page(0, formTemplate, repeatService).renderPage(Map(), None, None)
 
     }
 
@@ -64,7 +63,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, v
 
           val formTemplate = request.formTemplate
 
-          Page(currPage, formTemplate).renderPage(fieldIdToStrings, Some(formId), None)
+          Page(currPage, formTemplate, repeatService).renderPage(fieldIdToStrings, Some(formId), None)
 
         }
   }
@@ -77,7 +76,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, v
         processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
           val formTemplate = request.formTemplate
 
-          val page = Page(pageIdx, formTemplate)
+          val page = Page(pageIdx, formTemplate, repeatService)
 
           val formIdOpt: Option[FormId] = anyFormId(data)
 
@@ -120,7 +119,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, v
 
           val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
           val optSectionIdx = BooleanExpr.nextTrueIdxOpt(pageIdx, booleanExprs, data)
-          val optNextPage = optSectionIdx.map(i => Page(i, formTemplate))
+          val optNextPage = optSectionIdx.map(i => Page(i, formTemplate, repeatService))
           val actionE = FormAction.determineAction(data, optNextPage)
           actionE match {
             case Right(action) =>
@@ -158,7 +157,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, v
                     }
                   }
                 case AddGroup(groupId) =>
-                  repeatService.increaseCount(groupId).map { _ =>
+                  repeatService.increaseGroupCount(groupId).map { _ =>
                     formIdOpt match {
                       case Some(formId) => Redirect(routes.FormGen.formByIdPage(formTypeId, version, formId, pageIdx))
                       case None => Redirect(routes.FormGen.form(formTypeId, version))

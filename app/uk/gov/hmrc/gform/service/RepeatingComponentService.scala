@@ -26,11 +26,25 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 @Singleton
 class RepeatingComponentService @Inject()(val sessionCache: SessionCacheConnector) {
 
+  def increaseGroupCount(formGroupId: String)(implicit hc: HeaderCarrier) = {
+    val startPos = formGroupId.indexOf('-') + 1
+    val componentId = formGroupId.substring(startPos)
+    increaseCount(componentId)
+  }
+
   def increaseCount(componentId: String)(implicit hc: HeaderCarrier) = {
-    sessionCache.fetchAndGetEntry[Int](componentId).flatMap {
-      case Some(count) => sessionCache.cache[Int](componentId, count + 1)
-      case None => sessionCache.cache[Int](componentId, 2)
-    } map(_.getEntry[Int](componentId))
+    for {
+      countOpt <- sessionCache.fetchAndGetEntry[Int](componentId)
+      count = countOpt.getOrElse(1) + 1
+      cacheMap <- sessionCache.cache[Int](componentId, count)
+    } yield cacheMap.getEntry[Int](componentId)
+  }
+
+  def getCount(componentId: String)(implicit hc: HeaderCarrier) = {
+    sessionCache.fetchAndGetEntry[Int](componentId).map {
+      case Some(count) => count
+      case None => 1
+    }
   }
 
 }

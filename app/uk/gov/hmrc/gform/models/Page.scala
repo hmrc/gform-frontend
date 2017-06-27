@@ -23,7 +23,7 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.gform.service.PrepopService
+import uk.gov.hmrc.gform.service.{PrepopService, RepeatingComponentService}
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.components._
@@ -44,7 +44,8 @@ object PageForRender {
     fieldData: Map[FieldId, Seq[String]],
     formTemplate: FormTemplate,
     section: Section,
-    f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
+    f: Option[FieldValue => Option[FormFieldValidationResult]],
+    repeatService: RepeatingComponentService)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
 
     val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
 
@@ -52,14 +53,23 @@ object PageForRender {
 
     val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields)
 
-    def htmlFor(fieldValue: FieldValue): Future[Html] = fieldValue.`type` match {
+    def htmlFor(fieldValue: FieldValue, instance: Int): Future[Html] = fieldValue.`type` match {
       case Group(fvs, orientation, repeatsMax, repeatsMin, repeatLabel, repeatAddAnotherText) => {
-        val listofeventualhtmls: List[Future[Html]] = fvs.map {
-          case (fv: FieldValue) => htmlFor(fv)
+
+        def calculateCount(requestedCount: Int) = repeatsMax match {
+          case Some(maxCount) => if(requestedCount > maxCount) { maxCount } else { requestedCount }
+          case _ => 1
         }
-        Future.sequence(listofeventualhtmls).flatMap {
-          case (lhtml) => Future.successful(uk.gov.hmrc.gform.views.html.group(fieldValue, lhtml, orientation))
-        }
+
+        def fireHtmlGeneration(count: Int) = (0 until count).flatMap { count =>
+          fvs.map(fv => htmlFor(fv, count))
+        }.toList
+
+        for {
+          countInSession <- repeatService.getCount(fieldValue.id.value)
+          count = calculateCount(countInSession)
+          lhtml <- Future.sequence(fireHtmlGeneration(count))
+        } yield uk.gov.hmrc.gform.views.html.group(fieldValue, lhtml, orientation)
       }
       case Date(_, offset, dateValue) =>
         val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
@@ -101,17 +111,17 @@ object PageForRender {
     val snippetsF: List[Future[Html]] = {
       val sectionFields: List[FieldValue] = section.fields
       sectionFields.map {
-        case (fv: FieldValue) => htmlFor(fv)
+        case (fv: FieldValue) => htmlFor(fv, 0)
       }
     }
     Future.sequence(snippetsF).map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, fieldJavascript(formTemplate.sections.flatMap(_.atomicFields))))
   }
 }
 
-case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
+case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate, repeatService: RepeatingComponentService) {
 
   def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier) : Future[PageForRender] =
-    PageForRender(curr, fieldData, formTemplate, section, f)
+    PageForRender(curr, fieldData, formTemplate, section, f, repeatService)
 
   def renderPage(fieldData: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])
                 (implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
@@ -121,7 +131,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
 }
 
 object Page {
-  def apply(currentPage: Int, formTemplate: FormTemplate): Page = {
+  def apply(currentPage: Int, formTemplate: FormTemplate, repeatService: RepeatingComponentService): Page = {
     val lastPage = formTemplate.sections.size - 1
 
     val curr = currentPage match {
@@ -132,6 +142,6 @@ object Page {
 
     val section = formTemplate.sections(curr)
 
-    Page(Math.max(0, curr - 1), curr, Math.min(lastPage, curr + 1), section, formTemplate)
+    Page(Math.max(0, curr - 1), curr, Math.min(lastPage, curr + 1), section, formTemplate, repeatService)
   }
 }
