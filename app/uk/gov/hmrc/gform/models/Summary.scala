@@ -35,9 +35,10 @@ object SummaryForRender {
     val values: FieldValue => Option[FormFieldValidationResult] = okValues(data, fields)
 
     val snippets: List[Html] = {
-      val allSections = formTemplate.sections
-      val sectionsToRender = allSections.filter ( section => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data) )
-      sectionsToRender.zipWithIndex.flatMap { case (section, index) =>
+      val allSections = formTemplate.sections.zipWithIndex
+      val sectionsToRender = allSections.filter {
+        case (section, idx) => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data) }
+      sectionsToRender.flatMap { case (section, index) =>
         uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.shortName.getOrElse(section.title), index) ::
           section.atomicFields.filter(_.submissible)
             .map { fieldValue =>
