@@ -16,17 +16,25 @@
 
 package uk.gov.hmrc.gform.service
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
 
-import play.api.libs.json.Writes
+import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
+import uk.gov.hmrc.gform.models.components.{FieldId, FieldValue, Group}
 import uk.gov.hmrc.play.http.HeaderCarrier
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class RepeatingComponentService @Inject()(val sessionCache: SessionCacheConnector) {
 
   def increaseGroupCount(formGroupId: String)(implicit hc: HeaderCarrier) = {
+    // on the forms, the AddGroup button's name has the following format:
+    // AddGroup-(groupFieldId)
+    // that's the reason why the extraction below is required
     val startPos = formGroupId.indexOf('-') + 1
     val componentId = formGroupId.substring(startPos)
     increaseCount(componentId)
@@ -47,4 +55,48 @@ class RepeatingComponentService @Inject()(val sessionCache: SessionCacheConnecto
     }
   }
 
+  def synchronousGetCount(componentId: String)(implicit hc: HeaderCarrier) = {
+    Try(Await.result(getCount(componentId), 10 seconds)) match {
+      case Success(value) => value
+      case Failure(e) =>
+        play.Logger.error(e.getStackTrace.mkString)
+        1
+    }
+  }
+
+  def getValidatedRepeatingCount(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+    getCount(fieldValue.id.value).map { sessionCount =>
+      validateRepeatCount(sessionCount, fieldValue, groupField)
+    }
+  }
+
+  def synchronousGetValidatedRepeatingCount(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+    val sessionCount = synchronousGetCount(fieldValue.id.value)
+    validateRepeatCount(sessionCount, fieldValue, groupField)
+  }
+
+  def buildRepeatingId(fieldValue: FieldValue, instance: Int) = {
+    FieldId(s"${fieldValue.id.value}_$instance")
+  }
+
+  def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+    val count = synchronousGetValidatedRepeatingCount(topFieldValue, groupField)
+    (0 until count).flatMap { i =>
+      groupField.fields.map { fieldValue =>
+        if (i == 0) fieldValue
+        else fieldValue.copy(id = buildRepeatingId(fieldValue, i))
+      }
+    }.toList
+  }
+
+  private def validateRepeatCount(requestedCount: Int, fieldValue: FieldValue, groupField: Group) = {
+    (groupField.repeatsMax, groupField.repeatsMin) match {
+      case (Some(max), Some(min)) if requestedCount >= min && requestedCount <= max => requestedCount
+      case (Some(max), Some(min)) if requestedCount >= min && requestedCount > max => max
+      case (Some(max), Some(min)) if requestedCount < min => min
+      case (Some(max), None) if requestedCount <= max => requestedCount
+      case (Some(max), None) if requestedCount > max => max
+      case _ => 1
+    }
+  }
 }

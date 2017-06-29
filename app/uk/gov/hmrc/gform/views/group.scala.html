@@ -1,14 +1,18 @@
-@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation, Horizontal, Vertical}
+@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation, Horizontal, Vertical, Group}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import views.html.helper.CSRF
 @import scala.concurrent.Future
 
-@(fieldValue: FieldValue, snippets: List[Html], orientation: Orientation)
+
+@(fieldValue: FieldValue, groupField: Group, snippets: List[Html], orientation: Orientation)
+
 
 <fieldset>
   <div class="form-group divider--top--thick">
       <legend class="h3-heading">@localisation(fieldValue.label)</legend>
-      <button type="submit" class="button" name="save" value="AddGroup-@fieldValue.id">Add group</button>
+      @if(groupField.repeatAddAnotherText.isDefined && groupField.repeatsMax.isDefined) {
+      <button type="submit" class="button" name="save" value="AddGroup-@fieldValue.id">@localisation(groupField.repeatAddAnotherText.getOrElse("Add group"))</button>
+      }
   </div>
   <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
     @{

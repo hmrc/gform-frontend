@@ -24,20 +24,20 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
-import uk.gov.hmrc.gform.service.SaveService
+import uk.gov.hmrc.gform.service.{RepeatingComponentService, SaveService}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SummaryGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(implicit ec: ExecutionContext)
+class SummaryGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
   extends FrontendController with I18nSupport {
 
   def summaryById(formTypeId: FormTypeId, version: String, formId: FormId) =
     sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
       implicit request =>
         SaveService.getFormById(formTypeId, version, formId).map( formData =>
-          Summary(request.formTemplate).renderSummary(formDataMap(formData), formId)
+          Summary(request.formTemplate).renderSummary(formDataMap(formData), formId, repeatService)
         )
     }
 

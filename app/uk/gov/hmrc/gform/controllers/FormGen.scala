@@ -80,10 +80,11 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, r
 
           val formIdOpt: Option[FormId] = anyFormId(data)
 
-          val validatedData = page.section.atomicFields.map(fv => CompData(fv, data).validateComponents)
+          val validatedData = page.section.atomicFields(repeatService).map(fv => CompData(fv, data).validateComponents)
           val validatedDataResult = Monoid[ValidatedType].combineAll(validatedData)
 
-          val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(page.section.atomicFields, validatedDataResult, data)
+          val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] =
+            ValidationUtil.evaluateValidationResult(page.section.atomicFields(repeatService), validatedDataResult, data)
 
           def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
@@ -157,11 +158,8 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, r
                     }
                   }
                 case AddGroup(groupId) =>
-                  repeatService.increaseGroupCount(groupId).map { _ =>
-                    formIdOpt match {
-                      case Some(formId) => Redirect(routes.FormGen.formByIdPage(formTypeId, version, formId, pageIdx))
-                      case None => Redirect(routes.FormGen.form(formTypeId, version))
-                    }
+                  repeatService.increaseGroupCount(groupId).flatMap { _ =>
+                    page.renderPage(data, formIdOpt, None)
                   }
               }
 
