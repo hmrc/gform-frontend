@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.service
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.connectors.GFormConnector
+import uk.gov.hmrc.gform.connectors.GformConnector
 import uk.gov.hmrc.gform.models.FormTemplate
 import uk.gov.hmrc.gform.models.form._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -27,7 +27,7 @@ import scala.concurrent.Future
 
 object RetrieveService {
 
-  def bformsConnector = GFormConnector
+  def gformConnector = GformConnector
 
   def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
     formTemplate.validate[FormTemplate] match {
@@ -37,7 +37,7 @@ object RetrieveService {
   }
 
   def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc : HeaderCarrier): Future[Either[String, FormTemplate]] = {
-    val templateF = bformsConnector.retrieveFormTemplate(formTypeId, version)
+    val templateF = gformConnector.retrieveFormTemplate(formTypeId, version)
 
     for {
       template <- templateF
