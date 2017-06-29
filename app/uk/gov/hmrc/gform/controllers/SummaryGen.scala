@@ -23,7 +23,7 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
-import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
+import uk.gov.hmrc.gform.models.form._
 import uk.gov.hmrc.gform.service.SaveService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
@@ -33,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SummaryGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(implicit ec: ExecutionContext)
   extends FrontendController with I18nSupport {
 
-  def summaryById(formTypeId: FormTypeId, version: String, formId: FormId) =
+  def summaryById(formTypeId: FormTypeId, version: Version, formId: FormId) =
     sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
       implicit request =>
         SaveService.getFormById(formTypeId, version, formId).map( formData =>
@@ -41,7 +41,7 @@ class SummaryGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions
         )
     }
 
-  def submit(formTypeId: FormTypeId, version: String) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
+  def submit(formTypeId: FormTypeId, version: Version) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
     implicit request =>
       processResponseDataFromBody(request) { data =>
         get(data, FieldId("save")) match {

@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.models.form
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.form._
+import play.api.libs.json._
 
-case class FormTemplate(
-  formTypeId: FormTypeId,
-  formName: String,
-  version: Version,
-  description: String,
-  characterSet: String,
-  dmsSubmission: DmsSubmission,
-  submitSuccessUrl: String,
-  submitErrorUrl: String,
-  sections: List[Section]
-)
+case class Version(value: String)
 
-object FormTemplate {
-  implicit val format = Json.format[FormTemplate]
+object Version {
+  val writes: Writes[Version] = Writes[Version](id => JsString(id.value))
+  val reads: Reads[Version] = Reads[Version] {
+    case JsString(value) => JsSuccess(Version(value))
+    case otherwise => JsError(s"Invalid 'version' field, expected JsString, got: $otherwise")
+  }
+  implicit val format: Format[Version] = Format[Version](reads, writes)
 }
