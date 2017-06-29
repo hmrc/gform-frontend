@@ -31,9 +31,11 @@ import uk.gov.hmrc.gform.models.form.FormTypeId
 
 package controllers {
 
+  import uk.gov.hmrc.gform.models.form.Version
+
   case class RequestWithTemplate[B](request: Request[B], formTemplate: FormTemplate) extends WrappedRequest(request)
 
-  class WithFormTemplate private (formTypeId: FormTypeId, version: String)(implicit ec: ExecutionContext) extends ActionRefiner[Request, RequestWithTemplate] {
+  class WithFormTemplate private (formTypeId: FormTypeId, version: Version)(implicit ec: ExecutionContext) extends ActionRefiner[Request, RequestWithTemplate] {
     protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithTemplate[A]]] = {
 
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
@@ -46,7 +48,7 @@ package controllers {
   }
 
   object WithFormTemplate {
-    def apply(formTypeId: FormTypeId, version: String)(implicit ec: ExecutionContext) = new WithFormTemplate(formTypeId, version)
+    def apply(formTypeId: FormTypeId, version: Version)(implicit ec: ExecutionContext) = new WithFormTemplate(formTypeId, version)
   }
 
   object BformsPageVisibilityPredicate extends uk.gov.hmrc.play.frontend.auth.PageVisibilityPredicate {
@@ -71,8 +73,8 @@ package controllers {
   }
 
   trait SecuredActions extends uk.gov.hmrc.play.frontend.auth.Actions {
-    val SecureWithTemplate: (FormTypeId, String) => (AuthContext => RequestWithTemplate[AnyContent] => Result) => Action[AnyContent]
-    val SecureWithTemplateAsync: (FormTypeId, String) => (AuthContext => RequestWithTemplate[AnyContent] => Future[Result]) => Action[AnyContent]
+    val SecureWithTemplate: (FormTypeId, Version) => (AuthContext => RequestWithTemplate[AnyContent] => Result) => Action[AnyContent]
+    val SecureWithTemplateAsync: (FormTypeId, Version) => (AuthContext => RequestWithTemplate[AnyContent] => Future[Result]) => Action[AnyContent]
   }
 
   @Singleton
@@ -80,7 +82,7 @@ package controllers {
 
     private def ActionWithTemplate(
       formTypeId: FormTypeId,
-      version: String
+      version: Version
     )(
       implicit ec: ExecutionContext
     ): ActionBuilder[RequestWithTemplate] =
@@ -89,7 +91,7 @@ package controllers {
     // Workaround for impossible Action composition thanks to UserActions#AuthenticatedBy from play-authorised-frontend being no ActionBuilder
     private def SecureActionWithTemplate(authenticatedBy: UserActions#AuthenticatedBy)(
       formTypeId: FormTypeId,
-      version: String
+      version: Version
     )(body: AuthContext => RequestWithTemplate[AnyContent] => Result): Action[AnyContent] = authenticatedBy.async { authContext => request =>
       ActionWithTemplate(formTypeId, version).apply(body(authContext))(request)
     }
@@ -97,7 +99,7 @@ package controllers {
     // Workaround for impossible Action composition thanks to UserActions#AuthenticatedBy from play-authorised-frontend being no ActionBuilder
     private def SecureActionWithTemplateAsync(authenticatedBy: UserActions#AuthenticatedBy)(
       formTypeId: FormTypeId,
-      version: String
+      version: Version
     )(body: AuthContext => RequestWithTemplate[AnyContent] => Future[Result]): Action[AnyContent] = authenticatedBy.async { authContext => request =>
       ActionWithTemplate(formTypeId, version).async(body(authContext))(request)
     }

@@ -41,7 +41,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(implicit ec: ExecutionContext)
   extends FrontendController with I18nSupport {
 
-  def form(formTypeId: FormTypeId, version: String) =
+  def form(formTypeId: FormTypeId, version: Version) =
     sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
       implicit request =>
 
@@ -51,9 +51,9 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
     }
 
-  def formById(formTypeId: FormTypeId, version: String, formId: FormId) = formByIdPage(formTypeId, version, formId, 0)
+  def formById(formTypeId: FormTypeId, version: Version, formId: FormId) = formByIdPage(formTypeId, version, formId, 0)
 
-  def formByIdPage(formTypeId: FormTypeId, version: String, formId: FormId, currPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
+  def formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, currPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
     implicit authContext =>
       implicit request =>
 
@@ -70,7 +70,7 @@ class FormGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions)(i
 
   val FormIdExtractor = "gform/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
 
-  def save(formTypeId: FormTypeId, version: String, pageIdx: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
+  def save(formTypeId: FormTypeId, version: Version, pageIdx: Int) = sec.SecureWithTemplateAsync(formTypeId, version) {
     implicit authContext =>
       implicit request =>
         processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>

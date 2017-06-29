@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import org.jsoup.Jsoup
 import org.scalatest._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
+import uk.gov.hmrc.gform.models.form._
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 
 import scala.collection.immutable.List
@@ -35,7 +35,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
-    version = "1.2.3",
+    version = Version("1.2.3"),
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
