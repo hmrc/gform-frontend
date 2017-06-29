@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.gform.service
 
-
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
-import uk.gov.hmrc.gform.models.components.{FieldId, FieldValue, Group}
+import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 @Singleton
-class RepeatingComponentService @Inject()(val sessionCache: SessionCacheConnector) {
+class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
 
   def increaseGroupCount(formGroupId: String)(implicit hc: HeaderCarrier) = {
     // on the forms, the AddGroup button's name has the following format:

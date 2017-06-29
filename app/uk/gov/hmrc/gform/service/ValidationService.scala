@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import cats.Semigroup
 import cats.data.Validated
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
 import cats.instances.all._
@@ -29,24 +29,24 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.typeclasses.Now
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 object ValidationService {
   case class CompData(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) {
     def validateComponents: ValidatedType = {
       fieldValue.`type` match {
-        case date@Date(_, _, _) =>
+        case date @ Date(_, _, _) =>
           val reqFieldValidResult = validateDateRequiredField(fieldValue)(data)
           val otherRulesValidResult = validateDate(fieldValue, date)(data)
 
           Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
 
         case Text(_, _) => validateText(fieldValue)(data)
-        case address@Address(_) => validateAddress(fieldValue, address)(data)
+        case address @ Address(_) => validateAddress(fieldValue, address)(data)
         case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
-        case Group(_, _, _, _, _, _) => Valid(())    //a group is read-only
+        case Group(_, _, _, _, _, _) => Valid(()) //a group is read-only
         case FileUpload() => Valid(()) //TODO validation for file upload
-        case InformationMessage(_,_) => Valid(())
+        case InformationMessage(_, _) => Valid(())
       }
     }
 
@@ -96,13 +96,17 @@ object ValidationService {
 
       val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
         case "true" :: Nil =>
-          List(validateRequiredFied("street1")(addressValueOf("street1")),
+          List(
+            validateRequiredFied("street1")(addressValueOf("street1")),
             validateRequiredFied("postcode")(addressValueOf("postcode")),
-            validateForbiddenField("country")(addressValueOf("country")))
+            validateForbiddenField("country")(addressValueOf("country"))
+          )
         case _ =>
-          List(validateRequiredFied("street1")(addressValueOf("street1")),
+          List(
+            validateRequiredFied("street1")(addressValueOf("street1")),
             validateForbiddenField("postcode")(addressValueOf("postcode")),
-            validateRequiredFied("country")(addressValueOf("country")))
+            validateRequiredFied("country")(addressValueOf("country"))
+          )
       }
 
       Monoid[ValidatedType].combineAll(validatedResult)
@@ -113,9 +117,11 @@ object ValidationService {
 
       val validatedResult = fieldValue.mandatory match {
         case true =>
-          List(validateRF("day")(dateValueOf("day")),
+          List(
+            validateRF("day")(dateValueOf("day")),
             validateRF("month")(dateValueOf("month")),
-            validateRF("year")(dateValueOf("year")))
+            validateRF("year")(dateValueOf("year"))
+          )
 
         case false => List(Valid(()))
       }
@@ -176,7 +182,6 @@ object ValidationService {
 
               }
 
-
           }
 
           Monoid[ValidatedType].combineAll(result)
@@ -184,10 +189,8 @@ object ValidationService {
 
     }
 
-
     def validateToday(fieldValue: FieldValue, localDate: LocalDate,
-                      offset: OffsetDate, dateError: GFormError)
-                     (func: (LocalDate, OffsetDate) => Boolean): ValidatedType = {
+      offset: OffsetDate, dateError: GFormError)(func: (LocalDate, OffsetDate) => Boolean): ValidatedType = {
       func(localDate, offset) match {
         case true => Valid(())
         case false => Invalid(dateError)
@@ -195,8 +198,7 @@ object ValidationService {
     }
 
     def validateConcreteDate(fieldValue: FieldValue, localDate: LocalDate,
-                             concreteDate: LocalDate, offset: OffsetDate, dateError: GFormError)
-                            (func: (LocalDate, LocalDate, OffsetDate) => Boolean): ValidatedType = {
+      concreteDate: LocalDate, offset: OffsetDate, dateError: GFormError)(func: (LocalDate, LocalDate, OffsetDate) => Boolean): ValidatedType = {
       func(localDate, concreteDate, offset) match {
         case true => Valid(())
         case false => Invalid(dateError)
@@ -263,9 +265,7 @@ object ValidationService {
       }
     }
 
-    def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])
-                                             (f: (Int, Int, Int) => ConcreteDate):
-    Validated[E, ConcreteDate] = (v3 |@| v2 |@| v1).map(f)
+    def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(f: (Int, Int, Int) => ConcreteDate): Validated[E, ConcreteDate] = (v3 |@| v2 |@| v1).map(f)
 
     def alwaysOk(fieldValue: FieldValue)(xs: Seq[String]): FormFieldValidationResult = {
       xs match {

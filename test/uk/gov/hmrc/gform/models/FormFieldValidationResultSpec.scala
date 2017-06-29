@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.models.components._
-
 
 class FormFieldValidationResultSpec extends FlatSpec with Matchers {
 
@@ -35,13 +34,13 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
 
   "getOptionalCurrentValue" should "return current value when validation returns FieldError" in {
     val testFieldComponent = ComponentField(
-        fieldValue = mockDateFieldValue,
-        data = Map(
-          "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false),"label",None,None,false,true,true), "1"),
-          "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false),"label",None,None,false,true,true), "1"),
-          "year" -> FieldError(FieldValue(FieldId("year"), Text(Constant(""), false), "label",None,None,false,true,true), "NOT_RIGHT", Set("NAN"))
-        )
+      fieldValue = mockDateFieldValue,
+      data = Map(
+        "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false), "label", None, None, false, true, true), "1"),
+        "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false), "label", None, None, false, true, true), "1"),
+        "year" -> FieldError(FieldValue(FieldId("year"), Text(Constant(""), false), "label", None, None, false, true, true), "NOT_RIGHT", Set("NAN"))
       )
+    )
 
     testFieldComponent.getOptionalCurrentValue("year").get.equalsIgnoreCase("NOT_RIGHT") shouldBe true
 
@@ -51,9 +50,9 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     val testFieldComponent = ComponentField(
       fieldValue = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false),"day",None,None,false,true,true), "1"),
-        "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false),"month",None,None,false,true,true), "1"),
-        "year" -> FieldOk(FieldValue(FieldId("year"), Text(Constant(""), false),"year",None,None,false,true,true), "2017")
+        "day" -> FieldOk(FieldValue(FieldId("day"), Text(Constant(""), false), "day", None, None, false, true, true), "1"),
+        "month" -> FieldOk(FieldValue(FieldId("month"), Text(Constant(""), false), "month", None, None, false, true, true), "1"),
+        "year" -> FieldOk(FieldValue(FieldId("year"), Text(Constant(""), false), "year", None, None, false, true, true), "2017")
       )
     )
 

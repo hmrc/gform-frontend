@@ -18,10 +18,10 @@ package uk.gov.hmrc.gform.connectors
 
 import javax.inject.Singleton
 
-import uk.gov.hmrc.gform.{FrontendAppConfig, WSHttp}
+import uk.gov.hmrc.gform.{ FrontendAppConfig, WSHttp }
 import uk.gov.hmrc.http.cache.client.SessionCache
-import uk.gov.hmrc.play.config.{AppName, ServicesConfig}
-import uk.gov.hmrc.play.http.{HttpDelete, HttpGet, HttpPut}
+import uk.gov.hmrc.play.config.{ AppName, ServicesConfig }
+import uk.gov.hmrc.play.http.{ HttpDelete, HttpGet, HttpPut }
 
 @Singleton
 class SessionCacheConnector extends SessionCache with ServicesConfig with AppName {

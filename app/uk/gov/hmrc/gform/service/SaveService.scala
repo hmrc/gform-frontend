@@ -16,33 +16,30 @@
 
 package uk.gov.hmrc.gform.service
 
-import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.connectors.GformConnector
-import uk.gov.hmrc.gform.models.{SaveResult, VerificationResult}
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.gform.models.SaveResult
+import uk.gov.hmrc.gform.models.form._
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import play.api.libs.json._
-import uk.gov.hmrc.gform.models.form.{FormData, FormId, FormTypeId}
 
 object SaveService {
 
-  def gformConnector : GformConnector = GformConnector
+  def gformConnector: GformConnector = GformConnector
 
-  def getFormById(formTypeId: FormTypeId, version: String, formId: FormId)(implicit hc : HeaderCarrier) = {
+  def getFormById(formTypeId: FormTypeId, version: Version, formId: FormId)(implicit hc: HeaderCarrier) = {
     gformConnector.getById(formTypeId, version, formId)
   }
 
-  def saveFormData(formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier): Future[SaveResult] = {
+  def saveFormData(formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     gformConnector.save(formData, tolerant)
   }
 
-  def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier): Future[SaveResult] = {
+  def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     gformConnector.update(formId, formData, tolerant)
   }
 
-  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc : HeaderCarrier): Future[HttpResponse] = {
+  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     gformConnector.sendSubmission(formTypeId, formId)
   }
 }

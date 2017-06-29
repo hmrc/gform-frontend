@@ -17,11 +17,8 @@
 package uk.gov.hmrc.gform.models.components
 
 import julienrf.json.derived
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 
-/**
-  * Created by dimitra on 04/04/17.
-  */
 sealed trait BeforeOrAfter
 case object After extends BeforeOrAfter
 case object Before extends BeforeOrAfter

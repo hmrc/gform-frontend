@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.service.ValidationService.CompData
@@ -32,16 +32,18 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("true"),
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
       FieldId("x-street1") -> Seq("S1"),
       FieldId("x-street2") -> Seq("S2"),
       FieldId("x-street3") -> Seq("S3"),
       FieldId("x-street4") -> Seq("S4"),
-      FieldId("x-postcode") -> Seq("P1 1P"))
+      FieldId("x-postcode") -> Seq("P1 1P")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
-    result.value should be (())
+    result.value should be(())
   }
 
   "non-international" should "accept uk, street1 and postcode only" in {
@@ -49,13 +51,15 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("true"),
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
       FieldId("x-street1") -> Seq("S"),
-      FieldId("x-postcode") -> Seq("P1 1P"))
+      FieldId("x-postcode") -> Seq("P1 1P")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
-    result.value should be (())
+    result.value should be(())
   }
 
   "non-international" should "return invalid for postcode, but no street1" in {
@@ -63,10 +67,12 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("true"),
-      FieldId("x-postcode") -> Seq("P1 1P"))
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
+      FieldId("x-postcode") -> Seq("P1 1P")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("street1") -> Set("must be entered")))
   }
@@ -76,10 +82,12 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("true"),
-      FieldId("x-street1") -> Seq("S"))
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
+      FieldId("x-street1") -> Seq("S")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must be entered")))
   }
@@ -89,13 +97,15 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("false"),
+    val data = Map(
+      FieldId("x-uk") -> Seq("false"),
       FieldId("x-street1") -> Seq("S"),
-      FieldId("x-country") -> Seq("C"))
+      FieldId("x-country") -> Seq("C")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
-    result.value should be (())
+    result.value should be(())
   }
 
   "international" should "return invalid for not uk, street1, but no country" in {
@@ -103,10 +113,12 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("false"),
-      FieldId("x-street1") -> Seq("S"))
+    val data = Map(
+      FieldId("x-uk") -> Seq("false"),
+      FieldId("x-street1") -> Seq("S")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("country") -> Set("must be entered")))
   }
@@ -116,12 +128,14 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("false"),
+    val data = Map(
+      FieldId("x-uk") -> Seq("false"),
       FieldId("x-street1") -> Seq("S"),
       FieldId("x-postcode") -> Seq("P1 1P"),
-      FieldId("x-country") -> Seq("C"))
+      FieldId("x-country") -> Seq("C")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must not be entered")))
   }
@@ -131,14 +145,18 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x-uk") -> Seq("true"),
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
       FieldId("x-street1") -> Seq("S"),
-      FieldId("x-country") -> Seq("C"))
+      FieldId("x-country") -> Seq("C")
+    )
 
-    val result : ValidatedType = CompData(speccedAddress, data).validateComponents
+    val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 
-    result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must be entered"),
-      speccedAddress.id.withJSSafeSuffix("country") -> Set("must not be entered")))
+    result.toEither should beLeft(Map(
+      speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must be entered"),
+      speccedAddress.id.withJSSafeSuffix("country") -> Set("must not be entered")
+    ))
   }
 
   "Address validation" should "fail when field separator is wrong" in {
@@ -146,9 +164,11 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
 
     val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false)
 
-    val data = Map(FieldId("x@uk") -> Seq("true"),
+    val data = Map(
+      FieldId("x@uk") -> Seq("true"),
       FieldId("x@street1") -> Seq("S"),
-      FieldId("x@country") -> Seq("C"))
+      FieldId("x@country") -> Seq("C")
+    )
 
     val result: ValidatedType = CompData(speccedAddress, data).validateComponents
 

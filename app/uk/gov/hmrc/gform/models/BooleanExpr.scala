@@ -42,10 +42,10 @@ object BooleanExpr {
 
   def nextTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
 
-    if (idx >= expressions.size-1) return None
-    if (isTrue(expressions(idx + 1), data)) return Some(idx+1)
+    if (idx >= expressions.size - 1) return None
+    if (isTrue(expressions(idx + 1), data)) return Some(idx + 1)
 
-    nextTrueIdxOpt(idx+1, expressions, data)
+    nextTrueIdxOpt(idx + 1, expressions, data)
   }
 
 }

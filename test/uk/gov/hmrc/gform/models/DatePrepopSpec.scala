@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.{EitherValues, FlatSpec, Matchers, OptionValues}
-import uk.gov.hmrc.gform.models.components.{DateExpr, Offset}
+import org.scalatest.{ EitherValues, FlatSpec, Matchers, OptionValues }
+import uk.gov.hmrc.gform.models.components.{ DateExpr, Offset }
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
 
 class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with OptionValues {

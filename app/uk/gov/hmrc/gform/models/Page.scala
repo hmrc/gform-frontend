@@ -17,13 +17,12 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.i18n.Messages
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
-
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.gform.service.{PrepopService, RepeatingComponentService}
+import uk.gov.hmrc.gform.service.{ PrepopService, RepeatingComponentService }
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.gform.models.components._
@@ -35,7 +34,6 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 
-
 case class PageForRender(curr: Int, sectionTitle: String, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
 object PageForRender {
@@ -45,7 +43,8 @@ object PageForRender {
     formTemplate: FormTemplate,
     section: Section,
     f: Option[FieldValue => Option[FormFieldValidationResult]],
-    repeatService: RepeatingComponentService)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
+    repeatService: RepeatingComponentService
+  )(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
 
     val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
 
@@ -58,10 +57,10 @@ object PageForRender {
     def htmlFor(topFieldValue: FieldValue, instance: Int): Future[Html] = {
       val fieldValue = adjustIdForRepeatingGroups(topFieldValue, instance)
       fieldValue.`type` match {
-        case grpFld@Group(fvs, orientation, _, _, _, _) => {
+        case grpFld @ Group(fvs, orientation, _, _, _, _) => {
 
           def fireHtmlGeneration(count: Int) = (0 until count).flatMap { count =>
-            if(count == 0) {
+            if (count == 0) {
               fvs.map(fv => htmlFor(fv, count))
             } else {
               Future.successful(Html(s"""<div><legend class="h3-heading">${grpFld.repeatLabel.getOrElse("")}</legend>""")) +:
@@ -82,7 +81,7 @@ object PageForRender {
         case Address(international) =>
           Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, f.getOrElse(okF)(fieldValue)))
 
-        case t@Text(expr, _) =>
+        case t @ Text(expr, _) =>
           val prepopValueF = fieldData.get(fieldValue.id) match {
             case None => PrepopService.prepopData(expr, formTemplate.formTypeId)
             case _ => Future.successful("") // Don't prepop something we already submitted
@@ -128,17 +127,17 @@ object PageForRender {
       }
     }
     Future.sequence(snippetsF).map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, fieldJavascript(
-      formTemplate.sections.flatMap(_.atomicFields(repeatService)))))
+      formTemplate.sections.flatMap(_.atomicFields(repeatService))
+    )))
   }
 }
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate, repeatService: RepeatingComponentService) {
 
-  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier) : Future[PageForRender] =
+  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] =
     PageForRender(curr, fieldData, formTemplate, section, f, repeatService)
 
-  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])
-                (implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
+  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
     pageForRender(fieldData, f).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
   }
 

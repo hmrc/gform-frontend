@@ -16,24 +16,24 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
-import play.api.libs.ws.{StreamedBody, WSClient, WSRequest}
+import play.api.libs.ws.{ StreamedBody, WSClient, WSRequest }
 import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
 @Singleton
-class ProxyActions @Inject()(wsClient: WSClient) {
+class ProxyActions @Inject() (wsClient: WSClient) {
 
   /**
-    * This creates actions which proxies incoming request to remote service.
-    */
+   * This creates actions which proxies incoming request to remote service.
+   */
   def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] = Action.async(streamedBodyParser) { (inboundRequest: Request[Source[ByteString, _]]) =>
     for {
       outboundRequest <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)

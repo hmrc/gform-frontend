@@ -20,11 +20,10 @@ import cats.data.NonEmptyList
 import org.jsoup.Jsoup
 import org.scalatest._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
+import uk.gov.hmrc.gform.models.form._
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 
 import scala.collection.immutable.List
-
 
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
@@ -35,7 +34,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
-    version = "1.2.3",
+    version = Version("1.2.3"),
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
@@ -48,7 +47,8 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val summary = Summary(formTemplate)
 
-    val formData = Map(FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
+    val formData = Map(
+      FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
       FieldId("firstName") -> Seq("Test!About you!Test"),
       FieldId("nameOfBusiness") -> Seq("Test!Business details!Test")
     )
@@ -70,7 +70,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     )
 
     val render = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"))
-//    render should be(List())
+    //    render should be(List())
 
     val testStringValues = extractAllTestStringValues(render.snippets)
     testStringValues should be(List("Form Type", "Form Id", "Form Type", "Form Id"))
@@ -86,7 +86,8 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     ))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val formFields = Map(FieldId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
+    val formFields = Map(
+      FieldId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
       FieldId("Info") -> Seq("Test!Royal!Test"),
       FieldId("BirthDate.day") -> Seq("19"),
       FieldId("BirthDate.month") -> Seq("11"),
@@ -103,7 +104,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val testStringValues = extractAllTestStringValues(render.snippets)
     testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
-    extractDates(render.snippets) should be (List(("19", "November", "1841")))
+    extractDates(render.snippets) should be(List(("19", "November", "1841")))
   }
 
   it should "display the title when shortName is not present in the section" in {
@@ -311,7 +312,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
   it should "not render sections with includeIf expressions that evaluate to false" in {
 
     val summary = Summary(formTemplate.copy(
-      sections = List(section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"),Constant("Pete"))))))
+      sections = List(section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))))
     ))
 
     val renderWithDataMatching = summary.summaryForRender(Map(FieldId("firstName") -> Seq("Pete")), FormId(""))
@@ -338,6 +339,5 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     urlOfHrefToSection2 should endWith(ftWithOneInclIfSection.sections.indexOf(section2).toString)
   }
-
 
 }

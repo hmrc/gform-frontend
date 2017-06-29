@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.models
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.gform.models.components.{Constant, FieldId, FieldValue, Text}
-import uk.gov.hmrc.gform.models.form.FormTypeId
-
+import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
+import uk.gov.hmrc.gform.models.form.{ FormTypeId, Version }
 import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
@@ -35,7 +34,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
-    version = "1.2.3",
+    version = Version("1.2.3"),
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,

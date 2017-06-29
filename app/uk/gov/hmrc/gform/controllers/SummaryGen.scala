@@ -16,49 +16,46 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
-import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
-import uk.gov.hmrc.gform.service.{RepeatingComponentService, SaveService}
+import uk.gov.hmrc.gform.models.form._
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class SummaryGen @Inject()(val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
-  extends FrontendController with I18nSupport {
+class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
+    extends FrontendController with I18nSupport {
 
-  def summaryById(formTypeId: FormTypeId, version: String, formId: FormId) =
-    sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
-      implicit request =>
-        SaveService.getFormById(formTypeId, version, formId).map( formData =>
-          Summary(request.formTemplate).renderSummary(formDataMap(formData), formId, repeatService)
-        )
+  def summaryById(formTypeId: FormTypeId, version: Version, formId: FormId) =
+    sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
+      SaveService.getFormById(formTypeId, version, formId).map(formData =>
+        Summary(request.formTemplate).renderSummary(formDataMap(formData), formId, repeatService))
     }
 
-  def submit(formTypeId: FormTypeId, version: String) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
-    implicit request =>
-      processResponseDataFromBody(request) { data =>
-        get(data, FieldId("save")) match {
-            case "Exit" :: Nil =>
-              Future.successful(Ok)
-            case "Continue" :: Nil =>
-              anyFormId(data) match {
-               case Some(formId) =>
-                  SaveService.sendSubmission(formTypeId, formId).
-                    map( r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
-                case None =>
-                  Future.successful(BadRequest("No formId"))
-              }
-            case _ =>
-              Future.successful(BadRequest("Cannot determine action"))
+  def submit(formTypeId: FormTypeId, version: Version) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
+    processResponseDataFromBody(request) { data =>
+      get(data, FieldId("save")) match {
+        case "Exit" :: Nil =>
+          Future.successful(Ok)
+        case "Continue" :: Nil =>
+          anyFormId(data) match {
+            case Some(formId) =>
+              SaveService.sendSubmission(formTypeId, formId).
+                map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
+            case None =>
+              Future.successful(BadRequest("No formId"))
           }
+        case _ =>
+          Future.successful(BadRequest("Cannot determine action"))
       }
+    }
   }
 
 }

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import cats.data.Validated.Valid
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.form.FormField
@@ -25,10 +24,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Fields {
 
-
-  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], repeatService: RepeatingComponentService)
-              (fieldValue: FieldValue)
-              (implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
+  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], repeatService: RepeatingComponentService)(fieldValue: FieldValue)(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
     val formFields = toFormField(formFieldMap, fieldValues, repeatService).map(hf => hf.id -> hf).toMap
     fieldValue.`type` match {
       case Address(_) | Date(_, _, _) =>
@@ -54,8 +50,7 @@ object Fields {
     }
   }
 
-  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue], repeatService: RepeatingComponentService)
-                 (implicit hc: HeaderCarrier) : List[FormField] = {
+  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue], repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): List[FormField] = {
 
     val getFieldData: FieldId => FormField = fieldId => {
       val value = fieldData.get(fieldId).toList.flatten.headOption.getOrElse("")
@@ -64,7 +59,7 @@ object Fields {
 
     def getFormFields(templateFields: List[FieldValue]): List[FormField] = templateFields.flatMap { fv =>
       fv.`type` match {
-        case groupField@Group(fvs, _, _, _, _, _) => {
+        case groupField @ Group(fvs, _, _, _, _, _) => {
           getFormFields(repeatService.getAllFieldsInGroup(fv, groupField))
         }
         case Address(_) => Address.allFieldIds(fv.id).map(getFieldData)

@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.play.config.ServicesConfig
 
 @Singleton
-class TestOnly @Inject()(proxy: ProxyActions ) extends Controller with ServicesConfig {
+class TestOnly @Inject() (proxy: ProxyActions) extends Controller with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 

@@ -29,13 +29,14 @@ case class Text(value: Expr, total: Boolean) extends ComponentType
 
 case class Date(constraintType: DateConstraintType, offset: Offset, value: Option[DateValue]) extends ComponentType
 
-case class Group(fields: List[FieldValue],
-                 orientation: Orientation,
-                 repeatsMax: Option[Int] = None,
-                 repeatsMin: Option[Int] = None,
-                 repeatLabel: Option[String] = None,
-                 repeatAddAnotherText: Option[String] = None
-                ) extends ComponentType
+case class Group(
+  fields: List[FieldValue],
+  orientation: Orientation,
+  repeatsMax: Option[Int] = None,
+  repeatsMin: Option[Int] = None,
+  repeatLabel: Option[String] = None,
+  repeatAddAnotherText: Option[String] = None
+) extends ComponentType
 
 case class FileUpload() extends ComponentType
 
@@ -51,27 +52,38 @@ case object Address {
 
 case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
 
-sealed trait  InfoType
+sealed trait InfoType
+
 case object StandardInfo extends InfoType
+
 case object LongInfo extends InfoType
+
 case object ImportantInfo extends InfoType
+
 case object BannerInfo extends InfoType
+
 object InfoType {
   implicit val format: OFormat[InfoType] = derived.oformat
 }
 
-
 sealed trait Orientation
+
 case object Vertical extends Orientation
+
 case object Horizontal extends Orientation
+
 object Orientation {
   implicit val formatExpr: OFormat[Orientation] = derived.oformat
 }
 
 sealed trait ChoiceType
+
 final case object Radio extends ChoiceType
+
 final case object Checkbox extends ChoiceType
+
 final case object YesNo extends ChoiceType
+
 final case object Inline extends ChoiceType
 
 object ChoiceType {
@@ -79,7 +91,7 @@ object ChoiceType {
 }
 
 case class Choice(`type`: ChoiceType, options: NonEmptyList[String], orientation: Orientation,
-                  selections: List[Int], optionHelpText: Option[List[String]]) extends ComponentType
+  selections: List[Int], optionHelpText: Option[List[String]]) extends ComponentType
 
 object ComponentType {
 

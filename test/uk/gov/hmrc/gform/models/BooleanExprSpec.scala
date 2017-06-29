@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import org.scalatest._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.FormTypeId
-
+import uk.gov.hmrc.gform.models.form._
 
 class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
 
@@ -32,7 +31,7 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
-    version = "1.2.3",
+    version = Version("1.2.3"),
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area"),
@@ -41,7 +40,8 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
     sections = List(section0, section1, section2)
   )
 
-  val data = Map(FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
+  val data = Map(
+    FieldId("iptRegNum") -> Seq("Test!Your details!Test"),
     FieldId("firstName") -> Seq("Pete"),
     FieldId("nameOfBusiness") -> Seq("Test!Business details!Test")
   )
@@ -55,7 +55,7 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
     BooleanExpr.nextTrueIdxOpt(2, booleanExprs, data) shouldBe None
 
     val templWithMiddleSectionIncl = formTemplate.copy(
-      sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"),Constant("Pete"))))), section2)
+      sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))), section2)
     )
 
     booleanExprs = templWithMiddleSectionIncl.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
@@ -65,7 +65,7 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
     BooleanExpr.nextTrueIdxOpt(2, booleanExprs, data) shouldBe None
 
     val templWithMiddleSectionExcl = formTemplate.copy(
-      sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"),Constant("Pet"))))), section2)
+      sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pet"))))), section2)
     )
 
     booleanExprs = templWithMiddleSectionExcl.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)

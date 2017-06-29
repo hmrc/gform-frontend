@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.gform.models.components
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 
 /**
-  * Created by dimitra on 05/04/17.
-  */
+ * Created by dimitra on 05/04/17.
+ */
 final case class Offset(value: Int) extends AnyVal
 
 object Offset {

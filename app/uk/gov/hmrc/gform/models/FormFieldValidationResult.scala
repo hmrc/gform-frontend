@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.models
 
 import java.time.LocalDate
 
-import cats.data.Validated.{Invalid, Valid}
-import uk.gov.hmrc.gform.models.components.{Address, FieldId, FieldValue, _}
+import cats.data.Validated.{ Invalid, Valid }
+import uk.gov.hmrc.gform.models.components.{ Address, FieldId, FieldValue, _ }
 import uk.gov.hmrc.gform.models.form.FormField
 import cats.data.Validated
 import cats.instances.either._
@@ -38,7 +38,7 @@ sealed trait FormFieldValidationResult {
   def getCurrentValue: Option[String] = this match {
     case FieldOk(_, "") => None
     case FieldOk(_, cv) => Some(cv)
-    case FieldError(_,cv,_) => Some(cv)
+    case FieldError(_, cv, _) => Some(cv)
     case _ => None
   }
 
@@ -53,8 +53,8 @@ sealed trait FormFieldValidationResult {
   }
 
   /**
-    * If `this` field is not ok, we want to indicate error by using Left(())
-    */
+   * If `this` field is not ok, we want to indicate error by using Left(())
+   */
   def toFormField: Either[Unit, List[FormField]] = this match {
     case FieldOk(fieldValue, cv) => Right(List(FormField(fieldValue.id, cv)))
     case FieldGlobalError(_, _, _) => Right(List.empty[FormField])
@@ -74,14 +74,15 @@ sealed trait FormFieldValidationResult {
     case FieldError(fieldValue, _, _) => List(FormField(fieldValue.id, ""))
     case FieldGlobalError(_, _, _) => List.empty[FormField]
     case FieldGlobalOk(_, _) => List.empty[FormField]
-    case ComponentField(fieldValue, data) => List(FormField(fieldValue.id, ""))
+    case ComponentField(fieldValue, data) =>
+      List(FormField(fieldValue.id, ""))
       data.flatMap { case (suffix, value) => value.toFormFieldTolerant.map(_.withSuffix(suffix)) }.toList
   }
 
   private def toAddressFormField(data: Map[String, FormFieldValidationResult]) = {
     data.map {
-      case (fieldName, formFieldValidationResult) => formFieldValidationResult.toFormField.map{ formField =>
-        formField.map{ _.copy(id = FieldId(fieldName)) }
+      case (fieldName, formFieldValidationResult) => formFieldValidationResult.toFormField.map { formField =>
+        formField.map { _.copy(id = FieldId(fieldName)) }
       }
     }.toList.sequenceU.map(_.flatten)
   }
@@ -110,8 +111,7 @@ object ValidationUtil {
     map.foldLeft(Set[String]())(_ ++ _._2)
   }
 
-  def renderErrors(value: String, validationResult: FormFieldValidationResult):
-  Map[String, Set[String]] = {
+  def renderErrors(value: String, validationResult: FormFieldValidationResult): Map[String, Set[String]] = {
 
     validationResult match {
       case FieldError(_, _, errors) => Map(value -> errors)
@@ -123,9 +123,7 @@ object ValidationUtil {
     }
   }
 
-  def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])
-                                            (dGetter: (FieldId) => Seq[String]):
-  List[(FieldId, FormFieldValidationResult)] = {
+  def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): List[(FieldId, FormFieldValidationResult)] = {
     component match {
       case Address(_) => Address.allFieldIds(fieldValue.id).map { fieldId =>
 
@@ -149,9 +147,7 @@ object ValidationUtil {
     }
   }
 
-  def evaluateWithoutSuffix(fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])
-                           (dGetter: (FieldId) => Seq[String]):
-  (FieldId, FormFieldValidationResult) = {
+  def evaluateWithoutSuffix(fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): (FieldId, FormFieldValidationResult) = {
 
     gFormErrors.get(fieldValue.id) match {
       //without suffix
@@ -160,8 +156,7 @@ object ValidationUtil {
     }
   }
 
-  def evaluateValidationResult(allFields: List[FieldValue], validationResult: ValidatedType, data: Map[FieldId, Seq[String]]):
-  Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
+  def evaluateValidationResult(allFields: List[FieldValue], validationResult: ValidatedType, data: Map[FieldId, Seq[String]]): Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
 
     val dataGetter: FieldId => Seq[String] = fId => data.get(fId).toList.flatten
 
@@ -175,7 +170,7 @@ object ValidationUtil {
     val resultErrors: List[FormFieldValidationResult] = allFields.map { fieldValue =>
 
       fieldValue.`type` match {
-        case address@Address(_) =>
+        case address @ Address(_) =>
 
           val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(address, fieldValue, gFormErrors)(dataGetter)
           val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
@@ -186,7 +181,7 @@ object ValidationUtil {
 
           ComponentField(fieldValue, dataMap)
 
-        case date@Date(_, _, _) =>
+        case date @ Date(_, _, _) =>
 
           val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(date, fieldValue, gFormErrors)(dataGetter)
 
@@ -209,7 +204,7 @@ object ValidationUtil {
 
         case Group(_, _, _, _, _, _) => {
 
-          FieldOk(fieldValue, "")   //nothing to validate for group (TODO - review)
+          FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
 
         }
 
@@ -231,7 +226,7 @@ object ValidationUtil {
               ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
           }
         case FileUpload() => FieldOk(fieldValue, "TODO-I-dont-know-what-to-put-here")
-        case InformationMessage(_,infoText) => FieldOk(fieldValue, infoText)
+        case InformationMessage(_, infoText) => FieldOk(fieldValue, infoText)
       }
 
     }

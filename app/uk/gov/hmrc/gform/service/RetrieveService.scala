@@ -16,22 +16,18 @@
 
 package uk.gov.hmrc.gform.service
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
+import play.api.libs.json._
 import uk.gov.hmrc.gform.connectors.GformConnector
+import uk.gov.hmrc.gform.models.FormTemplate
+import uk.gov.hmrc.gform.models.form._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import play.api.libs.json._
-import uk.gov.hmrc.gform.models.form.{FormField, FormTypeId}
-import uk.gov.hmrc.gform.models.FormTemplate
 
 object RetrieveService {
 
-  def bformsConnector = GformConnector
+  def gformConnector = GformConnector
 
   def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
     formTemplate.validate[FormTemplate] match {
@@ -40,8 +36,8 @@ object RetrieveService {
     }
   }
 
-  def getFormTemplate(formTypeId: FormTypeId, version: String)(implicit hc : HeaderCarrier): Future[Either[String, FormTemplate]] = {
-    val templateF = bformsConnector.retrieveFormTemplate(formTypeId, version)
+  def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier): Future[Either[String, FormTemplate]] = {
+    val templateF = gformConnector.retrieveFormTemplate(formTypeId, version)
 
     for {
       template <- templateF

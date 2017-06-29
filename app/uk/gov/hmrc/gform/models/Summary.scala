@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.i18n.Messages
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.models.components._
@@ -30,8 +30,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 case class SummaryForRender(snippets: List[Html], javascripts: String)
 
 object SummaryForRender {
-  def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService)
-           (implicit hc: HeaderCarrier): SummaryForRender = {
+  def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): SummaryForRender = {
 
     val fields: List[FieldValue] = formTemplate.sections.flatMap(s => s.atomicFields(repeatService))
 
@@ -40,18 +39,21 @@ object SummaryForRender {
     val snippets: List[Html] = {
       val allSections = formTemplate.sections.zipWithIndex
       val sectionsToRender = allSections.filter {
-        case (section, idx) => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data) }
-      sectionsToRender.flatMap { case (section, index) =>
-        uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.shortName.getOrElse(section.title), index) ::
-          section.atomicFields(repeatService).filter(_.submissible)
+        case (section, idx) => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data)
+      }
+      sectionsToRender.flatMap {
+        case (section, index) =>
+          uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.shortName.getOrElse(section.title), index) ::
+            section.atomicFields(repeatService).filter(_.submissible)
             .map { fieldValue =>
               fieldValue.`type` match {
                 case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, values(fieldValue))
                 case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, values(fieldValue))
                 case t @ Text(_, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
                 case Choice(_, options, _, _, _) =>
-                  val selections = options.toList.zipWithIndex.map { case (option, index) =>
-                    values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
+                  val selections = options.toList.zipWithIndex.map {
+                    case (option, index) =>
+                      values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
                   }.collect { case Some(selection) => selection }
 
                   uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
@@ -64,7 +66,8 @@ object SummaryForRender {
                     helpText = None,
                     mandatory = true,
                     editable = true,
-                    submissible = true)
+                    submissible = true
+                  )
                   uk.gov.hmrc.gform.views.html.snippets.summary.text(fuFieldValue, Text(Constant("file"), false), values(fuFieldValue))
                 }
                 case InformationMessage(_, _) | Group(_, _, _, _, _, _) => Html("")
@@ -78,12 +81,10 @@ object SummaryForRender {
 }
 
 case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService)
-                      (implicit hc: HeaderCarrier): SummaryForRender =
+  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): SummaryForRender =
     SummaryForRender(formFields, formId, formTemplate, repeatService)
 
-  def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService)
-                   (implicit request: Request[_], messages: Messages, hc: HeaderCarrier): Result = {
+  def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService)(implicit request: Request[_], messages: Messages, hc: HeaderCarrier): Result = {
     Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender(formFields, formId, repeatService), formId))
   }
 }

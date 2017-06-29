@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import play.api.Play.{configuration, current}
+import play.api.Play.{ configuration, current }
 import uk.gov.hmrc.play.config.ServicesConfig
 
 trait AppConfig {
