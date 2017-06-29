@@ -45,7 +45,7 @@ case object Address {
 
 case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
 
-sealed trait  InfoType
+sealed trait InfoType
 case object StandardInfo extends InfoType
 case object LongInfo extends InfoType
 case object ImportantInfo extends InfoType
@@ -53,7 +53,6 @@ case object BannerInfo extends InfoType
 object InfoType {
   implicit val format: OFormat[InfoType] = derived.oformat
 }
-
 
 sealed trait Orientation
 case object Vertical extends Orientation
@@ -73,7 +72,7 @@ object ChoiceType {
 }
 
 case class Choice(`type`: ChoiceType, options: NonEmptyList[String], orientation: Orientation,
-                  selections: List[Int], optionHelpText: Option[List[String]]) extends ComponentType
+  selections: List[Int], optionHelpText: Option[List[String]]) extends ComponentType
 
 object ComponentType {
 

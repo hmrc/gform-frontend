@@ -36,7 +36,7 @@ object RetrieveService {
     }
   }
 
-  def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc : HeaderCarrier): Future[Either[String, FormTemplate]] = {
+  def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier): Future[Either[String, FormTemplate]] = {
     val templateF = gformConnector.retrieveFormTemplate(formTypeId, version)
 
     for {

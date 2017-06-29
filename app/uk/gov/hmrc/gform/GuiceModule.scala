@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform
 
 import com.google.inject.AbstractModule
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.gform.controllers.{BformsAuthenticationProvider, SecuredActions, SecuredActionsImpl}
+import uk.gov.hmrc.gform.controllers.{ BformsAuthenticationProvider, SecuredActions, SecuredActionsImpl }
 import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 

@@ -17,15 +17,14 @@
 package uk.gov.hmrc.gform.models
 
 import org.jsoup.Jsoup
-import org.scalatest.{FlatSpec, Matchers}
-import uk.gov.hmrc.gform.models.components.{FieldId, FieldValue, InformationMessage, StandardInfo}
+import org.scalatest.{ FlatSpec, Matchers }
+import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo }
 import uk.gov.hmrc.gform.models.form._
 
 import scala.concurrent.duration._
 import org.mockito.Matchers._
 
 import scala.concurrent.Await
-
 
 class PageForRenderSpec extends FlatSpec with Matchers {
 
@@ -72,7 +71,7 @@ class PageForRenderSpec extends FlatSpec with Matchers {
 
   val infoFieldValue = FieldValue(
     id = FieldId("testInfoField"),
-    `type`= InformationMessage(StandardInfo, markdown),
+    `type` = InformationMessage(StandardInfo, markdown),
     label = "This is the field label",
     helpText = None,
     shortName = None,
@@ -96,14 +95,14 @@ class PageForRenderSpec extends FlatSpec with Matchers {
     sections = List(section)
   )
 
-
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
     val pageToRenderF = PageForRender(
       curr = 8,
       fieldData = Map.empty[FieldId, Seq[String]],
       formTemplate = formTemplate,
       section = section,
-      f = None)(any(),any())
+      f = None
+    )(any(), any())
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
     val doc = Jsoup.parse(pageToRender.snippets.head.toString)

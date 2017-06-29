@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.i18n.Messages
-import play.api.mvc.{Request, Result}
+import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
 
@@ -35,7 +35,6 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 
-
 case class PageForRender(curr: Int, sectionTitle: String, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 
 object PageForRender {
@@ -44,7 +43,8 @@ object PageForRender {
     fieldData: Map[FieldId, Seq[String]],
     formTemplate: FormTemplate,
     section: Section,
-    f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
+    f: Option[FieldValue => Option[FormFieldValidationResult]]
+  )(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = {
 
     val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
 
@@ -68,7 +68,7 @@ object PageForRender {
       case Address(international) =>
         Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, f.getOrElse(okF)(fieldValue)))
 
-      case t@Text(expr, _) =>
+      case t @ Text(expr, _) =>
         val prepopValueF = fieldData.get(fieldValue.id) match {
           case None => PrepopService.prepopData(expr, formTemplate.formTypeId)
           case _ => Future.successful("") // Don't prepop something we already submitted
@@ -110,11 +110,10 @@ object PageForRender {
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate) {
 
-  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier) : Future[PageForRender] =
+  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] =
     PageForRender(curr, fieldData, formTemplate, section, f)
 
-  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])
-                (implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
+  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
     pageForRender(fieldData, f).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
   }
 

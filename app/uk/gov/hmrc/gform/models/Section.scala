@@ -17,14 +17,13 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.components.{ComponentType, FieldValue, Group}
-
+import uk.gov.hmrc.gform.models.components.{ ComponentType, FieldValue, Group }
 
 case class Section(
-  title: String,
-  shortName: Option[String],
-  includeIf: Option[IncludeIf],
-  fields: List[FieldValue]
+    title: String,
+    shortName: Option[String],
+    includeIf: Option[IncludeIf],
+    fields: List[FieldValue]
 ) {
 
   def atomicFields = {

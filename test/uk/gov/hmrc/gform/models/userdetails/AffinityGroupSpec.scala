@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models.userdetails
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import play.api.libs.json._
 
 class AffinityGroupSpec extends FlatSpec with Matchers {
@@ -35,7 +35,7 @@ class AffinityGroupSpec extends FlatSpec with Matchers {
 
     val json = Json.parse(jsonStr)
 
-   implicitly[Reads[UserDetails]].reads(json)
+    implicitly[Reads[UserDetails]].reads(json)
   }
 
   "AffinityGroup" should "parse Individual as part of UserDetails" in {

@@ -41,7 +41,7 @@ package controllers {
       implicit val hc = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
       RetrieveService.getFormTemplate(formTypeId, version).map {
-        case Right(formTemplate)=> Right(RequestWithTemplate(request, formTemplate))
+        case Right(formTemplate) => Right(RequestWithTemplate(request, formTemplate))
         case Left(error) => Left(Results.BadRequest(error))
       }
     }
@@ -78,13 +78,14 @@ package controllers {
   }
 
   @Singleton
-  class SecuredActionsImpl @Inject()(configuration: Configuration, val authConnector: AuthConnector, governmentGateway: GovernmentGateway) extends SecuredActions {
+  class SecuredActionsImpl @Inject() (configuration: Configuration, val authConnector: AuthConnector, governmentGateway: GovernmentGateway) extends SecuredActions {
 
     private def ActionWithTemplate(
       formTypeId: FormTypeId,
       version: Version
     )(
-      implicit ec: ExecutionContext
+      implicit
+      ec: ExecutionContext
     ): ActionBuilder[RequestWithTemplate] =
       Action.andThen(WithFormTemplate(formTypeId, version))
 

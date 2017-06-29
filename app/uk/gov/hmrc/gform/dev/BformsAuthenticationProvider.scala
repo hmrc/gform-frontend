@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.dev
 
 import javax.inject.{ Inject, Singleton }
-import play.api. Configuration
+import play.api.Configuration
 import play.api.mvc.{ Cookie, Request, Result }
 import play.api.mvc.Results.Redirect
 import play.api.libs.ws.WSClient
@@ -35,7 +35,6 @@ class BformsAuthenticationProvider @Inject() (configuration: Configuration, ws: 
   val crypto = ApplicationCrypto.SessionCookieCrypto
 
   def decrypt(encryptedCookie: String): String = crypto.decrypt(Crypted(encryptedCookie)).value
-
 
   override def redirectToLogin(implicit request: Request[_]): Future[Result] = {
 
@@ -60,7 +59,7 @@ class BformsAuthenticationProvider @Inject() (configuration: Configuration, ws: 
             name <- wsCookie.name
             value <- wsCookie.value
           } yield {
-            if(name == "mdtp") {
+            if (name == "mdtp") {
               Some(Cookie(name, decrypt(value)))
             } else {
               None
