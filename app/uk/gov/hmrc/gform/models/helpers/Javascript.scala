@@ -23,7 +23,7 @@ object Javascript {
   def fieldJavascript(fields: List[FieldValue]): String = {
 
     val fieldIdWithExpr: List[(FieldId, Expr)] =
-      fields.collect{ case FieldValue(id, Text(expr, _), _, _, _, _, _, _) => (id, expr) }
+      fields.collect { case FieldValue(id, Text(expr, _), _, _, _, _, _, _) => (id, expr) }
 
     fieldIdWithExpr.map((toJavascriptFn _).tupled).mkString(";\n")
   }
@@ -52,6 +52,5 @@ object Javascript {
       case otherwise => ""
     }
   }
-
 
 }

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.binders
 
-import play.api.libs.json.{JsError, JsString, JsSuccess, Reads}
+import play.api.libs.json.{ JsError, JsString, JsSuccess, Reads }
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.gform.models.form._
 

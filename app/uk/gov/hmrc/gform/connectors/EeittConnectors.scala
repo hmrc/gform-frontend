@@ -16,28 +16,28 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.Action
 import uk.gov.hmrc.gform.WSHttp
-import uk.gov.hmrc.gform.models.eeitt.{Agent, BusinessUser}
+import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
 import uk.gov.hmrc.gform.models.form.FormTypeId
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse}
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait EeittConnector {
 
-  def httpGet : HttpGet
+  def httpGet: HttpGet
 
   def eeittUrl: String
 
-  def prepopulationBusinessUser(groupId: GroupId, formTypeId: FormTypeId)(implicit hc: HeaderCarrier) : Future[BusinessUser] = {
+  def prepopulationBusinessUser(groupId: GroupId, formTypeId: FormTypeId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {
     httpGet.GET[BusinessUser](eeittUrl + s"/group-id/${groupId.value}/regime/${formTypeId.value}/prepopulation")
   }
 
-  def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier) : Future[Agent] = {
+  def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier): Future[Agent] = {
     httpGet.GET[Agent](eeittUrl + s"/group-id/${groupId.value}/prepopulation")
   }
 }

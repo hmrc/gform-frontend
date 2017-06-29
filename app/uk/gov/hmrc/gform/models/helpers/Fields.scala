@@ -23,9 +23,7 @@ import uk.gov.hmrc.gform.models.form.FormField
 
 object Fields {
 
-
-  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue])
-              (fieldValue: FieldValue) : Option[FormFieldValidationResult] = {
+  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue])(fieldValue: FieldValue): Option[FormFieldValidationResult] = {
     val formFields = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
     fieldValue.`type` match {
       case Address(_) | Date(_, _, _) =>
@@ -51,7 +49,7 @@ object Fields {
     }
   }
 
-  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue]) : List[FormField] = {
+  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue]): List[FormField] = {
 
     val getFieldData: FieldId => FormField = fieldId => {
       val value = fieldData.get(fieldId).toList.flatten.headOption.getOrElse("")

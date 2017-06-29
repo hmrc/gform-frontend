@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.models
 
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.gform.models.components.{Constant, FieldId, FieldValue, Text}
-import uk.gov.hmrc.gform.models.form.{FormTypeId, Version}
+import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
+import uk.gov.hmrc.gform.models.form.{ FormTypeId, Version }
 import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.play.frontend.auth.AuthContext
-import uk.gov.hmrc.play.frontend.auth.connectors.domain.{Accounts, Authority, ConfidenceLevel, CredentialStrength}
+import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFutures {
