@@ -16,19 +16,16 @@
 
 package uk.gov.hmrc.gform.service
 
-import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.gform.connectors.GFormConnector
-import uk.gov.hmrc.gform.models.{SaveResult, VerificationResult}
+import uk.gov.hmrc.gform.connectors.GformConnector
+import uk.gov.hmrc.gform.models.SaveResult
+import uk.gov.hmrc.gform.models.form._
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import play.api.libs.json._
-import uk.gov.hmrc.gform.models.form._
 
 object SaveService {
 
-  def gformConnector : GFormConnector = GFormConnector
+  def gformConnector: GformConnector = GformConnector
 
   def getFormById(formTypeId: FormTypeId, version: Version, formId: FormId)(implicit hc : HeaderCarrier) = {
     gformConnector.getById(formTypeId, version, formId)
