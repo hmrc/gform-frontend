@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.form
+package uk.gov.hmrc.gform.gformbackend.model
 
-import play.api.libs.json.{ Format, JsError, JsString, JsSuccess, Reads, Writes }
+import play.api.libs.json._
 
 case class EnvelopeId(value: String)
 

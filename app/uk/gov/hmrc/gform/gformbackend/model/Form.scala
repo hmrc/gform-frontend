@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.form
+package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json._
 

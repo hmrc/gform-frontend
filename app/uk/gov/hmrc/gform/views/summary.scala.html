@@ -1,8 +1,6 @@
-@import uk.gov.hmrc.gform.models.{FormTemplate, SummaryForRender}
-@import uk.gov.hmrc.gform.models.form.FormId
-@import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTemplate}
+@import uk.gov.hmrc.gform.models.SummaryForRender
 @import views.html.helper.CSRF
-
 @(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {

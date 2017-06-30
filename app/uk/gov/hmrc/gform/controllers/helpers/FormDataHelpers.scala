@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
-import play.api.mvc.{ AnyContent, Result }
 import play.api.mvc.Results._
+import play.api.mvc.{ AnyContent, Result }
 import uk.gov.hmrc.gform.controllers.RequestWithTemplate
-import uk.gov.hmrc.gform.models.form.{ FormData, FormId }
+import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId }
 import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.play.http.HeaderCarrier
 

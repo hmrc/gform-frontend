@@ -20,8 +20,8 @@ import play.api.i18n.Messages
 import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate }
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.FormId
 import uk.gov.hmrc.gform.models.helpers.Fields._
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 

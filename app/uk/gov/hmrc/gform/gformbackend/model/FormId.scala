@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.form
+package uk.gov.hmrc.gform.gformbackend.model
 
-import play.api.libs.json.Json
+import play.api.libs.json._
+import uk.gov.hmrc.gform.models.ValueClassFormat
 
-case class FormData(
-  formTypeId: FormTypeId,
-  version: Version,
-  characterSet: String,
-  fields: Seq[FormField]
-)
+case class FormId(value: String) extends AnyVal {
+  override def toString = value
+}
 
-object FormData {
-
-  implicit val format = Json.format[FormData]
+object FormId {
+  implicit val format: Format[FormId] = ValueClassFormat.format(FormId.apply)(_.value)
 }

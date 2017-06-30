@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ BformsAuthenticationProvider, SecuredActions, SecuredActionsImpl }
+import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
@@ -32,6 +33,7 @@ class GuiceModule extends AbstractModule {
     bind(classOf[WSHttpModule]).asEagerSingleton()
     bind(classOf[AuditingModule]).asEagerSingleton()
     bind(classOf[AuthModule]).asEagerSingleton()
+    bind(classOf[GformBackendModule]).asEagerSingleton()
 
     bind(classOf[AuthConnector]).to(classOf[FrontendAuthConnector])
     bind(classOf[SecuredActions]).to(classOf[SecuredActionsImpl])

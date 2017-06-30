@@ -24,8 +24,8 @@ import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.UserDetails
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.gform.FrontendAuthConnector
+import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.FormTypeId
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.util.control.NonFatal
