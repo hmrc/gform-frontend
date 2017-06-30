@@ -16,13 +16,15 @@
 
 package uk.gov.hmrc.gform.auditing
 
+import javax.inject.Inject
+
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.{ AuditingConfig, LoadAuditingConfig }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.http.hooks.HttpHook
 
-class AuditingModule(configModule: ConfigModule) { self =>
+class AuditingModule @Inject() (configModule: ConfigModule) { self =>
 
   lazy val auditConnector: AuditConnector = new AuditConnector {
     //WARN: LoadAuditingConfig uses play deprecations.
