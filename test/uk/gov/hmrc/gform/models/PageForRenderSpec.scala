@@ -23,6 +23,8 @@ import uk.gov.hmrc.gform.models.form._
 
 import scala.concurrent.duration._
 import org.mockito.Matchers._
+import org.scalatest.mockito.MockitoSugar.mock
+import uk.gov.hmrc.gform.service.RepeatingComponentService
 
 import scala.concurrent.Await
 
@@ -95,13 +97,16 @@ class PageForRenderSpec extends FlatSpec with Matchers {
     sections = List(section)
   )
 
+  val mockRepeatService = mock[RepeatingComponentService]
+
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
     val pageToRenderF = PageForRender(
       curr = 8,
       fieldData = Map.empty[FieldId, Seq[String]],
       formTemplate = formTemplate,
       section = section,
-      f = None
+      f = None,
+      mockRepeatService
     )(any(), any())
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
