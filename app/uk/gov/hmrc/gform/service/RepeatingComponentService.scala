@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success, Try }
 
@@ -47,15 +47,17 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     } yield cacheMap.getEntry[Int](componentId)
   }
 
-  def getCount(componentId: String)(implicit hc: HeaderCarrier) = {
-    sessionCache.fetchAndGetEntry[Int](componentId).map {
-      case Some(count) => count
-      case None => 1
+  def getCount(componentId: String, minValue: Int)(implicit hc: HeaderCarrier): Future[Int] = {
+    def initialiseCount = sessionCache.cache[Int](componentId, minValue).map(_.getEntry[Int](componentId).getOrElse(1))
+
+    sessionCache.fetchAndGetEntry[Int](componentId).flatMap {
+      case Some(count) => Future.successful(count)
+      case None => initialiseCount
     }
   }
 
-  def synchronousGetCount(componentId: String)(implicit hc: HeaderCarrier) = {
-    Try(Await.result(getCount(componentId), 10 seconds)) match {
+  def synchronousGetCount(componentId: String, minValue: Int)(implicit hc: HeaderCarrier) = {
+    Try(Await.result(getCount(componentId, minValue), 10 seconds)) match {
       case Success(value) => value
       case Failure(e) =>
         play.Logger.error(e.getStackTrace.mkString)
@@ -63,19 +65,32 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
+  def getCountAndTestIfLimitReached(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+    getValidatedRepeatingCount(fieldValue, groupField).map { count =>
+      groupField.repeatsMax match {
+        case Some(max) => if (count >= max) {
+          (count, true)
+        } else {
+          (count, false)
+        }
+        case None => (count, true)
+      }
+    }
+  }
+
   def getValidatedRepeatingCount(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-    getCount(fieldValue.id.value).map { sessionCount =>
+    getCount(fieldValue.id.value, groupField.repeatsMin.getOrElse(1)).map { sessionCount =>
       validateRepeatCount(sessionCount, fieldValue, groupField)
     }
   }
 
   def synchronousGetValidatedRepeatingCount(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-    val sessionCount = synchronousGetCount(fieldValue.id.value)
+    val sessionCount = synchronousGetCount(fieldValue.id.value, groupField.repeatsMin.getOrElse(1))
     validateRepeatCount(sessionCount, fieldValue, groupField)
   }
 
   def buildRepeatingId(fieldValue: FieldValue, instance: Int) = {
-    FieldId(s"${fieldValue.id.value}_$instance")
+    FieldId(s"${instance}_${fieldValue.id.value}")
   }
 
   def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {

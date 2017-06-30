@@ -70,16 +70,16 @@ object PageForRender {
           }.toList
 
           for {
-            count <- repeatService.getValidatedRepeatingCount(fieldValue, grpFld)
+            (count, limitReached) <- repeatService.getCountAndTestIfLimitReached(fieldValue, grpFld)
             lhtml <- Future.sequence(fireHtmlGeneration(count))
-          } yield uk.gov.hmrc.gform.views.html.group(fieldValue, grpFld, lhtml, orientation)
+          } yield uk.gov.hmrc.gform.views.html.group(fieldValue, grpFld, lhtml, orientation, limitReached)
         }
         case Date(_, offset, dateValue) =>
           val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
           Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
 
         case Address(international) =>
-          Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, f.getOrElse(okF)(fieldValue)))
+          Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, f.getOrElse(okF)(fieldValue), instance))
 
         case t @ Text(expr, _) =>
           val prepopValueF = fieldData.get(fieldValue.id) match {

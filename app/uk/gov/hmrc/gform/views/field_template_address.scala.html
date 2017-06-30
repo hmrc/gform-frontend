@@ -3,10 +3,18 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.models.ComponentField
 
-@(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+@(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], instance: Int)
 
 @safeId(id: String) = @{
   fieldValue.id.withJSSafeSuffix(id).toString
+}
+
+@groupId(id: String) = @{
+  if(instance == 0) {
+    id
+  } else {
+    s"${instance}_${id}"
+  }
 }
 
 @if(international) {
@@ -17,13 +25,13 @@
           </legend>
 
           <div class="inline">
-              <label for="address-international-yes" class="block-label" data-target="address-local">
+              <label for="@groupId("address-international-yes")" class="block-label" data-target="@groupId("address-local")">
                   <input
-                  id="address-international-yes"
+                  id="@groupId("address-international-yes")"
                   type="radio"
                   name="@safeId("uk")"
                   value="true"
-                  aria-controls="address-local"
+                  aria-controls="@groupId("address-local")"
                   aria-expanded="true"
                   @if(validationResult.map(_.getCurrentValue(safeId("uk"))) != Some("false")) {
                       checked
@@ -32,13 +40,13 @@
                   Yes
               </label>
 
-              <label for="address-international-no" class="block-label" data-target="address-international">
+              <label for="@groupId("address-international-no")" class="block-label" data-target="@groupId("address-international")">
                   <input
-                  id="address-international-no"
+                  id="@groupId("address-international-no")"
                   type="radio"
                   name="@safeId("uk")"
                   value="false"
-                  aria-controls="address-international"
+                  aria-controls="@groupId("address-international")"
                   aria-expanded="false"
                   @if(validationResult.map(_.getCurrentValue(safeId("uk"))) == Some("false")) {
                       checked
@@ -103,7 +111,7 @@
         </div>
 
         @if(international) {
-        <div id="address-local">
+        <div id="@groupId("address-local")">
           <div class="form-group">
             <label class="form-label" for="@safeId("postcode")">Postcode</label>
 
@@ -115,7 +123,7 @@
           </div>
         </div>
 
-        <div id="address-international">
+        <div id="@groupId("address-international")">
           <div class="form-group">
             <label class="form-label" for="@safeId("country")">Country</label>
 
