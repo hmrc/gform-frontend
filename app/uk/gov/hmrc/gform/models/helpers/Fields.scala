@@ -17,9 +17,9 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import cats.data.Validated.Valid
+import uk.gov.hmrc.gform.gformbackend.model.FormField
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.FormField
 
 object Fields {
 

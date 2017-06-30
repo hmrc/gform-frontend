@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.connectors
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.Action
 import uk.gov.hmrc.gform.WSHttp
+import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
 import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
-import uk.gov.hmrc.gform.models.form.FormTypeId
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse }

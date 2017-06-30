@@ -14,23 +14,4 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
-
-import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.form._
-
-case class FormTemplate(
-  formTypeId: FormTypeId,
-  formName: String,
-  version: Version,
-  description: String,
-  characterSet: String,
-  dmsSubmission: DmsSubmission,
-  submitSuccessUrl: String,
-  submitErrorUrl: String,
-  sections: List[Section]
-)
-
-object FormTemplate {
-  implicit val format = Json.format[FormTemplate]
-}
+package uk.gov.hmrc.gform.gformbackend

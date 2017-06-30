@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.models
 import cats.data.NonEmptyList
 import org.jsoup.Jsoup
 import org.scalatest._
+import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate, FormTypeId, Version }
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form._
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 
 import scala.collection.immutable.List
