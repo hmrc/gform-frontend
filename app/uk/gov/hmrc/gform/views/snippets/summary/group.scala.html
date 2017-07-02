@@ -1,0 +1,20 @@
+@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation, Horizontal, Vertical}
+@import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.views.html.localisation
+@import views.html.helper.CSRF
+@import scala.concurrent.Future
+
+@(fieldValue: FieldValue, snippets: List[Html], orientation: Orientation)
+
+<fieldset>
+<tr>
+    <td>
+        <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+        <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
+            @{
+               snippets
+            }
+        </div>
+    </td>
+</tr>
+</fieldset>
