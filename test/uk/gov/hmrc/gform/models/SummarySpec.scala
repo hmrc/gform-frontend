@@ -60,7 +60,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     testStringValues should be(List("Your details", "About you", "Business details"))
   }
 
-  "Summary" should "display links to page sections" in {
+  it should "display links to page sections" in {
 
     val summary = Summary(
       formTemplate.copy(
@@ -76,7 +76,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     testStringValues should be(List("Form Type", "Form Id", "Form Type", "Form Id"))
   }
 
-  "Summary" should "display values for each field type with a submissible field, " in {
+  it should "display values for each field type with a submissible field, " in {
 
     val section = Section("Personal details", None, None, List(
       FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, None, true, true, true),
@@ -320,6 +320,26 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val renderWithDataMismatch = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""))
     renderWithDataMismatch.snippets.size shouldBe 0
 
+  }
+
+  it should "display Group Labels" in {
+
+    val groupFieldValue = FieldValue(
+      FieldId("gid"),
+      Group(
+        List(),
+        Horizontal
+      ),
+      "Test!group-label!Test", None, None, true, true, true
+    )
+    val section0 = Section("", None, None, List(groupFieldValue))
+    val formTemplateWGroup = formTemplate.copy(
+      sections = List(section0)
+    )
+
+    val render = Summary(formTemplateWGroup).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""))
+
+    extractAllTestStringValues(render.snippets) should be(List("group-label"))
   }
 
   "The Change hrefs" should "link to the correct page" in {
