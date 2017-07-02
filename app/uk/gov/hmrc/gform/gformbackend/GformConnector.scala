@@ -26,10 +26,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
-  def formTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
+  def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
 
-  def form(formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] =
+  def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] =
     ws.GET[FormData](s"$baseUrl/forms/${formId.value}")
 
   def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
