@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.gformbackend.model
 
-import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.gform.models.{DmsSubmission, Section}
+import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.gform.models.{ DmsSubmission, Section }
 
 case class FormTemplate(
   formTypeId: FormTypeId,
