@@ -19,19 +19,18 @@ package uk.gov.hmrc.gform.gformbackend
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.SaveResult
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpException, HttpResponse, NotFoundException}
+import uk.gov.hmrc.play.http.HttpException
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
-  def formTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[FormTemplate]] = {
-    ws.GET[Option[FormTemplate]](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
-  }
+  def formTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
+    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
 
-  def form(formTypeId: FormTypeId, version: Version, formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] = {
-    ws.GET[FormData](s"$baseUrl/forms/${formTypeId.value}/${version.value}/${formId.value}")
-  }
+  def form(formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] =
+    ws.GET[FormData](s"$baseUrl/forms/${formId.value}")
 
   def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     ws.POST[FormData, SaveResult](s"$baseUrl/forms?tolerant=$tolerant", formDetails)
