@@ -34,6 +34,47 @@ object SummaryForRender {
 
     val values: FieldValue => Option[FormFieldValidationResult] = okValues(data, fields)
 
+    def valueToHtml(fieldValue: FieldValue): Html = {
+
+      def groupToHtml(fieldValue: FieldValue): Html = fieldValue.`type` match {
+        case Group(fvs, orientation) => {
+          val htmlList: List[Html] = fvs.map {
+            case (fv: FieldValue) => valueToHtml(fv)
+          }
+          uk.gov.hmrc.gform.views.html.snippets.summary.group(fieldValue, htmlList, orientation)
+        }
+        case _ => valueToHtml(fieldValue)
+      }
+
+      fieldValue.`type` match {
+        case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, values(fieldValue))
+        case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, values(fieldValue))
+        case t @ Text(_, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
+        case Choice(_, options, _, _, _) =>
+          val selections = options.toList.zipWithIndex.map {
+            case (option, index) =>
+              values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
+          }.collect { case Some(selection) => selection }
+
+          uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
+        case FileUpload() => {
+          val fuFieldValue = FieldValue(
+            FieldId("regNum"),
+            Text(Constant(""), total = false),
+            label = "files uploaded go here...",
+            shortName = fieldValue.shortName,
+            helpText = None,
+            mandatory = true,
+            editable = true,
+            submissible = true
+          )
+          uk.gov.hmrc.gform.views.html.snippets.summary.text(fuFieldValue, Text(Constant("file"), false), values(fuFieldValue))
+        }
+        case InformationMessage(_, _) => Html("")
+        case Group(_, _) => groupToHtml(fieldValue)
+      }
+    }
+
     val snippets: List[Html] = {
       val allSections = formTemplate.sections.zipWithIndex
       val sectionsToRender = allSections.filter {
@@ -41,35 +82,11 @@ object SummaryForRender {
       }
       sectionsToRender.flatMap {
         case (section, index) =>
-          uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.shortName.getOrElse(section.title), index) ::
-            section.atomicFields.filter(_.submissible)
-            .map { fieldValue =>
-              fieldValue.`type` match {
-                case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, values(fieldValue))
-                case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, values(fieldValue))
-                case t @ Text(_, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
-                case Choice(_, options, _, _, _) =>
-                  val selections = options.toList.zipWithIndex.map {
-                    case (option, index) =>
-                      values(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
-                  }.collect { case Some(selection) => selection }
 
-                  uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
-                case FileUpload() => {
-                  val fuFieldValue = FieldValue(
-                    FieldId("regNum"),
-                    Text(Constant(""), total = false),
-                    label = "files uploaded go here...",
-                    shortName = fieldValue.shortName,
-                    helpText = None,
-                    mandatory = true,
-                    editable = true,
-                    submissible = true
-                  )
-                  uk.gov.hmrc.gform.views.html.snippets.summary.text(fuFieldValue, Text(Constant("file"), false), values(fuFieldValue))
-                }
-                case InformationMessage(_, _) | Group(_, _) => Html("")
-              }
+          uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.shortName.getOrElse(section.title), index) ::
+            section.fields.filter(_.submissible)
+            .map {
+              valueToHtml(_)
             } ++
             List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index))
       }
