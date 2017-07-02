@@ -1,9 +1,8 @@
 package uk.gov.hmrc.gform.gformbackend
 
-import org.scalatest.time.{Millis, Span}
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId, Version}
+import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.components.{Constant, FieldId, FieldValue, Text}
 import uk.gov.hmrc.gform.models.{DmsSubmission, Section}
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
@@ -17,6 +16,7 @@ class GformConnectorSpec extends Spec {
 
   it should "return form template for given type and version" in new Fixture {
     val status = 200
+    val responseJson = Some(Json.toJson(formTemplate))
     connector
       .formTemplate(formTypeId, version)
       .futureValue shouldBe formTemplate
@@ -26,6 +26,7 @@ class GformConnectorSpec extends Spec {
 
   it should "it fails when formTemplate doesn't exist" in new Fixture {
     val status = 404
+    val responseJson = None
     connector
       .formTemplate(formTypeId, version)
       .failed
@@ -34,6 +35,7 @@ class GformConnectorSpec extends Spec {
 
   it should "it fails when gform returns 5xx" in new Fixture {
     val status = 500
+    val responseJson = None
     connector
       .formTemplate(formTypeId, version)
       .failed
@@ -42,6 +44,7 @@ class GformConnectorSpec extends Spec {
 
   it should "it fails when gform returns BadRequest" in new Fixture {
     val status = 400
+    val responseJson = None
     connector
       .formTemplate(formTypeId, version)
       .failed
@@ -50,28 +53,71 @@ class GformConnectorSpec extends Spec {
 
   it should "it fails when gform returns other 4xx code" in new Fixture {
     val status = 401
+    val responseJson = None
     connector
       .formTemplate(formTypeId, version)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
   }
 
+  behavior of "GformConnector.form - happy path"
+
+  it should "return form for given id" in new Fixture {
+    val status = 200
+    val responseJson = Some(Json.toJson(form))
+    connector
+      .form(formId)
+      .futureValue shouldBe formData //TODO: it should return Form not FormData!
+  }
+
+  behavior of "GformConnector.form - unhappy scenarios"
+
+  it should "it fails when form doesn't exist" in new Fixture {
+    val status = 404
+    val responseJson = None
+    connector
+      .form(formId)
+      .failed
+      .futureValue shouldBe an[uk.gov.hmrc.play.http.NotFoundException]
+  }
+
+  it should "it fails when gform returns 5xx" in new Fixture {
+    val status = 500
+    val responseJson = None
+    connector
+      .form(formId)
+      .failed
+      .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream5xxResponse]
+  }
+
+  it should "it fails when gform returns BadRequest" in new Fixture {
+    val status = 400
+    val responseJson = None
+    connector
+      .form(formId)
+      .failed
+      .futureValue shouldBe an[uk.gov.hmrc.play.http.BadRequestException]
+  }
+
+  it should "it fails when gform returns other 4xx code" in new Fixture {
+    val status = 401
+    val responseJson = None
+    connector
+      .form(formId)
+      .failed
+      .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
+  }
+
   trait Fixture extends ExampleData {
-
     def status: Int
-
-    lazy val responseJson: Option[JsValue] = Some(Json.toJson(formTemplate))
-
+    def responseJson: Option[JsValue]
     lazy val r = HttpResponse(
       responseStatus = status,
       responseJson = responseJson
     )
-
     lazy val wSHttp = new StubbedWSHttp(r)
-
     lazy val connector = new GformConnector(wSHttp, "baseUrl")
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
-
   }
 
 }
@@ -84,18 +130,44 @@ trait ExampleData {
   lazy val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true, true, true)))
   lazy val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true, true, true)))
 
-  lazy val formTypeId = FormTypeId("FormId-13-2-3-1233-3")
-  lazy val version = Version("1.2.3")
+  lazy val formTypeId = FormTypeId("IPT100")
+  lazy val version = Version("0.3.0")
 
+  private val characterSet = "UTF-8"
   lazy val formTemplate =  FormTemplate(
     formTypeId = formTypeId,
     formName = "IPT100",
     version = version,
     description = "abc",
-    characterSet = "UTF-8",
+    characterSet = characterSet,
     dmsSubmission = dmsSubmission,
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2)
+  )
+
+  lazy val formId = FormId("4fdf4eb6-c41b-4cd8-b95d-8221b670d449")
+  lazy val field0 = FormField(
+    FieldId("facePhoto"),
+    "face-photo.jpg"
+  )
+  lazy val field1 = FormField(
+    FieldId("name"),
+    "Michael"
+  )
+  lazy val field2 = FormField(
+    FieldId("surname"),
+    "Jordan"
+  )
+  lazy val fields = Seq(field0, field1, field2)
+  lazy val formData = FormData(
+    formTypeId,
+    version,
+    characterSet,
+    fields
+  )
+  lazy val form = Form(
+    formId,
+    formData
   )
 }
