@@ -17,28 +17,34 @@
 package uk.gov.hmrc.gform.controllers
 
 import play.api.mvc.Session
+import uk.gov.hmrc.gform.controllers.FormController.SectionNumber
 import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTypeId, Version }
 
 object GformSession {
 
-  implicit class SessionOps(s: Session) {
+  implicit class SessionOps(session: Session) {
 
-    def getFormId: Option[FormId] = s.data.get(formId).map(FormId.apply)
-    def putFormId(f: FormId): Session = s + (formId -> f.value)
+    def getFormId: Option[FormId] = session.data.get(formId).map(FormId.apply)
+    def putFormId(v: FormId): Session = session + (formId -> v.value)
 
-    def getVersion: Option[Version] = s.data.get(version).map(Version.apply)
-    def putVersion(v: Version): Session = s + (version -> v.value)
+    def getVersion: Option[Version] = session.data.get(version).map(Version.apply)
+    def putVersion(v: Version): Session = session + (version -> v.value)
 
-    def getFormTypeId: Option[FormTypeId] = s.data.get(formTypeId).map(FormTypeId.apply)
-    def putFormTypeId(f: FormTypeId): Session = s + (formTypeId -> f.value)
+    def getFormTypeId: Option[FormTypeId] = session.data.get(formTypeId).map(FormTypeId.apply)
+    def putFormTypeId(v: FormTypeId): Session = session + (formTypeId -> v.value)
 
-    def getEnvelopeId: Option[FormTypeId] = s.data.get(envelopeId).map(FormTypeId.apply)
-    def putEnvelopeId(e: EnvelopeId): Session = s + (formTypeId -> e.value)
+    def getEnvelopeId: Option[FormTypeId] = session.data.get(envelopeId).map(FormTypeId.apply)
+    def putEnvelopeId(v: EnvelopeId): Session = session + (formTypeId -> v.value)
+
+    def getSectionNumber: Option[SectionNumber] = session.data.get("asdf").map(_.toInt).map(SectionNumber.apply)
+    def putSectionNumber(v: SectionNumber): Session = session + (sectionNumber -> v.value.toString)
   }
 
   private lazy val formId = s"$prefix.formId"
   private lazy val envelopeId = s"$prefix.envelopeId"
   private lazy val version = s"$prefix.formVersion"
   private lazy val formTypeId = s"$prefix.formTypeId"
+  private lazy val sectionNumber = s"$prefix.sectionNumber"
+
   private lazy val prefix = "gform"
 }
