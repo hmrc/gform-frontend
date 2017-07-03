@@ -23,8 +23,12 @@ import cats.kernel.Monoid
 import cats.syntax.either._
 import cats.syntax.traverse._
 import play.api.i18n.{ I18nSupport, MessagesApi }
+import play.api.Logger
+import play.api.data.Form
+import play.api.data.Forms._
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.mvc.{Action, AnyContent, Result}
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.model._
@@ -33,6 +37,10 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.gform.service.{RetrieveService, SaveService}
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
 import uk.gov.hmrc.gform.validation.ValidationModule
@@ -42,11 +50,22 @@ import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, validationModule: ValidationModule, fileUploadModule: FileUploadModule)(implicit ec: ExecutionContext)
+class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, validationModule: ValidationModule, fileUploadModule: FileUploadModule)(implicit ec: ExecutionContext, authConnector: AuthConnector)
     extends FrontendController with I18nSupport {
   import GformSession._
 
-  def form(formTypeId: FormTypeId, version: Version) =
+  def entryPoint(formTypeId: FormTypeId, version: Version): Action[AnyContent] =  sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
+    implicit request =>
+
+      isStarted.flatMap{
+        case Nil =>
+          newForm(formTypeId, version)(request)
+        case list =>
+          Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, list)))
+      }
+  }
+
+  def newForm(formTypeId: FormTypeId, version: String): Action[AnyContent] =
     sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
       val maybeEnvelopeId = request.session.getEnvelopeId
       maybeEnvelopeId.map { envelopeId =>
@@ -59,9 +78,42 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
       )
     }
 
-  def formById(formTypeId: FormTypeId, version: Version, formId: FormId) = formByIdPage(formTypeId, version, formId, 0)
+  case class Choice(formId: Option[FormId])
 
-  def formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, currPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
+  val formIdsForm = Form(single(
+    "formIds" -> list(mapping(
+      "value" -> nonEmptyText
+    )(FormId.apply)(FormId.unapply))
+  ))
+  val choice = Form(mapping(
+    "formId" -> optional(mapping(
+      "value" -> text
+    )(FormId.apply)(FormId.unapply))
+  )(Choice.apply)(Choice.unapply))
+
+  def decision(formTypeId: FormTypeId, version : String): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
+    implicit request =>
+
+    choice.bindFromRequest.fold(
+      errors => {
+        formIds(formTypeId, version)
+      },
+      success => {
+            success.formId match {
+              case Some(x) =>
+                Logger.info(s"Some ${x}")
+                formById(formTypeId, version, x)(request)
+              case None =>
+                Logger.info("NONE")
+                newForm(formTypeId, version)(request)
+            }
+      }
+    )
+  }
+
+  def formById(formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = formByIdPage(formTypeId, version, formId, 0)
+
+  def formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, currPage: Int): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
     val envelopeId = request.session.getEnvelopeId.get
     val envelope = fileUploadService.getEnvelope(envelopeId)
 
@@ -82,7 +134,8 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
       val envelope = fileUploadService.getEnvelope(envelopeId)
       val formId = request.session.getFormId.get
 
-      val page = envelope.map(envelope => Page(pageIdx, formTemplate, repeatService, envelope))
+          Logger.info("NEW PAGE SAVE")
+      val page = envelope.map(envelope =>Page(pageIdx, formTemplate, repeatService, envelope))
 
       val atomicFields: Future[List[FieldValue]] = page.map(_.section.atomicFields(repeatService))
 
@@ -101,7 +154,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
           atomicFields <- atomicFields
         } yield ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
 
-      def processSaveAndContinue(continue: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
+      def processSaveAndContinue()(continue: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
         case Left(listFormValidation) =>
           val map: Map[FieldValue, FormFieldValidationResult] = listFormValidation.map { (validResult: FormFieldValidationResult) =>
             extractedFieldValue(validResult) -> validResult
@@ -157,6 +210,12 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
           }
         case Left(error) => Future.successful(BadRequest(error))
       }
+    }
+  }
+
+  private def isStarted(implicit authContext: AuthContext, hc: HeaderCarrier) = {
+    authConnector.getUserDetails[UserDetails](authContext).flatMap { x =>
+      RetrieveService.getStartedForm(x.groupIdentifier)
     }
   }
 
