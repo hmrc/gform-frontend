@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.controllers
 import javax.inject.Inject
 
 import play.api.mvc.Request
+import uk.gov.hmrc.gform.controllers.FormController.SectionNumber
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.Page
@@ -42,6 +43,7 @@ class FormController @Inject() (controllersModule: ControllersModule, gformBacke
           .putFormId(x.form._id)
           .putVersion(x.form.formData.version)
           .putFormTypeId(x.form.formData.formTypeId)
+          .putSectionNumber(firstSection)
 
         redirectToForm.withSession(updatedSession)
       }
@@ -60,5 +62,10 @@ class FormController @Inject() (controllersModule: ControllersModule, gformBacke
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val redirectToForm = Redirect(routes.FormController.form())
   private lazy val redirectToFormF = Future.successful(redirectToForm)
+  private lazy val firstSection = SectionNumber(0)
 }
 
+object FormController {
+  //Identifies current section in form template.
+  case class SectionNumber(value: Int)
+}
