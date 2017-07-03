@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.JsObject
+import play.api.libs.json.{ JsObject, JsValue }
 import uk.gov.hmrc.gform.WSHttp
 import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId, FormTypeId, Version }
-import uk.gov.hmrc.gform.models.SaveResult
+import uk.gov.hmrc.gform.models.{ SaveResult, VerificationResult }
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 
@@ -49,6 +49,42 @@ trait GformConnector {
 
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     httpPost.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}")
+  }
+
+  def retrieveFormTemplate(formTypeId: FormTypeId, version: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[JsObject]] = {
+    httpGet.GET[Option[JsObject]](baseUrl + s"/formtemplates/$formTypeId/$version")
+  }
+
+  def saveForm(formDetails: JsValue, registrationNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[VerificationResult] = {
+    httpPost.POST[JsValue, VerificationResult](baseUrl + s"/saveForm/$registrationNumber", formDetails)
+  }
+
+  def retrieveForm(registrationNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[JsObject] = {
+    httpPost.POSTString[JsObject](baseUrl + s"/retrieveForm/$registrationNumber", registrationNumber)
+  }
+
+  def submit(registrationNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    httpGet.GET[HttpResponse](baseUrl + s"/submit/$registrationNumber")
+  }
+
+  def getByUserId(userId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormId]] = {
+    httpGet.GET[List[FormId]](baseUrl + s"/forms/$userId")
+  }
+
+  def getById(formTypeId: FormTypeId, version: String, formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] = {
+    httpGet.GET[FormData](baseUrl + s"/forms/$formTypeId/$version/$formId")
+  }
+
+  def save(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
+    httpPost.POST[FormData, SaveResult](baseUrl + s"/forms?tolerant=$tolerant", formDetails)
+  }
+
+  def update(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
+    httpPut.PUT[FormData, SaveResult](baseUrl + s"/forms/$formId?tolerant=$tolerant", formData)
+  }
+
+  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    httpPost.POSTEmpty[HttpResponse](baseUrl + s"/forms/$formTypeId/submission/$formId")
   }
 }
 

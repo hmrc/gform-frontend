@@ -26,8 +26,13 @@ import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.Logger
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.i18n.{ I18nSupport, MessagesApi }
+import play.api.Logger
+import play.api.data.Form
+import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
+import play.api.mvc.{ Action, AnyContent, Result }
 import play.api.mvc.{Action, AnyContent, Result}
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
@@ -37,6 +42,10 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.service.{ RetrieveService, SaveService }
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.gform.service.{RetrieveService, SaveService}
 import uk.gov.hmrc.play.frontend.auth.AuthContext
@@ -134,9 +143,7 @@ envelope.flatMap(envelope =>
       val envelope = fileUploadService.getEnvelope(envelopeId)
       val formId = request.session.getFormId.get
 
-          Logger.info("NEW PAGE SAVE")
-
-          val page = envelope.map(envelope =>Page(pageIdx, formTemplate, repeatService, envelope))
+      val page = envelope.map(envelope => Page(pageIdx, formTemplate, repeatService, envelope))
 
       val atomicFields: Future[List[FieldValue]] = page.map(_.section.atomicFields(repeatService))
 
