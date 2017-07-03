@@ -30,42 +30,35 @@ class FormController @Inject() (controllersModule: ControllersModule, gformBacke
 
   import controllersModule.i18nSupport._ //this brings implicit messages
   import AuthenticatedRequest._ //this explicitly brings implicits cause compiler can't see them even if they are in companion ...
+  import GformSession._
 
   def newForm(formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
 
-    if (ses.formId.isDefined)
+    if (c.request.session.getFormId.isDefined)
       redirectToFormF
     else
       gformConnector.newForm(formTypeId, version).map { (x: NewFormResponse) =>
-        val newSession = request.session +
-          (SessionKeys.formId -> x.form._id.value) +
-          (SessionKeys.formTypeId -> x.form.formData.formTypeId.value) +
-          (SessionKeys.version -> x.form.formData.version.value)
+        val updatedSession = c.request.session
+          .putFormId(x.form._id)
+          .putVersion(x.form.formData.version)
+          .putFormTypeId(x.form.formData.formTypeId)
 
-        redirectToForm.withSession(newSession)
+        redirectToForm.withSession(updatedSession)
       }
   }
 
-  private def isFormIdInSession()(implicit r: Request[_]): Boolean = ses.formId.isDefined
-
   def form() = auth.async { implicit c =>
-
+    val formTypeId = c.request.session.getFormTypeId.get
+    val version = c.request.session.getVersion.get
     for {
-      formTemplate <- gformConnector.getFormTemplate(ses.formTypeId.get, ses.version.get)
+      formTemplate <- gformConnector.getFormTemplate(formTypeId, version)
       response <- Page(0, formTemplate).renderPage(Map(), None, None)
     } yield response
   }
 
-  private lazy val ses = new GformSession
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val redirectToForm = Redirect(routes.FormController.form())
   private lazy val redirectToFormF = Future.successful(redirectToForm)
 }
 
-class GformSession {
-  def formId(implicit r: Request[_]) = r.session.data.get(SessionKeys.formId).map(FormId.apply)
-  def version(implicit r: Request[_]) = r.session.data.get(SessionKeys.version).map(Version.apply)
-  def formTypeId(implicit r: Request[_]) = r.session.data.get(SessionKeys.formTypeId).map(FormTypeId.apply)
-  def envelopeId(implicit r: Request[_]) = r.session.data.get(SessionKeys.envelopeId).map(EnvelopeId.apply)
-}
