@@ -124,6 +124,16 @@ class GformConnectorSpec extends Spec {
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
   }
 
+  behavior of "GformConnector.newForm - happy path"
+
+  it should "return NewFormResponse" in new Fixture {
+    val status = 200
+    val responseJson = Some(Json.toJson(newFormResponse))
+    connector
+      .newForm(formTypeId, version)
+      .futureValue shouldBe newFormResponse
+  }
+
   trait Fixture extends ExampleData {
     def status: Int
     def responseJson: Option[JsValue]
@@ -184,5 +194,12 @@ trait ExampleData {
   lazy val form = Form(
     formId,
     formData
+  )
+
+  lazy val envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
+  lazy val newFormResponse = NewFormResponse(
+    form,
+    envelopeId,
+    formTemplate
   )
 }

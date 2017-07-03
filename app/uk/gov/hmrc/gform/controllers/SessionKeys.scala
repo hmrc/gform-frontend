@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.gformbackend
+package uk.gov.hmrc.gform.controllers
 
-import javax.inject.Inject
+object SessionKeys {
 
-import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.wshttp.WSHttpModule
+  val formId = s"$prefix.formId"
+  val envelopeId = s"$prefix.envelopeId"
+  val version = s"$prefix.formVersion"
+  val formTypeId = s"$prefix.formTypeId"
 
-class GformBackendModule @Inject() (wSHttpModule: WSHttpModule, configModule: ConfigModule) {
-
-  lazy val gformConnector: GformConnector = new GformConnector(wSHttpModule.auditableWSHttp, gformBaseUrl)
-
-  private lazy val gformBaseUrl = s"${configModule.serviceConfig.baseUrl("gform")}/gform"
+  private lazy val prefix = "gform"
 }

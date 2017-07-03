@@ -19,12 +19,14 @@ package uk.gov.hmrc.gform.gformbackend
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.SaveResult
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpException, HttpResponse, NotFoundException }
-import uk.gov.hmrc.play.http.HttpException
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
+
+  def newForm(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] =
+    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/${formTypeId.value}/${version.value}")
 
   def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
