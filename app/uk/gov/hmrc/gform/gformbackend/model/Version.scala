@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.form
+package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.models.ValueClassFormat
 
-case class FormId(value: String) extends AnyVal {
-  override def toString = value
-}
+case class Version(value: String)
 
-object FormId {
-  implicit val format: Format[FormId] = ValueClassFormat.format(FormId.apply)(_.value)
+object Version {
+  val writes: Writes[Version] = Writes[Version](id => JsString(id.value))
+  val reads: Reads[Version] = Reads[Version] {
+    case JsString(value) => JsSuccess(Version(value))
+    case otherwise => JsError(s"Invalid 'version' field, expected JsString, got: $otherwise")
+  }
+  implicit val format: Format[Version] = Format[Version](reads, writes)
 }

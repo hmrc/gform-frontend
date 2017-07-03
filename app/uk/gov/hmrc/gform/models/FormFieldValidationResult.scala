@@ -20,12 +20,12 @@ import java.time.LocalDate
 
 import cats.data.Validated.{ Invalid, Valid }
 import uk.gov.hmrc.gform.models.components.{ Address, FieldId, FieldValue, _ }
-import uk.gov.hmrc.gform.models.form.FormField
 import cats.data.Validated
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.traverse._
 import cats.syntax.either._
+import uk.gov.hmrc.gform.gformbackend.model.FormField
 
 sealed trait FormFieldValidationResult {
   def isOk: Boolean = this match {

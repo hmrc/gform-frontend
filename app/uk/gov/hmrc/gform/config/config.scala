@@ -35,9 +35,23 @@ class ConfigModule {
 case class AppConfig(
   appName: String,
   fileUploadRedirect: String,
-  mongodb: Mongodb
+  mongodb: Mongodb,
+  `google-analytics`: GoogleAnalytics,
+  `government-gateway-sign-in-url`: String,
+  `gform-frontend-base-url`: String
 )
 
+case class GoogleAnalytics(
+  token: String,
+  host: String
+)
+
+case class Assets(
+  version: String,
+  url: String
+)
+
+case class ContactFrontend(host: String)
 case class Mongodb(uri: String)
 
 object AppConfig {

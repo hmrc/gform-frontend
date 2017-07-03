@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.wshttp
 
+import javax.inject.Inject
+
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpVerbs.{ POST => POST_VERB }
@@ -28,7 +30,7 @@ import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpReads }
 
 import scala.concurrent.Future
 
-class WSHttpModule(auditingModule: AuditingModule, configModule: ConfigModule) {
+class WSHttpModule @Inject() (auditingModule: AuditingModule, configModule: ConfigModule) {
 
   val wSHttp: WSHttp = new WSHttp
 

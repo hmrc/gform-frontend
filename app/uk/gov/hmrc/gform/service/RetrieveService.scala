@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform.service
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform.connectors.GformConnector
-import uk.gov.hmrc.gform.models.FormTemplate
-import uk.gov.hmrc.gform.models.form._
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,9 +26,7 @@ import scala.concurrent.Future
 
 object RetrieveService {
 
-  def gformConnector = GformConnector
-
-  def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
+  private def formTemplateFromJson(formTemplate: JsObject): Either[String, FormTemplate] = {
     formTemplate.validate[FormTemplate] match {
       case JsSuccess(formTemplate, _) => Right(formTemplate)
       case JsError(error) => Left(error.toString)
@@ -37,16 +34,12 @@ object RetrieveService {
   }
 
   def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier): Future[Either[String, FormTemplate]] = {
-    val templateF = gformConnector.retrieveFormTemplate(formTypeId, version)
+    val templateF = GformConnector.formTemplate(formTypeId, version)
 
-    for {
-      template <- templateF
-    } yield {
-      template match {
-        case Some(jsonTemplate) => formTemplateFromJson(jsonTemplate)
-        case None => Left(s"No template for formTypeId $formTypeId version $version")
-      }
-    }
+    templateF.map(_ match {
+      case Some(jsonTemplate) => formTemplateFromJson(jsonTemplate)
+      case None => Left(s"No template for formTypeId $formTypeId version $version")
+    })
   }
 
 }

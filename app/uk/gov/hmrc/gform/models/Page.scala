@@ -16,23 +16,29 @@
 
 package uk.gov.hmrc.gform.models
 
+import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 import play.api.i18n.Messages
-import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
+import play.api.mvc.{ Request, Result }
 import play.twirl.api.Html
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.gform.service.{ PrepopService, RepeatingComponentService }
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate }
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.FormId
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
-import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
-import org.intellij.markdown.html.HtmlGenerator
-import org.intellij.markdown.parser.MarkdownParser
+import uk.gov.hmrc.gform.service.PrepopService
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 case class PageForRender(curr: Int, sectionTitle: String, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String)
 

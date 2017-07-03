@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.form
+package uk.gov.hmrc.gform.gformbackend.model
 
-import play.api.libs.json._
-import uk.gov.hmrc.gform.models.ValueClassFormat
+import play.api.libs.json.Json
+import uk.gov.hmrc.gform.models.components.FieldId
 
-case class FormTypeId(value: String) extends AnyVal {
-  override def toString = value
+case class FormField(id: FieldId, value: String) {
+  def withSuffix(suffix: String): FormField = {
+    FormField(id.withSuffix(suffix), value)
+  }
 }
 
-object FormTypeId {
-  implicit val format: Format[FormTypeId] = ValueClassFormat.format(FormTypeId.apply)(_.value)
+object FormField {
+
+  implicit val format = Json.format[FormField]
 }

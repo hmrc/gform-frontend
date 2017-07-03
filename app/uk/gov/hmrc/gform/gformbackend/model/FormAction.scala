@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.form
+package uk.gov.hmrc.gform.gformbackend.model
 
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.get
 import uk.gov.hmrc.gform.models.Page

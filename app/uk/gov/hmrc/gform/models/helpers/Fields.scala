@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
+import uk.gov.hmrc.gform.gformbackend.model.FormField
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.form.FormField
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.http.HeaderCarrier
 

@@ -17,21 +17,22 @@
 package uk.gov.hmrc.gform
 
 import javax.inject.{ Inject, Singleton }
+
 import play.api.Configuration
 import play.api.mvc.{ Action, ActionBuilder, ActionRefiner, AnyContent, Request, Result, Results, WrappedRequest }
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.gform.models.FormTemplate
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId }
 import uk.gov.hmrc.gform.service.RetrieveService
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.auth._
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
+
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.gform.models.form.FormTypeId
 
 package controllers {
 
-  import uk.gov.hmrc.gform.models.form.Version
+  import uk.gov.hmrc.gform.gformbackend.model.Version
 
   case class RequestWithTemplate[B](request: Request[B], formTemplate: FormTemplate) extends WrappedRequest(request)
 

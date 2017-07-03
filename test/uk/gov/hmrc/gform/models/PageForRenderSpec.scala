@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import org.jsoup.Jsoup
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo }
-import uk.gov.hmrc.gform.models.form._
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
 
 import scala.concurrent.duration._
 import org.mockito.Matchers._

@@ -17,13 +17,24 @@
 package uk.gov.hmrc.gform
 
 import com.google.inject.AbstractModule
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.gform.auditing.AuditingModule
+import uk.gov.hmrc.gform.auth.AuthModule
+import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.{ BformsAuthenticationProvider, SecuredActions, SecuredActionsImpl }
+import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 
-class GuiceModule extends AbstractModule with ServicesConfig {
+class GuiceModule extends AbstractModule {
+
   override def configure(): Unit = {
+    bind(classOf[ConfigModule]).asEagerSingleton()
+    bind(classOf[WSHttpModule]).asEagerSingleton()
+    bind(classOf[AuditingModule]).asEagerSingleton()
+    bind(classOf[AuthModule]).asEagerSingleton()
+    bind(classOf[GformBackendModule]).asEagerSingleton()
+
     bind(classOf[AuthConnector]).to(classOf[FrontendAuthConnector])
     bind(classOf[SecuredActions]).to(classOf[SecuredActionsImpl])
     bind(classOf[GovernmentGateway]).to(classOf[BformsAuthenticationProvider])
