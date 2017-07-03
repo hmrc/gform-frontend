@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.gformbackend.model
+package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
 
-case class FormData(userId: String,formTypeId: FormTypeId, version: Version, characterSet: String, fields: Seq[FormField])
+case class UserDetails(groupIdentifier: String)
 
-object FormData {
+object UserDetails {
 
-  implicit val format = Json.format[FormData]
+  implicit val reads = Json.reads[UserDetails]
 }

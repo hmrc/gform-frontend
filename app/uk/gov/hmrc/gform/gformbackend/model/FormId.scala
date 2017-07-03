@@ -25,4 +25,17 @@ case class FormId(value: String) extends AnyVal {
 
 object FormId {
   implicit val format: Format[FormId] = ValueClassFormat.format(FormId.apply)(_.value)
+
+  implicit val optionalFormat: Format[Option[FormId]] = new Format[Option[FormId]] {
+    override def reads(json: JsValue): JsResult[Option[FormId]] = {
+      json.validateOpt[FormId]
+    }
+
+    override def writes(o: Option[FormId]) = {
+      o match {
+        case Some(x) => JsString(x.value)
+        case None => JsString("None")
+      }
+    }
+  }
 }
