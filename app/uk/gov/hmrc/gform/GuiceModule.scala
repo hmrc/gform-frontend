@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.{ BformsAuthenticationProvider, SecuredActions, SecuredActionsImpl }
+import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
@@ -34,6 +34,7 @@ class GuiceModule extends AbstractModule {
     bind(classOf[AuditingModule]).asEagerSingleton()
     bind(classOf[AuthModule]).asEagerSingleton()
     bind(classOf[GformBackendModule]).asEagerSingleton()
+    bind(classOf[ControllersModule]).asEagerSingleton()
 
     bind(classOf[AuthConnector]).to(classOf[FrontendAuthConnector])
     bind(classOf[SecuredActions]).to(classOf[SecuredActionsImpl])
