@@ -8,7 +8,7 @@
 @uk.gov.hmrc.gform.views.html.main_template(title = "Continue Where you left Off", bodyClasses = None) {
 <h1>Form Started, Continue or Delete and Start again</h1>
 
-<form action=@uk.gov.hmrc.gform.controllers.routes.FormGen.decision(formTypeId, version) method="POST">
+<form action=@uk.gov.hmrc.gform.controllers.routes.FormGen.decision(formTypeId, version, formId) method="POST">
 
     @{CSRF.formField}
 
@@ -21,13 +21,17 @@
 
         <label for="continue+@index" class="block-label" style="padding-top: 0.25em;">
             <input id="continue+@index" type="radio" name="formId.value" value="@formid" />
+        <ul>
+        <label for="continue" class="block-label" style="padding-top: 0.25em;">
+            <input id="continue" type="radio" name="decision" value="continue" />
             <h2 class="heading-medium">Continue Where you Left Off</h2>
             <p> you have xxxx time left to complete this form</p>
         </label>
 
+        </ul>
 
         <label for="delete" class="block-label" style="padding-top: 0.25em;">
-            <input id="delete" type="radio" name="formid.value" />
+            <input id="delete" type="radio" name="decision" value="delete"/>
             <h2 class="heading-medium">Delete your progress and start again</h2>
         </label>
     </fieldset>

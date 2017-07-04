@@ -100,17 +100,17 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
         Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId)))
       },
       success => {
-        success.decision match {
-          case "continue" =>
-            formById(formTypeId, version, formId)(request)
-          case "delete" =>
-            Logger.info("NONE")
-            DeleteService.deleteForm(formId)
-            newForm(formTypeId, version)(request)
-          case _ =>
-            Logger.warn("Unexpected result")
-            newForm(formTypeId, version)(request)
-        }
+            success.decision match {
+              case "continue" =>
+                formById(formTypeId, version, formId)(request)
+              case "delete" =>
+                Logger.info("NONE")
+                DeleteService.deleteForm(formId)
+                newForm(formTypeId, version)(request)
+              case _ =>
+                Logger.warn("Unexpected result")
+                newForm(formTypeId, version)(request)
+            }
       }
     )
   }
@@ -233,6 +233,42 @@ envelope.flatMap(envelope =>
     case ComponentField(fv, _) => fv
     case FieldGlobalOk(fv, _) => fv
     case FieldGlobalError(fv, _, _) => fv
+  }
+
+  private def isStarted(implicit authContext: AuthContext, hc: HeaderCarrier) = {
+    authConnector.getUserDetails[UserDetails](authContext).flatMap { x =>
+      RetrieveService.getStartedForm(x.groupIdentifier)
+    }
+  }
+
+  private def formIds(formTypeId: FormTypeId, version: String)(implicit request: RequestWithTemplate[AnyContent]): Future[Result] = {
+    formIdsForm.bindFromRequest().value match {
+      case None =>
+        Logger.error("this should not happen ever")
+        Future.successful(BadRequest("BROKEN"))
+      case Some(x) =>
+        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, x)))
+    }
+  }
+
+  private def submitOrUpdate(formIdOpt: Option[FormId], formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
+    formIdOpt match {
+      case Some(formId) =>
+        SaveService.updateFormData(formId, formData, tolerant)
+      case None =>
+        SaveService.saveFormData(formData, tolerant)
+    }
+  }
+
+  private def getFormId(formIdOpt: Option[FormId], saveResult: SaveResult): Either[String, FormId] = {
+    formIdOpt match {
+      case Some(formId) => Right(formId)
+      case None => saveResult.success match {
+        case Some(FormIdExtractor(formId)) => Right(FormId(formId))
+        case Some(otherwise) => Left(s"Cannot determine formId from $otherwise")
+        case None => Left(s"Cannot determine formId from ${Json.toJson(saveResult)}")
+      }
+    }
   }
 
   private lazy val validationService = validationModule.validationService
