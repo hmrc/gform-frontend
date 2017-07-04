@@ -20,6 +20,7 @@ import javax.inject._
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -28,6 +29,14 @@ import uk.gov.hmrc.play.config.ServicesConfig
 class TestOnly @Inject() (proxy: ProxyActions) extends Controller with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
+
+  def whatsInSession(): Action[AnyContent] = Action { implicit request =>
+    Ok(Json.toJson(request.session.data))
+  }
+
+  def clearSession(): Action[AnyContent] = Action { implicit request =>
+    Ok("session cleared").withSession()
+  }
 
   private lazy val gformBaseUrl = baseUrl("gform")
 }

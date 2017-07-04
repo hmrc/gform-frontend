@@ -23,5 +23,7 @@ import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class GformBackendModule @Inject() (wSHttpModule: WSHttpModule, configModule: ConfigModule) {
 
-  lazy val gformConnector: GformConnector = new GformConnector(wSHttpModule.auditableWSHttp, configModule.serviceConfig.baseUrl("gform"))
+  lazy val gformConnector: GformConnector = new GformConnector(wSHttpModule.auditableWSHttp, gformBaseUrl)
+
+  private lazy val gformBaseUrl = s"${configModule.serviceConfig.baseUrl("gform")}/gform"
 }

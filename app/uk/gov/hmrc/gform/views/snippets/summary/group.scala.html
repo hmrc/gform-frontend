@@ -9,7 +9,7 @@
 <fieldset>
 <tr>
     <td>
-        <legend class="h3-heading">@localisation(fieldValue.label)</legend>
+        <legend class="h3-heading">@localisation(fieldValue.shortName.getOrElse(fieldValue.label))</legend>
         <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
             @{
                snippets

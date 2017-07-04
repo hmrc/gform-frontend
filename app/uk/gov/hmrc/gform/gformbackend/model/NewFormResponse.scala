@@ -14,4 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.gformbackend
+package uk.gov.hmrc.gform.gformbackend.model
+
+import play.api.libs.json.{ Json, OFormat }
+
+case class NewFormResponse(
+  form: Form,
+  envelopeId: EnvelopeId,
+  formTemplate: FormTemplate
+)
+
+object NewFormResponse {
+  implicit val format: OFormat[NewFormResponse] = Json.format[NewFormResponse]
+}
