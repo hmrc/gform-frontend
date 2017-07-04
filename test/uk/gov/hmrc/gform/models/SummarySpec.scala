@@ -322,7 +322,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   }
 
-  it should "display Group Labels" in {
+  it should "display Group Labels (or Group Short Names if specified)" in {
 
     val groupFieldValue = FieldValue(
       FieldId("gid"),
@@ -333,13 +333,20 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       "Test!group-label!Test", None, None, true, true, true
     )
     val section0 = Section("", None, None, List(groupFieldValue))
-    val formTemplateWGroup = formTemplate.copy(
+    val formTemplateWGroupNoShortname = formTemplate.copy(
       sections = List(section0)
     )
+    val render0 = Summary(formTemplateWGroupNoShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""))
 
-    val render = Summary(formTemplateWGroup).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""))
+    extractAllTestStringValues(render0.snippets) should be(List("group-label"))
 
-    extractAllTestStringValues(render.snippets) should be(List("group-label"))
+    val formTemplateWGroupWithShortname = formTemplate.copy(
+      sections = List(Section("", None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
+    )
+
+    val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""))
+
+    extractAllTestStringValues(render1.snippets) should be(List("group-shortname"))
   }
 
   "The Change hrefs" should "link to the correct page" in {
