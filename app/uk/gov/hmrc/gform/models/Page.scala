@@ -92,7 +92,9 @@ object PageForRender {
             case None => PrepopService.prepopData(expr, formTemplate.formTypeId)
             case _ => Future.successful("") // Don't prepop something we already submitted
           }
-          prepopValueF.map(prepopValue => uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue)))
+          prepopValueF.map { prepopValue =>
+            uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue))
+          }
 
         case Choice(choice, options, orientation, selections, optionalHelpText) =>
           val prepopValues = fieldData.get(fieldValue.id) match {
@@ -132,9 +134,11 @@ object PageForRender {
         case (fv: FieldValue) => htmlFor(fv, 0)
       }
     }
-    Future.sequence(snippetsF).map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, fieldJavascript(
-      formTemplate.sections.flatMap(_.atomicFields(repeatService))
-    )))
+    Future.sequence(snippetsF).map(snippets =>
+      PageForRender(
+        curr, section.title, hiddenSnippets, snippets,
+        fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
+      ))
   }
 }
 
