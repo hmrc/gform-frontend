@@ -57,11 +57,11 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
   def entryPoint(formTypeId: FormTypeId, version: Version): Action[AnyContent] =  sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
     implicit request =>
 
-      isStarted.flatMap{
-        case Nil =>
+      isStarted(formTypeId).flatMap{
+        case None =>
           newForm(formTypeId, version)(request)
-        case list =>
-          Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, list)))
+        case Some(x) =>
+          Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, x)))
       }
   }
 
@@ -78,33 +78,29 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
       )
     }
 
-  case class Choice(formId: Option[FormId])
+  case class Choice(decision: String)
 
-  val formIdsForm = Form(single(
-    "formIds" -> list(mapping(
-      "value" -> nonEmptyText
-    )(FormId.apply)(FormId.unapply))
-  ))
   val choice = Form(mapping(
-    "formId" -> optional(mapping(
-      "value" -> text
-    )(FormId.apply)(FormId.unapply))
+    "decision" -> nonEmptyText
   )(Choice.apply)(Choice.unapply))
 
-  def decision(formTypeId: FormTypeId, version : String): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
+  def decision(formTypeId: FormTypeId, version : String, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
     implicit request =>
 
     choice.bindFromRequest.fold(
       errors => {
-        formIds(formTypeId, version)
+        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId)))
       },
       success => {
-            success.formId match {
-              case Some(x) =>
-                Logger.info(s"Some ${x}")
-                formById(formTypeId, version, x)(request)
-              case None =>
+            success.decision match {
+              case "continue" =>
+                formById(formTypeId, version, formId)(request)
+              case "delete" =>
                 Logger.info("NONE")
+                DeleteService.deleteForm(formId)
+                newForm(formTypeId, version)(request)
+              case _ =>
+                Logger.warn("Unexpected result")
                 newForm(formTypeId, version)(request)
             }
       }
@@ -213,7 +209,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     }
   }
 
-  private def isStarted(implicit authContext: AuthContext, hc: HeaderCarrier) = {
+  private def isStarted(formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier) = {
     authConnector.getUserDetails[UserDetails](authContext).flatMap { x =>
       RetrieveService.getStartedForm(x.groupIdentifier)
     }

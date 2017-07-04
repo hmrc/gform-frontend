@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.Json
 
-case class SaveResult(success: Option[String], error: Option[String])
+case class GformResult(success: Option[String], error: Option[String])
 
-object SaveResult {
-  implicit val formats = Json.format[SaveResult]
+object GformResult {
+  implicit val formats = Json.format[GformResult]
 }

@@ -17,14 +17,13 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.mvc.Action
+import play.api.libs.json.{JsObject, JsValue}
 import uk.gov.hmrc.gform.WSHttp
 import uk.gov.hmrc.gform.models.form.FormId._
 import uk.gov.hmrc.gform.models.form.{FormData, FormId, FormTypeId}
-import uk.gov.hmrc.gform.models.{SaveResult, VerificationResult}
+import uk.gov.hmrc.gform.models.{GformResult, VerificationResult}
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse}
+import uk.gov.hmrc.play.http._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,6 +34,8 @@ trait GformConnector {
   def httpPost: HttpPost
 
   def httpPut: HttpPut
+
+  def httpDelete : HttpDelete
 
   def gformUrl: String
 
@@ -54,24 +55,28 @@ trait GformConnector {
     httpGet.GET[HttpResponse](gformUrl+s"/submit/$registrationNumber")
   }
 
-  def getByUserId(userId: String)(implicit hc: HeaderCarrier, ec : ExecutionContext): Future[List[FormId]] = {
-    httpGet.GET[List[FormId]](gformUrl + s"/forms/$userId")
+  def getByUserId(userId: String, formTypeId: FormTypeId)(implicit hc: HeaderCarrier, ec : ExecutionContext): Future[Option[FormId]] = {
+    httpGet.GET[Option[FormId]](gformUrl + s"/forms/user/$userId/regime/$formTypeId")
   }
 
   def getById(formTypeId: FormTypeId, version: String, formId: FormId)(implicit hc : HeaderCarrier) : Future[FormData] = {
     httpGet.GET[FormData](gformUrl + s"/forms/$formTypeId/$version/$formId")
   }
 
-  def save(formDetails: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier) : Future[SaveResult] = {
-    httpPost.POST[FormData, SaveResult](gformUrl + s"/forms?tolerant=$tolerant", formDetails)
+  def save(formDetails: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier) : Future[GformResult] = {
+    httpPost.POST[FormData, GformResult](gformUrl + s"/forms?tolerant=$tolerant", formDetails)
   }
 
-  def update(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier) : Future[SaveResult] = {
-    httpPut.PUT[FormData, SaveResult](gformUrl + s"/forms/$formId?tolerant=$tolerant", formData)
+  def update(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc : HeaderCarrier) : Future[GformResult] = {
+    httpPut.PUT[FormData, GformResult](gformUrl + s"/forms/$formId?tolerant=$tolerant", formData)
   }
 
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc : HeaderCarrier) : Future[HttpResponse] = {
     httpPost.POSTEmpty[HttpResponse](gformUrl + s"/forms/$formTypeId/submission/$formId")
+  }
+
+  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec : ExecutionContext): Future[GformResult] = {
+    httpDelete.DELETE[GformResult](gformUrl + s"/forms/${formId.value}/delete")
   }
 }
 
@@ -80,6 +85,7 @@ object GformConnector extends GformConnector with ServicesConfig {
   lazy val httpGet = WSHttp
   lazy val httpPost = WSHttp
   lazy val httpPut = WSHttp
+  lazy val httpDelete = WSHttp
 
   def gformUrl: String = s"${baseUrl("gform")}/gform"
 
