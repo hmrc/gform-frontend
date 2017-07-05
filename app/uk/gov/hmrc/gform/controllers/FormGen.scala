@@ -30,15 +30,15 @@ import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.service.SaveService
 import uk.gov.hmrc.gform.service.ValidationService.CompData
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
 import uk.gov.hmrc.play.http.HeaderCarrier
-
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions)(implicit ec: ExecutionContext)
+class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
     extends FrontendController with I18nSupport {
 
   def form(formTypeId: FormTypeId, version: Version) =
@@ -46,7 +46,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions)(
 
       val formTemplate = request.formTemplate
 
-      Page(0, formTemplate).renderPage(Map(), None, None)
+      Page(0, formTemplate, repeatService).renderPage(Map(), None, None)
 
     }
 
@@ -60,7 +60,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions)(
 
       val formTemplate = request.formTemplate
 
-      Page(currPage, formTemplate).renderPage(fieldIdToStrings, Some(formId), None)
+      Page(currPage, formTemplate, repeatService).renderPage(fieldIdToStrings, Some(formId), None)
 
     }
   }
@@ -71,14 +71,15 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions)(
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       val formTemplate = request.formTemplate
 
-      val page = Page(pageIdx, formTemplate)
+      val page = Page(pageIdx, formTemplate, repeatService)
 
       val formIdOpt: Option[FormId] = anyFormId(data)
 
-      val validatedData = page.section.atomicFields.map(fv => CompData(fv, data).validateComponents)
+      val validatedData = page.section.atomicFields(repeatService).map(fv => CompData(fv, data).validateComponents)
       val validatedDataResult = Monoid[ValidatedType].combineAll(validatedData)
 
-      val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(page.section.atomicFields, validatedDataResult, data)
+      val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] =
+        ValidationUtil.evaluateValidationResult(page.section.atomicFields(repeatService), validatedDataResult, data)
 
       def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
@@ -114,7 +115,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions)(
 
       val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
       val optSectionIdx = BooleanExpr.nextTrueIdxOpt(pageIdx, booleanExprs, data)
-      val optNextPage = optSectionIdx.map(i => Page(i, formTemplate))
+      val optNextPage = optSectionIdx.map(i => Page(i, formTemplate, repeatService))
       val actionE = FormAction.determineAction(data, optNextPage)
       actionE match {
         case Right(action) =>
@@ -150,6 +151,10 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions)(
                   case Left(error) =>
                     Future.successful(BadRequest(error))
                 }
+              }
+            case AddGroup(groupId) =>
+              repeatService.increaseGroupCount(groupId).flatMap { _ =>
+                page.renderPage(data, formIdOpt, None)
               }
           }
 

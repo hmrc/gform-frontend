@@ -23,11 +23,12 @@ import uk.gov.hmrc.gform.controllers.FormController.SectionNumber
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.Page
+import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-class FormController @Inject() (controllersModule: ControllersModule, gformBackendModule: GformBackendModule) extends FrontendController {
+class FormController @Inject() (controllersModule: ControllersModule, gformBackendModule: GformBackendModule, repeatService: RepeatingComponentService) extends FrontendController {
 
   import controllersModule.i18nSupport._ //this brings implicit messages
   import AuthenticatedRequest._ //this explicitly brings implicits cause compiler can't see them even if they are in companion ...
@@ -54,7 +55,7 @@ class FormController @Inject() (controllersModule: ControllersModule, gformBacke
     val version = c.request.session.getVersion.get
     for {
       formTemplate <- gformConnector.getFormTemplate(formTypeId, version)
-      response <- Page(0, formTemplate).renderPage(Map(), None, None)
+      response <- Page(0, formTemplate, repeatService).renderPage(Map(), None, None)
     } yield response
   }
 

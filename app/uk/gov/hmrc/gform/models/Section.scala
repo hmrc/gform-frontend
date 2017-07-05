@@ -17,7 +17,9 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.components.{ ComponentType, FieldValue, Group }
+import uk.gov.hmrc.gform.models.components.{ FieldValue, Group }
+import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 case class Section(
     title: String,
@@ -26,12 +28,13 @@ case class Section(
     fields: List[FieldValue]
 ) {
 
-  def atomicFields = {
+  def atomicFields(repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier) = {
 
     def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
       fields.flatMap {
         case (fv: FieldValue) => fv.`type` match {
-          case Group(fvs, _) => atomicFields(fvs)
+          case groupField @ Group(_, _, _, _, _, _) =>
+            atomicFields(repeatService.getAllFieldsInGroup(fv, groupField))
           case _ => List(fv)
         }
       }
@@ -39,7 +42,6 @@ case class Section(
 
     atomicFields(fields)
   }
-
 }
 
 object Section {

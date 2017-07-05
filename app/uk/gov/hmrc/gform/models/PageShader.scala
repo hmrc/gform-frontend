@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.withOffset
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.gform.service.PrepopService
+import uk.gov.hmrc.gform.service.{ PrepopService, RepeatingComponentService }
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -38,24 +38,28 @@ class PageShader(
     fieldData: Map[FieldId, Seq[String]],
     formTemplate: FormTemplate,
     section: Section,
-    f: Option[FieldValue => Option[FormFieldValidationResult]]
+    f: Option[FieldValue => Option[FormFieldValidationResult]],
+    repeatService: RepeatingComponentService
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
-    val snippetsSeq = section.fields.map(htmlFor)
+    val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
     val snippets = Future.sequence(snippetsSeq)
-    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields))
+    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
     snippets.map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, javasctipt))
   }
 
-  private def htmlFor(fieldValue: FieldValue): Future[Html] = fieldValue.`type` match {
-    case Group(fvs, orientation) => htmlForGroup(fieldValue, fvs, orientation)
-    case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue)
-    case Address(international) => htmlForAddress(fieldValue, international)
-    case t @ Text(expr, _) => htmlForText(fieldValue, t, expr)
-    case Choice(choice, options, orientation, selections, optionalHelpText) => htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText)
-    case FileUpload() => htmlForFileUpload(fieldValue)
-    case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText)
+  private def htmlFor(orgFieldValue: FieldValue, instance: Int): Future[Html] = {
+    val fieldValue = adjustIdForRepeatingGroups(orgFieldValue, instance)
+    fieldValue.`type` match {
+      case g @ Group(fvs, orientation, _, _, _, _) => htmlForGroup(g, fieldValue, fvs, orientation)
+      case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue)
+      case Address(international) => htmlForAddress(fieldValue, international, instance)
+      case t @ Text(expr, _) => htmlForText(fieldValue, t, expr)
+      case Choice(choice, options, orientation, selections, optionalHelpText) => htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText)
+      case FileUpload() => htmlForFileUpload(fieldValue)
+      case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText)
+    }
   }
 
   private def htmlForInformationMessage(fieldValue: FieldValue, infoType: InfoType, infoText: String) = {
@@ -93,8 +97,8 @@ class PageShader(
     prepopValueF.map(prepopValue => uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, f.getOrElse(okF)(fieldValue)))
   }
 
-  private def htmlForAddress(fieldValue: FieldValue, international: Boolean) = {
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, f.getOrElse(okF)(fieldValue)))
+  private def htmlForAddress(fieldValue: FieldValue, international: Boolean, instance: Int) = {
+    Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, f.getOrElse(okF)(fieldValue), instance))
   }
 
   private def htmlForDate(fieldValue: FieldValue, offset: Offset, dateValue: Option[DateValue]) = {
@@ -102,18 +106,33 @@ class PageShader(
     Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, f.getOrElse(okF)(fieldValue), prepopValues))
   }
 
-  private def htmlForGroup(fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation) = {
+  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation) = {
 
-    val listofeventualhtmls: List[Future[Html]] = fvs.map {
-      case (fv: FieldValue) => htmlFor(fv)
-    }
-    Future.sequence(listofeventualhtmls).flatMap {
-      case (lhtml) => Future.successful(uk.gov.hmrc.gform.views.html.group(fieldValue, lhtml, orientation))
-    }
+    def fireHtmlGeneration(count: Int) = (0 until count).flatMap { count =>
+      if (count == 0) {
+        fvs.map(fv => htmlFor(fv, count))
+      } else {
+        Future.successful(Html(s"""<div><legend class="h3-heading">${groupField.repeatLabel.getOrElse("")}</legend>""")) +:
+          fvs.map(fv => htmlFor(fv, count)) :+
+          Future.successful(Html("</div>"))
+      }
+    }.toList
 
+    for {
+      (count, limitReached) <- repeatService.getCountAndTestIfLimitReached(fieldValue, groupField)
+      lhtml <- Future.sequence(fireHtmlGeneration(count))
+    } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, orientation, limitReached)
   }
 
-  private lazy val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.fields)
-  private lazy val hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
-  private lazy val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields)
+  private def adjustIdForRepeatingGroups(fieldValue: FieldValue, instance: Int) = {
+    if (instance == 0) {
+      fieldValue
+    } else {
+      fieldValue.copy(id = repeatService.buildRepeatingId(fieldValue, instance))
+    }
+  }
+
+  private lazy val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
+  private lazy val hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
+  private lazy val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields(repeatService), repeatService)
 }

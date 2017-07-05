@@ -29,6 +29,7 @@ object FormAction {
       case ("Save" :: Nil, _) => Right(SaveAndExit)
       case ("Continue" :: Nil, None) => Right(SaveAndSummary)
       case ("Continue" :: Nil, Some(nextToRender)) => Right(SaveAndContinue(nextToRender))
+      case (addGroup :: Nil, _) if addGroup.mkString.startsWith("AddGroup") => Right(AddGroup(addGroup))
       case _ => Left("Cannot determine action")
     }
   }
@@ -37,3 +38,4 @@ object FormAction {
 case class SaveAndContinue(nextPage: Page) extends FormAction
 case object SaveAndExit extends FormAction
 case object SaveAndSummary extends FormAction
+case class AddGroup(groupId: String) extends FormAction

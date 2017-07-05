@@ -17,15 +17,17 @@
 package uk.gov.hmrc.gform.models
 
 import org.jsoup.Jsoup
+import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo }
-import uk.gov.hmrc.gform.gformbackend.model._
-
-import scala.concurrent.duration._
-import org.mockito.Matchers._
+import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
-
-import scala.concurrent.Await
+import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
+import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.http.HeaderCarrier
+import scala.collection.immutable.List
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
 
 class PageForRenderSpec extends FlatSpec with Matchers {
 
@@ -96,14 +98,19 @@ class PageForRenderSpec extends FlatSpec with Matchers {
     sections = List(section)
   )
 
+  val mockRepeatService = mock[RepeatingComponentService]
+  implicit val hc = HeaderCarrier()
+  implicit val mockAuthContext = mock[AuthContext]
+
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
     val pageToRenderF = PageForRender(
       curr = 8,
       fieldData = Map.empty[FieldId, Seq[String]],
       formTemplate = formTemplate,
       section = section,
-      f = None
-    )(any(), any())
+      f = None,
+      mockRepeatService
+    )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
     val doc = Jsoup.parse(pageToRender.snippets.head.toString)
@@ -123,4 +130,105 @@ class PageForRenderSpec extends FlatSpec with Matchers {
     table.first.getElementsByTag("TR").size shouldBe 4
     table.first.getElementsByTag("TD").size shouldBe 9
   }
+
+  //  GROUPS
+
+  val grpTextField = FieldValue(
+    id = FieldId("INNER_TEXT_FIELD"),
+    `type` = Text(Constant("CONSTANT_TEXT"), false),
+    label = "INNER_TEXT_LABEL",
+    shortName = None,
+    helpText = None,
+    mandatory = true,
+    editable = true,
+    submissible = true
+  )
+  val groupFields = List(grpTextField)
+
+  val group = Group(
+    fields = groupFields,
+    orientation = Vertical,
+    repeatsMax = Some(3),
+    repeatsMin = Some(1),
+    repeatLabel = Some("REPEAT_LABEL"),
+    repeatAddAnotherText = Some("TEXT_IN_ADD_BUTTON")
+  )
+
+  val groupFieldValue = FieldValue(
+    id = FieldId("GROUP_ID"),
+    `type` = group,
+    label = "LABEL_GROUP_FIELD",
+    helpText = None,
+    shortName = None,
+    mandatory = true,
+    editable = false,
+    submissible = false
+  )
+
+  val grpSection = section.copy(fields = List(groupFieldValue))
+
+  val mockSession = mock[SessionCacheConnector]
+
+  "PageForRender for group field" should "return HTML with dynamic groups and an add-group button (repeating groups)" in {
+
+    val testGrpRepSrvc = new RepeatingComponentService(mockSession) {
+      override def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+        multipleCopiesOf(grpTextField, 2)
+      }
+
+      override def getCountAndTestIfLimitReached(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+        Future.successful((2, false))
+      }
+    }
+
+    val pageToRenderF = PageForRender(
+      curr = 0,
+      fieldData = Map.empty[FieldId, Seq[String]],
+      formTemplate = formTemplate.copy(sections = List(grpSection)),
+      section = grpSection,
+      f = None,
+      testGrpRepSrvc
+    )
+
+    val pageToRender = Await.result(pageToRenderF, 10 seconds)
+    val doc = Jsoup.parse(pageToRender.snippets.head.toString)
+
+    doc.getElementsByAttributeValue("value", "AddGroup-GROUP_ID").size shouldBe 1 // no limit reached, add button shown
+    doc.getElementsByAttributeValue("value", "CONSTANT_TEXT").size shouldBe 2 // two repeat elements
+    doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 1 // repeat label only for second element
+  }
+
+  it should "hide add-group button when limit has been reached (repeating groups)" in {
+    val testGrpRepSrvc = new RepeatingComponentService(mockSession) {
+      override def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+        multipleCopiesOf(grpTextField, 2)
+      }
+
+      override def getCountAndTestIfLimitReached(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+        Future.successful((2, true))
+      }
+    }
+
+    val pageToRenderF = PageForRender(
+      curr = 0,
+      fieldData = Map.empty[FieldId, Seq[String]],
+      formTemplate = formTemplate.copy(sections = List(grpSection)),
+      section = grpSection,
+      f = None,
+      testGrpRepSrvc
+    )
+
+    val pageToRender = Await.result(pageToRenderF, 10 seconds)
+    val doc = Jsoup.parse(pageToRender.snippets.head.toString)
+
+    doc.getElementsByAttributeValue("value", "AddGroup-GROUP_ID").size shouldBe 0 // no add label when limit reached
+    doc.getElementsByAttributeValue("value", "CONSTANT_TEXT").size shouldBe 2
+  }
+
+  private def multipleCopiesOf(fieldValue: FieldValue, count: Int): List[FieldValue] = {
+    (1 to count).map { i =>
+      fieldValue.copy(id = FieldId(s"${i}_${fieldValue.id.value}"))
+    }.toList
+  }
+
 }

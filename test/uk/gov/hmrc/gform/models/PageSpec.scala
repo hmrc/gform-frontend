@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest._
+import org.scalatest.{ EitherValues, FlatSpec, Matchers }
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
 import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
@@ -25,6 +25,8 @@ import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import org.scalatest.mockito.MockitoSugar.mock
+import uk.gov.hmrc.gform.service.RepeatingComponentService
 
 class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFutures {
 
@@ -44,13 +46,15 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
     sections = List(section0, section1, section2)
   )
 
+  val mockRepeatService = mock[RepeatingComponentService]
+
   val authority = Authority("uri", Accounts(), None, None, CredentialStrength.None, ConfidenceLevel.L0, None, None, None, "String")
   implicit val authContext = AuthContext(authority)
   implicit val headerCarrier = HeaderCarrier()
 
   "Page" should "display first page" in {
 
-    val page = Page(0, formTemplate)
+    val page = Page(0, formTemplate, mockRepeatService)
 
     page.prev should be(0)
     page.curr should be(0)
@@ -73,7 +77,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display second page" in {
 
-    val page = Page(1, formTemplate)
+    val page = Page(1, formTemplate, mockRepeatService)
 
     page.prev should be(0)
     page.curr should be(1)
@@ -96,7 +100,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display third page" in {
 
-    val page = Page(2, formTemplate)
+    val page = Page(2, formTemplate, mockRepeatService)
 
     page.prev should be(1)
     page.curr should be(2)
@@ -120,7 +124,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display first page when currentPage is less than 0" in {
 
-    val page = Page(-1, formTemplate)
+    val page = Page(-1, formTemplate, mockRepeatService)
 
     page.prev should be(0)
     page.curr should be(0)
@@ -131,7 +135,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display last page when currentPage is bigger than size of sections" in {
 
-    val page = Page(10, formTemplate)
+    val page = Page(10, formTemplate, mockRepeatService)
 
     page.prev should be(1)
     page.curr should be(2)
