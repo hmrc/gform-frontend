@@ -26,7 +26,7 @@ trait AppConfig {
   def reportAProblemPartialUrl: String
   def reportAProblemNonJSUrl: String
   def governmentGatewaySignInUrl: String
-  def bFormsFrontendBaseUrl: String
+  def gformFrontendBaseUrl: String
   def sessionCacheDomain: String
   def sessionCacheBaseUri: String
 }
@@ -50,7 +50,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   //  override lazy val governmentGatewaySignInUrl = "http://localhost:9025/gg/sign-in"
 
   // this will be empty in non-local environments
-  override lazy val bFormsFrontendBaseUrl = config.getString("gform-frontend-base-url").getOrElse("")
+  override lazy val gformFrontendBaseUrl = config.getString("gform-frontend-base-url").getOrElse("")
 
   override lazy val sessionCacheDomain: String = config.getString("cachable.session-cache.domain").getOrElse("")
   override lazy val sessionCacheBaseUri: String = baseUrl("cachable.session-cache")

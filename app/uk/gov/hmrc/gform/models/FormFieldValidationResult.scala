@@ -100,12 +100,12 @@ case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldVal
 
 object ValidationUtil {
 
-  type GFormError = Map[FieldId, Set[String]]
-  type ValidatedLocalDate = Validated[GFormError, LocalDate]
+  type GformError = Map[FieldId, Set[String]]
+  type ValidatedLocalDate = Validated[GformError, LocalDate]
   type ValidatedNumeric = Validated[String, Int]
-  type ValidatedConcreteDate = Validated[GFormError, ConcreteDate]
+  type ValidatedConcreteDate = Validated[GformError, ConcreteDate]
 
-  type ValidatedType = Validated[GFormError, Unit]
+  type ValidatedType = Validated[GformError, Unit]
 
   val printErrors: (Map[String, Set[String]]) => Set[String] = (map: Map[String, Set[String]]) => {
     map.foldLeft(Set[String]())(_ ++ _._2)
@@ -123,11 +123,11 @@ object ValidationUtil {
     }
   }
 
-  def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): List[(FieldId, FormFieldValidationResult)] = {
+  def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): List[(FieldId, FormFieldValidationResult)] = {
     component match {
       case Address(_) => Address.allFieldIds(fieldValue.id).map { fieldId =>
 
-        gFormErrors.get(fieldId) match {
+        gformErrors.get(fieldId) match {
           //with suffix
           case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
           case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
@@ -136,7 +136,7 @@ object ValidationUtil {
 
       case Date(_, _, _) => Date.allFieldIds(fieldValue.id).map { fieldId =>
 
-        gFormErrors.get(fieldId) match {
+        gformErrors.get(fieldId) match {
           //with suffix
           case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
           case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
@@ -147,9 +147,9 @@ object ValidationUtil {
     }
   }
 
-  def evaluateWithoutSuffix(fieldValue: FieldValue, gFormErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): (FieldId, FormFieldValidationResult) = {
+  def evaluateWithoutSuffix(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): (FieldId, FormFieldValidationResult) = {
 
-    gFormErrors.get(fieldValue.id) match {
+    gformErrors.get(fieldValue.id) match {
       //without suffix
       case Some(errors) => (fieldValue.id, FieldGlobalError(fieldValue, dGetter(fieldValue.id).headOption.getOrElse(""), errors))
       case None => (fieldValue.id, FieldGlobalOk(fieldValue, dGetter(fieldValue.id).headOption.getOrElse("")))
@@ -160,7 +160,7 @@ object ValidationUtil {
 
     val dataGetter: FieldId => Seq[String] = fId => data.get(fId).toList.flatten
 
-    val gFormErrors = validationResult match {
+    val gformErrors = validationResult match {
       case Invalid(errors) =>
         errors
 
@@ -172,8 +172,8 @@ object ValidationUtil {
       fieldValue.`type` match {
         case address @ Address(_) =>
 
-          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(address, fieldValue, gFormErrors)(dataGetter)
-          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(address, fieldValue, gformErrors)(dataGetter)
+          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gformErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)
             .map { kv => kv._1.getSuffix(fieldValue.id) -> kv._2
@@ -183,9 +183,9 @@ object ValidationUtil {
 
         case date @ Date(_, _, _) =>
 
-          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(date, fieldValue, gFormErrors)(dataGetter)
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(date, fieldValue, gformErrors)(dataGetter)
 
-          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
+          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gformErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)
             .map { kv => kv._1.getSuffix(fieldValue.id) -> kv._2
@@ -197,7 +197,7 @@ object ValidationUtil {
 
           val fieldId = fieldValue.id
 
-          gFormErrors.get(fieldId) match {
+          gformErrors.get(fieldId) match {
             case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
             case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
           }
@@ -210,7 +210,7 @@ object ValidationUtil {
 
         case Choice(_, _, _, _, _) =>
 
-          gFormErrors.get(fieldValue.id) match {
+          gformErrors.get(fieldValue.id) match {
             case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
             case None =>
 

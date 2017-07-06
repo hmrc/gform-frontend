@@ -38,6 +38,6 @@ class GuiceModule extends AbstractModule {
 
     bind(classOf[AuthConnector]).to(classOf[FrontendAuthConnector])
     bind(classOf[SecuredActions]).to(classOf[SecuredActionsImpl])
-    bind(classOf[GovernmentGateway]).to(classOf[BformsAuthenticationProvider])
+    bind(classOf[GovernmentGateway]).to(classOf[GformAuthenticationProvider])
   }
 }

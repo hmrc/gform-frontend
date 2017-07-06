@@ -52,19 +52,19 @@ package controllers {
     def apply(formTypeId: FormTypeId, version: Version)(implicit ec: ExecutionContext) = new WithFormTemplate(formTypeId, version)
   }
 
-  object BformsPageVisibilityPredicate extends uk.gov.hmrc.play.frontend.auth.PageVisibilityPredicate {
+  object GformPageVisibilityPredicate extends uk.gov.hmrc.play.frontend.auth.PageVisibilityPredicate {
     def apply(authContext: AuthContext, request: Request[AnyContent]): Future[PageVisibilityResult] =
       Future.successful(PageIsVisible)
   }
 
   @Singleton
-  class BformsAuthenticationProvider @Inject() (configuration: Configuration) extends GovernmentGateway {
+  class GformAuthenticationProvider @Inject()(configuration: Configuration) extends GovernmentGateway {
 
-    private val bformsFrontendBaseUrl = configuration.getString("gform-frontend-base-url").getOrElse("")
+    private val gformFrontendBaseUrl = configuration.getString("gform-frontend-base-url").getOrElse("")
     private val governmentGatewaySignInUrl = configuration.getString("government-gateway-sign-in-url").getOrElse("")
 
     override def redirectToLogin(implicit request: Request[_]): Future[Result] = {
-      val queryStringParams = Map("continue" -> Seq(bformsFrontendBaseUrl + request.uri))
+      val queryStringParams = Map("continue" -> Seq(gformFrontendBaseUrl + request.uri))
       Future.successful(Redirect(loginURL, queryStringParams))
     }
 
@@ -106,7 +106,7 @@ package controllers {
       ActionWithTemplate(formTypeId, version).async(body(authContext))(request)
     }
 
-    private val authenticatedBy = AuthenticatedBy(governmentGateway, BformsPageVisibilityPredicate)
+    private val authenticatedBy = AuthenticatedBy(governmentGateway, GformPageVisibilityPredicate)
 
     override val SecureWithTemplate = SecureActionWithTemplate(authenticatedBy) _
     override val SecureWithTemplateAsync = SecureActionWithTemplateAsync(authenticatedBy) _
