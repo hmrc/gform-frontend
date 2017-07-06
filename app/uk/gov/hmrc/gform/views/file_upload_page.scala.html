@@ -1,0 +1,25 @@
+@import uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTemplate}
+@import uk.gov.hmrc.gform.models.PageForRender
+@import uk.gov.hmrc.gform.gformbackend.model._
+@import uk.gov.hmrc.gform.controllers.routes
+
+@import views.html.helper.CSRF
+@(
+        fileId: FileId,
+        formTemplate: FormTemplate,
+        actionUrl: String
+)(implicit request: Request[_], messages: Messages)
+
+@uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
+
+    <h1 class="h1-heading">Upload Page</h1>
+    <form
+        action=@actionUrl
+        enctype="multipart/form-data"
+        method="post" >
+        <input id=@{fileId.value} name=@{fileId.value} type="file" size="40"/>
+        <button type="submit" id="upload-button">Upload</button>
+    </form>
+
+    <a href="@{routes.FormController.form()}">back to form</a>
+}

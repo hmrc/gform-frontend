@@ -17,8 +17,7 @@
 package uk.gov.hmrc.gform.controllers
 
 import play.api.mvc.Session
-import uk.gov.hmrc.gform.controllers.FormController.SectionNumber
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTypeId, Version }
+import uk.gov.hmrc.gform.gformbackend.model._
 
 object GformSession {
 
@@ -33,10 +32,10 @@ object GformSession {
     def getFormTypeId: Option[FormTypeId] = session.data.get(formTypeId).map(FormTypeId.apply)
     def putFormTypeId(v: FormTypeId): Session = session + (formTypeId -> v.value)
 
-    def getEnvelopeId: Option[FormTypeId] = session.data.get(envelopeId).map(FormTypeId.apply)
-    def putEnvelopeId(v: EnvelopeId): Session = session + (formTypeId -> v.value)
+    def getEnvelopeId: Option[EnvelopeId] = session.data.get(envelopeId).map(EnvelopeId.apply)
+    def putEnvelopeId(v: EnvelopeId): Session = session + (envelopeId -> v.value)
 
-    def getSectionNumber: Option[SectionNumber] = session.data.get("asdf").map(_.toInt).map(SectionNumber.apply)
+    def getSectionNumber: Option[SectionNumber] = session.data.get(sectionNumber).map(_.toInt).map(SectionNumber.apply)
     def putSectionNumber(v: SectionNumber): Session = session + (sectionNumber -> v.value.toString)
   }
 

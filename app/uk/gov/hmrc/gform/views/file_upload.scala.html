@@ -1,23 +1,13 @@
 @import uk.gov.hmrc.gform.models.components.FieldValue
+@import uk.gov.hmrc.gform.gformbackend.model.FileId
+@import uk.gov.hmrc.gform.controllers.routes
 
 @(fieldValue: FieldValue)
-
-@*make it beautiful and working. For now it's only stub for showing off that we can display file-upload component*@
 
 <div class="form-group">
     <fieldset>
         <legend class="h3-heading">@{fieldValue.label}</legend>
 
-        <div class="inline">
-            <label for="@{s"fileUploadInput-${fieldValue.id}"}" class="block-label">
-                Chose File
-            </label>
-
-            <input
-            id="@{s"fileUploadInput-${fieldValue.id}"}"
-            type="file"
-            />
-
-        </div>
+        <a href=@{routes.FormController.fileUploadPage(FileId(fieldValue.id.value))}>upload file</a>
     </fieldset>
 </div>
