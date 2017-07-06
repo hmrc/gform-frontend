@@ -28,7 +28,6 @@ class AppConfigSpec extends Spec {
     val appConfig = AppConfig.loadOrThrow()
     appConfig.appName shouldBe "gform-frontend"
     appConfig.fileUploadRedirect shouldBe "http://localhost/submissions/form"
-    appConfig.mongodb shouldBe Mongodb("mongodb://localhost:27017/bforms-frontend")
     appConfig.`google-analytics` shouldBe GoogleAnalytics("N/A", "auto")
     appConfig.`government-gateway-sign-in-url` shouldBe "http://localhost:9949/auth-login-stub/gg-sign-in"
     appConfig.`gform-frontend-base-url` shouldBe "http://localhost:9195"

@@ -190,7 +190,7 @@ object ValidationService {
     }
 
     def validateToday(fieldValue: FieldValue, localDate: LocalDate,
-      offset: OffsetDate, dateError: GFormError)(func: (LocalDate, OffsetDate) => Boolean): ValidatedType = {
+      offset: OffsetDate, dateError: GformError)(func: (LocalDate, OffsetDate) => Boolean): ValidatedType = {
       func(localDate, offset) match {
         case true => Valid(())
         case false => Invalid(dateError)
@@ -198,7 +198,7 @@ object ValidationService {
     }
 
     def validateConcreteDate(fieldValue: FieldValue, localDate: LocalDate,
-      concreteDate: LocalDate, offset: OffsetDate, dateError: GFormError)(func: (LocalDate, LocalDate, OffsetDate) => Boolean): ValidatedType = {
+      concreteDate: LocalDate, offset: OffsetDate, dateError: GformError)(func: (LocalDate, LocalDate, OffsetDate) => Boolean): ValidatedType = {
       func(localDate, concreteDate, offset) match {
         case true => Valid(())
         case false => Invalid(dateError)
@@ -213,7 +213,7 @@ object ValidationService {
 
     def isBeforeConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean = date.isBefore(concreteDay.plusDays(offset.value))
 
-    def validateConcreteDate(concreteDate: ConcreteDate, dateError: GFormError): ValidatedLocalDate = {
+    def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedLocalDate = {
       Try(LocalDate.of(concreteDate.year, concreteDate.month, concreteDate.day)) match {
         case Success(date) => Valid(date)
         case Failure(ex) => Invalid(dateError)

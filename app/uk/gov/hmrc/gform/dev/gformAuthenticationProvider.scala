@@ -27,9 +27,9 @@ import uk.gov.hmrc.crypto.{ ApplicationCrypto, Crypted }
 import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
 
 @Singleton
-class BformsAuthenticationProvider @Inject() (configuration: Configuration, ws: WSClient) extends GovernmentGateway {
+class gformAuthenticationProvider @Inject()(configuration: Configuration, ws: WSClient) extends GovernmentGateway {
 
-  private val bformsFrontendBaseUrl = configuration.getString("gform-frontend-base-url").getOrElse("")
+  private val gformFrontendBaseUrl = configuration.getString("gform-frontend-base-url").getOrElse("")
   private val governmentGatewaySignInUrl = configuration.getString("government-gateway-sign-in-url").getOrElse("")
 
   val crypto = ApplicationCrypto.SessionCookieCrypto
@@ -66,7 +66,7 @@ class BformsAuthenticationProvider @Inject() (configuration: Configuration, ws: 
             }
           }
         }
-      Redirect(bformsFrontendBaseUrl + request.uri).withCookies(cookies.flatten: _*)
+      Redirect(gformFrontendBaseUrl + request.uri).withCookies(cookies.flatten: _*)
     }
   }
 
