@@ -34,7 +34,7 @@ class ConfigModule {
 
 case class AppConfig(
   appName: String,
-  fileUploadRedirect: String,
+  fileUploadRedirect: String, //TODO: we don't need it
   mongodb: Mongodb,
   `google-analytics`: GoogleAnalytics,
   `government-gateway-sign-in-url`: String,

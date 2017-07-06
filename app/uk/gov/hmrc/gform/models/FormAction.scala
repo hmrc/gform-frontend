@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.gformbackend.model
+package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.get
-import uk.gov.hmrc.gform.models.Page
 import uk.gov.hmrc.gform.models.components.FieldId
 
 sealed trait FormAction

@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.Inject
 
-import play.api.mvc.Request
-import uk.gov.hmrc.gform.controllers.FormController.SectionNumber
+import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.Page
@@ -28,11 +27,16 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-class FormController @Inject() (controllersModule: ControllersModule, gformBackendModule: GformBackendModule, repeatService: RepeatingComponentService) extends FrontendController {
+class FormController @Inject() (
+    controllersModule: ControllersModule,
+    gformBackendModule: GformBackendModule,
+    configModule: ConfigModule,
+    repeatService: RepeatingComponentService
+) extends FrontendController {
 
-  import controllersModule.i18nSupport._ //this brings implicit messages
-  import AuthenticatedRequest._ //this explicitly brings implicits cause compiler can't see them even if they are in companion ...
+  import AuthenticatedRequest._
   import GformSession._
+  import controllersModule.i18nSupport._
 
   def newForm(formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
 
@@ -45,6 +49,7 @@ class FormController @Inject() (controllersModule: ControllersModule, gformBacke
           .putVersion(x.form.formData.version)
           .putFormTypeId(x.form.formData.formTypeId)
           .putSectionNumber(firstSection)
+          .putEnvelopeId(x.envelopeId)
 
         redirectToForm.withSession(updatedSession)
       }
@@ -59,14 +64,23 @@ class FormController @Inject() (controllersModule: ControllersModule, gformBacke
     } yield response
   }
 
+  def fileUploadPage(fileId: FileId) = auth.async { implicit c =>
+    val formTemplateF = gformConnector.getFormTemplate(
+      c.request.session.getFormTypeId.get,
+      c.request.session.getVersion.get
+    )
+    val envelopeId = c.request.session.getEnvelopeId.get
+    val actionUrl = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${routes.FormController.form()}"
+    for {
+      formTemplate <- formTemplateF
+    } yield Ok(
+      uk.gov.hmrc.gform.views.html.file_upload_page(fileId, formTemplate, actionUrl)
+    )
+  }
+
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val redirectToForm = Redirect(routes.FormController.form())
   private lazy val redirectToFormF = Future.successful(redirectToForm)
   private lazy val firstSection = SectionNumber(0)
-}
-
-object FormController {
-  //Identifies current section in form template.
-  case class SectionNumber(value: Int)
 }
