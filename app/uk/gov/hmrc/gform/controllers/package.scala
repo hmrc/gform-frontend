@@ -58,7 +58,7 @@ package controllers {
   }
 
   @Singleton
-  class GformAuthenticationProvider @Inject()(configuration: Configuration) extends GovernmentGateway {
+  class GformAuthenticationProvider @Inject() (configuration: Configuration) extends GovernmentGateway {
 
     private val gformFrontendBaseUrl = configuration.getString("gform-frontend-base-url").getOrElse("")
     private val governmentGatewaySignInUrl = configuration.getString("government-gateway-sign-in-url").getOrElse("")
