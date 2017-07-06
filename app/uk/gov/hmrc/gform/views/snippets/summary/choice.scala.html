@@ -4,11 +4,13 @@
 @(fieldValue: FieldValue, selections: List[String])
 
 <tr>
-  <td>
-    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-  </td>
+  @if(fieldValue.label || fieldValue.shortName) {
+    <td>
+      @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    </td>
+  }
 
-  <td>
+  <td @if(!fieldValue.label && !fieldValue.shortName) {colspan="2"}>
     @selections.map{ selection => @selection<br /> }
   </td>
 </tr>

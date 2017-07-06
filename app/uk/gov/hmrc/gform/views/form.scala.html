@@ -4,7 +4,7 @@
 @(formTemplate: FormTemplate, page: PageForRender, formId: Option[FormId])(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
-    <h1 class="h1-heading">@localisation(page.sectionTitle)</h1>
+    <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
 
     <form action="@uk.gov.hmrc.gform.controllers.routes.FormGen.save(formTemplate.formTypeId, formTemplate.version, page.curr).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 

@@ -14,7 +14,9 @@ optionHelpText: Option[List[String]])
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
         <fieldset>
-            <legend class="h3-heading">@{fieldValue.label}</legend>
+            @if(fieldValue.label) {
+            <legend class="form-label">@{fieldValue.label}</legend>
+            }
 
             @if(fieldValue.helpText) {
             <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>

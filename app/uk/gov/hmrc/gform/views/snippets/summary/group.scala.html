@@ -6,15 +6,14 @@
 
 @(fieldValue: FieldValue, snippets: List[Html], orientation: Orientation)
 
-<fieldset>
 <tr>
     <td>
-        <legend class="h3-heading">@localisation(fieldValue.shortName.getOrElse(fieldValue.label))</legend>
-        <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
-            @{
-               snippets
-            }
-        </div>
+        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    </td>
+
+    <td>
+      @{
+         snippets
+      }
     </td>
 </tr>
-</fieldset>
