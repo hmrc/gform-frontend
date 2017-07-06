@@ -12,15 +12,17 @@
     Add @localisation(fieldValue.label)
   </legend>
 
-  <div class="subsection">
-    <div class="divider--bottom">
-      <div class="form-field-group">
-        <h2 class="heading-small">
-          @localisation(fieldValue.label)
-        </h2>
+  @if(groupField.repeatsMax.isDefined) {
+    <div class="subsection">
+      <div class="divider--bottom">
+        <div class="form-field-group">
+          <h2 class="heading-small">
+            @localisation(fieldValue.label)
+          </h2>
+        </div>
       </div>
     </div>
-  </div>
+  }
 
   <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
     @{
