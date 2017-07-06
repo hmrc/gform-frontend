@@ -112,7 +112,7 @@ class PageShader(
       if (count == 0) {
         fvs.map(fv => htmlFor(fv, count))
       } else {
-        Future.successful(Html(s"""<div><legend class="h3-heading">${groupField.repeatLabel.getOrElse("")}</legend>""")) +:
+        Future.successful(Html(s"""<div><legend class="h3-heading">${groupField.repeatLabel.getOrElse("")} ${count}</legend>""")) +:
           fvs.map(fv => htmlFor(fv, count)) :+
           Future.successful(Html("</div>"))
       }
