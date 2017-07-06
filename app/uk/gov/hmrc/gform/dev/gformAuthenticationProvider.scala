@@ -27,7 +27,7 @@ import uk.gov.hmrc.crypto.{ ApplicationCrypto, Crypted }
 import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
 
 @Singleton
-class gformAuthenticationProvider @Inject()(configuration: Configuration, ws: WSClient) extends GovernmentGateway {
+class gformAuthenticationProvider @Inject() (configuration: Configuration, ws: WSClient) extends GovernmentGateway {
 
   private val gformFrontendBaseUrl = configuration.getString("gform-frontend-base-url").getOrElse("")
   private val governmentGatewaySignInUrl = configuration.getString("government-gateway-sign-in-url").getOrElse("")

@@ -52,7 +52,6 @@ case class Assets(
 )
 
 case class ContactFrontend(host: String)
-case class Mongodb(uri: String)
 
 object AppConfig {
 
