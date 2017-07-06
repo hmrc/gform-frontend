@@ -46,7 +46,10 @@ object Fields {
         }
         fieldOks.map(data => ComponentField(fieldValue, data))
 
-      case FileUpload() | InformationMessage(_, _) => None
+      case FileUpload() => formFields.get(fieldValue.id).map { formField =>
+        FieldOk(fieldValue, formField.value)
+      }
+      case InformationMessage(_, _) => None
     }
   }
 

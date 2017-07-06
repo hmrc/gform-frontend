@@ -26,19 +26,23 @@ import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.service.ValidationService.CompData
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
+import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.http.HeaderCarrier
+
+import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
+class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, validationModule: ValidationModule, fileUploadModule: FileUploadModule)(implicit ec: ExecutionContext)
     extends FrontendController with I18nSupport {
 
   def form(formTypeId: FormTypeId, version: Version) =
@@ -75,11 +79,20 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
       val formIdOpt: Option[FormId] = anyFormId(data)
 
-      val validatedData = page.section.atomicFields(repeatService).map(fv => CompData(fv, data).validateComponents)
-      val validatedDataResult = Monoid[ValidatedType].combineAll(validatedData)
+      val atomicFields = page.section.atomicFields(repeatService)
 
+      import GformSession._
+
+      val envelopeId = request.session.getEnvelopeId.get
+
+      val validatedData: Seq[ValidatedType] = atomicFields.map(fv =>
+        validationService.validateComponents(fv, data, envelopeId))
+
+      val validatedDataResult: ValidatedType = Monoid[ValidatedType].combineAll(validatedData)
+
+      val envelope = fileUploadService.getEnvelope(envelopeId)
       val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] =
-        ValidationUtil.evaluateValidationResult(page.section.atomicFields(repeatService), validatedDataResult, data)
+        ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
 
       def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
 
@@ -183,4 +196,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
       }
     }
   }
+
+  private lazy val validationService = validationModule.validationService
+  private lazy val fileUploadService = fileUploadModule.fileUploadService
 }

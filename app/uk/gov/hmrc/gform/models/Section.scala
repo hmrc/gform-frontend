@@ -28,7 +28,7 @@ case class Section(
     fields: List[FieldValue]
 ) {
 
-  def atomicFields(repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier) = {
+  def atomicFields(repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): List[FieldValue] = {
 
     def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
       fields.flatMap {

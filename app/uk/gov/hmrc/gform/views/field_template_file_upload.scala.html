@@ -1,0 +1,45 @@
+@import uk.gov.hmrc.gform.models.components.FieldValue
+@import uk.gov.hmrc.gform.gformbackend.model.FileId
+@import uk.gov.hmrc.gform.controllers.routes
+@import uk.gov.hmrc.gform.models.FormFieldValidationResult
+@import uk.gov.hmrc.gform.models.ValidationUtil
+@import uk.gov.hmrc.play.views.html.helpers._
+
+
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+
+
+@currentValue = @{
+    val v = for {
+        vr <- validationResult
+        cv <- vr.getCurrentValue
+    } yield cv
+
+    v.getOrElse("upload file")
+}
+
+<div class="form-group">
+    <div class="@if(!validationResult.forall(_.isOk)) { form-field-group--error }">
+
+        <fieldset>
+            <legend class="h3-heading">@{
+                fieldValue.label
+            }</legend>
+
+            @{
+                val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+                val errors: Set[String] = ValidationUtil.printErrors(map)
+                errors.map(e => errorInline(e, e, Seq("")))
+            }
+
+
+
+            <a href=@{
+                routes.FormController.fileUploadPage(FileId(fieldValue.id.value))
+            }>
+                @{currentValue}
+            </a>
+
+        </fieldset>
+    </div>
+</div>

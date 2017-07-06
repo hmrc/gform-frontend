@@ -25,6 +25,7 @@ import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.traverse._
 import cats.syntax.either._
+import uk.gov.hmrc.gform.fileupload.{ Envelope, File }
 import uk.gov.hmrc.gform.gformbackend.model.FormField
 
 sealed trait FormFieldValidationResult {
@@ -156,18 +157,21 @@ object ValidationUtil {
     }
   }
 
-  def evaluateValidationResult(allFields: List[FieldValue], validationResult: ValidatedType, data: Map[FieldId, Seq[String]]): Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
+  def evaluateValidationResult(
+    atomicFields: List[FieldValue],
+    validationResult: ValidatedType,
+    data: Map[FieldId, Seq[String]],
+    envelope: Envelope
+  ): Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
 
     val dataGetter: FieldId => Seq[String] = fId => data.get(fId).toList.flatten
 
-    val gformErrors = validationResult match {
-      case Invalid(errors) =>
-        errors
-
+    val gformErrors: Map[FieldId, Set[String]] = validationResult match {
+      case Invalid(errors) => errors
       case Valid(()) => Map.empty[FieldId, Set[String]]
     }
 
-    val resultErrors: List[FormFieldValidationResult] = allFields.map { fieldValue =>
+    val resultErrors: List[FormFieldValidationResult] = atomicFields.map { fieldValue =>
 
       fieldValue.`type` match {
         case address @ Address(_) =>
@@ -225,7 +229,13 @@ object ValidationUtil {
 
               ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
           }
-        case FileUpload() => FieldOk(fieldValue, "TODO-I-dont-know-what-to-put-here")
+        case FileUpload() => {
+          val fileName = envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("please upload file")
+          gformErrors.get(fieldValue.id) match {
+            case Some(errors) => FieldError(fieldValue, fileName, errors)
+            case None => FieldOk(fieldValue, fileName)
+          }
+        }
         case InformationMessage(_, infoText) => FieldOk(fieldValue, infoText)
       }
 
