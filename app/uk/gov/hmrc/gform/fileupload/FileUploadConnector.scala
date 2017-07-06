@@ -16,15 +16,21 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import javax.inject.Inject
+import play.api.libs.json.JsObject
+import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
+import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ Await, Future }
 
-class FileUploadModule @Inject() (wSHttpModule: WSHttpModule, configModule: ConfigModule) {
+class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {
 
-  val fileUploadService = new FileUploadService(fileUploadConnector)
+  def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
+    val x = wSHttp.GET[JsObject](s"$baseUrl/envelopes/${envelopeId.value}")
+    val xResult = Await.result(x, Duration.Inf)
 
-  private lazy val fileUploadBaseUrl = configModule.serviceConfig.baseUrl("file-upload") + "/file-upload"
-  private lazy val fileUploadConnector = new FileUploadConnector(wSHttpModule.auditableWSHttp, fileUploadBaseUrl)
+    wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}")
+  }
+
 }

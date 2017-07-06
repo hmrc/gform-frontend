@@ -17,21 +17,13 @@
 package uk.gov.hmrc.gform.fileupload
 
 import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FileId }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-class FileUploadService {
+import scala.concurrent.Future
 
-  def getEnvelope(envelopeId: EnvelopeId): Envelope = Envelope(
-    List(
-      File(
-        FileId("facePhoto"),
-        Quarantined,
-        "facePhotoFile.jpg"
-      ),
-      File(
-        FileId("nationalIdScan"),
-        Error("Virus Detected"),
-        "nationalIdScan.doc"
-      )
-    )
-  )
+class FileUploadService(fileUploadConnector: FileUploadConnector) {
+
+  def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
+    fileUploadConnector.getEnvelope(envelopeId)
+  }
 }

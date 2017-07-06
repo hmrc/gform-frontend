@@ -17,10 +17,9 @@
 package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.models.ValueClassFormat
 
 case class FileId(value: String)
 
 object FileId {
-  implicit val format: Format[FileId] = ValueClassFormat.format(FileId.apply)(_.value)
+  implicit val format: Reads[FileId] = (__ \ 'id).read[String].map(FileId(_))
 }

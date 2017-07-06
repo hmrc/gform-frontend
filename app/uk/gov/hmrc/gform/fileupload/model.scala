@@ -16,17 +16,36 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import play.api.libs.json._
 import uk.gov.hmrc.gform.gformbackend.model.FileId
 
 case class Envelope(
   files: List[File]
 )
 
+object Envelope {
+  implicit val reads: Reads[Envelope] = envelopeRawReads.map(er => Envelope(er.files.getOrElse(Nil)))
+  private lazy val envelopeRawReads = Json.reads[EnvelopeRaw]
+}
+
+case class EnvelopeRaw(files: Option[List[File]])
 case class File(
   fileId: FileId,
   status: Status,
   fileName: String
 )
+
+object File {
+
+  implicit val format: Reads[File] = fileRawReads.map {
+    case FileRaw(id, name, "ERROR", Some(reason)) => File(FileId(id), Error(reason), name)
+    case FileRaw(id, name, "QUARANTINED", _) => File(FileId(id), Quarantined, name)
+    case FileRaw(id, name, "CLEANED", _) => File(FileId(id), Cleaned, name)
+  }
+  private lazy val fileRawReads: Reads[FileRaw] = Json.reads[FileRaw]
+}
+
+case class FileRaw(id: String, name: String, status: String, reason: Option[String])
 
 sealed trait Status
 case object Quarantined extends Status

@@ -64,7 +64,8 @@ class FormController @Inject() (
     } yield response
   }
 
-  def fileUploadPage(fileId: FileId) = auth.async { implicit c =>
+  def fileUploadPage(fId: String) = auth.async { implicit c =>
+    val fileId = FileId(fId)
     val formTemplateF = gformConnector.getFormTemplate(
       c.request.session.getFormTypeId.get,
       c.request.session.getVersion.get

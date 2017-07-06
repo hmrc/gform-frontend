@@ -24,36 +24,44 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
-import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.typeclasses.Now
+import uk.gov.hmrc.play.http.HeaderCarrier
+import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
 class ValidationService(fileUploadService: FileUploadService) {
 
-  def validateComponents(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId): ValidatedType =
+  def validateComponents(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(fieldValue, data, fileUploadService, envelopeId).validate()
 }
 
 class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {
 
-  def validate(): ValidatedType = fieldValue.`type` match {
-    case date @ Date(_, _, _) =>
-      val reqFieldValidResult = validateDateRequiredField(fieldValue)(data)
-      val otherRulesValidResult = validateDate(fieldValue, date)(data)
-
-      Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
+  def validate()(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
+    case date @ Date(_, _, _) => validateDate(date)
 
     case Text(_, _) => validateText(fieldValue)(data)
     case address @ Address(_) => validateAddress(fieldValue, address)(data)
     case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
-    case Group(_, _, _, _, _, _) => Valid(()) //a group is read-only
+    case Group(_, _, _, _, _, _) => validF //a group is read-only
     case FileUpload() => validateFileUpload()
-    case InformationMessage(_, _) => Valid(())
+    case InformationMessage(_, _) => validF
+  }
+
+  private lazy val validF = Future.successful(Valid(()))
+
+  private def validateDate(date: Date): Future[ValidatedType] = Future.successful {
+    val reqFieldValidResult = validateDateRequiredField(fieldValue)(data)
+    val otherRulesValidResult = validateDate(fieldValue, date)(data)
+
+    Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
   }
 
   private lazy val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
@@ -128,20 +136,20 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  private def validateFileUpload(): ValidatedType = {
-    val envelope = fileUploadService.getEnvelope(envelopeId)
-    val fileId = FileId(fieldValue.id.value)
-    val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
-    file match {
-      case Some(File(fileId, Error(reason), fileName)) => Invalid(Map(fieldValue.id -> Set(reason)))
-      case Some(File(fileId, _, fileName)) => Valid(())
-      case None => if (fieldValue.mandatory) Invalid(Map(fieldValue.id -> Set("You must upload a file"))) else Valid(())
+  private def validateFileUpload()(implicit hc: HeaderCarrier): Future[ValidatedType] = fileUploadService
+    .getEnvelope(envelopeId).map { envelope =>
+
+      val fileId = FileId(fieldValue.id.value)
+      val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
+      file match {
+        case Some(File(fileId, Error(reason), fileName)) => Invalid(Map(fieldValue.id -> Set(reason)))
+        case Some(File(fileId, _, fileName)) => Valid(())
+        case None => if (fieldValue.mandatory) Invalid(Map(fieldValue.id -> Set("You must upload a file"))) else Valid(())
+      }
     }
-  }
 
-  private def validateText(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
+  private def validateText(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val textData = data.get(fieldValue.id).toList.flatten
-
     fieldValue.mandatory match {
       case true => validateRequired(fieldValue.id)(textData)
       case false => Valid(())
@@ -164,7 +172,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  private def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
+  private def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val choiceValue = data.get(fieldValue.id).toList.flatten
 
     (fieldValue.mandatory, choiceValue) match {
@@ -177,7 +185,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   def validateFF(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
-  def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): ValidatedType = {
+  def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withJSSafeSuffix(suffix)).toList.flatten
 
     def validateRequiredFied(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _

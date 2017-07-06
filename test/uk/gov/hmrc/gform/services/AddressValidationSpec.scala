@@ -20,15 +20,18 @@ import java.time.LocalDate
 
 import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{FlatSpec, Matchers}
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.validation.ComponentsValidator
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
+class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
 
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
     val address = Address(international = false)
@@ -43,9 +46,8 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-street4") -> Seq("S4"),
       FieldId("x-postcode") -> Seq("P1 1P")
     )
-
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
-
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    
     result.value should be(())
   }
 
@@ -60,7 +62,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-postcode") -> Seq("P1 1P")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
 
     result.value should be(())
@@ -76,7 +78,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-postcode") -> Seq("P1 1P")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("street1") -> Set("must be entered")))
   }
@@ -91,7 +93,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-street1") -> Seq("S")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must be entered")))
   }
@@ -107,7 +109,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.value should be(())
   }
@@ -122,7 +124,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-street1") -> Seq("S")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("country") -> Set("must be entered")))
   }
@@ -139,7 +141,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must not be entered")))
   }
@@ -155,7 +157,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x-country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(
       speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must be entered"),
@@ -174,7 +176,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       FieldId("x@country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService]).validate()
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(
       Map(
@@ -183,4 +185,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers {
       )
     )
   }
+
+  implicit lazy val hc = HeaderCarrier()
+
 }

@@ -85,45 +85,44 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
       val envelopeId = request.session.getEnvelopeId.get
 
-      val validatedData: Seq[ValidatedType] = atomicFields.map(fv =>
-        validationService.validateComponents(fv, data, envelopeId))
+      val validatedData: Future[Seq[ValidatedType]] = Future.sequence(atomicFields.map(fv =>
+        validationService.validateComponents(fv, data, envelopeId)))
 
-      val validatedDataResult: ValidatedType = Monoid[ValidatedType].combineAll(validatedData)
+      val validatedDataResult: Future[ValidatedType] = validatedData.map(validatedData => Monoid[ValidatedType].combineAll(validatedData))
 
       val envelope = fileUploadService.getEnvelope(envelopeId)
-      val finalResult: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] =
-        ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
+      val finalResult: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
+        for {
+          validatedDataResult <- validatedDataResult
+          envelope <- envelope
+        } yield ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
 
-      def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+      def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
+        case Left(listFormValidation) =>
+          val map: Map[FieldValue, FormFieldValidationResult] = listFormValidation.map { validResult =>
 
-        finalResult match {
-          case Left(listFormValidation) =>
-            val map: Map[FieldValue, FormFieldValidationResult] = listFormValidation.map { validResult =>
-
-              val extractedFieldValue = validResult match {
-                case FieldOk(fv, _) => fv
-                case FieldError(fv, _, _) => fv
-                case ComponentField(fv, _) => fv
-                case FieldGlobalOk(fv, _) => fv
-                case FieldGlobalError(fv, _, _) => fv
-              }
-
-              extractedFieldValue -> validResult
-            }.toMap
-
-            page.renderPage(data, formIdOpt, Some(map.get))
-
-          case Right(listFormValidation) =>
-            val formFieldIds = listFormValidation.map(_.toFormField)
-            val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
-
-            val formData = FormData(formTypeId, version, "UTF-8", formFields)
-            submitOrUpdate(formIdOpt, formData, false).flatMap {
-              case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
-              case result => continuation(result)
+            val extractedFieldValue = validResult match {
+              case FieldOk(fv, _) => fv
+              case FieldError(fv, _, _) => fv
+              case ComponentField(fv, _) => fv
+              case FieldGlobalOk(fv, _) => fv
+              case FieldGlobalError(fv, _, _) => fv
             }
-        }
 
+            extractedFieldValue -> validResult
+          }.toMap
+
+          page.renderPage(data, formIdOpt, Some(map.get))
+
+        case Right(listFormValidation) =>
+          val formFieldIds = listFormValidation.map(_.toFormField)
+          val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
+
+          val formData = FormData(formTypeId, version, "UTF-8", formFields)
+          submitOrUpdate(formIdOpt, formData, false).flatMap {
+            case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
+            case result => continuation(result)
+          }
       }
 
       val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
@@ -142,17 +141,18 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
               }
             case SaveAndExit =>
 
-              val formFieldsList = finalResult match {
+              val formFieldsList: Future[List[FormFieldValidationResult]] = finalResult.map {
                 case Left(formFieldResultList) => formFieldResultList
                 case Right(formFieldResultList) => formFieldResultList
               }
 
-              val formFieldIds: List[List[FormField]] = formFieldsList.map(_.toFormFieldTolerant)
-              val formFields = formFieldIds.flatten
+              val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
+              val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 
-              val formData = FormData(formTypeId, version, "UTF-8", formFields)
+              val formData = formFields.map(formFields => FormData(formTypeId, version, "UTF-8", formFields))
 
-              submitOrUpdate(formIdOpt, formData, true).map(response => Ok(Json.toJson(response)))
+              formData.flatMap(formData =>
+                submitOrUpdate(formIdOpt, formData, true).map(response => Ok(Json.toJson(response))))
 
             case SaveAndSummary =>
               saveAndProcessResponse { saveResult =>
