@@ -84,25 +84,24 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     "decision" -> nonEmptyText
   )(Choice.apply)(Choice.unapply))
 
-  def decision(formTypeId: FormTypeId, version : String, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
-    implicit request =>
+  def decision(formTypeId: FormTypeId, version: String, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
 
     choice.bindFromRequest.fold(
       errors => {
         Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId)))
       },
       success => {
-            success.decision match {
-              case "continue" =>
-                formById(formTypeId, version, formId)(request)
-              case "delete" =>
-                Logger.info("NONE")
-                DeleteService.deleteForm(formId)
-                newForm(formTypeId, version)(request)
-              case _ =>
-                Logger.warn("Unexpected result")
-                newForm(formTypeId, version)(request)
-            }
+        success.decision match {
+          case "continue" =>
+            formById(formTypeId, version, formId)(request)
+          case "delete" =>
+            Logger.info("NONE")
+            DeleteService.deleteForm(formId)
+            newForm(formTypeId, version)(request)
+          case _ =>
+            Logger.warn("Unexpected result")
+            newForm(formTypeId, version)(request)
+        }
       }
     )
   }
@@ -113,14 +112,19 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     val envelopeId = request.session.getEnvelopeId.get
     val envelope = fileUploadService.getEnvelope(envelopeId)
 
-    SaveService.getFormById(formTypeId, version, formId).flatMap { (formData: FormData) =>
+        val result = if (IsEncrypt.is) {
+      authConnector.getUserDetails[UserId](authContext).flatMap { x =>
+        SaveService.getFormById(formTypeId, version, x)
+      }
+    } elseSaveService.getFormById(formTypeId, version, formId)result.flatMap { form =>
 
-      val fieldIdToStrings: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
+      val fieldIdToStrings: Map[FieldId, Seq[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
-      val formTemplate = request.formTemplate
-      envelope.flatMap(envelope =>
-        Page(currPage, formTemplate, repeatService, envelope).renderPage(fieldIdToStrings, Some(formId), None))
-    }
+          val formTemplate = request.formTemplate
+envelope.flatMap(envelope =>
+          Page(currPage, formTemplate, repeatService, envelope).renderPage(fieldIdToStrings, Some(formId), None))
+
+        }
   }
 
   def save(formTypeId: FormTypeId, version: Version, pageIdx: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
@@ -131,7 +135,8 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
       val formId = request.session.getFormId.get
 
           Logger.info("NEW PAGE SAVE")
-      val page = envelope.map(envelope =>Page(pageIdx, formTemplate, repeatService, envelope))
+
+          val page = envelope.map(envelope =>Page(pageIdx, formTemplate, repeatService, envelope))
 
       val atomicFields: Future[List[FieldValue]] = page.map(_.section.atomicFields(repeatService))
 
@@ -209,9 +214,9 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     }
   }
 
-  private def isStarted(formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier) = {
-    authConnector.getUserDetails[UserDetails](authContext).flatMap { x =>
-      RetrieveService.getStartedForm(x.groupIdentifier)
+  private def isStarted(formTypeId: FormTypeId, version: String)(implicit authContext: AuthContext, hc: HeaderCarrier) = {
+    authConnector.getUserDetails[UserId](authContext).flatMap { x =>
+      RetrieveService.getStartedForm(x, formTypeId, version)
     }
   }
 

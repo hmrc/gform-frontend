@@ -44,7 +44,7 @@ object RetrieveService {
     })
   }
 
-  def getStartedForm(userId: String, formTypeId: FormTypeId)(implicit hc: HeaderCarrier): Future[Option[FormId]] = {
-    bformsConnector.getByUserId(userId, formTypeId)
+  def getStartedForm(userId: UserId, formTypeId: FormTypeId, version: String)(implicit hc: HeaderCarrier): Future[Option[FormId]] = {
+    bformsConnector.getByUserId(userId, formTypeId, version)
   }
 }
