@@ -57,47 +57,31 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
         Summary(request.formTemplate).renderSummary(formDataMap(form.formData), form._id))
     }
 
-  def submit(formTypeId: FormTypeId, version: String) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
-    processResponseDataFromBody(request) { data =>
-      get(data, FieldId("save")) match {
-        case "Exit" :: Nil =>
-          Future.successful(Ok)
-        case "Continue" :: Nil =>
-          anyFormId(data) match {
-            case Some(formId) =>
-              if (IsEncrypt.is) {
-                authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-                  SaveService.sendSubmission(formTypeId, x, version).
+  def submit(formTypeId: FormTypeId, version: String) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>
+    implicit request =>
+      processResponseDataFromBody(request) { data =>
+        get(data, FieldId("save")) match {
+          case "Exit" :: Nil =>
+            Future.successful(Ok)
+          case "Continue" :: Nil =>
+            anyFormId(data) match {
+              case Some(formId) =>
+                if (IsEncrypt.is) {
+                  authConnector.getUserDetails[UserId](authContext).flatMap { x =>
+                    SaveService.sendSubmission(formTypeId, x, version).
+                      map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
+                  }
+                } else {
+                  SaveService.sendSubmission(formTypeId, formId).
                     map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
                 }
-              } else {
-                SaveService.sendSubmission(formTypeId, formId).
-                  map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
-              }
-            case None =>
-              Future.successful(BadRequest("No formId"))
-          }
-        case _ =>
-          Future.successful(BadRequest("Cannot determine action"))
+              case None =>
+                Future.successful(BadRequest("No formId"))
+            }
+          case _ =>
+            Future.successful(BadRequest("Cannot determine action"))
+        }
       }
-    }
-  def submit(formTypeId: FormTypeId, version: Version) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
-    processResponseDataFromBody(request) { data =>
-      get(data, FieldId("save")) match {
-        case "Exit" :: Nil =>
-          Future.successful(Ok)
-        case "Continue" :: Nil =>
-          anyFormId(data) match {
-            case Some(formId) =>
-              SaveService.sendSubmission(formTypeId, formId).
-                map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
-            case None =>
-              Future.successful(BadRequest("No formId"))
-          }
-        case _ =>
-          Future.successful(BadRequest("Cannot determine action"))
-      }
-    }
   }
 
   private lazy val fileUploadService = fileUploadModule.fileUploadService
