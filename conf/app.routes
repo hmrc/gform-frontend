@@ -1,7 +1,7 @@
 # microservice specific routes
 
 GET         /new-form/:formTypeId/:version              @uk.gov.hmrc.gform.controllers.FormController.newForm(formTypeId: FormTypeId, version: Version)
-GET         /form/file-upload-page/:fileId                   @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(fileId: String)
+GET         /form/file-upload-page/:fileId              @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(fileId: String)
 
 GET         /form                                       @uk.gov.hmrc.gform.controllers.FormController.form()
 

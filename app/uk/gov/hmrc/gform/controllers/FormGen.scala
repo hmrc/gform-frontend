@@ -48,11 +48,15 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
   def form(formTypeId: FormTypeId, version: Version) =
     sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
-      val envelopeId = request.session.getEnvelopeId.get
-      val envelope = fileUploadService.getEnvelope(envelopeId)
-      val formTemplate = request.formTemplate
-      envelope.flatMap(envelope =>
-        Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
+      val maybeEnvelopeId = request.session.getEnvelopeId
+      maybeEnvelopeId.map { envelopeId =>
+        val envelopeId = maybeEnvelopeId.get
+        val envelope = fileUploadService.getEnvelope(envelopeId)
+        val formTemplate = request.formTemplate
+        envelope.flatMap(envelope => Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
+      }.getOrElse(
+        Future.successful(Ok(s"You haven't started a form yet. Goto: ${routes.FormController.newForm(formTypeId, version)}"))
+      )
     }
 
   def formById(formTypeId: FormTypeId, version: Version, formId: FormId) = formByIdPage(formTypeId, version, formId, 0)
