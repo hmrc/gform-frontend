@@ -33,6 +33,8 @@ import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Result }
+import uk.gov.hmrc.gform.connectors.IsEncrypt
+
 import play.api.mvc.{Action, AnyContent, Result}
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
@@ -44,6 +46,9 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.service.{ RetrieveService, SaveService }
+
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.gform.service.{ RetrieveService, SaveService}
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import scala.concurrent.{ExecutionContext, Future}
@@ -66,22 +71,24 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
   def entryPoint(formTypeId: FormTypeId, version: Version): Action[AnyContent] =  sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
     implicit request =>
 
-      isStarted(formTypeId).flatMap{
-        case None =>
-          newForm(formTypeId, version)(request)
-        case Some(x) =>
-          Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, x)))
-      }
+    isStarted(formTypeId, version).flatMap {
+      case None =>
+        newForm(formTypeId, version)(request)
+      case Some(x) =>
+        Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, x)))
+    }
   }
 
   def newForm(formTypeId: FormTypeId, version: String): Action[AnyContent] =
-    sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
-      val maybeEnvelopeId = request.session.getEnvelopeId
+    sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
+      implicit request =>
+val maybeEnvelopeId = request.session.getEnvelopeId
       maybeEnvelopeId.map { envelopeId =>
         val envelopeId = maybeEnvelopeId.get
         val envelope = fileUploadService.getEnvelope(envelopeId)
         val formTemplate = request.formTemplate
-        envelope.flatMap(envelope => Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
+
+           envelope.flatMap(envelope => Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
       }.getOrElse(
         Future.successful(Ok(s"You haven't started a form yet. Goto: ${routes.FormController.newForm(formTypeId, version)}"))
       )
@@ -100,17 +107,17 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
         Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId)))
       },
       success => {
-            success.decision match {
-              case "continue" =>
-                formById(formTypeId, version, formId)(request)
-              case "delete" =>
-                Logger.info("NONE")
-                DeleteService.deleteForm(formId)
-                newForm(formTypeId, version)(request)
-              case _ =>
-                Logger.warn("Unexpected result")
-                newForm(formTypeId, version)(request)
-            }
+        success.decision match {
+          case "continue" =>
+            formById(formTypeId, version, formId)(request)
+          case "delete" =>
+            Logger.info("NONE")
+            DeleteService.deleteForm(formId)
+            newForm(formTypeId, version)(request)
+          case _ =>
+            Logger.warn("Unexpected result")
+            newForm(formTypeId, version)(request)
+        }
       }
     )
   }
@@ -123,9 +130,10 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
         val result = if (IsEncrypt.is) {
       authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-        SaveService.getFormByIdCache(formTypeId, version, x)
+        SaveService.getFormById(formTypeId, version, x)
       }
-    } elseSaveService.getFormById(formTypeId, version, formId)result.flatMap { form =>
+    } else
+          SaveService.getFormById(formTypeId, version, formId)result.flatMap { form =>
 
       val fieldIdToStrings: Map[FieldId, Seq[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
@@ -235,9 +243,9 @@ envelope.flatMap(envelope =>
     case FieldGlobalError(fv, _, _) => fv
   }
 
-  private def isStarted(implicit authContext: AuthContext, hc: HeaderCarrier) = {
-    authConnector.getUserDetails[UserDetails](authContext).flatMap { x =>
-      RetrieveService.getStartedForm(x.groupIdentifier)
+  private def isStarted(formTypeId: FormTypeId, version: String)(implicit authContext: AuthContext, hc: HeaderCarrier) = {
+    authConnector.getUserDetails[UserId](authContext).flatMap { x =>
+      RetrieveService.getStartedForm(x, formTypeId, version)
     }
   }
 
