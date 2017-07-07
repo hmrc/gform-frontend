@@ -21,6 +21,7 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model.FormTemplate
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.withOffset
@@ -39,7 +40,8 @@ class PageShader(
     formTemplate: FormTemplate,
     section: Section,
     f: Option[FieldValue => Option[FormFieldValidationResult]],
-    repeatService: RepeatingComponentService
+    repeatService: RepeatingComponentService,
+    envelope: Envelope
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
@@ -134,7 +136,7 @@ class PageShader(
 
   private lazy val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
   private lazy val hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
-  private lazy val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields(repeatService), repeatService)
+  private lazy val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields(repeatService), repeatService, envelope)
   private def validate(fieldValue: FieldValue): Option[FormFieldValidationResult] = f.getOrElse(okF)(fieldValue)
 
 }

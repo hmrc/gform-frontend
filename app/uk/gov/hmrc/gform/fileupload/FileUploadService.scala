@@ -26,4 +26,5 @@ class FileUploadService(fileUploadConnector: FileUploadConnector) {
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
     fileUploadConnector.getEnvelope(envelopeId)
   }
+
 }

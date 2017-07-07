@@ -22,7 +22,7 @@ import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
@@ -69,7 +69,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue 
+    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beRight(())
   }

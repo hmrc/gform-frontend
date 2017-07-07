@@ -20,7 +20,8 @@ import play.api.i18n.Messages
 import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTemplate }
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.Fields._
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
@@ -30,10 +31,11 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 case class SummaryForRender(snippets: List[Html], javascripts: String)
 
 object SummaryForRender {
-  def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): SummaryForRender = {
+
+  def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope)(implicit hc: HeaderCarrier): SummaryForRender = {
     val fields: List[FieldValue] = formTemplate.sections.flatMap(s => s.atomicFields(repeatService))
 
-    val values: FieldValue => Option[FormFieldValidationResult] = okValues(data, fields, repeatService)
+    val values: FieldValue => Option[FormFieldValidationResult] = okValues(data, fields, repeatService, envelope)
 
     def valueToHtml(fieldValue: FieldValue): Html = {
 
@@ -60,17 +62,7 @@ object SummaryForRender {
 
           uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
         case FileUpload() => {
-          val fuFieldValue = FieldValue(
-            FieldId("regNum"),
-            Text(Constant(""), total = false),
-            label = "files uploaded go here...",
-            shortName = fieldValue.shortName,
-            helpText = None,
-            mandatory = true,
-            editable = true,
-            submissible = true
-          )
-          uk.gov.hmrc.gform.views.html.snippets.summary.text(fuFieldValue, Text(Constant("file"), false), values(fuFieldValue))
+          uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(Constant("file"), false), values(fieldValue))
         }
         case InformationMessage(_, _) => Html("")
         case Group(_, _, _, _, _, _) => groupToHtml(fieldValue)
@@ -95,13 +87,14 @@ object SummaryForRender {
     }
     SummaryForRender(snippets, fieldJavascript(fields))
   }
+
 }
 
 case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): SummaryForRender =
-    SummaryForRender(formFields, formId, formTemplate, repeatService)
+  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope)(implicit hc: HeaderCarrier): SummaryForRender =
+    SummaryForRender(formFields, formId, formTemplate, repeatService, envelope)
 
-  def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService)(implicit request: Request[_], messages: Messages, hc: HeaderCarrier): Result = {
-    Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender(formFields, formId, repeatService), formId))
+  def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope)(implicit request: Request[_], messages: Messages, hc: HeaderCarrier): Result = {
+    Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender(formFields, formId, repeatService, envelope), formId))
   }
 }

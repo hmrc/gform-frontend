@@ -20,6 +20,7 @@ import play.api.i18n.Messages
 import play.api.mvc.Results.Ok
 import play.api.mvc.{ Request, Result }
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate }
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
@@ -38,15 +39,16 @@ object PageForRender {
     formTemplate: FormTemplate,
     section: Section,
     f: Option[FieldValue => Option[FormFieldValidationResult]],
-    repeatService: RepeatingComponentService
-  )(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = new PageShader(curr, fieldData, formTemplate, section, f, repeatService).render()
+    repeatService: RepeatingComponentService,
+    envelope: Envelope
+  )(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = new PageShader(curr, fieldData, formTemplate, section, f, repeatService, envelope).render()
 
 }
 
-case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate, repeatService: RepeatingComponentService) {
+case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope) {
 
   def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] =
-    PageForRender(curr, fieldData, formTemplate, section, f, repeatService)
+    PageForRender(curr, fieldData, formTemplate, section, f, repeatService, envelope)
 
   def renderPage(fieldData: Map[FieldId, Seq[String]], formId: Option[FormId], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
     pageForRender(fieldData, f).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
@@ -55,7 +57,7 @@ case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate:
 }
 
 object Page {
-  def apply(currentPage: Int, formTemplate: FormTemplate, repeatService: RepeatingComponentService): Page = {
+  def apply(currentPage: Int, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope): Page = {
     val lastPage = formTemplate.sections.size - 1
 
     val curr = currentPage match {
@@ -66,6 +68,6 @@ object Page {
 
     val section = formTemplate.sections(curr)
 
-    Page(Math.max(0, curr - 1), curr, Math.min(lastPage, curr + 1), section, formTemplate, repeatService)
+    Page(Math.max(0, curr - 1), curr, Math.min(lastPage, curr + 1), section, formTemplate, repeatService, envelope)
   }
 }

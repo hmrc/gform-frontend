@@ -22,7 +22,7 @@ import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
@@ -47,7 +47,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FieldId("x-postcode") -> Seq("P1 1P")
     )
     val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
-    
+
     result.value should be(())
   }
 
@@ -63,7 +63,6 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
     )
 
     val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
-
 
     result.value should be(())
   }

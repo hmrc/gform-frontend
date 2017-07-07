@@ -21,6 +21,7 @@ import javax.inject.{ Inject, Singleton }
 import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
+import uk.gov.hmrc.gform.fileupload.{ FileUploadModule, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId, Version }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
@@ -30,13 +31,19 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService)(implicit ec: ExecutionContext)
+class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, fileUploadModule: FileUploadModule)(implicit ec: ExecutionContext)
     extends FrontendController with I18nSupport {
+  import GformSession._
 
   def summaryById(formTypeId: FormTypeId, version: Version, formId: FormId) =
     sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
-      SaveService.getFormById(formTypeId, version, formId).map(formData =>
-        Summary(request.formTemplate).renderSummary(formDataMap(formData), formId, repeatService))
+      val envelopeId = request.session.getEnvelopeId.get
+      val envelope = fileUploadService.getEnvelope(envelopeId)
+      for {
+        envelope <- envelope
+        formData <- SaveService.getFormById(formTypeId, version, formId)
+      } yield Summary(request.formTemplate)
+        .renderSummary(formDataMap(formData), formId, repeatService, envelope)
     }
 
   def submit(formTypeId: FormTypeId, version: Version) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
@@ -57,5 +64,7 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
       }
     }
   }
+
+  private lazy val fileUploadService = fileUploadModule.fileUploadService
 
 }

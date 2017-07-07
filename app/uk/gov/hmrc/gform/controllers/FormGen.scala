@@ -44,28 +44,30 @@ import scala.concurrent.{ ExecutionContext, Future }
 @Singleton
 class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, validationModule: ValidationModule, fileUploadModule: FileUploadModule)(implicit ec: ExecutionContext)
     extends FrontendController with I18nSupport {
+  import GformSession._
 
   def form(formTypeId: FormTypeId, version: Version) =
     sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
-
+      val envelopeId = request.session.getEnvelopeId.get
+      val envelope = fileUploadService.getEnvelope(envelopeId)
       val formTemplate = request.formTemplate
-
-      Page(0, formTemplate, repeatService).renderPage(Map(), None, None)
-
+      envelope.flatMap(envelope =>
+        Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
     }
 
   def formById(formTypeId: FormTypeId, version: Version, formId: FormId) = formByIdPage(formTypeId, version, formId, 0)
 
   def formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, currPage: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
+    val envelopeId = request.session.getEnvelopeId.get
+    val envelope = fileUploadService.getEnvelope(envelopeId)
 
     SaveService.getFormById(formTypeId, version, formId).flatMap { (formData: FormData) =>
 
       val fieldIdToStrings: Map[FieldId, Seq[String]] = formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
       val formTemplate = request.formTemplate
-
-      Page(currPage, formTemplate, repeatService).renderPage(fieldIdToStrings, Some(formId), None)
-
+      envelope.flatMap(envelope =>
+        Page(currPage, formTemplate, repeatService, envelope).renderPage(fieldIdToStrings, Some(formId), None))
     }
   }
 
@@ -74,27 +76,28 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
   def save(formTypeId: FormTypeId, version: Version, pageIdx: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       val formTemplate = request.formTemplate
+      val envelopeId = request.session.getEnvelopeId.get
+      val envelope = fileUploadService.getEnvelope(envelopeId)
 
-      val page = Page(pageIdx, formTemplate, repeatService)
+      val page = envelope.map(envelope => Page(pageIdx, formTemplate, repeatService, envelope))
 
       val formIdOpt: Option[FormId] = anyFormId(data)
 
-      val atomicFields = page.section.atomicFields(repeatService)
+      val atomicFields: Future[List[FieldValue]] = page.map(_.section.atomicFields(repeatService))
 
-      import GformSession._
-
-      val envelopeId = request.session.getEnvelopeId.get
-
-      val validatedData: Future[Seq[ValidatedType]] = Future.sequence(atomicFields.map(fv =>
-        validationService.validateComponents(fv, data, envelopeId)))
+      val validatedData: Future[Seq[ValidatedType]] = for {
+        atomicFields <- atomicFields
+        validateData <- Future.sequence(atomicFields.map(fv =>
+          validationService.validateComponents(fv, data, envelopeId)))
+      } yield validateData
 
       val validatedDataResult: Future[ValidatedType] = validatedData.map(validatedData => Monoid[ValidatedType].combineAll(validatedData))
 
-      val envelope = fileUploadService.getEnvelope(envelopeId)
       val finalResult: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
         for {
           validatedDataResult <- validatedDataResult
           envelope <- envelope
+          atomicFields <- atomicFields
         } yield ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
 
       def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
@@ -112,7 +115,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
             extractedFieldValue -> validResult
           }.toMap
 
-          page.renderPage(data, formIdOpt, Some(map.get))
+          page.flatMap(page => page.renderPage(data, formIdOpt, Some(map.get)))
 
         case Right(listFormValidation) =>
           val formFieldIds = listFormValidation.map(_.toFormField)
@@ -127,9 +130,9 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
       val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
       val optSectionIdx = BooleanExpr.nextTrueIdxOpt(pageIdx, booleanExprs, data)
-      val optNextPage = optSectionIdx.map(i => Page(i, formTemplate, repeatService))
-      val actionE = FormAction.determineAction(data, optNextPage)
-      actionE match {
+      val optNextPage = envelope.map(envelope => optSectionIdx.map(i => Page(i, formTemplate, repeatService, envelope)))
+      val actionE = optNextPage.map(optNextPage => FormAction.determineAction(data, optNextPage))
+      actionE.flatMap {
         case Right(action) =>
           action match {
             case SaveAndContinue(nextPageToRender) =>
@@ -167,7 +170,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
               }
             case AddGroup(groupId) =>
               repeatService.increaseGroupCount(groupId).flatMap { _ =>
-                page.renderPage(data, formIdOpt, None)
+                page.flatMap(page => page.renderPage(data, formIdOpt, None))
               }
           }
 
@@ -200,3 +203,4 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
   private lazy val validationService = validationModule.validationService
   private lazy val fileUploadService = fileUploadModule.fileUploadService
 }
+

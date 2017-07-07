@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.controllers
 import javax.inject.Inject
 
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.controllers.GformSession.envelopeId
+import uk.gov.hmrc.gform.fileupload.{ FileUploadModule, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.Page
@@ -31,7 +33,8 @@ class FormController @Inject() (
     controllersModule: ControllersModule,
     gformBackendModule: GformBackendModule,
     configModule: ConfigModule,
-    repeatService: RepeatingComponentService
+    repeatService: RepeatingComponentService,
+    fileUploadModule: FileUploadModule
 ) extends FrontendController {
 
   import AuthenticatedRequest._
@@ -58,9 +61,12 @@ class FormController @Inject() (
   def form() = auth.async { implicit c =>
     val formTypeId = c.request.session.getFormTypeId.get
     val version = c.request.session.getVersion.get
+    val envelopeId = c.request.session.getEnvelopeId.get
+    val envelope = fileUploadService.getEnvelope(envelopeId)
     for {
       formTemplate <- gformConnector.getFormTemplate(formTypeId, version)
-      response <- Page(0, formTemplate, repeatService).renderPage(Map(), None, None)
+      envelope <- envelope
+      response <- Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None)
     } yield response
   }
 
@@ -84,4 +90,5 @@ class FormController @Inject() (
   private lazy val redirectToForm = Redirect(routes.FormController.form())
   private lazy val redirectToFormF = Future.successful(redirectToForm)
   private lazy val firstSection = SectionNumber(0)
+  private lazy val fileUploadService = fileUploadModule.fileUploadService
 }

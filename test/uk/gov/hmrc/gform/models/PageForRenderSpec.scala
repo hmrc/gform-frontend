@@ -20,11 +20,13 @@ import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.collection.immutable.List
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
@@ -99,6 +101,7 @@ class PageForRenderSpec extends FlatSpec with Matchers {
   )
 
   val mockRepeatService = mock[RepeatingComponentService]
+  val envelope = Envelope(files = Nil)
   implicit val hc = HeaderCarrier()
   implicit val mockAuthContext = mock[AuthContext]
 
@@ -109,7 +112,8 @@ class PageForRenderSpec extends FlatSpec with Matchers {
       formTemplate = formTemplate,
       section = section,
       f = None,
-      mockRepeatService
+      mockRepeatService,
+      envelope
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -187,7 +191,8 @@ class PageForRenderSpec extends FlatSpec with Matchers {
       formTemplate = formTemplate.copy(sections = List(grpSection)),
       section = grpSection,
       f = None,
-      testGrpRepSrvc
+      testGrpRepSrvc,
+      envelope
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -215,7 +220,8 @@ class PageForRenderSpec extends FlatSpec with Matchers {
       formTemplate = formTemplate.copy(sections = List(grpSection)),
       section = grpSection,
       f = None,
-      testGrpRepSrvc
+      testGrpRepSrvc,
+      envelope
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)

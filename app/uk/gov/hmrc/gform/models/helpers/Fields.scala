@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
+import java.io
+
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model.FormField
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components._
@@ -24,7 +27,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Fields {
 
-  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], repeatService: RepeatingComponentService)(fieldValue: FieldValue)(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
+  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], repeatService: RepeatingComponentService, envelope: Envelope)(fieldValue: FieldValue)(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
     val formFields = toFormField(formFieldMap, fieldValues, repeatService).map(hf => hf.id -> hf).toMap
     fieldValue.`type` match {
       case Address(_) | Date(_, _, _) =>
@@ -47,7 +50,8 @@ object Fields {
         fieldOks.map(data => ComponentField(fieldValue, data))
 
       case FileUpload() => formFields.get(fieldValue.id).map { formField =>
-        FieldOk(fieldValue, formField.value)
+        val fileName = envelope.files.find(_.fileId.value == formField.id.value).map(_.fileName).getOrElse("")
+        FieldOk(fieldValue, fileName)
       }
       case InformationMessage(_, _) => None
     }

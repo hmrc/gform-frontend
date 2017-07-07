@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.service.RepeatingComponentService
 import org.scalatest.mockito.MockitoSugar.mock
 import org.mockito.Matchers._
 import org.mockito.Mockito._
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
@@ -62,7 +63,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       FieldId("nameOfBusiness") -> Seq("Test!Business details!Test")
     )
 
-    val render = summary.summaryForRender(formData, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(formData, FormId(""), mockRepeatService, Envelope(Nil))
 
     render.snippets.size should be(9)
 
@@ -79,7 +80,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       )
     )
 
-    val render = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"), mockRepeatService)
+    val render = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"), mockRepeatService, Envelope(Nil))
     //    render should be(List())
 
     val testStringValues = extractAllTestStringValues(render.snippets)
@@ -110,7 +111,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       FieldId("HomeAddress-country") -> Seq("Test!UK!Test")
     )
 
-    val render = summary.summaryForRender(formFields, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(formFields, FormId(""), mockRepeatService, Envelope(Nil))
 
     val testStringValues = extractAllTestStringValues(render.snippets)
     testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
@@ -120,7 +121,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
   it should "display the title when shortName is not present in the section" in {
     val summary = Summary(formTemplate)
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.head.toString())
     doc.getElementsByTag("H2").text().equalsIgnoreCase("your details") shouldBe true
@@ -131,7 +132,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(shortName = Some(shortName))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.head.toString())
     doc.getElementsByTag("H2").text().equalsIgnoreCase(shortName) shouldBe true
@@ -152,7 +153,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -174,7 +175,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -197,7 +198,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -220,7 +221,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -243,7 +244,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -266,7 +267,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -289,7 +290,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -312,7 +313,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService)
+    val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.snippets.mkString)
 
@@ -325,9 +326,9 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       sections = List(section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))))
     ))
 
-    val renderWithDataMatching = summary.summaryForRender(Map(FieldId("firstName") -> Seq("Pete")), FormId(""), mockRepeatService)
+    val renderWithDataMatching = summary.summaryForRender(Map(FieldId("firstName") -> Seq("Pete")), FormId(""), mockRepeatService, Envelope(Nil))
     renderWithDataMatching.snippets.size shouldBe 3
-    val renderWithDataMismatch = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""), mockRepeatService)
+    val renderWithDataMismatch = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""), mockRepeatService, Envelope(Nil))
     renderWithDataMismatch.snippets.size shouldBe 0
 
   }
@@ -346,7 +347,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val formTemplateWGroupNoShortname = formTemplate.copy(
       sections = List(section0)
     )
-    val render0 = Summary(formTemplateWGroupNoShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService)
+    val render0 = Summary(formTemplateWGroupNoShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService, Envelope(Nil))
 
     extractAllTestStringValues(render0.snippets) should be(List("group-label"))
 
@@ -354,7 +355,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       sections = List(Section("", None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
     )
 
-    val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService)
+    val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService, Envelope(Nil))
 
     extractAllTestStringValues(render1.snippets) should be(List("group-shortname"))
   }
@@ -366,7 +367,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     )
     val summary = Summary(ftWithOneInclIfSection)
 
-    val htmls = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""), mockRepeatService).snippets
+    val htmls = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""), mockRepeatService, Envelope(Nil)).snippets
 
     val htmlAheadOfSection2 = htmls(3)
 
