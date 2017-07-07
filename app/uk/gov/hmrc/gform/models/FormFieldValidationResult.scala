@@ -157,17 +157,17 @@ object ValidationUtil {
     }
   }
 
-  def evaluateValidationResult(
-    atomicFields: List[FieldValue],
-    validationResult: ValidatedType,
-    data: Map[FieldId, Seq[String]],
+  def evaluateValidationResult(atomicFields: List[FieldValue], validationResult: ValidatedType, data: Map[FieldId, Seq[String]],
     envelope: Envelope
-  ): Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
+  ):
+  Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
 
     val dataGetter: FieldId => Seq[String] = fId => data.get(fId).toList.flatten
 
-    val gformErrors: Map[FieldId, Set[String]] = validationResult match {
-      case Invalid(errors) => errors
+    val gFormErrors = validationResult match {
+      case Invalid(errors) =>
+        errors
+
       case Valid(()) => Map.empty[FieldId, Set[String]]
     }
 

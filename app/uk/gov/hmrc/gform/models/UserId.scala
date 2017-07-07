@@ -16,12 +16,29 @@
 
 package uk.gov.hmrc.gform.models
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
+import play.api.libs.json._
 
-case class UserDetails(groupIdentifier: String)
+case class UserId(value: String)
 
-object UserDetails {
+object UserId {
 
-  implicit val reads = Json.reads[UserDetails]
+  val reads = new Reads[UserId] {
+    override def reads(json: JsValue): JsResult[UserId] = {
+      (json \ "groupIdentifier") match {
+        case JsDefined(JsString(x)) => JsSuccess(UserId(x))
+        case _ => (json \ "userId") match {
+          case JsDefined(JsString(y)) => JsSuccess(UserId(y))
+          case _ => JsError("Failed")
+        }
+      }
+    }
+  }
+
+  val writes = new Writes[UserId] {
+    override def writes(o: UserId): JsValue = {
+      JsString(o.value)
+    }
+  }
+
+  implicit val format: Format[UserId] = Format[UserId](reads, writes)
 }

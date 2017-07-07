@@ -39,3 +39,16 @@ object FormId {
     }
   }
 }
+
+object FormIdAsMongoId {
+  val writes = OWrites[FormId](id => Json.obj("_id" -> id.value))
+
+  val reads = Reads[FormId] { jsObj =>
+    (jsObj \ "_id") match {
+      case JsDefined(JsString(id)) => JsSuccess(FormId(id))
+      case _ => JsError(s"Invalid formId, expected fieldName '_id', got: $jsObj")
+    }
+  }
+
+  val format = OFormat[FormId](reads, writes)
+}

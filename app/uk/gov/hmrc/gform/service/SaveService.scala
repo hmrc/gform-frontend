@@ -38,4 +38,8 @@ object SaveService {
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     gformConnector.sendSubmission(formTypeId, formId)
   }
+
+  def sendSubmission(formTypeId: FormTypeId, userId: UserId, version: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    gformConnector.sendSubmission(formTypeId, userId, version)
+  }
 }
