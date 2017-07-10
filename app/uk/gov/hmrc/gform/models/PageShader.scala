@@ -47,7 +47,8 @@ class PageShader(
   def render(): Future[PageForRender] = {
     val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
     val snippets = Future.sequence(snippetsSeq)
-    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
+    //    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
+    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.fields))
     snippets.map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, javasctipt))
   }
 
@@ -109,21 +110,24 @@ class PageShader(
   }
 
   private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation) = {
-
-    def fireHtmlGeneration(count: Int) = (0 until count).flatMap { count =>
-      if (count == 0) {
-        fvs.map(fv => htmlFor(fv, count))
-      } else {
-        Future.successful(Html(s"""<div><legend class="h3-heading">${groupField.repeatLabel.getOrElse("")} ${count}</legend>""")) +:
-          fvs.map(fv => htmlFor(fv, count)) :+
-          Future.successful(Html("</div>"))
-      }
-    }.toList
-
     for {
-      (count, limitReached) <- repeatService.getCountAndTestIfLimitReached(fieldValue, groupField)
-      lhtml <- Future.sequence(fireHtmlGeneration(count))
+      (lhtml, limitReached) <- getGroupForRendering(fieldValue, groupField, orientation)
     } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, orientation, limitReached)
+  }
+
+  private def getGroupForRendering(fieldValue: FieldValue, groupField: Group, orientation: Orientation): Future[(List[Html], Boolean)] = {
+    if (groupField.repeatsMax.isDefined) {
+      repeatService.getRepeatingGroupsForRendering(fieldValue, groupField).flatMap {
+        case (groupList, isLimit) =>
+          Future.sequence((0 until groupList.size).map { count =>
+            Future.sequence(groupList.map(fv => htmlFor(fv, count))).map { lhtml =>
+              uk.gov.hmrc.gform.views.html.group_element(fieldValue, groupField, lhtml, orientation, count + 1, count == 0)
+            }
+          }.toList).map(a => (a, isLimit))
+      }
+    } else {
+      Future.sequence(groupField.fields.map(fv => htmlFor(fv, 0))).map(a => (a, true))
+    }
   }
 
   private def adjustIdForRepeatingGroups(fieldValue: FieldValue, instance: Int) = {

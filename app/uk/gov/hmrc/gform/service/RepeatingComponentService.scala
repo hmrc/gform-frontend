@@ -18,6 +18,9 @@ package uk.gov.hmrc.gform.service
 
 import javax.inject.{ Inject, Singleton }
 
+import julienrf.json.derived
+import play.api.libs.json.OFormat
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group }
@@ -39,10 +42,33 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     increaseCount(componentId)
   }
 
+  def decreaseGroupCount(formGroupId: String)(implicit hc: HeaderCarrier) = {
+    // on the forms, the RemoveGroup button's name has the following format:
+    // RemoveGroup-(groupFieldId)
+    // that's the reason why the extraction below is required
+    val startPos = formGroupId.indexOf('-') + 1
+    val componentId = formGroupId.substring(startPos)
+    decreaseCount(componentId)
+  }
+
   def increaseCount(componentId: String)(implicit hc: HeaderCarrier) = {
     for {
       countOpt <- sessionCache.fetchAndGetEntry[Int](componentId)
       count = countOpt.getOrElse(1) + 1
+      cacheMap <- sessionCache.cache[Int](componentId, count)
+    } yield cacheMap.getEntry[Int](componentId)
+  }
+
+  def decreaseCount(componentId: String)(implicit hc: HeaderCarrier) = {
+
+    def validateCount(count: Int): Int = count match {
+      case c if c > 1 => c - 1
+      case _ => 1
+    }
+
+    for {
+      countOpt <- sessionCache.fetchAndGetEntry[Int](componentId)
+      count = validateCount(countOpt.getOrElse(0))
       cacheMap <- sessionCache.cache[Int](componentId, count)
     } yield cacheMap.getEntry[Int](componentId)
   }
@@ -93,8 +119,30 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     FieldId(s"${instance}_${fieldValue.id.value}")
   }
 
+  private def isRepeatsMaxReached(count: Int, groupField: Group) = {
+    groupField.repeatsMax match {
+      case Some(max) => if (count >= max) {
+        true
+      } else {
+        false
+      }
+      case None => true
+    }
+  }
+
+  def getRepeatingGroupsForRendering(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+    sessionCache.fetchAndGetEntry[SessionRepeatingGroup](topFieldValue.id.value).map {
+      case Some(repeatingGroup) => (repeatingGroup.dynamicList, isRepeatsMaxReached(repeatingGroup.dynamicList.size, groupField))
+      case None => (groupField.fields, isRepeatsMaxReached(groupField.fields.size, groupField))
+    }
+  }
+
   def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
     val count = synchronousGetValidatedRepeatingCount(topFieldValue, groupField)
+    copyGroupFields(groupField, count)
+  }
+
+  private def copyGroupFields(groupField: Group, count: Int) = {
     (0 until count).flatMap { i =>
       groupField.fields.map { fieldValue =>
         if (i == 0) fieldValue
@@ -113,4 +161,10 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
       case _ => 1
     }
   }
+}
+
+case class SessionRepeatingGroup(count: Int, dynamicList: List[FieldValue])
+
+object SessionRepeatingGroup {
+  implicit val format: OFormat[SessionRepeatingGroup] = derived.oformat
 }
