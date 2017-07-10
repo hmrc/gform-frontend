@@ -130,7 +130,7 @@ val maybeEnvelopeId = request.session.getEnvelopeId
 
         val result = if (IsEncrypt.is) {
       authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-        SaveService.getFormById(formTypeId, version, x)
+        SaveService.getFormByIdCache(formTypeId, version, x)
       }
     } else
           SaveService.getFormById(formTypeId, version, formId)result.flatMap { form =>
@@ -229,11 +229,6 @@ envelope.flatMap(envelope =>
     }
   }
 
-  private def isStarted(formTypeId: FormTypeId, version: String)(implicit authContext: AuthContext, hc: HeaderCarrier) = {
-    authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-      RetrieveService.getStartedForm(x, formTypeId, version)
-    }
-  }
 
   private def extractedFieldValue(validResult: FormFieldValidationResult): FieldValue = validResult match {
     case FieldOk(fv, _) => fv
