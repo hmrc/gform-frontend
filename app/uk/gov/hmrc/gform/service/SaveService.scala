@@ -31,10 +31,6 @@ object SaveService {
     gformConnector.form(formTypeId, version, formId)
   }
 
-  def saveFormData(formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    gformConnector.saveForm(formData, tolerant)
-  }
-
   def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     gformConnector.updateForm(formId, formData, tolerant)
   }

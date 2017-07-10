@@ -43,10 +43,6 @@ trait GformConnector {
     httpGet.GET[FormData](s"$baseUrl/forms/${formTypeId.value}/${version.value}/${formId.value}")
   }
 
-  def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    httpPost.POST[FormData, SaveResult](s"$baseUrl/forms?tolerant=$tolerant", formDetails)
-  }
-
   def updateForm(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     httpPut.PUT[FormData, SaveResult](s"$baseUrl/forms/${formId.value}?tolerant=$tolerant", formData)
   }
