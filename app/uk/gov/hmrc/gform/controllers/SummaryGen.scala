@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.{ Inject, Singleton }
 
+import play.api.Logger
 import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.connectors.IsEncrypt
@@ -52,7 +53,7 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
 
   def summaryByIdCache(formTypeId: FormTypeId, version: String, userId: UserId) =
     sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
-      SaveService.getFormById(formTypeId, version, userId).map(form =>
+      SaveService.getFormByIdCache(formTypeId, version, userId).map(form =>
         Summary(request.formTemplate).renderSummary(formDataMap(form.formData), form._id))
     }
 

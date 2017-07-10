@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.gform.service
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.connectors.GformConnector
 import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId, FormTypeId, Version }
 import uk.gov.hmrc.gform.models.SaveResult
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.gform.models.GformResult
+import uk.gov.hmrc.gform.models.form.{FormData, FormId, FormTypeId}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
 
@@ -31,6 +35,10 @@ object SaveService {
     gformConnector.form(formTypeId, version, formId)
   }
 
+  def getFormByIdCache(formTypeId: FormTypeId, version: String, userId: UserId)(implicit hc: HeaderCarrier) = {
+    gformConnector.getByIdCache(formTypeId, version, userId)
+  }
+
   def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     gformConnector.updateForm(formId, formData, tolerant)
   }
@@ -39,7 +47,8 @@ object SaveService {
     gformConnector.sendSubmission(formTypeId, formId)
   }
 
-  def sendSubmission(formTypeId: FormTypeId, userId: UserId, version: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def sendSubmission(formTypeId: FormTypeId, userId: User
+    Id, version: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     gformConnector.sendSubmission(formTypeId, userId, version)
   }
 }

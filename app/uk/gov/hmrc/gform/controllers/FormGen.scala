@@ -114,7 +114,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
         val result = if (IsEncrypt.is) {
       authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-        SaveService.getFormById(formTypeId, version, x)
+        SaveService.getFormByIdCache(formTypeId, version, x)
       }
     } elseSaveService.getFormById(formTypeId, version, formId)result.flatMap { form =>
 

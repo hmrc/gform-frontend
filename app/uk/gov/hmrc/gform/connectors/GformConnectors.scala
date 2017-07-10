@@ -17,6 +17,7 @@
 
 package uk.gov.hmrc.gform.connectors
 
+import play.api.Logger
 import play.api.libs.json.{ JsObject, JsValue }
 import uk.gov.hmrc.gform.WSHttp
 import uk.gov.hmrc.gform.models.form.FormId._
@@ -66,7 +67,7 @@ trait GformConnector {
     httpGet.GET[Form](gformUrl + s"/forms/$formTypeId/$version/$formId")
   }
 
-  def getById(formTypeId: FormTypeId, version: String, userId: UserId)(implicit hc: HeaderCarrier): Future[Form] = {
+  def getByIdCache(formTypeId: FormTypeId, version: String, userId: UserId)(implicit hc: HeaderCarrier): Future[Form] = {
     httpGet.GET[Form](gformUrl + s"/forms/$formTypeId/$version/$userId/cache")
   }
 

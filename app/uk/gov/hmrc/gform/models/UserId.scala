@@ -16,29 +16,27 @@
 
 package uk.gov.hmrc.gform.models
 
+import play.api.Logger
 import play.api.libs.json._
 
-case class UserId(value: String)
+import scala.collection.Map
+
+case class UserId(value: String) extends AnyVal {
+  override def toString = value
+}
 
 object UserId {
 
-  val reads = new Reads[UserId] {
-    override def reads(json: JsValue): JsResult[UserId] = {
-      (json \ "groupIdentifier") match {
-        case JsDefined(JsString(x)) => JsSuccess(UserId(x))
-        case _ => (json \ "userId") match {
-          case JsDefined(JsString(y)) => JsSuccess(UserId(y))
-          case _ => JsError("Failed")
-        }
+  val reads: Reads[UserId] = Reads[UserId] {
+    case JsString(str) => JsSuccess(UserId(str))
+    case JsObject(obj) =>
+      obj.get("groupIdentifier") match {
+        case None => JsError(s"groupIdentifier expected inside the obj.")
+        case Some(JsString(x)) => JsSuccess(UserId(x))
       }
-    }
+    case unknown => JsError(s"JsString or JsObject value expected, got: $unknown")
   }
 
-  val writes = new Writes[UserId] {
-    override def writes(o: UserId): JsValue = {
-      JsString(o.value)
-    }
-  }
-
+  val writes: Writes[UserId] = Writes[UserId](a => JsString(a.value))
   implicit val format: Format[UserId] = Format[UserId](reads, writes)
 }
