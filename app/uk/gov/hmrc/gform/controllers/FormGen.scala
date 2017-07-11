@@ -34,6 +34,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Result }
 import uk.gov.hmrc.gform.connectors.IsEncrypt
+import uk.gov.hmrc.gform.controllers.GformSession.userId
 
 import play.api.mvc.{Action, AnyContent, Result}
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -72,14 +73,18 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
     isStarted(formTypeId, version).flatMap {
       case (None, userId) =>
-        Future.successful(Redirect(routes.FormController.newForm(userId, formTypeId, version)))
+        val updatedSession = request.session.putUserId(userId)
+        Future.successful(Redirect(routes.FormController.newForm(formTypeId, version)).withSession(updatedSession))
       //newForm(formTypeId, version)(request)
-      case (Some(x), userId) =>
-        Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(userId, formTypeId, version, x)))
+      case (Some(obj), userId) =>
+        val updatedSession = request.session
+          .putUserId(userId)
+          .putEnvelopeId(obj.envelopeId)
+        Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, obj.formId)).withSession(updatedSession))
     }
   }
 
-  def newForm(userId: UserId, formTypeId: FormTypeId, version: Version): Action[AnyContent] =
+  def newForm(formTypeId: FormTypeId, version: Version): Action[AnyContent] =
     sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
       val maybeEnvelopeId = request.session.getEnvelopeId
       maybeEnvelopeId.map { envelopeId =>
@@ -88,34 +93,28 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
         val formTemplate = request.formTemplate
         envelope.flatMap(envelope => Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
       }.getOrElse(
-        Future.successful(Ok(s"You haven't started a form yet. Goto: ${routes.FormController.newForm(userId, formTypeId, version)}"))
+        Future.successful(Ok(s"You haven't started a form yet. Goto: ${routes.FormController.newForm(formTypeId, version)}"))
       )
     }
 
-  case class Choice(decision: String)
-
-  val choice = play.api.data.Form(mapping(
+  val choice = play.api.data.Form(single(
     "decision" -> nonEmptyText
-  )(Choice.apply)(Choice.unapply))
+  ))
 
-  def decision(userId: UserId, formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
+  def decision(formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
 
     choice.bindFromRequest.fold(
-      errors => {
-        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(userId, formTypeId, version, formId)))
-      },
-      success => {
-        success.decision match {
-          case "continue" =>
-            formById(formTypeId, version, formId)(request)
-          case "delete" =>
-            Logger.info("NONE")
-            DeleteService.deleteForm(formId)
-            Future.successful(Redirect(routes.FormController.newForm(userId, formTypeId, version)))
-          case _ =>
-            Logger.warn("Unexpected result")
-            Future.successful(Redirect(routes.FormController.newForm(userId, formTypeId, version)))
-        }
+      errors => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId))),
+      {
+        case "continue" =>
+          formById(formTypeId, version, formId)(request)
+        case "delete" =>
+          val blankSession = request.session.removeEnvelopId
+          DeleteService.deleteForm(formId)
+          Future.successful(Redirect(routes.FormController.newForm(formTypeId, version)).withSession(blankSession))
+        case _ =>
+          val blankSession = request.session.removeEnvelopId
+          Future.successful(Redirect(routes.FormController.newForm(formTypeId, version)).withSession(blankSession))
       }
     )
   }
@@ -123,15 +122,16 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
   def formById(formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = formByIdPage(formTypeId, version, formId, 0)
 
   def formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, currPage: Int): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
+    val userId = request.session.getUserId.get
     val envelopeId = request.session.getEnvelopeId.get
     val envelope = fileUploadService.getEnvelope(envelopeId)
 
-        val result = if (IsEncrypt.is) {
-      authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-        SaveService.getFormByIdCache(formTypeId, version, x)
-      }
-    } else
-          SaveService.getFormById(formTypeId, version, formId)result.flatMap { form =>
+    val result = if (IsEncrypt.is)
+      SaveService.getFormByIdCache(formTypeId, version, userId)
+    else
+      SaveService.getFormById(formTypeId, version, formId)
+
+    result.flatMap { form =>
 
       val fieldIdToStrings: Map[FieldId, Seq[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
@@ -236,7 +236,7 @@ envelope.flatMap(envelope =>
     case FieldGlobalError(fv, _, _) => fv
   }
 
-  private def isStarted(formTypeId: FormTypeId, version: Version)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[(Option[FormId], UserId)] = {
+  private def isStarted(formTypeId: FormTypeId, version: Version)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[(Option[Index], UserId)] = {
     authConnector.getUserDetails[UserId](authContext).flatMap { x =>
       RetrieveService.getStartedForm(x, formTypeId, version).map((_, x))
     }

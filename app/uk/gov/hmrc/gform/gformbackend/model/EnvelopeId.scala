@@ -23,10 +23,12 @@ case class EnvelopeId(value: String)
 object EnvelopeId {
 
   val writes = Writes[EnvelopeId](id => JsString(id.value))
+  val oWrites = OWrites[EnvelopeId](id => Json.obj("id" -> id.value))
   val reads = Reads[EnvelopeId] {
     case JsString(value) => JsSuccess(EnvelopeId(value))
     case otherwise => JsError(s"Invalid envelopeId, expected JsString, got: $otherwise")
   }
 
   implicit val format = Format[EnvelopeId](reads, writes)
+  implicit val oFormat = OFormat[EnvelopeId](reads, oWrites)
 }

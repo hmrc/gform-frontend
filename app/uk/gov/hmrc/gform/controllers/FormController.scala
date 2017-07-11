@@ -41,12 +41,12 @@ class FormController @Inject() (
   import GformSession._
   import controllersModule.i18nSupport._
 
-  def newForm(userId: UserId, formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
-
+  def newForm(formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
+    val userId = c.request.session.getUserId.get
     if (c.request.session.getFormId.isDefined)
       redirectToFormF
     else
-      gformConnector.newForm(formTypeId, version).map { (x: NewFormResponse) =>
+      gformConnector.newForm(formTypeId, version, userId).map { (x: NewFormResponse) =>
         val updatedSession = c.request.session
           .putFormId(x.form._id)
           .putVersion(x.form.formData.version)

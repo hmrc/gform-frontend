@@ -16,17 +16,21 @@
 
 package uk.gov.hmrc.gform.gformbackend.model
 
-import play.api.libs.json._
+import play.api.libs.json.{ OFormat, OWrites, Reads }
 
-case class Version(value: String) {
-  override def toString: String = value
-}
+case class Index(formId: FormId, envelopeId: EnvelopeId)
 
-object Version {
-  val writes: Writes[Version] = Writes[Version](id => JsString(id.value))
-  val reads: Reads[Version] = Reads[Version] {
-    case JsString(value) => JsSuccess(Version(value))
-    case otherwise => JsError(s"Invalid 'version' field, expected JsString, got: $otherwise")
+object Index {
+
+  implicit def format = {
+    val mongoIdReads = FormIdAsMongoId.format
+    val envelopeIdReads = EnvelopeId.oFormat
+    val writes = OWrites[Index](index => mongoIdReads.writes(index.formId) ++ envelopeIdReads.writes(index.envelopeId))
+    val reads = Reads[Index](json =>
+      for {
+        id <- mongoIdReads.reads(json)
+        data <- envelopeIdReads.reads(json)
+      } yield Index(id, data))
+    OFormat[Index](reads, writes)
   }
-  implicit val format: Format[Version] = Format[Version](reads, writes)
 }
