@@ -47,8 +47,8 @@ trait GformConnector {
     httpGet.GET[Form](s"$baseUrl/forms/${formTypeId.value}/${version.value}/${formId.value}")
   }
 
-  def getByUserId(userId: UserId, formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[FormId]] = {
-    httpGet.GET[Option[FormId]](baseUrl + s"/forms/user/$userId/regime/$formTypeId/$version")
+  def getByUserId(userId: UserId, formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Index]] = {
+    httpGet.GET[Option[Index]](baseUrl + s"/forms/user/$userId/regime/$formTypeId/$version")
   }
 
   def updateForm(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
