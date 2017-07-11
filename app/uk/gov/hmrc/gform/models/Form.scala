@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.{ OFormat, OWrites, Reads }
-import uk.gov.hmrc.gform.models.form.{ FormData, FormId, FormIdAsMongoId }
+import uk.gov.hmrc.gform.gformbackend.model.Form.FormIdAsMongoId
+import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId }
 
 case class Form(_id: FormId, formData: FormData)
 

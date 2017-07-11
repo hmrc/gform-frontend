@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.components.{ FieldValue, Group}
+import uk.gov.hmrc.gform.models.components.{ FieldValue, Group }
 
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.http.HeaderCarrier

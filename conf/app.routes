@@ -1,23 +1,18 @@
 # microservice specific routes
 
-GET         /new-form/:formTypeId/:version              @uk.gov.hmrc.gform.controllers.FormController.newForm(formTypeId: FormTypeId, version: Version)
+GET         /new-form/:formTypeId/:version/:userId      @uk.gov.hmrc.gform.controllers.FormController.newForm(userId: UserId, formTypeId: FormTypeId, version: Version)
 GET         /form/file-upload-page/:fileId              @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(fileId: String)
 
 GET         /form                                       @uk.gov.hmrc.gform.controllers.FormController.form()
-GET         /form/:formTypeId/:version                  @uk.gov.hmrc.gform.controllers.FormGen.entryPoint(formTypeId: FormTypeId, version: String)
-GET         /form/:formTypeId/:version                  @uk.gov.hmrc.gform.controllers.FormGen.newForm(formTypeId: FormTypeId, version: String)
-POST        /form/decision/:formTypeId/:version/:formId @uk.gov.hmrc.gform.controllers.FormGen.decision(formTypeId: FormTypeId, version: String, formId: FormId)
-GET         /form/:formTypeId/:version/:formId          @uk.gov.hmrc.gform.controllers.FormGen.formById(formTypeId: FormTypeId, version: String, formId: FormId)
-GET         /form/:formTypeId/:version/:formId/:page    @uk.gov.hmrc.gform.controllers.FormGen.formByIdPage(formTypeId: FormTypeId, version: String, formId: FormId, page: Int)
-POST        /form/:formTypeId/:version                  @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: String, currentPage: Int)
-
-GET         /form/:formTypeId/:version                  @uk.gov.hmrc.gform.controllers.FormGen.form(formTypeId: FormTypeId, version: Version)
+GET         /form/:formTypeId/:version                  @uk.gov.hmrc.gform.controllers.FormGen.entryPoint(formTypeId: FormTypeId, version: Version)
+GET         /form/:formTypeId/:version/:userId          @uk.gov.hmrc.gform.controllers.FormGen.newForm(userId: UserId, formTypeId: FormTypeId, version: Version)
+POST        /form/:userId/:formTypeId/:version/:formId @uk.gov.hmrc.gform.controllers.FormGen.decision(userId: UserId, formTypeId: FormTypeId, version: Version, formId: FormId)
 GET         /form/:formTypeId/:version/:formId          @uk.gov.hmrc.gform.controllers.FormGen.formById(formTypeId: FormTypeId, version: Version, formId: FormId)
 GET         /form/:formTypeId/:version/:formId/:page    @uk.gov.hmrc.gform.controllers.FormGen.formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, page: Int)
 POST        /form/:formTypeId/:version                  @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: Version, currentPage: Int)
 
 GET         /summary/:formTypeId/:version/:formId       @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formTypeId: FormTypeId, version: Version, formId: FormId)
-GET         /summary/:formTypeId/:version/:userId/cache       @uk.gov.hmrc.gform.controllers.SummaryGen.summaryByIdCache(formTypeId: FormTypeId, version: String, userId: UserId)
+GET         /summary/:formTypeId/:version/:userId/cache       @uk.gov.hmrc.gform.controllers.SummaryGen.summaryByIdCache(formTypeId: FormTypeId, version: Version, userId: UserId)
 POST        /summary/:formTypeId/:version/submit        @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formTypeId: FormTypeId, version: Version)
 
 GET         /assets/*file                      controllers.Assets.versioned(path="/public", file: Asset)

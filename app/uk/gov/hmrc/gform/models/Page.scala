@@ -41,11 +41,10 @@ object PageForRender {
     section: Section,
     f: Option[FieldValue => Option[FormFieldValidationResult]],
     repeatService: RepeatingComponentService,
-    envelope: Envelope)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = new PageShader(curr, fieldData, formTemplate, section, f, repeatService, envelope).render()
+    envelope: Envelope
+  )(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = new PageShader(curr, fieldData, formTemplate, section, f, repeatService, envelope).render()
 
 }
-
-
 
 case class Page(prev: Int, curr: Int, next: Int, section: Section, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope) {
 
