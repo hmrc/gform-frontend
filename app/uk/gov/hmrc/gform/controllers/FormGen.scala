@@ -45,7 +45,7 @@ import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.service.{ RetrieveService, SaveService }
+import uk.gov.hmrc.gform.service.{ DeleteService, RepeatingComponentService, RetrieveService, SaveService }
 
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.gform.service.{ RetrieveService, SaveService}
@@ -68,43 +68,41 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     extends FrontendController with I18nSupport {
   import GformSession._
 
-  def entryPoint(formTypeId: FormTypeId, version: Version): Action[AnyContent] =  sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
-    implicit request =>
+  def entryPoint(formTypeId: FormTypeId, version: Version): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
 
     isStarted(formTypeId, version).flatMap {
-      case None =>
-        newForm(formTypeId, version)(request)
-      case Some(x) =>
-        Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, x)))
+      case (None, userId) =>
+        Future.successful(Redirect(routes.FormController.newForm(userId, formTypeId, version)))
+      //newForm(formTypeId, version)(request)
+      case (Some(x), userId) =>
+        Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(userId, formTypeId, version, x)))
     }
   }
 
-  def newForm(formTypeId: FormTypeId, version: String): Action[AnyContent] =
-    sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext =>
-      implicit request =>
-val maybeEnvelopeId = request.session.getEnvelopeId
+  def newForm(userId: UserId, formTypeId: FormTypeId, version: Version): Action[AnyContent] =
+    sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
+      val maybeEnvelopeId = request.session.getEnvelopeId
       maybeEnvelopeId.map { envelopeId =>
         val envelopeId = maybeEnvelopeId.get
         val envelope = fileUploadService.getEnvelope(envelopeId)
         val formTemplate = request.formTemplate
-
-           envelope.flatMap(envelope => Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
+        envelope.flatMap(envelope => Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
       }.getOrElse(
-        Future.successful(Ok(s"You haven't started a form yet. Goto: ${routes.FormController.newForm(formTypeId, version)}"))
+        Future.successful(Ok(s"You haven't started a form yet. Goto: ${routes.FormController.newForm(userId, formTypeId, version)}"))
       )
     }
 
   case class Choice(decision: String)
 
-  val choice = Form(mapping(
+  val choice = play.api.data.Form(mapping(
     "decision" -> nonEmptyText
   )(Choice.apply)(Choice.unapply))
 
-  def decision(formTypeId: FormTypeId, version: String, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
+  def decision(userId: UserId, formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
 
     choice.bindFromRequest.fold(
       errors => {
-        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId)))
+        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(userId, formTypeId, version, formId)))
       },
       success => {
         success.decision match {
@@ -113,10 +111,10 @@ val maybeEnvelopeId = request.session.getEnvelopeId
           case "delete" =>
             Logger.info("NONE")
             DeleteService.deleteForm(formId)
-            newForm(formTypeId, version)(request)
+            Future.successful(Redirect(routes.FormController.newForm(userId, formTypeId, version)))
           case _ =>
             Logger.warn("Unexpected result")
-            newForm(formTypeId, version)(request)
+            Future.successful(Redirect(routes.FormController.newForm(userId, formTypeId, version)))
         }
       }
     )
@@ -238,9 +236,9 @@ envelope.flatMap(envelope =>
     case FieldGlobalError(fv, _, _) => fv
   }
 
-  private def isStarted(formTypeId: FormTypeId, version: String)(implicit authContext: AuthContext, hc: HeaderCarrier) = {
+  private def isStarted(formTypeId: FormTypeId, version: Version)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[(Option[FormId], UserId)] = {
     authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-      RetrieveService.getStartedForm(x, formTypeId, version)
+      RetrieveService.getStartedForm(x, formTypeId, version).map((_, x))
     }
   }
 
@@ -263,7 +261,7 @@ envelope.flatMap(envelope =>
     }
   }
 
-  private def getFormId(formIdOpt: Option[FormId], saveResult: SaveResult): Either[String, FormId] = {
+  private def getFormId(formIdOpt: Option[FormId], saveResult: SaveResult): Either[String, FormId] =
     formIdOpt match {
       case Some(formId) => Right(formId)
       case None => saveResult.success match {
@@ -272,7 +270,6 @@ envelope.flatMap(envelope =>
         case None => Left(s"Cannot determine formId from ${Json.toJson(saveResult)}")
       }
     }
-  }
 
   private lazy val validationService = validationModule.validationService
   private lazy val fileUploadService = fileUploadModule.fileUploadService

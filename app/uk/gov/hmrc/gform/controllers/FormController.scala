@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.controllers.GformSession.envelopeId
 import uk.gov.hmrc.gform.fileupload.{ FileUploadModule, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.Page
+import uk.gov.hmrc.gform.models.{ Page, UserId }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
@@ -41,7 +41,7 @@ class FormController @Inject() (
   import GformSession._
   import controllersModule.i18nSupport._
 
-  def newForm(formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
+  def newForm(userId: UserId, formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
 
     if (c.request.session.getFormId.isDefined)
       redirectToFormF

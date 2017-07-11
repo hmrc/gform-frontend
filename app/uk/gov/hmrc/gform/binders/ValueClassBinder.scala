@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.gform.binders
 
-import cats.implicits._import play.api.libs.json._
+import cats.implicits._
+import play.api.libs.json._
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.gform.models.UserIdimport uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTypeId, SectionNumber, Version, _}
+import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId, SectionNumber, Version, _ }
+import uk.gov.hmrc.gform.models.UserId
 
 import scala.util.Try
 object ValueClassBinder {

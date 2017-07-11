@@ -18,25 +18,22 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.{ Inject, Singleton }
 
-import play.api.Logger
 import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.connectors.IsEncrypt
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.fileupload.{ FileUploadModule, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId, Version }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
-import uk.gov.hmrc.gform.models.form.{ FormId, FormTypeId }
-import uk.gov.hmrc.gform.service.SaveService
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, fileUploadModule: FileUploadModule)(implicit ec: ExecutionContext)
+class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, fileUploadModule: FileUploadModule, authConnector: AuthConnector)(implicit ec: ExecutionContext)
     extends FrontendController with I18nSupport {
   import GformSession._
 
@@ -48,13 +45,18 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
         envelope <- envelope
         formData <- SaveService.getFormById(formTypeId, version, formId)
       } yield Summary(request.formTemplate)
-        .renderSummary(formDataMap(formData), formId, repeatService, envelope)
+        .renderSummary(formDataMap(formData.formData), formId, repeatService, envelope)
     }
 
-  def summaryByIdCache(formTypeId: FormTypeId, version: String, userId: UserId) =
+  def summaryByIdCache(formTypeId: FormTypeId, version: Version, userId: UserId) =
     sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
-      SaveService.getFormByIdCache(formTypeId, version, userId).map(form =>
-        Summary(request.formTemplate).renderSummary(formDataMap(form.formData), form._id))
+      val envelopeId = request.session.getEnvelopeId.get
+      val envelope = fileUploadService.getEnvelope(envelopeId)
+      for {
+        envelope <- envelope
+        formData <- SaveService.getFormByIdCache(formTypeId, version, userId)
+      } yield Summary(request.formTemplate)
+        .renderSummary(formDataMap(formData.formData), formData._id, repeatService, envelope)
     }
 
   def submit(formTypeId: FormTypeId, version: String) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext =>

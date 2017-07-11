@@ -23,6 +23,8 @@ import uk.gov.hmrc.gform.models.FormTemplate
 import uk.gov.hmrc.gform.models.form.{ FormId, FormTypeId }
 import uk.gov.hmrc.gform.models.FormTemplate
 import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
+import uk.gov.hmrc.gform.gformbackend.model.{ FormId,FormTemplate, FormTypeId, Version }
+import uk.gov.hmrc.gform.models.UserId
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -46,7 +48,7 @@ object RetrieveService {
     })
   }
 
-  def getStartedForm(userId: UserId, formTypeId: FormTypeId, version: String)(implicit hc: HeaderCarrier): Future[Option[FormId]] = {
-    bformsConnector.getByUserId(userId, formTypeId, version)
+  def getStartedForm(userId: UserId, formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier): Future[Option[FormId]] = {
+    GformConnector.getByUserId(userId, formTypeId, version)
   }
 }
