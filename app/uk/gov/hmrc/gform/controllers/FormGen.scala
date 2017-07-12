@@ -155,8 +155,8 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
                 page.flatMap(page => page.renderPage(data, Some(formId), None))
               }
             case RemoveGroup(groupId) =>
-              repeatService.removeGroup(groupId).flatMap { _ =>
-                page.flatMap(page => page.renderPage(data, Some(formId), None))
+              repeatService.removeGroup(groupId, data).flatMap { updatedData =>
+                page.flatMap(page => page.renderPage(updatedData, Some(formId), None))
               }
 
           }

@@ -8,38 +8,31 @@
 
 
 <fieldset>
+    @if(groupField.repeatLabel.isDefined) {
     <div class="subsection">
+        <div class="divider--bottom">
             <div class="form-field-group">
-                <table>
-
-                    <tr>
-                        <td>
-                @if(groupField.repeatLabel.isDefined) {
                 <h2 class="heading-small">
                     @localisation(groupField.buildRepeatLabel(instance))
                 </h2>
-                }
-                        </td>
-                        <td>
-
-                @if(!disableRemoveButton) {
-                <button
-                    type="submit"
-                    class="button button--link soft--left"
-                    name="save"
-                    value="RemoveGroup-@{instance}_@{fieldValue.id}">
-                @localisation("Remove")
-                </button>
-                }
-                        </td>
-                    </tr>
-                </table>
             </div>
+        </div>
     </div>
+    }
 
     <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
         @{
         snippets
         }
     </div>
+
+    @if(!disableRemoveButton) {
+    <button
+            type="submit"
+            class="button button--link soft--left"
+            name="save"
+            value="RemoveGroup-@{instance}_@{fieldValue.id}">
+        @localisation("Remove")
+    </button>
+    }
 </fieldset>

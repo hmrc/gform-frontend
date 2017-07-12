@@ -47,7 +47,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     } yield cacheMap.getEntry[List[List[FieldValue]]](componentId)
   }
 
-  def removeGroup(formGroupId: String)(implicit hc: HeaderCarrier) = {
+  def removeGroup(formGroupId: String, data: Map[FieldId, scala.Seq[String]])(implicit hc: HeaderCarrier) = {
     // on the forms, the RemoveGroup button's name has the following format:
     // RemoveGroup-(groupFieldId)
     // that's the reason why the extraction below is required
@@ -60,9 +60,38 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     for {
       dynamicListOpt <- sessionCache.fetchAndGetEntry[List[List[FieldValue]]](groupId)
       dynamicList = dynamicListOpt.getOrElse(Nil)
-      newList = dynamicList diff List(dynamicList(index - 1))
-      cacheMap <- sessionCache.cache[List[List[FieldValue]]](groupId, newList)
-    } yield cacheMap.getEntry[List[List[FieldValue]]](groupId)
+      (newList, newData) = renameFieldIdsAndData(dynamicList diff List(dynamicList(index - 1)), data)
+      _ <- sessionCache.cache[List[List[FieldValue]]](groupId, newList)
+    } yield newData
+  }
+
+  private def renameFieldIdsAndData(list: List[List[FieldValue]], data: Map[FieldId, scala.Seq[String]]): (List[List[FieldValue]], Map[FieldId, scala.Seq[String]]) = {
+
+    var newData = data
+    val result = (1 until list.size).map { i =>
+      list(i).map { field =>
+        val newId = FieldId(buildNewId(field.id.value, i))
+        newData = renameFieldInData(field.id, newId, newData)
+        field.copy(id = newId)
+      }
+    }.toList.::(list(0))
+
+    (result, newData)
+  }
+
+  private def renameFieldInData(src: FieldId, dst: FieldId, data: Map[FieldId, scala.Seq[String]]) = {
+    if (data.contains(src)) {
+      val value = data(src)
+      (data - src) + (dst -> value)
+    } else {
+      data
+    }
+  }
+
+  private def buildNewId(id: String, newIndex: Int) = {
+    val endOfIndex = id.indexOf('_') + 1
+    val idNoIndex = id.substring(endOfIndex)
+    s"${newIndex}_${idNoIndex}"
   }
 
   private def addGroupEntry(dynamicList: List[List[FieldValue]]) = {
@@ -90,9 +119,14 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
   }
 
   private def initialiseDynamicGroupList(parentField: FieldValue, group: Group)(implicit hc: HeaderCarrier) = {
-    val dynamicList = group.fields +: (1 to group.repeatsMin.getOrElse(1)).map { i =>
-      group.fields.map(field => field.copy(id = FieldId(s"${i}_${field.id.value}")))
-    }.toList
+    val dynamicList = group.repeatsMin match {
+      case Some(min) if min == 1 | min <= 0 => List(group.fields)
+      case Some(min) if min > 1 =>
+        group.fields +: (1 until min).map { i =>
+          group.fields.map(field => field.copy(id = FieldId(s"${i}_${field.id.value}")))
+        }.toList
+      case None => List(group.fields)
+    }
 
     sessionCache.cache[List[List[FieldValue]]](parentField.id.value, dynamicList).map { _ =>
       (dynamicList, isRepeatsMaxReached(dynamicList.size, group))
@@ -107,15 +141,4 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
         groupField.fields
     }
   }
-
-  //  private def validateRepeatCount(requestedCount: Int, fieldValue: FieldValue, groupField: Group) = {
-  //    (groupField.repeatsMax, groupField.repeatsMin) match {
-  //      case (Some(max), Some(min)) if requestedCount >= min && requestedCount <= max => requestedCount
-  //      case (Some(max), Some(min)) if requestedCount >= min && requestedCount > max => max
-  //      case (Some(max), Some(min)) if requestedCount < min => min
-  //      case (Some(max), None) if requestedCount <= max => requestedCount
-  //      case (Some(max), None) if requestedCount > max => max
-  //      case _ => 1
-  //    }
-  //  }
 }

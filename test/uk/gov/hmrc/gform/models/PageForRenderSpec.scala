@@ -180,8 +180,11 @@ class PageForRenderSpec extends FlatSpec with Matchers {
         multipleCopiesOf(grpTextField, 2)
       }
 
-      override def getCountAndTestIfLimitReached(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-        Future.successful((2, false))
+      override def getRepeatingGroupsForRendering(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+        Future.successful((List(
+          multipleCopiesOf(grpTextField, 1),
+          multipleCopiesOf(grpTextField, 1)
+        ), false))
       }
     }
 
@@ -200,7 +203,7 @@ class PageForRenderSpec extends FlatSpec with Matchers {
 
     doc.getElementsByAttributeValue("value", "AddGroup-GROUP_ID").size shouldBe 1 // no limit reached, add button shown
     doc.getElementsByAttributeValue("value", "CONSTANT_TEXT").size shouldBe 2 // two repeat elements
-    doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 1 // repeat label only for second element
+    doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 2 // repeat label only for second element
   }
 
   it should "hide add-group button when limit has been reached (repeating groups)" in {
@@ -209,8 +212,11 @@ class PageForRenderSpec extends FlatSpec with Matchers {
         multipleCopiesOf(grpTextField, 2)
       }
 
-      override def getCountAndTestIfLimitReached(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-        Future.successful((2, true))
+      override def getRepeatingGroupsForRendering(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+        Future.successful((List(
+          multipleCopiesOf(grpTextField, 1),
+          multipleCopiesOf(grpTextField, 1)
+        ), true))
       }
     }
 
