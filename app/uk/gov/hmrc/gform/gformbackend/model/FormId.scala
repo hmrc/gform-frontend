@@ -17,38 +17,24 @@
 package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.models.ValueClassFormat
 
 case class FormId(value: String) extends AnyVal {
   override def toString = value
 }
 
 object FormId {
-  implicit val format: Format[FormId] = ValueClassFormat.format(FormId.apply)(_.value)
 
-  implicit val optionalFormat: Format[Option[FormId]] = new Format[Option[FormId]] {
-    override def reads(json: JsValue): JsResult[Option[FormId]] = {
-      json.validateOpt[FormId]
-    }
+  implicit val format: OFormat[FormId] = OFormat[FormId](reads, writes)
 
-    override def writes(o: Option[FormId]) = {
-      o match {
-        case Some(x) => JsString(x.value)
-        case None => JsString("None")
+  private lazy val writes: OWrites[FormId] = OWrites[FormId](id => Json.obj("_id" -> id.value))
+  private lazy val reads: Reads[FormId] = Reads[FormId] { (jsObj: JsValue) =>
+    (jsObj \ "_id") match {
+      case JsDefined(JsString(id)) => JsSuccess(FormId(id))
+      case _ => jsObj match {
+        case JsString(str) => JsSuccess(FormId(str))
+        case _ => JsError(s"Invalid formId, expected fieldName '_id', got: $jsObj")
       }
     }
   }
-}
 
-object FormIdAsMongoId {
-  val writes = OWrites[FormId](id => Json.obj("_id" -> id.value))
-
-  val reads = Reads[FormId] { jsObj =>
-    (jsObj \ "_id") match {
-      case JsDefined(JsString(id)) => JsSuccess(FormId(id))
-      case _ => JsError(s"Invalid formId, expected fieldName '_id', got: $jsObj")
-    }
-  }
-
-  val format = OFormat[FormId](reads, writes)
 }

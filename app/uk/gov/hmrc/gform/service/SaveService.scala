@@ -17,12 +17,7 @@
 package uk.gov.hmrc.gform.service
 
 import uk.gov.hmrc.gform.connectors.GformConnector
-import uk.gov.hmrc.gform.gformbackend.model.{FormData, FormId, FormTypeId, Version}
-import uk.gov.hmrc.gform.models.{GformResult, SaveResult, UserId}
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.gform.models.form.{FormData, FormId, FormTypeId}
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.gform.gformbackend.model._
+import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId, FormTypeId, Version, _ }
 import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
@@ -41,7 +36,6 @@ object SaveService {
   }
 
   def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-
     gformConnector.updateForm(formId, formData, tolerant)
   }
 
