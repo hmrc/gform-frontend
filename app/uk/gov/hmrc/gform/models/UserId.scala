@@ -19,20 +19,24 @@ package uk.gov.hmrc.gform.models
 import play.api.Logger
 import play.api.libs.json._
 
-case class SaveResult(success: Option[String], error: Option[String])
+import scala.collection.Map
 
-object SaveResult {
+case class UserId(value: String) extends AnyVal {
+  override def toString = value
+}
 
-  val reads = Reads[SaveResult] {
-    case x =>
-      Logger.info("THIS IS X: " + Json.prettyPrint(x))
-      JsSuccess(SaveResult(None, None))
-    case _ => JsError("THIS IS AN ERROR")
+object UserId {
+
+  val reads: Reads[UserId] = Reads[UserId] {
+    case JsString(str) => JsSuccess(UserId(str))
+    case JsObject(obj) =>
+      obj.get("groupIdentifier") match {
+        case None => JsError(s"groupIdentifier expected inside the obj.")
+        case Some(JsString(x)) => JsSuccess(UserId(x))
+      }
+    case unknown => JsError(s"JsString or JsObject value expected, got: $unknown")
   }
 
-  val writes = Writes[SaveResult] { x =>
-    JsString(x.toString)
-  }
-
-  implicit val formats = Format[SaveResult](reads, writes) //Json.format[SaveResult]
+  val writes: Writes[UserId] = Writes[UserId](a => JsString(a.value))
+  implicit val format: Format[UserId] = Format[UserId](reads, writes)
 }

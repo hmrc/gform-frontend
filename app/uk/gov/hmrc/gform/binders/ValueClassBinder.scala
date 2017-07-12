@@ -17,9 +17,11 @@
 package uk.gov.hmrc.gform.binders
 
 import cats.implicits._
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId, SectionNumber, Version, _ }
+import uk.gov.hmrc.gform.models.UserId
 
 import scala.util.Try
 object ValueClassBinder {
@@ -33,13 +35,16 @@ object ValueClassBinder {
     override def bind(key: String, value: String): Either[String, SectionNumber] = Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
+  implicit val userIdBinder: PathBindable[UserId] = valueClassBinder(_.value)
 
   def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) = {
 
     def parseString(str: String) = {
       JsString(str).validate[A] match {
         case JsSuccess(a, _) => Right(a)
-        case JsError(_) => Left("No valid value in path: " + str)
+        case JsError(_) =>
+          Logger.info(str + "FAILED BINDING")
+          Left("No valid value in path: " + str)
       }
     }
 

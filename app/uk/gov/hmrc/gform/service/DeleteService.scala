@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.service
 
-import play.api.Logger
-import play.api.libs.json._
+import uk.gov.hmrc.gform.connectors.GformConnector
+import uk.gov.hmrc.gform.gformbackend.model.FormId
+import uk.gov.hmrc.gform.models.SaveResult
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-case class SaveResult(success: Option[String], error: Option[String])
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-object SaveResult {
+object DeleteService {
 
-  val reads = Reads[SaveResult] {
-    case x =>
-      Logger.info("THIS IS X: " + Json.prettyPrint(x))
-      JsSuccess(SaveResult(None, None))
-    case _ => JsError("THIS IS AN ERROR")
+  def gformConnector: GformConnector = GformConnector
+
+  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier): Future[SaveResult] = {
+    gformConnector.deleteForm(formId)
   }
-
-  val writes = Writes[SaveResult] { x =>
-    JsString(x.toString)
-  }
-
-  implicit val formats = Format[SaveResult](reads, writes) //Json.format[SaveResult]
 }

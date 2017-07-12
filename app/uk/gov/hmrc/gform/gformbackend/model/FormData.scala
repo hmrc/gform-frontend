@@ -17,13 +17,9 @@
 package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.gform.models.UserId
 
-case class FormData(
-  formTypeId: FormTypeId,
-  version: Version,
-  characterSet: String,
-  fields: Seq[FormField]
-)
+case class FormData(userId: UserId, formTypeId: FormTypeId, version: Version, characterSet: String, fields: Seq[FormField])
 
 object FormData {
 

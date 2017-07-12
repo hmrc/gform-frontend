@@ -18,7 +18,9 @@ package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json._
 
-case class Version(value: String)
+case class Version(value: String) {
+  override def toString: String = value
+}
 
 object Version {
   val writes: Writes[Version] = Writes[Version](id => JsString(id.value))

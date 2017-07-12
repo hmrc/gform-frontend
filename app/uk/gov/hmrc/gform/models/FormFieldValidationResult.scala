@@ -157,17 +157,15 @@ object ValidationUtil {
     }
   }
 
-  def evaluateValidationResult(
-    atomicFields: List[FieldValue],
-    validationResult: ValidatedType,
-    data: Map[FieldId, Seq[String]],
-    envelope: Envelope
-  ): Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
+  def evaluateValidationResult(atomicFields: List[FieldValue], validationResult: ValidatedType, data: Map[FieldId, Seq[String]],
+    envelope: Envelope): Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = {
 
     val dataGetter: FieldId => Seq[String] = fId => data.get(fId).toList.flatten
 
-    val gformErrors: Map[FieldId, Set[String]] = validationResult match {
-      case Invalid(errors) => errors
+    val gFormErrors = validationResult match {
+      case Invalid(errors) =>
+        errors
+
       case Valid(()) => Map.empty[FieldId, Set[String]]
     }
 
@@ -176,8 +174,8 @@ object ValidationUtil {
       fieldValue.`type` match {
         case address @ Address(_) =>
 
-          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(address, fieldValue, gformErrors)(dataGetter)
-          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gformErrors)(dataGetter)
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(address, fieldValue, gFormErrors)(dataGetter)
+          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)
             .map { kv => kv._1.getSuffix(fieldValue.id) -> kv._2
@@ -187,9 +185,9 @@ object ValidationUtil {
 
         case date @ Date(_, _, _) =>
 
-          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(date, fieldValue, gformErrors)(dataGetter)
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(date, fieldValue, gFormErrors)(dataGetter)
 
-          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gformErrors)(dataGetter)
+          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)
             .map { kv => kv._1.getSuffix(fieldValue.id) -> kv._2
@@ -201,7 +199,7 @@ object ValidationUtil {
 
           val fieldId = fieldValue.id
 
-          gformErrors.get(fieldId) match {
+          gFormErrors.get(fieldId) match {
             case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
             case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
           }
@@ -214,7 +212,7 @@ object ValidationUtil {
 
         case Choice(_, _, _, _, _) =>
 
-          gformErrors.get(fieldValue.id) match {
+          gFormErrors.get(fieldValue.id) match {
             case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
             case None =>
 
@@ -231,7 +229,7 @@ object ValidationUtil {
           }
         case FileUpload() => {
           val fileName = envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("please upload file")
-          gformErrors.get(fieldValue.id) match {
+          gFormErrors.get(fieldValue.id) match {
             case Some(errors) => FieldError(fieldValue, fileName, errors)
             case None => FieldOk(fieldValue, fileName)
           }

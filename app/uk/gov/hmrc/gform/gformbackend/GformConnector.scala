@@ -16,17 +16,21 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import play.api.Logger
 import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.SaveResult
+import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
-  def newForm(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] =
-    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/${formTypeId.value}/${version.value}")
+  def newForm(formTypeId: FormTypeId, version: Version, userId: UserId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] = {
+    Logger.info(s"USERID $userId")
+    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/${formTypeId.value}/${version.value}/$userId")
+  }
 
   def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
@@ -39,7 +43,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   }
 
   def updateForm(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    ws.PUT[FormData, SaveResult](s"$baseUrl/forms/${formId.value}?tolerant=$tolerant", formData)
+    ws.PUT[FormData, HttpResponse](s"$baseUrl/forms/${formId.value}?tolerant=$tolerant", formData).map(x => SaveResult(None, None))
   }
 
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {

@@ -63,7 +63,6 @@ case object Address {
 case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
 
 sealed trait InfoType
-
 case object StandardInfo extends InfoType
 
 case object LongInfo extends InfoType

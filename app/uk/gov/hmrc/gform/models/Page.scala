@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.i18n.Messages
+import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
 import play.api.mvc.{ Request, Result }
 import play.twirl.api.Html

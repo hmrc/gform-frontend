@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
+import play.api.mvc.{ AnyContent, Result }
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Result }
 import uk.gov.hmrc.gform.controllers.RequestWithTemplate

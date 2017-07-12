@@ -16,33 +16,28 @@
 
 package uk.gov.hmrc.gform.gformbackend.model
 
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class Form(_id: FormId, formData: FormData)
+case class Form(
+  _id: FormId,
+  formData: FormData,
+  envelopeId: EnvelopeId
+)
 
 object Form {
 
-  implicit def format(implicit formDataReads: OFormat[FormData]) = {
-    val mongoIdReads = FormIdAsMongoId.format
-    val writes = OWrites[Form](form => mongoIdReads.writes(form._id) ++ formDataReads.writes(form.formData))
-    val reads = Reads[Form](json =>
-      for {
-        id <- mongoIdReads.reads(json)
-        data <- formDataReads.reads(json)
-      } yield Form(id, data))
-    OFormat[Form](reads, writes)
-  }
+  private val reads: Reads[Form] = (
+    (FormId.format: Reads[FormId]) and
+    FormData.format and
+    EnvelopeId.format
+  )(Form.apply _)
 
-  object FormIdAsMongoId {
-    val writes = OWrites[FormId](id => Json.obj("_id" -> id.value))
+  private val writes: OWrites[Form] = OWrites[Form](form =>
+    FormId.format.writes(form._id) ++
+      FormData.format.writes(form.formData) ++
+      Json.obj("envelopeId" -> EnvelopeId.format.writes(form.envelopeId)))
 
-    val reads = Reads[FormId] { jsObj =>
-      (jsObj \ "_id") match {
-        case JsDefined(JsString(id)) => JsSuccess(FormId(id))
-        case _ => JsError(s"Invalid formId, expected fieldName '_id', got: $jsObj")
-      }
-    }
-    val format: OFormat[FormId] = OFormat[FormId](reads, writes)
-  }
+  implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
 
 }
