@@ -31,6 +31,11 @@ import scala.concurrent.Future
 
 class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModule) { self =>
 
+  lazy val authConnector = new AuthConnector {
+    override val serviceUrl: String = configModule.serviceConfig.baseUrl("auth")
+    override val http: HttpGet = wSHttpModule.auditableWSHttp
+  }
+
   val authActions: auth.Actions = new uk.gov.hmrc.play.frontend.auth.Actions {
     def authConnector: AuthConnector = self.authConnector
   }
@@ -50,11 +55,6 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
 
   private lazy val alwaysVisiblePageVisibility = new PageVisibilityPredicate {
     def apply(authContext: AuthContext, request: Request[AnyContent]): Future[PageVisibilityResult] = Future.successful(PageIsVisible)
-  }
-
-  private lazy val authConnector = new AuthConnector {
-    override val serviceUrl: String = configModule.serviceConfig.baseUrl("auth")
-    override val http: HttpGet = wSHttpModule.auditableWSHttp
   }
 
   private lazy val taxRegime: Option[TaxRegime] = None

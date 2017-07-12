@@ -69,35 +69,6 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     extends FrontendController with I18nSupport {
   import GformSession._
 
-  def entryPoint(formTypeId: FormTypeId, version: Version): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
-
-    isStarted(formTypeId, version).flatMap {
-      case (None, userId) =>
-        val updatedSession = request.session.putUserId(userId)
-          .removeFormId
-        Future.successful(Redirect(routes.FormController.newForm(formTypeId, version)).withSession(updatedSession))
-      //newForm(formTypeId, version)(request)
-      case (Some(obj), userId) =>
-        val updatedSession = request.session
-          .putUserId(userId)
-          .putEnvelopeId(obj.envelopeId)
-        Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, obj.formId)).withSession(updatedSession))
-    }
-  }
-
-  def newForm(formTypeId: FormTypeId, version: Version): Action[AnyContent] =
-    sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
-      val maybeEnvelopeId = request.session.getEnvelopeId
-      maybeEnvelopeId.map { envelopeId =>
-        val envelopeId = maybeEnvelopeId.get
-        val envelope = fileUploadService.getEnvelope(envelopeId)
-        val formTemplate = request.formTemplate
-        envelope.flatMap(envelope => Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None))
-      }.getOrElse(
-        Future.successful(Ok(s"You haven't started a form yet. Goto: ${routes.FormController.newForm(formTypeId, version)}"))
-      )
-    }
-
   case class Choice(decision: String)
 
   val choice = Form(mapping(
