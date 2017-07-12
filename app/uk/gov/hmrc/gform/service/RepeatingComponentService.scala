@@ -134,23 +134,13 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
   }
 
   def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
-    Try(Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)) match {
-      case Success(value) => value.getOrElse(List(groupField.fields)).flatten
-      case Failure(e) =>
-        play.Logger.error(e.getStackTrace.mkString)
-        groupField.fields
-    }
+    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)
+    resultOpt.getOrElse(List(groupField.fields)).flatten
   }
 
   def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
-    Try(Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)) match {
-      case Success(value) => buildGroupFieldsLabelsForSummary(
-        value.getOrElse(List(groupField.fields)), topFieldValue
-      )
-      case Failure(e) =>
-        play.Logger.error(e.getStackTrace.mkString)
-        groupField.fields
-    }
+    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)
+    buildGroupFieldsLabelsForSummary(resultOpt.getOrElse(List(groupField.fields)), topFieldValue)
   }
 
   private def buildGroupFieldsLabelsForSummary(list: List[List[FieldValue]], fieldValue: FieldValue) = {
