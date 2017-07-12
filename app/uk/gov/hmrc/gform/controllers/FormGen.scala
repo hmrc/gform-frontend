@@ -75,17 +75,14 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     }
   }
 
-  val FormIdExtractor = "gform/forms/.*/.*/([\\w\\d-]+)$".r.unanchored
-
   def save(formTypeId: FormTypeId, version: Version, pageIdx: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       val formTemplate = request.formTemplate
       val envelopeId = request.session.getEnvelopeId.get
       val envelope = fileUploadService.getEnvelope(envelopeId)
+      val formId = request.session.getFormId.get
 
       val page = envelope.map(envelope => Page(pageIdx, formTemplate, repeatService, envelope))
-
-      val formIdOpt: Option[FormId] = anyFormId(data)
 
       val atomicFields: Future[List[FieldValue]] = page.map(_.section.atomicFields(repeatService))
 
@@ -104,32 +101,40 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
           atomicFields <- atomicFields
         } yield ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
 
-      def saveAndProcessResponse(continuation: SaveResult => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
+      def processSaveAndContinue(continue: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
         case Left(listFormValidation) =>
-          val map: Map[FieldValue, FormFieldValidationResult] = listFormValidation.map { validResult =>
-
-            val extractedFieldValue = validResult match {
-              case FieldOk(fv, _) => fv
-              case FieldError(fv, _, _) => fv
-              case ComponentField(fv, _) => fv
-              case FieldGlobalOk(fv, _) => fv
-              case FieldGlobalError(fv, _, _) => fv
-            }
-
-            extractedFieldValue -> validResult
+          val map: Map[FieldValue, FormFieldValidationResult] = listFormValidation.map { (validResult: FormFieldValidationResult) =>
+            extractedFieldValue(validResult) -> validResult
           }.toMap
 
-          page.flatMap(page => page.renderPage(data, formIdOpt, Some(map.get)))
+          page.flatMap(page => page.renderPage(data, Some(formId), Some(map.get)))
 
         case Right(listFormValidation) =>
           val formFieldIds = listFormValidation.map(_.toFormField)
           val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
 
           val formData = FormData(formTypeId, version, "UTF-8", formFields)
-          submitOrUpdate(formIdOpt, formData, false).flatMap {
+
+          SaveService.updateFormData(formId, formData, false).flatMap {
             case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
-            case result => continuation(result)
+            case _ => continue
           }
+      } //End processSaveAndContinue
+
+      def processSaveAndExit() = {
+
+        val formFieldsList: Future[List[FormFieldValidationResult]] = finalResult.map {
+          case Left(formFieldResultList) => formFieldResultList
+          case Right(formFieldResultList) => formFieldResultList
+        }
+
+        val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
+        val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
+
+        val formData = formFields.map(formFields => FormData(formTypeId, version, "UTF-8", formFields))
+
+        formData.flatMap(formData =>
+          SaveService.updateFormData(formId, formData, tolerant = true).map(response => Ok(Json.toJson(response))))
       }
 
       val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
@@ -140,72 +145,32 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
         case Right(action) =>
           action match {
             case SaveAndContinue(nextPageToRender) =>
-              saveAndProcessResponse { saveResult =>
-                getFormId(formIdOpt, saveResult) match {
-                  case Right(formId) => nextPageToRender.renderPage(data, Some(formId), None)
-                  case Left(error) => Future.successful(BadRequest(error))
-                }
-              }
+              processSaveAndContinue(nextPageToRender.renderPage(data, Some(formId), None))
             case SaveAndExit =>
-
-              val formFieldsList: Future[List[FormFieldValidationResult]] = finalResult.map {
-                case Left(formFieldResultList) => formFieldResultList
-                case Right(formFieldResultList) => formFieldResultList
-              }
-
-              val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
-              val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
-
-              val formData = formFields.map(formFields => FormData(formTypeId, version, "UTF-8", formFields))
-
-              formData.flatMap(formData =>
-                submitOrUpdate(formIdOpt, formData, true).map(response => Ok(Json.toJson(response))))
-
+              processSaveAndExit()
             case SaveAndSummary =>
-              saveAndProcessResponse { saveResult =>
-
-                getFormId(formIdOpt, saveResult) match {
-
-                  case Right(formId) =>
-                    Future.successful(Redirect(routes.SummaryGen.summaryById(formTypeId, version, formId)))
-                  case Left(error) =>
-                    Future.successful(BadRequest(error))
-                }
-              }
+              processSaveAndContinue(Future.successful(Redirect(routes.SummaryGen.summaryById(formTypeId, version, formId))))
             case AddGroup(groupId) =>
               repeatService.appendNewGroup(groupId).flatMap { _ =>
-                page.flatMap(page => page.renderPage(data, formIdOpt, None))
+                page.flatMap(page => page.renderPage(data, Some(formId), None))
               }
             case RemoveGroup(groupId) =>
               repeatService.removeGroup(groupId).flatMap { _ =>
-                page.flatMap(page => page.renderPage(data, formIdOpt, None))
+                page.flatMap(page => page.renderPage(data, Some(formId), None))
               }
+
           }
-
-        case Left(error) =>
-          Future.successful(BadRequest(error))
+        case Left(error) => Future.successful(BadRequest(error))
       }
     }
   }
 
-  private def submitOrUpdate(formIdOpt: Option[FormId], formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    formIdOpt match {
-      case Some(formId) =>
-        SaveService.updateFormData(formId, formData, tolerant)
-      case None =>
-        SaveService.saveFormData(formData, tolerant)
-    }
-  }
-
-  private def getFormId(formIdOpt: Option[FormId], saveResult: SaveResult): Either[String, FormId] = {
-    formIdOpt match {
-      case Some(formId) => Right(formId)
-      case None => saveResult.success match {
-        case Some(FormIdExtractor(formId)) => Right(FormId(formId))
-        case Some(otherwise) => Left(s"Cannot determine formId from $otherwise")
-        case None => Left(s"Cannot determine formId from ${Json.toJson(saveResult)}")
-      }
-    }
+  private def extractedFieldValue(validResult: FormFieldValidationResult): FieldValue = validResult match {
+    case FieldOk(fv, _) => fv
+    case FieldError(fv, _, _) => fv
+    case ComponentField(fv, _) => fv
+    case FieldGlobalOk(fv, _) => fv
+    case FieldGlobalError(fv, _, _) => fv
   }
 
   private lazy val validationService = validationModule.validationService
