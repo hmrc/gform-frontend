@@ -208,9 +208,14 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
               processSaveAndContinue(userId)(Future.successful(redirect))
             }
             case AddGroup(groupId) =>
-              repeatService.increaseGroupCount(groupId).flatMap { _ =>
+              repeatService.appendNewGroup(groupId).flatMap { _ =>
                 page.flatMap(page => page.renderPage(data, Some(formId), None))
               }
+            case RemoveGroup(groupId) =>
+              repeatService.removeGroup(groupId, data).flatMap { updatedData =>
+                page.flatMap(page => page.renderPage(updatedData, Some(formId), None))
+              }
+
           }
         case Left(error) => Future.successful(BadRequest(error))
       }

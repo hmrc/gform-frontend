@@ -18,6 +18,9 @@ package uk.gov.hmrc.gform.service
 
 import javax.inject.{ Inject, Singleton }
 
+import julienrf.json.derived
+import play.api.libs.json.OFormat
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group }
@@ -30,87 +33,139 @@ import scala.util.{ Failure, Success, Try }
 @Singleton
 class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
 
-  def increaseGroupCount(formGroupId: String)(implicit hc: HeaderCarrier) = {
+  def appendNewGroup(formGroupId: String)(implicit hc: HeaderCarrier) = {
     // on the forms, the AddGroup button's name has the following format:
     // AddGroup-(groupFieldId)
     // that's the reason why the extraction below is required
     val startPos = formGroupId.indexOf('-') + 1
     val componentId = formGroupId.substring(startPos)
-    increaseCount(componentId)
-  }
 
-  def increaseCount(componentId: String)(implicit hc: HeaderCarrier) = {
     for {
-      countOpt <- sessionCache.fetchAndGetEntry[Int](componentId)
-      count = countOpt.getOrElse(1) + 1
-      cacheMap <- sessionCache.cache[Int](componentId, count)
-    } yield cacheMap.getEntry[Int](componentId)
+      dynamicListOpt <- sessionCache.fetchAndGetEntry[List[List[FieldValue]]](componentId)
+      dynamicList = dynamicListOpt.getOrElse(Nil) // Nil should never happen
+      cacheMap <- sessionCache.cache[List[List[FieldValue]]](componentId, addGroupEntry(dynamicList))
+    } yield cacheMap.getEntry[List[List[FieldValue]]](componentId)
   }
 
-  def getCount(componentId: String, minValue: Int)(implicit hc: HeaderCarrier): Future[Int] = {
-    def initialiseCount = sessionCache.cache[Int](componentId, minValue).map(_.getEntry[Int](componentId).getOrElse(1))
+  def removeGroup(formGroupId: String, data: Map[FieldId, scala.Seq[String]])(implicit hc: HeaderCarrier) = {
+    // on the forms, the RemoveGroup button's name has the following format:
+    // RemoveGroup-(groupFieldId)
+    // that's the reason why the extraction below is required
+    val groupIdStartPos = formGroupId.indexOf('-') + 1
+    val componentId = formGroupId.substring(groupIdStartPos)
+    val indexEndPos = componentId.indexOf("_")
+    val index = componentId.substring(0, indexEndPos).toInt
+    val groupId = componentId.substring(indexEndPos + 1)
 
-    sessionCache.fetchAndGetEntry[Int](componentId).flatMap {
-      case Some(count) => Future.successful(count)
-      case None => initialiseCount
-    }
+    for {
+      dynamicListOpt <- sessionCache.fetchAndGetEntry[List[List[FieldValue]]](groupId)
+      dynamicList = dynamicListOpt.getOrElse(Nil)
+      (newList, newData) = renameFieldIdsAndData(dynamicList diff List(dynamicList(index - 1)), data)
+      _ <- sessionCache.cache[List[List[FieldValue]]](groupId, newList)
+    } yield newData
   }
 
-  def synchronousGetCount(componentId: String, minValue: Int)(implicit hc: HeaderCarrier) = {
-    Try(Await.result(getCount(componentId, minValue), 10 seconds)) match {
-      case Success(value) => value
-      case Failure(e) =>
-        play.Logger.error(e.getStackTrace.mkString)
-        1
-    }
-  }
+  private def renameFieldIdsAndData(list: List[List[FieldValue]], data: Map[FieldId, scala.Seq[String]]): (List[List[FieldValue]], Map[FieldId, scala.Seq[String]]) = {
 
-  def getCountAndTestIfLimitReached(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-    getValidatedRepeatingCount(fieldValue, groupField).map { count =>
-      groupField.repeatsMax match {
-        case Some(max) => if (count >= max) {
-          (count, true)
-        } else {
-          (count, false)
-        }
-        case None => (count, true)
+    var newData = data
+    val result = (1 until list.size).map { i =>
+      list(i).map { field =>
+        val newId = FieldId(buildNewId(field.id.value, i))
+        newData = renameFieldInData(field.id, newId, newData)
+        field.copy(id = newId)
       }
+    }.toList.::(list(0))
+
+    (result, newData)
+  }
+
+  private def renameFieldInData(src: FieldId, dst: FieldId, data: Map[FieldId, scala.Seq[String]]) = {
+    if (data.contains(src)) {
+      val value = data(src)
+      (data - src) + (dst -> value)
+    } else {
+      data
     }
   }
 
-  def getValidatedRepeatingCount(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-    getCount(fieldValue.id.value, groupField.repeatsMin.getOrElse(1)).map { sessionCount =>
-      validateRepeatCount(sessionCount, fieldValue, groupField)
+  private def buildNewId(id: String, newIndex: Int) = {
+    val endOfIndex = id.indexOf('_') + 1
+    val idNoIndex = id.substring(endOfIndex)
+    s"${newIndex}_${idNoIndex}"
+  }
+
+  private def addGroupEntry(dynamicList: List[List[FieldValue]]) = {
+    val countForNewEntry = dynamicList.size
+    val newEntry = dynamicList(0).map { field => field.copy(id = FieldId(s"${countForNewEntry}_${field.id.value}")) }
+    dynamicList :+ newEntry
+  }
+
+  private def isRepeatsMaxReached(count: Int, groupField: Group) = {
+    groupField.repeatsMax match {
+      case Some(max) => if (count >= max) {
+        true
+      } else {
+        false
+      }
+      case None => true
     }
   }
 
-  def synchronousGetValidatedRepeatingCount(fieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-    val sessionCount = synchronousGetCount(fieldValue.id.value, groupField.repeatsMin.getOrElse(1))
-    validateRepeatCount(sessionCount, fieldValue, groupField)
+  def getRepeatingGroupsForRendering(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
+    sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value).flatMap {
+      case Some(dynamicList) => Future.successful((dynamicList, isRepeatsMaxReached(dynamicList.size, groupField)))
+      case None => initialiseDynamicGroupList(topFieldValue, groupField)
+    }
   }
 
-  def buildRepeatingId(fieldValue: FieldValue, instance: Int) = {
-    FieldId(s"${instance}_${fieldValue.id.value}")
+  private def initialiseDynamicGroupList(parentField: FieldValue, group: Group)(implicit hc: HeaderCarrier) = {
+    val dynamicList = group.repeatsMin match {
+      case Some(min) if min == 1 | min <= 0 => List(group.fields)
+      case Some(min) if min > 1 =>
+        group.fields +: (1 until min).map { i =>
+          group.fields.map(field => field.copy(id = FieldId(s"${i}_${field.id.value}")))
+        }.toList
+      case None => List(group.fields)
+    }
+
+    sessionCache.cache[List[List[FieldValue]]](parentField.id.value, dynamicList).map { _ =>
+      (dynamicList, isRepeatsMaxReached(dynamicList.size, group))
+    }
   }
 
-  def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
-    val count = synchronousGetValidatedRepeatingCount(topFieldValue, groupField)
-    (0 until count).flatMap { i =>
-      groupField.fields.map { fieldValue =>
-        if (i == 0) fieldValue
-        else fieldValue.copy(id = buildRepeatingId(fieldValue, i))
+  def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
+    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)
+    resultOpt.getOrElse(List(groupField.fields)).flatten
+  }
+
+  def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
+    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)
+    buildGroupFieldsLabelsForSummary(resultOpt.getOrElse(List(groupField.fields)), topFieldValue)
+  }
+
+  private def buildGroupFieldsLabelsForSummary(list: List[List[FieldValue]], fieldValue: FieldValue) = {
+    (0 until list.size).flatMap { i =>
+      list(i).map { field =>
+        field.copy(
+          label = LabelHelper.buildRepeatingLabel(Some(field.label), i + 1).getOrElse(""),
+          shortName = LabelHelper.buildRepeatingLabel(field.shortName, i + 1)
+        )
       }
     }.toList
   }
+}
 
-  private def validateRepeatCount(requestedCount: Int, fieldValue: FieldValue, groupField: Group) = {
-    (groupField.repeatsMax, groupField.repeatsMin) match {
-      case (Some(max), Some(min)) if requestedCount >= min && requestedCount <= max => requestedCount
-      case (Some(max), Some(min)) if requestedCount >= min && requestedCount > max => max
-      case (Some(max), Some(min)) if requestedCount < min => min
-      case (Some(max), None) if requestedCount <= max => requestedCount
-      case (Some(max), None) if requestedCount > max => max
-      case _ => 1
+object LabelHelper {
+  def buildRepeatingLabel(field: FieldValue, index: Int) = {
+    if (field.label.contains("$n")) {
+      field.label.replace("$n", index.toString)
+    } else {
+      field.label
     }
+  }
+
+  def buildRepeatingLabel(text: Option[String], index: Int) = text match {
+    case Some(txt) if text.get.contains("$n") => Some(txt.replace("$n", index.toString))
+    case _ => text
   }
 }

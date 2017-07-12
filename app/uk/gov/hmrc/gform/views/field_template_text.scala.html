@@ -1,13 +1,14 @@
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.gform.models.components.{FieldValue, Text}
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.service.LabelHelper
 
-@(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
         @* TODO: What should total style be? *@
-      <label @if(text.total) {class="form-label-bold"} else {class="form-label"} for="@{fieldValue.id}">@localisation(fieldValue.label)</label>
+      <label @if(text.total) {class="form-label-bold"} else {class="form-label"} for="@{fieldValue.id}">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</label>
 
       @if(fieldValue.helpText) {
       <div class="form-field--hint">@{fieldValue.helpText}</div>

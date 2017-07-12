@@ -1,0 +1,38 @@
+@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation, Horizontal, Vertical, Group}
+@import uk.gov.hmrc.play.views.html.helpers._
+@import views.html.helper.CSRF
+@import scala.concurrent.Future
+
+
+@(fieldValue: FieldValue, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)
+
+
+<fieldset>
+    @if(groupField.repeatLabel.isDefined) {
+    <div class="subsection">
+        <div class="divider--bottom">
+            <div class="form-field-group">
+                <h2 class="heading-small">
+                    @localisation(groupField.buildRepeatLabel(instance))
+                </h2>
+            </div>
+        </div>
+    </div>
+    }
+
+    <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
+        @{
+        snippets
+        }
+    </div>
+
+    @if(!disableRemoveButton) {
+    <button
+            type="submit"
+            class="button button--link soft--left"
+            name="save"
+            value="RemoveGroup-@{instance}_@{fieldValue.id}">
+        @localisation("Remove")
+    </button>
+    }
+</fieldset>

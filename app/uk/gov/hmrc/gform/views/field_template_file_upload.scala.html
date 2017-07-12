@@ -4,9 +4,10 @@
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.gform.models.ValidationUtil
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.service.LabelHelper
 
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
 
 
 @currentValue = @{
@@ -23,7 +24,7 @@
 
         <fieldset>
             <legend class="h3-heading">@{
-                fieldValue.label
+                LabelHelper.buildRepeatingLabel(fieldValue, index)
             }</legend>
 
             @{
