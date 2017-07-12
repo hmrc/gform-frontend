@@ -41,7 +41,7 @@ object SummaryForRender {
 
       def groupToHtml(fieldValue: FieldValue): Html = fieldValue.`type` match {
         case groupField @ Group(_, orientation, _, _, _, _) => {
-          val fvs = repeatService.getAllFieldsInGroup(fieldValue, groupField)
+          val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
           val htmlList: List[Html] = fvs.map {
             case (fv: FieldValue) => valueToHtml(fv)
           }

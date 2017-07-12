@@ -2,6 +2,7 @@
 @import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation}
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.service.LabelHelper
 
 @(inputType: String,
 fieldValue: FieldValue,
@@ -9,13 +10,15 @@ options: NonEmptyList[String],
 orientation: Orientation,
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
-optionHelpText: Option[List[String]])
+optionHelpText: Option[List[String]],
+index: Int
+)
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
         <fieldset>
             @if(fieldValue.label) {
-            <legend class="form-label">@{fieldValue.label}</legend>
+            <legend class="form-label">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</legend>
             }
 
             @if(fieldValue.helpText) {

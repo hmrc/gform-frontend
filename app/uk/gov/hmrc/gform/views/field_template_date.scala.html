@@ -1,13 +1,14 @@
 @import uk.gov.hmrc.gform.models.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.models.components.{DateExpr, FieldValue}
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.service.LabelHelper
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr])
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
         <fieldset>
-            <legend class="h3-heading">@{fieldValue.label}</legend>
+            <legend class="h3-heading">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</legend>
 
             @if(fieldValue.helpText) {
             <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>

@@ -48,35 +48,34 @@ class PageShader(
     val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
     val snippets = Future.sequence(snippetsSeq)
     val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
-    //    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.fields))
     snippets.map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, javasctipt))
   }
 
-  private def htmlFor(fieldValue: FieldValue, instance: Int): Future[Html] = {
+  private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {
     //    val fieldValue = adjustIdForRepeatingGroups(orgFieldValue, instance)
     fieldValue.`type` match {
-      case g @ Group(fvs, orientation, _, _, _, _) => htmlForGroup(g, fieldValue, fvs, orientation)
-      case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue)
-      case Address(international) => htmlForAddress(fieldValue, international, instance)
-      case t @ Text(expr, _) => htmlForText(fieldValue, t, expr)
-      case Choice(choice, options, orientation, selections, optionalHelpText) => htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText)
-      case FileUpload() => htmlForFileUpload(fieldValue)
-      case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText)
+      case g @ Group(fvs, orientation, _, _, _, _) => htmlForGroup(g, fieldValue, fvs, orientation, index)
+      case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue, index)
+      case Address(international) => htmlForAddress(fieldValue, international, index)
+      case t @ Text(expr, _) => htmlForText(fieldValue, t, expr, index)
+      case Choice(choice, options, orientation, selections, optionalHelpText) => htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index)
+      case FileUpload() => htmlForFileUpload(fieldValue, index)
+      case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText, index)
     }
   }
 
-  private def htmlForInformationMessage(fieldValue: FieldValue, infoType: InfoType, infoText: String) = {
+  private def htmlForInformationMessage(fieldValue: FieldValue, infoType: InfoType, infoText: String, index: Int) = {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(infoText)
     val parsedMarkdownText = new HtmlGenerator(infoText, parsedTree, flavour, false).generateHtml
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText)))
+    Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText), index))
   }
 
-  private def htmlForFileUpload(fieldValue: FieldValue) = {
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_file_upload(fieldValue, validate(fieldValue)))
+  private def htmlForFileUpload(fieldValue: FieldValue, index: Int) = {
+    Future.successful(uk.gov.hmrc.gform.views.html.field_template_file_upload(fieldValue, validate(fieldValue), index))
   }
 
-  private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]]) = {
+  private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]], index: Int) = {
     val prepopValues = fieldData.get(fieldValue.id) match {
       case None => selections.map(_.toString).toSet
       case Some(_) => Set.empty[String] // Don't prepop something we already submitted
@@ -84,35 +83,35 @@ class PageShader(
 
     val snippet =
       choice match {
-        case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, validate(fieldValue), optionalHelpText)
-        case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, validate(fieldValue), optionalHelpText)
-        case Inline => uk.gov.hmrc.gform.views.html.choiceInline(fieldValue, options, prepopValues, validate(fieldValue), optionalHelpText)
+        case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, validate(fieldValue), optionalHelpText, index)
+        case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, validate(fieldValue), optionalHelpText, index)
+        case Inline => uk.gov.hmrc.gform.views.html.choiceInline(fieldValue, options, prepopValues, validate(fieldValue), optionalHelpText, index)
       }
 
     Future.successful(snippet)
   }
 
-  private def htmlForText(fieldValue: FieldValue, t: Text, expr: Expr) = {
+  private def htmlForText(fieldValue: FieldValue, t: Text, expr: Expr, index: Int) = {
     val prepopValueF = fieldData.get(fieldValue.id) match {
       case None => PrepopService.prepopData(expr, formTemplate.formTypeId)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
-    prepopValueF.map(prepopValue => uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validate(fieldValue)))
+    prepopValueF.map(prepopValue => uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validate(fieldValue), index))
   }
 
-  private def htmlForAddress(fieldValue: FieldValue, international: Boolean, instance: Int) = {
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, validate(fieldValue), instance))
+  private def htmlForAddress(fieldValue: FieldValue, international: Boolean, index: Int) = {
+    Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, validate(fieldValue), index))
   }
 
-  private def htmlForDate(fieldValue: FieldValue, offset: Offset, dateValue: Option[DateValue]) = {
+  private def htmlForDate(fieldValue: FieldValue, offset: Offset, dateValue: Option[DateValue], index: Int) = {
     val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validate(fieldValue), prepopValues))
+    Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validate(fieldValue), prepopValues, index))
   }
 
-  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation) = {
+  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation, index: Int) = {
     for {
       (lhtml, limitReached) <- getGroupForRendering(fieldValue, groupField, orientation)
-    } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, orientation, limitReached)
+    } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, orientation, limitReached, index)
   }
 
   private def getGroupForRendering(fieldValue: FieldValue, groupField: Group, orientation: Orientation): Future[(List[Html], Boolean)] = {

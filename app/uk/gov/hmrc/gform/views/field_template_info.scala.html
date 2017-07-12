@@ -1,6 +1,7 @@
 @import uk.gov.hmrc.gform.models.components.{BannerInfo, FieldValue, ImportantInfo, InfoType, LongInfo, StandardInfo}
+@import uk.gov.hmrc.gform.service.LabelHelper
 
-@(fieldValue: FieldValue, infoType: InfoType, text: Html)
+@(fieldValue: FieldValue, infoType: InfoType, text: Html, index: Int)
 
 <div class="subsection">
   @infoType match {
@@ -14,7 +15,7 @@
 
     case LongInfo => {
       <details class="details" role="group">
-        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@fieldValue.label</summary>
+        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</summary>
 
         <div class="details__inner" id="details-content-@{fieldValue.id}" aria-hidden="true">
           <div class="panel panel-indent panel-info">
@@ -33,7 +34,7 @@
     case BannerInfo => {
       <div class="transaction-banner--complete panel-info">
         <p>
-          <strong class="text--bold">@fieldValue.label</strong><br />
+          <strong class="text--bold">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</strong><br />
           @text
         </p>
       </div>

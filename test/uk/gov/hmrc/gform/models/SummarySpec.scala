@@ -50,6 +50,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     sections = List(section0, section1, section2)
   )
   val mockRepeatService = mock[RepeatingComponentService]
+  when(mockRepeatService.getAllFieldsInGroupForSummary(any(), any())(any())).thenReturn(List[FieldValue]())
   when(mockRepeatService.getAllFieldsInGroup(any(), any())(any())).thenReturn(List[FieldValue]())
   implicit val hc = HeaderCarrier()
 

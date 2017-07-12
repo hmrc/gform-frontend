@@ -141,4 +141,41 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
         groupField.fields
     }
   }
+
+  def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
+    Try(Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)) match {
+      case Success(value) => buildGroupFieldsLabelsForSummary(
+        value.getOrElse(List(groupField.fields)), topFieldValue
+      )
+      case Failure(e) =>
+        play.Logger.error(e.getStackTrace.mkString)
+        groupField.fields
+    }
+  }
+
+  private def buildGroupFieldsLabelsForSummary(list: List[List[FieldValue]], fieldValue: FieldValue) = {
+    (0 until list.size).flatMap { i =>
+      list(i).map { field =>
+        field.copy(
+          label = LabelHelper.buildRepeatingLabel(Some(field.label), i + 1).getOrElse(""),
+          shortName = LabelHelper.buildRepeatingLabel(field.shortName, i + 1)
+        )
+      }
+    }.toList
+  }
+}
+
+object LabelHelper {
+  def buildRepeatingLabel(field: FieldValue, index: Int) = {
+    if (field.label.contains("$n")) {
+      field.label.replace("$n", index.toString)
+    } else {
+      field.label
+    }
+  }
+
+  def buildRepeatingLabel(text: Option[String], index: Int) = text match {
+    case Some(txt) if text.get.contains("$n") => Some(txt.replace("$n", index.toString))
+    case _ => text
+  }
 }

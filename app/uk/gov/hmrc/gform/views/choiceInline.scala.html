@@ -2,13 +2,16 @@
 @import uk.gov.hmrc.gform.models.components.FieldValue
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.service.LabelHelper
 
 @(
 fieldValue: FieldValue,
 options: NonEmptyList[String],
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
-optionHelpText: Option[List[String]])
+optionHelpText: Option[List[String]],
+index: Int
+)
 
 
 <div class="form-group">
@@ -16,7 +19,7 @@ optionHelpText: Option[List[String]])
     <div class="choice-list">
       <div class="choice-list__item">
         <div class="choice-list__item__label">
-          <h2 class="form-label">@fieldValue.label</h2>
+          <h2 class="form-label">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</h2>
 
           @if(fieldValue.helpText) {
           <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
