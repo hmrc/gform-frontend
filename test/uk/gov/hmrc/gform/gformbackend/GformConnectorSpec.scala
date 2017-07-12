@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
-import uk.gov.hmrc.gform.models.{ DmsSubmission, Section }
+import uk.gov.hmrc.gform.models.components.{Constant, FieldId, FieldValue, Text}
+import uk.gov.hmrc.gform.models.{DmsSubmission, Section, UserId}
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
 import scala.collection.immutable.List
 
@@ -130,7 +130,7 @@ class GformConnectorSpec extends Spec {
     val status = 200
     val responseJson = Some(Json.toJson(newFormResponse))
     connector
-      .newForm(formTypeId, version)
+      .newForm(formTypeId, version, userId)
       .futureValue shouldBe newFormResponse
   }
 
@@ -184,8 +184,10 @@ trait ExampleData {
     FieldId("surname"),
     "Jordan"
   )
+
+  lazy val userId = UserId("TESTID")
   lazy val fields = Seq(field0, field1, field2)
-  lazy val formData = FormData(
+  lazy val formData = FormData(userId,
     formTypeId,
     version,
     characterSet,
@@ -193,7 +195,8 @@ trait ExampleData {
   )
   lazy val form = Form(
     formId,
-    formData
+    formData,
+    envelopeId
   )
 
   lazy val envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
