@@ -173,11 +173,11 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
                 }
               }
             case AddGroup(groupId) =>
-              repeatService.increaseGroupCount(groupId).flatMap { _ =>
+              repeatService.appendNewGroup(groupId).flatMap { _ =>
                 page.flatMap(page => page.renderPage(data, formIdOpt, None))
               }
             case RemoveGroup(groupId) =>
-              repeatService.decreaseGroupCount(groupId).flatMap { _ =>
+              repeatService.removeGroup(groupId).flatMap { _ =>
                 page.flatMap(page => page.renderPage(data, formIdOpt, None))
               }
           }

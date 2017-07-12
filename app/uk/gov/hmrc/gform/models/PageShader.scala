@@ -47,13 +47,13 @@ class PageShader(
   def render(): Future[PageForRender] = {
     val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
     val snippets = Future.sequence(snippetsSeq)
-    //    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
-    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.fields))
+    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
+    //    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.fields))
     snippets.map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, javasctipt))
   }
 
-  private def htmlFor(orgFieldValue: FieldValue, instance: Int): Future[Html] = {
-    val fieldValue = adjustIdForRepeatingGroups(orgFieldValue, instance)
+  private def htmlFor(fieldValue: FieldValue, instance: Int): Future[Html] = {
+    //    val fieldValue = adjustIdForRepeatingGroups(orgFieldValue, instance)
     fieldValue.`type` match {
       case g @ Group(fvs, orientation, _, _, _, _) => htmlForGroup(g, fieldValue, fvs, orientation)
       case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue)
@@ -119,22 +119,15 @@ class PageShader(
     if (groupField.repeatsMax.isDefined) {
       repeatService.getRepeatingGroupsForRendering(fieldValue, groupField).flatMap {
         case (groupList, isLimit) =>
-          Future.sequence((0 until groupList.size).map { count =>
-            Future.sequence(groupList.map(fv => htmlFor(fv, count))).map { lhtml =>
-              uk.gov.hmrc.gform.views.html.group_element(fieldValue, groupField, lhtml, orientation, count + 1, count == 0)
+          Future.sequence((1 to groupList.size).map { count =>
+            Future.sequence(groupList(count - 1).map(fv =>
+              htmlFor(fv, count))).map { lhtml =>
+              uk.gov.hmrc.gform.views.html.group_element(fieldValue, groupField, lhtml, orientation, count, count == 1)
             }
           }.toList).map(a => (a, isLimit))
       }
     } else {
       Future.sequence(groupField.fields.map(fv => htmlFor(fv, 0))).map(a => (a, true))
-    }
-  }
-
-  private def adjustIdForRepeatingGroups(fieldValue: FieldValue, instance: Int) = {
-    if (instance == 0) {
-      fieldValue
-    } else {
-      fieldValue.copy(id = repeatService.buildRepeatingId(fieldValue, instance))
     }
   }
 
