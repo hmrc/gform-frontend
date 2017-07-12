@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.gform.gformbackend.model
 
-import play.api.libs.json.{ OFormat, OWrites, Reads }
+import play.api.libs.json.{ Json, OFormat, OWrites, Reads }
 
 case class Index(formId: FormId, envelopeId: EnvelopeId)
 
 object Index {
 
   implicit def format = {
-    val mongoIdReads = FormIdAsMongoId.format
-    val envelopeIdReads = EnvelopeId.oFormat
-    val writes = OWrites[Index](index => mongoIdReads.writes(index.formId) ++ envelopeIdReads.writes(index.envelopeId))
+    val mongoIdReads = FormId.format
+    val envelopeIdReads = EnvelopeId.format
+    val writes = OWrites[Index](index => mongoIdReads.writes(index.formId) ++ Json.obj("envelopeId" -> envelopeIdReads.writes(index.envelopeId)))
     val reads = Reads[Index](json =>
       for {
         id <- mongoIdReads.reads(json)

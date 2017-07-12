@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.connectors
 
+import play.api.Logger
 import play.api.libs.json.{ JsObject, JsValue }
 import uk.gov.hmrc.gform.WSHttp
 import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId, FormTypeId, Version }
@@ -52,7 +53,8 @@ trait GformConnector {
   }
 
   def updateForm(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    httpPut.PUT[FormData, SaveResult](s"$baseUrl/forms/${formId.value}?tolerant=$tolerant", formData)
+    Logger.info("HERE")
+    httpPut.PUT[FormData, SaveResult](s"$baseUrl/forms/$formId?tolerant=$tolerant", formData)
   }
 
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {

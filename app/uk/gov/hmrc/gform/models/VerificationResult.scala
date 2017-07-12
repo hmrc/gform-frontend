@@ -16,10 +16,23 @@
 
 package uk.gov.hmrc.gform.models
 
-import play.api.libs.json.Json
+import play.api.Logger
+import play.api.libs.json._
 
-case class VerificationResult(error: Option[String])
+case class SaveResult(success: Option[String], error: Option[String])
 
-object VerificationResult {
-  implicit val formats = Json.format[VerificationResult]
+object SaveResult {
+
+  val reads = Reads[SaveResult] {
+    case x =>
+      Logger.info("THIS IS X: " + Json.prettyPrint(x))
+      JsSuccess(SaveResult(None, None))
+    case _ => JsError("THIS IS AN ERROR")
+  }
+
+  val writes = Writes[SaveResult] { x =>
+    JsString(x.toString)
+  }
+
+  implicit val formats = Format[SaveResult](reads, writes) //Json.format[SaveResult]
 }

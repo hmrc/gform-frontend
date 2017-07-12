@@ -18,17 +18,21 @@ package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json._
 
-case class EnvelopeId(value: String)
+case class EnvelopeId(value: String) extends AnyVal {
+  override def toString = value
+}
 
 object EnvelopeId {
 
-  val writes = Writes[EnvelopeId](id => JsString(id.value))
-  val oWrites = OWrites[EnvelopeId](id => Json.obj("id" -> id.value))
+  val writes = Writes[EnvelopeId](x => JsString(x.value))
   val reads = Reads[EnvelopeId] {
     case JsString(value) => JsSuccess(EnvelopeId(value))
+    case JsObject(x) => x.get("envelopeId") match {
+      case Some(JsString(y)) => JsSuccess(EnvelopeId(y))
+      case None => JsError(s"Invalid envelopeId, expected JsString, got: $x")
+    }
     case otherwise => JsError(s"Invalid envelopeId, expected JsString, got: $otherwise")
   }
 
   implicit val format = Format[EnvelopeId](reads, writes)
-  implicit val oFormat = OFormat[EnvelopeId](reads, oWrites)
 }
