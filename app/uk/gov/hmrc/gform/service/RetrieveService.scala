@@ -18,12 +18,7 @@ package uk.gov.hmrc.gform.service
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform.connectors.GformConnector
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
-import uk.gov.hmrc.gform.models.FormTemplate
-import uk.gov.hmrc.gform.models.form.{ FormId, FormTypeId }
-import uk.gov.hmrc.gform.models.FormTemplate
-import uk.gov.hmrc.gform.models.form.{FormId, FormTypeId}
-import uk.gov.hmrc.gform.gformbackend.model.{ FormId,FormTemplate, FormTypeId, Version }
+import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.UserId
 import uk.gov.hmrc.play.http.HeaderCarrier
 
