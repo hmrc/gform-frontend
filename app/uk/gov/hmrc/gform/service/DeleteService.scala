@@ -28,7 +28,7 @@ object DeleteService {
 
   def gformConnector: GformConnector = GformConnector
 
-  def deleteForm(formTypeId: FormTypeId, version: Version, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    gformConnector.deleteForm(formTypeId, version, userId, formId)
+  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier): Future[SaveResult] = {
+    gformConnector.deleteForm(formId)
   }
 }

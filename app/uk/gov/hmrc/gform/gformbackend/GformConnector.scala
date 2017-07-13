@@ -20,17 +20,15 @@ import play.api.Logger
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
-  def newForm(formTypeId: FormTypeId, version: Version, userId: UserId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] = {
-    Logger.info(s"USERID $userId")
-    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/${formTypeId.value}/${version.value}/$userId")
-  }
+  def newForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] =
+    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/$formId")
 
   def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
@@ -49,4 +47,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}")
   }
+
+  def isStarted(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[FormId]] =
+    ws.GET[FormId](s"$baseUrl/forms/$formId").map(Some(_)).recover {
+      case e: NotFoundException => None
+    }
+
+  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] =
+    ws.POSTEmpty[SaveResult](baseUrl + s"/forms/$formId/delete")
+
 }

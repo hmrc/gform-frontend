@@ -18,14 +18,16 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.Inject
 
-import play.api.mvc.Request
+import play.api.data.Form
+import play.api.data.Forms._
+import play.api.mvc.{ Action, AnyContent, Request }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.{ Page, UserId }
-import uk.gov.hmrc.gform.service.{ RepeatingComponentService, RetrieveService }
+import uk.gov.hmrc.gform.service.{ DeleteService, RepeatingComponentService, RetrieveService }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -45,41 +47,32 @@ class FormController @Inject() (
   import GformSession._
   import controllersModule.i18nSupport._
 
-  def newForm(formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
+  def newForm(formTypeId: FormTypeId) = auth.async { implicit c =>
 
-    def updateSession(formId: FormId, envelopeId: EnvelopeId, userId: UserId) = Future.successful(c.request.session
-      .putFormId(formId)
-      .putEnvelopeId(envelopeId)
-      .putVersion(version)
-      .putFormTypeId(formTypeId)
-      .putSectionNumber(firstSection)
-      .putUserId(userId))
+    def updateSession(formId: FormId) = Future.successful(c.request.session
+      .putFormId(formId))
 
     for {
       userId <- authConnector.getUserDetails[UserId](authContext)
-      optForm <- RetrieveService.getStartedForm(userId, formTypeId, version)
-      (formId, envelopeId) <- formIdAndEnvelopeId(formTypeId, version, userId, optForm)
-      session <- updateSession(formId, envelopeId, userId)
-      result <- result(formTypeId, version, userId, optForm)
+      formId <- create(userId, formTypeId)
+      optForm <- start(formId)
+      session <- updateSession(formId)
+      result <- result(formTypeId, formId, optForm)
     } yield result.withSession(session)
   }
 
-  private def formIdAndEnvelopeId(formTypeId: FormTypeId, version: Version, userId: UserId, formFound: Option[Index])(implicit hc: HeaderCarrier): Future[(FormId, EnvelopeId)] = {
+  private def start(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[FormId]] =
+    gformConnector.isStarted(formId).flatMap[Option[FormId]](_.fold(gformConnector.newForm(formId).map(_ => Option.empty[FormId]))(_ => Future.successful(Some(formId))))
+
+  private def result(formTypeId: FormTypeId, formId: FormId, formFound: Option[FormId])(implicit hc: HeaderCarrier, request: Request[_]) = {
     formFound match {
-      case Some(Index(formId, envelopeId)) => Future.successful((formId, envelopeId))
-      case _ =>
-        gformConnector.newForm(formTypeId, version, userId).map {
-          case (NewFormResponse(Form(formId, _, _), envelopeId, _)) => (formId, envelopeId)
-        }
+      case Some(_) => Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId)))
+      case None => Future.successful(Redirect(routes.FormController.form()))
     }
   }
 
-  private def result(formTypeId: FormTypeId, version: Version, userId: UserId, formFound: Option[Index])(implicit hc: HeaderCarrier, request: Request[_]) = {
-
-    Future.successful(formFound match {
-      case Some(Index(formId, _)) => Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId))
-      case None => Redirect(routes.FormController.form())
-    })
+  private def create(userId: UserId, formTypeId: FormTypeId): Future[FormId] = {
+    Future.successful(FormId(userId, formTypeId))
   }
 
   def form() = auth.async { implicit c =>
@@ -101,13 +94,40 @@ class FormController @Inject() (
       c.request.session.getVersion.get
     )
     val envelopeId = c.request.session.getEnvelopeId.get
-    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form()
-    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form()
-    val actionUrl = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
+    val actionUrl = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${routes.FormController.form()}"
     for {
       formTemplate <- formTemplateF
     } yield Ok(
       uk.gov.hmrc.gform.views.html.file_upload_page(fileId, formTemplate, actionUrl)
+    )
+  }
+
+  case class Choice(decision: String)
+
+  val choice = Form(mapping(
+    "decision" -> nonEmptyText
+  )(Choice.apply)(Choice.unapply))
+
+  def decision(formTypeId: FormTypeId, formId: FormId): Action[AnyContent] = auth.async { implicit c =>
+
+    choice.bindFromRequest.fold(
+      errors => {
+        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId)))
+      },
+      success =>
+        success.decision match {
+          case "continue" => Future.successful(Redirect(routes.FormController.form()))
+          case "delete" =>
+            val userId = request.session.getUserId.get
+            val blankSession = request.session.removeEnvelopId
+              .removeFormId
+            gformConnector.deleteForm(formId).map { x =>
+              Redirect(routes.FormController.newForm(formTypeId)).withSession(blankSession)
+            }
+          case _ =>
+            val blankSession = request.session.removeEnvelopId
+            Future.successful(Redirect(routes.FormController.newForm(formTypeId)).withSession(blankSession))
+        }
     )
   }
 
@@ -116,6 +136,4 @@ class FormController @Inject() (
   private lazy val firstSection = SectionNumber(0)
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val authConnector = authModule.authConnector
-  private lazy val appConfig = configModule.appConfig
-
 }
