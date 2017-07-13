@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.service
 
-import uk.gov.hmrc.gform.connectors.GformConnector
+import uk.gov.hmrc.gform.connectors.{ GformConnector, IsEncrypt }
 import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId, FormTypeId, Version, _ }
 import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
@@ -27,23 +27,22 @@ object SaveService {
 
   def gformConnector: GformConnector = GformConnector
 
-  def getFormById(formTypeId: FormTypeId, version: Version, formId: FormId)(implicit hc: HeaderCarrier): Future[Form] = {
-    gformConnector.form(formTypeId, version, formId)
-  }
-
-  def getFormByIdCache(formTypeId: FormTypeId, version: Version, userId: UserId)(implicit hc: HeaderCarrier) = {
-    gformConnector.getByIdCache(formTypeId, version, userId)
+  val isEncrypt = IsEncrypt.is
+  def getFormById(formTypeId: FormTypeId, version: Version, formId: FormId, userId: UserId)(implicit hc: HeaderCarrier): Future[Form] = {
+    if (isEncrypt)
+      gformConnector.getByIdCache(formTypeId, version, userId)
+    else
+      gformConnector.form(formTypeId, version, formId)
   }
 
   def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     gformConnector.updateForm(formId, formData, tolerant)
   }
 
-  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    gformConnector.sendSubmission(formTypeId, formId)
-  }
-
-  def sendSubmission(formTypeId: FormTypeId, userId: UserId, version: Version)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    gformConnector.sendSubmission(formTypeId, userId, version)
+  def sendSubmission(formTypeId: FormTypeId, version: Version, formId: FormId, userId: UserId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    if (isEncrypt)
+      gformConnector.sendSubmission(formTypeId, userId, version)
+    else
+      gformConnector.sendSubmission(formTypeId, formId)
   }
 }

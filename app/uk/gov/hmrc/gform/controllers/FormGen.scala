@@ -105,12 +105,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     val envelopeId = request.session.getEnvelopeId.get
     val envelope = fileUploadService.getEnvelope(envelopeId)
 
-    val result = if (IsEncrypt.is)
-      SaveService.getFormByIdCache(formTypeId, version, userId)
-    else
-      SaveService.getFormById(formTypeId, version, formId)
-
-    result.flatMap { form =>
+    SaveService.getFormById(formTypeId, version, formId, userId).flatMap { form =>
 
       val fieldIdToStrings: Map[FieldId, Seq[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
@@ -197,14 +192,8 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
               processSaveAndContinue(userId)(nextPageToRender.renderPage(data, Some(formId), None))
             case SaveAndExit =>
               processSaveAndExit(userId)
-            case SaveAndSummary => {
-              val redirect = if (IsEncrypt.is) {
-                Redirect(routes.SummaryGen.summaryByIdCache(formTypeId, version, userId))
-              } else {
-                Redirect(routes.SummaryGen.summaryById(formTypeId, version, formId))
-              }
-              processSaveAndContinue(userId)(Future.successful(redirect))
-            }
+            case SaveAndSummary =>
+              processSaveAndContinue(userId)(Future.successful(Redirect(routes.SummaryGen.summaryById(formTypeId, version, formId, userId))))
             case AddGroup(groupId) =>
               repeatService.appendNewGroup(groupId).flatMap { _ =>
                 page.flatMap(page => page.renderPage(data, Some(formId), None))

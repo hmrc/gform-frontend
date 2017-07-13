@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.components.{Constant, FieldId, FieldValue, Text}
-import uk.gov.hmrc.gform.models.{DmsSubmission, Section, UserId}
+import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
+import uk.gov.hmrc.gform.models.{ DmsSubmission, Section, UserId }
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.collection.immutable.List
 
@@ -187,7 +187,8 @@ trait ExampleData {
 
   lazy val userId = UserId("TESTID")
   lazy val fields = Seq(field0, field1, field2)
-  lazy val formData = FormData(userId,
+  lazy val formData = FormData(
+    userId,
     formTypeId,
     version,
     characterSet,

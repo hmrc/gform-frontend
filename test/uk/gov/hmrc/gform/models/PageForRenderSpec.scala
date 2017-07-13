@@ -18,18 +18,18 @@ package uk.gov.hmrc.gform.models
 
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
-import uk.gov.hmrc.gform.fileupload.{Envelope, FileUploadService}
-import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId, Version}
-import uk.gov.hmrc.gform.models.components.{FieldId, FieldValue, InformationMessage, StandardInfo, _}
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
+import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
 class PageForRenderSpec extends Spec {
