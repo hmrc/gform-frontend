@@ -18,18 +18,14 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.Inject
 
-import cats.Applicative
-import play.api.Logger
-import play.api.mvc.{ Action, AnyContent, Request, Session }
+import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.GformSession.{ envelopeId, formTypeId, userId, version }
-import uk.gov.hmrc.gform.fileupload.{ FileUploadModule, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.{ Page, UserId }
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, RetrieveService }
-import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -49,33 +45,41 @@ class FormController @Inject() (
   import GformSession._
   import controllersModule.i18nSupport._
 
-  def check(formTypeId: FormTypeId, version: Version, userId: UserId, optIndx: Option[Index])(fail: Future[NewFormResponse], sf: (Index) => Session)(implicit hc: HeaderCarrier, request: Request[_]) = {
-    optIndx match {
-      case None =>
-        fail.map { x =>
-          val session: Session = sf(Index(x.form._id, x.envelopeId)).putUserId(userId)
-          redirectToForm.withSession(session)
-        }
-      case Some(x) =>
-        val session: Session = sf(x).putUserId(userId)
-        Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, x.formId)).withSession(session))
-    }
-  }
-
   def newForm(formTypeId: FormTypeId, version: Version) = auth.async { implicit c =>
 
-    val updatedSession: Index => Session = inx => c.request.session
-      .putFormId(inx.formId)
+    def updateSession(formId: FormId, envelopeId: EnvelopeId, userId: UserId) = Future.successful(c.request.session
+      .putFormId(formId)
+      .putEnvelopeId(envelopeId)
       .putVersion(version)
       .putFormTypeId(formTypeId)
       .putSectionNumber(firstSection)
-      .putEnvelopeId(inx.envelopeId)
+      .putUserId(userId))
 
     for {
       userId <- authConnector.getUserDetails[UserId](authContext)
-      maybeIndex <- RetrieveService.getStartedForm(userId, formTypeId, version)
-      index <- check(formTypeId, version, userId, maybeIndex)(gformConnector.newForm(formTypeId, version, userId), updatedSession)
-    } yield index
+      optForm <- RetrieveService.getStartedForm(userId, formTypeId, version)
+      (formId, envelopeId) <- formIdAndEnvelopeId(formTypeId, version, userId, optForm)
+      session <- updateSession(formId, envelopeId, userId)
+      result <- result(formTypeId, version, userId, optForm)
+    } yield result.withSession(session)
+  }
+
+  private def formIdAndEnvelopeId(formTypeId: FormTypeId, version: Version, userId: UserId, formFound: Option[Index])(implicit hc: HeaderCarrier): Future[(FormId, EnvelopeId)] = {
+    formFound match {
+      case Some(Index(formId, envelopeId)) => Future.successful((formId, envelopeId))
+      case _ =>
+        gformConnector.newForm(formTypeId, version, userId).map {
+          case (NewFormResponse(Form(formId, _, _), envelopeId, _)) => (formId, envelopeId)
+        }
+    }
+  }
+
+  private def result(formTypeId: FormTypeId, version: Version, userId: UserId, formFound: Option[Index])(implicit hc: HeaderCarrier, request: Request[_]) = {
+
+    Future.successful(formFound match {
+      case Some(Index(formId, _)) => Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId))
+      case None => Redirect(routes.FormController.form())
+    })
   }
 
   def form() = auth.async { implicit c =>
@@ -107,8 +111,6 @@ class FormController @Inject() (
 
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
-  private lazy val redirectToForm = Redirect(routes.FormController.form())
-  private lazy val redirectToFormF = Future.successful(redirectToForm)
   private lazy val firstSection = SectionNumber(0)
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val authConnector = authModule.authConnector
