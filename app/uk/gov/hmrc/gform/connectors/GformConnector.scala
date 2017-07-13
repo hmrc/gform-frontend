@@ -66,8 +66,8 @@ trait GformConnector {
     httpPost.POSTEmpty[HttpResponse](baseUrl + s"/forms/$formTypeId/submission/$userId/$version")
   }
 
-  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] = {
-    httpDelete.DELETE[SaveResult](baseUrl + s"/forms/$formId/delete")
+  def deleteForm(formTypeId: FormTypeId, version: Version, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] = {
+    httpPost.POSTEmpty[SaveResult](baseUrl + s"/forms/$formTypeId/$version/$userId/$formId/delete")
   }
 }
 
