@@ -37,26 +37,15 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
     extends FrontendController with I18nSupport {
   import GformSession._
 
-  def summaryById(formTypeId: FormTypeId, version: Version, formId: FormId) =
+  def summaryById(formTypeId: FormTypeId, version: Version, formId: FormId, userId: UserId) =
     sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
       val envelopeId = request.session.getEnvelopeId.get
       val envelope = fileUploadService.getEnvelope(envelopeId)
       for {
         envelope <- envelope
-        formData <- SaveService.getFormById(formTypeId, version, formId)
+        formData <- SaveService.getFormById(formTypeId, version, formId, userId)
       } yield Summary(request.formTemplate)
         .renderSummary(formDataMap(formData.formData), formId, repeatService, envelope)
-    }
-
-  def summaryByIdCache(formTypeId: FormTypeId, version: Version, userId: UserId) =
-    sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
-      val envelopeId = request.session.getEnvelopeId.get
-      val envelope = fileUploadService.getEnvelope(envelopeId)
-      for {
-        envelope <- envelope
-        formData <- SaveService.getFormByIdCache(formTypeId, version, userId)
-      } yield Summary(request.formTemplate)
-        .renderSummary(formDataMap(formData.formData), formData._id, repeatService, envelope)
     }
 
   def submit(formTypeId: FormTypeId, version: Version) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
@@ -67,15 +56,9 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
         case "Continue" :: Nil =>
           anyFormId(data) match {
             case Some(formId) =>
-              if (IsEncrypt.is) {
-                authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-                  SaveService.sendSubmission(formTypeId, x, version).
-                    map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
-                }
-              } else {
-                SaveService.sendSubmission(formTypeId, formId).
-                  map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
-              }
+              val userId = request.session.getUserId.get
+              SaveService.sendSubmission(formTypeId, version, formId, userId).
+                map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
             case None =>
               Future.successful(BadRequest("No formId"))
           }
