@@ -101,7 +101,9 @@ class FormController @Inject() (
       c.request.session.getVersion.get
     )
     val envelopeId = c.request.session.getEnvelopeId.get
-    val actionUrl = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${routes.FormController.form()}"
+    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form()
+    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form()
+    val actionUrl = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
     for {
       formTemplate <- formTemplateF
     } yield Ok(
@@ -114,4 +116,6 @@ class FormController @Inject() (
   private lazy val firstSection = SectionNumber(0)
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val authConnector = authModule.authConnector
+  private lazy val appConfig = configModule.appConfig
+
 }
