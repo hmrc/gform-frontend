@@ -51,7 +51,6 @@ trait GformConnector {
   }
 
   def updateForm(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    Logger.info("HERE")
     httpPut.PUT[FormData, SaveResult](s"$baseUrl/forms/$formId?tolerant=$tolerant", formData)
   }
 
@@ -59,16 +58,13 @@ trait GformConnector {
     httpPost.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}")
   }
 
-  def getByIdCache(formTypeId: FormTypeId, version: Version, userId: UserId)(implicit hc: HeaderCarrier): Future[Form] = {
-    httpGet.GET[Form](baseUrl + s"/forms/$formTypeId/$version/$userId/cache")
-  }
   def sendSubmission(formTypeId: FormTypeId, userId: UserId, version: Version)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     httpPost.POSTEmpty[HttpResponse](baseUrl + s"/forms/$formTypeId/submission/$userId/$version")
   }
 
-  def deleteForm(formTypeId: FormTypeId, version: Version, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] = {
-    httpPost.POSTEmpty[SaveResult](baseUrl + s"/forms/$formTypeId/$version/$userId/$formId/delete")
-  }
+  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] =
+    httpPost.POSTEmpty[SaveResult](baseUrl + s"/forms/$formId/delete")
+
 }
 
 object GformConnector extends GformConnector with ServicesConfig {

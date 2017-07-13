@@ -17,12 +17,16 @@
 package uk.gov.hmrc.gform.gformbackend.model
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.models.UserId
 
 case class FormId(value: String) extends AnyVal {
   override def toString = value
 }
 
 object FormId {
+
+  def apply(userId: UserId, formTypeId: FormTypeId): FormId =
+    new FormId(s"""${userId.value}-${formTypeId.value}""")
 
   implicit val format: OFormat[FormId] = OFormat[FormId](reads, writes)
 

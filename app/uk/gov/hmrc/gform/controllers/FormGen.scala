@@ -33,7 +33,6 @@ import play.api.data.Forms._
 import play.api.i18n.{ I18nSupport, MessagesApi }
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Result }
-import uk.gov.hmrc.gform.connectors.IsEncrypt
 import uk.gov.hmrc.gform.controllers.GformSession.userId
 
 import play.api.mvc.{ Action, AnyContent, Result }
@@ -68,35 +67,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, repeatService: RepeatingComponentService, validationModule: ValidationModule, fileUploadModule: FileUploadModule)(implicit ec: ExecutionContext, authConnector: AuthConnector)
     extends FrontendController with I18nSupport {
   import GformSession._
-
-  case class Choice(decision: String)
-
-  val choice = Form(mapping(
-    "decision" -> nonEmptyText
-  )(Choice.apply)(Choice.unapply))
-
-  def decision(formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
-
-    choice.bindFromRequest.fold(
-      errors => {
-        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId)))
-      },
-      success =>
-        success.decision match {
-          case "continue" => Future.successful(Redirect(routes.FormController.form()))
-          case "delete" =>
-            val userId = request.session.getUserId.get
-            val blankSession = request.session.removeEnvelopId
-              .removeFormId
-            DeleteService.deleteForm(formTypeId, version, userId, formId).map { x =>
-              Redirect(routes.FormController.newForm(formTypeId, version)).withSession(blankSession)
-            }
-          case _ =>
-            val blankSession = request.session.removeEnvelopId
-            Future.successful(Redirect(routes.FormController.newForm(formTypeId, version)).withSession(blankSession))
-        }
-    )
-  }
 
   def formById(formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = formByIdPage(formTypeId, version, formId, 0)
 
@@ -206,12 +176,6 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
           }
         case Left(error) => Future.successful(BadRequest(error))
       }
-    }
-  }
-
-  private def isStarted(formTypeId: FormTypeId, version: Version)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[(Option[Index], UserId)] = {
-    authConnector.getUserDetails[UserId](authContext).flatMap { x =>
-      RetrieveService.getStartedForm(x, formTypeId, version).map((_, x))
     }
   }
 
