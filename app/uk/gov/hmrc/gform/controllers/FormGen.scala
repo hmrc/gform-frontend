@@ -79,13 +79,11 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
     choice.bindFromRequest.fold(
       errors => {
-        Logger.error("GOT HERE")
         Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, version, formId)))
       },
       success =>
         success.decision match {
-          case "continue" =>
-            formById(formTypeId, version, formId)(request)
+          case "continue" => Future.successful(Redirect(routes.FormController.form()))
           case "delete" =>
             val userId = request.session.getUserId.get
             val blankSession = request.session.removeEnvelopId
