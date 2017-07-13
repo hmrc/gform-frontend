@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.service
 
 import uk.gov.hmrc.gform.connectors.GformConnector
-import uk.gov.hmrc.gform.gformbackend.model.FormId
-import uk.gov.hmrc.gform.models.SaveResult
+import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId, Version }
+import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,7 +28,7 @@ object DeleteService {
 
   def gformConnector: GformConnector = GformConnector
 
-  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    gformConnector.deleteForm(formId)
+  def deleteForm(formTypeId: FormTypeId, version: Version, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier): Future[SaveResult] = {
+    gformConnector.deleteForm(formTypeId, version, userId, formId)
   }
 }

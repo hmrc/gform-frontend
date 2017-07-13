@@ -87,12 +87,12 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
           case "continue" =>
             formById(formTypeId, version, formId)(request)
           case "delete" =>
+            val userId = request.session.getUserId.get
             val blankSession = request.session.removeEnvelopId
               .removeFormId
-            Logger.info("DELETE")
-            DeleteService.deleteForm(formId)
-            Logger.info("HERE")
-            Future.successful(Redirect(routes.FormController.newForm(formTypeId, version)).withSession(blankSession))
+            DeleteService.deleteForm(formTypeId, version, userId, formId).map { x =>
+              Redirect(routes.FormController.newForm(formTypeId, version)).withSession(blankSession)
+            }
           case _ =>
             val blankSession = request.session.removeEnvelopId
             Future.successful(Redirect(routes.FormController.newForm(formTypeId, version)).withSession(blankSession))
