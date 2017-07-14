@@ -22,7 +22,7 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.FormTemplate
+import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormTemplate }
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.withOffset
 import uk.gov.hmrc.gform.models.helpers.Fields
@@ -41,14 +41,15 @@ class PageShader(
     section: Section,
     f: Option[FieldValue => Option[FormFieldValidationResult]],
     repeatService: RepeatingComponentService,
-    envelope: Envelope
+    envelope: Envelope,
+    envelopeId: EnvelopeId
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
     val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
     val snippets = Future.sequence(snippetsSeq)
     val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
-    snippets.map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, javasctipt))
+    snippets.map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, javasctipt, envelopeId))
   }
 
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {

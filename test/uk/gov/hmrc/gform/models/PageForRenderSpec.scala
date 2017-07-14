@@ -22,7 +22,7 @@ import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
+import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormTemplate, FormTypeId, Version }
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
@@ -103,6 +103,7 @@ class PageForRenderSpec extends Spec {
 
   val mockRepeatService = mock[RepeatingComponentService]
   val envelope = Envelope(files = Nil)
+  val envelopeId = EnvelopeId("env-id")
   implicit val hc = HeaderCarrier()
   implicit val mockAuthContext = mock[AuthContext]
 
@@ -114,7 +115,8 @@ class PageForRenderSpec extends Spec {
       section = section,
       f = None,
       mockRepeatService,
-      envelope
+      envelope,
+      envelopeId
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -196,7 +198,8 @@ class PageForRenderSpec extends Spec {
       section = grpSection,
       f = None,
       testGrpRepSrvc,
-      envelope
+      envelope,
+      envelopeId
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -228,7 +231,8 @@ class PageForRenderSpec extends Spec {
       section = grpSection,
       f = None,
       testGrpRepSrvc,
-      envelope
+      envelope,
+      envelopeId
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
