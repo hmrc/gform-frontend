@@ -162,7 +162,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
             case SaveAndExit =>
               processSaveAndExit(userId)
             case SaveAndSummary =>
-              processSaveAndContinue(userId)(Future.successful(Redirect(routes.SummaryGen.summaryById(formTypeId, version, formId, userId))))
+              processSaveAndContinue(userId)(Future.successful(Redirect(routes.SummaryGen.summaryById(formId))))
             case AddGroup(groupId) =>
               repeatService.appendNewGroup(groupId).flatMap { _ =>
                 page.flatMap(page => page.renderPage(data, Some(formId), None))

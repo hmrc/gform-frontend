@@ -9,7 +9,7 @@ GET         /form/:formTypeId/:version/:formId                 @uk.gov.hmrc.gfor
 GET         /form/:formTypeId/:version/:formId/:page           @uk.gov.hmrc.gform.controllers.FormGen.formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, page: Int)
 POST        /form/:formTypeId/:version/save                         @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: Version, currentPage: Int)
 
-GET         /summary/:formTypeId/:version/:userId/:formId      @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formTypeId: FormTypeId, version: Version, formId: FormId, userId: UserId)
-POST        /summary/:formTypeId/submit               @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formTypeId: FormTypeId)
+GET         /summary/:formId                                   @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
+POST        /summary/:formId                                   @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId)
 
 GET         /assets/*file                                      controllers.Assets.versioned(path="/public", file: Asset)

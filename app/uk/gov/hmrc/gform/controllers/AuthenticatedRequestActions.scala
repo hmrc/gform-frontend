@@ -39,10 +39,10 @@ class AuthenticatedRequestActions(authenticatedBy: auth.Actions#AuthenticatedBy)
 
 case class AuthenticatedRequest(
   authContext: AuthContext,
-  request: Request[_]
+  request: Request[AnyContent]
 )
 
 object AuthenticatedRequest {
-  implicit def request(implicit c: AuthenticatedRequest): Request[_] = c.request
+  implicit def request(implicit c: AuthenticatedRequest): Request[AnyContent] = c.request
   implicit def authContext(implicit c: AuthenticatedRequest): AuthContext = c.authContext
 }
