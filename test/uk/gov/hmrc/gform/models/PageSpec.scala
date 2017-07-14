@@ -55,7 +55,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   "Page" should "display first page" in {
 
-    val page = Page(0, formTemplate, mockRepeatService, Envelope(Nil))
+    val page = Page(0, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.prev should be(0)
     page.curr should be(0)
@@ -78,7 +78,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display second page" in {
 
-    val page = Page(1, formTemplate, mockRepeatService, Envelope(Nil))
+    val page = Page(1, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.prev should be(0)
     page.curr should be(1)
@@ -101,7 +101,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display third page" in {
 
-    val page = Page(2, formTemplate, mockRepeatService, Envelope(Nil))
+    val page = Page(2, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.prev should be(1)
     page.curr should be(2)
@@ -125,7 +125,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display first page when currentPage is less than 0" in {
 
-    val page = Page(-1, formTemplate, mockRepeatService, Envelope(Nil))
+    val page = Page(-1, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.prev should be(0)
     page.curr should be(0)
@@ -136,7 +136,7 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display last page when currentPage is bigger than size of sections" in {
 
-    val page = Page(10, formTemplate, mockRepeatService, Envelope(Nil))
+    val page = Page(10, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.prev should be(1)
     page.curr should be(2)

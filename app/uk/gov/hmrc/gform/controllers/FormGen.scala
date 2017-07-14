@@ -81,8 +81,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
       val formTemplate = request.formTemplate
       envelope.flatMap(envelope =>
-        Page(currPage, formTemplate, repeatService, envelope).renderPage(fieldIdToStrings, Some(formId), None))
-
+        Page(currPage, formTemplate, repeatService, envelope, envelopeId).renderPage(fieldIdToStrings, Some(formId), None))
     }
   }
 
@@ -93,7 +92,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
       val envelope = fileUploadService.getEnvelope(envelopeId)
       val formId = request.session.getFormId.get
 
-      val page = envelope.map(envelope => Page(pageIdx, formTemplate, repeatService, envelope))
+      val page = envelope.map(envelope => Page(pageIdx, formTemplate, repeatService, envelope, envelopeId))
 
       val atomicFields: Future[List[FieldValue]] = page.map(_.section.atomicFields(repeatService))
 
@@ -152,7 +151,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
 
       val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
       val optSectionIdx = BooleanExpr.nextTrueIdxOpt(pageIdx, booleanExprs, data)
-      val optNextPage = envelope.map(envelope => optSectionIdx.map(i => Page(i, formTemplate, repeatService, envelope)))
+      val optNextPage = envelope.map(envelope => optSectionIdx.map(i => Page(i, formTemplate, repeatService, envelope, envelopeId)))
       val actionE = optNextPage.map(optNextPage => FormAction.determineAction(data, optNextPage))
       actionE.flatMap {
         case Right(action) =>

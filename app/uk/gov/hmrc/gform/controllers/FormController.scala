@@ -85,7 +85,7 @@ class FormController @Inject() (
     for {
       formTemplate <- gformConnector.getFormTemplate(formTypeId)
       envelope <- envelope
-      response <- Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None)
+      response <- Page(0, formTemplate, repeatService, envelope, envelopeId).renderPage(Map(), None, None)
     } yield response
   }
 
