@@ -19,6 +19,20 @@ package uk.gov.hmrc.gform.models.components
 import julienrf.json.derived
 import play.api.libs.json.{ Json, OFormat }
 
+sealed trait DateConstraintType
+final case object AnyDate extends DateConstraintType
+final case class DateConstraints(constraints: List[DateConstraint]) extends DateConstraintType
+
+object DateConstraintType {
+  implicit val format: OFormat[DateConstraintType] = derived.oformat[DateConstraintType]
+}
+
+final case class DateConstraint(beforeOrAfter: BeforeOrAfter, dateFormat: DateConstraintInfo, offset: OffsetDate)
+
+object DateConstraint {
+  implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]
+}
+
 sealed trait BeforeOrAfter
 case object After extends BeforeOrAfter
 case object Before extends BeforeOrAfter
@@ -42,18 +56,4 @@ case class OffsetDate(value: Int) extends AnyVal
 
 object OffsetDate {
   implicit val formatExpr: OFormat[OffsetDate] = Json.format[OffsetDate]
-}
-
-sealed trait DateConstraintType
-final case object AnyDate extends DateConstraintType
-final case class DateConstraints(constraints: List[DateConstraint]) extends DateConstraintType
-
-object DateConstraintType {
-  implicit val format: OFormat[DateConstraintType] = derived.oformat[DateConstraintType]
-}
-
-final case class DateConstraint(beforeOrAfter: BeforeOrAfter, dateFormat: DateConstraintInfo, offset: OffsetDate)
-
-object DateConstraint {
-  implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]
 }
