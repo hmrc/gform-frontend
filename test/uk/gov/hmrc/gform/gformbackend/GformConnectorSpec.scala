@@ -34,7 +34,7 @@ class GformConnectorSpec extends Spec {
     val status = 200
     val responseJson = Some(Json.toJson(formTemplate))
     connector
-      .getFormTemplate(formTypeId, version)
+      .getFormTemplate(formTypeId)
       .futureValue shouldBe formTemplate
   }
 
@@ -44,7 +44,7 @@ class GformConnectorSpec extends Spec {
     val status = 404
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId, version)
+      .getFormTemplate(formTypeId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.NotFoundException]
   }
@@ -53,7 +53,7 @@ class GformConnectorSpec extends Spec {
     val status = 500
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId, version)
+      .getFormTemplate(formTypeId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream5xxResponse]
   }
@@ -62,7 +62,7 @@ class GformConnectorSpec extends Spec {
     val status = 400
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId, version)
+      .getFormTemplate(formTypeId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.BadRequestException]
   }
@@ -71,7 +71,7 @@ class GformConnectorSpec extends Spec {
     val status = 401
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId, version)
+      .getFormTemplate(formTypeId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
   }
@@ -130,7 +130,7 @@ class GformConnectorSpec extends Spec {
     val status = 200
     val responseJson = Some(Json.toJson(newFormResponse))
     connector
-      .newForm(formTypeId, version, userId)
+      .newForm(formTypeId, userId, formId)
       .futureValue shouldBe newFormResponse
   }
 
@@ -190,7 +190,6 @@ trait ExampleData {
   lazy val formData = FormData(
     userId,
     formTypeId,
-    version,
     characterSet,
     fields
   )

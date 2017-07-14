@@ -28,13 +28,13 @@ object SaveService {
   def gformConnector: GformConnector = GformConnector
 
   def getFormById(formTypeId: FormTypeId, version: Version, formId: FormId, userId: UserId)(implicit hc: HeaderCarrier): Future[Form] =
-    gformConnector.form(formTypeId, version, formId)
+    gformConnector.form(formId)
 
   def updateFormData(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     gformConnector.updateForm(formId, formData, tolerant)
   }
 
-  def sendSubmission(formTypeId: FormTypeId, version: Version, formId: FormId, userId: UserId)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    gformConnector.sendSubmission(formTypeId, formId)
+  def sendSubmission(formTypeId: FormTypeId, formId: FormId, userId: UserId)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    gformConnector.sendSubmission(formTypeId, userId, formId)
 
 }

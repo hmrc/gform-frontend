@@ -39,11 +39,11 @@ trait GformConnector {
   def baseUrl: String
 
   def formTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[JsObject]] = {
-    httpGet.GET[Option[JsObject]](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
+    httpGet.GET[Option[JsObject]](s"$baseUrl/formtemplates/${formTypeId.value}")
   }
 
-  def form(formTypeId: FormTypeId, version: Version, formId: FormId)(implicit hc: HeaderCarrier): Future[Form] = {
-    httpGet.GET[Form](s"$baseUrl/forms/${formTypeId.value}/${version.value}/${formId.value}")
+  def form(formId: FormId)(implicit hc: HeaderCarrier): Future[Form] = {
+    httpGet.GET[Form](s"$baseUrl/forms/${formId.value}")
   }
 
   def getByUserId(userId: UserId, formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Index]] = {
@@ -54,8 +54,8 @@ trait GformConnector {
     httpPut.PUT[FormData, SaveResult](s"$baseUrl/forms/$formId?tolerant=$tolerant", formData)
   }
 
-  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    httpPost.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}")
+  def sendSubmission(formTypeId: FormTypeId, userId: UserId, formId: FormId, version: Version = Version("0.3.0"))(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    httpPost.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}/${version.value}/${userId.value}")
   }
 
   def sendSubmission(formTypeId: FormTypeId, userId: UserId, version: Version)(implicit hc: HeaderCarrier): Future[HttpResponse] = {

@@ -124,7 +124,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
           val formFieldIds = listFormValidation.map(_.toFormField)
           val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
 
-          val formData = FormData(userId, formTypeId, version, "UTF-8", formFields)
+          val formData = FormData(userId, formTypeId, "UTF-8", formFields)
 
           SaveService.updateFormData(formId, formData, false).flatMap {
             case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
@@ -144,7 +144,7 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
         val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 
-        val formData = formFields.map(formFields => FormData(userId, formTypeId, version, "UTF-8", formFields))
+        val formData = formFields.map(formFields => FormData(userId, formTypeId, "UTF-8", formFields))
 
         formData.flatMap(formData =>
           SaveService.updateFormData(formId, formData, tolerant = true).map(response => Ok(Json.toJson(response))))
