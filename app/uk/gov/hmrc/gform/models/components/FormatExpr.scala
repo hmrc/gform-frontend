@@ -57,3 +57,17 @@ case class OffsetDate(value: Int) extends AnyVal
 object OffsetDate {
   implicit val formatExpr: OFormat[OffsetDate] = Json.format[OffsetDate]
 }
+
+sealed trait NumberFormat
+
+final case class Number(maxWholeDigits: Int = NumberFormat.defaultWholeDigits, maxFractionalDigits: Int = NumberFormat.defaultFactionalDigits, unit: Option[String] = None) extends NumberFormat
+
+final case class PositiveNumber(maxWholeDigits: Int = NumberFormat.defaultWholeDigits, maxFractionalDigits: Int = NumberFormat.defaultFactionalDigits, unit: Option[String] = None) extends NumberFormat
+
+object NumberFormat {
+  val defaultWholeDigits = 11
+  val defaultFactionalDigits = 2
+
+  implicit val format: OFormat[NumberFormat] = derived.oformat[NumberFormat]
+}
+
