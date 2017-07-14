@@ -106,7 +106,7 @@ class FormController @Inject() (
   }
 
   private def getFormData(formId: FormId)(implicit hc: HeaderCarrier): Future[Map[FieldId, List[String]]] =
-    gformConnector.getForm(formId).map(_.fields.map(fd => fd.id -> List(fd.value)).toMap)
+    gformConnector.getForm(formId).map(_.formData.fields.map(fd => fd.id -> List(fd.value)).toMap)
 
   def decision(formTypeId: FormTypeId, formId: FormId): Action[AnyContent] = auth.async { implicit c =>
     choice.bindFromRequest.fold(
