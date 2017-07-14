@@ -83,7 +83,7 @@ class GformConnectorSpec extends Spec {
     val responseJson = Some(Json.toJson(form))
     connector
       .getForm(formId)
-      .futureValue shouldBe formData //TODO: it should return Form not FormData!
+      .futureValue shouldBe form
   }
 
   behavior of "GformConnector.form - unhappy scenarios"
