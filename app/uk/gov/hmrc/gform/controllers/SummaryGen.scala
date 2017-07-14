@@ -55,8 +55,7 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
         case "Continue" :: Nil =>
           anyFormId(data) match {
             case Some(formId) =>
-              val userId = request.session.getUserId.get
-              SaveService.sendSubmission(formTypeId, formId, userId).
+              SaveService.sendSubmission(formId).
                 map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
             case None =>
               Future.successful(BadRequest("No formId"))
