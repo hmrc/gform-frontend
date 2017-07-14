@@ -68,23 +68,6 @@ class FormGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredActions, 
     extends FrontendController with I18nSupport {
   import GformSession._
 
-  def formById(formTypeId: FormTypeId, version: Version, formId: FormId): Action[AnyContent] = formByIdPage(formTypeId, version, formId, 0)
-
-  def formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, currPage: Int): Action[AnyContent] = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
-    val userId = request.session.getUserId.get
-    val envelopeId = request.session.getEnvelopeId.get
-    val envelope = fileUploadService.getEnvelope(envelopeId)
-
-    SaveService.getFormById(formTypeId, version, formId, userId).flatMap { form =>
-
-      val fieldIdToStrings: Map[FieldId, Seq[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
-
-      val formTemplate = request.formTemplate
-      envelope.flatMap(envelope =>
-        Page(currPage, formTemplate, repeatService, envelope, envelopeId).renderPage(fieldIdToStrings, Some(formId), None))
-    }
-  }
-
   def save(formTypeId: FormTypeId, version: Version, pageIdx: Int) = sec.SecureWithTemplateAsync(formTypeId, version) { implicit authContext => implicit request =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       val formTemplate = request.formTemplate

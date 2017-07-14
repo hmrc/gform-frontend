@@ -5,9 +5,7 @@ GET         /form/file-upload-page/:fileId                     @uk.gov.hmrc.gfor
 
 GET         /form                                              @uk.gov.hmrc.gform.controllers.FormController.form()
 POST        /form/:formTypeId/:formId                          @uk.gov.hmrc.gform.controllers.FormController.decision(formTypeId: FormTypeId, formId: FormId)
-GET         /form/:formTypeId/:version/:formId                 @uk.gov.hmrc.gform.controllers.FormGen.formById(formTypeId: FormTypeId, version: Version, formId: FormId)
-GET         /form/:formTypeId/:version/:formId/:page           @uk.gov.hmrc.gform.controllers.FormGen.formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, page: Int)
-POST        /form/:formTypeId/:version/save                         @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: Version, currentPage: Int)
+POST        /form/:formTypeId/:version/save                    @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: Version, currentPage: Int)
 
 GET         /summary/:formId                                   @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
 POST        /summary/:formId                                   @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId)

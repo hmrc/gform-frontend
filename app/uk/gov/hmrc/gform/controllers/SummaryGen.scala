@@ -59,14 +59,14 @@ class SummaryGen @Inject() (
 
     val envelope = fileUploadService.getEnvelope(envelopeId)
     val formTemplate = gformConnector.getFormTemplate(formTypeId)
-    val formData: Future[Form] = SaveService.getFormById(formTypeId, version, formId, userId)
+    val form: Future[Form] = gformConnector.getForm(formId)
 
     for {
       envelope <- envelope
-      formData <- formData
+      form <- form
       formTemplate <- formTemplate
     } yield {
-      val map = formDataMap(formData.formData)
+      val map = formDataMap(form.formData)
       Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
     }
   }
