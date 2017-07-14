@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.models.{ DmsSubmission, Section }
 case class FormTemplate(
   formTypeId: FormTypeId,
   formName: String,
-  version: Version,
+  version: Version = Version("0.3.0"),
   description: String,
   characterSet: String,
   dmsSubmission: DmsSubmission,

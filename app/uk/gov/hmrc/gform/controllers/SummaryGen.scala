@@ -47,7 +47,7 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
         .renderSummary(formDataMap(formData.formData), formId, repeatService, envelope)
     }
 
-  def submit(formTypeId: FormTypeId, version: Version) = sec.SecureWithTemplateAsync(formTypeId, version) { authContext => implicit request =>
+  def submit(formTypeId: FormTypeId) = sec.SecureWithTemplateAsync(formTypeId, Version("0.3.0")) { authContext => implicit request =>
     processResponseDataFromBody(request) { data =>
       get(data, FieldId("save")) match {
         case "Exit" :: Nil =>
@@ -56,7 +56,7 @@ class SummaryGen @Inject() (val messagesApi: MessagesApi, val sec: SecuredAction
           anyFormId(data) match {
             case Some(formId) =>
               val userId = request.session.getUserId.get
-              SaveService.sendSubmission(formTypeId, version, formId, userId).
+              SaveService.sendSubmission(formTypeId, formId, userId).
                 map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
             case None =>
               Future.successful(BadRequest("No formId"))

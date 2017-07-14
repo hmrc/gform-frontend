@@ -7,9 +7,9 @@ GET         /form                                              @uk.gov.hmrc.gfor
 POST        /form/:formTypeId/:formId                          @uk.gov.hmrc.gform.controllers.FormController.decision(formTypeId: FormTypeId, formId: FormId)
 GET         /form/:formTypeId/:version/:formId                 @uk.gov.hmrc.gform.controllers.FormGen.formById(formTypeId: FormTypeId, version: Version, formId: FormId)
 GET         /form/:formTypeId/:version/:formId/:page           @uk.gov.hmrc.gform.controllers.FormGen.formByIdPage(formTypeId: FormTypeId, version: Version, formId: FormId, page: Int)
-POST        /form/:formTypeId/:version                         @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: Version, currentPage: Int)
+POST        /form/:formTypeId/:version/save                         @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: Version, currentPage: Int)
 
 GET         /summary/:formTypeId/:version/:userId/:formId      @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formTypeId: FormTypeId, version: Version, formId: FormId, userId: UserId)
-POST        /summary/:formTypeId/:version/submit               @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formTypeId: FormTypeId, version: Version)
+POST        /summary/:formTypeId/submit               @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formTypeId: FormTypeId)
 
 GET         /assets/*file                                      controllers.Assets.versioned(path="/public", file: Asset)

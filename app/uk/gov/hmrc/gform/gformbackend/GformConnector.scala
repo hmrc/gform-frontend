@@ -27,11 +27,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
-  def newForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] =
-    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/$formId")
+  def newForm(formTypeId: FormTypeId, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] =
+    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/$formTypeId/$userId/$formId")
 
-  def getFormTemplate(formTypeId: FormTypeId, version: Version)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
-    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}/${version.value}")
+  def getFormTemplate(formTypeId: FormTypeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
+    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}")
 
   def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] =
     ws.GET[FormData](s"$baseUrl/forms/${formId.value}")
@@ -48,8 +48,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}")
   }
 
-  def isStarted(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[FormId]] =
-    ws.GET[FormId](s"$baseUrl/forms/$formId").map(Some(_)).recover {
+  def isStarted(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[EnvelopeId]] =
+    ws.GET[EnvelopeId](s"$baseUrl/forms/$formId").map(Some(_)).recover {
       case e: NotFoundException => None
     }
 

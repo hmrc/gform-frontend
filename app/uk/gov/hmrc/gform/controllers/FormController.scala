@@ -49,20 +49,23 @@ class FormController @Inject() (
 
   def newForm(formTypeId: FormTypeId) = auth.async { implicit c =>
 
-    def updateSession(formId: FormId) = Future.successful(c.request.session
-      .putFormId(formId))
+    def updateSession(envelopeId: EnvelopeId, formTypeId: FormTypeId, formId: FormId, userId: UserId) = Future.successful(c.request.session
+      .putFormId(formId)
+      .putFormTypeId(formTypeId)
+      .putEnvelopeId(envelopeId)
+      .putUserId(userId))
 
     for {
       userId <- authConnector.getUserDetails[UserId](authContext)
       formId <- create(userId, formTypeId)
-      optForm <- start(formId)
-      session <- updateSession(formId)
+      (optForm, envelopeId) <- start(formTypeId, userId, formId)
+      session <- updateSession(envelopeId, formTypeId, formId, userId)
       result <- result(formTypeId, formId, optForm)
     } yield result.withSession(session)
   }
 
-  private def start(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[FormId]] =
-    gformConnector.isStarted(formId).flatMap[Option[FormId]](_.fold(gformConnector.newForm(formId).map(_ => Option.empty[FormId]))(_ => Future.successful(Some(formId))))
+  private def start(formTypeId: FormTypeId, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier): Future[(Option[FormId], EnvelopeId)] =
+    gformConnector.isStarted(formId).flatMap[(Option[FormId], EnvelopeId)](_.fold(gformConnector.newForm(formTypeId, userId, formId).map(x => (Option.empty[FormId], x.envelopeId)))(x => Future.successful((Some(formId), x))))
 
   private def result(formTypeId: FormTypeId, formId: FormId, formFound: Option[FormId])(implicit hc: HeaderCarrier, request: Request[_]) = {
     formFound match {
@@ -77,11 +80,10 @@ class FormController @Inject() (
 
   def form() = auth.async { implicit c =>
     val formTypeId = c.request.session.getFormTypeId.get
-    val version = c.request.session.getVersion.get
     val envelopeId = c.request.session.getEnvelopeId.get
     val envelope = fileUploadService.getEnvelope(envelopeId)
     for {
-      formTemplate <- gformConnector.getFormTemplate(formTypeId, version)
+      formTemplate <- gformConnector.getFormTemplate(formTypeId)
       envelope <- envelope
       response <- Page(0, formTemplate, repeatService, envelope).renderPage(Map(), None, None)
     } yield response
@@ -90,8 +92,7 @@ class FormController @Inject() (
   def fileUploadPage(fId: String) = auth.async { implicit c =>
     val fileId = FileId(fId)
     val formTemplateF = gformConnector.getFormTemplate(
-      c.request.session.getFormTypeId.get,
-      c.request.session.getVersion.get
+      c.request.session.getFormTypeId.get
     )
     val envelopeId = c.request.session.getEnvelopeId.get
     val actionUrl = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${routes.FormController.form()}"
