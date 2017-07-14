@@ -16,20 +16,15 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import play.api.libs.json.JsObject
 import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Future
 
 class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {
 
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
-    val x = wSHttp.GET[JsObject](s"$baseUrl/envelopes/${envelopeId.value}")
-    val xResult = Await.result(x, Duration.Inf)
-
     wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}")
   }
 
