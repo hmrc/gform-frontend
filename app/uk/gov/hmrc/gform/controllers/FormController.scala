@@ -18,8 +18,6 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.Inject
 
-import play.api.data.Form
-import play.api.data.Forms._
 import play.api.mvc.{ Action, AnyContent, Request }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -27,6 +25,8 @@ import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.{ Page, UserId }
+import uk.gov.hmrc.gform.models.Choice._
+import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.gform.service.{ DeleteService, RepeatingComponentService, RetrieveService }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -79,13 +79,15 @@ class FormController @Inject() (
   }
 
   def form() = auth.async { implicit c =>
+    val formId = c.request.session.getFormId.get
     val formTypeId = c.request.session.getFormTypeId.get
     val envelopeId = c.request.session.getEnvelopeId.get
     val envelope = fileUploadService.getEnvelope(envelopeId)
     for {
       formTemplate <- gformConnector.getFormTemplate(formTypeId)
+      formData <- getFormData(formId)
       envelope <- envelope
-      response <- Page(0, formTemplate, repeatService, envelope, envelopeId).renderPage(Map(), None, None)
+      response <- Page(0, formTemplate, repeatService, envelope, envelopeId).renderPage(formData, None, None)
     } yield response
   }
 
@@ -103,18 +105,12 @@ class FormController @Inject() (
     )
   }
 
-  case class Choice(decision: String)
-
-  val choice = Form(mapping(
-    "decision" -> nonEmptyText
-  )(Choice.apply)(Choice.unapply))
+  private def getFormData(formId: FormId)(implicit hc: HeaderCarrier): Future[Map[FieldId, List[String]]] =
+    gformConnector.getForm(formId).map(_.fields.map(fd => fd.id -> List(fd.value)).toMap)
 
   def decision(formTypeId: FormTypeId, formId: FormId): Action[AnyContent] = auth.async { implicit c =>
-
     choice.bindFromRequest.fold(
-      errors => {
-        Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId)))
-      },
+      _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId))),
       success =>
         success.decision match {
           case "continue" => Future.successful(Redirect(routes.FormController.form()))
