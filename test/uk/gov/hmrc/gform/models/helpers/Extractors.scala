@@ -37,6 +37,15 @@ object Extractors {
     } yield m.group(1)
   }
 
+  val hrefExtractor = """href="([^"]*)"""".r.unanchored
+
+  def extractAllHrefs(html: List[Html]): List[String] = {
+    for {
+      h <- html
+      m <- hrefExtractor.findAllIn(h.body).matchData
+    } yield m.group(1)
+  }
+
   val dateR = "(\\d{2}) (\\w+) (\\d{4})".r.unanchored
 
   def extractDates(html: List[Html]): List[(String, String, String)] = {

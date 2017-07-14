@@ -81,11 +81,11 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       )
     )
 
-    val render = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"), mockRepeatService, Envelope(Nil))
+    val render: SummaryForRender = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"), mockRepeatService, Envelope(Nil))
     //    render should be(List())
 
-    val testStringValues = extractAllTestStringValues(render.snippets)
-    testStringValues should be(List("Form Type", "Form Id", "Form Type", "Form Id"))
+    val testStringValues = extractAllHrefs(render.snippets)
+    testStringValues should be(List("/form", "/form"))
   }
 
   it should "display values for each field type with a submissible field, " in {
@@ -376,7 +376,8 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
 
-    urlOfHrefToSection2 should endWith(ftWithOneInclIfSection.sections.indexOf(section2).toString)
+    //TODO: later it should be /form/:formId/:pageNum or something similiar
+    urlOfHrefToSection2 shouldBe "/form"
   }
 
 }
