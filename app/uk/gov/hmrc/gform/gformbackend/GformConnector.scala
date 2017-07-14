@@ -33,8 +33,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def getFormTemplate(formTypeId: FormTypeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}")
 
-  def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] =
-    ws.GET[FormData](s"$baseUrl/forms/${formId.value}")
+  def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Form] =
+    ws.GET[Form](s"$baseUrl/forms/${formId.value}")
 
   def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     ws.POST[FormData, SaveResult](s"$baseUrl/forms?tolerant=$tolerant", formDetails)
