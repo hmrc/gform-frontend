@@ -30,6 +30,9 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
+import uk.gov.hmrc.gform.models.{ Page, UserId }
+import uk.gov.hmrc.gform.models.components.FieldId
+import uk.gov.hmrc.gform.service.{ DeleteService, RepeatingComponentService, RetrieveService }
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue }
@@ -111,22 +114,25 @@ class FormController @Inject() (
 
   private def getFormData(form: Form): Map[FieldId, List[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
-  private case class Choice(decision: String)
-
-  private lazy val choice = play.api.data.Form(mapping(
+  val choice = play.api.data.Form(play.api.data.Forms.single(
     "decision" -> play.api.data.Forms.nonEmptyText
-  )(Choice.apply)(Choice.unapply))
+  ))
 
   def decision(formTypeId: FormTypeId, formId: FormId): Action[AnyContent] = auth.async { implicit c =>
     choice.bindFromRequest.fold(
       _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId))),
-      success =>
-        success.decision match {
-          case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection /*TODO: once we store section number we could continumer from specific section*/ )))
-          case "delete" => gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTypeId)))
-          case _ => Future.successful(Redirect(routes.FormController.newForm(formTypeId)))
-        }
+      {
+        case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection /*TODO: once we store section number we could continumer from specific section*/ )))
+        case "delete" => gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTypeId)))
+        case _ => Future.successful(Redirect(routes.FormController.newForm(formTypeId)))
+      }
     )
+  }
+
+  def delete(formTypeId: FormTypeId, formId: FormId): Action[AnyContent] = auth.async { implicit c =>
+    gformConnector.deleteForm(formId).map { x =>
+      Redirect(routes.FormController.newForm(formTypeId))
+    }
   }
 
   def updateFormData(formId: FormId, sectionNumber: SectionNumber) = auth.async { implicit c =>
