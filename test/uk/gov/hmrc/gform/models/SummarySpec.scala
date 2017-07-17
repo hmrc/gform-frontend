@@ -39,7 +39,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
   val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true, true, true)))
   val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true, true, true)))
   val formTemplate = FormTemplate(
-    formTypeId = FormTypeId(""),
+    formTypeId = FormTypeId("formid-123"),
     formName = "IPT100",
     version = Version("1.2.3"),
     description = "abc",
@@ -76,16 +76,16 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val summary = Summary(
       formTemplate.copy(
-        formTypeId = FormTypeId("Test!Form Type!Test"),
+        formTypeId = FormTypeId("IPT100"),
         sections = List(section0, section1)
       )
     )
 
-    val render: SummaryForRender = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"), mockRepeatService, Envelope(Nil))
+    val render: SummaryForRender = summary.summaryForRender(Map(), FormId("form-id-123"), mockRepeatService, Envelope(Nil))
     //    render should be(List())
 
     val testStringValues = extractAllHrefs(render.snippets)
-    testStringValues should be(List("/form", "/form"))
+    testStringValues should be(List("/form/form-id-123/0", "/form/form-id-123/1"))
   }
 
   it should "display values for each field type with a submissible field, " in {
@@ -368,7 +368,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     )
     val summary = Summary(ftWithOneInclIfSection)
 
-    val htmls = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""), mockRepeatService, Envelope(Nil)).snippets
+    val htmls = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId("formid-123"), mockRepeatService, Envelope(Nil)).snippets
 
     val htmlAheadOfSection2 = htmls(3)
 
@@ -376,8 +376,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
 
-    //TODO: later it should be /form/:formId/:pageNum or something similiar
-    urlOfHrefToSection2 shouldBe "/form"
+    urlOfHrefToSection2 shouldBe "/form/formid-123/2"
   }
 
 }

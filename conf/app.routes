@@ -1,13 +1,13 @@
 # microservice specific routes
 
-GET         /new-form/:formTypeId                              @uk.gov.hmrc.gform.controllers.FormController.newForm(formTypeId: FormTypeId)
-GET         /form/file-upload-page/:fileId                     @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(fileId: String)
+GET         /new-form/:formTypeId                                        @uk.gov.hmrc.gform.controllers.FormController.newForm(formTypeId: FormTypeId)
+GET         /form/:formId/:sectionNumber/file-upload-page/:fileId        @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fileId: String)
 
-GET         /form                                              @uk.gov.hmrc.gform.controllers.FormController.form()
-POST        /form/:formTypeId/:formId                          @uk.gov.hmrc.gform.controllers.FormController.decision(formTypeId: FormTypeId, formId: FormId)
-POST        /form/:formTypeId/:version/save                    @uk.gov.hmrc.gform.controllers.FormGen.save(formTypeId: FormTypeId, version: Version, currentPage: Int)
+GET         /form/:formId/:sectionNumber                                 @uk.gov.hmrc.gform.controllers.FormController.form(formId: FormId, sectionNumber: SectionNumber)
+POST        /form/:formTypeId/:formId                                    @uk.gov.hmrc.gform.controllers.FormController.decision(formTypeId: FormTypeId, formId: FormId)
+POST        /form/:formId/:sectionNumber                                 @uk.gov.hmrc.gform.controllers.FormController.updateFormData(formId: FormId, sectionNumber: SectionNumber)
 
-GET         /summary/:formId                                   @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
-POST        /summary/:formId                                   @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId)
+GET         /summary/:formId                                             @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
+POST        /summary/:formId                                             @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId)
 
-GET         /assets/*file                                      controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                                                controllers.Assets.versioned(path="/public", file: Asset)

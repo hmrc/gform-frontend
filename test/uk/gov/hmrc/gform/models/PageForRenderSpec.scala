@@ -22,7 +22,7 @@ import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormTemplate, FormTypeId, Version }
+import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
@@ -106,13 +106,14 @@ class PageForRenderSpec extends Spec {
   val envelopeId = EnvelopeId("env-id")
   implicit val hc = HeaderCarrier()
   implicit val mockAuthContext = mock[AuthContext]
-
+  val formId = FormId("formid-123")
+  val sectionNumber = SectionNumber(0)
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
     val pageToRenderF = PageForRender(
-      curr = 8,
+      formId,
+      sectionNumber,
       fieldData = Map.empty[FieldId, Seq[String]],
       formTemplate = formTemplate,
-      section = section,
       f = None,
       mockRepeatService,
       envelope,
@@ -192,10 +193,10 @@ class PageForRenderSpec extends Spec {
     }
 
     val pageToRenderF = PageForRender(
-      curr = 0,
+      formId,
+      SectionNumber(0),
       fieldData = Map.empty[FieldId, Seq[String]],
       formTemplate = formTemplate.copy(sections = List(grpSection)),
-      section = grpSection,
       f = None,
       testGrpRepSrvc,
       envelope,
@@ -225,10 +226,10 @@ class PageForRenderSpec extends Spec {
     }
 
     val pageToRenderF = PageForRender(
-      curr = 0,
+      formId,
+      SectionNumber.firstSection,
       fieldData = Map.empty[FieldId, Seq[String]],
       formTemplate = formTemplate.copy(sections = List(grpSection)),
-      section = grpSection,
       f = None,
       testGrpRepSrvc,
       envelope,
