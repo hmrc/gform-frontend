@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.http.HeaderCarrier
 case class Section(
     title: String,
+    description: Option[String],
     shortName: Option[String],
     includeIf: Option[IncludeIf],
     fields: List[FieldValue]

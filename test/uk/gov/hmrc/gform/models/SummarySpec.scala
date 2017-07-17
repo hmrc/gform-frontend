@@ -34,9 +34,9 @@ import scala.collection.immutable.List
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
-  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
-  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
+  val section0 = Section("Your details", None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
+  val section1 = Section("About you", None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
+  val section2 = Section("Business details", None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId("formid-123"),
     formName = "IPT100",
@@ -89,7 +89,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   it should "display values for each field type with a submissible field, " in {
 
-    val section = Section("Personal details", None, None, List(
+    val section = Section("Personal details", None, None, None, List(
       FieldValue(FieldId("Surname"), Text(AnyText, Constant(""), total = false), "Surname", None, None, true, true, true),
       FieldValue(FieldId("Info"), Text(AnyText, Constant(""), total = false), "Info", None, None, true, true, submissible = false),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true),
@@ -343,7 +343,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       ),
       "Test!group-label!Test", None, None, true, true, true
     )
-    val section0 = Section("", None, None, List(groupFieldValue))
+    val section0 = Section("", None, None, None, List(groupFieldValue))
     val formTemplateWGroupNoShortname = formTemplate.copy(
       sections = List(section0)
     )
@@ -352,7 +352,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     extractAllTestStringValues(render0.snippets) should be(List("group-label"))
 
     val formTemplateWGroupWithShortname = formTemplate.copy(
-      sections = List(Section("", None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
+      sections = List(Section("", None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
     )
 
     val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService, Envelope(Nil))

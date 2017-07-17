@@ -6,6 +6,9 @@
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
     <gform-envelopeId class="hidden">@{page.envelopeId.value}</gform-envelopeId>
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
+    @if(page.sectionDescription.isDefined){
+    <h2 class="h2-heading">@localisation(page.sectionDescription.get)</h2>
+    }
 
     <form action="@uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId, page.sectionNumber).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
