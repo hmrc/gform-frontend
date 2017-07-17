@@ -89,7 +89,7 @@ class FormController @Inject() (
       envelopeF       = fileUploadService.getEnvelope(form.envelopeId)
       formTemplate   <- formTemplateF
       envelope       <- envelopeF
-      response       <- Page(formId, firstSection, formTemplate, repeatService, envelope, form.envelopeId).renderPage(fieldData, Some(formId), None)
+      response       <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId).renderPage(fieldData, Some(formId), None)
       // format: ON
     } yield response
   }
