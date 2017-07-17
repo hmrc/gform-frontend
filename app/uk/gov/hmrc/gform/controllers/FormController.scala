@@ -123,7 +123,7 @@ class FormController @Inject() (
       _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId))),
       {
         case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection /*TODO: once we store section number we could continumer from specific section*/ )))
-        case "delete" => gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTypeId)))
+        case "delete" => Future.successful(Ok(uk.gov.hmrc.gform.views.html.confirm_delete(formTypeId, formId)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTypeId)))
       }
     )
