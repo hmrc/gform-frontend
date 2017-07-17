@@ -31,7 +31,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class PageForRender(formId: FormId, sectionNumber: SectionNumber, sectionTitle: String, hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String, envelopeId: EnvelopeId)
+case class PageForRender(formId: FormId, sectionNumber: SectionNumber, sectionTitle: String, sectionDescription: Option[String], hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String, envelopeId: EnvelopeId) //TODO maybe pass full section object into page for render to get access to all information
 
 object PageForRender {
   def apply(

@@ -87,7 +87,7 @@ class PageForRenderSpec extends Spec {
   )
 
   val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
-  val section = Section("About you", None, None, List(infoFieldValue))
+  val section = Section("About you", None, None, None, List(infoFieldValue))
 
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),

@@ -49,7 +49,7 @@ class PageShader(
     val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
     val snippets = Future.sequence(snippetsSeq)
     val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
-    snippets.map(snippets => PageForRender(formId, sectionNumber, section.title, hiddenSnippets, snippets, javasctipt, envelopeId))
+    snippets.map(snippets => PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javasctipt, envelopeId))
   }
 
   private lazy val section: Section = formTemplate.sections(sectionNumber.value)
