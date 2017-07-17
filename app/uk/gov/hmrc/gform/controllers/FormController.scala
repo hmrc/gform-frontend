@@ -65,7 +65,7 @@ class FormController @Inject() (
 
   //true - it got the form, false - new form was created
   private def getOrStartForm(formTypeId: FormTypeId, userId: UserId)(implicit hc: HeaderCarrier): Future[(Form, Boolean)] = {
-    val formId = FormId(formTypeId.value + userId.value)
+    val formId = FormId(userId, formTypeId)
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       form <- maybeForm.map(Future.successful(_)).getOrElse(gformConnector.newForm(formTypeId, userId))
@@ -78,10 +78,6 @@ class FormController @Inject() (
     } else {
       Redirect(routes.FormController.form(formId, sectionNumber))
     }
-  }
-
-  private def create(userId: UserId, formTypeId: FormTypeId): Future[FormId] = {
-    Future.successful(FormId(userId, formTypeId))
   }
 
   def form(formId: FormId, sectionNumber: SectionNumber) = auth.async { implicit c =>
