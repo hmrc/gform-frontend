@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import org.jsoup.Jsoup
-import org.scalatest._
 import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate, FormTypeId, Version }
 import org.scalatest.{ EitherValues, FlatSpec, Matchers }
 import uk.gov.hmrc.gform.models.components._
@@ -35,9 +34,9 @@ import scala.collection.immutable.List
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
-  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true, true, true)))
-  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true, true, true)))
+  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
+  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
+  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId("formid-123"),
     formName = "IPT100",
@@ -91,8 +90,8 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
   it should "display values for each field type with a submissible field, " in {
 
     val section = Section("Personal details", None, None, List(
-      FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, None, true, true, true),
-      FieldValue(FieldId("Info"), Text(Constant(""), total = false), "Info", None, None, true, true, submissible = false),
+      FieldValue(FieldId("Surname"), Text(AnyText, Constant(""), total = false), "Surname", None, None, true, true, true),
+      FieldValue(FieldId("Info"), Text(AnyText, Constant(""), total = false), "Info", None, None, true, true, submissible = false),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true),
       FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true)
     ))
@@ -187,7 +186,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val shortName = "JUST_A_VERY_SHORT_NAME"
     val addressField = FieldValue(
       id = FieldId("anId"),
-      `type` = Text(Constant("DA"), total = false),
+      `type` = Text(AnyText, Constant("DA"), total = false),
       label = "label",
       shortName = Some(shortName),
       helpText = None,
@@ -210,7 +209,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val label = "THIS_IS_A_LABEL"
     val addressField = FieldValue(
       id = FieldId("anId"),
-      `type` = Text(Constant("DA"), total = false),
+      `type` = Text(AnyText, Constant("DA"), total = false),
       label = label,
       shortName = None,
       helpText = None,

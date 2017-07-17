@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gformbackend
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
+import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.{ DmsSubmission, Section, UserId }
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
@@ -151,9 +151,9 @@ class GformConnectorSpec extends Spec {
 trait ExampleData {
 
   lazy val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  lazy val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
-  lazy val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true, true, true)))
-  lazy val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true, true, true)))
+  lazy val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
+  lazy val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
+  lazy val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
 
   lazy val formTypeId = FormTypeId("IPT100")
   lazy val version = Version("0.3.0")
