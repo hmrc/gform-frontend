@@ -19,10 +19,8 @@ package uk.gov.hmrc.gform.controllers
 import javax.inject.Inject
 
 import cats._
-import cats.data._
 import cats.instances.all._
 import cats.syntax.all._
-
 import play.api.data.Forms.mapping
 import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request, Result }
@@ -33,8 +31,8 @@ import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue }
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue }
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -54,34 +52,31 @@ class FormController @Inject() (
 ) extends FrontendController {
 
   import AuthenticatedRequest._
-  import GformSession._
   import controllersModule.i18nSupport._
 
   def newForm(formTypeId: FormTypeId) = auth.async { implicit c =>
 
-    def updateSession(envelopeId: EnvelopeId, formTypeId: FormTypeId, formId: FormId, userId: UserId) = Future.successful(c.request.session
-      .putFormId(formId)
-      .putFormTypeId(formTypeId)
-      .putEnvelopeId(envelopeId)
-      .putUserId(userId))
-
     for {// format: OFF
-      userId                <- authConnector.getUserDetails[UserId](authContext)
-      formId                <- create(userId, formTypeId)
-      (optForm, envelopeId) <- start(formTypeId, userId, formId)
-      session               <- updateSession(envelopeId, formTypeId, formId, userId)
-      result                <- result(formTypeId, formId, optForm, firstSection)
+      userId                   <- authConnector.getUserDetails[UserId](authContext)
+      (form, wasFormFound)     <- getOrStartForm(formTypeId, userId)
       // format: ON
-    } yield result.withSession(session)
+    } yield result(formTypeId, form._id, wasFormFound, SectionNumber.firstSection)
   }
 
-  private def start(formTypeId: FormTypeId, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier): Future[(Option[FormId], EnvelopeId)] =
-    gformConnector.isStarted(formId).flatMap[(Option[FormId], EnvelopeId)](_.fold(gformConnector.newForm(formTypeId, userId, formId).map(x => (Option.empty[FormId], x.envelopeId)))(x => Future.successful((Some(formId), x))))
+  //true - it got the form, false - new form was created
+  private def getOrStartForm(formTypeId: FormTypeId, userId: UserId)(implicit hc: HeaderCarrier): Future[(Form, Boolean)] = {
+    val formId = FormId(formTypeId.value + userId.value)
+    for {
+      maybeForm <- gformConnector.maybeForm(formId)
+      form <- maybeForm.map(Future.successful(_)).getOrElse(gformConnector.newForm(formTypeId, userId))
+    } yield (form, maybeForm.isDefined)
+  }
 
-  private def result(formTypeId: FormTypeId, formId: FormId, formFound: Option[FormId], sectionNumber: SectionNumber)(implicit hc: HeaderCarrier, request: Request[_]) = {
-    formFound match {
-      case Some(_) => Future.successful(Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId)))
-      case None => Future.successful(Redirect(routes.FormController.form(formId, sectionNumber)))
+  private def result(formTypeId: FormTypeId, formId: FormId, formFound: Boolean, sectionNumber: SectionNumber)(implicit hc: HeaderCarrier, request: Request[_]) = {
+    if (formFound) {
+      Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId))
+    } else {
+      Redirect(routes.FormController.form(formId, sectionNumber))
     }
   }
 
@@ -98,22 +93,20 @@ class FormController @Inject() (
       envelopeF       = fileUploadService.getEnvelope(form.envelopeId)
       formTemplate   <- formTemplateF
       envelope       <- envelopeF
-      response       <- Page(formId, firstSection, formTemplate, repeatService, envelope, form.envelopeId).renderPage(fieldData, None, None)
+      response       <- Page(formId, firstSection, formTemplate, repeatService, envelope, form.envelopeId).renderPage(fieldData, Some(formId), None)
       // format: ON
     } yield response
   }
 
   def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = auth.async { implicit c =>
     val fileId = FileId(fId)
-    val formTemplateF = gformConnector.getFormTemplate(
-      c.request.session.getFormTypeId.get
-    )
-    val envelopeId = c.request.session.getEnvelopeId.get
-    val actionUrl = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${routes.FormController.form(formId, sectionNumber)}"
+
+    def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${routes.FormController.form(formId, sectionNumber)}"
     for {
-      formTemplate <- formTemplateF
+      form <- gformConnector.getForm(formId)
+      formTemplate <- gformConnector.getFormTemplate(form.formData.formTypeId)
     } yield Ok(
-      uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, formTemplate, actionUrl)
+      uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, formTemplate, actionUrl(form.envelopeId))
     )
   }
 
@@ -131,16 +124,8 @@ class FormController @Inject() (
       success =>
         success.decision match {
           case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection /*TODO: once we store section number we could continumer from specific section*/ )))
-          case "delete" =>
-            val userId = request.session.getUserId.get
-            val blankSession = request.session.removeEnvelopId
-              .removeFormId
-            gformConnector.deleteForm(formId).map { x =>
-              Redirect(routes.FormController.newForm(formTypeId)).withSession(blankSession)
-            }
-          case _ =>
-            val blankSession = request.session.removeEnvelopId
-            Future.successful(Redirect(routes.FormController.newForm(formTypeId)).withSession(blankSession))
+          case "delete" => gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTypeId)))
+          case _ => Future.successful(Redirect(routes.FormController.newForm(formTypeId)))
         }
     )
   }
@@ -229,15 +214,13 @@ class FormController @Inject() (
           SaveService.updateFormData(formId, formData, tolerant = true).map(response => Ok(Json.toJson(response))))
       }
 
-      val formTemplate: FormTemplate = ???
-
-      val booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
-      val optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
-
-      val optNextPage = for {
-        envelope <- envelopeF
-        envelopeId <- envelopeIdF
+      val optNextPage = for {// format: OFF
+        envelope     <- envelopeF
+        envelopeId   <- envelopeIdF
         formTemplate <- formTemplateF
+        booleanExprs  = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
+        optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
+        // format: ON
       } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId))
 
       val actionE: Future[Either[String, FormAction]] = optNextPage.map(optNextPage => FormAction.determineAction(data, optNextPage))
@@ -247,12 +230,11 @@ class FormController @Inject() (
 
           action match {
             case SaveAndContinue(nextPageToRender) =>
-              //              for {
-              //                userId <- userIdF
-              //                form <- gformConnector.getForm(formId)
-              //                x = nextPageToRender.renderPage(data, Some(formId), None)
-              //              } yield processSaveAndContinue(userId, form)(x)
-              ???
+              for {
+                userId <- userIdF
+                form <- formF
+                result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, Some(formId), None))
+              } yield result
 
             case SaveAndExit =>
               for {

@@ -128,10 +128,10 @@ class GformConnectorSpec extends Spec {
 
   it should "return NewFormResponse" in new Fixture {
     val status = 200
-    val responseJson = Some(Json.toJson(newFormResponse))
+    val responseJson = Some(Json.toJson(form))
     connector
-      .newForm(formTypeId, userId, formId)
-      .futureValue shouldBe newFormResponse
+      .newForm(formTypeId, userId)
+      .futureValue shouldBe form
   }
 
   trait Fixture extends ExampleData {
@@ -200,9 +200,4 @@ trait ExampleData {
   )
 
   lazy val envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
-  lazy val newFormResponse = NewFormResponse(
-    form,
-    envelopeId,
-    formTemplate
-  )
 }

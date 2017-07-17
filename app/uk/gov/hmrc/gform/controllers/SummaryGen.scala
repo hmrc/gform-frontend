@@ -18,14 +18,14 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.{ Inject, Singleton }
 
-import play.api.i18n.{ I18nSupport, MessagesApi }
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.gformbackend.model.{ Form, FormId, FormTypeId, Version }
+import uk.gov.hmrc.gform.gformbackend.model.FormId
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
@@ -46,25 +46,18 @@ class SummaryGen @Inject() (
 )(implicit ec: ExecutionContext)
     extends FrontendController {
 
-  import GformSession._
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
   def summaryById(formId: FormId) = auth.async { implicit c =>
-
-    val envelopeId = request.session.getEnvelopeId.get
-    val formTypeId = c.request.session.getFormTypeId.get
-    val version = c.request.session.getVersion.get
-    val userId = c.request.session.getUserId.get
-
-    val envelope = fileUploadService.getEnvelope(envelopeId)
-    val formTemplate = gformConnector.getFormTemplate(formTypeId)
-    val form: Future[Form] = gformConnector.getForm(formId)
-
-    for {
-      envelope <- envelope
-      form <- form
-      formTemplate <- formTemplate
+    val formF = gformConnector.getForm(formId)
+    for {// format: OFF
+      form           <- formF
+      envelopeF      = fileUploadService.getEnvelope(form.envelopeId)
+      formTemplateF  = gformConnector.getFormTemplate(form.formData.formTypeId)
+      envelope       <- envelopeF
+      formTemplate   <- formTemplateF
+      // format: ON
     } yield {
       val map = formDataMap(form.formData)
       Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
@@ -72,8 +65,6 @@ class SummaryGen @Inject() (
   }
 
   def submit(formId: FormId) = auth.async { implicit c =>
-
-    val formTypeId = c.request.session.getFormTypeId.get
 
     processResponseDataFromBody(c.request) { data =>
       get(data, FieldId("save")) match {
