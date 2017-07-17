@@ -22,7 +22,7 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormTemplate }
+import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTemplate, SectionNumber }
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.withOffset
 import uk.gov.hmrc.gform.models.helpers.Fields
@@ -35,10 +35,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class PageShader(
-    curr: Int,
+    formId: FormId,
+    sectionNumber: SectionNumber,
     fieldData: Map[FieldId, Seq[String]],
     formTemplate: FormTemplate,
-    section: Section,
     f: Option[FieldValue => Option[FormFieldValidationResult]],
     repeatService: RepeatingComponentService,
     envelope: Envelope,
@@ -49,8 +49,10 @@ class PageShader(
     val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
     val snippets = Future.sequence(snippetsSeq)
     val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
-    snippets.map(snippets => PageForRender(curr, section.title, hiddenSnippets, snippets, javasctipt, envelopeId))
+    snippets.map(snippets => PageForRender(formId, sectionNumber, section.title, hiddenSnippets, snippets, javasctipt, envelopeId))
   }
+
+  private lazy val section: Section = formTemplate.sections(sectionNumber.value)
 
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {
     //    val fieldValue = adjustIdForRepeatingGroups(orgFieldValue, instance)
@@ -73,7 +75,7 @@ class PageShader(
   }
 
   private def htmlForFileUpload(fieldValue: FieldValue, index: Int) = {
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_file_upload(fieldValue, validate(fieldValue), index))
+    Future.successful(uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validate(fieldValue), index))
   }
 
   private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]], index: Int) = {

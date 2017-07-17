@@ -7,7 +7,7 @@
     <gform-envelopeId class="hidden">@{page.envelopeId.value}</gform-envelopeId>
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
 
-    <form action="@uk.gov.hmrc.gform.controllers.routes.FormGen.save(formTemplate.formTypeId, formTemplate.version, page.curr).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId.get, page.sectionNumber).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
             CSRF.formField
