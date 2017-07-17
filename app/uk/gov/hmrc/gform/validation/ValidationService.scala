@@ -47,7 +47,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   def validate()(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
     case date @ Date(_, _, _) => validateDate(date)
 
-    case Text(_, _) => validateText(fieldValue)(data)
+    case Text(_, _, _) => validateText(fieldValue)(data)
     case address @ Address(_) => validateAddress(fieldValue, address)(data)
     case Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
     case Group(_, _, _, _, _, _) => validF //a group is read-only

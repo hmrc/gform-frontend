@@ -53,7 +53,7 @@ object SummaryForRender {
       fieldValue.`type` match {
         case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, values(fieldValue))
         case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, values(fieldValue))
-        case t @ Text(_, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
+        case t @ Text(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
         case Choice(_, options, _, _, _) =>
           val selections = options.toList.zipWithIndex.map {
             case (option, index) =>
@@ -62,7 +62,7 @@ object SummaryForRender {
 
           uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
         case FileUpload() => {
-          uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(Constant("file"), false), values(fieldValue))
+          uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(AnyText, Constant("file"), false), values(fieldValue))
         }
         case InformationMessage(_, _) => Html("")
         case Group(_, _, _, _, _, _) => groupToHtml(fieldValue)
