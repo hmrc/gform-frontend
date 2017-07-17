@@ -97,7 +97,10 @@ class FormController @Inject() (
   def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = auth.async { implicit c =>
     val fileId = FileId(fId)
 
-    def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${routes.FormController.form(formId, sectionNumber)}"
+    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber)
+    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber)
+
+    def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
     for {
       form <- gformConnector.getForm(formId)
       formTemplate <- gformConnector.getFormTemplate(form.formData.formTypeId)
@@ -282,4 +285,6 @@ class FormController @Inject() (
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val authConnector = authModule.authConnector
   private lazy val validationService = validationModule.validationService
+  private lazy val appConfig = configModule.appConfig
+
 }
