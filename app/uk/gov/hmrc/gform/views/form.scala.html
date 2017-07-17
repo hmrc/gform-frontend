@@ -1,13 +1,13 @@
 @import uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTemplate}
 @import uk.gov.hmrc.gform.models.PageForRender
 @import views.html.helper.CSRF
-@(formTemplate: FormTemplate, page: PageForRender, formId: Option[FormId])(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, page: PageForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
     <gform-envelopeId class="hidden">@{page.envelopeId.value}</gform-envelopeId>
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
 
-    <form action="@uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId.get, page.sectionNumber).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId, page.sectionNumber).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
             CSRF.formField
@@ -20,10 +20,6 @@
       	@{
       	    page.hiddenFieldsSnippets
       	}
-
-      	<input type="hidden"
-      	       name="formId"
-      	       value="@{formId.map(_.value).getOrElse("")}" />
 
         <div class="form-group divider--top--thick">
             <button type="submit" class="button" name="save" value="Continue">Save and Continue</button>

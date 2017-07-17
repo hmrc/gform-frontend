@@ -89,7 +89,7 @@ class FormController @Inject() (
       envelopeF       = fileUploadService.getEnvelope(form.envelopeId)
       formTemplate   <- formTemplateF
       envelope       <- envelopeF
-      response       <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId).renderPage(fieldData, Some(formId), None)
+      response       <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId).renderPage(fieldData, formId, None)
       // format: ON
     } yield response
   }
@@ -180,7 +180,7 @@ class FormController @Inject() (
             extractedFieldValue(validResult) -> validResult
           }.toMap
 
-          pageF.flatMap(page => page.renderPage(data, Some(formId), Some(map.get)))
+          pageF.flatMap(page => page.renderPage(data, formId, Some(map.get)))
 
         case Right(listFormValidation) =>
 
@@ -232,7 +232,7 @@ class FormController @Inject() (
               for {
                 userId <- userIdF
                 form <- formF
-                result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, Some(formId), None))
+                result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, formId, None))
               } yield result
 
             case SaveAndExit =>
@@ -254,14 +254,14 @@ class FormController @Inject() (
               for {
                 _ <- repeatService.appendNewGroup(groupId)
                 page <- pageF
-                result <- page.renderPage(data, Some(formId), None)
+                result <- page.renderPage(data, formId, None)
               } yield result
 
             case RemoveGroup(groupId) =>
               for {
                 updatedData <- repeatService.removeGroup(groupId, data)
                 page <- pageF
-                result <- page.renderPage(updatedData, Some(formId), None)
+                result <- page.renderPage(updatedData, formId, None)
               } yield result
           }
         case Left(error) => Future.successful(BadRequest(error))
