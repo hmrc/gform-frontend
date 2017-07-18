@@ -77,7 +77,7 @@ class FormController @Inject() (
 
   private def result(formTypeId: FormTypeId, formId: FormId, formFound: Boolean, sectionNumber: SectionNumber)(implicit hc: HeaderCarrier, request: Request[_]) = {
     if (formFound) {
-      Ok(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId))
+      Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTypeId, formId))
     } else {
       Redirect(routes.FormController.form(formId, sectionNumber))
     }
@@ -120,10 +120,10 @@ class FormController @Inject() (
 
   def decision(formTypeId: FormTypeId, formId: FormId): Action[AnyContent] = auth.async { implicit c =>
     choice.bindFromRequest.fold(
-      _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.continue_form_page(formTypeId, formId))),
+      _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTypeId, formId))),
       {
         case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection /*TODO: once we store section number we could continumer from specific section*/ )))
-        case "delete" => Future.successful(Ok(uk.gov.hmrc.gform.views.html.confirm_delete(formTypeId, formId)))
+        case "delete" => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.confirm_delete(formTypeId, formId)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTypeId)))
       }
     )
@@ -216,7 +216,7 @@ class FormController @Inject() (
         val formData = formFields.map(formFields => FormData(userId, form.formData.formTypeId, "UTF-8", formFields))
 
         formData.flatMap(formData =>
-          SaveService.updateFormData(formId, formData, tolerant = true).map(response => Ok(Json.toJson(response))))
+          SaveService.updateFormData(formId, formData, tolerant = true).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formData.formTypeId))))
       }
 
       val optNextPage = for {// format: OFF
