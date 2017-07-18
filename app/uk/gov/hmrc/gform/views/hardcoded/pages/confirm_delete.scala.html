@@ -1,0 +1,29 @@
+@import uk.gov.hmrc.gform.gformbackend.model._
+@(formTypeId: FormTypeId, formId: FormId)(implicit request: Request[_])
+
+@import helper._
+@import play.api.i18n.Messages.Implicits._
+@import play.api.Play.current
+
+@uk.gov.hmrc.gform.views.html.main_template(title = "Confirm Delete", bodyClasses = None) {
+
+<form action="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTypeId, formId)" method="POST">
+    <h1>Confirm Delete</h1>
+
+    @{
+    CSRF.formField
+    }
+        <strong>@formTypeId</strong>
+        <br>
+
+        <br>
+        <br>
+    </p>
+
+    <br><br><button class="button">Delete</button><br><br>
+
+    <p class="back-to-previous">
+        <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.newForm(formTypeId)" >Back</a>
+    </p>
+</form>
+}

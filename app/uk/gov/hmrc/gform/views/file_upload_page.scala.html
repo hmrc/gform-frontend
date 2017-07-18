@@ -5,6 +5,8 @@
 
 @import views.html.helper.CSRF
 @(
+        formId: FormId,
+        sectionNumber: SectionNumber,
         fileId: FileId,
         formTemplate: FormTemplate,
         actionUrl: String
@@ -21,5 +23,5 @@
         <button type="submit" id="upload-button">Upload</button>
     </form>
 
-    <a href="@{routes.FormController.form()}">back to form</a>
+    <a href="@{routes.FormController.form(formId, sectionNumber)}">back to form</a>
 }

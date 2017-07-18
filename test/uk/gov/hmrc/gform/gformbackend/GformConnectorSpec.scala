@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gformbackend
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
+import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.{ DmsSubmission, Section, UserId }
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
@@ -83,7 +83,7 @@ class GformConnectorSpec extends Spec {
     val responseJson = Some(Json.toJson(form))
     connector
       .getForm(formId)
-      .futureValue shouldBe formData //TODO: it should return Form not FormData!
+      .futureValue shouldBe form
   }
 
   behavior of "GformConnector.form - unhappy scenarios"
@@ -128,10 +128,10 @@ class GformConnectorSpec extends Spec {
 
   it should "return NewFormResponse" in new Fixture {
     val status = 200
-    val responseJson = Some(Json.toJson(newFormResponse))
+    val responseJson = Some(Json.toJson(form))
     connector
-      .newForm(formTypeId, userId, formId)
-      .futureValue shouldBe newFormResponse
+      .newForm(formTypeId, userId)
+      .futureValue shouldBe form
   }
 
   trait Fixture extends ExampleData {
@@ -151,9 +151,9 @@ class GformConnectorSpec extends Spec {
 trait ExampleData {
 
   lazy val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  lazy val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
-  lazy val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true, true, true)))
-  lazy val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true, true, true)))
+  lazy val section0 = Section("Your details", None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
+  lazy val section1 = Section("About you", None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
+  lazy val section2 = Section("Business details", None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
 
   lazy val formTypeId = FormTypeId("IPT100")
   lazy val version = Version("0.3.0")
@@ -200,9 +200,4 @@ trait ExampleData {
   )
 
   lazy val envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
-  lazy val newFormResponse = NewFormResponse(
-    form,
-    envelopeId,
-    formTemplate
-  )
 }

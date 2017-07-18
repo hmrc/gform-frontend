@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models
 import org.scalatest.{ EitherValues, FlatSpec, Matchers }
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
-import uk.gov.hmrc.gform.models.components.{ Constant, FieldId, FieldValue, Text }
+import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.play.frontend.auth.AuthContext
@@ -32,9 +32,9 @@ import uk.gov.hmrc.gform.service.RepeatingComponentService
 class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFutures {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
-  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true, true, true)))
-  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true, true, true)))
+  val section0 = Section("Your details", None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
+  val section1 = Section("About you", None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
+  val section2 = Section("Business details", None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
@@ -48,18 +48,14 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
   )
 
   val mockRepeatService = mock[RepeatingComponentService]
-
+  val formId = FormId("formid-123")
   val authority = Authority("uri", Accounts(), None, None, CredentialStrength.None, ConfidenceLevel.L0, None, None, None, "String")
   implicit val authContext = AuthContext(authority)
   implicit val headerCarrier = HeaderCarrier()
 
   "Page" should "display first page" in {
 
-    val page = Page(0, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
-
-    page.prev should be(0)
-    page.curr should be(0)
-    page.next should be(1)
+    val page = Page(formId, SectionNumber.firstSection, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.section should be(section0)
 
@@ -77,12 +73,8 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
   }
 
   it should "display second page" in {
-
-    val page = Page(1, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
-
-    page.prev should be(0)
-    page.curr should be(1)
-    page.next should be(2)
+    val sectionNumber = SectionNumber(1)
+    val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.section should be(section1)
 
@@ -101,11 +93,8 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
 
   it should "display third page" in {
 
-    val page = Page(2, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
-
-    page.prev should be(1)
-    page.curr should be(2)
-    page.next should be(2)
+    val sectionNumber = SectionNumber(2)
+    val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
 
     page.section should be(section2)
 
@@ -121,27 +110,5 @@ class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFuture
     val fieldNames = extractNames(render.futureValue.snippets)
     fieldNames should be(List("nameOfBusiness"))
 
-  }
-
-  it should "display first page when currentPage is less than 0" in {
-
-    val page = Page(-1, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
-
-    page.prev should be(0)
-    page.curr should be(0)
-    page.next should be(1)
-
-    page.section should be(section0)
-  }
-
-  it should "display last page when currentPage is bigger than size of sections" in {
-
-    val page = Page(10, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
-
-    page.prev should be(1)
-    page.curr should be(2)
-    page.next should be(2)
-
-    page.section should be(section2)
   }
 }

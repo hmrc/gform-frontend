@@ -33,7 +33,7 @@ import scala.util.{ Failure, Success, Try }
 @Singleton
 class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
 
-  def appendNewGroup(formGroupId: String)(implicit hc: HeaderCarrier) = {
+  def appendNewGroup(formGroupId: String)(implicit hc: HeaderCarrier): Future[Option[List[List[FieldValue]]]] = {
     // on the forms, the AddGroup button's name has the following format:
     // AddGroup-(groupFieldId)
     // that's the reason why the extraction below is required

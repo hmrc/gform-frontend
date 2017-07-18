@@ -54,12 +54,8 @@ trait GformConnector {
     httpPut.PUT[FormData, SaveResult](s"$baseUrl/forms/$formId?tolerant=$tolerant", formData)
   }
 
-  def sendSubmission(formTypeId: FormTypeId, userId: UserId, formId: FormId, version: Version = Version("0.3.0"))(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    httpPost.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}/${version.value}/${userId.value}")
-  }
-
-  def sendSubmission(formTypeId: FormTypeId, userId: UserId, version: Version)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    httpPost.POSTEmpty[HttpResponse](baseUrl + s"/forms/$formTypeId/submission/$userId/$version")
+  def sendSubmission(formId: FormId, version: Version = Version("0.3.0"))(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    httpPost.POSTEmpty[HttpResponse](s"$baseUrl/forms/submission/${formId.value}")
   }
 
   def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] =

@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
-import play.api.mvc.{ AnyContent, Result }
+import play.api.mvc.{ AnyContent, Request, Result }
 import play.api.mvc.Results._
-import play.api.mvc.{ AnyContent, Result }
-import uk.gov.hmrc.gform.controllers.RequestWithTemplate
 import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId }
 import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -31,7 +29,7 @@ object FormDataHelpers {
   def formDataMap(formData: FormData): Map[FieldId, Seq[String]] =
     formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
-  def processResponseDataFromBody(request: RequestWithTemplate[AnyContent])(continuation: Map[FieldId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+  def processResponseDataFromBody(request: Request[AnyContent])(continuation: Map[FieldId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
     request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FieldId(a), b) }) match {
       case Some(data) => continuation(data)
       case None => Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check

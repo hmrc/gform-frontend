@@ -27,14 +27,20 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
-  def newForm(formTypeId: FormTypeId, userId: UserId, formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NewFormResponse] =
-    ws.POSTEmpty[NewFormResponse](s"$baseUrl/new-form/$formTypeId/$userId/$formId")
+  //TODO: remove userId since this information will be passed using HeaderCarrier
+  def newForm(formTypeId: FormTypeId, userId: UserId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
+    ws.POSTEmpty[Form](s"$baseUrl/new-form/${formTypeId.value}/${userId.value}")
 
   def getFormTemplate(formTypeId: FormTypeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}")
 
-  def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[FormData] =
-    ws.GET[FormData](s"$baseUrl/forms/${formId.value}")
+  def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Form] =
+    ws.GET[Form](s"$baseUrl/forms/${formId.value}")
+
+  def maybeForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[Form]] =
+    ws.GET[Form](s"$baseUrl/forms/${formId.value}").map(Some(_)).recover {
+      case e: NotFoundException => None
+    }
 
   def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     ws.POST[FormData, SaveResult](s"$baseUrl/forms?tolerant=$tolerant", formDetails)
@@ -47,11 +53,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}")
   }
-
-  def isStarted(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[EnvelopeId]] =
-    ws.GET[EnvelopeId](s"$baseUrl/forms/$formId").map(Some(_)).recover {
-      case e: NotFoundException => None
-    }
 
   def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] =
     ws.POSTEmpty[SaveResult](baseUrl + s"/forms/$formId/delete")

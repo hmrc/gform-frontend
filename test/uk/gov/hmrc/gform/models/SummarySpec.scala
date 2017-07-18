@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import org.jsoup.Jsoup
-import org.scalatest._
 import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate, FormTypeId, Version }
 import org.scalatest.{ EitherValues, FlatSpec, Matchers }
 import uk.gov.hmrc.gform.models.components._
@@ -35,11 +34,11 @@ import scala.collection.immutable.List
 class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, List(FieldValue(FieldId("iptRegNum"), Text(Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
-  val section1 = Section("About you", None, None, List(FieldValue(FieldId("firstName"), Text(Constant(""), total = false), "First Name", None, None, true, true, true)))
-  val section2 = Section("Business details", None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(Constant(""), total = false), "Name of business", None, None, true, true, true)))
+  val section0 = Section("Your details", None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
+  val section1 = Section("About you", None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
+  val section2 = Section("Business details", None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
   val formTemplate = FormTemplate(
-    formTypeId = FormTypeId(""),
+    formTypeId = FormTypeId("formid-123"),
     formName = "IPT100",
     version = Version("1.2.3"),
     description = "abc",
@@ -76,23 +75,23 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val summary = Summary(
       formTemplate.copy(
-        formTypeId = FormTypeId("Test!Form Type!Test"),
+        formTypeId = FormTypeId("IPT100"),
         sections = List(section0, section1)
       )
     )
 
-    val render = summary.summaryForRender(Map(), FormId("Test!Form Id!Test"), mockRepeatService, Envelope(Nil))
+    val render: SummaryForRender = summary.summaryForRender(Map(), FormId("form-id-123"), mockRepeatService, Envelope(Nil))
     //    render should be(List())
 
-    val testStringValues = extractAllTestStringValues(render.snippets)
-    testStringValues should be(List("Form Type", "Form Id", "Form Type", "Form Id"))
+    val testStringValues = extractAllHrefs(render.snippets)
+    testStringValues should be(List("/form/form-id-123/0", "/form/form-id-123/1"))
   }
 
   it should "display values for each field type with a submissible field, " in {
 
-    val section = Section("Personal details", None, None, List(
-      FieldValue(FieldId("Surname"), Text(Constant(""), total = false), "Surname", None, None, true, true, true),
-      FieldValue(FieldId("Info"), Text(Constant(""), total = false), "Info", None, None, true, true, submissible = false),
+    val section = Section("Personal details", None, None, None, List(
+      FieldValue(FieldId("Surname"), Text(AnyText, Constant(""), total = false), "Surname", None, None, true, true, true),
+      FieldValue(FieldId("Info"), Text(AnyText, Constant(""), total = false), "Info", None, None, true, true, submissible = false),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true),
       FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true)
     ))
@@ -187,7 +186,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val shortName = "JUST_A_VERY_SHORT_NAME"
     val addressField = FieldValue(
       id = FieldId("anId"),
-      `type` = Text(Constant("DA"), total = false),
+      `type` = Text(AnyText, Constant("DA"), total = false),
       label = "label",
       shortName = Some(shortName),
       helpText = None,
@@ -210,7 +209,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val label = "THIS_IS_A_LABEL"
     val addressField = FieldValue(
       id = FieldId("anId"),
-      `type` = Text(Constant("DA"), total = false),
+      `type` = Text(AnyText, Constant("DA"), total = false),
       label = label,
       shortName = None,
       helpText = None,
@@ -344,7 +343,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
       ),
       "Test!group-label!Test", None, None, true, true, true
     )
-    val section0 = Section("", None, None, List(groupFieldValue))
+    val section0 = Section("", None, None, None, List(groupFieldValue))
     val formTemplateWGroupNoShortname = formTemplate.copy(
       sections = List(section0)
     )
@@ -353,7 +352,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     extractAllTestStringValues(render0.snippets) should be(List("group-label"))
 
     val formTemplateWGroupWithShortname = formTemplate.copy(
-      sections = List(Section("", None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
+      sections = List(Section("", None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
     )
 
     val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService, Envelope(Nil))
@@ -368,7 +367,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     )
     val summary = Summary(ftWithOneInclIfSection)
 
-    val htmls = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId(""), mockRepeatService, Envelope(Nil)).snippets
+    val htmls = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId("formid-123"), mockRepeatService, Envelope(Nil)).snippets
 
     val htmlAheadOfSection2 = htmls(3)
 
@@ -376,7 +375,7 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
 
     val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
 
-    urlOfHrefToSection2 should endWith(ftWithOneInclIfSection.sections.indexOf(section2).toString)
+    urlOfHrefToSection2 shouldBe "/form/formid-123/2"
   }
 
 }

@@ -1,5 +1,7 @@
 @import uk.gov.hmrc.gform.models.components.FieldValue
 @import uk.gov.hmrc.gform.gformbackend.model.FileId
+@import uk.gov.hmrc.gform.gformbackend.model.FormId
+@import uk.gov.hmrc.gform.gformbackend.model.SectionNumber
 @import uk.gov.hmrc.gform.controllers.routes
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.gform.models.ValidationUtil
@@ -7,7 +9,7 @@
 @import uk.gov.hmrc.gform.service.LabelHelper
 
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
+@(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
 
 
 @currentValue = @{
@@ -36,7 +38,11 @@
 
 
             <a href=@{
-                routes.FormController.fileUploadPage(FileId(fieldValue.id.value).value)
+                routes.FormController.fileUploadPage(
+                    formId,
+                    sectionNumber,
+                    FileId(fieldValue.id.value).value
+                )
             }>
                 @{currentValue}
             </a>
