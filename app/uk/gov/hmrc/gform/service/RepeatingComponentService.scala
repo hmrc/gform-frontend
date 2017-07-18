@@ -143,6 +143,8 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     buildGroupFieldsLabelsForSummary(resultOpt.getOrElse(List(groupField.fields)), topFieldValue)
   }
 
+  def clearSession(implicit hc: HeaderCarrier) = sessionCache.remove()
+
   private def buildGroupFieldsLabelsForSummary(list: List[List[FieldValue]], fieldValue: FieldValue) = {
     (0 until list.size).flatMap { i =>
       list(i).map { field =>
