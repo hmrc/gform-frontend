@@ -13,8 +13,8 @@
 )(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
+    <h1 class="h1-heading">Upload document</h1>
 
-    <h1 class="h1-heading">Upload Page</h1>
     <form
         action=@actionUrl
         enctype="multipart/form-data"

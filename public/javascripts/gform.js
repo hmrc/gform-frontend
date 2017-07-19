@@ -52,3 +52,104 @@ global.GOVUK=GOVUK})(window)
 
 var showHideContent = new GOVUK.ShowHideContent();
 showHideContent.init();
+
+var uploader = function(el) {
+  // constants
+  var DEFAULT_UPLOAD_TEXT = 'Browse';
+  var DEFAULT_CHANGE_TEXT = 'Change';
+  var DEFAULT_MAX_FILE_SIZE = 1048576;
+  var FORM_ERROR_CLASS = 'form-field-group--error';
+  var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
+  var DEFAULT_LABEL = 'Your uploaded file will appear here';
+  var DEFAULT_FILE_SIZE_ERROR = 'File exceeds max size allowed';
+
+  // variables
+  var formId = el.data('form-id');
+  var fileId = el.data('file-id');
+  var uploadText = el.data('uploadText') || DEFAULT_UPLOAD_TEXT;
+  var changeText = el.data('changeText') || DEFAULT_CHANGE_TEXT;
+  var initialText = el.data('initialText') || DEFAULT_UPLOAD_TEXT;
+  var maxFileSize = parseInt(el.data('maxFileSize'), 10) || DEFAULT_MAX_FILE_SIZE;
+  var uploaderLabel = el.data('label') || DEFAULT_LABEL;
+  var fileSizeError = el.data('fileSizeError') || DEFAULT_FILE_SIZE_ERROR;
+
+  // DOM elements
+  var uploadedFileEl = el.find('.file-upload__file-list-item').eq(0);
+  var fileLinks = uploadedFileEl.find('.file-upload__file-list-item-link');
+  var uploadErrorsEl = el.find('.file-upload__errors').eq(0);
+  var uploaderEl = $('<input id="' + fileId + '" type="file" class="file-upload__file" />');
+  var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label">' + initialText + '</label>');
+
+  var handleError = function(text) {
+    var errorEl = '<span class="error-notification" role="alert">' + text + '</span>';
+
+    uploaderBtn.html(uploadText);
+    uploadedFileEl.empty().html(uploaderLabel);
+    uploadErrorsEl.empty().append(errorEl);
+    el.addClass(FORM_ERROR_CLASS);
+    uploaderEl.prop('disabled', false);
+  };
+
+  // Upload the file when a new one is selected
+  uploaderEl.on('change', function(evt) {
+    // Get the file
+    var file = evt.target.files[0];
+    var formData = new FormData();
+    var fileUrl = FILE_URL
+      .replace('{{envelopeId}}', window.gform.envelopeId)
+      .replace('{{fileId}}', fileId);
+
+    // Show loading text and disable upload
+    uploaderEl.prop('disabled', true);
+    uploadedFileEl.html('Loading...');
+
+    // Display error if file size is too big and don't upload it
+    if (file && file.size > maxFileSize) {
+      handleError(fileSizeError);
+      return;
+    }
+
+    // Create a form data object with the file to upload
+    formData.append(fileId, file);
+
+    // Perform POST request
+    $.ajax({
+      url: fileUrl,
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function(response) {
+        uploaderBtn.html('Change document');
+        uploadErrorsEl.empty();
+        uploadedFileEl.html(file.name);
+        el.removeClass(FORM_ERROR_CLASS);
+        uploaderEl.prop('disabled', false);
+      },
+      error: function(err) {
+        handleError(err.responseJSON.message);
+      }
+    });
+  });
+
+  // Append the upload intpui and button to the DOM
+  el.append(uploaderEl).append(uploaderBtn);
+
+  // Convert uploaded file links to plain text
+  if (fileLinks.length) {
+    fileLinks.contents().unwrap();
+  }
+
+  // Template changes the label if an error on load (need to keep for non-js version)
+  // so we are going to have to update the label in this situation
+  if (uploadErrorsEl.contents().length) {
+    uploadedFileEl.empty().html(uploaderLabel);
+  }
+}
+
+// Only use file uploader if browser supports it
+if (window.File && window.FileList && window.FormData) {
+  $('.file-uploader').each(function () {
+    uploader($(this));
+  });
+}
