@@ -11,42 +11,46 @@
 
 @(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
 
-
 @currentValue = @{
     val v = for {
         vr <- validationResult
         cv <- vr.getCurrentValue
     } yield cv
 
-    v.getOrElse("upload file")
+    v.getOrElse("Upload document")
 }
 
 <div class="form-group">
-    <div class="@if(!validationResult.forall(_.isOk)) { form-field-group--error }">
+  <div class="file-uploader @if(!validationResult.forall(_.isOk)) { form-field-group--error }"
+       data-form-id="@{formId}"
+       data-file-id="@{fieldValue.id.value}"
+       data-upload-text="Upload document"
+       data-change-text="Change document"
+       data-max-file-size="1048576"
+       data-label="@LabelHelper.buildRepeatingLabel(fieldValue, index)"
+       data-file-size-error="File exceeds max size allowed"
+       data-initial-text="@if(currentValue == "Upload document") {Upload document} else {Change document}"
+  >
+    <ul class="file-upload__file-list">
+      <li class="file-upload__file-list-item">
+        <a class="file-upload__file-list-item-link" href=@{
+            routes.FormController.fileUploadPage(
+              formId,
+              sectionNumber,
+              FileId(fieldValue.id.value).value
+            )
+        }>
+            @{currentValue}
+        </a>
+      </li>
+    </ul>
 
-        <fieldset>
-            <legend class="h3-heading">@{
-                LabelHelper.buildRepeatingLabel(fieldValue, index)
-            }</legend>
-
-            @{
-                val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-                val errors: Set[String] = ValidationUtil.printErrors(map)
-                errors.map(e => errorInline(e, e, Seq("")))
-            }
-
-
-
-            <a href=@{
-                routes.FormController.fileUploadPage(
-                    formId,
-                    sectionNumber,
-                    FileId(fieldValue.id.value).value
-                )
-            }>
-                @{currentValue}
-            </a>
-
-        </fieldset>
+    <div class="file-upload__errors">
+      @{
+          val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+          val errors: Set[String] = ValidationUtil.printErrors(map)
+          errors.map(e => errorInline(e, e, Seq("")))
+      }
     </div>
+  </div>
 </div>

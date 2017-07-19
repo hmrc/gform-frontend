@@ -61,6 +61,53 @@
   }
 }
 
+/* File uploader */
+
+.file-upload__file-list {
+  margin: 0;
+  padding: 0;
+}
+
+.file-upload__file-list-item {
+  margin: 0 0 10px;
+  padding: 0;
+}
+
+.file-upload__file {
+  width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.file-upload__file + .file-upload__file-label {
+  display: inline-block;
+  font-weight: 700;
+  color: #fff;
+  background-color: #00823b;
+  box-shadow: inset 0 -2px 0 #003618;
+  cursor: pointer;
+  padding: 0.35em 0.5em 0.125em 0.5em;
+  border: none;
+  border-radius: 0;
+  -webkit-appearance: none;
+  -webkit-font-smoothing: antialiased;
+  cursor: pointer;
+  color: #fff;
+  font-family: "nta", Arial, sans-serif;
+  font-size: 19px;
+  line-height: 1.31579;
+  font-weight: 400;
+  text-transform: none;
+  margin: 10px 0 0 0;
+}
+
+.file-upload__file:focus + .file-upload__file-label {
+  outline: 3px solid #ffbf47;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,

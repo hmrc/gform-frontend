@@ -4,7 +4,6 @@
 @(formTemplate: FormTemplate, page: PageForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
-    <gform-envelopeId class="hidden">@{page.envelopeId.value}</gform-envelopeId>
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
     @if(page.sectionDescription.isDefined){
     <h2 class="h2-heading">@localisation(page.sectionDescription.get)</h2>
@@ -34,6 +33,9 @@
     </form>
 
     <script type="text/javascript">
+      window.gform = window.gform || {};
+      window.gform.envelopeId = "@page.envelopeId.value";
+
       @Html(page.javascripts)
     </script>
 }
