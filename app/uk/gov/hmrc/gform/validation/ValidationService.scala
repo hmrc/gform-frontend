@@ -160,26 +160,22 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   }
 
   private def validateNumber(value: String, maxWhole: Int, maxFractional: Int, mustBePositive: Boolean): ValidatedType = {
-    val Shape = "(-?)(\\d+)((.(\\d+))?)".r
-    value match {
-      case Shape(s, w, d, n, f) => {
-        val x = (s, w, d, n, f)
-        x
-      }
-      case _ =>
-    }
+    val WholeShape = "([+-]?)(\\d+)[.]?".r
+    val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     val v = (value, maxFractional, mustBePositive) match {
-      case (Shape(_, whole, _, _, _), 0, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(s"whole number must be ${maxWhole} digits or less")))
-      case (Shape(_, _, dotFractional, _, _), 0, _) if dotFractional.size > 0 => Invalid(Map(fieldValue.id -> Set("must be a whole number")))
-      case (Shape(_, whole, dotFractional, _, fractional), _, _) if whole.size > maxWhole && dotFractional.size > 0 && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"number must be ${maxWhole} whole digits or less and decimal fraction must be ${maxFractional} digits or less")))
-      case (Shape(_, _, dotFractional, _, fractional), _, _) if dotFractional.size > 0 && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"decimal fraction must be ${maxFractional} digits or less")))
-      case (Shape(_, _, _, _, _), _, _) => Valid(())
+      case (WholeShape(_, whole), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(s"must be at most ${maxWhole} digits")))
+      case (WholeShape("-", _), _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
+      case (WholeShape(_, _), _, _) => Valid(())
+      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits")))
+      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits")))
+      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"decimal fraction must be at most ${maxFractional} digits")))
+      case (FractionalShape("-", _, _), _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
+      case (FractionalShape(_, _), _, _) => Valid(())
       case (_, 0, true) => Invalid(Map(fieldValue.id -> Set("must be a positive whole number")))
       case (_, _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
       case (_, 0, false) => Invalid(Map(fieldValue.id -> Set("must be a whole number")))
       case _ => Invalid(Map(fieldValue.id -> Set("must be a number")))
     }
-    v
   }
 
   private def validateRequired(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
