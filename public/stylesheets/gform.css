@@ -35,6 +35,7 @@
   width: auto;
   display: inline-block;
   margin-right: 10px;
+  vertical-align: bottom;
 }
 .field-group--inline > .form-group:last-child {
   margin-right: 0;
