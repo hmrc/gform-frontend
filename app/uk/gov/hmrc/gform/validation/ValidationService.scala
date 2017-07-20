@@ -162,15 +162,17 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def validateNumber(value: String, maxWhole: Int, maxFractional: Int, mustBePositive: Boolean): ValidatedType = {
     val WholeShape = "([+-]?)(\\d+)[.]?".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
-    val v = (value, maxFractional, mustBePositive) match {
+    (value, maxFractional, mustBePositive) match {
       case (WholeShape(_, whole), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(s"must be at most ${maxWhole} digits")))
       case (WholeShape("-", _), _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
       case (WholeShape(_, _), _, _) => Valid(())
+      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits and no decimal fraction")))
       case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits")))
       case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits")))
+      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 => Invalid(Map(fieldValue.id -> Set("must be a whole number")))
       case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"decimal fraction must be at most ${maxFractional} digits")))
       case (FractionalShape("-", _, _), _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
-      case (FractionalShape(_, _), _, _) => Valid(())
+      case (FractionalShape(_, _, _), _, _) => Valid(())
       case (_, 0, true) => Invalid(Map(fieldValue.id -> Set("must be a positive whole number")))
       case (_, _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
       case (_, 0, false) => Invalid(Map(fieldValue.id -> Set("must be a whole number")))
