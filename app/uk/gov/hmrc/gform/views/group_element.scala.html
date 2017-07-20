@@ -24,15 +24,19 @@
         @{
         snippets
         }
+
+        @if(!disableRemoveButton) {
+        <div class="form-group">
+          <button
+                  type="submit"
+                  class="button button--link soft--left"
+                  name="save"
+                  value="RemoveGroup-@{instance}_@{fieldValue.id}">
+              @localisation("Remove")
+          </button>
+        </div>
+        }
     </div>
 
-    @if(!disableRemoveButton) {
-    <button
-            type="submit"
-            class="button button--link soft--left"
-            name="save"
-            value="RemoveGroup-@{instance}_@{fieldValue.id}">
-        @localisation("Remove")
-    </button>
-    }
+
 </fieldset>
