@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
+import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -28,10 +29,10 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model.FormId
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
-import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
+import uk.gov.hmrc.gform.service.{RepeatingComponentService, SaveService}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SummaryGen @Inject() (
@@ -42,7 +43,8 @@ class SummaryGen @Inject() (
   fileUploadModule: FileUploadModule,
   authModule: AuthModule,
   val messagesApi: MessagesApi,
-  val sec: SecuredActions
+  val sec: SecuredActions,
+  auditingModule: AuditingModule
 )(implicit ec: ExecutionContext)
     extends FrontendController {
 
@@ -74,10 +76,15 @@ class SummaryGen @Inject() (
           anyFormId(data) match {
             case Some(formId) =>
               val submissionF = SaveService.sendSubmission(formId)
+              val formF = gformConnector.getForm(formId)
               for {
                 response <- submissionF
+                form <- formF
                 _ <- repeatService.clearSession
-              } yield Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
+              } yield {
+                auditService.sendSubmissionEvent(form)
+                Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
+              }
             case None =>
               Future.successful(BadRequest("No formId"))
           }
@@ -91,5 +98,6 @@ class SummaryGen @Inject() (
   private lazy val authConnector = authModule.authConnector
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
+  private lazy val auditService = auditingModule.auditService
 
 }
