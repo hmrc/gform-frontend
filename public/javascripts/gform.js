@@ -92,24 +92,36 @@ var uploader = function(el) {
 
   // Upload the file when a new one is selected
   uploaderEl.on('change', function(evt) {
+<<<<<<< HEAD
     console.log('CHANGE');
     // Get the file
     var file = evt.target.files[0];
     console.log('FILE', file)
+=======
+    // Get the file
+    var file = evt.target.files[0];
+>>>>>>> master
     var formData = new FormData();
     var fileUrl = FILE_URL
       .replace('{{envelopeId}}', window.gform.envelopeId)
       .replace('{{fileId}}', fileId);
 
+<<<<<<< HEAD
     // Handle file upload cancel
     if (!file) return;
 
+=======
+>>>>>>> master
     // Show loading text and disable upload
     uploaderEl.prop('disabled', true);
     uploadedFileEl.html('Loading...');
 
     // Display error if file size is too big and don't upload it
+<<<<<<< HEAD
     if (file.size > maxFileSize) {
+=======
+    if (file && file.size > maxFileSize) {
+>>>>>>> master
       handleError(fileSizeError);
       return;
     }

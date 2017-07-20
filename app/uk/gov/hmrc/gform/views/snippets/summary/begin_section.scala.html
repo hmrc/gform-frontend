@@ -1,12 +1,15 @@
 @import uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTypeId, Version, SectionNumber}
 @import uk.gov.hmrc.gform.views.html.localisation
-@(formType: FormTypeId, version: Version, formId: FormId, title: String, idx: Int)
+@(formType: FormTypeId, version: Version, formId: FormId, title: String, description: Option[String], idx: Int)
 
 <table class="table--font-reset @if(idx == 0) { table--top-border }">
   <thead>
     <tr>
       <th class="grid-layout__column--1-2">
         <h2 class="h2-heading">@localisation(title)</h2>
+        @if(description.isDefined){
+        <h3 class="h3-heading">@localisation(description.get)</h3>
+        }
       </th>
 
       <th class="text--right">

@@ -73,8 +73,11 @@ class SummaryGen @Inject() (
         case "Continue" :: Nil =>
           anyFormId(data) match {
             case Some(formId) =>
-              SaveService.sendSubmission(formId).
-                map(r => Ok(Json.obj("envelope" -> r.body, "formId" -> Json.toJson(formId))))
+              val submissionF = SaveService.sendSubmission(formId)
+              for {
+                response <- submissionF
+                _ <- repeatService.clearSession
+              } yield Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
             case None =>
               Future.successful(BadRequest("No formId"))
           }
