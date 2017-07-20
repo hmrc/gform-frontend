@@ -99,12 +99,15 @@ var uploader = function(el) {
       .replace('{{envelopeId}}', window.gform.envelopeId)
       .replace('{{fileId}}', fileId);
 
+    // Handle file upload cancel
+    if (!file) return;
+
     // Show loading text and disable upload
     uploaderEl.prop('disabled', true);
     uploadedFileEl.html('Loading...');
 
     // Display error if file size is too big and don't upload it
-    if (file && file.size > maxFileSize) {
+    if (file.size > maxFileSize) {
       handleError(fileSizeError);
       return;
     }
@@ -132,7 +135,7 @@ var uploader = function(el) {
     });
   });
 
-  // Append the upload intpui and button to the DOM
+  // Append the upload input and button to the DOM
   el.append(uploaderEl).append(uploaderBtn);
 
   // Convert uploaded file links to plain text
@@ -142,7 +145,7 @@ var uploader = function(el) {
 
   // Template changes the label if an error on load (need to keep for non-js version)
   // so we are going to have to update the label in this situation
-  if (uploadErrorsEl.contents().length) {
+  if (uploadedFileEl.contents().length && uploadErrorsEl.html().trim() !== '') {
     uploadedFileEl.empty().html(uploaderLabel);
   }
 }
