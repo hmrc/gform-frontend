@@ -38,4 +38,8 @@ class AuditingModule @Inject() (configModule: ConfigModule) { self =>
   }
 
   lazy val httpAuditingHook: HttpHook = httpAuditing.AuditingHook
+
+  lazy val auditService = new AuditService {
+    override def auditConnector = auditConnector
+  }
 }
