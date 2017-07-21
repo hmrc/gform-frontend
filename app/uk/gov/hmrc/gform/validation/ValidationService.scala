@@ -151,7 +151,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def validateText(fieldValue: FieldValue, text: Text)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val textData = data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
-      case (true, Nil, _) => Invalid(Map(fieldValue.id -> Set("must be entered")))
+      case (true, Nil, _) => Invalid(Map(fieldValue.id -> Set("Please enter required data")))
       case (_, _, AnyText) => Valid(())
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
