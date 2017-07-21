@@ -1,3 +1,10 @@
+/* Generic page styles */
+@media (min-width: 641px) {
+  .content__body .page-description {
+    margin-bottom: 45px;
+  }
+}
+
 /* Custom styles for the inline choice component */
 .choice-list .choice-list__item {
   padding: 10px 0;
@@ -70,7 +77,7 @@
 }
 
 .file-upload__file-list-item {
-  margin: 0 0 10px;
+  margin: 0;
   padding: 0;
 }
 
@@ -107,6 +114,11 @@
 
 .file-upload__file:focus + .file-upload__file-label {
   outline: 3px solid #ffbf47;
+}
+
+.input--file {
+  border: none;
+  padding: 0;
 }
 
 /* Print styles, mainly for the summary page */

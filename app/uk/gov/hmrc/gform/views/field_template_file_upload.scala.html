@@ -20,16 +20,19 @@
     v.getOrElse("Upload document")
 }
 
+@defaultLabel = @{"Upload document"}
+
 <div class="form-group">
   <div class="file-uploader @if(!validationResult.forall(_.isOk)) { form-field-group--error }"
        data-form-id="@{formId}"
        data-file-id="@{fieldValue.id.value}"
-       data-upload-text="Upload document"
+       data-upload-text="@{defaultLabel}"
        data-change-text="Change document"
        data-max-file-size="1048576"
        data-label="@LabelHelper.buildRepeatingLabel(fieldValue, index)"
        data-file-size-error="File exceeds max size allowed"
-       data-initial-text="@if(currentValue == "Upload document") {Upload document} else {Change document}"
+       data-initial-text="@if(currentValue == defaultLabel) {Upload document} else {Change document}"
+       data-default-label="@{defaultLabel}"
   >
     <ul class="file-upload__file-list">
       <li class="file-upload__file-list-item">
