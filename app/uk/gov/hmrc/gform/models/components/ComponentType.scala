@@ -57,7 +57,9 @@ case object Date {
 case class Address(international: Boolean) extends ComponentType
 
 case object Address {
-  val allFieldIds = (id: FieldId) => List("uk", "street1", "street2", "street3", "street4", "postcode", "country").map(id.withJSSafeSuffix)
+  val allFieldIdsJsSuffix = (id: FieldId) => List("uk", "street1", "street2", "street3", "street4", "postcode", "country").map(id.withJSSafeSuffix)
+  val allFieldIdsSuffix = (id: FieldId) => List("uk", "street1", "street2", "street3", "street4", "postcode", "country").map(id.withSuffix)
+
 }
 
 case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType

@@ -16,20 +16,21 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.{ EitherValues, FlatSpec, Matchers }
+import org.scalatest.{EitherValues, FlatSpec, Matchers}
 import org.scalatest.concurrent.ScalaFutures
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
+import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId, Version}
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.play.frontend.auth.AuthContext
-import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
+import uk.gov.hmrc.play.frontend.auth.connectors.domain.{Accounts, Authority, ConfidenceLevel, CredentialStrength}
 import uk.gov.hmrc.play.http.HeaderCarrier
 import org.scalatest.mockito.MockitoSugar.mock
+import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 
-class PageSpec extends FlatSpec with Matchers with EitherValues with ScalaFutures {
+class PageSpec extends Spec {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
   val section0 = Section("Your details", None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
