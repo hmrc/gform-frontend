@@ -46,49 +46,56 @@ $container.off('.'+selectors.namespace)}}
 ShowHideContent.prototype.init=function($container){this.showHideRadioToggledContent($container)
 this.showHideCheckboxToggledContent($container)}
 GOVUK.ShowHideContent=ShowHideContent
-global.GOVUK=GOVUK})(window)
+global.GOVUK=GOVUK})(window);
 
+var FORM_ERROR_CLASS = 'form-field-group--error';
+var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
 
+var uploaderDefaults = {
+  uploadText: 'Browse',
+  changeText: 'Change',
+  maxFileSize: 1048576,
+  uploaderLabel: 'Your uploaded file will appear here',
+  maxFileSizeError: 'File exceeds max size allowed'
+};
 
 var showHideContent = new GOVUK.ShowHideContent();
-showHideContent.init();
 
 var uploader = function(el) {
-  // constants
-  var DEFAULT_UPLOAD_TEXT = 'Browse';
-  var DEFAULT_CHANGE_TEXT = 'Change';
-  var DEFAULT_MAX_FILE_SIZE = 1048576;
-  var FORM_ERROR_CLASS = 'form-field-group--error';
-  var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
-  var DEFAULT_LABEL = 'Your uploaded file will appear here';
-  var DEFAULT_FILE_SIZE_ERROR = 'File exceeds max size allowed';
-
   // variables
   var formId = el.data('form-id');
   var fileId = el.data('file-id');
-  var uploadText = el.data('uploadText') || DEFAULT_UPLOAD_TEXT;
-  var changeText = el.data('changeText') || DEFAULT_CHANGE_TEXT;
-  var initialText = el.data('initialText') || DEFAULT_UPLOAD_TEXT;
-  var maxFileSize = parseInt(el.data('maxFileSize'), 10) || DEFAULT_MAX_FILE_SIZE;
-  var uploaderLabel = el.data('label') || DEFAULT_LABEL;
-  var fileSizeError = el.data('fileSizeError') || DEFAULT_FILE_SIZE_ERROR;
+
+  var config = $.extend({}, uploaderDefaults, {
+    uploadText: el.data('uploadText'),
+    changeText: el.data('changeText'),
+    maxFileSize: parseInt(el.data('maxFileSize'), 10),
+    uploaderLabel: el.data('label'),
+    fileSizeError: el.data('fileSizeError'),
+    initialText: el.data('initialText'),
+    defaultUploaderLabel: el.data('default-label')
+  });
 
   // DOM elements
   var uploadedFileEl = el.find('.file-upload__file-list-item').eq(0);
   var fileLinks = uploadedFileEl.find('.file-upload__file-list-item-link');
   var uploadErrorsEl = el.find('.file-upload__errors').eq(0);
   var uploaderEl = $('<input id="' + fileId + '" type="file" class="file-upload__file" />');
-  var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label">' + initialText + '</label>');
+  var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label">' + config.initialText + '</label>');
 
   var handleError = function(text) {
     var errorEl = '<span class="error-notification" role="alert">' + text + '</span>';
 
-    uploaderBtn.html(uploadText);
-    uploadedFileEl.empty().html(uploaderLabel);
+    uploaderBtn.html(config.uploadText);
+    uploadedFileEl.empty().html(config.uploaderLabel);
     uploadErrorsEl.empty().append(errorEl);
     el.addClass(FORM_ERROR_CLASS);
     uploaderEl.prop('disabled', false);
   };
+
+  var isEmptyEl = function(el) {
+    return el.html().trim() === '';
+  }
 
   // Upload the file when a new one is selected
   uploaderEl.on('change', function(evt) {
@@ -107,8 +114,8 @@ var uploader = function(el) {
     uploadedFileEl.html('Loading...');
 
     // Display error if file size is too big and don't upload it
-    if (file.size > maxFileSize) {
-      handleError(fileSizeError);
+    if (file.size > config.maxFileSize) {
+      handleError(config.fileSizeError);
       return;
     }
 
@@ -123,7 +130,7 @@ var uploader = function(el) {
       processData: false,
       contentType: false,
       success: function(response) {
-        uploaderBtn.html('Change document');
+        uploaderBtn.html(config.changeText);
         uploadErrorsEl.empty();
         uploadedFileEl.html(file.name);
         el.removeClass(FORM_ERROR_CLASS);
@@ -145,8 +152,9 @@ var uploader = function(el) {
 
   // Template changes the label if an error on load (need to keep for non-js version)
   // so we are going to have to update the label in this situation
-  if (uploadedFileEl.contents().length && uploadErrorsEl.html().trim() !== '') {
-    uploadedFileEl.empty().html(uploaderLabel);
+  console.log('LABEL', !isEmptyEl(uploadErrorsEl), uploadedFileEl.text().trim() === config.defaultUploaderLabel)
+  if (uploadedFileEl.text().trim() === config.defaultUploaderLabel) {
+    uploadedFileEl.empty().html(config.uploaderLabel);
   }
 }
 
@@ -156,3 +164,5 @@ if (window.File && window.FileList && window.FormData) {
     uploader($(this));
   });
 }
+
+showHideContent.init();
