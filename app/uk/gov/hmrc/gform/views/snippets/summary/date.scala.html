@@ -5,6 +5,10 @@
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
+@safeId(id: String) = @{
+fieldValue.id.withJSSafeSuffix(id).toString
+}
+
 <tr>
   <td>
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
@@ -12,7 +16,7 @@
 
   <td>
     @if(validationResult.map(_.getCurrentValue.isEmpty).contains(true)) {
-        @{renderMonth(validationResult.map(_.getCurrentValue("day"))).getOrElse("")} @{getMonthValue(validationResult.map(_.getCurrentValue("month"))).getOrElse("")} @{validationResult.map(_.getCurrentValue("year")).getOrElse("")}
+        @{renderMonth(validationResult.map(_.getCurrentValue(safeId("day")))).getOrElse("")} @{getMonthValue(validationResult.map(_.getCurrentValue(safeId("month")))).getOrElse("")} @{validationResult.map(_.getCurrentValue(safeId("year"))).getOrElse("")}
     }
   </td>
 </tr>

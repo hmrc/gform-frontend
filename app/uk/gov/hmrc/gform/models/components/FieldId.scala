@@ -16,17 +16,53 @@
 
 package uk.gov.hmrc.gform.models.components
 
+import play.api.Logger
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.ValueClassFormat
 
 case class FieldId(value: String) extends AnyVal {
   override def toString = value
 
-  def withSuffix(suffix: String): FieldId = FieldId(value + "." + suffix)
+  def withSuffix(suffix: String): FieldId = {
+    if (validate(value) && validate(suffix))
+      FieldId(value + "." + suffix)
+    else {
+      Logger.debug(s"Illegal Value : $value, Illegal Suffix : $suffix")
+      throw new IllegalArgumentException
+    }
+  }
 
-  def withJSSafeSuffix(suffix: String): FieldId = FieldId(value + "-" + suffix)
+  def validate(str: String): Boolean = {
+    val Reg = "[.-]".r.unanchored
+    str match {
+      case Reg() => false
+      case _ => true
+    }
+  }
 
-  def getSuffix(replacement: FieldId) = value.replace(replacement + ".", "")
+  def withJSSafeSuffix(suffix: String): FieldId = {
+    if (validate(value) && validate(suffix))
+      FieldId(value + "-" + suffix)
+    else {
+      Logger.debug(s"Illegal Value : $value, Illegal Suffix : $suffix")
+      throw new IllegalArgumentException
+    }
+  }
+
+  def toJsSuffix = {
+    FieldId(value.replace(".", "-"))
+  }
+
+  def toSuffix = {
+    FieldId(value.replace("-", "."))
+  }
+
+  def getSuffix(replacement: FieldId) =
+    if (value.contains("-"))
+      value.replace(replacement + "-", "")
+    else
+      value.replace(replacement + ".", "")
+
 }
 
 object FieldId {
