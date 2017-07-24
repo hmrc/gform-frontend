@@ -188,6 +188,10 @@ class FormController @Inject() (
         section = sections(sectionNumber.value)
       } yield section.atomicFields(repeatService)
 
+      val allAtomicFields = for {
+        page <- pageF
+      } yield page.allAtomicFields
+
       val validatedDataResult: Future[ValidatedType] = for {
         atomicFields <- atomicFields
         form <- formF
@@ -202,7 +206,7 @@ class FormController @Inject() (
           form <- formF
           envelopeId = form.envelopeId
           envelope <- fileUploadService.getEnvelope(envelopeId)
-          atomicFields <- atomicFields
+          atomicFields <- allAtomicFields
         } yield ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
 
       def processSaveAndContinue(userId: UserId, form: Form)(continue: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
