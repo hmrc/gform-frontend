@@ -100,15 +100,15 @@ class SummarySpec extends FlatSpec with Matchers with EitherValues {
     val formFields = Map(
       FieldId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
       FieldId("Info") -> Seq("Test!Royal!Test"),
-      FieldId("BirthDate.day") -> Seq("19"),
-      FieldId("BirthDate.month") -> Seq("11"),
-      FieldId("BirthDate.year") -> Seq("1841"),
-      FieldId("HomeAddress.street1") -> Seq("Test!Street!Test"),
-      FieldId("HomeAddress.street2") -> Seq("Test!Second Street!Test"),
-      FieldId("HomeAddress.street3") -> Seq("Test!Third Street!Test"),
-      FieldId("HomeAddress.street4") -> Seq("Test!Town!Test"),
-      FieldId("HomeAddress.postcode") -> Seq("Test!PO32 6JX!Test"),
-      FieldId("HomeAddress.country") -> Seq("Test!UK!Test")
+      FieldId("BirthDate-day") -> Seq("19"),
+      FieldId("BirthDate-month") -> Seq("11"),
+      FieldId("BirthDate-year") -> Seq("1841"),
+      FieldId("HomeAddress-street1") -> Seq("Test!Street!Test"),
+      FieldId("HomeAddress-street2") -> Seq("Test!Second Street!Test"),
+      FieldId("HomeAddress-street3") -> Seq("Test!Third Street!Test"),
+      FieldId("HomeAddress-street4") -> Seq("Test!Town!Test"),
+      FieldId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
+      FieldId("HomeAddress-country") -> Seq("Test!UK!Test")
     )
 
     val render = summary.summaryForRender(formFields, FormId(""), mockRepeatService, Envelope(Nil))

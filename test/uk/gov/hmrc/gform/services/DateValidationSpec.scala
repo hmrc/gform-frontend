@@ -43,9 +43,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.now().plusDays(2)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result: ValidatedType = new ComponentsValidator(speccedDate, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -64,9 +64,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.now().plusDays(1)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -85,9 +85,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(6)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -106,9 +106,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(2)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -127,9 +127,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.now()
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -148,9 +148,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-4)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -169,9 +169,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.now()
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -190,9 +190,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.now().plusDays(-1)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -211,9 +211,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.now().plusDays(-2)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -232,9 +232,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-6)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq(acceptedAfter.getDayOfMonth.toString),
-      FieldId("accPeriodStartDate.month") -> Seq(acceptedAfter.getMonthValue.toString),
-      FieldId("accPeriodStartDate.year") -> Seq(acceptedAfter.getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq(acceptedAfter.getDayOfMonth.toString),
+      FieldId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
+      FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -251,9 +251,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       "sample label", None, None, true, false, false)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq("35"),
-      FieldId("accPeriodStartDate.month") -> Seq("12"),
-      FieldId("accPeriodStartDate.year") -> Seq("2017")
+      FieldId("accPeriodStartDate-day") -> Seq("35"),
+      FieldId("accPeriodStartDate-month") -> Seq("12"),
+      FieldId("accPeriodStartDate-year") -> Seq("2017")
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -270,9 +270,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       "sample label", None, None, true, false, false)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq("15"),
-      FieldId("accPeriodStartDate.month") -> Seq("5"),
-      FieldId("accPeriodStartDate.year") -> Seq("222017")
+      FieldId("accPeriodStartDate-day") -> Seq("15"),
+      FieldId("accPeriodStartDate-month") -> Seq("5"),
+      FieldId("accPeriodStartDate-year") -> Seq("222017")
     )
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -291,9 +291,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       false, false)
 
     val data = Map(
-      FieldId("accPeriodStartDate.day") -> Seq("Tuesday"),
-      FieldId("accPeriodStartDate.month") -> Seq("Jan"),
-      FieldId("accPeriodStartDate.year") -> Seq(LocalDate.now().getYear.toString)
+      FieldId("accPeriodStartDate-day") -> Seq("Tuesday"),
+      FieldId("accPeriodStartDate-month") -> Seq("Jan"),
+      FieldId("accPeriodStartDate-year") -> Seq(LocalDate.now().getYear.toString)
     )
 
     val result: ValidatedType = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
@@ -312,9 +312,9 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       false, false)
 
     val data = Map(
-      FieldId("accPeriodStartDate-day") -> Seq("01"),
-      FieldId("accPeriodStartDate-month") -> Seq("01"),
-      FieldId("accPeriodStartDate-year") -> Seq("1970")
+      FieldId("accPeriodStartDate.day") -> Seq("01"),
+      FieldId("accPeriodStartDate.month") -> Seq("01"),
+      FieldId("accPeriodStartDate.year") -> Seq("1970")
     )
 
     val result: ValidatedType = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
