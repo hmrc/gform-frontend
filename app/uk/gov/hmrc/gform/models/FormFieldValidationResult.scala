@@ -185,7 +185,11 @@ object ValidationUtil {
           val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)
-            .map { kv => kv._1.getSuffix(fieldValue.id) -> kv._2
+            .map { kv =>
+              validationResult match {
+                case Valid(()) => kv._1.getSuffix(fieldValue.id) -> kv._2
+                case Invalid(_) => kv._1.toJsSuffix.value -> kv._2
+              }
             }.toMap
 
           ComponentField(fieldValue, dataMap)
