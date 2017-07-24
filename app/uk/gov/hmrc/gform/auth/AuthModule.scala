@@ -21,6 +21,7 @@ import javax.inject.Inject
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.frontend.auth
 import uk.gov.hmrc.play.frontend.auth._
@@ -40,6 +41,8 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
     def authConnector: AuthConnector = self.authConnector
   }
 
+  lazy val authConfig: Auth = new Auth(EeittConnector, authConnector, configModule.serviceConfig.baseUrl("eeitt"), "localhost:9195") //TOO add URL
+
   val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
 
   /********************* private *********************/
@@ -58,4 +61,5 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
   }
 
   private lazy val taxRegime: Option[TaxRegime] = None
+
 }
