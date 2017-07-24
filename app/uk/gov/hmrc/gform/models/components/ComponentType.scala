@@ -51,14 +51,13 @@ case class Group(
 case class FileUpload() extends ComponentType
 
 case object Date {
-  val allFieldIds = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
+  val allFieldIds = (id: FieldId) => List("day", "month", "year").map(id.withJSSafeSuffix)
 }
 
 case class Address(international: Boolean) extends ComponentType
 
 case object Address {
-  val allFieldIdsJsSuffix = (id: FieldId) => List("uk", "street1", "street2", "street3", "street4", "postcode", "country").map(id.withJSSafeSuffix)
-  val allFieldIdsSuffix = (id: FieldId) => List("uk", "street1", "street2", "street3", "street4", "postcode", "country").map(id.withSuffix)
+  val allFieldIds = (id: FieldId) => List("uk", "street1", "street2", "street3", "street4", "postcode", "country").map(id.withJSSafeSuffix)
 
 }
 
