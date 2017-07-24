@@ -258,7 +258,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id.withSuffix("day") -> Set(s"entered is greater than 31")))
+    result.toEither should beLeft(Map(fieldValue.id.withJSSafeSuffix("day") -> Set(s"entered is greater than 31")))
   }
 
   "Date 15-5-222017" should "Invalid number of digits" in {
@@ -277,7 +277,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id.withSuffix("year") -> Set(s"is not a 4 digit number")))
+    result.toEither should beLeft(Map(fieldValue.id.withJSSafeSuffix("year") -> Set(s"is not a 4 digit number")))
   }
 
   /**
@@ -299,8 +299,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val result: ValidatedType = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(
-      fieldValue.id.withSuffix("day") -> Set(s"must be non-numeric"),
-      fieldValue.id.withSuffix("month") -> Set(s"must be non-numeric")
+      fieldValue.id.withJSSafeSuffix("day") -> Set(s"must be non-numeric"),
+      fieldValue.id.withJSSafeSuffix("month") -> Set(s"must be non-numeric")
     ))
   }
 

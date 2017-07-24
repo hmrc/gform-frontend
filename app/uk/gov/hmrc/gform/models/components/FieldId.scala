@@ -23,15 +23,6 @@ import uk.gov.hmrc.gform.models.ValueClassFormat
 case class FieldId(value: String) extends AnyVal {
   override def toString = value
 
-  def withSuffix(suffix: String): FieldId = {
-    if (validate(value) && validate(suffix))
-      FieldId(value + "." + suffix)
-    else {
-      Logger.debug(s"Illegal Value : $value, Illegal Suffix : $suffix")
-      throw new IllegalArgumentException
-    }
-  }
-
   def validate(str: String): Boolean = {
     val Reg = "[.-]".r.unanchored
     str match {
@@ -53,15 +44,8 @@ case class FieldId(value: String) extends AnyVal {
     FieldId(value.replace(".", "-"))
   }
 
-  def toSuffix = {
-    FieldId(value.replace("-", "."))
-  }
-
   def getSuffix(replacement: FieldId) =
-    if (value.contains("-"))
-      value.replace(replacement + "-", "")
-    else
-      value.replace(replacement + ".", "")
+    value.replace(replacement + "-", "")
 
 }
 

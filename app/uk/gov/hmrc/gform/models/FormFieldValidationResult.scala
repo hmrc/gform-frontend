@@ -133,7 +133,7 @@ object ValidationUtil {
 
   def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): List[(FieldId, FormFieldValidationResult)] = {
     component match {
-      case Address(_) => Address.allFieldIdsJsSuffix(fieldValue.id).map { fieldId =>
+      case Address(_) => Address.allFieldIds(fieldValue.id).map { fieldId =>
 
         gformErrors.get(fieldId) match {
           //with suffix

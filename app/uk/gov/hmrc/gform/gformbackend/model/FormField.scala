@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.models.components.FieldId
 
 case class FormField(id: FieldId, value: String) {
   def withSuffix(suffix: String): FormField = {
-    FormField(id.withSuffix(suffix), value)
+    FormField(id.withJSSafeSuffix(suffix), value)
   }
 }
 

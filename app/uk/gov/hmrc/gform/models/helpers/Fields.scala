@@ -69,7 +69,7 @@ object Fields {
         case groupField @ Group(fvs, _, _, _, _, _) => {
           getFormFields(repeatService.getAllFieldsInGroup(fv, groupField))
         }
-        case Address(_) => Address.allFieldIdsSuffix(fv.id).map(getFieldData)
+        case Address(_) => Address.allFieldIds(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.allFieldIds(fv.id).map(getFieldData)
         case Text(_, _, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload() => List(getFieldData(fv.id))
