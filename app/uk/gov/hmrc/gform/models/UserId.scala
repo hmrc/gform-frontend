@@ -16,10 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-import play.api.Logger
 import play.api.libs.json._
-
-import scala.collection.Map
 
 case class UserId(value: String) extends AnyVal {
   override def toString = value

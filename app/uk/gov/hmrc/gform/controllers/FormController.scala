@@ -60,10 +60,11 @@ class FormController @Inject() (
   def newForm(formTypeId: FormTypeId) = auth.async { implicit c =>
 
     for {// format: OFF
-      userId                   <- authConnector.getUserDetails[UserId](authContext)
-      (form, wasFormFound)     <- getOrStartForm(formTypeId, userId)
+      formTemplate <- gformConnector.getFormTemplate(formTypeId)
+      result                   <- authModule.authConfig.doAuth(formTemplate, result(formTypeId, _))
+      //(form, wasFormFound)     <- getOrStartForm(formTypeId, userId)
       // format: ON
-    } yield result(formTypeId, form._id, wasFormFound, SectionNumber.firstSection)
+    } yield result
   }
 
   //true - it got the form, false - new form was created
@@ -75,11 +76,15 @@ class FormController @Inject() (
     } yield (form, maybeForm.isDefined)
   }
 
-  private def result(formTypeId: FormTypeId, formId: FormId, formFound: Boolean, sectionNumber: SectionNumber)(implicit hc: HeaderCarrier, request: Request[_]) = {
-    if (formFound) {
-      Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTypeId, formId))
-    } else {
-      Redirect(routes.FormController.form(formId, sectionNumber))
+  private def result(formTypeId: FormTypeId, userId: UserId)(implicit hc: HeaderCarrier, request: Request[_]) = {
+    for {
+      (form, wasFormFound) <- getOrStartForm(formTypeId, userId)
+    } yield {
+      if (wasFormFound) {
+        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTypeId, form._id))
+      } else {
+        Redirect(routes.FormController.form(form._id, SectionNumber.firstSection))
+      }
     }
   }
 

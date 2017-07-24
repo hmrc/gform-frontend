@@ -18,20 +18,32 @@ package uk.gov.hmrc.gform.connectors
 
 import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.Action
+import play.utils.UriEncoding
 import uk.gov.hmrc.gform.WSHttp
 import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
+import uk.gov.hmrc.gform.models.UserId
 import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
-import uk.gov.hmrc.gform.models.userdetails.GroupId
+import uk.gov.hmrc.gform.models.userdetails.{ AffinityGroup, GroupId }
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
+
+case class Verification(isAllowed: Boolean)
+
+object Verification {
+  implicit val format = Json.format[Verification]
+}
 
 trait EeittConnector {
 
   def httpGet: HttpGet
 
   def eeittUrl: String
+
+  def isAllowed(groupId: String, formTypeId: FormTypeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] = {
+    httpGet.GET[Verification](eeittUrl + s"/group-id/${encode(groupId)}/regime/${encode(formTypeId.value)}/affinityGroup/${encode(affinityGroup.toString)}/verification")
+  }
 
   def prepopulationBusinessUser(groupId: GroupId, formTypeId: FormTypeId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {
     httpGet.GET[BusinessUser](eeittUrl + s"/group-id/${groupId.value}/regime/${formTypeId.value}/prepopulation")
@@ -40,6 +52,8 @@ trait EeittConnector {
   def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier): Future[Agent] = {
     httpGet.GET[Agent](eeittUrl + s"/group-id/${groupId.value}/prepopulation")
   }
+
+  private def encode(p: String) = UriEncoding.encodePathSegment(p, "UTF-8")
 }
 
 object EeittConnector extends EeittConnector with ServicesConfig {

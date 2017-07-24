@@ -27,10 +27,17 @@ case object Organisation extends AffinityGroup
 case object Agent extends AffinityGroup
 
 object AffinityGroup {
-  implicit val reads = Reads[AffinityGroup] {
+  val reads = Reads[AffinityGroup] {
     case JsString("Individual") => JsSuccess(Individual)
     case JsString("Organisation") => JsSuccess(Organisation)
     case JsString("Agent") => JsSuccess(Agent)
+    case JsObject(obj) => obj.get("affinityGroup").map(_ => JsSuccess(Individual)).getOrElse(JsError("Failed"))
     case unknown => JsError(s"No AffinityGroup found in json: $unknown")
   }
+
+  val writes = Writes[AffinityGroup] {
+    case Individual => JsString("Individual")
+  }
+
+  implicit val format = Format[AffinityGroup](reads, writes)
 }
