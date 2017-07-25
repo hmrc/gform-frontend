@@ -160,8 +160,10 @@ class FormController @Inject() (
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
       val atomicFields = for {
-        page <- pageF
-      } yield page.section.atomicFields(repeatService)
+        formTemplate <- formTemplateF
+        sections <- repeatService.getAllSections(formTemplate)
+        section = sections(sectionNumber.value)
+      } yield section.atomicFields(repeatService)
 
       val validatedDataResult: Future[ValidatedType] = for {
         atomicFields <- atomicFields
@@ -223,7 +225,8 @@ class FormController @Inject() (
         envelope     <- envelopeF
         envelopeId   <- envelopeIdF
         formTemplate <- formTemplateF
-        booleanExprs  = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
+        sections     <- repeatService.getAllSections(formTemplate)
+        booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
         optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
         // format: ON
       } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId))

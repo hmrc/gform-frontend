@@ -224,7 +224,5 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 2 whole digits and decimal fraction must be at most 1 digits")))
   }
 
-
-
   implicit lazy val hc = HeaderCarrier()
 }
