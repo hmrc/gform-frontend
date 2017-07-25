@@ -33,6 +33,8 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
 
+  implicit lazy val hc = HeaderCarrier()
+
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
     val address = Address(international = false)
 
@@ -184,7 +186,4 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       )
     )
   }
-
-  implicit lazy val hc = HeaderCarrier()
-
 }

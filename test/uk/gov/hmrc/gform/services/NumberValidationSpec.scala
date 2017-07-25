@@ -16,21 +16,19 @@
 
 package uk.gov.hmrc.gform.services
 
-import java.time.LocalDate
-
 import cats.scalatest.EitherMatchers
-import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
-import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
+
+  implicit lazy val hc = HeaderCarrier()
 
   "Number format" should "accepts whole numbers" in {
     val textConstraint = Number()
@@ -224,5 +222,4 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 2 whole digits and decimal fraction must be at most 1 digits")))
   }
 
-  implicit lazy val hc = HeaderCarrier()
 }
