@@ -35,7 +35,7 @@ object Fields {
           formFields.filter {
             case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
           }.map {
-            case (fieldId, formField) => fieldId.value.replace(fieldValue.id + ".", "") -> FieldOk(fieldValue, formField.value)
+            case (fieldId, formField) => fieldId.toJsSuffix.value -> FieldOk(fieldValue, formField.value)
           }
         Some(ComponentField(fieldValue, fieldOkData))
       case Text(_, _, _) | Group(_, _, _, _, _, _) => formFields.get(fieldValue.id).map { formField =>

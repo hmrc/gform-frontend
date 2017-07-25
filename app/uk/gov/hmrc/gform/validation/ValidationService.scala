@@ -64,7 +64,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
   }
 
-  private lazy val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
+  private lazy val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withJSSafeSuffix(suffix)).toList.flatten
   private def validateDateRequiredField(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val dateValueOf = dataGetter(fieldValue)
 
@@ -205,9 +205,9 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
+  def validateRF(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
 
-  def validateFF(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
+  def validateFF(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
 
   def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withJSSafeSuffix(suffix)).toList.flatten
@@ -282,9 +282,9 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   def validateLocalDate(fv: FieldValue, day: String, month: String, year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(er)))
-    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(er)))
-    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(er)))
+    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("day") -> Set(er)))
+    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("month") -> Set(er)))
+    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("year") -> Set(er)))
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }
