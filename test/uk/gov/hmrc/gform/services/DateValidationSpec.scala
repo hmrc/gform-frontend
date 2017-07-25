@@ -32,6 +32,8 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
 
+  implicit lazy val hc = HeaderCarrier()
+
   "After Today 1" should "accepts dates after tomorrow" in {
     val dateConstraint = List(DateConstraint(After, Today, OffsetDate(1)))
     val constraints = DateConstraints(dateConstraint)
@@ -321,6 +323,4 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     result.toEither should beLeft(Map(FieldId("accPeriodStartDate") -> Set("Date is missing")))
   }
-
-  implicit lazy val hc = HeaderCarrier()
 }

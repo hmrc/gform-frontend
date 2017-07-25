@@ -17,11 +17,12 @@
 package uk.gov.hmrc.gform.models
 
 import org.jsoup.Jsoup
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
@@ -29,8 +30,8 @@ import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
-import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 
 class PageForRenderSpec extends Spec {
 
@@ -87,7 +88,7 @@ class PageForRenderSpec extends Spec {
   )
 
   val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
-  val section = Section("About you", None, None, None, List(infoFieldValue))
+  val section = Section("About you", None, None, None, None, List(infoFieldValue))
 
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
@@ -108,7 +109,9 @@ class PageForRenderSpec extends Spec {
   implicit val mockAuthContext = mock[AuthContext]
   val formId = FormId("formid-123")
   val sectionNumber = SectionNumber(0)
+
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
+    when(mockRepeatService.getAllSections(any())(any())).thenReturn(Future.successful(formTemplate.sections))
     val pageToRenderF = PageForRender(
       formId,
       sectionNumber,
