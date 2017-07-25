@@ -16,20 +16,20 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.{ JsObject, JsValue, Json }
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Action
 import play.utils.UriEncoding
 import uk.gov.hmrc.gform.WSHttp
-import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
+import uk.gov.hmrc.gform.gformbackend.model.{FormTypeId, RegimeId}
 import uk.gov.hmrc.gform.models.UserId
-import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
-import uk.gov.hmrc.gform.models.userdetails.{ AffinityGroup, GroupId }
+import uk.gov.hmrc.gform.models.eeitt.{Agent, BusinessUser}
+import uk.gov.hmrc.gform.models.userdetails.{AffinityGroup, GroupId}
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse }
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
-case class Verification(isAllowed: Boolean)
+case class Verification(isAllowed: Boolean) extends AnyVal
 
 object Verification {
   implicit val format = Json.format[Verification]
@@ -41,7 +41,7 @@ trait EeittConnector {
 
   def eeittUrl: String
 
-  def isAllowed(groupId: String, formTypeId: FormTypeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] = {
+  def isAllowed(groupId: String, regimeId: RegimeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] = {
     httpGet.GET[Verification](eeittUrl + s"/group-id/${encode(groupId)}/regime/AL/affinityGroup/${encode(affinityGroup.toString)}/verification")
   }
 
