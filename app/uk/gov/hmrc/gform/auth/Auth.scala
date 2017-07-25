@@ -38,8 +38,8 @@ class Auth @Inject() (
 ) {
 
   def doAuth(formTemplate: FormTemplate, authCase: UserId => Future[Result])(implicit authContext: AuthContext, hc: HeaderCarrier, ex: ExecutionContext): Future[Result] = {
-    formTemplate.authConfig.authModule match {
-      case "legacyEEITTAuth" => eeittAuth.legacyAuth(formTemplate.formTypeId, authCase)
+    formTemplate.authConfig.authModule.value match {
+      case "legacyEEITTAuth" => eeittAuth.legacyAuth(formTemplate, authCase)
       case _ => Future.successful(Ok) //TODO Dave New Auth Method
     }
   }

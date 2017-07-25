@@ -19,31 +19,30 @@ package uk.gov.hmrc.gform.auth
 import javax.inject.Inject
 
 import play.api.Logger
-import play.api.libs.json.{ JsError, JsSuccess, Reads }
+import play.api.libs.json.{JsError, JsSuccess, Reads}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
+import uk.gov.hmrc.gform.connectors.{EeittConnector, Verification}
+import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId, RegimeId}
 import uk.gov.hmrc.gform.models.UserId
 import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 case class UserDetails(userId: UserId, affinityGroup: AffinityGroup)
 
 object UserDetails {
   implicit val reads: Reads[UserDetails] = Reads[UserDetails] { x =>
-    Logger.debug("JS" + x)
     x.asOpt[UserId] match {
       case Some(userId) =>
         x.asOpt[AffinityGroup] match {
           case Some(affinGroup) => JsSuccess(UserDetails(userId, affinGroup))
-          case None => JsError("SomeError")
+          case None => JsError("No AffinityGroup is present")
         }
-      case None => JsError("ErroSome")
+      case None => JsError("No UserId is present")
     }
   }
 }
@@ -55,22 +54,22 @@ class EeittAuth @Inject() (
     baseUrl: String
 ) {
 
-  def legacyAuth(formTypeId: FormTypeId, action: UserId => Future[Result])(implicit authContext: AuthContext, hc: HeaderCarrier, ex: ExecutionContext) = {
+  def legacyAuth(formTemplate: FormTemplate, action: UserId => Future[Result])(implicit authContext: AuthContext, hc: HeaderCarrier, ex: ExecutionContext): Future[Result] =
     for {
       userDetails <- authConnector.getUserDetails[UserDetails](authContext)
-      isOk <- eeittConnector.isAllowed(userDetails.userId.value, formTypeId, userDetails.affinityGroup)
-      x <- somewhere(isOk.isAllowed, formTypeId, userDetails.userId, action)
-    } yield x
-  }
+      isOk <- eeittConnector.isAllowed(userDetails.userId.value, formTemplate.authConfig.regimeId, userDetails.affinityGroup)
+      successCase <- action
+    } yield isAuthed(isOk, formTemplate.formTypeId, userDetails.userId, successCase)
 
-  private def somewhere(isAllowed: Boolean, formTypeId: FormTypeId, userId: UserId, action: UserId => Future[Result]) = {
-    if (!isAllowed)
+
+  private def isAuthed(isOk: Verification, formTypeId: FormTypeId, userId: UserId, action: UserId => Result) = {
+    if (!isOk.isAllowed)
       redirectToEeitt(formTypeId)
     else
       action(userId)
   }
 
   private def redirectToEeitt(formTypeId: FormTypeId) = {
-    Future.successful(Redirect(s"http://localhost:9190/eeitt-auth/enrollment-verification?callbackUrl=http://$baseUrl/submissions/new-form/$formTypeId"))
+    Redirect(s"http://localhost:9190/eeitt-auth/enrollment-verification?callbackUrl=http://$baseUrl/submissions/new-form/$formTypeId")
   }
 }
