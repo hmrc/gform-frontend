@@ -59,11 +59,10 @@ class SummaryGen @Inject() (
       formTemplateF  = gformConnector.getFormTemplate(form.formData.formTypeId)
       envelope       <- envelopeF
       formTemplate   <- formTemplateF
+      map = formDataMap(form.formData)
+      result <- Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
       // format: ON
-    } yield {
-      val map = formDataMap(form.formData)
-      Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
-    }
+    } yield result
   }
 
   def submit(formId: FormId) = auth.async { implicit c =>

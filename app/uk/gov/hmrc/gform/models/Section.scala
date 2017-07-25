@@ -17,15 +17,22 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.models.components.{ FieldValue, Group }
-
+import uk.gov.hmrc.gform.models.components.{ Expr, FieldValue, Group }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.http.HeaderCarrier
+
+case class TextExpression(expr: Expr)
+
+object TextExpression {
+  implicit val format = Json.format[TextExpression]
+}
+
 case class Section(
     title: String,
     description: Option[String],
     shortName: Option[String],
     includeIf: Option[IncludeIf],
+    repeatsMax: Option[TextExpression],
     fields: List[FieldValue]
 ) {
 

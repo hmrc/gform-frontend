@@ -46,16 +46,18 @@ class PageShader(
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
-    val snippetsSeq = section.fields.map(f => htmlFor(f, 0))
-    val snippets = Future.sequence(snippetsSeq)
-    val javasctipt = fieldJavascript(formTemplate.sections.flatMap(_.atomicFields(repeatService)))
-    snippets.map(snippets => PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javasctipt, envelopeId))
+    val sectionsF = repeatService.getAllSections(formTemplate)
+    for {
+      sections <- sectionsF
+      section = sections(sectionNumber.value)
+      snippets <- Future.sequence(section.fields.map(f => htmlFor(f, 0)))
+      javascript = fieldJavascript(sections.flatMap(_.atomicFields(repeatService)))
+      hiddenTemplateFields = sections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
+      hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
+    } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId)
   }
 
-  private lazy val section: Section = formTemplate.sections(sectionNumber.value)
-
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {
-    //    val fieldValue = adjustIdForRepeatingGroups(orgFieldValue, instance)
     fieldValue.`type` match {
       case g @ Group(fvs, orientation, _, _, _, _) => htmlForGroup(g, fieldValue, fvs, orientation, index)
       case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue, index)
@@ -75,7 +77,9 @@ class PageShader(
   }
 
   private def htmlForFileUpload(fieldValue: FieldValue, index: Int) = {
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validate(fieldValue), index))
+    validate(fieldValue).map { validatedValue =>
+      uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validatedValue, index)
+    }
   }
 
   private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]], index: Int) = {
@@ -84,14 +88,15 @@ class PageShader(
       case Some(_) => Set.empty[String] // Don't prepop something we already submitted
     }
 
-    val snippet =
+    val snippetF = validate(fieldValue).map { validatedValue =>
       choice match {
-        case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, validate(fieldValue), optionalHelpText, index)
-        case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, validate(fieldValue), optionalHelpText, index)
-        case Inline => uk.gov.hmrc.gform.views.html.choiceInline(fieldValue, options, prepopValues, validate(fieldValue), optionalHelpText, index)
+        case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index)
+        case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index)
+        case Inline => uk.gov.hmrc.gform.views.html.choiceInline(fieldValue, options, prepopValues, validatedValue, optionalHelpText, index)
       }
+    }
 
-    Future.successful(snippet)
+    snippetF
   }
 
   private def htmlForText(fieldValue: FieldValue, t: Text, expr: Expr, index: Int) = {
@@ -99,16 +104,25 @@ class PageShader(
       case None => PrepopService.prepopData(expr, formTemplate.formTypeId)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
-    prepopValueF.map(prepopValue => uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validate(fieldValue), index))
+    val validatedValueF = validate(fieldValue)
+
+    for {
+      prepopValue <- prepopValueF
+      validatedValue <- validatedValueF
+    } yield uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validatedValue, index)
   }
 
   private def htmlForAddress(fieldValue: FieldValue, international: Boolean, index: Int) = {
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, validate(fieldValue), index))
+    validate(fieldValue).map { validatedValue =>
+      uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, validatedValue, index)
+    }
   }
 
   private def htmlForDate(fieldValue: FieldValue, offset: Offset, dateValue: Option[DateValue], index: Int) = {
     val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validate(fieldValue), prepopValues, index))
+    validate(fieldValue).map { validatedValue =>
+      uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validatedValue, prepopValues, index)
+    }
   }
 
   private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation, index: Int) = {
@@ -133,9 +147,13 @@ class PageShader(
     }
   }
 
-  private lazy val hiddenTemplateFields = formTemplate.sections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
-  private lazy val hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
-  private lazy val okF: FieldValue => Option[FormFieldValidationResult] = Fields.okValues(fieldData, section.atomicFields(repeatService), repeatService, envelope)
-  private def validate(fieldValue: FieldValue): Option[FormFieldValidationResult] = f.getOrElse(okF)(fieldValue)
-
+  private def validate(fieldValue: FieldValue): Future[Option[FormFieldValidationResult]] = {
+    repeatService.getAllSections(formTemplate).map { sections =>
+      val section = sections(sectionNumber.value)
+      lazy val okF: FieldValue => Option[FormFieldValidationResult] =
+        Fields.okValues(fieldData, section.atomicFields(repeatService), repeatService, envelope)
+      f.getOrElse(okF)(fieldValue)
+    }
+  }
 }
+

@@ -18,20 +18,21 @@ package uk.gov.hmrc.gform.service
 
 import javax.inject.{ Inject, Singleton }
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
+import uk.gov.hmrc.gform.gformbackend.model.FormTemplate
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ Await, Future }
 
 @Singleton
 class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
+
+  def getAllSections(formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
+    Future.successful(formTemplate.sections)
+  }
 
   def appendNewGroup(formGroupId: String)(implicit hc: HeaderCarrier): Future[Option[List[List[FieldValue]]]] = {
     // on the forms, the AddGroup button's name has the following format:

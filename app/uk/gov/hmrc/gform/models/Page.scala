@@ -48,7 +48,6 @@ object PageForRender {
 }
 
 case class Page(formId: FormId, sectionNumber: SectionNumber, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, envelopeId: EnvelopeId) {
-  lazy val section: Section = formTemplate.sections(sectionNumber.value)
 
   def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] =
     PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId)
