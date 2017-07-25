@@ -19,18 +19,18 @@ package uk.gov.hmrc.gform.auth
 import javax.inject.Inject
 
 import play.api.Logger
-import play.api.libs.json.{JsError, JsSuccess, Reads}
+import play.api.libs.json.{ JsError, JsSuccess, Reads }
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.gform.connectors.{EeittConnector, Verification}
-import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId, RegimeId}
+import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, RegimeId }
 import uk.gov.hmrc.gform.models.UserId
 import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class UserDetails(userId: UserId, affinityGroup: AffinityGroup)
 
@@ -58,13 +58,12 @@ class EeittAuth @Inject() (
     for {
       userDetails <- authConnector.getUserDetails[UserDetails](authContext)
       isOk <- eeittConnector.isAllowed(userDetails.userId.value, formTemplate.authConfig.regimeId, userDetails.affinityGroup)
-      successCase <- action
-    } yield isAuthed(isOk, formTemplate.formTypeId, userDetails.userId, successCase)
+      successCase <- isAuthed(isOk, formTemplate.formTypeId, userDetails.userId, action)
+    } yield successCase
 
-
-  private def isAuthed(isOk: Verification, formTypeId: FormTypeId, userId: UserId, action: UserId => Result) = {
+  private def isAuthed(isOk: Verification, formTypeId: FormTypeId, userId: UserId, action: UserId => Future[Result]): Future[Result] = {
     if (!isOk.isAllowed)
-      redirectToEeitt(formTypeId)
+      Future.successful(redirectToEeitt(formTypeId))
     else
       action(userId)
   }

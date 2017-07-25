@@ -16,18 +16,18 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{ JsObject, JsValue, Json }
 import play.api.mvc.Action
 import play.utils.UriEncoding
 import uk.gov.hmrc.gform.WSHttp
-import uk.gov.hmrc.gform.gformbackend.model.{FormTypeId, RegimeId}
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTypeId, RegimeId }
 import uk.gov.hmrc.gform.models.UserId
-import uk.gov.hmrc.gform.models.eeitt.{Agent, BusinessUser}
-import uk.gov.hmrc.gform.models.userdetails.{AffinityGroup, GroupId}
+import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
+import uk.gov.hmrc.gform.models.userdetails.{ AffinityGroup, GroupId }
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse}
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class Verification(isAllowed: Boolean) extends AnyVal
 

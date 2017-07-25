@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform.gformbackend.model
 import play.api.libs.json._
 
 case class AuthConfig(
-                       authModule: AuthModule,
-                       predicates: Option[List[Predicate]],
-                       regimeId: RegimeId
-                     )
+  authModule: AuthModule,
+  predicates: Option[List[Predicate]],
+  regimeId: RegimeId
+)
 
 object AuthConfig {
 
@@ -68,3 +68,4 @@ case class KeyValue(key: String, value: String)
 
 object KeyValue {
   implicit val format: OFormat[KeyValue] = Json.format[KeyValue]
+}
