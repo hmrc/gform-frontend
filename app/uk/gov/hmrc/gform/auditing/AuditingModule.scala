@@ -26,20 +26,20 @@ import uk.gov.hmrc.play.http.hooks.HttpHook
 
 class AuditingModule @Inject() (configModule: ConfigModule) { self =>
 
-  lazy val auditConnector: AuditConnector = new AuditConnector {
+  lazy val auditConnectorImpl: AuditConnector = new AuditConnector {
     //WARN: LoadAuditingConfig uses play deprecations.
     //Thus you can not instantiate this class if play application is not running
     override def auditingConfig: AuditingConfig = LoadAuditingConfig(s"auditing")
   }
 
   lazy val httpAuditing: HttpAuditing = new HttpAuditing {
-    override def auditConnector: AuditConnector = self.auditConnector
+    override def auditConnector: AuditConnector = self.auditConnectorImpl
     override def appName: String = configModule.appConfig.appName
   }
 
   lazy val httpAuditingHook: HttpHook = httpAuditing.AuditingHook
 
   lazy val auditService = new AuditService {
-    override def auditConnector = auditConnector
+    override def auditConnector = auditConnectorImpl
   }
 }
