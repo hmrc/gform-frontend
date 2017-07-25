@@ -33,57 +33,14 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class UserDetails(userId: UserId, affinityGroup: AffinityGroup)
-
-object UserDetails {
-  implicit val reads = Reads[UserDetails] { x =>
-    Logger.debug("JS" + x)
-    x.asOpt[UserId] match {
-      case Some(userId) =>
-        x.asOpt[AffinityGroup] match {
-          case Some(affinGroup) => JsSuccess(UserDetails(userId, affinGroup))
-          case None => JsError("SomeError")
-        }
-      case None => JsError("ErroSome")
-    }
-  }
-}
-
 class Auth @Inject() (
-    eeittConnector: EeittConnector,
-    authConnector: AuthConnector,
-    eeittUrl: String,
-    baseUrl: String
+    eeittAuth: EeittAuth
 ) {
 
   def doAuth(formTemplate: FormTemplate, authCase: UserId => Future[Result])(implicit authContext: AuthContext, hc: HeaderCarrier, ex: ExecutionContext): Future[Result] = {
     formTemplate.authConfig.authModule match {
-      case "legacyEEITTAuth" => legacyAuth(formTemplate.formTypeId, authCase)
+      case "legacyEEITTAuth" => eeittAuth.legacyAuth(formTemplate.formTypeId, authCase)
       case _ => Future.successful(Ok) //TODO Dave New Auth Method
-    }
-  }
-
-  private def legacyAuth(formTypeId: FormTypeId, action: UserId => Future[Result])(implicit authContext: AuthContext, hc: HeaderCarrier, ex: ExecutionContext) = {
-    for {
-      userDetails <- authConnector.getUserDetails[UserDetails](authContext)
-      isOk <- isAllowed(userDetails, formTypeId)
-      x <- somewhere(isOk.isAllowed, formTypeId, userDetails.userId, action)
-    } yield x
-  }
-
-  private def isAllowed(userDetails: UserDetails, formTypeId: FormTypeId)(implicit hc: HeaderCarrier, ex: ExecutionContext) = {
-    eeittConnector.isAllowed(userDetails.userId.value, formTypeId, userDetails.affinityGroup)
-  }
-
-  private def redirectToEeitt(formTypeId: FormTypeId) = {
-    Future.successful(Redirect(s"http://localhost:9190/eeitt-auth/enrollment-verification?callbackUrl=$baseUrl/new-form/$formTypeId"))
-  }
-
-  private def somewhere(isAllowed: Boolean, formTypeId: FormTypeId, userId: UserId, action: UserId => Future[Result]) = {
-    if (!isAllowed) {
-      redirectToEeitt(formTypeId)
-    } else {
-      action(userId)
     }
   }
 }

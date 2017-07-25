@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import org.scalatest._
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
+import uk.gov.hmrc.gform.gformbackend.model.{AuthConfig, FormTemplate, FormTypeId, Version}
 import uk.gov.hmrc.gform.models.components._
 
 class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
@@ -35,6 +35,7 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area"),
+    authConfig =  AuthConfig("TEST", None, "TEST"),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2)

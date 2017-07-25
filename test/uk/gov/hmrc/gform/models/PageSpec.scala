@@ -44,6 +44,7 @@ class PageSpec extends Spec {
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
+    authConfig =  AuthConfig("TEST", None, "TEST"),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2)
