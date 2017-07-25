@@ -41,7 +41,7 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
     def authConnector: AuthConnector = self.authConnector
   }
 
-  lazy val authConfig: Auth = new Auth(EeittConnector, authConnector, configModule.serviceConfig.baseUrl("eeitt"), "localhost:9195") //TOO add URL
+  lazy val authConfig: Auth = new Auth(eeittAuth)
 
   val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
 
@@ -62,4 +62,5 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
 
   private lazy val taxRegime: Option[TaxRegime] = None
 
+  private lazy val eeittAuth = new EeittAuth(EeittConnector, authConnector, configModule.serviceConfig.baseUrl("eeitt"), "localhost:9195")
 }

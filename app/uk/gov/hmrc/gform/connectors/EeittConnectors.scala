@@ -42,7 +42,7 @@ trait EeittConnector {
   def eeittUrl: String
 
   def isAllowed(groupId: String, formTypeId: FormTypeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] = {
-    httpGet.GET[Verification](eeittUrl + s"/group-id/${encode(groupId)}/regime/${encode(formTypeId.value)}/affinityGroup/${encode(affinityGroup.toString)}/verification")
+    httpGet.GET[Verification](eeittUrl + s"/group-id/${encode(groupId)}/regime/AL/affinityGroup/${encode(affinityGroup.toString)}/verification")
   }
 
   def prepopulationBusinessUser(groupId: GroupId, formTypeId: FormTypeId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {

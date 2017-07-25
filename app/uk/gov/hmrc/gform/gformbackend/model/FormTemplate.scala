@@ -20,10 +20,9 @@ import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.models.{ DmsSubmission, Section }
 
 case class FormTemplate(
-  schemaId: Option[String],
   formTypeId: FormTypeId,
   formName: String,
-  version: Version,
+  version: Version = Version("0.3.0"),
   description: String,
   characterSet: String,
   dmsSubmission: DmsSubmission,
@@ -34,5 +33,5 @@ case class FormTemplate(
 )
 
 object FormTemplate {
-  implicit val format: OFormat[FormTemplate] = Json.format[FormTemplate]
+  implicit lazy val format: OFormat[FormTemplate] = Json.format[FormTemplate]
 }
