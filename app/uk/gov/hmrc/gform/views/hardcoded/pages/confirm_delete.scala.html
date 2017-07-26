@@ -7,7 +7,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(title = "Confirm Delete", bodyClasses = None) {
 
-<form action="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTypeId, formId)" method="POST">
+<form action="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTypeId, formId)" method="GET">
     <h1>Confirm Delete</h1>
 
     @{
