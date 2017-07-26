@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.service
+package uk.gov.hmrc.gform.prepop
 
 import play.api.Logger
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.models.userdetails.UserDetails
-import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.gform.FrontendAuthConnector
+import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
 import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.models.userdetails.UserDetails
+import uk.gov.hmrc.play.frontend.auth.AuthContext
+import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-object AuthContextPrepop {
+class AuthContextPrepop {
   def values(value: AuthInfo, authContext: AuthContext): String = (value match {
     case GG => authContext.user.governmentGatewayToken
     case PayeNino => authContext.principal.accounts.paye.map(_.nino.nino)
@@ -39,14 +39,15 @@ object AuthContextPrepop {
   }).getOrElse("")
 }
 
-object PrepopService {
-
-  def eeittConnector: EeittConnector = ??? // TODO - DI this
-  def authConnector = new FrontendAuthConnector // TODO - DI this
+class PrepopService(
+    eeittConnector: EeittConnector,
+    authConnector: AuthConnector,
+    authContextPrepop: AuthContextPrepop
+) {
 
   def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] = {
     expr match {
-      case AuthCtx(value) => Future.successful(AuthContextPrepop.values(value, authContext))
+      case AuthCtx(value) => Future.successful(authContextPrepop.values(value, authContext))
       case Constant(value) => Future.successful(value)
       case EeittCtx(eeitt) =>
 

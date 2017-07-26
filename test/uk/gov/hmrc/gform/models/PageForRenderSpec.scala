@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
+import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -90,6 +91,11 @@ class PageForRenderSpec extends Spec {
   val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
   val section = Section("About you", None, None, None, None, List(infoFieldValue))
 
+  val mockPrepopService = new PrepopService(null, null, null) {
+    override def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
+      Future.successful("CONSTANT_TEXT")
+  }
+
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "AAA000",
@@ -113,6 +119,7 @@ class PageForRenderSpec extends Spec {
 
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
     when(mockRepeatService.getAllSections(any())(any())).thenReturn(Future.successful(formTemplate.sections))
+
     val pageToRenderF = PageForRender(
       formId,
       sectionNumber,
@@ -121,7 +128,8 @@ class PageForRenderSpec extends Spec {
       f = None,
       mockRepeatService,
       envelope,
-      envelopeId
+      envelopeId,
+      mockPrepopService
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -204,7 +212,8 @@ class PageForRenderSpec extends Spec {
       f = None,
       testGrpRepSrvc,
       envelope,
-      envelopeId
+      envelopeId,
+      mockPrepopService
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -237,7 +246,8 @@ class PageForRenderSpec extends Spec {
       f = None,
       testGrpRepSrvc,
       envelope,
-      envelopeId
+      envelopeId,
+      mockPrepopService
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)

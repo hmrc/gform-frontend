@@ -46,15 +46,6 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
 
   lazy val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
 
-  lazy val eeittConnector = new EeittConnector(
-    s"${configModule.serviceConfig.baseUrl("eeitt")}/eeitt",
-    wSHttpModule.auditableWSHttp
-  )
-
-  def redirectToEeitt(formTypeId: FormTypeId): Future[Result] =
-    Future.successful(Redirect(s"${configModule.serviceConfig.baseUrl("eeitt-frontend")}/eeitt-auth/enrollment-verification?callbackUrl=${configModule.appConfig.`gform-frontend-base-url`}/submissions/new-form/$formTypeId"))
-
-
   /********************* private *********************/
 
   private lazy val governmentGateway = new GovernmentGateway {
@@ -71,6 +62,11 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
   }
 
   private lazy val taxRegime: Option[TaxRegime] = None
+
+  private lazy val eeittConnector = new EeittConnector(
+    s"${configModule.serviceConfig.baseUrl("eeitt")}/eeitt",
+    wSHttpModule.auditableWSHttp
+  )
 
   private lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule.appConfig)
 }

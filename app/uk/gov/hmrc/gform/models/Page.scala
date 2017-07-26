@@ -24,6 +24,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTemplate, SectionNumber }
 import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -42,15 +43,16 @@ object PageForRender {
     f: Option[FieldValue => Option[FormFieldValidationResult]],
     repeatService: RepeatingComponentService,
     envelope: Envelope,
-    envelopeId: EnvelopeId
-  )(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = new PageShader(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId).render()
+    envelopeId: EnvelopeId,
+    prepopService: PrepopService
+  )(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] = new PageShader(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService).render()
 
 }
 
-case class Page(formId: FormId, sectionNumber: SectionNumber, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, envelopeId: EnvelopeId) {
+case class Page(formId: FormId, sectionNumber: SectionNumber, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, envelopeId: EnvelopeId, prepopService: PrepopService) {
 
   def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit authContext: AuthContext, hc: HeaderCarrier): Future[PageForRender] =
-    PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId)
+    PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService)
 
   def renderPage(fieldData: Map[FieldId, Seq[String]], formId: FormId, f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit request: Request[_], messages: Messages, authContext: AuthContext, hc: HeaderCarrier): Future[Result] = {
     pageForRender(fieldData, f).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
