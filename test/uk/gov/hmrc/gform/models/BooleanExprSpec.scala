@@ -35,7 +35,7 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area"),
-    authConfig =  AuthConfig(AuthModule("TEST"), None, RegimeId("TEST")),
+    authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2)

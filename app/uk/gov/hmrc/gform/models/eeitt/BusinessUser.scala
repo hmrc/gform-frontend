@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models.eeitt
 
 import play.api.libs.json._
 
-case class BusinessUser(registrationNumber: String) extends AnyVal
+case class BusinessUser(registrationNumber: String)
 
 object BusinessUser {
   implicit val format: Format[BusinessUser] = Json.format[BusinessUser]

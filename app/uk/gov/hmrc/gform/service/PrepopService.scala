@@ -41,7 +41,7 @@ object AuthContextPrepop {
 
 object PrepopService {
 
-  def eeittConnector = EeittConnector // TODO - DI this
+  def eeittConnector: EeittConnector = ??? // TODO - DI this
   def authConnector = new FrontendAuthConnector // TODO - DI this
 
   def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] = {

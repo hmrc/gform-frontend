@@ -16,31 +16,26 @@
 
 package uk.gov.hmrc.gform.auth
 
-import javax.inject.Inject
-
-import play.api.Logger
-import play.api.libs.json._
 import play.api.mvc.Result
-import play.api.mvc.Results._
-import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
-import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate, FormTypeId }
-import uk.gov.hmrc.gform.models.UserId
-import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
-import uk.gov.hmrc.gform.models.userdetails.AffinityGroup._
+import uk.gov.hmrc.gform.auth.models.{AuthResult, UnAuthenticated, UserDetails}
+import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId}
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-class Auth @Inject() (
-    eeittAuth: EeittAuth
-) {
+class AuthorisationService(eeittAuth: EeittAuthorisationDelegate, authConnector: AuthConnector /*xxxAuthDelegate*/ ) {
 
-  def doAuth(formTemplate: FormTemplate, authCase: UserId => Future[Result])(implicit authContext: AuthContext, hc: HeaderCarrier, ex: ExecutionContext): Future[Result] = {
+  def getUserDetail(implicit authContext: AuthContext, hc: HeaderCarrier) =
+    authConnector.getUserDetails[UserDetails](authContext)
+
+  def doAuthorise(formTemplate: FormTemplate, userDetails: UserDetails)(implicit hc: HeaderCarrier): Future[AuthResult] = {
     formTemplate.authConfig.authModule.value match {
-      case "legacyEEITTAuth" => eeittAuth.legacyAuth(formTemplate, authCase)
-      case _ => Future.successful(Ok) //TODO Dave New Auth Method
+      case "legacyEEITTAuth" => eeittAuth.legacyAuth(formTemplate, userDetails)
+      case _ => Future.successful(UnAuthenticated) //TODO Dave New Auth Method
     }
   }
+
 }

@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.{DmsSubmission, Section, UserId}
+import uk.gov.hmrc.gform.models.{ DmsSubmission, Section, UserId }
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.collection.immutable.List
 
@@ -172,7 +172,7 @@ trait ExampleData {
     sections = List(section0, section1, section2)
   )
 
-  lazy val authConfig =  AuthConfig(AuthModule("TEST"), None, RegimeId("TEST"))
+  lazy val authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"))
   lazy val formId = FormId("4fdf4eb6-c41b-4cd8-b95d-8221b670d449")
   lazy val field0 = FormField(
     FieldId("facePhoto"),
