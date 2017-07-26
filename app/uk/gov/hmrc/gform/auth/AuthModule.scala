@@ -22,6 +22,7 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.EeittConnector
+import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.frontend.auth
 import uk.gov.hmrc.play.frontend.auth._
@@ -37,13 +38,22 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
     override val http: HttpGet = wSHttpModule.auditableWSHttp
   }
 
-  val authActions: auth.Actions = new uk.gov.hmrc.play.frontend.auth.Actions {
+  lazy val authActions: auth.Actions = new uk.gov.hmrc.play.frontend.auth.Actions {
     def authConnector: AuthConnector = self.authConnector
   }
 
-  lazy val authConfig: Auth = new Auth(eeittAuth)
+  lazy val authorisationService: AuthorisationService = new AuthorisationService(eeittAuthorisationDelegate, authConnector)
 
-  val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
+  lazy val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
+
+  lazy val eeittConnector = new EeittConnector(
+    s"${configModule.serviceConfig.baseUrl("eeitt")}/eeitt",
+    wSHttpModule.auditableWSHttp
+  )
+
+  def redirectToEeitt(formTypeId: FormTypeId): Future[Result] =
+    Future.successful(Redirect(s"${configModule.serviceConfig.baseUrl("eeitt-frontend")}/eeitt-auth/enrollment-verification?callbackUrl=${configModule.appConfig.`gform-frontend-base-url`}/submissions/new-form/$formTypeId"))
+
 
   /********************* private *********************/
 
@@ -62,5 +72,5 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
 
   private lazy val taxRegime: Option[TaxRegime] = None
 
-  private lazy val eeittAuth = new EeittAuth(EeittConnector, authConnector, configModule.serviceConfig.baseUrl("eeitt"), "localhost:9195")
+  private lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule.appConfig)
 }

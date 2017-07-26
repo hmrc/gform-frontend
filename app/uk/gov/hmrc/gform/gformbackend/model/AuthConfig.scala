@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gformbackend.model
 import play.api.libs.json._
 
 case class AuthConfig(
-  authModule: AuthModule,
+  authModule: AuthConfigModule,
   predicates: Option[List[Predicate]],
   regimeId: RegimeId
 )
@@ -44,18 +44,18 @@ object RegimeId {
   implicit val format: Format[RegimeId] = Format[RegimeId](reads, writes)
 }
 
-case class AuthModule(value: String) {
+case class AuthConfigModule(value: String) {
   override def toString: String = value
 }
 
-object AuthModule {
-  val writes = Writes[AuthModule](id => JsString(id.value))
-  val reads = Reads[AuthModule] {
-    case JsString(value) => JsSuccess(AuthModule(value))
+object AuthConfigModule {
+  val writes = Writes[AuthConfigModule](id => JsString(id.value))
+  val reads = Reads[AuthConfigModule] {
+    case JsString(value) => JsSuccess(AuthConfigModule(value))
     case otherwise => JsError(s"Invalid AuthModule, expected JsString, got: $otherwise")
   }
 
-  implicit val format: Format[AuthModule] = Format[AuthModule](reads, writes)
+  implicit val format: Format[AuthConfigModule] = Format[AuthConfigModule](reads, writes)
 }
 
 case class Predicate(enrolment: String, identifiers: List[KeyValue], delegatedAuthRule: String)

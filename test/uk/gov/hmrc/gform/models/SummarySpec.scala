@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate, FormTypeId, Version }
 import uk.gov.hmrc.gform.gformbackend.model._
-import org.scalatest.{EitherValues, FlatSpec, Matchers}
+import org.scalatest.{ EitherValues, FlatSpec, Matchers }
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
@@ -48,7 +48,7 @@ class SummarySpec extends Spec {
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
-    authConfig =  AuthConfig(AuthModule("TEST"), None, RegimeId("TEST")),
+    authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2)
