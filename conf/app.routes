@@ -5,7 +5,7 @@ GET         /form/:formId/:sectionNumber/file-upload-page/:fileId        @uk.gov
 
 GET         /form/:formId/:sectionNumber                                 @uk.gov.hmrc.gform.controllers.FormController.form(formId: FormId, sectionNumber: SectionNumber)
 POST        /form/:formTypeId/:formId/decision                           @uk.gov.hmrc.gform.controllers.FormController.decision(formTypeId: FormTypeId, formId: FormId)
-POST        /form/:formTypeId/:formId/delete                   @uk.gov.hmrc.gform.controllers.FormController.delete(formTypeId: FormTypeId, formId: FormId)
+GET         /form/:formTypeId/:formId/delete                   @uk.gov.hmrc.gform.controllers.FormController.delete(formTypeId: FormTypeId, formId: FormId)
 POST        /form/:formId/:sectionNumber                                 @uk.gov.hmrc.gform.controllers.FormController.updateFormData(formId: FormId, sectionNumber: SectionNumber)
 
 GET         /summary/:formId                                             @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
