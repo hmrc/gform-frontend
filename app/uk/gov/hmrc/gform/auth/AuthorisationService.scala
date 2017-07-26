@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.auth
 
 import play.api.mvc.Result
-import uk.gov.hmrc.gform.auth.models.{AuthResult, UnAuthenticated, UserDetails}
-import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId}
+import uk.gov.hmrc.gform.auth.models.{ AuthResult, UnAuthenticated, UserDetails }
+import uk.gov.hmrc.gform.gformbackend.model.{ AuthConfigModule, FormTemplate, FormTypeId }
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -33,7 +33,7 @@ class AuthorisationService(eeittAuth: EeittAuthorisationDelegate, authConnector:
 
   def doAuthorise(formTemplate: FormTemplate, userDetails: UserDetails)(implicit hc: HeaderCarrier): Future[AuthResult] = {
     formTemplate.authConfig.authModule.value match {
-      case "legacyEEITTAuth" => eeittAuth.legacyAuth(formTemplate, userDetails)
+      case AuthConfigModule.legacyEEITTAuth => eeittAuth.legacyAuth(formTemplate, userDetails)
       case _ => Future.successful(UnAuthenticated) //TODO Dave New Auth Method
     }
   }

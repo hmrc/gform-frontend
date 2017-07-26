@@ -55,6 +55,8 @@ object AuthConfigModule {
     case otherwise => JsError(s"Invalid AuthModule, expected JsString, got: $otherwise")
   }
 
+  val legacyEEITTAuth = "legacyEEITTAuth"
+
   implicit val format: Format[AuthConfigModule] = Format[AuthConfigModule](reads, writes)
 }
 

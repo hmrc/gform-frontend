@@ -23,7 +23,8 @@ import cats.instances.all._
 import cats.syntax.all._
 import play.api.data.Forms.mapping
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.Results.Redirect
+import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -31,13 +32,14 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.{Page, UserId}
+import uk.gov.hmrc.gform.models.{ Page, UserId }
 import uk.gov.hmrc.gform.models.components.FieldId
-import uk.gov.hmrc.gform.service.{DeleteService, RepeatingComponentService, RetrieveService}
+import uk.gov.hmrc.gform.service.{ DeleteService, RepeatingComponentService, RetrieveService }
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.components.{FieldId, FieldValue}
-import uk.gov.hmrc.gform.service.{RepeatingComponentService, SaveService}
+import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue }
+import uk.gov.hmrc.gform.prepop.PrepopModule
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -52,7 +54,8 @@ class FormController @Inject() (
     repeatService: RepeatingComponentService,
     fileUploadModule: FileUploadModule,
     authModule: AuthModule,
-    validationModule: ValidationModule
+    validationModule: ValidationModule,
+    prePopModule: PrepopModule
 ) extends FrontendController {
 
   import AuthenticatedRequest._
@@ -71,11 +74,14 @@ class FormController @Inject() (
     } yield result
   }
 
+  private def redirectToEeitt(formTypeId: FormTypeId): Future[Result] =
+    Future.successful(Redirect(s"${configModule.serviceConfig.baseUrl("eeitt-frontend")}/eeitt-auth/enrollment-verification?callbackUrl=${configModule.appConfig.`gform-frontend-base-url`}/submissions/new-form/$formTypeId"))
+
   private def parseResponse(authenticated: AuthResult, formTypeId: FormTypeId, userDetails: UserDetails)(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[Result] = {
     authenticated match {
       case Authenticated => result(formTypeId, userDetails.userId)
       case UnAuthenticated => Future.successful(Unauthorized)
-      case NeedsAuthenticated => authModule.redirectToEeitt(formTypeId)
+      case NeedsAuthenticated => redirectToEeitt(formTypeId)
     }
   }
 
@@ -109,7 +115,7 @@ class FormController @Inject() (
       envelopeF       = fileUploadService.getEnvelope(form.envelopeId)
       formTemplate   <- formTemplateF
       envelope       <- envelopeF
-      response       <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId).renderPage(fieldData, formId, None)
+      response       <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService).renderPage(fieldData, formId, None)
       // format: ON
     } yield response
   }
@@ -170,7 +176,7 @@ class FormController @Inject() (
       form <- formF
       envelope <- envelopeF
       formTemplate <- formTemplateF
-    } yield Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId)
+    } yield Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService)
 
     val userIdF = authConnector.getUserDetails[UserId](authContext)
 
@@ -246,7 +252,7 @@ class FormController @Inject() (
         booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
         optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
         // format: ON
-      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId))
+      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId, prepopService))
 
       val actionE: Future[Either[String, FormAction]] = optNextPage.map(optNextPage => FormAction.determineAction(data, optNextPage))
 
@@ -305,6 +311,7 @@ class FormController @Inject() (
     case FieldGlobalError(fv, _, _) => fv
   }
 
+  private lazy val prepopService = prePopModule.prepopService
   private lazy val authentication = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val firstSection = SectionNumber(0)

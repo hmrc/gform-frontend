@@ -19,20 +19,20 @@ package uk.gov.hmrc.gform.auth
 import javax.inject.Inject
 
 import play.api.Logger
-import play.api.libs.json.{JsError, JsSuccess, Reads}
+import play.api.libs.json.{ JsError, JsSuccess, Reads }
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.connectors.{EeittConnector, Verification}
-import uk.gov.hmrc.gform.gformbackend.model.{FormTemplate, FormTypeId, RegimeId}
+import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, RegimeId }
 import uk.gov.hmrc.gform.models.UserId
 import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class EeittAuthorisationDelegate(
     eeittConnector: EeittConnector,
@@ -42,9 +42,9 @@ class EeittAuthorisationDelegate(
   def legacyAuth(formTemplate: FormTemplate, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[AuthResult] =
     for {
       isOk <- eeittConnector.isAllowed(userDetails.userId.value, formTemplate.authConfig.regimeId, userDetails.affinityGroup)
-    } yield isAuthed(isOk, formTemplate.formTypeId, userDetails.userId)
+    } yield isAuthed(isOk)
 
-  private def isAuthed(isOk: Verification, formTypeId: FormTypeId, userId: UserId): AuthResult = {
+  private def isAuthed(isOk: Verification): AuthResult = {
     if (!isOk.isAllowed)
       NeedsAuthenticated
     else
