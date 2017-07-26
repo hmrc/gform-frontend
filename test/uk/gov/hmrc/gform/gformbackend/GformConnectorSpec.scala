@@ -172,7 +172,7 @@ trait ExampleData {
     sections = List(section0, section1, section2)
   )
 
-  lazy val authConfig =  AuthConfig("TEST", None, "TEST")
+  lazy val authConfig =  AuthConfig(AuthModule("TEST"), None, RegimeId("TEST"))
   lazy val formId = FormId("4fdf4eb6-c41b-4cd8-b95d-8221b670d449")
   lazy val field0 = FormField(
     FieldId("facePhoto"),

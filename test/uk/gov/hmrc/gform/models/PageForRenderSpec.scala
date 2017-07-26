@@ -97,7 +97,7 @@ class PageForRenderSpec extends Spec {
     description = "YEAHH man!",
     characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
-    authConfig =  AuthConfig("TEST", None, "TEST"),
+    authConfig =  AuthConfig(AuthModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section)
