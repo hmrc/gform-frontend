@@ -163,7 +163,7 @@ object LabelHelper {
     if (field.label.contains("$n")) {
       field.label.replace("$n", index.toString)
     } else {
-      field.label
+      field.presentationHint.map(ph => "").orElse(Some(field.label)).get
     }
   }
 

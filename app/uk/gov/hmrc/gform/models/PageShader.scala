@@ -127,7 +127,28 @@ class PageShader(
     }
   }
 
-  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation, index: Int) = {
+  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation, index: Int): Future[Html] = {
+    val fgrpHtml = htmlForGroup0(groupField, fieldValue, fvs, orientation, index)
+
+    if (fieldValue.presentationHint.isEmpty) return fgrpHtml
+
+    println(
+      s"""
+        |
+        |
+        |
+        |${fieldData.get(fieldValue.id)}
+        |
+        |
+        |
+      """.stripMargin
+    )
+
+    fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, NonEmptyList.of(fieldValue.label), grpHtml))
+
+  }
+
+  private def htmlForGroup0(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation, index: Int) = {
     for {
       (lhtml, limitReached) <- getGroupForRendering(fieldValue, groupField, orientation)
     } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, orientation, limitReached, index)
