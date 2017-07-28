@@ -90,6 +90,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
           case DateConstraint(beforeOrAfter, dateConstrInfo, offsetDate) =>
 
             (beforeOrAfter, dateConstrInfo, offsetDate) match {
+
               case (Before, Today, offset) =>
                 validateInputDate(fieldValue, data)
                   .andThen(inputDate =>
