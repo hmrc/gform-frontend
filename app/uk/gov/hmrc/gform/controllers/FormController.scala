@@ -161,7 +161,7 @@ class FormController @Inject() (
 
       val atomicFields = for {
         formTemplate <- formTemplateF
-        sections <- repeatService.getAllSections(formTemplate)
+        sections <- repeatService.getAllSections(formTemplate, data)
         section = sections(sectionNumber.value)
       } yield section.atomicFields(repeatService)
 
@@ -225,7 +225,7 @@ class FormController @Inject() (
         envelope     <- envelopeF
         envelopeId   <- envelopeIdF
         formTemplate <- formTemplateF
-        sections     <- repeatService.getAllSections(formTemplate)
+        sections     <- repeatService.getAllSections(formTemplate, data)
         booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
         optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
         // format: ON

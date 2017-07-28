@@ -46,7 +46,7 @@ class PageShader(
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
-    val sectionsF = repeatService.getAllSections(formTemplate)
+    val sectionsF = repeatService.getAllSections(formTemplate, fieldData)
     for {
       sections <- sectionsF
       section = sections(sectionNumber.value)
@@ -148,7 +148,7 @@ class PageShader(
   }
 
   private def validate(fieldValue: FieldValue): Future[Option[FormFieldValidationResult]] = {
-    repeatService.getAllSections(formTemplate).map { sections =>
+    repeatService.getAllSections(formTemplate, fieldData).map { sections =>
       val section = sections(sectionNumber.value)
       lazy val okF: FieldValue => Option[FormFieldValidationResult] =
         Fields.okValues(fieldData, section.atomicFields(repeatService), repeatService, envelope)

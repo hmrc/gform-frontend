@@ -20,18 +20,73 @@ import javax.inject.{ Inject, Singleton }
 
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.gformbackend.model.FormTemplate
-import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group }
+import uk.gov.hmrc.gform.models.{ Section, TextExpression }
+import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
+import scala.util.{ Failure, Success, Try }
 
 @Singleton
 class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
 
-  def getAllSections(formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
-    Future.successful(formTemplate.sections)
+  def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier) = {
+    Future {
+      val sections = formTemplate.sections.flatMap { section =>
+        if (isRepeatingSection(section)) {
+          generateDynamicSections(section, formTemplate, data)
+        } else {
+          List(section)
+        }
+      }
+      sections
+    }
+  }
+
+  private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.fieldToTrack.isDefined
+
+  private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]): List[Section] = {
+    val max = evaluateExpression(section.repeatsMax.get.expr, formTemplate, data)
+    val minRequested = evaluateExpression(section.repeatsMin.getOrElse(TextExpression(Constant("1"))).expr, formTemplate, data)
+    val min = if (minRequested <= 0) 1 else minRequested
+    val requestedCount = getFormFieldIntValue(section.fieldToTrack.get.field, data)
+    val count = if (requestedCount >= min && requestedCount <= max) {
+      requestedCount
+    } else if (max > min && requestedCount > max) {
+      max
+    } else {
+      min
+    }
+    (1 to count).map { i =>
+      section.copy()
+    }.toList
+  }
+
+  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]): Int = {
+    expr match {
+      case Add(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) + evaluateExpression(expr2, formTemplate, data)
+      case Multiply(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) * evaluateExpression(expr2, formTemplate, data)
+      case FormCtx(fieldId) => getFormFieldIntValue(fieldId, data)
+      case Constant(value) => Try(value.toInt) match {
+        case Success(intValue) => intValue
+        case _ => 0
+      }
+      //      case AuthCtx(value: AuthInfo) =>
+      //      case EeittCtx(value: Eeitt) =>
+      case _ => 0
+    }
+  }
+
+  private def getFormFieldIntValue(str: String, data: Map[FieldId, Seq[String]]): Int = {
+    data.get(FieldId(str)) match {
+      case Some(value) => Try(value.head.toInt) match {
+        case Success(intValue) => intValue
+        case _ => 0
+      }
+      case None => 0
+    }
   }
 
   def appendNewGroup(formGroupId: String)(implicit hc: HeaderCarrier): Future[Option[List[List[FieldValue]]]] = {
