@@ -21,6 +21,8 @@ import javax.inject.Inject
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.connectors.EeittConnector
+import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.frontend.auth
 import uk.gov.hmrc.play.frontend.auth._
@@ -36,11 +38,13 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
     override val http: HttpGet = wSHttpModule.auditableWSHttp
   }
 
-  val authActions: auth.Actions = new uk.gov.hmrc.play.frontend.auth.Actions {
+  lazy val authActions: auth.Actions = new uk.gov.hmrc.play.frontend.auth.Actions {
     def authConnector: AuthConnector = self.authConnector
   }
 
-  val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
+  lazy val authorisationService: AuthorisationService = new AuthorisationService(eeittAuthorisationDelegate, authConnector)
+
+  lazy val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
 
   /********************* private *********************/
 
@@ -58,4 +62,11 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
   }
 
   private lazy val taxRegime: Option[TaxRegime] = None
+
+  private lazy val eeittConnector = new EeittConnector(
+    s"${configModule.serviceConfig.baseUrl("eeitt")}/eeitt",
+    wSHttpModule.auditableWSHttp
+  )
+
+  private lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule.appConfig)
 }

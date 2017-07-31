@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.gformbackend.model
+package uk.gov.hmrc.gform.auth.models
 
-import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.gform.models.{ DmsSubmission, Section }
+sealed trait AuthResult
 
-case class FormTemplate(
-  formTypeId: FormTypeId,
-  formName: String,
-  version: Version = Version("0.3.0"),
-  description: String,
-  characterSet: String,
-  dmsSubmission: DmsSubmission,
-  authConfig: AuthConfig,
-  submitSuccessUrl: String,
-  submitErrorUrl: String,
-  sections: List[Section]
-)
-
-object FormTemplate {
-  implicit lazy val format: OFormat[FormTemplate] = Json.format[FormTemplate]
-}
+object UnAuthenticated extends AuthResult
+object NeedsAuthenticated extends AuthResult
+object Authenticated extends AuthResult

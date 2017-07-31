@@ -27,7 +27,8 @@ import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.withOffset
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.gform.service.{ PrepopService, RepeatingComponentService }
+import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
+import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -42,7 +43,8 @@ class PageShader(
     f: Option[FieldValue => Option[FormFieldValidationResult]],
     repeatService: RepeatingComponentService,
     envelope: Envelope,
-    envelopeId: EnvelopeId
+    envelopeId: EnvelopeId,
+    prepopService: PrepopService
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
@@ -101,7 +103,7 @@ class PageShader(
 
   private def htmlForText(fieldValue: FieldValue, t: Text, expr: Expr, index: Int) = {
     val prepopValueF = fieldData.get(fieldValue.id) match {
-      case None => PrepopService.prepopData(expr, formTemplate.formTypeId)
+      case None => prepopService.prepopData(expr, formTemplate.formTypeId)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValueF = validate(fieldValue)

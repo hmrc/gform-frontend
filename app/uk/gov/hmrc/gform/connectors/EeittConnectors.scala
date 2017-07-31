@@ -16,36 +16,34 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.{ JsObject, JsValue, Json }
-import play.api.mvc.Action
-import uk.gov.hmrc.gform.WSHttp
-import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
+import play.api.libs.json.{ Json, OFormat }
+import play.utils.UriEncoding
+import uk.gov.hmrc.gform.gformbackend.model.{ FormTypeId, RegimeId }
 import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
-import uk.gov.hmrc.gform.models.userdetails.GroupId
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpGet, HttpPost, HttpPut, HttpResponse }
+import uk.gov.hmrc.gform.models.userdetails.{ AffinityGroup, GroupId }
+import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-trait EeittConnector {
+case class Verification(isAllowed: Boolean)
 
-  def httpGet: HttpGet
+object Verification {
+  implicit val format: OFormat[Verification] = Json.format[Verification]
+}
 
-  def eeittUrl: String
+class EeittConnector(baseUrl: String, wSHttp: WSHttp) {
 
-  def prepopulationBusinessUser(groupId: GroupId, formTypeId: FormTypeId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {
-    httpGet.GET[BusinessUser](eeittUrl + s"/group-id/${groupId.value}/regime/${formTypeId.value}/prepopulation")
+  def isAllowed(groupId: String, regimeId: RegimeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] =
+    wSHttp.GET[Verification](baseUrl + s"/group-id/${encode(groupId)}/regime/${regimeId.value}/affinityGroup/${encode(affinityGroup.toString)}/verification")
+
+  def prepopulationBusinessUser(groupId: GroupId, regimeId: FormTypeId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {
+    wSHttp.GET[BusinessUser](baseUrl + s"/group-id/${groupId.value}/regime/${regimeId.value}/prepopulation")
   }
 
   def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier): Future[Agent] = {
-    httpGet.GET[Agent](eeittUrl + s"/group-id/${groupId.value}/prepopulation")
+    wSHttp.GET[Agent](baseUrl + s"/group-id/${groupId.value}/prepopulation")
   }
-}
 
-object EeittConnector extends EeittConnector with ServicesConfig {
-
-  lazy val httpGet = WSHttp
-
-  def eeittUrl: String = s"${baseUrl("eeitt")}/eeitt"
-
+  private def encode(p: String) = UriEncoding.encodePathSegment(p, "UTF-8")
 }

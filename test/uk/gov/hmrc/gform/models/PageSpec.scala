@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version, _ }
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
+import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
@@ -44,11 +45,16 @@ class PageSpec extends Spec {
     description = "abc",
     characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
+    authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2)
   )
 
+  val mockPrepopService = new PrepopService(null, null, null) {
+    override def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
+      Future.successful("")
+  }
   val mockRepeatService = mock[RepeatingComponentService]
   when(mockRepeatService.getAllSections(any())(any())).thenReturn(Future.successful(formTemplate.sections))
   val formId = FormId("formid-123")
@@ -58,7 +64,7 @@ class PageSpec extends Spec {
 
   "Page" should "display first page" in {
 
-    val page = Page(formId, SectionNumber.firstSection, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
+    val page = Page(formId, SectionNumber.firstSection, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
     val render = page.pageForRender(Map.empty, None)
 
@@ -75,7 +81,7 @@ class PageSpec extends Spec {
 
   it should "display second page" in {
     val sectionNumber = SectionNumber(1)
-    val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
+    val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
     val render = page.pageForRender(Map.empty, None)
 
@@ -93,7 +99,7 @@ class PageSpec extends Spec {
   it should "display third page" in {
 
     val sectionNumber = SectionNumber(2)
-    val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"))
+    val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
     val render = page.pageForRender(Map.empty, None)
 
