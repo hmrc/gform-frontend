@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.service
 import uk.gov.hmrc.gform.connectors.GformConnector
 import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId, FormTypeId, Version, _ }
 import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
-import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.Future
