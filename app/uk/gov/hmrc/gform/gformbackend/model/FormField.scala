@@ -23,6 +23,10 @@ case class FormField(id: FieldId, value: String) {
   def withSuffix(suffix: String): FormField = {
     FormField(id.withJSSafeSuffix(suffix), value)
   }
+
+  def changeId(suffix: String) = {
+    FormField(FieldId(suffix), value)
+  }
 }
 
 object FormField {
