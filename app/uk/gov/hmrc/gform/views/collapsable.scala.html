@@ -3,33 +3,33 @@
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FieldId,
-options: NonEmptyList[String],
-optionElements: Html
+@(groupId: FieldId,
+groupLabel: String,
+optionElements: Html,
+dataEntered: Boolean
 )
 
 <div class="form-group">
     <div>
         <fieldset>
 
-            @options.toList.zipWithIndex.map{ case (option, index) =>
             <label
-                    for="@{fieldValue}@index"
+                    for="@{groupId}"
                     class="block-label selection-button-radio"
-                    data-target="helptext-@{fieldValue}@index"
+                    data-target="helptext-@{groupId}"
             >
-                <input id="@{fieldValue}@index"
-                       name="@{fieldValue}"
-                       value="@index"
+                <input id="@{groupId}"
+                       name="@{groupId}"
+                       value=""
                        type="checkbox"
-                       checked/>
-                @option
+                       @if(dataEntered) {checked}/>
+                @groupLabel
             </label>
 
-            <div id="helptext-@{fieldValue}@index" class="panel-indent js-hidden" aria-hidden="true">
+            <div id="helptext-@{groupId}" class="panel-indent js-hidden" aria-hidden="true">
                 @optionElements
             </div>
-            }
+
         </fieldset>
     </div>
 </div>
