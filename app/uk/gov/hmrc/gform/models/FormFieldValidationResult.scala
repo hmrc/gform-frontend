@@ -71,7 +71,7 @@ sealed trait FormFieldValidationResult {
     case ComponentField(fieldValue, data) =>
       fieldValue `type` match {
         case Choice(_, _, _, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
-        case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(_.withSuffix(suffix))) }.toList.sequenceU.map(_.flatten)
+        case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(_.changeId(suffix))) }.toList.sequenceU.map(_.flatten)
       }
 
     case _ => Left(())
@@ -83,8 +83,16 @@ sealed trait FormFieldValidationResult {
     case FieldGlobalError(_, _, _) => List.empty[FormField]
     case FieldGlobalOk(_, _) => List.empty[FormField]
     case ComponentField(fieldValue, data) =>
+      Logger.debug(fieldValue.id + "this is fieldvalueId")
       List(FormField(fieldValue.id, ""))
-      data.flatMap { case (suffix, value) => value.toFormFieldTolerant.map(_.withSuffix(suffix)) }.toList
+      fieldValue.`type` match {
+        case Choice(_, _, _, _, _) => List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
+        case _ =>
+          data.flatMap {
+            case (suffix, value) =>
+              value.toFormFieldTolerant.map(_.changeId(suffix))
+          }.toList
+      }
   }
 
   private def toAddressFormField(data: Map[String, FormFieldValidationResult]) = {
@@ -185,12 +193,7 @@ object ValidationUtil {
           val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)
-            .map { kv =>
-              validationResult match {
-                case Valid(()) => kv._1.getSuffix(fieldValue.id) -> kv._2
-                case Invalid(_) => kv._1.toJsSuffix.value -> kv._2
-              }
-            }.toMap
+            .map { kv => kv._1.value -> kv._2 }.toMap
 
           ComponentField(fieldValue, dataMap)
 
@@ -201,12 +204,7 @@ object ValidationUtil {
           val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
 
           val dataMap = (valWithoutSuffixResult :: valSuffixResult)
-            .map { kv =>
-              validationResult match {
-                case Valid(()) => kv._1.getSuffix(fieldValue.id) -> kv._2
-                case Invalid(_) => kv._1.toJsSuffix.value -> kv._2
-              }
-            }.toMap
+            .map { kv => kv._1.value -> kv._2 }.toMap
 
           ComponentField(fieldValue, dataMap)
 
