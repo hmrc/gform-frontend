@@ -43,9 +43,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       case e: NotFoundException => None
     }
 
-  def saveKeyStore(formId: FormId, keyStore: CacheMap)(implicit hc: HeaderCarrier) =
-    ws.POST[CacheMap, SaveResult](s"$baseUrl/forms/keystore", keyStore)
-
   def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     ws.POST[FormData, SaveResult](s"$baseUrl/forms?tolerant=$tolerant", formDetails)
   }

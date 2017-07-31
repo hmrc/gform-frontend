@@ -240,9 +240,6 @@ class FormController @Inject() (
           case Right(formFieldResultList) => formFieldResultList
         }
 
-        repeatService.getKeyStore()
-          .map(_.fold(())(cacheMap => gformConnector.saveKeyStore(formId, cacheMap).map(_ => ())))
-
         val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 

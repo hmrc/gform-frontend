@@ -49,10 +49,6 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     } yield cacheMap.getEntry[List[List[FieldValue]]](componentId)
   }
 
-  def getKeyStore()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = {
-    sessionCache.fetch()
-  }
-
   def removeGroup(formGroupId: String, data: Map[FieldId, scala.Seq[String]])(implicit hc: HeaderCarrier) = {
     // on the forms, the RemoveGroup button's name has the following format:
     // RemoveGroup-(groupFieldId)
