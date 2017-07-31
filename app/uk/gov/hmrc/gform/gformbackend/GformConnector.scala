@@ -20,6 +20,7 @@ import play.api.Logger
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,6 +42,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[Form](s"$baseUrl/forms/${formId.value}").map(Some(_)).recover {
       case e: NotFoundException => None
     }
+
+  def saveKeyStore(formId: FormId, keyStore: CacheMap)(implicit hc: HeaderCarrier) =
+    ws.POST[CacheMap, SaveResult](s"$baseUrl/forms/keystore", keyStore)
 
   def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
     ws.POST[FormData, SaveResult](s"$baseUrl/forms?tolerant=$tolerant", formDetails)
