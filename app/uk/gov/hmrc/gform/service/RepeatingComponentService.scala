@@ -20,7 +20,7 @@ import javax.inject.{ Inject, Singleton }
 
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.gformbackend.model.FormTemplate
-import uk.gov.hmrc.gform.models.{ Section, TextExpression }
+import uk.gov.hmrc.gform.models.{ Section, TextExpression, VariableInContext }
 import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -47,11 +47,11 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
 
   private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.fieldToTrack.isDefined
 
-  private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]): List[Section] = {
+  private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): List[Section] = {
     val max = evaluateExpression(section.repeatsMax.get.expr, formTemplate, data)
     val minRequested = evaluateExpression(section.repeatsMin.getOrElse(TextExpression(Constant("1"))).expr, formTemplate, data)
     val min = if (minRequested <= 0) 1 else minRequested
-    val requestedCount = getFormFieldIntValue(section.fieldToTrack.get.field, data)
+    val (maybeGroupField, requestedCount) = getRequestedCount(section.fieldToTrack.get, formTemplate, data)
     val count = if (requestedCount >= min && requestedCount <= max) {
       requestedCount
     } else if (max > min && requestedCount > max) {
@@ -60,11 +60,52 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
       min
     }
     (1 to count).map { i =>
-      section.copy()
+      copySection(section, i, maybeGroupField, data)
     }.toList
   }
 
-  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]): Int = {
+  private def copySection(section: Section, index: Int, groupField: Option[FieldValue], data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier) = {
+    def copyField(field: FieldValue): FieldValue = {
+      field.`type` match {
+        case grp @ Group(fields, _, _, _, _, _) => field.copy(
+          id = FieldId(s"${index}_${field.id.value}"),
+          `type` = grp.copy(fields = fields.map(copyField))
+        )
+        case _ => field.copy(
+          id = FieldId(s"${index}_${field.id.value}")
+        )
+      }
+    }
+
+    section.copy(
+      title = buildText(Some(section.title), index, groupField, section.fieldToTrack.get, data).getOrElse(""),
+      shortName = buildText(section.shortName, index, groupField, section.fieldToTrack.get, data),
+      fields = section.fields.map(copyField)
+    )
+  }
+
+  private def buildText(template: Option[String], index: Int, groupField: Option[FieldValue],
+    fieldToTrack: VariableInContext, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Option[String] = {
+    val groupFieldList = groupField match {
+      case Some(field) => getAllFieldsInGroup(field, field.`type`.asInstanceOf[Group])
+      case None => Nil
+    }
+
+    val textToInsert = if (groupFieldList.isEmpty) {
+      ""
+    } else {
+      data.getOrElse(groupFieldList(index - 1).id, Seq()).mkString
+    }
+
+    template match {
+      case Some(text) => Some(
+        text.replace("$t", textToInsert).replace("$n", index.toString)
+      )
+      case None => None
+    }
+  }
+
+  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Int = {
     expr match {
       case Add(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) + evaluateExpression(expr2, formTemplate, data)
       case Multiply(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) * evaluateExpression(expr2, formTemplate, data)
@@ -79,14 +120,46 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  private def getFormFieldIntValue(str: String, data: Map[FieldId, Seq[String]]): Int = {
-    data.get(FieldId(str)) match {
+  private def getRequestedCount(id: VariableInContext, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): (Option[FieldValue], Int) = {
+    // Currently the fieldToTrack field in the Section can contain two types of fields:
+    // - Field not in a repeating group. In this case the value typed in this field is used.
+    // - Field in a repeating group. In this case the repeating group the fieldToTrack belongs to is linked to the
+    //                               repeating Section. New instances in the repeating group create a new section too.
+
+    val repeatingGroupsFound = findRepeatingGroupsContainingField(id.field, formTemplate)
+
+    if (repeatingGroupsFound.isEmpty) {
+      (None, getFormFieldIntValue(id.field, data))
+    } else {
+      val groupFieldValue = repeatingGroupsFound.head
+      val groupField = groupFieldValue.`type`.asInstanceOf[Group]
+      (Some(groupFieldValue), getAllFieldsInGroup(groupFieldValue, groupField).size)
+    }
+  }
+
+  private def getFormFieldIntValue(id: String, data: Map[FieldId, Seq[String]]) = {
+    data.get(FieldId(id)) match {
       case Some(value) => Try(value.head.toInt) match {
         case Success(intValue) => intValue
         case _ => 0
       }
       case None => 0
     }
+  }
+
+  private def findRepeatingGroupsContainingField(id: String, formTemplate: FormTemplate): Set[FieldValue] = {
+
+    def findRepeatingGroups(groupField: Option[FieldValue], fieldList: List[FieldValue]): Set[FieldValue] = {
+      fieldList.flatMap { field =>
+        field.`type` match {
+          case Group(fields, _, repMax, _, _, _) if repMax.isDefined => findRepeatingGroups(Some(field), fields)
+          case othertype if groupField.isDefined && field.id.value.equals(id) => List(groupField.get)
+          case _ => Nil
+        }
+      }.toSet
+    }
+
+    formTemplate.sections.flatMap(section => findRepeatingGroups(None, section.fields)).toSet
   }
 
   def appendNewGroup(formGroupId: String)(implicit hc: HeaderCarrier): Future[Option[List[List[FieldValue]]]] = {
