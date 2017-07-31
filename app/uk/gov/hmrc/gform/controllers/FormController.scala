@@ -190,7 +190,8 @@ class FormController @Inject() (
 
       val allAtomicFields = for {
         page <- pageF
-      } yield page.allAtomicFields
+        allFields <- page.allAtomicFields(data)
+      } yield allFields
 
       val validatedDataResult: Future[ValidatedType] = for {
         atomicFields <- atomicFields
