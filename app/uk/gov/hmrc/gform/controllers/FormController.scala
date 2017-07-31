@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue }
 import uk.gov.hmrc.gform.prepop.PrepopModule
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
 import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -238,6 +239,9 @@ class FormController @Inject() (
           case Left(formFieldResultList) => formFieldResultList
           case Right(formFieldResultList) => formFieldResultList
         }
+
+        repeatService.getKeyStore()
+          .map(_.fold(())(cacheMap => gformConnector.saveKeyStore(formId, cacheMap).map(_ => ())))
 
         val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)

@@ -27,6 +27,7 @@ trait AppConfig {
   def reportAProblemNonJSUrl: String
   def governmentGatewaySignInUrl: String
   def gformFrontendBaseUrl: String
+  val betaFeedbackUrlNoAuth: String
   def sessionCacheDomain: String
   def sessionCacheBaseUri: String
 }
@@ -38,7 +39,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   private def loadConfig(key: String) = config.getString(key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
 
   private val contactHost = config.getString(s"contact-frontend.host").getOrElse("")
-  private val contactFormServiceIdentifier = "MyService"
+  private val contactFormServiceIdentifier = "GForm"
 
   override lazy val assetsPrefix = loadConfig(s"assets.url") + loadConfig(s"assets.version")
   override lazy val analyticsToken = loadConfig(s"google-analytics.token")
@@ -51,6 +52,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   // this will be empty in non-local environments
   override lazy val gformFrontendBaseUrl = config.getString("gform-frontend-base-url").getOrElse("")
+
+  override lazy val betaFeedbackUrlNoAuth = s"$contactHost/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier"
 
   override lazy val sessionCacheDomain: String = config.getString("cachable.session-cache.domain").getOrElse("")
   override lazy val sessionCacheBaseUri: String = baseUrl("cachable.session-cache")

@@ -21,6 +21,7 @@ import javax.inject.{ Inject, Singleton }
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.gformbackend.model.FormTemplate
 import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group }
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -46,6 +47,10 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
       dynamicList = dynamicListOpt.getOrElse(Nil) // Nil should never happen
       cacheMap <- sessionCache.cache[List[List[FieldValue]]](componentId, addGroupEntry(dynamicList))
     } yield cacheMap.getEntry[List[List[FieldValue]]](componentId)
+  }
+
+  def getKeyStore()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = {
+    sessionCache.fetch()
   }
 
   def removeGroup(formGroupId: String, data: Map[FieldId, scala.Seq[String]])(implicit hc: HeaderCarrier) = {
