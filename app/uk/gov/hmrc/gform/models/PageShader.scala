@@ -130,34 +130,6 @@ class PageShader(
   private def htmlForGroup(groupField: Group, fieldValue: FieldValue, index: Int): Future[Html] = {
     val fgrpHtml = htmlForGroup0(groupField, fieldValue, index)
 
-    println(
-      s"""
-        |
-        |
-        |
-        |${
-      groupField.fields.map(_.id).zip(groupField.fields.map(_.id).map {
-        case id => {
-          fieldData.get(id)
-        }
-      })
-    }
-        |
-        |${fieldData.get(FieldId("tid2")).get.isEmpty}
-        |
-        |${
-      groupField.fields.map(_.id).find(
-        id => {
-          fieldData.get(id).isDefined && !(fieldData.get(id).get.isEmpty) && !(fieldData.get(id).get.filterNot(_.isEmpty).isEmpty)
-        }
-      )
-    }
-        |
-        |
-        |
-      """.stripMargin
-    )
-
     fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
       case Some(true) => {
         val dataEntered = groupField.fields.map(_.id).find(
