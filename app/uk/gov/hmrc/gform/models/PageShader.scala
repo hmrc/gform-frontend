@@ -135,10 +135,23 @@ class PageShader(
         |
         |
         |
+        |${
+      groupField.fields.map(_.id).zip(groupField.fields.map(_.id).map {
+        case id => {
+          fieldData.get(id)
+        }
+      })
+    }
         |
+        |${fieldData.get(FieldId("tid2")).get.isEmpty}
         |
-        |
-        |${groupField.fields.map(_.id).find(id => fieldData.get(id).isDefined)}
+        |${
+      groupField.fields.map(_.id).find(
+        id => {
+          fieldData.get(id).isDefined && !(fieldData.get(id).get.isEmpty) && !(fieldData.get(id).get.filterNot(_.isEmpty).isEmpty)
+        }
+      )
+    }
         |
         |
         |
@@ -147,7 +160,11 @@ class PageShader(
 
     fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
       case Some(true) => {
-        val dataEntered = groupField.fields.map(_.id).find(id => fieldData.get(id).isDefined).isDefined
+        val dataEntered = groupField.fields.map(_.id).find(
+          id => {
+            fieldData.get(id).isDefined && !(fieldData.get(id).get.isEmpty) && !(fieldData.get(id).get.filterNot(_.isEmpty).isEmpty)
+          }
+        ).isDefined
         fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, fieldValue.label, grpHtml, dataEntered))
       }
       case _ => fgrpHtml
