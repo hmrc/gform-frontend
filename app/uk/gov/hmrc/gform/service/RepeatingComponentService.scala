@@ -20,14 +20,14 @@ import javax.inject.{ Inject, Singleton }
 
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.gformbackend.model.FormTemplate
+import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, Group, _ }
 import uk.gov.hmrc.gform.models.{ Section, TextExpression, VariableInContext }
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Success, Try }
 
 @Singleton
 class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
@@ -291,7 +291,7 @@ object LabelHelper {
     if (field.label.contains("$n")) {
       field.label.replace("$n", index.toString)
     } else {
-      field.label
+      field.presentationHint.map(ph => "").orElse(Some(field.label)).get
     }
   }
 

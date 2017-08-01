@@ -20,6 +20,7 @@ import play.api.Logger
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
 import scala.concurrent.ExecutionContext.Implicits.global

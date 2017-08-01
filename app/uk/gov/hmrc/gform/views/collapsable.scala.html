@@ -1,0 +1,35 @@
+@import cats.data.NonEmptyList
+@import uk.gov.hmrc.gform.models.components.{FieldId, Orientation}
+@import uk.gov.hmrc.gform.models.FormFieldValidationResult
+@import uk.gov.hmrc.play.views.html.helpers._
+
+@(groupId: FieldId,
+groupLabel: String,
+optionElements: Html,
+dataEntered: Boolean
+)
+
+<div class="form-group">
+    <div>
+        <fieldset>
+
+            <label
+                    for="@{groupId}"
+                    class="block-label selection-button-radio"
+                    data-target="helptext-@{groupId}"
+            >
+                <input id="@{groupId}"
+                       name="@{groupId}"
+                       value=""
+                       type="checkbox"
+                       @if(dataEntered) {checked}/>
+                @groupLabel
+            </label>
+
+            <div id="helptext-@{groupId}" class="panel-indent js-hidden" aria-hidden="true">
+                @optionElements
+            </div>
+
+        </fieldset>
+    </div>
+</div>

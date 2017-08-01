@@ -16,21 +16,13 @@
 
 package uk.gov.hmrc.gform.models.components
 
-import play.api.libs.json.Json
+import julienrf.json.derived
+import play.api.libs.json._
 
-case class FieldValue(
-  id: FieldId,
-  `type`: ComponentType,
-  label: String,
-  shortName: Option[String],
-  helpText: Option[String],
-  mandatory: Boolean,
-  editable: Boolean,
-  submissible: Boolean,
-  presentationHint: Option[List[PresentationHint]] = Option.empty[List[PresentationHint]]
+sealed trait PresentationHint
+case object CollapseGroupUnderLabel extends PresentationHint
+case object SummariseGroupAsGrid extends PresentationHint
 
-)
-
-object FieldValue {
-  implicit val format = Json.format[FieldValue]
+object PresentationHint {
+  implicit val format: OFormat[PresentationHint] = derived.oformat[PresentationHint]
 }

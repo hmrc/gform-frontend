@@ -61,7 +61,7 @@ class PageShader(
 
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {
     fieldValue.`type` match {
-      case g @ Group(fvs, orientation, _, _, _, _) => htmlForGroup(g, fieldValue, fvs, orientation, index)
+      case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, fieldValue, index)
       case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue, index)
       case Address(international) => htmlForAddress(fieldValue, international, index)
       case t @ Text(_, expr, _) => htmlForText(fieldValue, t, expr, index)
@@ -127,10 +127,26 @@ class PageShader(
     }
   }
 
-  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, fvs: List[FieldValue], orientation: Orientation, index: Int) = {
+  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, index: Int): Future[Html] = {
+    val fgrpHtml = htmlForGroup0(groupField, fieldValue, index)
+
+    fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
+      case Some(true) => {
+        val dataEntered = groupField.fields.map(_.id).find(
+          id => {
+            fieldData.get(id).isDefined && !(fieldData.get(id).get.isEmpty) && !(fieldData.get(id).get.filterNot(_.isEmpty).isEmpty)
+          }
+        ).isDefined
+        fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, fieldValue.label, grpHtml, dataEntered))
+      }
+      case _ => fgrpHtml
+    }
+  }
+
+  private def htmlForGroup0(groupField: Group, fieldValue: FieldValue, index: Int) = {
     for {
-      (lhtml, limitReached) <- getGroupForRendering(fieldValue, groupField, orientation)
-    } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, orientation, limitReached, index)
+      (lhtml, limitReached) <- getGroupForRendering(fieldValue, groupField, groupField.orientation)
+    } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, groupField.orientation, limitReached, index)
   }
 
   private def getGroupForRendering(fieldValue: FieldValue, groupField: Group, orientation: Orientation): Future[(List[Html], Boolean)] = {
