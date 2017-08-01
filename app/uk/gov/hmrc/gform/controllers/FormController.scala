@@ -112,6 +112,8 @@ class FormController @Inject() (
     for {// format: OFF
       form           <- gformConnector.getForm(formId)
       fieldData       = getFormData(form)
+      keyStore        <- gformConnector.getKeyStore(formId)
+      _               <- repeatService.loadData(keyStore)
       formTemplateF   = gformConnector.getFormTemplate(form.formData.formTypeId)
       envelopeF       = fileUploadService.getEnvelope(form.envelopeId)
       formTemplate   <- formTemplateF
@@ -225,12 +227,18 @@ class FormController @Inject() (
 
           val formData = FormData(userId, form.formData.formTypeId, "UTF-8", formFields)
 
-          SaveService.updateFormData(formId, formData, false).flatMap {
+          val outCome: SaveResult => Future[Result] = {
             case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
-            case _ =>
-
-              continue
+            case _ => continue
           }
+
+          //TODO figure out if we should save the structure constantly or should we figure out when they leave the form another way other than the two buttons.
+          for {
+            keystore <- repeatService.getData()
+            _ <- gformConnector.saveKeyStore(formId, keystore)
+            result <- SaveService.updateFormData(formId, formData, false)
+            outCome <- outCome(result)
+          } yield outCome
       } //End processSaveAndContinue
 
       def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] = {
@@ -245,8 +253,12 @@ class FormController @Inject() (
 
         val formData = formFields.map(formFields => FormData(userId, form.formData.formTypeId, "UTF-8", formFields))
 
-        formData.flatMap(formData =>
-          SaveService.updateFormData(formId, formData, tolerant = true).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formData.formTypeId))))
+        for {
+          keystore <- repeatService.getData()
+          _ <- gformConnector.saveKeyStore(formId, keystore)
+          formData <- formData
+          result <- SaveService.updateFormData(formId, formData, tolerant = true).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formData.formTypeId)))
+        } yield result
       }
 
       val optNextPage = for {// format: OFF
