@@ -66,7 +66,7 @@ class PageSpec extends Spec {
 
     val page = Page(formId, SectionNumber.firstSection, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
-    val render = page.pageForRender(Map.empty, None)
+    val render = page.pageForRender(Map.empty, None, formTemplate.sections)
 
     render.futureValue.hiddenFieldsSnippets.size should be(2)
 
@@ -83,7 +83,7 @@ class PageSpec extends Spec {
     val sectionNumber = SectionNumber(1)
     val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
-    val render = page.pageForRender(Map.empty, None)
+    val render = page.pageForRender(Map.empty, None, formTemplate.sections)
 
     render.futureValue.hiddenFieldsSnippets.size should be(2)
 
@@ -101,7 +101,7 @@ class PageSpec extends Spec {
     val sectionNumber = SectionNumber(2)
     val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
-    val render = page.pageForRender(Map.empty, None)
+    val render = page.pageForRender(Map.empty, None, formTemplate.sections)
 
     render.futureValue.hiddenFieldsSnippets.size should be(2)
 
