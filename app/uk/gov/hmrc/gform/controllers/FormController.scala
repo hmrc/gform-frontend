@@ -110,13 +110,14 @@ class FormController @Inject() (
   def form(formId: FormId, sectionNumber: SectionNumber) = authentication.async { implicit c =>
 
     for {// format: OFF
-      form           <- gformConnector.getForm(formId)
-      fieldData       = getFormData(form)
-      formTemplateF   = gformConnector.getFormTemplate(form.formData.formTypeId)
-      envelopeF       = fileUploadService.getEnvelope(form.envelopeId)
-      formTemplate   <- formTemplateF
-      envelope       <- envelopeF
-      response       <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService).renderPage(fieldData, formId, None)
+      form            <- gformConnector.getForm(formId)
+      fieldData       =  getFormData(form)
+      formTemplateF   =  gformConnector.getFormTemplate(form.formData.formTypeId)
+      envelopeF       =  fileUploadService.getEnvelope(form.envelopeId)
+      formTemplate    <- formTemplateF
+      envelope        <- envelopeF
+      dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
+      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService).renderPage(fieldData, formId, None, dynamicSections)
       // format: ON
     } yield response
   }
@@ -183,33 +184,37 @@ class FormController @Inject() (
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
-      val atomicFields = for {
+      val sectionsF = for {
         formTemplate <- formTemplateF
         sections <- repeatService.getAllSections(formTemplate, data)
+      } yield sections
+
+      val sectionFieldsF = for {
+        sections <- sectionsF
         section = sections(sectionNumber.value)
       } yield section.atomicFields(repeatService)
 
-      val allAtomicFields = for {
-        page <- pageF
-        allFields <- page.allAtomicFields(data)
-      } yield allFields
+      val allFieldsInTemplateF = for {
+        sections <- sectionsF
+        allFieldsInTemplate = sections.flatMap(_.atomicFields(repeatService))
+      } yield allFieldsInTemplate
 
-      val validatedDataResult: Future[ValidatedType] = for {
-        atomicFields <- atomicFields
+      val validatedDataResultF: Future[ValidatedType] = for {
+        sectionFields <- sectionFieldsF
         form <- formF
         envelopeId = form.envelopeId
-        validatedData <- Future.sequence(atomicFields.map(fv =>
+        validatedData <- Future.sequence(sectionFields.map(fv =>
           validationService.validateComponents(fv, data, envelopeId)))
       } yield Monoid[ValidatedType].combineAll(validatedData)
 
       val finalResult: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
         for {
-          validatedDataResult <- validatedDataResult
+          validatedDataResult <- validatedDataResultF
           form <- formF
           envelopeId = form.envelopeId
           envelope <- fileUploadService.getEnvelope(envelopeId)
-          atomicFields <- allAtomicFields
-        } yield ValidationUtil.evaluateValidationResult(atomicFields, validatedDataResult, data, envelope)
+          allFieldsInTemplate <- allFieldsInTemplateF
+        } yield ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validatedDataResult, data, envelope)
 
       def processSaveAndContinue(userId: UserId, form: Form)(continue: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
         case Left(listFormValidation) =>
@@ -217,7 +222,11 @@ class FormController @Inject() (
             extractedFieldValue(validResult) -> validResult
           }.toMap
 
-          pageF.flatMap(page => page.renderPage(data, formId, Some(map.get)))
+          for {
+            dynamicSections <- sectionsF
+            page <- pageF
+            result <- page.renderPage(data, formId, Some(map.get), dynamicSections)
+          } yield result
 
         case Right(listFormValidation) =>
 
@@ -254,7 +263,7 @@ class FormController @Inject() (
         envelope     <- envelopeF
         envelopeId   <- envelopeIdF
         formTemplate <- formTemplateF
-        sections     <- repeatService.getAllSections(formTemplate, data)
+        sections     <- sectionsF
         booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
         optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
         // format: ON
@@ -270,7 +279,8 @@ class FormController @Inject() (
               for {
                 userId <- userIdF
                 form <- formF
-                result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, formId, None))
+                dynamicSections <- sectionsF
+                result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, formId, None, dynamicSections))
               } yield result
 
             case SaveAndExit =>
@@ -292,14 +302,16 @@ class FormController @Inject() (
               for {
                 _ <- repeatService.appendNewGroup(groupId)
                 page <- pageF
-                result <- page.renderPage(data, formId, None)
+                dynamicSections <- sectionsF
+                result <- page.renderPage(data, formId, None, dynamicSections)
               } yield result
 
             case RemoveGroup(groupId) =>
               for {
                 updatedData <- repeatService.removeGroup(groupId, data)
                 page <- pageF
-                result <- page.renderPage(updatedData, formId, None)
+                dynamicSections <- sectionsF
+                result <- page.renderPage(updatedData, formId, None, dynamicSections)
               } yield result
           }
         case Left(error) => Future.successful(BadRequest(error))

@@ -44,17 +44,16 @@ class PageShader(
     repeatService: RepeatingComponentService,
     envelope: Envelope,
     envelopeId: EnvelopeId,
-    prepopService: PrepopService
+    prepopService: PrepopService,
+    dynamicSections: List[Section]
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
-    val sectionsF = repeatService.getAllSections(formTemplate, fieldData)
+    val section = dynamicSections(sectionNumber.value)
     for {
-      sections <- sectionsF
-      section = sections(sectionNumber.value)
       snippets <- Future.sequence(section.fields.map(f => htmlFor(f, 0)))
-      javascript = fieldJavascript(sections.flatMap(_.atomicFields(repeatService)))
-      hiddenTemplateFields = sections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
+      javascript = fieldJavascript(dynamicSections.flatMap(_.atomicFields(repeatService)))
+      hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
     } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId)
   }
