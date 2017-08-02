@@ -28,6 +28,7 @@ class ConfigModule {
     c.baseUrl("gform")
     c.baseUrl("auth")
     c.baseUrl("eeitt")
+    c.baseUrl("email")
     c
   }
 }
@@ -36,7 +37,8 @@ case class AppConfig(
   appName: String,
   `google-analytics`: GoogleAnalytics,
   `government-gateway-sign-in-url`: String,
-  `gform-frontend-base-url`: String
+  `gform-frontend-base-url`: String,
+  feature: FeatureToggle
 )
 
 case class GoogleAnalytics(
@@ -48,6 +50,8 @@ case class Assets(
   version: String,
   url: String
 )
+
+case class FeatureToggle(emailEnabled: Boolean)
 
 case class ContactFrontend(host: String)
 

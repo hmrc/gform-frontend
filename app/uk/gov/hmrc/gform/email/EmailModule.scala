@@ -25,6 +25,6 @@ class EmailModule @Inject() (
     configModule: ConfigModule,
     wSHttpModule: WSHttpModule
 ) {
-  val emailConnector = new EmailConnector(wSHttpModule.wSHttp, configModule.serviceConfig.baseUrl("email"))
+  val emailConnector = new EmailConnector(wSHttpModule.wSHttp, configModule.serviceConfig.baseUrl("email"), configModule.appConfig.feature.emailEnabled)
 
 }
