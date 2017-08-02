@@ -19,13 +19,11 @@ package uk.gov.hmrc.gform.email
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 
 class EmailConnector(wsHttp: WSHttp, baseUrl: String) {
 
-  def sendEmail(emailTemplate: EmailTemplate)(implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
-    wsHttp.POST[EmailTemplate, HttpResponse](baseUrl + "hmrc/email", emailTemplate).map { response =>
-      response.status == 202
-    }
+  def sendEmail(emailTemplate: EmailTemplate)(implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Unit = {
+    wsHttp.POST[EmailTemplate, HttpResponse](baseUrl + "hmrc/email", emailTemplate)
   }
 }
