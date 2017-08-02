@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.gformbackend.model.FormId
+import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.models.components.FieldId
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
@@ -65,12 +65,12 @@ class SummaryGen @Inject() (
     } yield result
   }
 
-  def submit(formId: FormId) = auth.async { implicit c =>
+  def submit(formId: FormId, formTypeId: FormTypeId) = auth.async { implicit c =>
 
-    processResponseDataFromBody(c.request) { data =>
+    processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
         case "Exit" :: Nil =>
-          Future.successful(Ok)
+          Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTypeId)))
         case "Continue" :: Nil =>
           anyFormId(data) match {
             case Some(formId) =>
