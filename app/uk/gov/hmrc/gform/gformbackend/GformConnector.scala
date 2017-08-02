@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import play.api.Logger
+import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.gformbackend.model._
 import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
@@ -40,6 +41,14 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def maybeForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[Form]] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}").map(Some(_)).recover {
+      case e: NotFoundException => None
+    }
+
+  def saveKeyStore(formId: FormId, data: Map[String, JsValue])(implicit hc: HeaderCarrier): Future[Unit] =
+    ws.PUT[Map[String, JsValue], SaveResult](s"$baseUrl/forms/${formId.value}/keystore", data).map(_ => ())
+
+  def getKeyStore(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[Map[String, JsValue]]] =
+    ws.GET[Map[String, JsValue]](s"$baseUrl/forms/$formId/keystore").map(Some(_)).recover {
       case e: NotFoundException => None
     }
 
