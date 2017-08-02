@@ -33,3 +33,5 @@ case class EmailContent(content: Option[String]) //must be option as the service
 object EmailContent {
   implicit val format: OFormat[EmailContent] = Json.format[EmailContent]
 }
+
+case class Switch(value: Boolean)
