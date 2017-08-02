@@ -1,4 +1,4 @@
-@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation, Horizontal, Vertical}
+@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation, Horizontal, Vertical, SummariseGroupAsGrid}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.views.html.localisation
 @import views.html.helper.CSRF
@@ -12,6 +12,7 @@
     </td>
 
     <td>
+        @if(fieldValue.presentationHint match { case Some(list) => list.contains(SummariseGroupAsGrid); case None => false}) { to be rendered as grid... }
       @{
          snippets
       }
