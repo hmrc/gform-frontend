@@ -76,7 +76,7 @@ class FormController @Inject() (
   }
 
   private def redirectToEeitt(formTypeId: FormTypeId): Future[Result] =
-    Future.successful(Redirect(s"${configModule.appConfig.`gform-frontend-base-url`}/eeitt-auth/enrollment-verification?callbackUrl=${configModule.appConfig.`gform-frontend-base-url`}/submissions/new-form/$formTypeId"))
+    Future.successful(Redirect(s"${configModule.serviceConfig.baseUrl("eeitt-frontend")}/eeitt-auth/enrollment-verification?callbackUrl=${configModule.appConfig.`gform-frontend-base-url`}/submissions/new-form/$formTypeId"))
 
   private def parseResponse(authenticated: AuthResult, formTypeId: FormTypeId, userDetails: UserDetails)(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[Result] = {
     authenticated match {
