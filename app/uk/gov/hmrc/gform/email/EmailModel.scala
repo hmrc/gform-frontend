@@ -34,4 +34,3 @@ object EmailContent {
   implicit val format: OFormat[EmailContent] = Json.format[EmailContent]
 }
 
-case class Switch(value: Boolean)
