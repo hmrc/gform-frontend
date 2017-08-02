@@ -21,7 +21,7 @@ import javax.inject.Inject
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class PrepopModule @Inject() (
+class EmailModule @Inject() (
     configModule: ConfigModule,
     wSHttpModule: WSHttpModule
 ) {

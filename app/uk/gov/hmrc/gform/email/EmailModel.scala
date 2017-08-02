@@ -29,7 +29,7 @@ object EmailTemplate {
   implicit val format: OFormat[EmailTemplate] = Json.format[EmailTemplate]
 }
 
-case class EmailContent(content: Option[String])
+case class EmailContent(content: Option[String]) //must be option as the service json schema requires empty {} for email content
 object EmailContent {
   implicit val format: OFormat[EmailContent] = Json.format[EmailContent]
 }
