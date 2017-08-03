@@ -53,8 +53,9 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
   private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]],
     cacheMap: CacheMap)(implicit hc: HeaderCarrier): List[Section] = {
     val max = evaluateExpression(section.repeatsMax.get.expr, formTemplate, data)
-    val minRequested = evaluateExpression(section.repeatsMin.getOrElse(TextExpression(Constant("1"))).expr, formTemplate, data)
-    val min = if (minRequested <= 0) 1 else minRequested
+    val min = evaluateExpression(section.repeatsMin.getOrElse(TextExpression(Constant("1"))).expr, formTemplate, data)
+    require(max >= 1, s"repeatsMax in Repeating Section should be greater than 1, evaluated value is $max")
+    require(min >= 1, s"repeatsMin in Repeating Section should be greater than 1, evaluated value is $min")
     val (maybeGroupField, requestedCount) = getRequestedCount(section.fieldToTrack.get, formTemplate, data, cacheMap)
     val count = if (requestedCount >= min && requestedCount <= max) {
       requestedCount
