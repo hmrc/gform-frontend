@@ -35,7 +35,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("123")
@@ -51,7 +51,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("THX1138")
@@ -67,7 +67,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("123.4")
@@ -83,7 +83,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("123.4")
@@ -99,7 +99,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("123")
@@ -115,7 +115,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("-789")
@@ -131,7 +131,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("-789")
@@ -147,7 +147,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("1234567890123456789.87654321")
@@ -163,7 +163,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("1234567890123456789.87")
@@ -179,7 +179,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("1234567890123456789")
@@ -195,7 +195,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("9.87654321")
@@ -211,7 +211,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     val number = Text(textConstraint, Constant(""), false)
 
     val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false)
+      "sample label", None, None, true, false, false, None)
 
     val data = Map(
       FieldId("n") -> Seq("123.21")
@@ -222,4 +222,19 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 2 whole digits and decimal fraction must be at most 1 digits")))
   }
 
+  "Number(2,1) format" should "return supplied error message" in {
+    val textConstraint = Number(2, 1)
+    val number = Text(textConstraint, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), number,
+      "sample label", None, None, true, false, false, Some("New error message"))
+
+    val data = Map(
+      FieldId("n") -> Seq("123.21")
+    )
+
+    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("New error message")))
+  }
 }

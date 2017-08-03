@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.components
+package uk.gov.hmrc.gform.email
 
-import play.api.libs.json.Json
+import javax.inject.Inject
 
-case class FieldValue(
-  id: FieldId,
-  `type`: ComponentType,
-  label: String,
-  shortName: Option[String],
-  helpText: Option[String],
-  mandatory: Boolean,
-  editable: Boolean,
-  submissible: Boolean,
-  errorMessage: Option[String],
-  presentationHint: Option[List[PresentationHint]] = Option.empty[List[PresentationHint]]
+import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-)
+class EmailModule @Inject() (
+    configModule: ConfigModule,
+    wSHttpModule: WSHttpModule
+) {
+  val emailConnector = new EmailConnector(wSHttpModule.wSHttp, configModule.serviceConfig.baseUrl("email"), configModule.appConfig.feature.emailEnabled)
 
-object FieldValue {
-  implicit val format = Json.format[FieldValue]
 }

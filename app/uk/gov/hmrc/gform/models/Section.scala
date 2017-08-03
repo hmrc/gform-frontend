@@ -21,18 +21,14 @@ import uk.gov.hmrc.gform.models.components.{ Expr, FieldValue, Group }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-case class TextExpression(expr: Expr)
-
-object TextExpression {
-  implicit val format = Json.format[TextExpression]
-}
-
 case class Section(
     title: String,
     description: Option[String],
     shortName: Option[String],
     includeIf: Option[IncludeIf],
     repeatsMax: Option[TextExpression],
+    repeatsMin: Option[TextExpression],
+    fieldToTrack: Option[VariableInContext],
     fields: List[FieldValue]
 ) {
 
@@ -52,6 +48,19 @@ case class Section(
   }
 }
 
+case class TextExpression(expr: Expr)
+
+object TextExpression {
+  implicit val format = Json.format[TextExpression]
+}
+
+case class VariableInContext(field: String)
+
+object VariableInContext {
+  implicit val format = Json.format[VariableInContext]
+}
+
 object Section {
   implicit val format = Json.format[Section]
 }
+

@@ -83,7 +83,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def validateDate(fieldValue: FieldValue, date: Date)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) => localDate.plusDays(offset.value)
     date.constraintType match {
-      case AnyDate => validateInputDate(fieldValue.id, data).andThen(lDate => Valid(()))
+      case AnyDate => validateInputDate(fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => Valid(()))
       case DateConstraints(dateConstraintList) =>
 
         val result = dateConstraintList.map {
@@ -92,27 +92,27 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
             (beforeOrAfter, dateConstrInfo, offsetDate) match {
 
               case (Before, Today, offset) =>
-                validateInputDate(fieldValue.id, data)
+                validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                   .andThen(inputDate =>
                     validateToday(fieldValue, inputDate,
-                      offset, Map(fieldValue.id -> Set("Date should be before Today")))(isBeforeToday))
+                      offset, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Date should be before Today"))))(isBeforeToday))
 
               case (Before, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("enter a valid date"))))
                   .andThen { concreteDate =>
-                    validateInputDate(fieldValue.id, data)
+                    validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(inputDate =>
                         validateConcreteDate(fieldValue, inputDate,
                           concreteDate, offset,
                           Map(fieldValue.id ->
-                            Set(s"Date should be before ${dateWithOffset(concreteDate, offset)}")))(isBeforeConcreteDate))
+                            Set(fieldValue.errorMessage.getOrElse(s"Date should be before ${dateWithOffset(concreteDate, offset)}"))))(isBeforeConcreteDate))
                   }
 
               case (After, FormDate(fieldId), offset) => {
 
-                lazy val validatedBeforeDate = validateInputDate(FieldId(fieldId), data)
+                lazy val validatedBeforeDate = validateInputDate(FieldId(fieldId), None, data)
 
-                lazy val validatedThisDate = validateInputDate(fieldValue.id, data)
+                lazy val validatedThisDate = validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
 
                 validatedBeforeDate.andThen {
                   beforelocalDate =>
@@ -130,20 +130,20 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
               // case (Before, AnyWord(FieldId)) =>
 
               case (After, Today, offset) =>
-                validateInputDate(fieldValue.id, data)
+                validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                   .andThen(inputDate =>
                     validateToday(fieldValue, inputDate,
-                      offset, Map(fieldValue.id -> Set("Date should be after today")))(isAfterToday))
+                      offset, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Date should be after today"))))(isAfterToday))
 
               case (After, concreteDate: ConcreteDate, offset) =>
 
-                validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("enter a valid date"))))
                   .andThen { concreteDate =>
-                    validateInputDate(fieldValue.id, data)
+                    validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(inputDate =>
                         validateConcreteDate(fieldValue, inputDate,
                           concreteDate, offset,
-                          Map(fieldValue.id -> Set(s"Date should be after ${dateWithOffset(concreteDate, offset)}")))(isAfterConcreteDate))
+                          Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"Date should be after ${dateWithOffset(concreteDate, offset)}"))))(isAfterConcreteDate))
                   }
 
               //              case (After, AnyWord(value)) =>
@@ -163,14 +163,14 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       file match {
         case Some(File(fileId, Error(reason), fileName)) => Invalid(Map(fieldValue.id -> Set(reason)))
         case Some(File(fileId, _, fileName)) => Valid(())
-        case None => if (fieldValue.mandatory) Invalid(Map(fieldValue.id -> Set("You must upload a file"))) else Valid(())
+        case None => if (fieldValue.mandatory) Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("You must upload a file")))) else Valid(())
       }
     }
 
   private def validateText(fieldValue: FieldValue, text: Text)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val textData = data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
-      case (true, Nil, _) => Invalid(Map(fieldValue.id -> Set("Please enter required data")))
+      case (true, Nil, _) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Please enter required data"))))
       case (_, _, AnyText) => Valid(())
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
@@ -182,26 +182,26 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     val WholeShape = "([+-]?)(\\d+)[.]?".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     (value, maxFractional, mustBePositive) match {
-      case (WholeShape(_, whole), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(s"must be at most ${maxWhole} digits")))
-      case (WholeShape("-", _), _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
+      case (WholeShape(_, whole), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"must be at most ${maxWhole} digits"))))
+      case (WholeShape("-", _), _, true) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("must be a positive number"))))
       case (WholeShape(_, _), _, _) => Valid(())
-      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits and no decimal fraction")))
-      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits")))
-      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(s"number must be at most ${maxWhole} whole digits")))
-      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 => Invalid(Map(fieldValue.id -> Set("must be a whole number")))
-      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(s"decimal fraction must be at most ${maxFractional} digits")))
-      case (FractionalShape("-", _, _), _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
+      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"number must be at most ${maxWhole} whole digits and no decimal fraction"))))
+      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits"))))
+      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"number must be at most ${maxWhole} whole digits"))))
+      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("must be a whole number"))))
+      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"decimal fraction must be at most ${maxFractional} digits"))))
+      case (FractionalShape("-", _, _), _, true) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("must be a positive number"))))
       case (FractionalShape(_, _, _), _, _) => Valid(())
-      case (_, 0, true) => Invalid(Map(fieldValue.id -> Set("must be a positive whole number")))
-      case (_, _, true) => Invalid(Map(fieldValue.id -> Set("must be a positive number")))
-      case (_, 0, false) => Invalid(Map(fieldValue.id -> Set("must be a whole number")))
-      case _ => Invalid(Map(fieldValue.id -> Set("must be a number")))
+      case (_, 0, true) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("must be a positive whole number"))))
+      case (_, _, true) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("must be a positive number"))))
+      case (_, 0, false) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("must be a whole number"))))
+      case _ => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("must be a number"))))
     }
   }
 
   private def validateRequired(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
     xs.filterNot(_.isEmpty()) match {
-      case Nil => Invalid(Map(fieldId -> Set("must be entered")))
+      case Nil => Invalid(Map(fieldId -> Set(fieldValue.errorMessage.getOrElse("must be entered"))))
       case value :: Nil => Valid(())
       case value :: rest => Valid(()) // we don't support multiple values yet
     }
@@ -210,8 +210,8 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def validateForbidden(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
     xs.filterNot(_.isEmpty()) match {
       case Nil => Valid(())
-      case value :: Nil => Invalid(Map(fieldId -> Set("must not be entered")))
-      case value :: rest => Invalid(Map(fieldId -> Set("must not be entered"))) // we don't support multiple values yet
+      case value :: Nil => Invalid(Map(fieldId -> Set(fieldValue.errorMessage.getOrElse("must not be entered"))))
+      case value :: rest => Invalid(Map(fieldId -> Set(fieldValue.errorMessage.getOrElse("must not be entered")))) // we don't support multiple values yet
     }
   }
 
@@ -219,7 +219,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     val choiceValue = data.get(fieldValue.id).toList.flatten
 
     (fieldValue.mandatory, choiceValue) match {
-      case (true, Nil) => Invalid(Map(fieldValue.id -> Set("is required")))
+      case (true, Nil) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("is required"))))
       case _ => Valid(())
     }
   }
@@ -284,26 +284,27 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  def validateInputDate(fieldId: FieldId, data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
+  def validateInputDate(fieldId: FieldId, errorMsg: Option[String], data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
     val fieldIdList = Date.allFieldIds(fieldId).map(fId => data.get(fId))
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
 
-        validateLocalDate(day, month, year) match {
+        validateLocalDate(errorMsg, day, month, year) match {
           case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldId -> Set("enter a valid date")))
           case Invalid(nonEmptyList) => Invalid(nonEmptyList)
         }
 
-      case _ => Invalid(Map(fieldId -> Set("Date is missing")))
+      case _ =>
+        Invalid(Map(fieldId -> Set(fieldValue.errorMessage.getOrElse("Date is missing"))))
     }
   }
 
-  def validateLocalDate(day: String, month: String, year: String): ValidatedConcreteDate = {
+  def validateLocalDate(errorMessage: Option[String], day: String, month: String, year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("day") -> Set(er)))
-    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("month") -> Set(er)))
-    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("year") -> Set(er)))
+    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("day") -> Set(errorMessage.getOrElse(er))))
+    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("month") -> Set(errorMessage.getOrElse(er))))
+    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }
