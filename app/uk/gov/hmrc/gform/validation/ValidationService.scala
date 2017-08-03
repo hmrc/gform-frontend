@@ -108,20 +108,30 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
                             Set(fieldValue.errorMessage.getOrElse(s"Date should be before ${dateWithOffset(concreteDate, offset)}"))))(isBeforeConcreteDate))
                   }
 
-              case (After, FormDate(fieldId), offset) => {
+              case (beforeOrAfter @ _, DateField(fieldId), offset) => {
 
-                lazy val validatedBeforeDate = validateInputDate(FieldId(fieldId), None, data)
+                lazy val validateOtherDate = validateInputDate(fieldId, None, data)
 
                 lazy val validatedThisDate = validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
 
-                validatedBeforeDate.andThen {
-                  beforelocalDate =>
+                val beforeOrAfterString = beforeOrAfter match {
+                  case After => "after"
+                  case Before => "before"
+                }
+
+                val beforeOrAfterFunction = beforeOrAfter match {
+                  case After => isAfterConcreteDate _
+                  case Before => isBeforeConcreteDate _
+                }
+
+                validateOtherDate.andThen {
+                  otherLocalDate =>
                     validatedThisDate.andThen {
                       thisLocalDate =>
                         validateConcreteDate(fieldValue, thisLocalDate,
-                          beforelocalDate, offset,
+                          otherLocalDate, offset,
                           Map(fieldValue.id ->
-                            Set(s"Date should be after ${dateWithOffset(beforelocalDate, offset)}")))(isAfterConcreteDate)
+                            Set(s"Date should be ${beforeOrAfterString} ${dateWithOffset(otherLocalDate, offset)}")))(beforeOrAfterFunction)
                     }
                 }
               }
