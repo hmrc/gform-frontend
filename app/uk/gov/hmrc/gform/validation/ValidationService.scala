@@ -83,7 +83,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def validateDate(fieldValue: FieldValue, date: Date)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) => localDate.plusDays(offset.value)
     date.constraintType match {
-      case AnyDate => validateInputDate(fieldValue, data).andThen(lDate => Valid(()))
+      case AnyDate => validateInputDate(fieldValue.id, data).andThen(lDate => Valid(()))
       case DateConstraints(dateConstraintList) =>
 
         val result = dateConstraintList.map {
@@ -92,7 +92,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
             (beforeOrAfter, dateConstrInfo, offsetDate) match {
 
               case (Before, Today, offset) =>
-                validateInputDate(fieldValue, data)
+                validateInputDate(fieldValue.id, data)
                   .andThen(inputDate =>
                     validateToday(fieldValue, inputDate,
                       offset, Map(fieldValue.id -> Set("Date should be before Today")))(isBeforeToday))
@@ -100,7 +100,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
               case (Before, concreteDate: ConcreteDate, offset) =>
                 validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
                   .andThen { concreteDate =>
-                    validateInputDate(fieldValue, data)
+                    validateInputDate(fieldValue.id, data)
                       .andThen(inputDate =>
                         validateConcreteDate(fieldValue, inputDate,
                           concreteDate, offset,
@@ -108,11 +108,29 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
                             Set(s"Date should be before ${dateWithOffset(concreteDate, offset)}")))(isBeforeConcreteDate))
                   }
 
+              case (After, FormDate(fieldId), offset) => {
+
+                lazy val validatedBeforeDate = validateInputDate(FieldId(fieldId), data)
+
+                lazy val validatedThisDate = validateInputDate(fieldValue.id, data)
+
+                validatedBeforeDate.andThen {
+                  beforelocalDate =>
+                    validatedThisDate.andThen {
+                      thisLocalDate =>
+                        validateConcreteDate(fieldValue, thisLocalDate,
+                          beforelocalDate, offset,
+                          Map(fieldValue.id ->
+                            Set(s"Date should be after ${dateWithOffset(beforelocalDate, offset)}")))(isAfterConcreteDate)
+                    }
+                }
+              }
+
               //              case (Before, AnyWord(value)) =>
               // case (Before, AnyWord(FieldId)) =>
 
               case (After, Today, offset) =>
-                validateInputDate(fieldValue, data)
+                validateInputDate(fieldValue.id, data)
                   .andThen(inputDate =>
                     validateToday(fieldValue, inputDate,
                       offset, Map(fieldValue.id -> Set("Date should be after today")))(isAfterToday))
@@ -121,7 +139,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
                 validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
                   .andThen { concreteDate =>
-                    validateInputDate(fieldValue, data)
+                    validateInputDate(fieldValue.id, data)
                       .andThen(inputDate =>
                         validateConcreteDate(fieldValue, inputDate,
                           concreteDate, offset,
@@ -266,22 +284,22 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  def validateInputDate(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
-    val fieldIdList = Date.allFieldIds(fieldValue.id).map(fId => data.get(fId))
+  def validateInputDate(fieldId: FieldId, data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
+    val fieldIdList = Date.allFieldIds(fieldId).map(fId => data.get(fId))
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
 
-        validateLocalDate(fieldValue, day, month, year) match {
-          case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
+        validateLocalDate(day, month, year) match {
+          case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldId -> Set("enter a valid date")))
           case Invalid(nonEmptyList) => Invalid(nonEmptyList)
         }
 
-      case _ => Invalid(Map(fieldValue.id -> Set("Date is missing")))
+      case _ => Invalid(Map(fieldId -> Set("Date is missing")))
     }
   }
 
-  def validateLocalDate(fv: FieldValue, day: String, month: String, year: String): ValidatedConcreteDate = {
+  def validateLocalDate(day: String, month: String, year: String): ValidatedConcreteDate = {
 
     val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("day") -> Set(er)))
     val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("month") -> Set(er)))
