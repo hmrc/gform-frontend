@@ -68,7 +68,7 @@
         <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
         }
 
-        @errorInline(fieldValue.id.value, "Please enter your address", Seq(""))
+        @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter your address"), Seq(""))
 
         <div class="form-group-compound">
             <label class="form-label" for="@safeId("street1")">Address 1</label>
