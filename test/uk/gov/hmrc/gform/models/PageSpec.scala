@@ -35,9 +35,9 @@ import scala.concurrent.Future
 class PageSpec extends Spec {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true)))
-  val section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true)))
-  val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true)))
+  val section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
+  val section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
+  val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",

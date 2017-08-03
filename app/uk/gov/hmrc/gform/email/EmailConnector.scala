@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.components
+package uk.gov.hmrc.gform.email
 
-import play.api.libs.json.Json
+import play.api.Logger
+import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.play.http._
 
-case class FieldValue(
-  id: FieldId,
-  `type`: ComponentType,
-  label: String,
-  shortName: Option[String],
-  helpText: Option[String],
-  mandatory: Boolean,
-  editable: Boolean,
-  submissible: Boolean,
-  errorMessage: Option[String],
-  presentationHint: Option[List[PresentationHint]] = Option.empty[List[PresentationHint]]
+import scala.concurrent.ExecutionContext
 
-)
+class EmailConnector(wsHttp: WSHttp, baseUrl: String, emailEnabled: Boolean) {
 
-object FieldValue {
-  implicit val format = Json.format[FieldValue]
+  def sendEmail(emailTemplate: EmailTemplate)(implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Unit = {
+    if (emailEnabled) {
+      wsHttp.POST[EmailTemplate, HttpResponse](baseUrl + "hmrc/email", emailTemplate)
+    } else {
+      Logger.info("Sending email disable in this environment")
+    }
+  }
 }

@@ -85,7 +85,8 @@ class PageForRenderSpec extends Spec {
     shortName = None,
     mandatory = true,
     editable = false,
-    submissible = false
+    submissible = false,
+    errorMessage = None
   )
 
   val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
@@ -162,7 +163,8 @@ class PageForRenderSpec extends Spec {
     helpText = None,
     mandatory = true,
     editable = true,
-    submissible = true
+    submissible = true,
+    errorMessage = None
   )
   val groupFields = List(grpTextField)
 
@@ -183,7 +185,8 @@ class PageForRenderSpec extends Spec {
     shortName = None,
     mandatory = true,
     editable = false,
-    submissible = false
+    submissible = false,
+    errorMessage = None
   )
 
   val grpSection = section.copy(fields = List(groupFieldValue))

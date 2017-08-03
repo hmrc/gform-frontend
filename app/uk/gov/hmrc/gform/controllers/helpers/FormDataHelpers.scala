@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.controllers.helpers
 import play.api.mvc.{ AnyContent, Request, Result }
 import play.api.mvc.Results._
 import uk.gov.hmrc.gform.gformbackend.model.{ FormData, FormId }
-import uk.gov.hmrc.gform.models.components.FieldId
+import uk.gov.hmrc.gform.models.components.{ FieldId, Group }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -41,5 +41,12 @@ object FormDataHelpers {
 
   def anyFormId(data: Map[FieldId, Seq[String]]): Option[FormId] =
     data.get(FieldId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
+
+  def dataEnteredInGroup(group: Group, fieldData: Map[FieldId, Seq[String]]): Boolean = {
+
+    group.fields.map(_.id).find(id => {
+      fieldData.get(id).isDefined && fieldData.get(id).get.find(!_.isEmpty).isDefined
+    }).isDefined
+  }
 
 }

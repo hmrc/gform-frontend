@@ -21,6 +21,7 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTemplate, SectionNumber }
 import uk.gov.hmrc.gform.models.components._
@@ -126,18 +127,11 @@ class PageShader(
     }
   }
 
-  private def htmlForGroup(groupField: Group, fieldValue: FieldValue, index: Int): Future[Html] = {
-    val fgrpHtml = htmlForGroup0(groupField, fieldValue, index)
+  private def htmlForGroup(grp: Group, fieldValue: FieldValue, index: Int): Future[Html] = {
+    val fgrpHtml = htmlForGroup0(grp, fieldValue, index)
 
     fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
-      case Some(true) => {
-        val dataEntered = groupField.fields.map(_.id).find(
-          id => {
-            fieldData.get(id).isDefined && !(fieldData.get(id).get.isEmpty) && !(fieldData.get(id).get.filterNot(_.isEmpty).isEmpty)
-          }
-        ).isDefined
-        fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, fieldValue.label, grpHtml, dataEntered))
-      }
+      case Some(true) => fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, fieldValue.label, grpHtml, FormDataHelpers.dataEnteredInGroup(grp, fieldData)))
       case _ => fgrpHtml
     }
   }
