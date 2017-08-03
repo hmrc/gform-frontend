@@ -12,7 +12,7 @@
     </td>
 
     <td>
-        @if(fieldValue.presentationHint match { case Some(list) => list.contains(SummariseGroupAsGrid); case None => false}) { to be rendered as grid... }
+      @if(!fieldValue.presentationHint.map(_.filter(_==SummariseGroupAsGrid)).getOrElse(Nil).isEmpty) { to be rendered as grid... }
       @{
          snippets
       }
