@@ -35,9 +35,9 @@ import scala.concurrent.Future
 class PageSpec extends Spec {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
-  val section1 = Section("About you", None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
-  val section2 = Section("Business details", None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
+  val section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
+  val section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
+  val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
   val formTemplate = FormTemplate(
     formTypeId = FormTypeId(""),
     formName = "IPT100",
@@ -56,7 +56,7 @@ class PageSpec extends Spec {
       Future.successful("")
   }
   val mockRepeatService = mock[RepeatingComponentService]
-  when(mockRepeatService.getAllSections(any())(any())).thenReturn(Future.successful(formTemplate.sections))
+  when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(formTemplate.sections))
   val formId = FormId("formid-123")
   val authority = Authority("uri", Accounts(), None, None, CredentialStrength.None, ConfidenceLevel.L0, None, None, None, "String")
   implicit val authContext = AuthContext(authority)
@@ -66,7 +66,7 @@ class PageSpec extends Spec {
 
     val page = Page(formId, SectionNumber.firstSection, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
-    val render = page.pageForRender(Map.empty, None)
+    val render = page.pageForRender(Map.empty, None, formTemplate.sections)
 
     render.futureValue.hiddenFieldsSnippets.size should be(2)
 
@@ -83,7 +83,7 @@ class PageSpec extends Spec {
     val sectionNumber = SectionNumber(1)
     val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
-    val render = page.pageForRender(Map.empty, None)
+    val render = page.pageForRender(Map.empty, None, formTemplate.sections)
 
     render.futureValue.hiddenFieldsSnippets.size should be(2)
 
@@ -101,7 +101,7 @@ class PageSpec extends Spec {
     val sectionNumber = SectionNumber(2)
     val page = Page(formId, sectionNumber, formTemplate, mockRepeatService, Envelope(Nil), EnvelopeId("env-id"), mockPrepopService)
 
-    val render = page.pageForRender(Map.empty, None)
+    val render = page.pageForRender(Map.empty, None, formTemplate.sections)
 
     render.futureValue.hiddenFieldsSnippets.size should be(2)
 

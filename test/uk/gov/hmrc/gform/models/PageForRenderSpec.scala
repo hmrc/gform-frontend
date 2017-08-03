@@ -90,7 +90,7 @@ class PageForRenderSpec extends Spec {
   )
 
   val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
-  val section = Section("About you", None, None, None, None, List(infoFieldValue))
+  val section = Section("About you", None, None, None, None, None, None, List(infoFieldValue))
 
   val mockPrepopService = new PrepopService(null, null, null) {
     override def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
@@ -119,7 +119,7 @@ class PageForRenderSpec extends Spec {
   val sectionNumber = SectionNumber(0)
 
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
-    when(mockRepeatService.getAllSections(any())(any())).thenReturn(Future.successful(formTemplate.sections))
+    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(formTemplate.sections))
 
     val pageToRenderF = PageForRender(
       formId,
@@ -130,7 +130,8 @@ class PageForRenderSpec extends Spec {
       mockRepeatService,
       envelope,
       envelopeId,
-      mockPrepopService
+      mockPrepopService,
+      formTemplate.sections
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -205,6 +206,10 @@ class PageForRenderSpec extends Spec {
           multipleCopiesOf(grpTextField, 1)
         ), false))
       }
+
+      override def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier) = {
+        Future.successful(List(grpSection))
+      }
     }
 
     val pageToRenderF = PageForRender(
@@ -216,7 +221,8 @@ class PageForRenderSpec extends Spec {
       testGrpRepSrvc,
       envelope,
       envelopeId,
-      mockPrepopService
+      mockPrepopService,
+      List(grpSection)
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -239,6 +245,10 @@ class PageForRenderSpec extends Spec {
           multipleCopiesOf(grpTextField, 1)
         ), true))
       }
+
+      override def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier) = {
+        Future.successful(List(grpSection))
+      }
     }
 
     val pageToRenderF = PageForRender(
@@ -250,7 +260,8 @@ class PageForRenderSpec extends Spec {
       testGrpRepSrvc,
       envelope,
       envelopeId,
-      mockPrepopService
+      mockPrepopService,
+      List(grpSection)
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)

@@ -45,17 +45,16 @@ class PageShader(
     repeatService: RepeatingComponentService,
     envelope: Envelope,
     envelopeId: EnvelopeId,
-    prepopService: PrepopService
+    prepopService: PrepopService,
+    dynamicSections: List[Section]
 )(implicit authContext: AuthContext, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
-    val sectionsF = repeatService.getAllSections(formTemplate)
+    val section = dynamicSections(sectionNumber.value)
     for {
-      sections <- sectionsF
-      section = sections(sectionNumber.value)
       snippets <- Future.sequence(section.fields.map(f => htmlFor(f, 0)))
-      javascript = fieldJavascript(sections.flatMap(_.atomicFields(repeatService)))
-      hiddenTemplateFields = sections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
+      javascript = fieldJavascript(dynamicSections.flatMap(_.atomicFields(repeatService)))
+      hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
     } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId)
   }
@@ -160,7 +159,7 @@ class PageShader(
   }
 
   private def validate(fieldValue: FieldValue): Future[Option[FormFieldValidationResult]] = {
-    repeatService.getAllSections(formTemplate).map { sections =>
+    repeatService.getAllSections(formTemplate, fieldData).map { sections =>
       val section = sections(sectionNumber.value)
       lazy val okF: FieldValue => Option[FormFieldValidationResult] =
         Fields.okValues(fieldData, section.atomicFields(repeatService), repeatService, envelope)
