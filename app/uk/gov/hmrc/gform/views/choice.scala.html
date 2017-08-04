@@ -28,7 +28,7 @@ index: Int
             <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
             }
 
-            @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
+            @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq(""))
 
             <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
             @options.toList.zipWithIndex.map{ case (option, index) =>
