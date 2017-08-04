@@ -32,6 +32,12 @@
         <div class="form-group">
             <button type="submit" class="button--secondary" name="save" value="Save">Save and come back later</button>
         </div>
+
+        @if(page.sectionNumber.value != 0){
+        <div class="form-group">
+            <button type="submit" class="button--secondary" name="save" value="Back">Back</button>
+        </div>
+        }
     </form>
 
     <script type="text/javascript">
