@@ -33,7 +33,8 @@ import scala.concurrent.Future
 
 class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModule) { self =>
 
-  lazy val authConnector = new AuthConnector {
+  //don't use it. Use AuthorisationService instead
+  private lazy val authConnector = new AuthConnector {
     override val serviceUrl: String = configModule.serviceConfig.baseUrl("auth")
     override val http: HttpGet = wSHttpModule.auditableWSHttp
   }

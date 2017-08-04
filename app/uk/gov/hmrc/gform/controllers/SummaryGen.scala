@@ -93,7 +93,6 @@ class SummaryGen @Inject() (
   }
 
   private lazy val fileUploadService = fileUploadModule.fileUploadService
-  private lazy val authConnector = authModule.authConnector
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val auditService = auditingModule.auditService

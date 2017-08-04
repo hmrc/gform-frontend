@@ -187,7 +187,7 @@ class FormController @Inject() (
       formTemplate <- formTemplateF
     } yield Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService)
 
-    val userIdF = authConnector.getUserDetails[UserId](authContext)
+    val userDetailsF = authorisationService.getUserDetails
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
@@ -295,25 +295,25 @@ class FormController @Inject() (
           action match {
             case SaveAndContinue(nextPageToRender) =>
               for {
-                userId <- userIdF
+                userDetails <- userDetailsF
                 form <- formF
                 dynamicSections <- sectionsF
-                result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, formId, None, dynamicSections))
+                result <- processSaveAndContinue(userDetails.userId, form)(nextPageToRender.renderPage(data, formId, None, dynamicSections))
               } yield result
 
             case SaveAndExit =>
               for {
-                userId <- userIdF
+                userDetails <- userDetailsF
                 form <- formF
                 envelopeId <- envelopeIdF
-                result <- processSaveAndExit(userId, form, envelopeId)
+                result <- processSaveAndExit(userDetails.userId, form, envelopeId)
               } yield result
 
             case SaveAndSummary =>
               for {
-                userId <- userIdF
+                userDetails <- userDetailsF
                 form <- formF
-                result <- processSaveAndContinue(userId, form)(Future.successful(Redirect(routes.SummaryGen.summaryById(formId))))
+                result <- processSaveAndContinue(userDetails.userId, form)(Future.successful(Redirect(routes.SummaryGen.summaryById(formId))))
               } yield result
 
             case AddGroup(groupId) =>
@@ -352,7 +352,6 @@ class FormController @Inject() (
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val firstSection = SectionNumber(0)
   private lazy val fileUploadService = fileUploadModule.fileUploadService
-  private lazy val authConnector = authModule.authConnector
   private lazy val validationService = validationModule.validationService
   private lazy val appConfig = configModule.appConfig
   private lazy val authorisationService = authModule.authorisationService
