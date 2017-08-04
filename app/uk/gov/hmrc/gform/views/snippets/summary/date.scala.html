@@ -1,12 +1,12 @@
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
-@import uk.gov.hmrc.gform.models.components.FieldValue
 @import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
 @import uk.gov.hmrc.gform.views.html.localisation
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
 @safeId(id: String) = @{
-fieldValue.id.withJSSafeSuffix(id).toString
+fieldValue.id.withSuffix(id).toString
 }
 
 <tr>

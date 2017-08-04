@@ -17,8 +17,7 @@
 package uk.gov.hmrc.gform.models
 
 import org.scalatest._
-import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
 
 class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
 
@@ -29,11 +28,9 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
   val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
 
   val formTemplate = FormTemplate(
-    formTypeId = FormTypeId(""),
+    _id = FormTemplateId(""),
     formName = "IPT100",
-    version = Version("1.2.3"),
     description = "abc",
-    characterSet = "UTF-8",
     dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area"),
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",

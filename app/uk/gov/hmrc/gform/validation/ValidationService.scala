@@ -24,17 +24,19 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, FileUploadService }
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FileId }
+import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService }
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
+
+//TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
 class ValidationService(fileUploadService: FileUploadService) {
 
@@ -64,7 +66,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
   }
 
-  private lazy val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withJSSafeSuffix(suffix)).toList.flatten
+  private lazy val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
   private def validateDateRequiredField(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val dateValueOf = dataGetter(fieldValue)
 
@@ -234,16 +236,16 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  def validateRF(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
+  def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
 
-  def validateFF(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
+  def validateFF(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
   def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
-    val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withJSSafeSuffix(suffix)).toList.flatten
+    val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
 
-    def validateRequiredFied(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
+    def validateRequiredFied(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
 
-    def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
+    def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
@@ -295,7 +297,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   }
 
   def validateInputDate(fieldId: FieldId, errorMsg: Option[String], data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
-    val fieldIdList = Date.allFieldIds(fieldId).map(fId => data.get(fId))
+    val fieldIdList = Date.fields(fieldId).map(fId => data.get(fId))
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
@@ -312,9 +314,9 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   def validateLocalDate(errorMessage: Option[String], day: String, month: String, year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("day") -> Set(errorMessage.getOrElse(er))))
-    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("month") -> Set(errorMessage.getOrElse(er))))
-    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("year") -> Set(errorMessage.getOrElse(er))))
+    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
+    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
+    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }

@@ -20,16 +20,16 @@ import cats.implicits._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId, SectionNumber, Version, _ }
-import uk.gov.hmrc.gform.models.UserId
+import uk.gov.hmrc.gform.sharedmodel.UserId
+import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber }
 
 import scala.util.Try
 object ValueClassBinder {
 
   //You need to name it somethingBinder, or else play can't find them
-  implicit val formTypeIdBinder: PathBindable[FormTypeId] = valueClassBinder(_.value)
+  implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
-  implicit val versionBinder: PathBindable[Version] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
     override def bind(key: String, value: String): Either[String, SectionNumber] = Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)

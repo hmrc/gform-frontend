@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.fileupload
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.gformbackend.model.FileId
+import uk.gov.hmrc.gform.sharedmodel.form.FileId
 
 case class Envelope(
   files: List[File]

@@ -26,10 +26,10 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTypeId }
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.components.FieldId
-import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SaveService }
+import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplateId }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -43,7 +43,6 @@ class SummaryGen @Inject() (
   fileUploadModule: FileUploadModule,
   authModule: AuthModule,
   val messagesApi: MessagesApi,
-  val sec: SecuredActions,
   auditingModule: AuditingModule
 )(implicit ec: ExecutionContext)
     extends FrontendController {
@@ -56,7 +55,7 @@ class SummaryGen @Inject() (
     for {// format: OFF
       form           <- formF
       envelopeF      = fileUploadService.getEnvelope(form.envelopeId)
-      formTemplateF  = gformConnector.getFormTemplate(form.formData.formTypeId)
+      formTemplateF  = gformConnector.getFormTemplate(form.formTemplateId)
       envelope       <- envelopeF
       formTemplate   <- formTemplateF
       map = formDataMap(form.formData)
@@ -65,7 +64,7 @@ class SummaryGen @Inject() (
     } yield result
   }
 
-  def submit(formId: FormId, formTypeId: FormTypeId) = auth.async { implicit c =>
+  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async { implicit c =>
 
     processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
@@ -74,7 +73,7 @@ class SummaryGen @Inject() (
         case "Continue" :: Nil =>
           anyFormId(data) match {
             case Some(formId) =>
-              val submissionF = SaveService.sendSubmission(formId)
+              val submissionF = gformConnector.submitForm(formId)
               val formF = gformConnector.getForm(formId)
               for {
                 response <- submissionF

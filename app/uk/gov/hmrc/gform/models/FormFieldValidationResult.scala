@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.models
 import java.time.LocalDate
 
 import cats.data.Validated.{ Invalid, Valid }
-import uk.gov.hmrc.gform.models.components.{ Address, FieldId, FieldValue, _ }
 import cats.data.Validated
 import cats.instances.either._
 import cats.instances.list._
@@ -27,7 +26,8 @@ import cats.syntax.traverse._
 import cats.syntax.either._
 import play.api.Logger
 import uk.gov.hmrc.gform.fileupload.{ Envelope, File }
-import uk.gov.hmrc.gform.gformbackend.model.FormField
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 sealed trait FormFieldValidationResult {
   def isOk: Boolean = this match {
@@ -61,6 +61,7 @@ sealed trait FormFieldValidationResult {
     case _ => ""
   }
 
+  private def withId(f: FormField, id: String) = f.copy(FieldId(id))
   /**
    * If `this` field is not ok, we want to indicate error by using Left(())
    */
@@ -71,7 +72,7 @@ sealed trait FormFieldValidationResult {
     case ComponentField(fieldValue, data) =>
       fieldValue `type` match {
         case Choice(_, _, _, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
-        case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(_.changeId(suffix))) }.toList.sequenceU.map(_.flatten)
+        case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(withId(_, suffix))) }.toList.sequenceU.map(_.flatten)
       }
 
     case _ => Left(())
@@ -90,7 +91,7 @@ sealed trait FormFieldValidationResult {
         case _ =>
           data.flatMap {
             case (suffix, value) =>
-              value.toFormFieldTolerant.map(_.changeId(suffix))
+              value.toFormFieldTolerant.map(withId(_, suffix))
           }.toList
       }
   }
@@ -141,7 +142,7 @@ object ValidationUtil {
 
   def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): List[(FieldId, FormFieldValidationResult)] = {
     component match {
-      case Address(_) => Address.allFieldIds(fieldValue.id).map { fieldId =>
+      case Address(_) => Address.fields(fieldValue.id).map { fieldId =>
 
         gformErrors.get(fieldId) match {
           //with suffix
@@ -150,7 +151,7 @@ object ValidationUtil {
         }
       }
 
-      case Date(_, _, _) => Date.allFieldIds(fieldValue.id).map { fieldId =>
+      case Date(_, _, _) => Date.fields(fieldValue.id).map { fieldId =>
 
         gformErrors.get(fieldId) match {
           //with suffix

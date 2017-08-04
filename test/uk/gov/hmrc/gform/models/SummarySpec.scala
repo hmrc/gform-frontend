@@ -23,10 +23,10 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate, FormTypeId, Version, _ }
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
@@ -40,11 +40,9 @@ class SummarySpec extends Spec {
   val section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
   val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
   val formTemplate = FormTemplate(
-    formTypeId = FormTypeId("formid-123"),
+    _id = FormTemplateId("formid-123"),
     formName = "IPT100",
-    version = Version("1.2.3"),
     description = "abc",
-    characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
@@ -79,7 +77,7 @@ class SummarySpec extends Spec {
 
     val summary = Summary(
       formTemplate.copy(
-        formTypeId = FormTypeId("IPT100"),
+        _id = FormTemplateId("IPT100"),
         sections = List(section0, section1)
       )
     )

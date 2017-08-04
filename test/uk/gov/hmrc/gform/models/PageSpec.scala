@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.gform.models
 
-import org.scalatest.mockito.MockitoSugar.mock
-import org.mockito.Mockito._
 import org.mockito.Matchers._
+import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version, _ }
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -39,11 +39,9 @@ class PageSpec extends Spec {
   val section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
   val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
   val formTemplate = FormTemplate(
-    formTypeId = FormTypeId(""),
+    _id = FormTemplateId(""),
     formName = "IPT100",
-    version = Version("1.2.3"),
     description = "abc",
-    characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
@@ -52,7 +50,7 @@ class PageSpec extends Spec {
   )
 
   val mockPrepopService = new PrepopService(null, null, null) {
-    override def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
+    override def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
       Future.successful("")
   }
   val mockRepeatService = mock[RepeatingComponentService]

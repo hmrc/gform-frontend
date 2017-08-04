@@ -23,13 +23,12 @@ import org.intellij.markdown.parser.MarkdownParser
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTemplate, SectionNumber }
-import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.withOffset
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
+import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -103,7 +102,7 @@ class PageShader(
 
   private def htmlForText(fieldValue: FieldValue, t: Text, expr: Expr, index: Int) = {
     val prepopValueF = fieldData.get(fieldValue.id) match {
-      case None => prepopService.prepopData(expr, formTemplate.formTypeId)
+      case None => prepopService.prepopData(expr, formTemplate._id)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValueF = validate(fieldValue)
@@ -121,7 +120,7 @@ class PageShader(
   }
 
   private def htmlForDate(fieldValue: FieldValue, offset: Offset, dateValue: Option[DateValue], index: Int) = {
-    val prepopValues = dateValue.map(DateExpr.fromDateValue).map(withOffset(offset, _))
+    val prepopValues = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
     validate(fieldValue).map { validatedValue =>
       uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validatedValue, prepopValues, index)
     }

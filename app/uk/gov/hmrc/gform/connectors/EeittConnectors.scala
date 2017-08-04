@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.connectors
 
 import play.api.libs.json.{ Json, OFormat }
 import play.utils.UriEncoding
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTypeId, RegimeId }
 import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
 import uk.gov.hmrc.gform.models.userdetails.{ AffinityGroup, GroupId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, RegimeId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -37,7 +37,7 @@ class EeittConnector(baseUrl: String, wSHttp: WSHttp) {
   def isAllowed(groupId: String, regimeId: RegimeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] =
     wSHttp.GET[Verification](baseUrl + s"/group-id/${encode(groupId)}/regime/${regimeId.value}/affinityGroup/${encode(affinityGroup.toString)}/verification")
 
-  def prepopulationBusinessUser(groupId: GroupId, regimeId: FormTypeId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {
+  def prepopulationBusinessUser(groupId: GroupId, regimeId: FormTemplateId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {
     wSHttp.GET[BusinessUser](baseUrl + s"/group-id/${groupId.value}/regime/${regimeId.value}/prepopulation")
   }
 

@@ -16,18 +16,15 @@
 
 package uk.gov.hmrc.gform.services
 
-import java.time.LocalDate
-
 import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
-import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FieldId, FieldValue }
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -81,7 +78,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("street1") -> Set("must be entered")))
+    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("street1") -> Set("must be entered")))
   }
 
   "non-international" should "return invalid for street1 but no postcode" in {
@@ -96,7 +93,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must be entered")))
+    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("must be entered")))
   }
 
   "international" should "accept not uk, street1, country" in {
@@ -127,7 +124,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("country") -> Set("must be entered")))
+    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("must be entered")))
   }
 
   "international" should "return invalid for not uk, street1, postcode and country" in {
@@ -144,7 +141,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must not be entered")))
+    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("must not be entered")))
   }
 
   "international" should "return invalid for uk, street1, country, but no postcode" in {
@@ -161,8 +158,8 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
     val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(
-      speccedAddress.id.withJSSafeSuffix("postcode") -> Set("must be entered"),
-      speccedAddress.id.withJSSafeSuffix("country") -> Set("must not be entered")
+      speccedAddress.id.withSuffix("postcode") -> Set("must be entered"),
+      speccedAddress.id.withSuffix("country") -> Set("must not be entered")
     ))
   }
 

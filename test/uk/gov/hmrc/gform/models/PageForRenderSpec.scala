@@ -23,10 +23,10 @@ import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.components.{ FieldId, FieldValue, InformationMessage, StandardInfo, _ }
-import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
+import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -93,16 +93,14 @@ class PageForRenderSpec extends Spec {
   val section = Section("About you", None, None, None, None, None, None, List(infoFieldValue))
 
   val mockPrepopService = new PrepopService(null, null, null) {
-    override def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
+    override def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
       Future.successful("CONSTANT_TEXT")
   }
 
   val formTemplate = FormTemplate(
-    formTypeId = FormTypeId(""),
+    _id = FormTemplateId(""),
     formName = "AAA000",
-    version = Version("0.0.0"),
     description = "YEAHH man!",
-    characterSet = "UTF-8",
     dmsSubmission = dmsSubmission,
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
