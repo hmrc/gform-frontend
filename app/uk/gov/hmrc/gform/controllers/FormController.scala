@@ -277,6 +277,26 @@ class FormController @Inject() (
         } yield result
       }
 
+      def processBack(userId: UserId, form: Form)(continue: Future[Result]): Future[Result] = {
+        val formFieldsList: Future[List[FormFieldValidationResult]] = finalResult.map {
+          case Left(formFieldResultList) => formFieldResultList
+          case Right(formFieldResultList) => formFieldResultList
+        }
+
+        val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
+        val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
+
+        val formData = formFields.map(formFields => FormData(userId, form.formData.formTypeId, "UTF-8", formFields))
+
+        for {
+          keystore <- repeatService.getData()
+          _ <- gformConnector.saveKeyStore(formId, keystore)
+          formData <- formData
+          result <- SaveService.updateFormData(formId, formData, tolerant = true).flatMap(response => continue)
+        } yield result
+
+      }
+
       val optNextPage = for {// format: OFF
         envelope     <- envelopeF
         envelopeId   <- envelopeIdF
@@ -291,7 +311,6 @@ class FormController @Inject() (
 
       actionE.flatMap {
         case Right(action) =>
-
           action match {
             case SaveAndContinue(nextPageToRender) =>
               for {
@@ -308,7 +327,13 @@ class FormController @Inject() (
                 envelopeId <- envelopeIdF
                 result <- processSaveAndExit(userDetails.userId, form, envelopeId)
               } yield result
-
+            case Back(lastPage) =>
+              for {
+                userId <- userIdF
+                form <- formF
+                dynamicSections <- sectionsF
+                result <- processBack(userId, form)(lastPage.copy(sectionNumber = SectionNumber(lastPage.sectionNumber.value - 2)).renderPage(data, formId, None, dynamicSections))
+              } yield result
             case SaveAndSummary =>
               for {
                 userDetails <- userDetailsF
@@ -336,7 +361,6 @@ class FormController @Inject() (
       }
 
     }
-
   }
 
   private def extractedFieldValue(validResult: FormFieldValidationResult): FieldValue = validResult match {

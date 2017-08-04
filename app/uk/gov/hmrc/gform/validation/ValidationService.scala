@@ -303,7 +303,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
 
         validateLocalDate(errorMsg, day, month, year) match {
-          case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldId -> Set("enter a valid date")))
+          case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldId -> Set(fieldValue.errorMessage.getOrElse("enter a valid date"))))
           case Invalid(nonEmptyList) => Invalid(nonEmptyList)
         }
 
