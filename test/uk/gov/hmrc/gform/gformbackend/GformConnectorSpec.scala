@@ -120,15 +120,6 @@ class GformConnectorSpec extends Spec {
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
   }
 
-  behavior of "GformConnector.newForm - happy path"
-
-  it should "return NewFormResponse" in new Fixture {
-    val status = 200
-    val responseJson = Some(Json.toJson(form))
-    connector
-      .newForm(formTemplateId, userId)
-      .futureValue shouldBe form
-  }
 
   trait Fixture extends ExampleData {
     def status: Int
