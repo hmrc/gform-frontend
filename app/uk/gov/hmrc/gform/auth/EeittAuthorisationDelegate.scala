@@ -16,20 +16,10 @@
 
 package uk.gov.hmrc.gform.auth
 
-import javax.inject.Inject
-
-import play.api.Logger
-import play.api.libs.json.{ JsError, JsSuccess, Reads }
-import play.api.mvc.Result
-import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, RegimeId }
-import uk.gov.hmrc.gform.models.UserId
-import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
-import uk.gov.hmrc.play.frontend.auth.AuthContext
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }

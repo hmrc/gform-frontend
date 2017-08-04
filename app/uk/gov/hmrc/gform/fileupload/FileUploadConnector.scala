@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.HeaderCarrier
 

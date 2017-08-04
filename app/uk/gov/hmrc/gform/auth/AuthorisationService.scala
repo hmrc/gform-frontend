@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.mvc.Result
-import uk.gov.hmrc.gform.auth.models.{ AuthResult, UnAuthenticated, UserDetails }
-import uk.gov.hmrc.gform.gformbackend.model.{ AuthConfigModule, FormTemplate, FormTypeId }
+import uk.gov.hmrc.gform.auth.models.{ AuthResult, UnAuthenticated, UserDetails, UserDetailsResponse }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, FormTemplate }
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -28,8 +27,9 @@ import scala.concurrent.Future
 
 class AuthorisationService(eeittAuth: EeittAuthorisationDelegate, authConnector: AuthConnector /*xxxAuthDelegate*/ ) {
 
-  def getUserDetail(implicit authContext: AuthContext, hc: HeaderCarrier) =
-    authConnector.getUserDetails[UserDetails](authContext)
+  def getUserDetails(implicit authContext: AuthContext, hc: HeaderCarrier): Future[UserDetails] = {
+    authConnector.getUserDetails[UserDetailsResponse](authContext).map(_.asUserDetails)
+  }
 
   def doAuthorise(formTemplate: FormTemplate, userDetails: UserDetails)(implicit hc: HeaderCarrier): Future[AuthResult] = {
     formTemplate.authConfig.authModule.value match {

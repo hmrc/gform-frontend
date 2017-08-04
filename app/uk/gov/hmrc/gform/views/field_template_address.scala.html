@@ -1,12 +1,12 @@
-@import uk.gov.hmrc.gform.models.components.FieldValue
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.service.LabelHelper
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
 
 @(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
 
 @safeId(id: String) = @{
-  fieldValue.id.withJSSafeSuffix(id).toString
+  fieldValue.id.withSuffix(id).toString
 }
 
 @groupId(id: String) = @{

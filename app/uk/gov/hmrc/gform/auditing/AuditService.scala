@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.Request
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.frontend.auth.AuthContext
@@ -34,9 +34,8 @@ trait AuditService {
       val dataMap = Map(
         "FormId" -> form._id.value,
         "EnvelopeId" -> form.envelopeId.value,
-        "FormTypeId" -> form.formData.formTypeId.value,
-        "UserId" -> form.formData.userId.value, //TODO is userId required in the formData anymore.
-        "CharacterSet" -> form.formData.characterSet
+        "FormTemplateId" -> form.formTemplateId.value,
+        "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
       )
 
       dataMap ++ form.formData.fields.map(x => x.id.value -> x.value).toMap

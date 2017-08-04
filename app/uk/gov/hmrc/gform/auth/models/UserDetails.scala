@@ -16,21 +16,20 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.libs.json.{ JsError, JsSuccess, Reads }
-import uk.gov.hmrc.gform.models.UserId
+import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
+import uk.gov.hmrc.gform.sharedmodel.UserId
 
 case class UserDetails(userId: UserId, affinityGroup: AffinityGroup)
 
 object UserDetails {
-  implicit val reads: Reads[UserDetails] = Reads[UserDetails] { x =>
-    x.asOpt[UserId] match {
-      case Some(userId) =>
-        x.asOpt[AffinityGroup] match {
-          case Some(affinGroup) => JsSuccess(UserDetails(userId, affinGroup))
-          case None => JsError("No AffinityGroup is present")
-        }
-      case None => JsError("No UserId is present")
-    }
-  }
+  implicit val format: OFormat[UserDetails] = Json.format[UserDetails]
+}
+
+case class UserDetailsResponse(groupIdentifier: String, affinityGroup: AffinityGroup) {
+  def asUserDetails = UserDetails(UserId(groupIdentifier), affinityGroup)
+}
+
+object UserDetailsResponse {
+  implicit val format: OFormat[UserDetailsResponse] = Json.format[UserDetailsResponse]
 }

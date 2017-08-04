@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
-import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class GroupSpec extends Spec {
 

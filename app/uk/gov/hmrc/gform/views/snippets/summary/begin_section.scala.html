@@ -1,6 +1,9 @@
-@import uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTypeId, Version, SectionNumber}
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.views.html.localisation
-@(formType: FormTypeId, version: Version, formId: FormId, title: String, description: Option[String], idx: Int)
+
+@(formType: FormTemplateId, formId: FormId, title: String, description: Option[String], idx: Int)
 
 <table class="table--font-reset @if(idx == 0) { table--top-border }">
   <thead>
