@@ -180,10 +180,23 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
 
   private def validateText(fieldValue: FieldValue, text: Text)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
+    text.constraint match {
+      case UkSortCode =>
+        Monoid[ValidatedType].combineAll(Text.fields(fieldValue.id).map { fieldId =>
+          textValidationImpl(fieldValue.copy(id = fieldId), text)(data)
+        })
+      case _ => textValidationImpl(fieldValue, text)(data)
+    }
+  }
+
+  private def textValidationImpl(fieldValue: FieldValue, text: Text)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val textData = data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
       case (true, Nil, _) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Please enter required data"))))
       case (_, _, AnyText) => Valid(())
+      case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
+      case (_, value :: Nil, UkBankAccountNumber) => validateNumber(value, 8, 0, true)
+      case (_, value :: Nil, UkSortCode) => validateNumber(value, 6, 0, true)
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
       case (_, value :: rest, _) => Valid(()) // we don't support multiple values yet
