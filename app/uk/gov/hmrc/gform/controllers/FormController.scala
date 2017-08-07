@@ -286,13 +286,13 @@ class FormController @Inject() (
         val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 
-        val formData = formFields.map(formFields => FormData(userId, form.formData.formTypeId, "UTF-8", formFields))
+        val formData = formFields.map(formFields => FormData(formFields))
 
         for {
           keystore <- repeatService.getData()
-          _ <- gformConnector.saveKeyStore(formId, keystore)
           formData <- formData
-          result <- SaveService.updateFormData(formId, formData, tolerant = true).flatMap(response => continue)
+          userData = UserData(formData, keystore)
+          result <- gformConnector.updateUserData(formId, userData).flatMap(response => continue)
         } yield result
 
       }
@@ -329,10 +329,10 @@ class FormController @Inject() (
               } yield result
             case Back(lastPage) =>
               for {
-                userId <- userIdF
+                userDetails <- userDetailsF
                 form <- formF
                 dynamicSections <- sectionsF
-                result <- processBack(userId, form)(lastPage.copy(sectionNumber = SectionNumber(lastPage.sectionNumber.value - 2)).renderPage(data, formId, None, dynamicSections))
+                result <- processBack(userDetails.userId, form)(lastPage.copy(sectionNumber = SectionNumber(lastPage.sectionNumber.value - 2)).renderPage(data, formId, None, dynamicSections))
               } yield result
             case SaveAndSummary =>
               for {
