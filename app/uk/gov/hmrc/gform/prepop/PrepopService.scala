@@ -17,11 +17,9 @@
 package uk.gov.hmrc.gform.prepop
 
 import play.api.Logger
-import uk.gov.hmrc.gform.FrontendAuthConnector
 import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.gformbackend.model.FormTypeId
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.userdetails.UserDetails
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -45,7 +43,7 @@ class PrepopService(
     authContextPrepop: AuthContextPrepop
 ) {
 
-  def prepopData(expr: Expr, formTypeId: FormTypeId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] = {
+  def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] = {
     expr match {
       case AuthCtx(value) => Future.successful(authContextPrepop.values(value, authContext))
       case Constant(value) => Future.successful(value)
@@ -55,7 +53,7 @@ class PrepopService(
           for {
             userDetails <- authConnector.getUserDetails[UserDetails](authContext)
             prepopData <- eeitt match {
-              case BusinessUser => eeittConnector.prepopulationBusinessUser(userDetails.groupIdentifier, formTypeId).map(_.registrationNumber)
+              case BusinessUser => eeittConnector.prepopulationBusinessUser(userDetails.groupIdentifier, formTemplateId).map(_.registrationNumber)
               case Agent => eeittConnector.prepopulationAgent(userDetails.groupIdentifier).map(_.arn)
             }
           } yield prepopData

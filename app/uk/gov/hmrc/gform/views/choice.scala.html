@@ -1,9 +1,12 @@
 @import cats.data.NonEmptyList
-@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation}
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.service.LabelHelper
 
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
 @(inputType: String,
 fieldValue: FieldValue,
 options: NonEmptyList[String],
@@ -25,7 +28,7 @@ index: Int
             <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
             }
 
-            @errorInline(fieldValue.id.value, "Please enter required data", Seq(""))
+            @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq(""))
 
             <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
             @options.toList.zipWithIndex.map{ case (option, index) =>

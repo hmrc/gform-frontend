@@ -24,17 +24,19 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, FileUploadService }
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FileId }
+import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService }
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
+
+//TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
 class ValidationService(fileUploadService: FileUploadService) {
 
@@ -64,7 +66,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
   }
 
-  private lazy val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withJSSafeSuffix(suffix)).toList.flatten
+  private lazy val dataGetter: FieldValue => String => Seq[String] = fv => suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
   private def validateDateRequiredField(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val dateValueOf = dataGetter(fieldValue)
 
@@ -83,7 +85,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def validateDate(fieldValue: FieldValue, date: Date)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) => localDate.plusDays(offset.value)
     date.constraintType match {
-      case AnyDate => validateInputDate(fieldValue, data).andThen(lDate => Valid(()))
+      case AnyDate => validateInputDate(fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => Valid(()))
       case DateConstraints(dateConstraintList) =>
 
         val result = dateConstraintList.map {
@@ -92,7 +94,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
             (beforeOrAfter, dateConstrInfo, offsetDate) match {
 
               case (Before, Today, offset) =>
-                validateInputDate(fieldValue, data)
+                validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                   .andThen(inputDate =>
                     validateToday(fieldValue, inputDate,
                       offset, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Date should be before Today"))))(isBeforeToday))
@@ -100,7 +102,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
               case (Before, concreteDate: ConcreteDate, offset) =>
                 validateConcreteDate(concreteDate, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("enter a valid date"))))
                   .andThen { concreteDate =>
-                    validateInputDate(fieldValue, data)
+                    validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(inputDate =>
                         validateConcreteDate(fieldValue, inputDate,
                           concreteDate, offset,
@@ -108,11 +110,39 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
                             Set(fieldValue.errorMessage.getOrElse(s"Date should be before ${dateWithOffset(concreteDate, offset)}"))))(isBeforeConcreteDate))
                   }
 
+              case (beforeOrAfter @ _, DateField(fieldId), offset) => {
+
+                lazy val validateOtherDate = validateInputDate(fieldId, None, data)
+
+                lazy val validatedThisDate = validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
+
+                val beforeOrAfterString = beforeOrAfter match {
+                  case After => "after"
+                  case Before => "before"
+                }
+
+                val beforeOrAfterFunction = beforeOrAfter match {
+                  case After => isAfterConcreteDate _
+                  case Before => isBeforeConcreteDate _
+                }
+
+                validateOtherDate.andThen {
+                  otherLocalDate =>
+                    validatedThisDate.andThen {
+                      thisLocalDate =>
+                        validateConcreteDate(fieldValue, thisLocalDate,
+                          otherLocalDate, offset,
+                          Map(fieldValue.id ->
+                            Set(s"Date should be ${beforeOrAfterString} ${dateWithOffset(otherLocalDate, offset)}")))(beforeOrAfterFunction)
+                    }
+                }
+              }
+
               //              case (Before, AnyWord(value)) =>
               // case (Before, AnyWord(FieldId)) =>
 
               case (After, Today, offset) =>
-                validateInputDate(fieldValue, data)
+                validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                   .andThen(inputDate =>
                     validateToday(fieldValue, inputDate,
                       offset, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Date should be after today"))))(isAfterToday))
@@ -121,7 +151,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
                 validateConcreteDate(concreteDate, Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("enter a valid date"))))
                   .andThen { concreteDate =>
-                    validateInputDate(fieldValue, data)
+                    validateInputDate(fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(inputDate =>
                         validateConcreteDate(fieldValue, inputDate,
                           concreteDate, offset,
@@ -206,16 +236,16 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  def validateRF(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
+  def validateRF(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
 
-  def validateFF(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
+  def validateFF(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
   def validateAddress(fieldValue: FieldValue, address: Address)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
-    val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withJSSafeSuffix(suffix)).toList.flatten
+    val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
 
-    def validateRequiredFied(value: String) = validateRequired(fieldValue.id.withJSSafeSuffix(value)) _
+    def validateRequiredFied(value: String) = validateRequired(fieldValue.id.withSuffix(value)) _
 
-    def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withJSSafeSuffix(value)) _
+    def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
@@ -266,26 +296,27 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  def validateInputDate(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
-    val fieldIdList = Date.allFieldIds(fieldValue.id).map(fId => data.get(fId))
+  def validateInputDate(fieldId: FieldId, errorMsg: Option[String], data: Map[FieldId, Seq[String]]): ValidatedLocalDate = {
+    val fieldIdList = Date.fields(fieldId).map(fId => data.get(fId))
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
 
-        validateLocalDate(fieldValue, day, month, year) match {
-          case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldValue.id -> Set("enter a valid date")))
+        validateLocalDate(errorMsg, day, month, year) match {
+          case Valid(concreteDate) => validateConcreteDate(concreteDate, Map(fieldId -> Set(fieldValue.errorMessage.getOrElse("enter a valid date"))))
           case Invalid(nonEmptyList) => Invalid(nonEmptyList)
         }
 
-      case _ => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Date is missing"))))
+      case _ =>
+        Invalid(Map(fieldId -> Set(fieldValue.errorMessage.getOrElse("Date is missing"))))
     }
   }
 
-  def validateLocalDate(fv: FieldValue, day: String, month: String, year: String): ValidatedConcreteDate = {
+  def validateLocalDate(errorMessage: Option[String], day: String, month: String, year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("day") -> Set(fv.errorMessage.getOrElse(er))))
-    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("month") -> Set(fv.errorMessage.getOrElse(er))))
-    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withJSSafeSuffix("year") -> Set(fv.errorMessage.getOrElse(er))))
+    val d = isNumeric(day).andThen(y => isWithinBounds(y, 31)).leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
+    val m = isNumeric(month).andThen(y => isWithinBounds(y, 12)).leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
+    val y = isNumeric(year).andThen(y => hasValidNumberOfDigits(y, 4)).leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }

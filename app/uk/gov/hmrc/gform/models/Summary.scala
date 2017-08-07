@@ -21,11 +21,11 @@ import play.api.mvc.Results.Ok
 import play.api.mvc.{ Request, Result }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.{ FormId, FormTemplate }
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.models.helpers.Fields._
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -81,12 +81,12 @@ object SummaryForRender {
         sectionsToRender.flatMap {
           case (section, index) =>
 
-            uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate.formTypeId, formTemplate.version, formId, section.shortName.getOrElse(section.title), section.description, index) ::
+            uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index) ::
               section.fields.filter(_.submissible)
               .map {
                 valueToHtml(_)
               } ++
-              List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate.formTypeId, formTemplate.version, formId, section.title, index))
+              List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate._id, formId, section.title, index))
         }
       }
       SummaryForRender(snippets, fieldJavascript(fields))

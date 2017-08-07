@@ -24,8 +24,6 @@ import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.prepop.PrepopModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
-import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 
 class GuiceModule extends AbstractModule {
 
@@ -38,8 +36,5 @@ class GuiceModule extends AbstractModule {
     bind(classOf[ControllersModule]).asEagerSingleton()
     bind(classOf[PrepopModule]).asEagerSingleton()
 
-    bind(classOf[AuthConnector]).to(classOf[FrontendAuthConnector])
-    bind(classOf[SecuredActions]).to(classOf[SecuredActionsImpl])
-    bind(classOf[GovernmentGateway]).to(classOf[GformAuthenticationProvider])
   }
 }

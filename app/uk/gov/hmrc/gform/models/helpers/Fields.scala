@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform.models.helpers
 import java.io
 
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.FormField
+import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Fields {
@@ -35,7 +35,7 @@ object Fields {
           formFields.filter {
             case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
           }.map {
-            case (fieldId, formField) => fieldId.toJsSuffix.value -> FieldOk(fieldValue, formField.value)
+            case (fieldId, formField) => fieldId.value -> FieldOk(fieldValue, formField.value)
           }
         Some(ComponentField(fieldValue, fieldOkData))
       case Text(_, _, _) | Group(_, _, _, _, _, _) => formFields.get(fieldValue.id).map { formField =>
@@ -69,8 +69,8 @@ object Fields {
         case groupField @ Group(fvs, _, _, _, _, _) => {
           getFormFields(repeatService.getAllFieldsInGroup(fv, groupField))
         }
-        case Address(_) => Address.allFieldIds(fv.id).map(getFieldData)
-        case Date(_, _, _) => Date.allFieldIds(fv.id).map(getFieldData)
+        case Address(_) => Address.fields(fv.id).map(getFieldData)
+        case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
         case Text(_, _, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload() => List(getFieldData(fv.id))
         case InformationMessage(_, _) => List()

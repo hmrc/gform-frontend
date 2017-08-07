@@ -1,9 +1,8 @@
-@import org.joda.time.{DateTime, Days}
-@import uk.gov.hmrc.gform.gformbackend.model._
-@import play.api.i18n.Messages.Implicits._
 @import play.api.Play.current
-
-@(formId: FormId, formTypeId: FormTypeId)(implicit request: Request[_])
+@import play.api.i18n.Messages.Implicits._
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
+@(formId: FormId, formTemplateId: FormTemplateId)(implicit request: Request[_])
 
 @uk.gov.hmrc.gform.views.html.main_template(title = "Save And Come Back Later", bodyClasses = None) {
 <br>
@@ -29,8 +28,8 @@
         Continue the Form
     </a>
 </li>
-<li>
-    <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTypeId, formId)">
+<li>Save and delete
+    <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTemplateId, formId)">
         Start Fresh
     </a>
 </li>

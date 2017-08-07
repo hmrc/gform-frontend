@@ -20,7 +20,6 @@ import org.scalatest._
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.time.{ Millis, Span }
-import uk.gov.hmrc.gform.gformbackend.model.{ FormTemplate, FormTypeId, Version }
 
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext

@@ -24,9 +24,9 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
-import uk.gov.hmrc.gform.gformbackend.model.EnvelopeId
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -260,7 +260,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id.withJSSafeSuffix("day") -> Set(s"entered is greater than 31")))
+    result.toEither should beLeft(Map(fieldValue.id.withSuffix("day") -> Set(s"entered is greater than 31")))
   }
 
   "Date 15-5-222017" should "Invalid number of digits" in {
@@ -279,7 +279,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id.withJSSafeSuffix("year") -> Set(s"is not a 4 digit number")))
+    result.toEither should beLeft(Map(fieldValue.id.withSuffix("year") -> Set(s"is not a 4 digit number")))
   }
 
   /**
@@ -301,8 +301,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val result: ValidatedType = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
 
     result.toEither should beLeft(Map(
-      fieldValue.id.withJSSafeSuffix("day") -> Set(s"must be non-numeric"),
-      fieldValue.id.withJSSafeSuffix("month") -> Set(s"must be non-numeric")
+      fieldValue.id.withSuffix("day") -> Set(s"must be non-numeric"),
+      fieldValue.id.withSuffix("month") -> Set(s"must be non-numeric")
     ))
   }
 

@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import play.api.Logger
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.{ SaveResult, UserId }
+import uk.gov.hmrc.gform.models.SaveResult
+import uk.gov.hmrc.gform.sharedmodel.UserId
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,12 +29,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
-  //TODO: remove userId since this information will be passed using HeaderCarrier
-  def newForm(formTypeId: FormTypeId, userId: UserId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
-    ws.POSTEmpty[Form](s"$baseUrl/new-form/${formTypeId.value}/${userId.value}")
+  /******form*******/
 
-  def getFormTemplate(formTypeId: FormTypeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
-    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTypeId.value}")
+  //TODO: remove userId since this information will be passed using HeaderCarrier
+  def newForm(formTemplateId: FormTemplateId, userId: UserId)(implicit hc: HeaderCarrier): Future[FormId] =
+    ws.POSTEmpty[FormId](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}")
 
   def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Form] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}")
@@ -44,27 +43,34 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       case e: NotFoundException => None
     }
 
-  def saveKeyStore(formId: FormId, data: Map[String, JsValue])(implicit hc: HeaderCarrier): Future[Unit] =
-    ws.PUT[Map[String, JsValue], SaveResult](s"$baseUrl/forms/${formId.value}/keystore", data).map(_ => ())
-
-  def getKeyStore(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[Map[String, JsValue]]] =
-    ws.GET[Map[String, JsValue]](s"$baseUrl/forms/$formId/keystore").map(Some(_)).recover {
-      case e: NotFoundException => None
-    }
-
-  def saveForm(formDetails: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    ws.POST[FormData, SaveResult](s"$baseUrl/forms?tolerant=$tolerant", formDetails)
+  def updateUserData(formId: FormId, userData: UserData)(implicit hc: HeaderCarrier): Future[Unit] = {
+    ws.PUT[UserData, HttpResponse](s"$baseUrl/forms/${formId.value}", userData).map(_ => ())
   }
 
-  def updateForm(formId: FormId, formData: FormData, tolerant: Boolean)(implicit hc: HeaderCarrier): Future[SaveResult] = {
-    ws.PUT[FormData, HttpResponse](s"$baseUrl/forms/${formId.value}?tolerant=$tolerant", formData).map(x => SaveResult(None, None))
+  //TODO: now returns string, but it should return list of validations
+  def validateSection(formId: FormId, sectionNumber: SectionNumber)(implicit hc: HeaderCarrier): Future[String] = {
+    ws.GET[String](s"$baseUrl/forms/${formId.value}/validate-section/${sectionNumber.value}")
   }
 
-  def sendSubmission(formTypeId: FormTypeId, formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formTypeId.value}/submission/${formId.value}")
+  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
+    ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").map(_ => ())
+
+  /******submission*******/
+
+  def submitForm(formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")
   }
 
-  def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SaveResult] =
-    ws.POSTEmpty[SaveResult](baseUrl + s"/forms/$formId/delete")
+  def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    ws.GET[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")
+  }
 
+  /******formTemplate*******/
+
+  def getFormTemplate(formTemplateId: FormTemplateId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] = {
+    ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
+  }
+
+  //TODO other formTemplate endpoints
+  //TODO move this file to gform and make it's origin there
 }

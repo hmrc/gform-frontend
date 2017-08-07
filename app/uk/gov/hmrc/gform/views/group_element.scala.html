@@ -1,7 +1,13 @@
-@import uk.gov.hmrc.gform.models.components.{FieldValue, Orientation, Horizontal, Vertical, Group}
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
 @import views.html.helper.CSRF
 @import scala.concurrent.Future
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Horizontal
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
 
 
 @(fieldValue: FieldValue, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)
@@ -13,7 +19,7 @@
         <div class="divider--bottom">
             <div class="form-field-group">
                 <h2 class="heading-small">
-                    @localisation(groupField.buildRepeatLabel(instance))
+                    @localisation(GroupHelper.buildRepeatLabel(groupField, instance))
                 </h2>
             </div>
         </div>

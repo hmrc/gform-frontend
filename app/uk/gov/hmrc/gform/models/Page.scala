@@ -17,15 +17,14 @@
 package uk.gov.hmrc.gform.models
 
 import play.api.i18n.Messages
-import play.api.mvc.{ Request, Result }
 import play.api.mvc.Results.Ok
 import play.api.mvc.{ Request, Result }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.model.{ EnvelopeId, FormId, FormTemplate, SectionNumber }
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 

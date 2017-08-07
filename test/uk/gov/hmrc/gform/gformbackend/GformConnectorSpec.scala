@@ -18,13 +18,9 @@ package uk.gov.hmrc.gform.gformbackend
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.components._
-import uk.gov.hmrc.gform.models.{ DmsSubmission, Section, UserId }
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
-
-import scala.collection.immutable.List
 
 class GformConnectorSpec extends Spec {
 
@@ -34,7 +30,7 @@ class GformConnectorSpec extends Spec {
     val status = 200
     val responseJson = Some(Json.toJson(formTemplate))
     connector
-      .getFormTemplate(formTypeId)
+      .getFormTemplate(formTemplateId)
       .futureValue shouldBe formTemplate
   }
 
@@ -44,7 +40,7 @@ class GformConnectorSpec extends Spec {
     val status = 404
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId)
+      .getFormTemplate(formTemplateId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.NotFoundException]
   }
@@ -53,7 +49,7 @@ class GformConnectorSpec extends Spec {
     val status = 500
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId)
+      .getFormTemplate(formTemplateId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream5xxResponse]
   }
@@ -62,7 +58,7 @@ class GformConnectorSpec extends Spec {
     val status = 400
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId)
+      .getFormTemplate(formTemplateId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.BadRequestException]
   }
@@ -71,7 +67,7 @@ class GformConnectorSpec extends Spec {
     val status = 401
     val responseJson = None
     connector
-      .getFormTemplate(formTypeId)
+      .getFormTemplate(formTemplateId)
       .failed
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
   }
@@ -124,15 +120,6 @@ class GformConnectorSpec extends Spec {
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
   }
 
-  behavior of "GformConnector.newForm - happy path"
-
-  it should "return NewFormResponse" in new Fixture {
-    val status = 200
-    val responseJson = Some(Json.toJson(form))
-    connector
-      .newForm(formTypeId, userId)
-      .futureValue shouldBe form
-  }
 
   trait Fixture extends ExampleData {
     def status: Int
@@ -146,60 +133,4 @@ class GformConnectorSpec extends Spec {
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }
 
-}
-
-trait ExampleData {
-
-  lazy val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  lazy val section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
-  lazy val section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
-  lazy val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
-
-  lazy val formTypeId = FormTypeId("IPT100")
-  lazy val version = Version("0.3.0")
-
-  private val characterSet = "UTF-8"
-  lazy val formTemplate = FormTemplate(
-    formTypeId = formTypeId,
-    formName = "IPT100",
-    version = version,
-    description = "abc",
-    characterSet = characterSet,
-    dmsSubmission = dmsSubmission,
-    authConfig = authConfig,
-    submitSuccessUrl = "success-url",
-    submitErrorUrl = "error-url",
-    sections = List(section0, section1, section2)
-  )
-
-  lazy val authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"))
-  lazy val formId = FormId("4fdf4eb6-c41b-4cd8-b95d-8221b670d449")
-  lazy val field0 = FormField(
-    FieldId("facePhoto"),
-    "face-photo.jpg"
-  )
-  lazy val field1 = FormField(
-    FieldId("name"),
-    "Michael"
-  )
-  lazy val field2 = FormField(
-    FieldId("surname"),
-    "Jordan"
-  )
-
-  lazy val userId = UserId("TESTID")
-  lazy val fields = Seq(field0, field1, field2)
-  lazy val formData = FormData(
-    userId,
-    formTypeId,
-    characterSet,
-    fields
-  )
-  lazy val form = Form(
-    formId,
-    formData,
-    envelopeId
-  )
-
-  lazy val envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
 }

@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.models
 
 import org.scalatest.{ EitherValues, FlatSpec, Matchers, OptionValues }
-import uk.gov.hmrc.gform.models.components.{ DateExpr, Offset }
-import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions._
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Offset
 
 class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with OptionValues {
 
@@ -26,7 +26,7 @@ class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with Optio
     val value = Some(DateExpr(2017, 7, 4))
     val offset = Offset(0)
 
-    val result = value.map(withOffset(offset, _))
+    val result = value.map(DateHelperFunctions.withOffset(offset, _))
     result shouldBe value
   }
 
@@ -34,7 +34,7 @@ class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with Optio
     val value = Some(DateExpr(2017, 7, 4))
     val offset = Offset(-5)
 
-    val result = value.map(withOffset(offset, _))
+    val result = value.map(DateHelperFunctions.withOffset(offset, _))
     result.get shouldBe DateExpr(2017, 6, 29)
   }
 
@@ -42,7 +42,7 @@ class DatePrepopSpec extends FlatSpec with Matchers with EitherValues with Optio
     val value = Some(DateExpr(2017, 7, 4))
     val offset = Offset(40)
 
-    val result = value.map(withOffset(offset, _))
+    val result = value.map(DateHelperFunctions.withOffset(offset, _))
     result.get shouldBe DateExpr(2017, 8, 13)
   }
 

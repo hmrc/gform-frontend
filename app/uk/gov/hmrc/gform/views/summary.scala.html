@@ -1,4 +1,7 @@
-@import uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTemplate}
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.models._
+
 @import uk.gov.hmrc.gform.models.SummaryForRender
 @import views.html.helper.CSRF
 @(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
@@ -10,7 +13,7 @@
       Make sure that the information you have given is correct before submitting your return.
     </p>
 
-    <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryGen.submit(formId, formTemplate.formTypeId).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryGen.submit(formId, formTemplate._id).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
             CSRF.formField

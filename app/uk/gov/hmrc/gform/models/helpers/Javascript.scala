@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import uk.gov.hmrc.gform.models.components._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FieldId, FieldValue }
 
 object Javascript {
 

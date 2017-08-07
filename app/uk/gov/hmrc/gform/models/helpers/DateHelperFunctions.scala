@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import uk.gov.hmrc.gform.models.components.{ DateExpr, Offset }
 import scala.util.{ Failure, Success, Try }
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.Month
+
+import uk.gov.hmrc.gform.models.DateExpr
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Offset
 
 object DefaultDateFormatter {
   val formatPattern = "yyyy-MM-dd"

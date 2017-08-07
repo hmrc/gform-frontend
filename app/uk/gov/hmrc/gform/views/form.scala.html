@@ -1,5 +1,7 @@
-@import uk.gov.hmrc.gform.gformbackend.model.{FormId, FormTemplate}
-@import uk.gov.hmrc.gform.models.PageForRender
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.models._
+
 @import views.html.helper.CSRF
 @(formTemplate: FormTemplate, page: PageForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
 
@@ -30,6 +32,12 @@
         <div class="form-group">
             <button type="submit" class="button--secondary" name="save" value="Save">Save and come back later</button>
         </div>
+
+        @if(page.sectionNumber.value != 0){
+        <div class="form-group">
+            <button type="submit" class="button--secondary" name="save" value="Back">Back</button>
+        </div>
+        }
     </form>
 
     <script type="text/javascript">
