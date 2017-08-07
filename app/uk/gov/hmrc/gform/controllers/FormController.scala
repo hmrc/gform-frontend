@@ -286,7 +286,7 @@ class FormController @Inject() (
         val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 
-        val formData = formFields.map(formFields => FormData(userId, form.formData.formTypeId, "UTF-8", formFields))
+        val formData = formFields.map(formFields => FormData(formFields))
 
         for {
           keystore <- repeatService.getData()

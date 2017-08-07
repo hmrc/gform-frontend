@@ -30,7 +30,6 @@ case class Section(
     includeIf: Option[IncludeIf],
     repeatsMax: Option[TextExpression],
     repeatsMin: Option[TextExpression],
-    fieldToTrack: Option[VariableInContext],
     fields: List[FieldValue]
 ) {
 

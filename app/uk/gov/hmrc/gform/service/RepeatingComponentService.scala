@@ -48,28 +48,19 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.fieldToTrack.isDefined
+  private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.repeatsMin.isDefined
 
   private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]],
     cacheMap: CacheMap)(implicit hc: HeaderCarrier): List[Section] = {
-    val max = evaluateExpression(section.repeatsMax.get.expr, formTemplate, data)
-    val min = evaluateExpression(section.repeatsMin.getOrElse(TextExpression(Constant("1"))).expr, formTemplate, data)
-    require(max >= 1, s"repeatsMax in Repeating Section should be greater than 1, evaluated value is $max")
-    require(min >= 1, s"repeatsMin in Repeating Section should be greater than 1, evaluated value is $min")
-    val (maybeGroupField, requestedCount) = getRequestedCount(section.fieldToTrack.get, formTemplate, data, cacheMap)
-    val count = if (requestedCount >= min && requestedCount <= max) {
-      requestedCount
-    } else if (max > min && requestedCount > max) {
-      max
-    } else {
-      min
-    }
+
+    val count = getRequestedCount(section.repeatsMax.get, formTemplate, data, cacheMap)
+
     (1 to count).map { i =>
-      copySection(section, i, maybeGroupField, data, cacheMap)
+      copySection(section, i, data, cacheMap)
     }.toList
   }
 
-  private def copySection(section: Section, index: Int, groupField: Option[FieldValue], data: Map[FieldId, Seq[String]],
+  private def copySection(section: Section, index: Int, data: Map[FieldId, Seq[String]],
     cacheMap: CacheMap)(implicit hc: HeaderCarrier) = {
     def copyField(field: FieldValue): FieldValue = {
       field.`type` match {
@@ -84,8 +75,8 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
 
     section.copy(
-      title = buildText(Some(section.title), index, groupField, section.fieldToTrack.get, data, cacheMap).getOrElse(""),
-      shortName = buildText(section.shortName, index, groupField, section.fieldToTrack.get, data, cacheMap),
+      //      title = buildText(Some(section.title), index, groupField, section.fieldToTrack.get, data, cacheMap).getOrElse(""),
+      //      shortName = buildText(section.shortName, index, groupField, section.fieldToTrack.get, data, cacheMap),
       fields = section.fields.map(copyField)
     )
   }
@@ -93,7 +84,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
   private def buildText(template: Option[String], index: Int, groupField: Option[FieldValue],
     fieldToTrack: VariableInContext, data: Map[FieldId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier): Option[String] = {
     val groupFieldList = groupField match {
-      case Some(field) => cacheMap.getEntry[List[List[FieldValue]]](field.id.value).getOrElse(Nil).flatten //getAllFieldsInGroup(field, field.`type`.asInstanceOf[Group])
+      case Some(field) => cacheMap.getEntry[List[List[FieldValue]]](field.id.value).getOrElse(Nil).flatten
       case None => Nil
     }
 
@@ -115,7 +106,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     expr match {
       case Add(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) + evaluateExpression(expr2, formTemplate, data)
       case Multiply(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) * evaluateExpression(expr2, formTemplate, data)
-      case FormCtx(fieldId) => getFormFieldIntValue(fieldId, data)
+      case formExpr @ FormCtx(_) => getFormFieldIntValue(TextExpression(formExpr), data)
       case Constant(value) => Try(value.toInt) match {
         case Success(intValue) => intValue
         case _ => 0
@@ -126,24 +117,23 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  private def getRequestedCount(id: VariableInContext, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier): (Option[FieldValue], Int) = {
-    // Currently the fieldToTrack field in the Section can contain two types of fields:
-    // - Field not in a repeating group. In this case the value typed in this field is used.
-    // - Field in a repeating group. In this case the repeating group the fieldToTrack belongs to is linked to the
-    //                               repeating Section. New instances in the repeating group create a new section too.
+  private def getRequestedCount(expr: TextExpression, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier) = {
 
-    val repeatingGroupsFound = findRepeatingGroupsContainingField(id.field, formTemplate)
+    val repeatingGroupsFound = findRepeatingGroupsContainingField(expr, formTemplate)
 
     if (repeatingGroupsFound.isEmpty) {
-      (None, getFormFieldIntValue(id.field, data))
+      evaluateExpression(expr.expr, formTemplate, data)
     } else {
       val groupFieldValue = repeatingGroupsFound.head
       val fieldsInGroup = cacheMap.getEntry[List[List[FieldValue]]](groupFieldValue.id.value).getOrElse(Nil).flatten
-      (Some(groupFieldValue), fieldsInGroup.size)
+      fieldsInGroup.size
     }
   }
 
-  private def getFormFieldIntValue(id: String, data: Map[FieldId, Seq[String]]) = {
+  private def getFormFieldIntValue(expr: TextExpression, data: Map[FieldId, Seq[String]]) = {
+
+    val id = extractFieldId(expr)
+
     data.get(FieldId(id)) match {
       case Some(value) => Try(value.head.toInt) match {
         case Success(intValue) => intValue
@@ -153,7 +143,16 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  private def findRepeatingGroupsContainingField(id: String, formTemplate: FormTemplate): Set[FieldValue] = {
+  private def extractFieldId(expr: TextExpression) = {
+    expr.expr match {
+      case FormCtx(fieldId) => fieldId
+      case _ => ""
+    }
+  }
+
+  private def findRepeatingGroupsContainingField(expr: TextExpression, formTemplate: FormTemplate): Set[FieldValue] = {
+
+    val id = extractFieldId(expr)
 
     def findRepeatingGroups(groupField: Option[FieldValue], fieldList: List[FieldValue]): Set[FieldValue] = {
       fieldList.flatMap { field =>
