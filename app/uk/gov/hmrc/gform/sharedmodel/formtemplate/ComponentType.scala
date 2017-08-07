@@ -31,6 +31,11 @@ case class Text(
   total: Boolean
 ) extends ComponentType
 
+object Text {
+
+  val fields = (id: FieldId) => List("1", "2", "3").map(id.withSuffix)
+}
+
 case class Date(
   constraintType: DateConstraintType,
   offset: Offset,
