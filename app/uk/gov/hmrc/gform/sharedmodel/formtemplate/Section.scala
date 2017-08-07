@@ -52,28 +52,7 @@ case class Section(
 }
 
 object Section {
-
-  //TODO remove all logic from that case class representing data
-
-  implicit val format: OFormat[Section] = {
-    val writes: OWrites[Section] = Json.writes[Section]
-    val reads: Reads[Section] = Reads { json =>
-      for {
-      // format: OFF
-        title        <- (json \ "title").validate[String]
-        description  <- (json \ "description").validateOpt[String]
-        shortName    <- (json \ "shortName").validateOpt[String]
-        includeIf    <- (json \ "includeIf").validateOpt[IncludeIf]
-        repeatsMax   <- (json \ "repeatsMax").validateOpt[TextExpression]
-        repeatsMin   <- (json \ "repeatsMin").validateOpt[TextExpression]
-        fieldToTrack <- (json \ "fieldToTrack").validateOpt[VariableInContext]
-        fields       <- (json \ "fields").validate[List[FieldValue]]
-        // format: ON
-      } yield Section(title, description, shortName, includeIf, repeatsMax, repeatsMin, fieldToTrack, fields)
-    }
-    OFormat[Section](reads, writes)
-  }
-
+  implicit val format = Json.format[Section]
 }
 
 case class SectionFormField(

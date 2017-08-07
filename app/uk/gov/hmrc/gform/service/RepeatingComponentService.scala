@@ -75,30 +75,42 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
 
     section.copy(
-      //      title = buildText(Some(section.title), index, groupField, section.fieldToTrack.get, data, cacheMap).getOrElse(""),
-      //      shortName = buildText(section.shortName, index, groupField, section.fieldToTrack.get, data, cacheMap),
+      title = buildText(Some(section.title), index, data, cacheMap).getOrElse(""),
+      shortName = buildText(section.shortName, index, data, cacheMap),
       fields = section.fields.map(copyField)
     )
   }
 
-  private def buildText(template: Option[String], index: Int, groupField: Option[FieldValue],
-    fieldToTrack: VariableInContext, data: Map[FieldId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier): Option[String] = {
-    val groupFieldList = groupField match {
-      case Some(field) => cacheMap.getEntry[List[List[FieldValue]]](field.id.value).getOrElse(Nil).flatten
-      case None => Nil
+  private def buildText(template: Option[String], index: Int, data: Map[FieldId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier): Option[String] = {
+
+    def evaluateTextExpression(str: String) = {
+      val field = str.replaceFirst("""\$\{""", "").replaceFirst("""\}""", "")
+      if (field.startsWith("n_")) {
+        if (index == 1) {
+          val fieldName = field.replaceFirst("n_", "")
+          data.getOrElse(FieldId(fieldName), Seq("")).mkString
+        } else {
+          val fieldName = field.replaceFirst("n_", s"${index - 1}_")
+          data.getOrElse(FieldId(fieldName), Seq("")).mkString
+        }
+      } else {
+        data.getOrElse(FieldId(field), Seq("")).mkString
+      }
     }
 
-    val textToInsert = if (groupFieldList.isEmpty) {
-      ""
-    } else {
-      data.getOrElse(groupFieldList(index - 1).id, Seq()).mkString
+    def getEvaluatedText(str: String) = {
+      val pattern = """.*(\$\{.*\}).*""".r
+      val expression = str match {
+        case pattern(txtExpr) => txtExpr
+        case _ => ""
+      }
+      val evaluatedText = evaluateTextExpression(expression)
+      str.replace(expression, evaluatedText)
     }
 
     template match {
-      case Some(text) => Some(
-        text.replace("$t", textToInsert).replace("$n", index.toString)
-      )
-      case None => None
+      case Some(inputText) => Some(getEvaluatedText(inputText).replace("$n", index.toString))
+      case _ => None
     }
   }
 
