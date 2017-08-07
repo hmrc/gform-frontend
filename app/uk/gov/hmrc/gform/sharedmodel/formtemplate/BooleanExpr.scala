@@ -42,8 +42,6 @@ object BooleanExpr {
   //TODO: move this logic out of data
   def nextTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
 
-    val x = "y"
-
     if (idx >= expressions.size - 1) return None
     if (isTrue(expressions(idx + 1), data)) return Some(idx + 1)
 
