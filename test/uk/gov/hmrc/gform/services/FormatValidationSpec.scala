@@ -107,4 +107,84 @@ class FormatValidationSpec extends Spec {
 
   private val fieldValueFunction: TextConstraint => FieldValue = contraint => fieldValue(Text(contraint, Constant(""), false))
 
+  "TelephoneNumber" should "be valid within limit of 30" in {
+    val textConstrait = TelephoneNumber
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("123456789101112131415161718192")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beRight(())
+  }
+
+  "TelephoneNumber" should "be valid with special characters" in {
+    val textConstrait = TelephoneNumber
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("+44 1234 567890")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beRight(())
+  }
+
+  "TelephoneNumber" should "be invalid with over the limit" in {
+    val textConstrait = TelephoneNumber
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("1234567891011121314151617181920")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("Entered too many characters")))
+  }
+
+  "Email" should "be valid with proper structure" in {
+    val textConstrait = Email
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("test@test.com")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beRight(())
+  }
+
+  "Email" should "be invalid with anvalid email address" in {
+    val textConstrait = Email
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("testtest.com")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("This email address is not valid")))
+  }
+
 }
