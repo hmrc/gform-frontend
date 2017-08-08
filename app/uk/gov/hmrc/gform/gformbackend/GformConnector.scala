@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import play.api.libs.json.JsValue
-import uk.gov.hmrc.gform.models.SaveResult
 import uk.gov.hmrc.gform.sharedmodel.UserId
+import uk.gov.hmrc.gform.sharedmodel.config.ExposedConfig
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.gform.wshttp.WSHttp
@@ -27,6 +26,10 @@ import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * This connector originates in GFORM project.
+ * Edit it there first and propagate it from there.
+ */
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******form*******/
@@ -69,6 +72,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def getFormTemplate(formTemplateId: FormTemplateId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] = {
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
+  }
+
+  /******exposed-config*******/
+  def getExposedConfig(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ExposedConfig] = {
+    ws.GET[ExposedConfig](s"$baseUrl/exposed-config")
   }
 
   //TODO other formTemplate endpoints

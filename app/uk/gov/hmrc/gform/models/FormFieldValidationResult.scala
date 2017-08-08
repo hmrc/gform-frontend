@@ -159,7 +159,14 @@ object ValidationUtil {
           case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
         }
       }
-      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _) =>
+      case Text(_, _, _) => Text.fields(fieldValue.id).map { fieldId =>
+        gformErrors.get(fieldId) match {
+          //with suffix
+          case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
+          case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
+        }
+      }
+      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) =>
         List[(FieldId, FormFieldValidationResult)]()
     }
   }
@@ -209,13 +216,24 @@ object ValidationUtil {
 
           ComponentField(fieldValue, dataMap)
 
-        case Text(_, _, _) =>
-
+        case Text(constraint, _, _) =>
           val fieldId = fieldValue.id
-
-          gFormErrors.get(fieldId) match {
-            case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
-            case None => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+          constraint match {
+            case UkSortCode =>
+              val data: String = Text.fields(fieldId).map { fieldId =>
+                dataGetter(fieldId).headOption.getOrElse("")
+              }.mkString("-")
+              gFormErrors
+                .get(fieldId)
+                .fold[FormFieldValidationResult](
+                  FieldOk(fieldValue, data)
+                )(errors => FieldError(fieldValue, data, errors))
+            case _ =>
+              gFormErrors
+                .get(fieldId)
+                .fold[FormFieldValidationResult](
+                  FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+                )(errors => FieldError(fieldValue, dataGetter(fieldId).headOption.getOrElse(""), errors))
           }
 
         case Group(_, _, _, _, _, _) => {
