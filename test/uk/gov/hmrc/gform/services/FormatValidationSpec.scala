@@ -166,4 +166,68 @@ class FormatValidationSpec extends Spec {
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number")))
   }
 
+  "UTR" should "be valid "in {
+    val textConstrait = UTR
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("1000000000")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beRight(())
+  }
+
+  "UTR" should "be invalid with decimals" in {
+    val textConstrait = UTR
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("123456789")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("Not a valid Id")))
+  }
+
+  "NINO" should "be valid with a valid NINO "in {
+    val textConstrait = UTR
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("AA111111A")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beRight(())
+  }
+
+  "NINO" should "be return Invalid with an incorrect NINO" in {
+    val textConstrait = UTR
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("AA111111")
+    )
+
+    val result = validator(fieldValue, data).validate().futureValue
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("Not a valid Id")))
+  }
+
 }
