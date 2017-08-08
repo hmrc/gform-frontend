@@ -34,6 +34,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.matching.Regex.Match
 import scala.util.{ Failure, Success, Try }
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
@@ -197,9 +198,21 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
       case (_, value :: Nil, UkSortCode) => checkLength(value, 2)
+      case (_, value :: Nil, UTR) => checkId(value)
+      case (_, value :: Nil, NINO) => checkId(value)
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
       case (_, value :: rest, _) => Valid(()) // we don't support multiple values yet
+    }
+  }
+
+  private def checkId(value: String) = {
+    val UTR = "[0-9]{10}".r
+    val NINO = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
+    value match {
+      case UTR() => Valid(())
+      case NINO() => Valid(())
+      case _ => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Not a valid Id"))))
     }
   }
 
