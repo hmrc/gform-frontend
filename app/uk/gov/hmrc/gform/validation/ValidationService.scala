@@ -195,11 +195,21 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (true, Nil, _) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Please enter required data"))))
       case (_, _, AnyText) => Valid(())
       case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
-      case (_, value :: Nil, UkBankAccountNumber) => validateNumber(value, 8, 0, true)
-      case (_, value :: Nil, UkSortCode) => validateNumber(value, 6, 0, true)
+      case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
+      case (_, value :: Nil, UkSortCode) => checkLength(value, 2)
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
       case (_, value :: rest, _) => Valid(()) // we don't support multiple values yet
+    }
+  }
+
+  private def checkLength(value: String, desiredLength: Int) = {
+    val WholeShape = "([+-]?)(\\d+)[.]?".r
+    val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
+    value match {
+      case FractionalShape(_, _, _) => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"must be a whole number"))))
+      case WholeShape(_, whole) if whole.length == desiredLength => Valid(())
+      case _ => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse(s"must be a whole number of ${desiredLength} length"))))
     }
   }
 
