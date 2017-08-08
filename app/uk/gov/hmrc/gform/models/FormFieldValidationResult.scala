@@ -217,13 +217,23 @@ object ValidationUtil {
           ComponentField(fieldValue, dataMap)
 
         case Text(constraint, _, _) =>
+          val fieldId = fieldValue.id
           constraint match {
             case UkSortCode =>
-              val data: String = Text.fields(fieldValue.id).map { fieldId =>
+              val data: String = Text.fields(fieldId).map { fieldId =>
                 dataGetter(fieldId).headOption.getOrElse("")
               }.mkString("-")
-              FieldOk(fieldValue, data)
-            case _ => FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+              gFormErrors
+                .get(fieldId)
+                .fold[FormFieldValidationResult](
+                  FieldOk(fieldValue, data)
+                )(errors => FieldError(fieldValue, data, errors))
+            case _ =>
+              gFormErrors
+                .get(fieldId)
+                .fold[FormFieldValidationResult](
+                  FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+                )(errors => FieldError(fieldValue, dataGetter(fieldId).headOption.getOrElse(""), errors))
           }
 
         case Group(_, _, _, _, _, _) => {
