@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform
 
+import cats.scalatest.EitherMatchers
 import org.scalatest._
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.prop.PropertyChecks
@@ -27,6 +28,7 @@ import scala.concurrent.ExecutionContext
 trait Spec
     extends FlatSpecLike
     with Matchers
+    with EitherMatchers
     with DiagrammedAssertions
     with TryValues
     with EitherValues

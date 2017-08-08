@@ -24,12 +24,41 @@
             errors.map(e => errorInline(e, e, Seq("")))
         }
 
-      <input
-         type="text"
-         name="@fieldValue.id"
-          @if(!fieldValue.editable) { readonly="" }
-         id="@fieldValue.id"
-         value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-         class="input--medium">
+        @text.constraint match {
+            case UkSortCode => {
+
+        <input
+                type="text"
+                name="@fieldValue.id.withSuffix("1")"
+                @if(!fieldValue.editable) { readonly="" }
+                id="@fieldValue.id.withSuffix("1")"
+                value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop).split("-").lift(0).getOrElse("")"
+                class="input--xxsmall push--left">
+        <input
+                type="text"
+                name="@fieldValue.id.withSuffix("2")"
+                @if(!fieldValue.editable) { readonly="" }
+                id="@fieldValue.id.withSuffix("2")"
+                value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop).split("-").lift(1).getOrElse("")"
+                class="input--xxsmall">
+        <input
+                type="text"
+                name="@fieldValue.id.withSuffix("3")"
+                @if(!fieldValue.editable) { readonly="" }
+                id="@fieldValue.id.withSuffix("3")"
+                value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop).split("-").lift(2).getOrElse("")"
+                class="input--xxsmall">
+        }
+            case _ => {
+        <input
+                type="text"
+                name="@fieldValue.id"
+                @if(!fieldValue.editable) { readonly="" }
+                id="@fieldValue.id"
+                value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
+                class="input--medium">
+        }
+        }
+
     </div>
 </div>

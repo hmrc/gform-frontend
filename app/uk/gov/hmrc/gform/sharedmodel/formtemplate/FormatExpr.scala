@@ -78,6 +78,10 @@ final case class Number(maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
 
 final case class PositiveNumber(maxWholeDigits: Int = TextConstraint.defaultWholeDigits, maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits, unit: Option[String] = None) extends TextConstraint
 
+final case object Sterling extends TextConstraint
+final case object UkBankAccountNumber extends TextConstraint
+final case object UkSortCode extends TextConstraint
+
 object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
