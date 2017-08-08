@@ -99,13 +99,13 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
-  def `section - about you` = Section("About you", None, None, None, None, None, None, List(
+  def `section - about you` = Section("About you", None, None, None, None, None, List(
     `fieldValue - firstName`,
     `fieldValue - surname`,
     `fieldValue - facePhoto`
   ))
 
-  def `section - businessDetails` = Section("Business details", None, None, None, None, None, None, List(
+  def `section - businessDetails` = Section("Business details", None, None, None, None, None, List(
     `fieldValue - businessName`,
     `fieldValue - startDate`,
     `fieldValue - iptRegNum`

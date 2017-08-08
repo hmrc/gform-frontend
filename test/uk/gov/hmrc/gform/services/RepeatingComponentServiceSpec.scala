@@ -19,10 +19,8 @@ package uk.gov.hmrc.gform.services
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
-import uk.gov.hmrc.gform.gformbackend.model._
-import uk.gov.hmrc.gform.models.{ DmsSubmission, Section, TextExpression, VariableInContext }
-import uk.gov.hmrc.gform.models.components._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -34,11 +32,9 @@ class RepeatingComponentServiceSpec extends Spec {
   implicit lazy val hc = HeaderCarrier()
 
   val basicFormTemplate = FormTemplate(
-    formTypeId = FormTypeId("JustAFormTypeId"),
+    _id = FormTemplateId("FRM001"),
     formName = "formName",
-    version = Version("-11"),
     description = "formTemplateDescription",
-    characterSet = "UTF-16",
     dmsSubmission = DmsSubmission("customerId", "classificationType", "businessArea"),
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "http://somewhere-nice.net",
@@ -46,50 +42,73 @@ class RepeatingComponentServiceSpec extends Spec {
     sections = Nil
   )
 
+  val textFieldUno = FieldValue(
+    id = FieldId("repeatingSectionDriver"),
+    `type` = Text(AnyText, Constant("UNO"), false),
+    label = "Editable text label",
+    helpText = None,
+    shortName = None,
+    mandatory = true,
+    editable = true,
+    submissible = true,
+    errorMessage = None
+  )
+
+  val group = Group(
+    fields = List(textFieldUno),
+    orientation = Horizontal,
+    repeatsMax = None,
+    repeatsMin = None,
+    repeatLabel = None,
+    repeatAddAnotherText = None
+  )
+
+  val groupFieldValue = FieldValue(
+    id = FieldId("GroupFieldValueId"),
+    `type` = group,
+    label = "group FieldValue label",
+    helpText = None,
+    shortName = None,
+    mandatory = true,
+    editable = false,
+    submissible = true,
+    errorMessage = None
+  )
+
+  val section1 = Section(
+    title = "Section title",
+    description = None,
+    shortName = None,
+    includeIf = None,
+    None, None,
+    fields = List(groupFieldValue)
+  )
+
+  val textFieldDos = FieldValue(
+    id = FieldId("DOS"),
+    `type` = Text(AnyText, Constant("DOS"), false),
+    label = "Editable text label",
+    helpText = None,
+    shortName = None,
+    mandatory = true,
+    editable = true,
+    submissible = true,
+    errorMessage = None
+  )
+
+  val section2 = Section(
+    title = "Repeating section title",
+    description = None,
+    shortName = None,
+    includeIf = None,
+    repeatsMax = Some(TextExpression(FormCtx("repeatingSectionDriver"))),
+    repeatsMin = Some(TextExpression(FormCtx("repeatingSectionDriver"))),
+    fields = List(textFieldDos)
+  )
+
   "getAllSections" should "return only sections in template when no repeating sections are defined" in {
 
-    val textFieldUno = FieldValue(
-      id = FieldId("UNO"),
-      `type` = Text(AnyText, Constant("UNO"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val group = Group(
-      fields = List(textFieldUno),
-      orientation = Horizontal,
-      repeatsMax = None,
-      repeatsMin = None,
-      repeatLabel = None,
-      repeatAddAnotherText = None
-    )
-
-    val groupFieldValue = FieldValue(
-      id = FieldId("GroupFieldValueId"),
-      `type` = group,
-      label = "group FieldValue label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = false,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val section = Section(
-      title = "Section title",
-      description = None,
-      shortName = None,
-      includeIf = None,
-      None, None, None,
-      fields = List(groupFieldValue)
-    )
-    val formTemplate = basicFormTemplate.copy(sections = List(section))
+    val formTemplate = basicFormTemplate.copy(sections = List(section1))
 
     val testSessionCacheConnector = new SessionCacheConnector {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(None)
@@ -97,77 +116,11 @@ class RepeatingComponentServiceSpec extends Spec {
 
     val testService = new RepeatingComponentService(testSessionCacheConnector)
 
-    testService.getAllSections(formTemplate, Map.empty).futureValue shouldBe List(section)
+    testService.getAllSections(formTemplate, Map.empty).futureValue shouldBe List(section1)
   }
 
-  it should "return dynamically created sections when fieldToTrack in repeating group, no keystore data" in {
+  it should "return no dynamically created sections when field in repeatsMax expression in repeating group and no form data" in {
 
-    val textFieldUno = FieldValue(
-      id = FieldId("repeatingSectionDriver"),
-      `type` = Text(AnyText, Constant("UNO"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val group = Group(
-      fields = List(textFieldUno),
-      orientation = Horizontal,
-      repeatsMax = Some(4),
-      repeatsMin = Some(1),
-      repeatLabel = Some("RepGrpLabel"),
-      repeatAddAnotherText = Some("AddButtonLabel")
-    )
-
-    val groupFieldValue = FieldValue(
-      id = FieldId("GroupFieldValueId"),
-      `type` = group,
-      label = "group FieldValue label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = false,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val section1 = Section(
-      title = "Section 1 title",
-      description = None,
-      shortName = None,
-      includeIf = None,
-      repeatsMax = None,
-      repeatsMin = None,
-      fieldToTrack = None,
-      fields = List(groupFieldValue)
-    )
-
-    val textFieldDos = FieldValue(
-      id = FieldId("DOS"),
-      `type` = Text(AnyText, Constant("DOS"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val section2 = Section(
-      title = "Repeating section title",
-      description = None,
-      shortName = None,
-      includeIf = None,
-      repeatsMax = Some(TextExpression(Constant("2"))),
-      repeatsMin = Some(TextExpression(Constant("1"))),
-      fieldToTrack = Some(VariableInContext("repeatingSectionDriver")),
-      fields = List(textFieldDos)
-    )
     val formTemplate = basicFormTemplate.copy(sections = List(section1, section2))
 
     val testSessionCacheConnector = new SessionCacheConnector {
@@ -176,90 +129,37 @@ class RepeatingComponentServiceSpec extends Spec {
 
     val testService = new RepeatingComponentService(testSessionCacheConnector)
 
-    val textFieldR = textFieldDos.copy(id = FieldId(s"1_${textFieldDos.id.value}"))
-    val sectionR = section2.copy(fields = List(textFieldR))
-    val expectedList = List(section1, sectionR)
+    val expectedList = List(section1)
 
     testService.getAllSections(formTemplate, Map.empty).futureValue shouldBe expectedList
   }
 
-  it should "return dynamically created sections (title and shortName text built dynamically) when fieldToTrack in repeating group, data in keystore and form data" in {
+  it should "return dynamically created sections (title and shortName text built dynamically) when field to track in repeating group, and non-empty form data" in {
 
-    val textFieldUno = FieldValue(
-      id = FieldId("repeatingSectionDriver"),
-      `type` = Text(AnyText, Constant("UNO"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val group = Group(
-      fields = List(textFieldUno),
-      orientation = Horizontal,
+    val thisGroup = group.copy(
       repeatsMax = Some(4),
       repeatsMin = Some(1),
       repeatLabel = Some("RepGrpLabel"),
       repeatAddAnotherText = Some("AddButtonLabel")
     )
 
-    val groupFieldValue = FieldValue(
-      id = FieldId("GroupFieldValueId"),
-      `type` = group,
-      label = "group FieldValue label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = false,
-      submissible = true,
-      errorMessage = None
-    )
+    val thisGroupFieldValue = groupFieldValue.copy(`type` = thisGroup)
 
-    val section1 = Section(
-      title = "Section 1 title",
-      description = None,
-      shortName = None,
-      includeIf = None,
-      repeatsMax = None,
-      repeatsMin = None,
-      fieldToTrack = None,
-      fields = List(groupFieldValue)
-    )
+    val thisSection1 = section1.copy(fields = List(thisGroupFieldValue))
 
-    val textFieldDos = FieldValue(
-      id = FieldId("DOS"),
-      `type` = Text(AnyText, Constant("DOS"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
+    val thisSection2 = section2.copy(
+      title = """${n_repeatingSectionDriver}, $n""",
+      shortName = Some("""$n, ${n_repeatingSectionDriver}""")
     )
-
-    val section2 = Section(
-      title = "$t, $n",
-      description = None,
-      shortName = Some("$n, $t"),
-      includeIf = None,
-      repeatsMax = Some(TextExpression(Constant("2"))),
-      repeatsMin = Some(TextExpression(Constant("1"))),
-      fieldToTrack = Some(VariableInContext("repeatingSectionDriver")),
-      fields = List(textFieldDos)
-    )
-    val formTemplate = basicFormTemplate.copy(sections = List(section1, section2))
+    val formTemplate = basicFormTemplate.copy(sections = List(thisSection1, thisSection2))
 
     val textFieldR = textFieldDos.copy(id = FieldId(s"1_${textFieldDos.id.value}"))
-    val sectionR = section2.copy(fields = List(textFieldR), title = "ONE, 1", shortName = Some("1, ONE"))
+    val sectionR = thisSection2.copy(fields = List(textFieldR), title = "ONE, 1", shortName = Some("1, ONE"))
 
     val textFieldR2 = textFieldDos.copy(id = FieldId(s"2_${textFieldDos.id.value}"))
-    val sectionR2 = section2.copy(fields = List(textFieldR2), title = "TWO, 2", shortName = Some("2, TWO"))
+    val sectionR2 = thisSection2.copy(fields = List(textFieldR2), title = "TWO, 2", shortName = Some("2, TWO"))
 
-    val jsValue = Json.toJson(List(List(textFieldUno), List(textFieldUno.copy(id = FieldId(s"2_${textFieldUno.id.value}")))))
+    val jsValue = Json.toJson(List(List(textFieldUno), List(textFieldUno.copy(id = FieldId(s"1_${textFieldUno.id.value}")))))
     val mockCache = CacheMap("YEAH_MAN", Map("GroupFieldValueId" -> jsValue))
     val testSessionCacheConnector = new SessionCacheConnector {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(Some(mockCache))
@@ -267,155 +167,44 @@ class RepeatingComponentServiceSpec extends Spec {
 
     val testService = new RepeatingComponentService(testSessionCacheConnector)
 
-    val expectedList = List(section1, sectionR, sectionR2)
+    val expectedList = List(thisSection1, sectionR, sectionR2)
 
-    val formData = Map(FieldId("repeatingSectionDriver") -> Seq("ONE"), FieldId("2_repeatingSectionDriver") -> Seq("TWO"))
+    val formData = Map(FieldId("repeatingSectionDriver") -> Seq("ONE"), FieldId("1_repeatingSectionDriver") -> Seq("TWO"))
 
     testService.getAllSections(formTemplate, formData).futureValue shouldBe expectedList
   }
 
-  it should "return a dynamically created section when fieldToTrack in a NON-repeating group)" in {
-
-    val textFieldUno = FieldValue(
-      id = FieldId("UNO"),
-      `type` = Text(AnyText, Constant("UNO"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val group = Group(
-      fields = List(textFieldUno),
-      orientation = Horizontal,
-      repeatsMax = None,
-      repeatsMin = None,
-      repeatLabel = None,
-      repeatAddAnotherText = None
-    )
-
-    val groupFieldValue = FieldValue(
-      id = FieldId("GroupFieldValueId"),
-      `type` = group,
-      label = "group FieldValue label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = false,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val section1 = Section(
-      title = "Section 1 title",
-      description = None,
-      shortName = None,
-      includeIf = None,
-      repeatsMax = None,
-      repeatsMin = None,
-      fieldToTrack = None,
-      fields = List(groupFieldValue)
-    )
-
-    val section2 = Section(
+  it should "return a dynamically created section when field to track in a NON-repeating group" in {
+    val thisSection2 = section2.copy(
       title = "Repeating section title $n",
-      description = None,
-      shortName = Some("shortName $n"),
-      includeIf = None,
-      repeatsMax = Some(TextExpression(Constant("2"))),
-      repeatsMin = Some(TextExpression(Constant("1"))),
-      fieldToTrack = Some(VariableInContext("repeatingSectionDriver")),
-      fields = List(groupFieldValue)
+      shortName = Some("shortName $n")
     )
-    val formTemplate = basicFormTemplate.copy(sections = List(section1, section2))
 
+    val formTemplate = basicFormTemplate.copy(sections = List(section1, thisSection2))
+
+    val jsValue = Json.toJson(List(List(textFieldUno)))
+    val mockCache = CacheMap("YEAH_MAN", Map("GroupFieldValueId" -> jsValue))
     val testSessionCacheConnector = new SessionCacheConnector {
-      override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(None)
+      override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(Some(mockCache))
     }
 
     val testService = new RepeatingComponentService(testSessionCacheConnector)
 
-    val textField2 = textFieldUno.copy(id = FieldId(s"1_${textFieldUno.id.value}"))
-    val group2 = group.copy(fields = List(textField2))
-    val groupFieldValue2 = groupFieldValue.copy(id = FieldId(s"1_${groupFieldValue.id.value}"), `type` = group2)
-    val sectionR = section2.copy(fields = List(groupFieldValue2), title = "Repeating section title 1", shortName = Some("shortName 1"))
+    val textFieldDosR = textFieldDos.copy(id = FieldId(s"1_${textFieldDos.id.value}"))
+    val sectionR = thisSection2.copy(fields = List(textFieldDosR), title = "Repeating section title 1", shortName = Some("shortName 1"))
     val expectedList = List(section1, sectionR)
 
-    testService.getAllSections(formTemplate, Map.empty).futureValue shouldBe expectedList
+    val formData = Map(FieldId("repeatingSectionDriver") -> Seq("1"))
+
+    testService.getAllSections(formTemplate, formData).futureValue shouldBe expectedList
   }
 
-  it should "return dynamically created sections (title and shortName text built dynamically) when fieldToTrack in a NON-repeating group, with form data" in {
-
-    val textFieldUno = FieldValue(
-      id = FieldId("repeatingSectionDriver"),
-      `type` = Text(AnyText, Constant("UNO"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val group = Group(
-      fields = List(textFieldUno),
-      orientation = Horizontal,
-      repeatsMax = None,
-      repeatsMin = None,
-      repeatLabel = None,
-      repeatAddAnotherText = None
-    )
-
-    val groupFieldValue = FieldValue(
-      id = FieldId("GroupFieldValueId"),
-      `type` = group,
-      label = "group FieldValue label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = false,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val section1 = Section(
-      title = "Section 1 title",
-      description = None,
-      shortName = None,
-      includeIf = None,
-      repeatsMax = None,
-      repeatsMin = None,
-      fieldToTrack = None,
-      fields = List(groupFieldValue)
-    )
-
-    val textFieldDos = FieldValue(
-      id = FieldId("DOS"),
-      `type` = Text(AnyText, Constant("DOS"), false),
-      label = "Editable text label",
-      helpText = None,
-      shortName = None,
-      mandatory = true,
-      editable = true,
-      submissible = true,
-      errorMessage = None
-    )
-
-    val section2 = Section(
+  it should "return dynamically created sections (title and shortName text built dynamically) when field to track in a NON-repeating group, with form data" in {
+    val thisSection2 = section2.copy(
       title = "Repeating section title $n",
-      description = None,
-      shortName = Some("shortName $n"),
-      includeIf = None,
-      repeatsMax = Some(TextExpression(Constant("2"))),
-      repeatsMin = Some(TextExpression(Constant("1"))),
-      fieldToTrack = Some(VariableInContext("repeatingSectionDriver")),
-      fields = List(textFieldDos)
+      shortName = Some("shortName $n")
     )
-    val formTemplate = basicFormTemplate.copy(sections = List(section1, section2))
+    val formTemplate = basicFormTemplate.copy(sections = List(section1, thisSection2))
 
     val testSessionCacheConnector = new SessionCacheConnector {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(None)
@@ -425,8 +214,8 @@ class RepeatingComponentServiceSpec extends Spec {
 
     val textFieldDos1 = textFieldDos.copy(id = FieldId(s"1_${textFieldDos.id.value}"))
     val textFieldDos2 = textFieldDos.copy(id = FieldId(s"2_${textFieldDos.id.value}"))
-    val sectionR1 = section2.copy(fields = List(textFieldDos1), title = "Repeating section title 1", shortName = Some("shortName 1"))
-    val sectionR2 = section2.copy(fields = List(textFieldDos2), title = "Repeating section title 2", shortName = Some("shortName 2"))
+    val sectionR1 = thisSection2.copy(fields = List(textFieldDos1), title = "Repeating section title 1", shortName = Some("shortName 1"))
+    val sectionR2 = thisSection2.copy(fields = List(textFieldDos2), title = "Repeating section title 2", shortName = Some("shortName 2"))
     val expectedList = List(section1, sectionR1, sectionR2)
 
     val formData = Map(FieldId("repeatingSectionDriver") -> Seq("2"))

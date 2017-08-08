@@ -36,9 +36,9 @@ import scala.concurrent.Future
 class SummarySpec extends Spec {
 
   val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
-  val section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
-  val section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
+  val section0 = Section("Your details", None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
+  val section1 = Section("About you", None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
+  val section2 = Section("Business details", None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
   val formTemplate = FormTemplate(
     _id = FormTemplateId("formid-123"),
     formName = "IPT100",
@@ -90,7 +90,7 @@ class SummarySpec extends Spec {
 
   it should "display values for each field type with a submissible field, " in {
 
-    val section = Section("Personal details", None, None, None, None, None, None, List(
+    val section = Section("Personal details", None, None, None, None, None, List(
       FieldValue(FieldId("Surname"), Text(AnyText, Constant(""), total = false), "Surname", None, None, true, true, true, None),
       FieldValue(FieldId("Info"), Text(AnyText, Constant(""), total = false), "Info", None, None, true, true, submissible = false, None),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true, None),
@@ -364,7 +364,7 @@ class SummarySpec extends Spec {
       ),
       "Test!group-label!Test", None, None, true, true, true, None
     )
-    val section0 = Section("", None, None, None, None, None, None, List(groupFieldValue))
+    val section0 = Section("", None, None, None, None, None, List(groupFieldValue))
     val formTemplateWGroupNoShortname = formTemplate.copy(
       sections = List(section0)
     )
@@ -374,7 +374,7 @@ class SummarySpec extends Spec {
     extractAllTestStringValues(render0.futureValue.snippets) should be(List("group-label"))
 
     val formTemplateWGroupWithShortname = formTemplate.copy(
-      sections = List(Section("", None, None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
+      sections = List(Section("", None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
     )
 
     when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(formTemplateWGroupWithShortname.sections))

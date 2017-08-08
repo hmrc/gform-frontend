@@ -90,7 +90,7 @@ class PageForRenderSpec extends Spec {
   )
 
   val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
-  val section = Section("About you", None, None, None, None, None, None, List(infoFieldValue))
+  val section = Section("About you", None, None, None, None, None, List(infoFieldValue))
 
   val mockPrepopService = new PrepopService(null, null, null) {
     override def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =

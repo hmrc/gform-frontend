@@ -120,7 +120,6 @@ class GformConnectorSpec extends Spec {
       .futureValue shouldBe an[uk.gov.hmrc.play.http.Upstream4xxResponse]
   }
 
-
   trait Fixture extends ExampleData {
     def status: Int
     def responseJson: Option[JsValue]
