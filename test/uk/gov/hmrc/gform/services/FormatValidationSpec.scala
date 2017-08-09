@@ -26,91 +26,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 class FormatValidationSpec extends Spec {
 
-  implicit lazy val hc = HeaderCarrier()
+  "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest("12345678910", Sterling)
+  "Sterling Format" should "" in createFailTest("1234567891011", Sterling, "must be at most 11 digits")
+  "UkBankAccountNumber Format" should "be valid with 8 digits" in createSuccessTest("12345678", UkBankAccountNumber)
 
-  def validator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) = {
-    new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever"))
-  }
-
-  "Sterling Format" should "Valid with whole number below 11 digits" in {
-    val textConstrait = Sterling
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("12345678910")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beRight(())
-  }
-
-  "Sterling Format" should "" in {
-    val textConstrait = Sterling
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("1234567891011")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be at most 11 digits")))
-  }
-
-  "UkBankAccountNumber Format" should "be valid with 8 digits" in {
-    val textConstrait = UkBankAccountNumber
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("12345678")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beRight(())
-  }
-
-  "UkBankAccountNumber Format" should "be invalid with 9" in {
-    val textConstrait = UkBankAccountNumber
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123456789")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 8 length")))
-  }
-
-  "UkBankAccountNumber Format" should "be invalid with decimals" in {
-    val textConstrait = UkBankAccountNumber
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123456789.12345678")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number")))
-  }
+  "UkBankAccountNumber Format" should "be invalid with 9" in createFailTest("123456789", UkBankAccountNumber, "must be a whole number of 8 length")
+  "UkBankAccountNumber Format" should "be invalid with decimals" in createFailTest("123456789.12345678", UkBankAccountNumber, "must be a whole number")
 
   "UkSortCode" should "be valid with 2 digits in each box" in {
     val textConstrait = UkSortCode
@@ -125,7 +46,7 @@ class FormatValidationSpec extends Spec {
       FieldId("n-3") -> Seq("12")
     )
 
-    val result = validator(fieldValue, data).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beRight(())
   }
@@ -143,7 +64,7 @@ class FormatValidationSpec extends Spec {
       FieldId("n-3") -> Seq("12")
     )
 
-    val result = validator(fieldValue, data).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
   }
@@ -161,73 +82,29 @@ class FormatValidationSpec extends Spec {
       FieldId("n-3") -> Seq("1.2")
     )
 
-    val result = validator(fieldValue, data).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number")))
   }
 
-  "UTR" should "be valid "in {
-    val textConstrait = UTR
-    val text = Text(textConstrait, Constant(""), false)
+  "UTR" should "be valid " in createSuccessTest("1000000000", UTR)
+  "UTR" should "be invalid with decimals" in createFailTest("123456789", UTR, "Not a valid Id")
+  "NINO" should "be valid with a valid NINO " in createSuccessTest("AA111111A", NINO)
+  "NINO" should "be return Invalid with an incorrect NINO" in createFailTest("AA111111", NINO, "Not a valid Id")
+  private def createSuccessTest(data: String, contraint: TextConstraint) =
+    validator(fieldValueFunction(contraint), getData(data)).toEither should beRight(())
 
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
+  private def createFailTest(data: String, constrait: TextConstraint, errorMessage: String) =
+    validator(fieldValueFunction(constrait), getData(data)).toEither should beLeft(Map(default -> Set(errorMessage)))
 
-    val data = Map(
-      FieldId("n") -> Seq("1000000000")
-    )
+  private val getData: String => Map[FieldId, Seq[String]] = str => Map(default -> Seq(str))
 
-    val result = validator(fieldValue, data).validate().futureValue
+  implicit lazy val hc = HeaderCarrier()
 
-    result.toEither should beRight(())
+  private def validator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) = {
+    new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
   }
 
-  "UTR" should "be invalid with decimals" in {
-    val textConstrait = UTR
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123456789")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("Not a valid Id")))
-  }
-
-  "NINO" should "be valid with a valid NINO "in {
-    val textConstrait = UTR
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("AA111111A")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beRight(())
-  }
-
-  "NINO" should "be return Invalid with an incorrect NINO" in {
-    val textConstrait = UTR
-    val text = Text(textConstrait, Constant(""), false)
-
-    val fieldValue = FieldValue(FieldId("n"), text,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("AA111111")
-    )
-
-    val result = validator(fieldValue, data).validate().futureValue
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("Not a valid Id")))
-  }
+  private val fieldValueFunction: TextConstraint => FieldValue = contraint => fieldValue(Text(contraint, Constant(""), false))
 
 }
