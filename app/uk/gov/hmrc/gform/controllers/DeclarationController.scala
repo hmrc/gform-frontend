@@ -20,13 +20,14 @@ import javax.inject.{ Inject, Singleton }
 
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
+import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ anyFormId, formDataMap, get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.models.Summary
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplateId }
@@ -35,44 +36,39 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class SummaryGen @Inject() (
-  controllersModule: ControllersModule,
-  gformBackendModule: GformBackendModule,
-  configModule: ConfigModule,
-  repeatService: RepeatingComponentService,
-  fileUploadModule: FileUploadModule,
-  authModule: AuthModule,
-  val messagesApi: MessagesApi,
-  auditingModule: AuditingModule
-)(implicit ec: ExecutionContext)
-    extends FrontendController {
+class DeclarationController @Inject() (
+    controllersModule: ControllersModule,
+    gformBackendModule: GformBackendModule,
+    configModule: ConfigModule,
+    repeatService: RepeatingComponentService,
+    fileUploadModule: FileUploadModule,
+    authModule: AuthModule,
+    val messagesApi: MessagesApi,
+    auditingModule: AuditingModule
+)(implicit ec: ExecutionContext) extends FrontendController {
 
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId) = auth.async { implicit c =>
+  def showDeclaration(formId: FormId) = auth.async { implicit authRequest =>
+
     val formF = gformConnector.getForm(formId)
-    for {// format: OFF
+    for {
+      // format: OFF
       form           <- formF
-      envelopeF      = fileUploadService.getEnvelope(form.envelopeId)
-      formTemplateF  = gformConnector.getFormTemplate(form.formTemplateId)
-      envelope       <- envelopeF
-      formTemplate   <- formTemplateF
-      map = formDataMap(form.formData)
-      result <- Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
+//      envelopeF      = fileUploadService.getEnvelope(form.envelopeId)
+      formTemplate  <- gformConnector.getFormTemplate(form.formTemplateId)
+      //envelope       <- envelopeF
+      //map = formDataMap(form.formData)
       // format: ON
-    } yield result
+    } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, None))
   }
 
-  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async { implicit c =>
+  def submitDeclaration(formId: FormId) = auth.async { implicit c =>
 
     processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
-        case "Exit" :: Nil =>
-          Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTypeId)))
-        case "Declaration" :: Nil =>
-          Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId)))
-        /*case "Continue" :: Nil =>
+        case "Continue" :: Nil =>
           anyFormId(data) match {
             case Some(formId) =>
               val submissionF = gformConnector.submitForm(formId)
@@ -87,7 +83,7 @@ class SummaryGen @Inject() (
               }
             case None =>
               Future.successful(BadRequest("No formId"))
-          }*/
+          }
         case _ =>
           Future.successful(BadRequest("Cannot determine action"))
       }
@@ -97,5 +93,5 @@ class SummaryGen @Inject() (
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
-  //private lazy val auditService = auditingModule.auditService
+  private lazy val auditService = auditingModule.auditService
 }
