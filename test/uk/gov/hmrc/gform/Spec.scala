@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform
 
 import cats.scalatest.EitherMatchers
 import org.scalatest._
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.prop.PropertyChecks
-import org.scalatest.time.{Millis, Span}
+import org.scalatest.time.{ Millis, Span }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 
 import scala.collection.immutable.List
