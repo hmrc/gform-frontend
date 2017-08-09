@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
-
+import uk.gov.hmrc.domain._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.matching.Regex.Match
@@ -208,10 +208,9 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   private def checkId(value: String) = {
     val UTR = "[0-9]{10}".r
-    val NINO = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
     value match {
       case UTR() => Valid(())
-      case NINO() => Valid(())
+      case x if Nino.isValid(x) => Valid(())
       case _ => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Not a valid Id"))))
     }
   }
