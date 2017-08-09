@@ -121,7 +121,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def fieldValue(text: Text) = FieldValue(
     default,
     text,
-    "sample label", None, None, true, false, false, None)
+    "sample label", None, None, true, false, false, None
+  )
 
 }
 
