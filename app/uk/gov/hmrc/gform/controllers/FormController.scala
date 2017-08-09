@@ -307,7 +307,20 @@ class FormController @Inject() (
         // format: ON
       } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId, prepopService))
 
-      val actionE: Future[Either[String, FormAction]] = optNextPage.map(optNextPage => FormAction.determineAction(data, optNextPage))
+      val optBackPage = for {// format: OFF
+        envelope     <- envelopeF
+        envelopeId   <- envelopeIdF
+        formTemplate <- formTemplateF
+        sections     <- sectionsF
+        booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
+        optSectionIdx = BooleanExpr.backTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
+        // format: ON
+      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId, prepopService))
+
+      val actionE: Future[Either[String, FormAction]] = for {
+        optNextPage <- optNextPage
+        optBackPage <- optBackPage
+      } yield FormAction.determineAction(data, optNextPage, optBackPage)
 
       actionE.flatMap {
         case Right(action) =>
@@ -332,7 +345,7 @@ class FormController @Inject() (
                 userDetails <- userDetailsF
                 form <- formF
                 dynamicSections <- sectionsF
-                result <- processBack(userDetails.userId, form)(lastPage.copy(sectionNumber = SectionNumber(lastPage.sectionNumber.value - 2)).renderPage(data, formId, None, dynamicSections))
+                result <- processBack(userDetails.userId, form)(lastPage.renderPage(data, formId, None, dynamicSections))
               } yield result
             case SaveAndSummary =>
               for {
