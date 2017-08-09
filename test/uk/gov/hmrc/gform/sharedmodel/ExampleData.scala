@@ -55,6 +55,7 @@ trait ExampleFieldId {
   def `fieldId - startDate-year` = FieldId("startDate-year")
   def `fieldId - startDate-day` = FieldId("startDate-day")
   def `fieldId - startDate-month` = FieldId("startDate-month")
+  def default = FieldId("test")
 
 }
 
@@ -115,6 +116,12 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     editable = false,
     submissible = true,
     errorMessage = None
+  )
+
+  def fieldValue(text: Text) = FieldValue(
+    default,
+    text,
+    "sample label", None, None, true, false, false, None
   )
 }
 

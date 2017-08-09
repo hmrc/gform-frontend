@@ -89,7 +89,7 @@ class PageForRenderSpec extends Spec {
     errorMessage = None
   )
 
-  val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
+  override val dmsSubmission = DmsSubmission("Dunno", "pure class", "pure business")
   val section = Section("About you", None, None, None, None, None, List(infoFieldValue))
 
   val mockPrepopService = new PrepopService(null, null, null) {
@@ -97,7 +97,7 @@ class PageForRenderSpec extends Spec {
       Future.successful("CONSTANT_TEXT")
   }
 
-  val formTemplate = FormTemplate(
+  override val formTemplate = FormTemplate(
     _id = FormTemplateId(""),
     formName = "AAA000",
     description = "YEAHH man!",
@@ -110,10 +110,10 @@ class PageForRenderSpec extends Spec {
 
   val mockRepeatService = mock[RepeatingComponentService]
   val envelope = Envelope(files = Nil)
-  val envelopeId = EnvelopeId("env-id")
+  override val envelopeId = EnvelopeId("env-id")
   implicit val hc = HeaderCarrier()
   implicit val mockAuthContext = mock[AuthContext]
-  val formId = FormId("formid-123")
+  override val formId = FormId("formid-123")
   val sectionNumber = SectionNumber(0)
 
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
