@@ -23,15 +23,15 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldId
 sealed trait FormAction
 
 object FormAction {
-  def determineAction(data: Map[FieldId, Seq[String]], nextPage: Option[Page]): Either[String, FormAction] = {
+  def determineAction(data: Map[FieldId, Seq[String]], nextPage: Option[Page], backPage: Option[Page]): Either[String, FormAction] = {
 
-    (get(data, FieldId("save")), nextPage) match {
-      case ("Save" :: Nil, _) => Right(SaveAndExit)
-      case ("Continue" :: Nil, None) => Right(SaveAndSummary)
-      case ("Continue" :: Nil, Some(nextToRender)) => Right(SaveAndContinue(nextToRender))
-      case ("Back" :: Nil, Some(lastToRender)) => Right(Back(lastToRender))
-      case (addGroup :: Nil, _) if addGroup.mkString.startsWith("AddGroup") => Right(AddGroup(addGroup))
-      case (removeGroup :: Nil, _) if removeGroup.mkString.startsWith("RemoveGroup") => Right(RemoveGroup(removeGroup))
+    (get(data, FieldId("save")), nextPage, backPage) match {
+      case ("Save" :: Nil, _, _) => Right(SaveAndExit)
+      case ("Continue" :: Nil, None, _) => Right(SaveAndSummary)
+      case ("Continue" :: Nil, Some(nextToRender), _) => Right(SaveAndContinue(nextToRender))
+      case ("Back" :: Nil, _, Some(lastToRender)) => Right(Back(lastToRender))
+      case (addGroup :: Nil, _, _) if addGroup.mkString.startsWith("AddGroup") => Right(AddGroup(addGroup))
+      case (removeGroup :: Nil, _, _) if removeGroup.mkString.startsWith("RemoveGroup") => Right(RemoveGroup(removeGroup))
       case _ => Left("Cannot determine action")
     }
   }

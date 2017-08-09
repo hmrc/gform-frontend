@@ -48,6 +48,13 @@ object BooleanExpr {
     nextTrueIdxOpt(idx + 1, expressions, data)
   }
 
+  def backTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
+
+    if (idx >= expressions.size) return None
+    if (isTrue(expressions(idx), data)) return Some(idx - 1)
+
+    backTrueIdxOpt(idx - 1, expressions, data)
+  }
 }
 
 sealed trait Comparison
