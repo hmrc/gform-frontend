@@ -204,7 +204,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, UkSortCode) => checkLength(value, 2)
       case (_, value :: Nil, UTR) => checkId(value)
       case (_, value :: Nil, NINO) => checkId(value)
-      case (_, value :: Nil, TelephoneNumber) => textValidator(value, 0, 30, true)
+      case (_, value :: Nil, TelephoneNumber) => textValidator(value, 4, 30, true)
       case (_, value :: Nil, Email) => email(value)
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
