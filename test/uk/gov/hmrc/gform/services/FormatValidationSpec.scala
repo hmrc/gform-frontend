@@ -97,6 +97,12 @@ class FormatValidationSpec extends Spec {
   "UTR" should "be invalid with decimals" in createFailTest("123456789", UTR, "Not a valid Id")
   "NINO" should "be valid with a valid NINO " in createSuccessTest("AA111111A", NINO)
   "NINO" should "be return Invalid with an incorrect NINO" in createFailTest("AA111111", NINO, "Not a valid Id")
+  "BasicText" should "return valid with text" in createSuccessTest("This is test text", BasicText)
+  "BasicText" should "return invalid with invalid text" in createFailTest(List.fill[String](100001)("a").mkString, BasicText, "failed validation")
+  "ShortText" should "return valid with shortText" in createSuccessTest("this is test text", ShortText)
+  "ShortText" should "return invalid with too long of text" in createFailTest(List.fill(1001)("a").mkString, ShortText, "failed validation")
+  "Text(min, max)" should "return valid with in constraints text" in createSuccessTest("this is in constraints", TextWithRestrictions(1, 100))
+  "Text(min, max)" should "return invalid with too long of text" in createFailTest(List.fill(101)("a").mkString, TextWithRestrictions(1, 100), "Entered too many characters")
   private def createSuccessTest(data: String, contraint: TextConstraint) =
     validator(fieldValueFunction(contraint), getData(data)).toEither should beRight(())
 
