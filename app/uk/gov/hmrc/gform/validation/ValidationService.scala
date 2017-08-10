@@ -222,11 +222,11 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   }
 
   def basicValidation(value: String, constraint: TextConstraint) = {
-    val ShortText = "[0-9a-zA-Z\\s'\\-]{0,1000}".r
-    val Text = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
+    val ShortTextValidation = "[0-9a-zA-Z\\s'\\-]{0,1000}".r
+    val TextValidation = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
     (value, constraint) match {
-      case (ShortText(), ShortText) => Valid(())
-      case (Text(), BasicText) => Valid(())
+      case (ShortTextValidation(), ShortText) => Valid(())
+      case (TextValidation(), BasicText) => Valid(())
       case _ => Invalid(Map(fieldValue.id -> errors("failed validation")))
     }
   }
