@@ -303,8 +303,17 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
+  private def validateAddressF(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
+    xs.filterNot(_.isEmpty()) match {
+      case Nil => Valid(())
+      case value :: Nil if fieldId.value.last == '4' && value.length > ValidationValues.addressLine4 => Invalid(Map(fieldId -> errors("this field is too long must be at most 28")))
+      case value :: Nil if value.length > ValidationValues.addressLine => Invalid(Map(fieldId -> errors("this field is too long must be at most 35")))
+      case _ => Valid(())
+    }
+  }
+
   private def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
-    val choiceValue = data.get(fieldValue.id).toList.flatten
+    val choiceValue = data.get(fieldValue. id).toList.flatten
 
     (fieldValue.mandatory, choiceValue) match {
       case (true, Nil) => Invalid(Map(fieldValue.id -> errors("is required")))
@@ -323,16 +332,24 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
     def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
+    def lengthValidation(value: String) = validateAddressF(fieldValue.id.withSuffix(value)) _
+
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
-          validateRequiredFied("street1")(addressValueOf("street1")),
+          Monoid[ValidatedType].combine(validateRequiredFied("street1")(addressValueOf("street1")), lengthValidation("street1")(addressValueOf("street1")) ),
+          lengthValidation("street2")(addressValueOf("street2")),
+          lengthValidation("street3")(addressValueOf("street3")),
+          lengthValidation("street4")(addressValueOf("street4")),
           validateRequiredFied("postcode")(addressValueOf("postcode")),
           validateForbiddenField("country")(addressValueOf("country"))
         )
       case _ =>
         List(
-          validateRequiredFied("street1")(addressValueOf("street1")),
+          Monoid[ValidatedType].combine(validateRequiredFied("street1")(addressValueOf("street1")), lengthValidation("street1")(addressValueOf("street1"))),
+          lengthValidation("street2")(addressValueOf("street2")),
+          lengthValidation("street3")(addressValueOf("street3")),
+          lengthValidation("street4")(addressValueOf("street4")),
           validateForbiddenField("postcode")(addressValueOf("postcode")),
           validateRequiredFied("country")(addressValueOf("country"))
         )
@@ -430,4 +447,11 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def errors(defaultErr: String): Set[String] = Set(fieldValue.errorMessage.getOrElse(defaultErr))
 
   private def getError(defaultMessage: String) = Map(fieldValue.id -> errors(defaultMessage)).invalid
+}
+
+object ValidationValues {
+
+  val addressLine = 35
+  val addressLine4 = 27
+
 }
