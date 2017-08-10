@@ -135,7 +135,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
                         validateConcreteDate(fieldValue, thisLocalDate,
                           otherLocalDate, offset,
                           Map(fieldValue.id ->
-                            Set(s"Date should be ${beforeOrAfterString} ${dateWithOffset(otherLocalDate, offset)}")))(beforeOrAfterFunction)
+                            errors(s"Date should be ${beforeOrAfterString} ${dateWithOffset(otherLocalDate, offset)}")))(beforeOrAfterFunction)
                     }
                 }
               }
@@ -196,6 +196,9 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
       case (true, Nil, _) => Invalid(Map(fieldValue.id -> errors("Please enter required data")))
       case (_, _, AnyText) => Valid(())
+      case (_, value :: Nil, ShortText) => basicValidation(value, ShortText)
+      case (_, value :: Nil, BasicText) => basicValidation(value, BasicText)
+      case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(value, min, max, true)
       case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
       case (_, value :: Nil, UkSortCode) => checkLength(value, 2)
@@ -214,7 +217,17 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     value match {
       case UTR() => Valid(())
       case x if Nino.isValid(x) => Valid(())
-      case _ => Invalid(Map(fieldValue.id -> Set(fieldValue.errorMessage.getOrElse("Not a valid Id"))))
+      case _ => Invalid(Map(fieldValue.id -> errors("Not a valid Id")))
+    }
+  }
+
+  def basicValidation(value: String, constraint: TextConstraint) = {
+    val ShortText = "[0-9a-zA-Z\\s'\\-]{0,1000}".r
+    val Text = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
+    (value, constraint) match {
+      case (ShortText(), ShortText) => Valid(())
+      case (Text(), BasicText) => Valid(())
+      case _ => Invalid(Map(fieldValue.id -> errors("failed validation")))
     }
   }
 
@@ -224,6 +237,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (tooShort, _) if tooShort < min => Invalid(Map(fieldValue.id -> errors("Entered too few characters")))
       case _ => Valid(())
     }
+
 
   private def email(value: String) =
     if(EmailAddress.isValid(value)) Valid(())
@@ -403,4 +417,5 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   private def errors(defaultErr: String): Set[String] = Set(fieldValue.errorMessage.getOrElse(defaultErr))
 
+  private def getError(defaultMessage: String) = Map(fieldValue.id -> errors(defaultMessage))
 }

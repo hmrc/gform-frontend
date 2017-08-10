@@ -78,6 +78,9 @@ final case class Number(maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
 
 final case class PositiveNumber(maxWholeDigits: Int = TextConstraint.defaultWholeDigits, maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits, unit: Option[String] = None) extends TextConstraint
 
+case object BasicText extends TextConstraint
+case object ShortText extends TextConstraint
+case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
 final case object Sterling extends TextConstraint
 final case object UkBankAccountNumber extends TextConstraint
 final case object UkSortCode extends TextConstraint
