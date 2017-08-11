@@ -25,9 +25,9 @@ class DeclarationFieldValidationServiceSpec extends Spec {
   val testService = new DeclarationFieldValidationService()
 
   "validateDeclarationFields()" should "fail validation if firstname, lastname and status are not provided" in {
-    val (isValid, result) = testService.validateDeclarationFields(Map.empty)
+    val result = testService.validateDeclarationFields(Map.empty)
 
-    isValid shouldBe false
+    result.isInvalid shouldBe true
   }
 
   it should "fail validation if firstname, lastname and status are provided and empty" in {
@@ -37,12 +37,9 @@ class DeclarationFieldValidationServiceSpec extends Spec {
       FieldId("declaration-status") -> Seq.empty
     )
 
-    val (isValid, result) = testService.validateDeclarationFields(mapField)
+    val result = testService.validateDeclarationFields(mapField)
 
-    isValid shouldBe false
-    result("declaration-firstname").isValid shouldBe false
-    result("declaration-lastname").isValid shouldBe false
-    result("declaration-status").isValid shouldBe false
+    result.isInvalid shouldBe true
   }
 
   it should "pass validation if firstname, lastname and status are provided" in {
@@ -52,12 +49,9 @@ class DeclarationFieldValidationServiceSpec extends Spec {
       FieldId("declaration-status") -> Seq("CEO")
     )
 
-    val (isValid, result) = testService.validateDeclarationFields(mapField)
+    val result = testService.validateDeclarationFields(mapField)
 
-    isValid shouldBe true
-    result("declaration-firstname").isValid shouldBe true
-    result("declaration-lastname").isValid shouldBe true
-    result("declaration-status").isValid shouldBe true
+    result.isValid shouldBe true
   }
 
   it should "fail email validation is email and confirmation email fields are not the same" in {
@@ -69,10 +63,9 @@ class DeclarationFieldValidationServiceSpec extends Spec {
       FieldId("declaration-email2") -> Seq("")
     )
 
-    val (isValid, result) = testService.validateDeclarationFields(mapField)
+    val result = testService.validateDeclarationFields(mapField)
 
-    isValid shouldBe false
-    result("declaration-email2").isValid shouldBe false
+    result.isInvalid shouldBe true
   }
 
   it should "pass email validation if email and confirmation email fields are empty" in {
@@ -84,10 +77,9 @@ class DeclarationFieldValidationServiceSpec extends Spec {
       FieldId("declaration-email2") -> Seq("")
     )
 
-    val (isValid, result) = testService.validateDeclarationFields(mapField)
+    val result = testService.validateDeclarationFields(mapField)
 
-    isValid shouldBe true
-    result("declaration-email2").isValid shouldBe true
+    result.isValid shouldBe true
   }
 
   it should "fail email validation if email and confirmation email fields are the same but contain an invalid email address" in {
@@ -99,10 +91,9 @@ class DeclarationFieldValidationServiceSpec extends Spec {
       FieldId("declaration-email2") -> Seq("NOT_AN_EMAIL_ADDRESS")
     )
 
-    val (isValid, result) = testService.validateDeclarationFields(mapField)
+    val result = testService.validateDeclarationFields(mapField)
 
-    isValid shouldBe false
-    result("declaration-email2").isValid shouldBe false
+    result.isInvalid shouldBe true
   }
 
   it should "pass email validation if email addresses are in correct format" in {
@@ -114,9 +105,8 @@ class DeclarationFieldValidationServiceSpec extends Spec {
       FieldId("declaration-email2") -> Seq("team@poseidon.org")
     )
 
-    val (isValid, result) = testService.validateDeclarationFields(mapField)
+    val result = testService.validateDeclarationFields(mapField)
 
-    isValid shouldBe true
-    result("declaration-email2").isValid shouldBe true
+    result.isValid shouldBe true
   }
 }
