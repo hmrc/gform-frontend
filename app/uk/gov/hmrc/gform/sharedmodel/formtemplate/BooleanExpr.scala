@@ -21,6 +21,8 @@ import play.api.libs.json._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
+import scala.annotation.tailrec
+
 sealed trait BooleanExpr
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr
 final case class Or(left: BooleanExpr, right: BooleanExpr) extends BooleanExpr
@@ -40,6 +42,7 @@ object BooleanExpr {
     }
 
   //TODO: move this logic out of data
+  @tailrec
   def nextTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
 
     if (idx >= expressions.size - 1) return None
@@ -48,6 +51,7 @@ object BooleanExpr {
     nextTrueIdxOpt(idx + 1, expressions, data)
   }
 
+  @tailrec
   def backTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
 
     if (idx >= expressions.size) return None
