@@ -81,6 +81,10 @@ final case class PositiveNumber(maxWholeDigits: Int = TextConstraint.defaultWhol
 final case object Sterling extends TextConstraint
 final case object UkBankAccountNumber extends TextConstraint
 final case object UkSortCode extends TextConstraint
+case object TelephoneNumber extends TextConstraint
+case object Email extends TextConstraint
+case object UTR extends TextConstraint
+case object NINO extends TextConstraint
 
 object TextConstraint {
   val defaultWholeDigits = 11
