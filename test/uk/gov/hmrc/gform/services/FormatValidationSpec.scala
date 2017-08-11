@@ -70,6 +70,42 @@ class FormatValidationSpec extends Spec {
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
   }
 
+  "UkSortCode" should "return an error message" in {
+    val textConstrait = UkSortCode
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n-1") -> Seq(""),
+      FieldId("n-2") -> Seq(""),
+      FieldId("n-3") -> Seq("")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("Please enter required data")))
+  }
+
+  "UkSortCode" should "return valid details" in {
+    val textConstrait = UkSortCode
+    val text = Text(textConstrait, Constant(""), false)
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n-1") -> Seq("-1"),
+      FieldId("n-2") -> Seq("24"),
+      FieldId("n-3") -> Seq("24")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("Please enter required data")))
+  }
+
   "UkSortCode" should "be invalid with decimals" in {
     val textConstrait = UkSortCode
     val text = Text(textConstrait, Constant(""), false)

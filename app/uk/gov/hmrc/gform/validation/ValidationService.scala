@@ -192,7 +192,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def textValidationImpl(fieldValue: FieldValue, text: Text)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val textData = data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
-      case (true, Nil, _) => Invalid(Map(fieldValue.id -> errors("Please enter required data")))
+      case (true, Nil, _) => getError("Please enter required data")
       case (_, _, AnyText) => Valid(())
       case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
@@ -400,6 +400,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
+  private def getError(defaultError: String) = Invalid(Map(fieldValue.id -> errors(defaultError)))
   private def errors(defaultErr: String): Set[String] = Set(fieldValue.errorMessage.getOrElse(defaultErr))
 
 }
