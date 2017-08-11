@@ -4,7 +4,28 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 
 @import views.html.helper.CSRF
-@(formTemplate: FormTemplate, formId: FormId, validationResult: Option[FormFieldValidationResult])(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, formId: FormId, validationMap: Map[String, DeclarationFieldValidationResult])(implicit request: Request[_], messages: Messages)
+
+@getErrorClass(field: String) = @{
+  validationMap.get(field) match {
+    case Some(result) => if(result.isValid) "" else "form-field-group--error"
+    case None => ""
+  }
+}
+
+@getCurrentValue(field: String) = @{
+  validationMap.get(field) match {
+    case Some(result) => result.currentValue
+    case None => ""
+  }
+}
+
+@printErrorMessages(field: String) = @{
+  validationMap.get(field) match {
+    case Some(result) => if(result.errors.isEmpty) "" else errorInline(field, result.errors.head, Seq(""))
+    case None => ""
+  }
+}
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {
 <h1 class="h1-heading">Declaration</h1>
@@ -17,73 +38,76 @@
 
 <form action="@uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formId).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
     <div class="form-group">
-        <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-            <fieldset class="form-group">
-                @{
-                  CSRF.formField
-                }
-
-                @{
-                  val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-                  val errors: Set[String] = ValidationUtil.printErrors(map)
-
-                  errors.map(e => errorInline(e, e, Seq("")))
-                }
+        <fieldset class="form-group">
+            @{
+              CSRF.formField
+            }
+            <div class="@getErrorClass("declaration-firstname")">
+                @printErrorMessages("declaration-firstname")
                 <label class="form-label" for="declaration-firstname">@localisation("First name")
                 <input
                         type="text"
                         name="declaration-firstname"
                         id="declaration-firstname"
-                        value="@validationResult.flatMap(_.getCurrentValue).getOrElse("")"
+                        value="@getCurrentValue("declaration-firstname")"
                         class="input--medium input--cleared">
                 </label>
+            </div>
 
+            <div class="@getErrorClass("declaration-lastname")">
+                @printErrorMessages("declaration-lastname")
                 <label class="form-label" for="declaration-lastname">@localisation("Last name")
                 <input
                         type="text"
                         name="declaration-lastname"
                         id="declaration-lastname"
-                        value="@validationResult.flatMap(_.getCurrentValue).getOrElse("")"
+                        value="@getCurrentValue("declaration-lastname")"
                         class="input--medium input--cleared">
                 </label>
+            </div>
 
+            <div class="@getErrorClass("declaration-status")">
+                @printErrorMessages("declaration-status")
                 <label class="form-label" for="declaration-status">@localisation("Status")
                 <span class="form-field--hint form-hint--small">@localisation("For example: Director, Financial Controller, Secretary")</span>
                 <input
                         type="text"
                         name="declaration-status"
                         id="declaration-status"
-                        value="@validationResult.flatMap(_.getCurrentValue).getOrElse("")"
+                        value="@getCurrentValue("declaration-status")"
                         class="input--medium input--cleared">
                 </label>
+            </div>
 
-                <br>
-                <p>@localisation("To receive confirmation that your return has been submitted, enter an email address below")</p>
+            <br>
+            <p>@localisation("To receive confirmation that your return has been submitted, enter an email address below")</p>
 
-                <label class="form-label" for="declaration-email1">@localisation("Email address (Optional)")
-                <input
-                        type="text"
-                        name="declaration-email1"
-                        id="declaration-email1"
-                        value="@validationResult.flatMap(_.getCurrentValue).getOrElse("")"
-                        class="input--medium input--cleared">
-                </label>
+            <label class="form-label" for="declaration-email1">@localisation("Email address (Optional)")
+            <input
+                    type="text"
+                    name="declaration-email1"
+                    id="declaration-email1"
+                    value="@getCurrentValue("declaration-email1")"
+                    class="input--medium input--cleared">
+            </label>
 
+            <div class="@getErrorClass("declaration-email2")">
+                @printErrorMessages("declaration-email2")
                 <label class="form-label" for="declaration-email2">@localisation("Confirm email address (Optional)")
                 <input
                         type="text"
                         name="declaration-email2"
                         id="declaration-email2"
-                        value="@validationResult.flatMap(_.getCurrentValue).getOrElse("")"
+                        value="@getCurrentValue("declaration-email2")"
                         class="input--medium input--cleared">
                 </label>
+            </div>
 
-                <input type="hidden"
-                       name="formId"
-                       value="@{formId.value}" />
+            <input type="hidden"
+                   name="formId"
+                   value="@{formId.value}" />
 
-            </fieldset>
-        </div>
+        </fieldset>
         <div class="print-hidden">
             <p>By selecting confirm and send you declare that the information you have provided is true and complete</p>
 
