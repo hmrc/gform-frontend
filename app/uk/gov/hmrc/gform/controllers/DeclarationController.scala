@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.{ Inject, Singleton }
 
+import cats.data.Validated.{ Invalid, Valid }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
@@ -47,7 +48,7 @@ class DeclarationController @Inject() (
     for {
       form <- formF
       formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-    } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, Map.empty))
+    } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, Map.empty, Map.empty))
   }
 
   def submitDeclaration(formId: FormId) = auth.async { implicit c =>
@@ -56,7 +57,7 @@ class DeclarationController @Inject() (
         case "Continue" :: Nil =>
           val formF = gformConnector.getForm(formId)
           fieldValidator.validateDeclarationFields(data) match {
-            case (true, _) => // Valid form
+            case Valid(()) =>
               for {
                 form <- formF
                 updatedForm = updateFormWithDeclaration(form, data)
@@ -67,11 +68,11 @@ class DeclarationController @Inject() (
                 auditService.sendSubmissionEvent(form)
                 Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
               }
-            case (false, validationMap) => // Invalid form
+            case Invalid(validationMap) =>
               for {
                 form <- formF
                 formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-              } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, validationMap))
+              } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, validationMap, data))
           }
         case _ =>
           Future.successful(BadRequest("Cannot determine action"))

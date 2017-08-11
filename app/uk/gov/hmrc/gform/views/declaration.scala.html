@@ -4,25 +4,25 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 
 @import views.html.helper.CSRF
-@(formTemplate: FormTemplate, formId: FormId, validationMap: Map[String, DeclarationFieldValidationResult])(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, formId: FormId, errorMap: Map[String, Set[String]], dataMap: Map[FieldId, Seq[String]])(implicit request: Request[_], messages: Messages)
 
 @getErrorClass(field: String) = @{
-  validationMap.get(field) match {
-    case Some(result) => if(result.isValid) "" else "form-field-group--error"
+  errorMap.get(field) match {
+    case Some(_) => "form-field-group--error"
     case None => ""
   }
 }
 
 @getCurrentValue(field: String) = @{
-  validationMap.get(field) match {
-    case Some(result) => result.currentValue
+  dataMap.get(FieldId(field)) match {
+    case Some(result) => result.mkString
     case None => ""
   }
 }
 
 @printErrorMessages(field: String) = @{
-  validationMap.get(field) match {
-    case Some(result) => if(result.errors.isEmpty) "" else errorInline(field, result.errors.head, Seq(""))
+  errorMap.get(field) match {
+    case Some(result) => errorInline(field, result.head, Seq(""))
     case None => ""
   }
 }
