@@ -30,6 +30,8 @@ class TestOnly @Inject() (proxy: ProxyActions) extends Controller with ServicesC
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 
+  def proxyToFileUpload(path: String): Action[Source[ByteString, _]] = proxy(fileUploadBaseUrl)(path)
+
   def whatsInSession(): Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(request.session.data))
   }
@@ -39,4 +41,5 @@ class TestOnly @Inject() (proxy: ProxyActions) extends Controller with ServicesC
   }
 
   private lazy val gformBaseUrl = baseUrl("gform")
+  private lazy val fileUploadBaseUrl = baseUrl("file-upload")
 }
