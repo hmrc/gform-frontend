@@ -20,15 +20,15 @@ import java.time.LocalDate
 
 import cats.Semigroup
 import cats.data.Validated
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
 import cats.syntax.validated._
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
-import uk.gov.hmrc.gform.fileupload.{Error, File, FileUploadService}
+import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService }
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.sharedmodel.form.{EnvelopeId, FileId}
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -39,7 +39,7 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.matching.Regex.Match
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
@@ -246,11 +246,9 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case _ => Valid(())
     }
 
-
   private def email(value: String) =
-    if(EmailAddress.isValid(value)) Valid(())
+    if (EmailAddress.isValid(value)) Valid(())
     else Invalid(Map(fieldValue.id -> errors("This email address is not valid")))
-
 
   private def checkLength(value: String, desiredLength: Int) = {
     val WholeShape = "([+-]?)(\\d+)[.]?".r
