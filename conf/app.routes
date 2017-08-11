@@ -12,3 +12,5 @@ GET         /summary/:formId                                             @uk.gov
 POST        /summary/:formId/:formTemplateId                             @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateId: FormTemplateId)
 
 GET         /assets/*file                                                controllers.Assets.versioned(path="/public", file: Asset)
+
+GET         /api/exposed-config                                          @uk.gov.hmrc.gform.config.ConfigController.exposedConfig()
