@@ -22,6 +22,7 @@ import cats.Semigroup
 import cats.data.Validated
 import cats.data.Validated.{Invalid, Valid}
 import cats.instances.all._
+import cats.syntax.validated._
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
 import uk.gov.hmrc.gform.fileupload.{Error, File, FileUploadService}
@@ -32,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.domain._
+
 import uk.gov.hmrc.emailaddress.EmailAddress
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -196,8 +198,8 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
       case (true, Nil, _) => Invalid(Map(fieldValue.id -> errors("Please enter required data")))
       case (_, _, AnyText) => Valid(())
-      case (_, value :: Nil, ShortText) => basicValidation(value, ShortText)
-      case (_, value :: Nil, BasicText) => basicValidation(value, BasicText)
+      case (_, value :: Nil, ShortText) => shortTextValidation(value)
+      case (_, value :: Nil, BasicText) => textValidation(value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(value, min, max, true)
       case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
@@ -221,13 +223,19 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  def basicValidation(value: String, constraint: TextConstraint) = {
+  def shortTextValidation(value: String) = {
     val ShortTextValidation = "[0-9a-zA-Z\\s'\\-]{0,1000}".r
+    value match {
+      case ShortTextValidation() => Valid(())
+      case _ => getError("the text is too long for the validation")
+    }
+  }
+
+  def textValidation(value: String) = {
     val TextValidation = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
-    (value, constraint) match {
-      case (ShortTextValidation(), ShortText) => Valid(())
-      case (TextValidation(), BasicText) => Valid(())
-      case _ => Invalid(Map(fieldValue.id -> errors("failed validation")))
+    value match {
+      case TextValidation() => Valid(())
+      case _ => getError("The text is over 100000 so is not valid")
     }
   }
 
@@ -417,5 +425,5 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   private def errors(defaultErr: String): Set[String] = Set(fieldValue.errorMessage.getOrElse(defaultErr))
 
-  private def getError(defaultMessage: String) = Map(fieldValue.id -> errors(defaultMessage))
+  private def getError(defaultMessage: String) = Map(fieldValue.id -> errors(defaultMessage)).invalid
 }
