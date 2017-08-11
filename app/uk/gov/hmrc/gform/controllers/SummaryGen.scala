@@ -72,22 +72,6 @@ class SummaryGen @Inject() (
           Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTypeId)))
         case "Declaration" :: Nil =>
           Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId)))
-        /*case "Continue" :: Nil =>
-          anyFormId(data) match {
-            case Some(formId) =>
-              val submissionF = gformConnector.submitForm(formId)
-              val formF = gformConnector.getForm(formId)
-              for {
-                response <- submissionF
-                form <- formF
-                _ <- repeatService.clearSession
-              } yield {
-                auditService.sendSubmissionEvent(form)
-                Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
-              }
-            case None =>
-              Future.successful(BadRequest("No formId"))
-          }*/
         case _ =>
           Future.successful(BadRequest("Cannot determine action"))
       }
@@ -97,5 +81,4 @@ class SummaryGen @Inject() (
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
-  //private lazy val auditService = auditingModule.auditService
 }
