@@ -206,14 +206,14 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, _, AnyText) => Valid(())
       case (_, value :: Nil, ShortText) => shortTextValidation(value)
       case (_, value :: Nil, BasicText) => textValidation(value)
-      case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(value, min, max, true)
+      case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(value, min, max)
       case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
       case (_, value :: Nil, UkSortCode) => checkLength(value, 2)
       case (_, value :: Nil, UTR) => checkId(value)
       case (_, value :: Nil, NINO) => checkId(value)
-      case (_, value :: Nil, TelephoneNumber) => textValidator(value, 4, 30, true)
-      case (_, value :: Nil, Email) => email(value)
+      case (_, value :: Nil, TelephoneNumber) => textValidator(value, 4, 30)
+      case (_, value :: Nil, Email) => Monoid.combine(email(value), textValidator(value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
       case (_, value :: rest, _) => Valid(()) // we don't support multiple values yet
@@ -245,10 +245,10 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  private def textValidator(value: String, min: Int, max: Int, mandatory: Boolean) =
-    (value.length, mandatory) match {
-      case (tooLong, _) if tooLong > max => Invalid(Map(fieldValue.id -> errors("Entered too many characters")))
-      case (tooShort, _) if tooShort < min => Invalid(Map(fieldValue.id -> errors("Entered too few characters")))
+  private def textValidator(value: String, min: Int, max: Int) =
+    value.length match {
+      case tooLong if tooLong > max => Invalid(Map(fieldValue.id -> errors(s"Entered too many characters should be at most $max long")))
+      case tooShort if tooShort < min => Invalid(Map(fieldValue.id -> errors(s"Entered too few characters should be at least $min")))
       case _ => Valid(())
     }
 
@@ -430,4 +430,16 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   private def errors(defaultErr: String): Set[String] = Set(fieldValue.errorMessage.getOrElse(defaultErr))
 
   private def getError(defaultMessage: String) = Map(fieldValue.id -> errors(defaultMessage)).invalid
+}
+
+object ValidationValues {
+
+  val phoneDigits = (4, 30)
+  val sortCodeLength = 2
+  val bankAccountLength = 8
+  val sterlingLength = 11
+  val addressLine = 35
+  val addressLine4 = 27
+  val emailLimit = 241
+
 }
