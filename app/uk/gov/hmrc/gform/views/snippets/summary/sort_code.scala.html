@@ -18,17 +18,6 @@ fieldValue.id.withSuffix(id).value
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </td>
   <td>
-    @List(
-    "street1",
-    "street2",
-    "street3",
-    "street4",
-    "postcode",
-    "country"
-    ).map { suffix =>
-    @if(validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
-    @validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")<br />
-    }
-    }
+    @validationResult.map(_.getCurrentValue(safeId("1"))).getOrElse("") - @validationResult.map(_.getCurrentValue(safeId("2"))).getOrElse("") - @validationResult.map(_.getCurrentValue(safeId("3"))).getOrElse("")
   </td>
 </tr>
