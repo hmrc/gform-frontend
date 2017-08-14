@@ -207,12 +207,12 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, ShortText) => shortTextValidation(value)
       case (_, value :: Nil, BasicText) => textValidation(value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(value, min, max, true)
-      case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
-      case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
-      case (_, value :: Nil, UkSortCode) => checkLength(value, 2)
+      case (_, value :: Nil, Sterling) => validateNumber(value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, true)
+      case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, ValidationValues.bankAccountLength)
+      case (_, value :: Nil, UkSortCode) => checkLength(value, ValidationValues.sortCodeLength)
       case (_, value :: Nil, UTR) => checkId(value)
       case (_, value :: Nil, NINO) => checkId(value)
-      case (_, value :: Nil, TelephoneNumber) => textValidator(value, 4, 30, true)
+      case (_, value :: Nil, TelephoneNumber) => textValidator(value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2, true)
       case (_, value :: Nil, Email) => email(value)
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
@@ -303,17 +303,18 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  private def validateAddressF(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
-    xs.filterNot(_.isEmpty()) match {
-      case Nil => Valid(())
-      case value :: Nil if fieldId.value.last == '4' && value.length > ValidationValues.addressLine4 => Invalid(Map(fieldId -> errors("this field is too long must be at most 28")))
-      case value :: Nil if value.length > ValidationValues.addressLine => Invalid(Map(fieldId -> errors("this field is too long must be at most 35")))
+  private def addressLineValidation(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
+    val Fourth = "[4]$".r.unanchored
+    (xs.filterNot(_.isEmpty()), fieldId.value) match {
+      case (Nil, _) => Valid(())
+      case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 => Invalid(Map(fieldId -> errors("this field is too long must be at most 28")))
+      case (value :: Nil, _) if value.length > ValidationValues.addressLine => Invalid(Map(fieldId -> errors("this field is too long must be at most 35")))
       case _ => Valid(())
     }
   }
 
   private def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
-    val choiceValue = data.get(fieldValue. id).toList.flatten
+    val choiceValue = data.get(fieldValue.id).toList.flatten
 
     (fieldValue.mandatory, choiceValue) match {
       case (true, Nil) => Invalid(Map(fieldValue.id -> errors("is required")))
@@ -332,12 +333,12 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
     def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
-    def lengthValidation(value: String) = validateAddressF(fieldValue.id.withSuffix(value)) _
+    def lengthValidation(value: String) = addressLineValidation(fieldValue.id.withSuffix(value)) _
 
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
-          Monoid[ValidatedType].combine(validateRequiredFied("street1")(addressValueOf("street1")), lengthValidation("street1")(addressValueOf("street1")) ),
+          Monoid[ValidatedType].combine(validateRequiredFied("street1")(addressValueOf("street1")), lengthValidation("street1")(addressValueOf("street1"))),
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
@@ -451,6 +452,10 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
 object ValidationValues {
 
+  val phoneDigits = (4, 30)
+  val sortCodeLength = 2
+  val bankAccountLength = 8
+  val sterlingLength = 11
   val addressLine = 35
   val addressLine4 = 27
 
