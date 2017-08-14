@@ -25,7 +25,7 @@ import cats.instances.all._
 import cats.syntax.validated._
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
-import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService, Infected }
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
@@ -171,15 +171,21 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
+  //TODO: this will be called many times per one form. Maybe there is a way to optimise it?
   private def validateFileUpload()(implicit hc: HeaderCarrier): Future[ValidatedType] = fileUploadService
     .getEnvelope(envelopeId).map { envelope =>
 
       val fileId = FileId(fieldValue.id.value)
       val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
+
       file match {
-        case Some(File(fileId, Error(reason), fileName)) => Invalid(Map(fieldValue.id -> Set(reason)))
-        case Some(File(fileId, _, fileName)) => Valid(())
-        case None => if (fieldValue.mandatory) Invalid(Map(fieldValue.id -> errors("You must upload a file"))) else Valid(())
+        // format: OFF
+        case Some(File(fileId, Error(reason), _))  => Invalid(Map(fieldValue.id -> Set(reason)))
+        case Some(File(fileId, Infected, _))       => Invalid(Map(fieldValue.id -> Set("Virus detected")))
+        case Some(File(fileId, _, _))              => Valid(())
+        case None if fieldValue.mandatory          => Invalid(Map(fieldValue.id -> errors("Please upload the file")))
+        case None                                  => Valid(())
+        // format: ON
       }
     }
 
