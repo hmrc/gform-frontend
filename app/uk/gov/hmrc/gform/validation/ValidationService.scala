@@ -180,10 +180,10 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
       file match {
         // format: OFF
-        case Some(File(fileId, Error(reason), _))  => Invalid(Map(fieldValue.id -> Set(reason)))
-        case Some(File(fileId, Infected, _))       => Invalid(Map(fieldValue.id -> Set("Virus detected")))
+        case Some(File(fileId, Error(reason), _))  => getError(reason)
+        case Some(File(fileId, Infected, _))       => getError("Virus detected")
         case Some(File(fileId, _, _))              => Valid(())
-        case None if fieldValue.mandatory          => Invalid(Map(fieldValue.id -> errors("Please upload the file")))
+        case None if fieldValue.mandatory          => getError("Please upload the file")
         case None                                  => Valid(())
         // format: ON
       }
@@ -207,12 +207,12 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, ShortText) => shortTextValidation(value)
       case (_, value :: Nil, BasicText) => textValidation(value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(value, min, max)
-      case (_, value :: Nil, Sterling) => validateNumber(value, 11, TextConstraint.defaultFactionalDigits, true)
-      case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, 8)
-      case (_, value :: Nil, UkSortCode) => checkLength(value, 2)
+      case (_, value :: Nil, Sterling) => validateNumber(value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, true)
+      case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, ValidationValues.bankAccountLength)
+      case (_, value :: Nil, UkSortCode) => checkLength(value, ValidationValues.sortCodeLength)
       case (_, value :: Nil, UTR) => checkId(value)
       case (_, value :: Nil, NINO) => checkId(value)
-      case (_, value :: Nil, TelephoneNumber) => textValidator(value, 4, 30)
+      case (_, value :: Nil, TelephoneNumber) => textValidator(value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
       case (_, value :: Nil, Email) => Monoid.combine(email(value), textValidator(value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
@@ -225,7 +225,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     value match {
       case UTR() => Valid(())
       case x if Nino.isValid(x) => Valid(())
-      case _ => Invalid(Map(fieldValue.id -> errors("Not a valid Id")))
+      case _ => getError("Not a valid Id")
     }
   }
 
@@ -247,22 +247,22 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   private def textValidator(value: String, min: Int, max: Int) =
     value.length match {
-      case tooLong if tooLong > max => Invalid(Map(fieldValue.id -> errors(s"Entered too many characters should be at most $max long")))
-      case tooShort if tooShort < min => Invalid(Map(fieldValue.id -> errors(s"Entered too few characters should be at least $min")))
+      case tooLong if tooLong > max => getError(s"Entered too many characters should be at most $max long")
+      case tooShort if tooShort < min => getError(s"Entered too few characters should be at least $min")
       case _ => Valid(())
     }
 
   private def email(value: String) =
     if (EmailAddress.isValid(value)) Valid(())
-    else Invalid(Map(fieldValue.id -> errors("This email address is not valid")))
+    else getError("This email address is not valid")
 
   private def checkLength(value: String, desiredLength: Int) = {
     val WholeShape = "([+-]?)(\\d+)[.]?".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
-      case FractionalShape(_, _, _) => Invalid(Map(fieldValue.id -> errors(s"must be a whole number")))
+      case FractionalShape(_, _, _) => getError(s"must be a whole number")
       case WholeShape(_, whole) if whole.length == desiredLength => Valid(())
-      case _ => Invalid(Map(fieldValue.id -> errors(s"must be a whole number of ${desiredLength} length")))
+      case _ => getError(s"must be a whole number of ${desiredLength} length")
     }
   }
 
@@ -270,20 +270,20 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     val WholeShape = "([+-]?)(\\d+)[.]?".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     (value, maxFractional, mustBePositive) match {
-      case (WholeShape(_, whole), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> errors(s"must be at most ${maxWhole} digits")))
-      case (WholeShape("-", _), _, true) => Invalid(Map(fieldValue.id -> errors("must be a positive number")))
+      case (WholeShape(_, whole), _, _) if whole.size > maxWhole => getError(s"must be at most ${maxWhole} digits")
+      case (WholeShape("-", _), _, true) => getError("must be a positive number")
       case (WholeShape(_, _), _, _) => Valid(())
-      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 => Invalid(Map(fieldValue.id -> errors(s"number must be at most ${maxWhole} whole digits and no decimal fraction")))
-      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> errors(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits")))
-      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> errors(s"number must be at most ${maxWhole} whole digits")))
-      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 => Invalid(Map(fieldValue.id -> errors("must be a whole number")))
-      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => Invalid(Map(fieldValue.id -> errors(s"decimal fraction must be at most ${maxFractional} digits")))
-      case (FractionalShape("-", _, _), _, true) => Invalid(Map(fieldValue.id -> errors("must be a positive number")))
+      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 => getError(s"number must be at most ${maxWhole} whole digits and no decimal fraction")
+      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => getError(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits")
+      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => getError(s"number must be at most ${maxWhole} whole digits")
+      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 => getError("must be a whole number")
+      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => getError(s"decimal fraction must be at most ${maxFractional} digits")
+      case (FractionalShape("-", _, _), _, true) => getError("must be a positive number")
       case (FractionalShape(_, _, _), _, _) => Valid(())
-      case (_, 0, true) => Invalid(Map(fieldValue.id -> errors("must be a positive whole number")))
-      case (_, _, true) => Invalid(Map(fieldValue.id -> errors("must be a positive number")))
-      case (_, 0, false) => Invalid(Map(fieldValue.id -> errors("must be a whole number")))
-      case _ => Invalid(Map(fieldValue.id -> errors("must be a number")))
+      case (_, 0, true) => getError("must be a positive whole number")
+      case (_, _, true) => getError("must be a positive number")
+      case (_, 0, false) => getError("must be a whole number")
+      case _ => getError("must be a number")
     }
   }
 
@@ -303,11 +303,21 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
+  private def addressLineValidation(fieldId: FieldId)(xs: Seq[String]): ValidatedType = {
+    val Fourth = "[4]$".r.unanchored
+    (xs.filterNot(_.isEmpty()), fieldId.value) match {
+      case (Nil, _) => Valid(())
+      case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 => Invalid(Map(fieldId -> errors("this field is too long must be at most 28")))
+      case (value :: Nil, _) if value.length > ValidationValues.addressLine => Invalid(Map(fieldId -> errors("this field is too long must be at most 35")))
+      case _ => Valid(())
+    }
+  }
+
   private def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val choiceValue = data.get(fieldValue.id).toList.flatten
 
     (fieldValue.mandatory, choiceValue) match {
-      case (true, Nil) => Invalid(Map(fieldValue.id -> errors("is required")))
+      case (true, Nil) => getError("is required")
       case _ => Valid(())
     }
   }
@@ -323,16 +333,24 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
     def validateForbiddenField(value: String) = validateForbidden(fieldValue.id.withSuffix(value)) _
 
+    def lengthValidation(value: String) = addressLineValidation(fieldValue.id.withSuffix(value)) _
+
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
-          validateRequiredFied("street1")(addressValueOf("street1")),
+          Monoid[ValidatedType].combine(validateRequiredFied("street1")(addressValueOf("street1")), lengthValidation("street1")(addressValueOf("street1"))),
+          lengthValidation("street2")(addressValueOf("street2")),
+          lengthValidation("street3")(addressValueOf("street3")),
+          lengthValidation("street4")(addressValueOf("street4")),
           validateRequiredFied("postcode")(addressValueOf("postcode")),
           validateForbiddenField("country")(addressValueOf("country"))
         )
       case _ =>
         List(
-          validateRequiredFied("street1")(addressValueOf("street1")),
+          Monoid[ValidatedType].combine(validateRequiredFied("street1")(addressValueOf("street1")), lengthValidation("street1")(addressValueOf("street1"))),
+          lengthValidation("street2")(addressValueOf("street2")),
+          lengthValidation("street3")(addressValueOf("street3")),
+          lengthValidation("street4")(addressValueOf("street4")),
           validateForbiddenField("postcode")(addressValueOf("postcode")),
           validateRequiredFied("country")(addressValueOf("country"))
         )
@@ -384,7 +402,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
         }
 
       case _ =>
-        Invalid(Map(fieldId -> errors("Date is missing")))
+        getError("Date is missing")
     }
   }
 
@@ -441,5 +459,4 @@ object ValidationValues {
   val addressLine = 35
   val addressLine4 = 27
   val emailLimit = 241
-
 }
