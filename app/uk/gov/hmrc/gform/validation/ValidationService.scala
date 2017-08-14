@@ -307,8 +307,8 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     val Fourth = "[4]$".r.unanchored
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => Valid(())
-      case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 => Invalid(Map(fieldId -> errors("this field is too long must be at most 28")))
-      case (value :: Nil, _) if value.length > ValidationValues.addressLine => Invalid(Map(fieldId -> errors("this field is too long must be at most 35")))
+      case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 => Invalid(Map(fieldId -> errors(s"this field is too long must be at most ${ValidationValues.addressLine4}")))
+      case (value :: Nil, _) if value.length > ValidationValues.addressLine => Invalid(Map(fieldId -> errors(s"this field is too long must be at most ${ValidationValues.addressLine}")))
       case _ => Valid(())
     }
   }
