@@ -180,10 +180,10 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
       file match {
         // format: OFF
-        case Some(File(fileId, Error(reason), _))  => getError(reason)
-        case Some(File(fileId, Infected, _))       => getError("Virus detected")
+        case Some(File(fileId, Error(reason), _))  => Invalid(Map(fieldValue.id -> Set(reason)))
+        case Some(File(fileId, Infected, _))       => Invalid(Map(fieldValue.id -> Set("Virus detected")))
         case Some(File(fileId, _, _))              => Valid(())
-        case None if fieldValue.mandatory          => getError("Please upload the file")
+        case None if fieldValue.mandatory          => Invalid(Map(fieldValue.id -> errors("Please upload the file")))
         case None                                  => Valid(())
         // format: ON
       }
@@ -225,7 +225,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     value match {
       case UTR() => Valid(())
       case x if Nino.isValid(x) => Valid(())
-      case _ => getError("Not a valid Id")
+      case _ => Invalid(Map(fieldValue.id -> errors("Not a valid Id")))
     }
   }
 
@@ -247,22 +247,22 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
 
   private def textValidator(value: String, min: Int, max: Int, mandatory: Boolean) =
     (value.length, mandatory) match {
-      case (tooLong, _) if tooLong > max => getError("Entered too many characters")
-      case (tooShort, _) if tooShort < min => getError("Entered too few characters")
+      case (tooLong, _) if tooLong > max => Invalid(Map(fieldValue.id -> errors("Entered too many characters")))
+      case (tooShort, _) if tooShort < min => Invalid(Map(fieldValue.id -> errors("Entered too few characters")))
       case _ => Valid(())
     }
 
   private def email(value: String) =
     if (EmailAddress.isValid(value)) Valid(())
-    else getError("This email address is not valid")
+    else Invalid(Map(fieldValue.id -> errors("This email address is not valid")))
 
   private def checkLength(value: String, desiredLength: Int) = {
     val WholeShape = "([+-]?)(\\d+)[.]?".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
-      case FractionalShape(_, _, _) => getError(s"must be a whole number")
+      case FractionalShape(_, _, _) => Invalid(Map(fieldValue.id -> errors(s"must be a whole number")))
       case WholeShape(_, whole) if whole.length == desiredLength => Valid(())
-      case _ => getError(s"must be a whole number of ${desiredLength} length")
+      case _ => Invalid(Map(fieldValue.id -> errors(s"must be a whole number of ${desiredLength} length")))
     }
   }
 
@@ -270,20 +270,20 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     val WholeShape = "([+-]?)(\\d+)[.]?".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     (value, maxFractional, mustBePositive) match {
-      case (WholeShape(_, whole), _, _) if whole.size > maxWhole => getError(s"must be at most ${maxWhole} digits")
-      case (WholeShape("-", _), _, true) => getError("must be a positive number")
+      case (WholeShape(_, whole), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> errors(s"must be at most ${maxWhole} digits")))
+      case (WholeShape("-", _), _, true) => Invalid(Map(fieldValue.id -> errors("must be a positive number")))
       case (WholeShape(_, _), _, _) => Valid(())
-      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 => getError(s"number must be at most ${maxWhole} whole digits and no decimal fraction")
-      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => getError(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits")
-      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => getError(s"number must be at most ${maxWhole} whole digits")
-      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 => getError("must be a whole number")
-      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => getError(s"decimal fraction must be at most ${maxFractional} digits")
-      case (FractionalShape("-", _, _), _, true) => getError("must be a positive number")
+      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 => Invalid(Map(fieldValue.id -> errors(s"number must be at most ${maxWhole} whole digits and no decimal fraction")))
+      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional => Invalid(Map(fieldValue.id -> errors(s"number must be at most ${maxWhole} whole digits and decimal fraction must be at most ${maxFractional} digits")))
+      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole => Invalid(Map(fieldValue.id -> errors(s"number must be at most ${maxWhole} whole digits")))
+      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 => Invalid(Map(fieldValue.id -> errors("must be a whole number")))
+      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional => Invalid(Map(fieldValue.id -> errors(s"decimal fraction must be at most ${maxFractional} digits")))
+      case (FractionalShape("-", _, _), _, true) => Invalid(Map(fieldValue.id -> errors("must be a positive number")))
       case (FractionalShape(_, _, _), _, _) => Valid(())
-      case (_, 0, true) => getError("must be a positive whole number")
-      case (_, _, true) => getError("must be a positive number")
-      case (_, 0, false) => getError("must be a whole number")
-      case _ => getError("must be a number")
+      case (_, 0, true) => Invalid(Map(fieldValue.id -> errors("must be a positive whole number")))
+      case (_, _, true) => Invalid(Map(fieldValue.id -> errors("must be a positive number")))
+      case (_, 0, false) => Invalid(Map(fieldValue.id -> errors("must be a whole number")))
+      case _ => Invalid(Map(fieldValue.id -> errors("must be a number")))
     }
   }
 
@@ -317,7 +317,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     val choiceValue = data.get(fieldValue.id).toList.flatten
 
     (fieldValue.mandatory, choiceValue) match {
-      case (true, Nil) => getError("is required")
+      case (true, Nil) => Invalid(Map(fieldValue.id -> errors("is required")))
       case _ => Valid(())
     }
   }
@@ -402,7 +402,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
         }
 
       case _ =>
-        getError("Date is missing")
+        Invalid(Map(fieldId -> errors("Date is missing")))
     }
   }
 
