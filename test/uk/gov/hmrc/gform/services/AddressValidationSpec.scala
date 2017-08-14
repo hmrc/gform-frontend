@@ -20,12 +20,12 @@ import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Address, FieldId, FieldValue}
-import uk.gov.hmrc.gform.validation.{ComponentsValidator, ValidationValues}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FieldId, FieldValue }
+import uk.gov.hmrc.gform.validation.{ ComponentsValidator, ValidationValues }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
@@ -247,10 +247,10 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     val data = Map(
       FieldId("x-uk") -> Seq("true"),
-      FieldId("x-street1") -> Seq(List.fill(ValidationValues.addressLine + 1)("a").mkString),
-      FieldId("x-street2") -> Seq(List.fill(ValidationValues.addressLine + 1)("a").mkString),
-      FieldId("x-street3") -> Seq(List.fill(ValidationValues.addressLine + 1)("a").mkString),
-      FieldId("x-street4") -> Seq(List.fill(ValidationValues.addressLine4 + 1)("a").mkString),
+      FieldId("x-street1") -> Seq(List.fill(36)("a").mkString),
+      FieldId("x-street2") -> Seq(List.fill(36)("a").mkString),
+      FieldId("x-street3") -> Seq(List.fill(36)("a").mkString),
+      FieldId("x-street4") -> Seq(List.fill(28)("a").mkString),
       FieldId("x-postcode") -> Seq("C")
     )
 
@@ -258,10 +258,10 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     result.toEither should beLeft(
       Map(
-        FieldId("x-street2") -> Set(s"this field is too long must be at most ${ValidationValues.addressLine}"),
-        FieldId("x-street1") -> Set(s"this field is too long must be at most ${ValidationValues.addressLine}"),
-        FieldId("x-street3") -> Set(s"this field is too long must be at most ${ValidationValues.addressLine}"),
-        FieldId("x-street4") -> Set(s"this field is too long must be at most ${ValidationValues.addressLine4}")
+        FieldId("x-street2") -> Set(s"this field is too long must be at most 35"),
+        FieldId("x-street1") -> Set(s"this field is too long must be at most 35"),
+        FieldId("x-street3") -> Set(s"this field is too long must be at most 35"),
+        FieldId("x-street4") -> Set(s"this field is too long must be at most 27")
       )
     )
   }
