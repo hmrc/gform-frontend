@@ -34,6 +34,91 @@ class FormatValidationSpec extends Spec {
   "UkBankAccountNumber Format" should "be invalid with 9" in createFailTest("123456789", UkBankAccountNumber, "must be a whole number of 8 length")
   "UkBankAccountNumber Format" should "be invalid with decimals" in createFailTest("123456789.12345678", UkBankAccountNumber, "must be a whole number")
 
+  "UkSortCode" should "be valid with 2 digits in each box" in {
+    val text = UkSortCode(Constant(""))
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n-1") -> Seq("12"),
+      FieldId("n-2") -> Seq("12"),
+      FieldId("n-3") -> Seq("12")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beRight(())
+  }
+
+  "UkSortCode" should "be invalid with 3 digits in one box" in {
+    val text = UkSortCode(Constant(""))
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n-1") -> Seq("12"),
+      FieldId("n-2") -> Seq("123"),
+      FieldId("n-3") -> Seq("12")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
+  }
+
+  "UkSortCode" should "return an error message" in {
+    val text = UkSortCode(Constant(""))
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n-1") -> Seq(""),
+      FieldId("n-2") -> Seq(""),
+      FieldId("n-3") -> Seq("")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
+  }
+
+  "UkSortCode" should "return invalid data on -" in {
+    val text = UkSortCode(Constant(""))
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n-1") -> Seq("-1"),
+      FieldId("n-2") -> Seq("24"),
+      FieldId("n-3") -> Seq("24")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
+  }
+
+  "UkSortCode" should "be invalid with decimals" in {
+    val text = UkSortCode(Constant(""))
+
+    val fieldValue = FieldValue(FieldId("n"), text,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n-1") -> Seq("1.2"),
+      FieldId("n-2") -> Seq("1.3"),
+      FieldId("n-3") -> Seq("1.2")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number")))
+  }
+
   "TelephoneNumber" should "be valid within limit of 30" in createSuccessTest("123456789101112131415161718192", TelephoneNumber)
   "TelephoneNumber" should "be valid with special characters" in createSuccessTest("+44 1234 567890", TelephoneNumber)
   "TelephoneNumber" should "be invalid with over the limit" in createFailTest("1234567891011121314151617181920", TelephoneNumber, "Entered too many characters should be at most 30 long")
