@@ -88,7 +88,7 @@ class FormatValidationSpec extends Spec {
     result.toEither should beLeft(Map(fieldValue.id -> Set("Please enter required data")))
   }
 
-  "UkSortCode" should "return valid details" in {
+  "UkSortCode" should "return invalid data on -" in {
     val textConstrait = UkSortCode
     val text = Text(textConstrait, Constant(""), false)
 
@@ -103,7 +103,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("Please enter required data")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
   }
 
   "UkSortCode" should "be invalid with decimals" in {
