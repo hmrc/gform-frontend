@@ -60,6 +60,7 @@ class PageShader(
 
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {
     fieldValue.`type` match {
+      case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index)
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, fieldValue, index)
       case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue, index)
       case Address(international) => htmlForAddress(fieldValue, international, index)
@@ -111,6 +112,20 @@ class PageShader(
       prepopValue <- prepopValueF
       validatedValue <- validatedValueF
     } yield uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validatedValue, index)
+  }
+
+  private def htmlForSortCode(fieldValue: FieldValue, sC: UkSortCode, expr: Expr, index: Int) = {
+    val prepopValueF = fieldData.get(fieldValue.id) match {
+      case None => prepopService.prepopData(expr, formTemplate._id)
+      case _ => Future.successful("") // Don't prepop something we already submitted
+    }
+    val validatedValueF = validate(fieldValue)
+
+    for {
+      prepopValue <- prepopValueF
+      validatedValue <- validatedValueF
+    } yield uk.gov.hmrc.gform.views.html.field_template_sort_code(fieldValue, sC, prepopValue, validatedValue, index)
+
   }
 
   private def htmlForAddress(fieldValue: FieldValue, international: Boolean, index: Int) = {

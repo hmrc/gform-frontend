@@ -142,6 +142,12 @@ object ValidationUtil {
 
   def evaluateWithSuffix[t <: ComponentType](component: ComponentType, fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => Seq[String]): List[(FieldId, FormFieldValidationResult)] = {
     component match {
+      case UkSortCode(_) => UkSortCode.fields(fieldValue.id).map { fieldId =>
+        gformErrors.get(fieldId) match {
+          case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
+          case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
+        }
+      }
       case Address(_) => Address.fields(fieldValue.id).map { fieldId =>
 
         gformErrors.get(fieldId) match {
@@ -159,14 +165,7 @@ object ValidationUtil {
           case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
         }
       }
-      case Text(_, _, _) => Text.fields(fieldValue.id).map { fieldId =>
-        gformErrors.get(fieldId) match {
-          //with suffix
-          case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
-          case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
-        }
-      }
-      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) =>
+      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _) =>
         List[(FieldId, FormFieldValidationResult)]()
     }
   }
@@ -195,6 +194,14 @@ object ValidationUtil {
     val resultErrors: List[FormFieldValidationResult] = atomicFields.map { fieldValue =>
 
       fieldValue.`type` match {
+        case sortCode @ UkSortCode(_) =>
+          val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(sortCode, fieldValue, gFormErrors)(dataGetter)
+          val valWithoutSuffixResult: (FieldId, FormFieldValidationResult) = evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
+
+          val dataMap = (valWithoutSuffixResult :: valSuffixResult)
+            .map { kv => kv._1.value -> kv._2 }.toMap
+
+          ComponentField(fieldValue, dataMap)
         case address @ Address(_) =>
 
           val valSuffixResult: List[(FieldId, FormFieldValidationResult)] = evaluateWithSuffix(address, fieldValue, gFormErrors)(dataGetter)
@@ -216,26 +223,12 @@ object ValidationUtil {
 
           ComponentField(fieldValue, dataMap)
 
-        case Text(constraint, _, _) =>
-          val fieldId = fieldValue.id
-          constraint match {
-            case UkSortCode =>
-              val data: String = Text.fields(fieldId).map { fieldId =>
-                dataGetter(fieldId).headOption.getOrElse("")
-              }.mkString("-")
-              gFormErrors
-                .get(fieldId)
-                .fold[FormFieldValidationResult](
-                  FieldOk(fieldValue, data)
-                )(errors => FieldError(fieldValue, data, errors))
-            case _ =>
-              gFormErrors
-                .get(fieldId)
-                .fold[FormFieldValidationResult](
-                  FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
-                )(errors => FieldError(fieldValue, dataGetter(fieldId).headOption.getOrElse(""), errors))
-          }
-
+        case Text(_, _, _) =>
+          gFormErrors
+            .get(fieldValue.id)
+            .fold[FormFieldValidationResult](
+              FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+            )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
         case Group(_, _, _, _, _, _) => {
 
           FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
