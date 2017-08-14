@@ -421,7 +421,6 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  private def getError(defaultError: String) = Invalid(Map(fieldValue.id -> errors(defaultError)))
   private def errors(defaultErr: String): Set[String] = Set(fieldValue.errorMessage.getOrElse(defaultErr))
 
   private def getError(defaultMessage: String) = Map(fieldValue.id -> errors(defaultMessage)).invalid
