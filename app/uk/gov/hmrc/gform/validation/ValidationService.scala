@@ -25,9 +25,12 @@ import cats.instances.all._
 import cats.syntax.validated._
 import cats.kernel.Monoid
 import cats.syntax.cartesian._
+import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService }
 import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService, Infected }
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
@@ -52,6 +55,7 @@ class ValidationService(fileUploadService: FileUploadService) {
 class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {
 
   def validate()(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
+    case sortCode @ UkSortCode(_) => validateSortCode(fieldValue, sortCode)(data)
     case date @ Date(_, _, _) => validateDate(date)
     case text @ Text(_, _, _) => validateText(fieldValue, text)(data)
     case address @ Address(_) => validateAddress(fieldValue, address)(data)
@@ -190,16 +194,6 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
 
   private def validateText(fieldValue: FieldValue, text: Text)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
-    text.constraint match {
-      case UkSortCode =>
-        Monoid[ValidatedType].combineAll(Text.fields(fieldValue.id).map { fieldId =>
-          textValidationImpl(fieldValue.copy(id = fieldId), text)(data)
-        })
-      case _ => textValidationImpl(fieldValue, text)(data)
-    }
-  }
-
-  private def textValidationImpl(fieldValue: FieldValue, text: Text)(data: Map[FieldId, Seq[String]]): ValidatedType = {
     val textData = data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
       case (true, Nil, _) => getError("Please enter required data")
@@ -209,7 +203,6 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(value, min, max)
       case (_, value :: Nil, Sterling) => validateNumber(value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, true)
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, ValidationValues.bankAccountLength)
-      case (_, value :: Nil, UkSortCode) => checkLength(value, ValidationValues.sortCodeLength)
       case (_, value :: Nil, UTR) => checkId(value)
       case (_, value :: Nil, NINO) => checkId(value)
       case (_, value :: Nil, TelephoneNumber) => textValidator(value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
@@ -264,6 +257,19 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case WholeShape(_, whole) if whole.length == desiredLength => Valid(())
       case _ => getError(s"must be a whole number of ${desiredLength} length")
     }
+  }
+
+  private def validateSortCode(fieldValue: FieldValue, sortCode: UkSortCode)(data: Map[FieldId, Seq[String]]) = Future.successful {
+    Monoid[ValidatedType].combineAll(UkSortCode.fields(fieldValue.id).map { fieldId =>
+      val sortCode: Seq[String] = {
+        data.get(fieldId).toList.flatten
+      }
+      sortCode.filterNot(_.isEmpty) match {
+        case Nil => getError("Empty")
+        case value :: Nil => checkLength(value, 2)
+        case value :: Nil => Valid(()) //Does not support multiple values
+      }
+    })
   }
 
   private def validateNumber(value: String, maxWhole: Int, maxFractional: Int, mustBePositive: Boolean): ValidatedType = {

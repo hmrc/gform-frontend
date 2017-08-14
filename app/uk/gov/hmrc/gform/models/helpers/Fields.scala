@@ -30,7 +30,7 @@ object Fields {
   def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], repeatService: RepeatingComponentService, envelope: Envelope)(fieldValue: FieldValue)(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
     val formFields = toFormField(formFieldMap, fieldValues, repeatService).map(hf => hf.id -> hf).toMap
     fieldValue.`type` match {
-      case Address(_) | Date(_, _, _) =>
+      case Address(_) | Date(_, _, _) | UkSortCode(_) =>
         val fieldOkData =
           formFields.filter {
             case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
@@ -71,6 +71,7 @@ object Fields {
         }
         case Address(_) => Address.fields(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
+        case UkSortCode(_) => UkSortCode.fields(fv.id).map(getFieldData)
         case Text(_, _, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload() => List(getFieldData(fv.id))
         case InformationMessage(_, _) => List()
