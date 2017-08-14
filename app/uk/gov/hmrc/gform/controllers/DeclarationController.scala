@@ -16,20 +16,20 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 
-import cats.data.Validated.{ Invalid, Valid }
+import cats.data.Validated.{Invalid, Valid}
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{get, processResponseDataFromBody}
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldId
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField, FormId, UserData}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FieldId, FormTemplate, FormTemplateId}
 import uk.gov.hmrc.gform.validation.DeclarationFieldValidationService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DeclarationController @Inject() (
@@ -56,6 +56,7 @@ class DeclarationController @Inject() (
       get(data, FieldId("save")) match {
         case "Continue" :: Nil =>
           val formF = gformConnector.getForm(formId)
+          val templateF: FormTemplateId => Future[FormTemplate] = gformConnector.getFormTemplate
           fieldValidator.validateDeclarationFields(data) match {
             case Valid(()) =>
               for {
@@ -63,9 +64,10 @@ class DeclarationController @Inject() (
                 updatedForm = updateFormWithDeclaration(form, data)
                 _ <- gformConnector.updateUserData(form._id, UserData(updatedForm.formData, None))
                 response <- gformConnector.submitForm(formId)
+                template <- templateF(form.formTemplateId) //TODO move this outside this single case.
                 _ <- repeatService.clearSession
               } yield {
-                auditService.sendSubmissionEvent(form)
+                auditService.sendSubmissionEvent(form, template.sections)
                 Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
               }
             case Invalid(validationMap) =>
