@@ -29,21 +29,23 @@
                 name="@fieldValue.id.withSuffix("1")"
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id.withSuffix("1")"
-        value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop).split("-").lift(0).getOrElse("")"
+        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.withSuffix("1").toString)).getOrElse("")"
         class="input--xxsmall push--left">
+        -
         <input
                 type="text"
                 name="@fieldValue.id.withSuffix("2")"
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id.withSuffix("2")"
-        value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop).split("-").lift(1).getOrElse("")"
+        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.withSuffix("2").toString)).getOrElse("")"
         class="input--xxsmall">
+        -
         <input
                 type="text"
                 name="@fieldValue.id.withSuffix("3")"
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id.withSuffix("3")"
-        value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop).split("-").lift(2).getOrElse("")"
+        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.withSuffix("3").toString)).getOrElse("")"
         class="input--xxsmall">
 
     </div>

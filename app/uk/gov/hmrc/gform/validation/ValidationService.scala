@@ -250,22 +250,23 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     else getError("This email address is not valid")
 
   private def checkLength(value: String, desiredLength: Int) = {
-    val WholeShape = "([+-]?)(\\d+)[.]?".r
+    val WholeShape = s"[0-9]{$desiredLength}".r
+    val x = "y"
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
       case FractionalShape(_, _, _) => getError(s"must be a whole number")
-      case WholeShape(_, whole) if whole.length == desiredLength => Valid(())
+      case WholeShape() => Valid(())
       case _ => getError(s"must be a whole number of ${desiredLength} length")
     }
   }
 
-  private def validateSortCode(fieldValue: FieldValue, sortCode: UkSortCode)(data: Map[FieldId, Seq[String]]) = Future.successful {
+  private def validateSortCode(fieldValue: FieldValue, sC: UkSortCode)(data: Map[FieldId, Seq[String]]) = Future.successful {
     Monoid[ValidatedType].combineAll(UkSortCode.fields(fieldValue.id).map { fieldId =>
       val sortCode: Seq[String] = {
         data.get(fieldId).toList.flatten
       }
       sortCode.filterNot(_.isEmpty) match {
-        case Nil => getError("Empty")
+        case Nil => getError("must be a whole number of 2 length")
         case value :: Nil => checkLength(value, 2)
         case value :: Nil => Valid(()) //Does not support multiple values
       }

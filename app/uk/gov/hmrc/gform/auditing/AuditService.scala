@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.Request
-import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldValue, Section, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.frontend.auth.AuthContext
@@ -29,19 +30,28 @@ trait AuditService {
 
   def auditConnector: AuditConnector
 
-  val formToMap: Form => Map[String, String] = {
-    form =>
-      val dataMap = Map(
-        "FormId" -> form._id.value,
-        "EnvelopeId" -> form.envelopeId.value,
-        "FormTemplateId" -> form.formTemplateId.value,
-        "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
-      )
+  def formToMap(form: Form, section: List[Section]): Map[String, String] = {
+    val dataMap = Map(
+      "FormId" -> form._id.value,
+      "EnvelopeId" -> form.envelopeId.value,
+      "FormTemplateId" -> form.formTemplateId.value,
+      "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
+    )
+    val optSortCode: List[FieldValue] = section.flatMap(_.fields.filter(_.`type` == UkSortCode))
 
-      dataMap ++ form.formData.fields.map(x => x.id.value -> x.value).toMap
+    val processedData: Seq[FormField] = {
+      optSortCode.flatMap { x =>
+        val sortCode: String = form.formData.fields.filter(_.id.value.startsWith(x.id.value)).map(_.value).mkString("-")
+        form.formData.fields.filterNot(_.id.value.startsWith(x.id.value)) ++ Seq(FormField(x.id, sortCode))
+      }
+    }
+
+    val data = processedData.map(x => x.id.value -> x.value).toMap
+
+    dataMap ++ data
   }
-  def sendSubmissionEvent(form: Form)(implicit ex: ExecutionContext, hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) = {
-    sendEvent(formToMap(form))
+  def sendSubmissionEvent(form: Form, sections: List[Section])(implicit ex: ExecutionContext, hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) = {
+    sendEvent(formToMap(form, sections))
   }
 
   private def sendEvent(detail: Map[String, String])(implicit ex: ExecutionContext, hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) =
