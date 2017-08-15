@@ -223,11 +223,15 @@ object ValidationUtil {
 
           ComponentField(fieldValue, dataMap)
 
-        case Text(_, _, _) =>
+        case Text(constraint, _, _) =>
+          val data = constraint match {
+            case UkVrn => dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
+            case _ => dataGetter(fieldValue.id).headOption.getOrElse("")
+          }
           gFormErrors
             .get(fieldValue.id)
             .fold[FormFieldValidationResult](
-              FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+              FieldOk(fieldValue, data)
             )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
         case Group(_, _, _, _, _, _) => {
 
