@@ -205,12 +205,28 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(value, ValidationValues.bankAccountLength)
       case (_, value :: Nil, UTR) => checkId(value)
       case (_, value :: Nil, NINO) => checkId(value)
+      case (_, value :: Nil, UkVrn) => checkVrn(value)
       case (_, value :: Nil, TelephoneNumber) => textValidator(value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
       case (_, value :: Nil, Email) => Monoid.combine(email(value), textValidator(value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
       case (_, _, ShortText) => Valid(())
       case (_, value :: rest, _) => Valid(()) // we don't support multiple values yet
+    }
+  }
+
+  private def checkVrn(value: String) = {
+    val Standard = "GB[0-9]{0, 9}".r
+    val Branch = "GB[0-9]{0, 12}".r
+    val Government = "GBGD[0-4][0-9]{0, 2}".r
+    val Health = "GBHA[5-9][0-9]{0, 2}".r
+    val str = value.replace(" ", "")
+    str match {
+      case Standard() => Valid(())
+      case Branch() => Valid(())
+      case Government() => Valid(())
+      case Health() => Valid(())
+      case _ => getError("Not a valid VRN")
     }
   }
 
