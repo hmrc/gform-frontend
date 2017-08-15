@@ -133,6 +133,7 @@ class FormatValidationSpec extends Spec {
   "UkVrn" should "return valid branch" in createSuccessTest("GB999999973001", UkVrn)
   "UkVrn" should "return valid gpvernment" in createSuccessTest("GBGD001", UkVrn)
   "UkVrn" should "return valid health" in createSuccessTest("GBHA599", UkVrn)
+  "UkVrn" should "return invalid without the GB precedding" in createFailTest("ABCD111111111", UkVrn, "Not a valid VRN")
   "BasicText" should "return valid with text" in createSuccessTest("This is test text", BasicText)
   "BasicText" should "return invalid with invalid text" in createFailTest(List.fill[String](100001)("a").mkString, BasicText, "The text is over 100000 so is not valid")
   "ShortText" should "return valid with shortText" in createSuccessTest("this is test text", ShortText)
