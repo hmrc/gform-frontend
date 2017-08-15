@@ -24,29 +24,15 @@
             errors.map(e => errorInline(e, e, Seq("")))
         }
 
+        @UkSortCode.fields(fieldValue.id).map{ fieldId =>
         <input
                 type="text"
-                name="@fieldValue.id.withSuffix("1")"
+                name="@fieldId"
         @if(!fieldValue.editable) { readonly="" }
-        id="@fieldValue.id.withSuffix("1")"
-        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.withSuffix("1").toString)).getOrElse("")"
-        class="input--xxsmall push--left">
-        -
-        <input
-                type="text"
-                name="@fieldValue.id.withSuffix("2")"
-        @if(!fieldValue.editable) { readonly="" }
-        id="@fieldValue.id.withSuffix("2")"
-        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.withSuffix("2").toString)).getOrElse("")"
-        class="input--xxsmall">
-        -
-        <input
-                type="text"
-                name="@fieldValue.id.withSuffix("3")"
-        @if(!fieldValue.editable) { readonly="" }
-        id="@fieldValue.id.withSuffix("3")"
-        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.withSuffix("3").toString)).getOrElse("")"
-        class="input--xxsmall">
+        id="@fieldId"
+        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
+        class="input--xxsmall if(fieldId.last == 1){push--left}"> @if(fieldId.toString.last == 3) { - }
+        }
 
     </div>
 </div>

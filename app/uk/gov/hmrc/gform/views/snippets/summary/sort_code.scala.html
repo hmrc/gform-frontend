@@ -18,6 +18,8 @@ fieldValue.id.withSuffix(id).value
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </td>
   <td>
-    @validationResult.map(_.getCurrentValue(safeId("1"))).getOrElse("") - @validationResult.map(_.getCurrentValue(safeId("2"))).getOrElse("") - @validationResult.map(_.getCurrentValue(safeId("3"))).getOrElse("")
-  </td>
+    @UkSortCode.fields(fieldValue.id).map{ fieldId =>
+     @validationResult.map(_.getCurrentValue(fieldId.toString)).getOrElse("")
+    }.mkString("-")
+   </td>
 </tr>
