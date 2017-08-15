@@ -40,9 +40,11 @@ trait AuditService {
     val optSortCode: List[FieldValue] = section.flatMap(_.fields.filter(_.`type` == UkSortCode))
 
     val processedData: Seq[FormField] = {
-      optSortCode.flatMap { x =>
-        val sortCode: String = form.formData.fields.filter(_.id.value.startsWith(x.id.value)).map(_.value).mkString("-")
-        form.formData.fields.filterNot(_.id.value.startsWith(x.id.value)) ++ Seq(FormField(x.id, sortCode))
+      optSortCode.flatMap { fieldValue =>
+        UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
+          val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
+          form.formData.fields.filterNot(_.id == fieldId) ++ Seq(FormField(fieldValue.id, sortCode))
+        }
       }
     }
 
