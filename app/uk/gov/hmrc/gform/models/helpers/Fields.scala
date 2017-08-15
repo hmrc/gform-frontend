@@ -30,14 +30,9 @@ object Fields {
   def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], repeatService: RepeatingComponentService, envelope: Envelope)(fieldValue: FieldValue)(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
     val formFields = toFormField(formFieldMap, fieldValues, repeatService).map(hf => hf.id -> hf).toMap
     fieldValue.`type` match {
-      case Address(_) | Date(_, _, _) | UkSortCode(_) =>
-        val fieldOkData =
-          formFields.filter {
-            case (fieldId, formField) => fieldId.value.startsWith(fieldValue.id.value) // Get just fieldIds related to fieldValue
-          }.map {
-            case (fieldId, formField) => fieldId.value -> FieldOk(fieldValue, formField.value)
-          }
-        Some(ComponentField(fieldValue, fieldOkData))
+      case Address(_)  => componentField(Address.fields(fieldValue.id))
+      case Date(_, _, _) => componentField(Date.fields(fieldValue.id))
+      case UkSortCode(_) => componentField(UkSortCode.fields(fieldValue.id))
       case Text(_, _, _) | Group(_, _, _, _, _, _) => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
@@ -54,6 +49,13 @@ object Fields {
         FieldOk(fieldValue, fileName)
       }
       case InformationMessage(_, _) => None
+    }
+
+    def componentField(list: List[FieldId]) = {
+      val data = list.map { fieldId =>
+        fieldId.value -> FieldOk(fieldValue, formFields.get(fieldId).map(_.value).getOrElse(""))
+      }.toMap
+      Some(ComponentField(fieldValue, data))
     }
   }
 
