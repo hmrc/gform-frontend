@@ -216,10 +216,10 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   }
 
   private def checkVrn(value: String) = {
-    val Standard = "GB[0-9]{0,9}".r
-    val Branch = "GB[0-9]{0,12}".r
-    val Government = "GBGD[0-4][0-9]{0,2}".r
-    val Health = "GBHA[5-9][0-9]{0,2}".r
+    val Standard = "GB[0-9]{9}".r
+    val Branch = "GB[0-9]{12}".r
+    val Government = "GBGD[0-4][0-9]{2}".r
+    val Health = "GBHA[5-9][0-9]{2}".r
     val str = value.replace(" ", "")
     str match {
       case Standard() => Valid(())
