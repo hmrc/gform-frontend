@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.userdetails
-
-import play.api.libs.json.Json
-
-case class UserDetails(affinityGroup: AffinityGroup, groupIdentifier: GroupId)
-
-object UserDetails {
-  implicit val reads = Json.reads[UserDetails]
-}
+//package uk.gov.hmrc.gform.models.userdetails
+//
+//import play.api.libs.json.Json
+//
+//case class UserDetails(affinityGroup: AffinityGroup, groupIdentifier: GroupId)
+//
+//object UserDetails {
+//  implicit val reads = Json.reads[UserDetails]
+//}

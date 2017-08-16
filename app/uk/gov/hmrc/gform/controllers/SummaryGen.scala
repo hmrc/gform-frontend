@@ -50,7 +50,7 @@ class SummaryGen @Inject() (
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId) = auth.async { implicit c =>
+  def summaryById(formId: FormId) = auth.async(formId = Some(formId)) { implicit c =>
     val formF = gformConnector.getForm(formId)
     for {// format: OFF
       form           <- formF
@@ -64,7 +64,7 @@ class SummaryGen @Inject() (
     } yield result
   }
 
-  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async { implicit c =>
+  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formId = Some(formId)) { implicit c =>
 
     processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {

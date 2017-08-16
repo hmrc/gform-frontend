@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+/*
 package uk.gov.hmrc.gform.dev
 
 import com.google.inject.AbstractModule
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.gform.FrontendAuthConnector
-import uk.gov.hmrc.play.frontend.auth.GovernmentGateway
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 
 class GuiceModule extends AbstractModule with ServicesConfig {
   override def configure(): Unit = {
@@ -28,3 +28,4 @@ class GuiceModule extends AbstractModule with ServicesConfig {
     bind(classOf[GovernmentGateway]).to(classOf[gformAuthenticationProvider])
   }
 }
+*/

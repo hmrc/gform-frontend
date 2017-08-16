@@ -16,20 +16,52 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.gform.models.userdetails.AffinityGroup
-import uk.gov.hmrc.gform.sharedmodel.UserId
+import play.api.libs.json._
+import org.joda.time.LocalDate
+import uk.gov.hmrc.auth.core.authorise.AffinityGroup
 
-case class UserDetails(userId: UserId, affinityGroup: AffinityGroup)
+case class UserDetails(
+  authProviderId: Option[String],
+  authProviderType: Option[AuthProviderType],
+  name: String,
+  lastName: Option[String] = None,
+  dateOfBirth: Option[LocalDate] = None,
+  postCode: Option[String] = None,
+  email: Option[String] = None,
+  affinityGroup: AffinityGroup,
+  agentCode: Option[String] = None,
+  agentId: Option[String] = None,
+  agentFriendlyName: Option[String] = None,
+  credentialRole: Option[String] = None,
+  description: Option[String] = None,
+  groupIdentifier: String
+)
 
 object UserDetails {
-  implicit val format: OFormat[UserDetails] = Json.format[UserDetails]
+  implicit lazy val format: OFormat[UserDetails] = Json.format
 }
 
-case class UserDetailsResponse(groupIdentifier: String, affinityGroup: AffinityGroup) {
-  def asUserDetails = UserDetails(UserId(groupIdentifier), affinityGroup)
-}
+sealed trait AuthProviderType
+final case object GovernmentGateway extends AuthProviderType
+final case object Verify extends AuthProviderType
+final case object PrivilegedApplication extends AuthProviderType
 
-object UserDetailsResponse {
-  implicit val format: OFormat[UserDetailsResponse] = Json.format[UserDetailsResponse]
+object AuthProviderType {
+  implicit lazy val format: OFormat[AuthProviderType] = {
+    val writes: OWrites[AuthProviderType] = OWrites {
+      case GovernmentGateway => JsObject(Seq("authProviderType" -> JsString("GovernmentGateway")))
+      case Verify => JsObject(Seq("authProviderType" -> JsString("Verify")))
+      case PrivilegedApplication => JsObject(Seq("authProviderType" -> JsString("PrivilegedApplication")))
+    }
+
+    val reads: Reads[AuthProviderType] = Reads {
+      case JsString("GovernmentGateway") => JsSuccess(GovernmentGateway)
+      case JsString("Verify") => JsSuccess(Verify)
+      case JsString("PrivilegedApplication") => JsSuccess(PrivilegedApplication)
+      case others => JsError(s"Unrecognised value in authProviderType: $others")
+    }
+
+    OFormat(reads, writes)
+  }
+
 }

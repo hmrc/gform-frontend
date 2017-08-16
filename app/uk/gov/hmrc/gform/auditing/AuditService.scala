@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.gform.auditing
 
+import play.api.libs.json.Json
 import play.api.mvc.Request
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
@@ -40,23 +41,33 @@ trait AuditService {
 
       dataMap ++ form.formData.fields.map(x => x.id.value -> x.value).toMap
   }
-  def sendSubmissionEvent(form: Form)(implicit ex: ExecutionContext, hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) = {
+  def sendSubmissionEvent(form: Form)(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
     sendEvent(formToMap(form))
   }
 
-  private def sendEvent(detail: Map[String, String])(implicit ex: ExecutionContext, hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) =
+  private def sendEvent(detail: Map[String, String])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) =
     auditConnector.sendEvent(eventFor(detail))
 
-  private def eventFor(detail: Map[String, String])(implicit hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) = {
+  private def eventFor(detail: Map[String, String])(implicit hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
+    /*
+    Enrolment(
+                      key: String,
+                      identifiers: Seq[EnrolmentIdentifier],
+                      state: String,
+                      confidenceLevel: ConfidenceLevel,
+                      delegatedAuthRule: Option[String] = None)
+     */
+    val cosa = Json.toJson(retrievals.enrolments.enrolments)
+    println(s"HOLA: [$cosa]")
     DataEvent(
       auditSource = "GForm",
       auditType = "submission complete auditing",
       tags = hc.headers.toMap,
       detail = detail ++ Map(
-      "nino" -> authContext.principal.name.getOrElse(""),
-      "vrn" -> authContext.principal.accounts.vat.map(_.vrn.vrn).getOrElse(""),
-      "saUtr" -> authContext.principal.accounts.ated.getOrElse("").toString,
-      "ctUtr" -> authContext.principal.accounts.ct.getOrElse("").toString,
+      "nino" -> "", //authContext.principal.name.getOrElse(""),
+      "vrn" -> "", //authContext.principal.accounts.vat.map(_.vrn.vrn).getOrElse(""),
+      "saUtr" -> "", //authContext.principal.accounts.ated.getOrElse("").toString,
+      "ctUtr" -> "", //authContext.principal.accounts.ct.getOrElse("").toString,
       "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
     )
     )

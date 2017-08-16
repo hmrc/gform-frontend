@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/*
 package uk.gov.hmrc.gform.dev
 
 import javax.inject.{ Inject, Singleton }
@@ -74,3 +75,4 @@ class gformAuthenticationProvider @Inject() (configuration: Configuration, ws: W
 
   def loginURL: String = governmentGatewaySignInUrl
 }
+*/

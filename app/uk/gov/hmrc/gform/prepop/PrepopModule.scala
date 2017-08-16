@@ -17,19 +17,16 @@
 package uk.gov.hmrc.gform.prepop
 
 import javax.inject.Inject
-
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
-import uk.gov.hmrc.play.http.HttpGet
 
 class PrepopModule @Inject() (
     configModule: ConfigModule,
     wSHttpModule: WSHttpModule
 ) {
 
-  lazy val prepopService = new PrepopService(eeittConnector, authConnector, authContextPrepop)
+  lazy val prepopService = new PrepopService(eeittConnector, authContextPrepop)
 
   /********************* private *********************/
 
@@ -39,10 +36,4 @@ class PrepopModule @Inject() (
     configModule.serviceConfig.baseUrl("eeitt"),
     wSHttpModule.auditableWSHttp
   )
-
-  private lazy val authConnector = new AuthConnector {
-    override val serviceUrl: String = configModule.serviceConfig.baseUrl("auth")
-    override val http: HttpGet = wSHttpModule.auditableWSHttp
-  }
-
 }

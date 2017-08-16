@@ -17,27 +17,31 @@
 package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import play.api.mvc.{ AnyContent, Request, Result }
+import play.api.mvc.Results._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class EeittAuthorisationDelegate(
-    eeittConnector: EeittConnector,
-    appConfig: AppConfig
-) {
+class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: ConfigModule) {
 
-  def legacyAuth(formTemplate: FormTemplate, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[AuthResult] =
-    for {
-      isOk <- eeittConnector.isAllowed(userDetails.userId.value, formTemplate.authConfig.regimeId, userDetails.affinityGroup)
-    } yield isAuthed(isOk)
+  def legacyAuth(formTemplate: FormTemplate, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[Result] = {
 
-  private def isAuthed(isOk: Verification): AuthResult = {
-    if (!isOk.isAllowed)
-      NeedsAuthenticated
-    else
-      Authenticated
+    val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, formTemplate.authConfig.regimeId, userDetails.affinityGroup)
+
+    authResultF.flatMap {
+      case Verification(true) => Future.successful(Ok)
+      case Verification(false) => redirectToEeitt(formTemplate._id)
+    }
+  }
+
+  private def redirectToEeitt(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]): Future[Result] = {
+    val continueUrl = configModule.appConfig.`gform-frontend-base-url` + request.uri
+    val eeittLoginUrl = s"${configModule.serviceConfig.baseUrl("eeitt-frontend")}/eeitt-auth/enrollment-verification"
+    val parameters = Map("callbackUrl" -> Seq(continueUrl))
+    Future.successful(Redirect(eeittLoginUrl, parameters))
   }
 }

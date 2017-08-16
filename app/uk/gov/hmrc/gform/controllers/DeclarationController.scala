@@ -38,12 +38,12 @@ class DeclarationController @Inject() (
     repeatService: RepeatingComponentService,
     fieldValidator: DeclarationFieldValidationService,
     auditingModule: AuditingModule
-)(implicit ec: ExecutionContext) extends FrontendController {
+) /*(implicit ec: ExecutionContext)*/ extends FrontendController {
 
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def showDeclaration(formId: FormId) = auth.async { implicit authRequest =>
+  def showDeclaration(formId: FormId) = auth.async(formId = Some(formId)) { implicit authRequest =>
     val formF = gformConnector.getForm(formId)
     for {
       form <- formF
@@ -51,7 +51,7 @@ class DeclarationController @Inject() (
     } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, Map.empty, Map.empty))
   }
 
-  def submitDeclaration(formId: FormId) = auth.async { implicit c =>
+  def submitDeclaration(formId: FormId) = auth.async(formId = Some(formId)) { implicit c =>
     processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
         case "Continue" :: Nil =>

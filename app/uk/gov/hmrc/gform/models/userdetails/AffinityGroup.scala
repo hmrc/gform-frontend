@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/*
 package uk.gov.hmrc.gform.models.userdetails
 
 import julienrf.json.derived
@@ -41,3 +42,4 @@ object AffinityGroup {
 
   implicit val format = Format[AffinityGroup](reads, writes)
 }
+*/ 
