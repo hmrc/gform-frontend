@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.gform.auditing
 
-import play.api.libs.json.Json
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.sharedmodel.form.Form
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FieldValue, Section, UkSortCode}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -30,45 +30,46 @@ trait AuditService {
 
   def auditConnector: AuditConnector
 
-  val formToMap: Form => Map[String, String] = {
-    form =>
-      val dataMap = Map(
-        "FormId" -> form._id.value,
-        "EnvelopeId" -> form.envelopeId.value,
-        "FormTemplateId" -> form.formTemplateId.value,
-        "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
-      )
+  def formToMap(form: Form, section: List[Section]): Map[String, String] = {
+    val dataMap = Map(
+      "FormId" -> form._id.value,
+      "EnvelopeId" -> form.envelopeId.value,
+      "FormTemplateId" -> form.formTemplateId.value,
+      "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
+    )
+    val optSortCode: List[FieldValue] = section.flatMap(_.fields.filter(_.`type` == UkSortCode))
 
-      dataMap ++ form.formData.fields.map(x => x.id.value -> x.value).toMap
+    val processedData: Seq[FormField] = {
+      optSortCode.flatMap { fieldValue =>
+        UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
+          val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
+          form.formData.fields.filterNot(_.id == fieldId) ++ Seq(FormField(fieldValue.id, sortCode))
+        }
+      }
+    }
+
+    val data = processedData.map(x => x.id.value -> x.value).toMap
+
+    dataMap ++ data
   }
-  def sendSubmissionEvent(form: Form)(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
-    sendEvent(formToMap(form))
+  def sendSubmissionEvent(form: Form, sections: List[Section])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
+    sendEvent(formToMap(form, sections))
   }
 
   private def sendEvent(detail: Map[String, String])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) =
     auditConnector.sendEvent(eventFor(detail))
 
   private def eventFor(detail: Map[String, String])(implicit hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
-    /*
-    Enrolment(
-                      key: String,
-                      identifiers: Seq[EnrolmentIdentifier],
-                      state: String,
-                      confidenceLevel: ConfidenceLevel,
-                      delegatedAuthRule: Option[String] = None)
-     */
-    val cosa = Json.toJson(retrievals.enrolments.enrolments)
-    println(s"HOLA: [$cosa]")
     DataEvent(
       auditSource = "GForm",
       auditType = "submission complete auditing",
       tags = hc.headers.toMap,
       detail = detail ++ Map(
-      "nino" -> "", //authContext.principal.name.getOrElse(""),
-      "vrn" -> "", //authContext.principal.accounts.vat.map(_.vrn.vrn).getOrElse(""),
-      "saUtr" -> "", //authContext.principal.accounts.ated.getOrElse("").toString,
-      "ctUtr" -> "", //authContext.principal.accounts.ct.getOrElse("").toString,
-      "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
+      "nino" -> "",//authContext.principal.name.getOrElse(""),
+      "vrn" -> "",//authContext.principal.accounts.vat.map(_.vrn.vrn).getOrElse(""),
+      "saUtr" -> "",//authContext.principal.accounts.ated.getOrElse("").toString,
+      "ctUtr" -> "",//authContext.principal.accounts.ct.getOrElse("").toString,
+      "deviceId" -> ""//hc.deviceID.map(a => a).getOrElse("")
     )
     )
   }

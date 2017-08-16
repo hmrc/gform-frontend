@@ -1,0 +1,25 @@
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.models.FormFieldValidationResult
+
+@import uk.gov.hmrc.gform.views.html.localisation
+
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkSortCode
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+
+@safeId(id: String) = @{
+fieldValue.id.withSuffix(id).value
+}
+
+@* TODO: What should total style be? *@
+<tr>
+  <td>
+    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+  </td>
+  <td>
+    @UkSortCode.fields(fieldValue.id).map{ fieldId =>
+     @validationResult.map(_.getCurrentValue(fieldId.toString)).getOrElse("")
+    }.mkString("-")
+   </td>
+</tr>

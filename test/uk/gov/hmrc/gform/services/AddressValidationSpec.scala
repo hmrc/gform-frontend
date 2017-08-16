@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FieldId, FieldValue }
-import uk.gov.hmrc.gform.validation.ComponentsValidator
+import uk.gov.hmrc.gform.validation.{ ComponentsValidator, ValidationValues }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
@@ -201,6 +201,67 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       Map(
         FieldId("x-country") -> Set("New Error Message"),
         FieldId("x-street1") -> Set("New Error Message")
+      )
+    )
+  }
+
+  "Address validation" should "pass with valid data" in {
+    val address = Address(international = true)
+
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false, None)
+
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
+      FieldId("x-street1") -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
+      FieldId("x-street2") -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
+      FieldId("x-street3") -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
+      FieldId("x-street4") -> Seq(List.fill(ValidationValues.addressLine4)("a").mkString),
+      FieldId("x-postcode") -> Seq("C")
+    )
+
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+
+    result.toEither should beRight(())
+  }
+
+  "Address validation" should "pass with valid required data omitting the optional" in {
+    val address = Address(international = true)
+
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false, None)
+
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
+      FieldId("x-street1") -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
+      FieldId("x-postcode") -> Seq("C")
+    )
+
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+
+    result.toEither should beRight(())
+  }
+
+  "Address validation" should "fail when the field is fails validation" in {
+    val address = Address(international = true)
+
+    val speccedAddress = FieldValue(FieldId("x"), address, "l", None, None, true, true, false, None)
+
+    val data = Map(
+      FieldId("x-uk") -> Seq("true"),
+      FieldId("x-street1") -> Seq(List.fill(36)("a").mkString),
+      FieldId("x-street2") -> Seq(List.fill(36)("a").mkString),
+      FieldId("x-street3") -> Seq(List.fill(36)("a").mkString),
+      FieldId("x-street4") -> Seq(List.fill(28)("a").mkString),
+      FieldId("x-postcode") -> Seq("C")
+    )
+
+    val result: ValidatedType = new ComponentsValidator(speccedAddress, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+
+    result.toEither should beLeft(
+      Map(
+        FieldId("x-street2") -> Set(s"this field is too long must be at most 35"),
+        FieldId("x-street1") -> Set(s"this field is too long must be at most 35"),
+        FieldId("x-street3") -> Set(s"this field is too long must be at most 35"),
+        FieldId("x-street4") -> Set(s"this field is too long must be at most 27")
       )
     )
   }

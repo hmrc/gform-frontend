@@ -83,11 +83,12 @@ case object ShortText extends TextConstraint
 case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
 final case object Sterling extends TextConstraint
 final case object UkBankAccountNumber extends TextConstraint
-final case object UkSortCode extends TextConstraint
+final case object UkSortCodeFormat extends TextConstraint
 case object TelephoneNumber extends TextConstraint
 case object Email extends TextConstraint
 case object UTR extends TextConstraint
 case object NINO extends TextConstraint
+case object UkVrn extends TextConstraint
 
 object TextConstraint {
   val defaultWholeDigits = 11

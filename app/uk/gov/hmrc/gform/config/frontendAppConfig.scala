@@ -53,7 +53,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   // this will be empty in non-local environments
   override lazy val gformFrontendBaseUrl = config.getString("gform-frontend-base-url").getOrElse("")
 
-  override lazy val betaFeedbackUrlNoAuth = s"$contactHost/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier"
+  override lazy val betaFeedbackUrlNoAuth = s"$gformFrontendBaseUrl/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier"
 
   override lazy val sessionCacheDomain: String = config.getString("cachable.session-cache.domain").getOrElse("")
   override lazy val sessionCacheBaseUri: String = baseUrl("cachable.session-cache")

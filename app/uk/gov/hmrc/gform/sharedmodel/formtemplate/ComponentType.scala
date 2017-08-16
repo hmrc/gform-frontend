@@ -31,8 +31,9 @@ case class Text(
   total: Boolean
 ) extends ComponentType
 
-object Text {
+case class UkSortCode(value: Expr) extends ComponentType
 
+object UkSortCode {
   val fields = (id: FieldId) => List("1", "2", "3").map(id.withSuffix)
 }
 
