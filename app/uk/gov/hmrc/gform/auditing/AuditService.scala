@@ -17,9 +17,10 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.Request
+import uk.gov.hmrc.auth.core.authorise.EnrolmentIdentifier
 import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FieldValue, Section, UkSortCode}
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldValue, Section, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -52,6 +53,7 @@ trait AuditService {
 
     dataMap ++ data
   }
+
   def sendSubmissionEvent(form: Form, sections: List[Section])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
     sendEvent(formToMap(form, sections))
   }
@@ -65,12 +67,27 @@ trait AuditService {
       auditType = "submission complete auditing",
       tags = hc.headers.toMap,
       detail = detail ++ Map(
-      "nino" -> "",//authContext.principal.name.getOrElse(""),
-      "vrn" -> "",//authContext.principal.accounts.vat.map(_.vrn.vrn).getOrElse(""),
-      "saUtr" -> "",//authContext.principal.accounts.ated.getOrElse("").toString,
-      "ctUtr" -> "",//authContext.principal.accounts.ct.getOrElse("").toString,
-      "deviceId" -> ""//hc.deviceID.map(a => a).getOrElse("")
+      "nino" -> getTaxIdValue(None, "NINO"),
+      "vrn" -> getTaxIdValue(None, "VATRegNo"),
+      "saUtr" -> getTaxIdValue(Some("IR-SA"), "UTR"),
+      "ctUtr" -> getTaxIdValue(Some("IR-CT"), "UTR"),
+      "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
     )
     )
+  }
+
+  private def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String)(implicit retrievals: Retrievals) = {
+
+    val maybeEnrolmentIdentifier = maybeEnrolment match {
+      case Some(enrolment) => retrievals.enrolments.getEnrolment(enrolment)
+        .fold[Option[EnrolmentIdentifier]](None)(_.getIdentifier(taxIdName))
+
+      case None => retrievals.enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(taxIdName))
+    }
+
+    maybeEnrolmentIdentifier match {
+      case Some(enrolmentId) => enrolmentId.value
+      case None => ""
+    }
   }
 }

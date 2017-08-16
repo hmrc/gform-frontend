@@ -50,21 +50,19 @@ class SummaryGen @Inject() (
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId) = auth.async(formId = Some(formId)) { implicit c =>
-    val formF = gformConnector.getForm(formId)
+  def summaryById(formId: FormId) = auth.async(formIdOpt = Some(formId)) { implicit c =>
+    val form = maybeForm.get
+    val envelopeF = fileUploadService.getEnvelope(form.envelopeId)
+
     for {// format: OFF
-      form           <- formF
-      envelopeF      = fileUploadService.getEnvelope(form.envelopeId)
-      formTemplateF  = gformConnector.getFormTemplate(form.formTemplateId)
       envelope       <- envelopeF
-      formTemplate   <- formTemplateF
       map = formDataMap(form.formData)
       result <- Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
       // format: ON
     } yield result
   }
 
-  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formId = Some(formId)) { implicit c =>
+  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formIdOpt = Some(formId)) { implicit c =>
 
     processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {

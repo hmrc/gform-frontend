@@ -24,12 +24,13 @@ import uk.gov.hmrc._
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.play.http.HeaderCarrier
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+
+private case class FormAndTemplate(form: Option[Form], template: FormTemplate)
 
 class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthModule, configModule: ConfigModule) extends AuthorisedFunctions {
   val authConnector = authMod.authConnector
@@ -37,29 +38,26 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
-  def async(formTemplateIdOpt: Option[FormTemplateId] = None, formId: Option[FormId] = None)(f: AuthenticatedRequest => Future[Result]): Action[AnyContent] = Action.async { implicit request =>
+  def async(formTemplateIdOpt: Option[FormTemplateId] = None, formIdOpt: Option[FormId] = None)(f: AuthenticatedRequest => Future[Result]): Action[AnyContent] = Action.async { implicit request =>
 
-    // For security reasons every page access requires user authorisation.
-    // TODO: Network round trips should be reduced
-    // TODO: Implement caching of at least some parameters to avoid calling the backend so many times
-    val formTemplateF = formTemplateIdOpt match {
-      case Some(formTemplateId) => gformConnector.getFormTemplate(formTemplateId)
+    val formAndTemplateF = formTemplateIdOpt match {
+      case Some(formTemplateId) => gformConnector.getFormTemplate(formTemplateId).map(t => FormAndTemplate(None, t))
       case None => for {
-        form <- gformConnector.getForm(formId.get)
+        form <- gformConnector.getForm(formIdOpt.get)
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-      } yield formTemplate
+      } yield FormAndTemplate(Some(form), formTemplate)
     }
 
-    formTemplateF.flatMap { formTemplate =>
-      formTemplate.authConfig.authModule match {
-        case AuthConfigModule("legacyEEITTAuth") => performEEITTAuth(formTemplate, f)
-        case AuthConfigModule("hmrc") => performHMRCAuth(f)
+    formAndTemplateF.flatMap { formAndTemplate =>
+      formAndTemplate.template.authConfig.authModule match {
+        case AuthConfigModule("legacyEEITTAuth") => performEEITTAuth(formAndTemplate, f)
+        case AuthConfigModule("hmrc") => performHMRCAuth(formAndTemplate, f)
         case others => Future.failed(new RuntimeException(s"Invalid authModule value in template's authConfig section: ${others.value}"))
       }
     }
   }
 
-  private def performEEITTAuth(formTemplate: FormTemplate, f: AuthenticatedRequest => Future[Result])(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[Result] = {
+  private def performEEITTAuth(formAndTemplate: FormAndTemplate, f: AuthenticatedRequest => Future[Result])(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[Result] = {
     authorised(
       AuthProviders(AuthProvider.GovernmentGateway)
     ).retrieve(
@@ -74,17 +72,17 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       ) {
           case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
             authConnector.getUserDetails(userDetailsUri.get).flatMap { userDetails =>
-              eeittDelegate.legacyAuth(formTemplate, userDetails).flatMap {
+              eeittDelegate.legacyAuth(formAndTemplate.template, userDetails).flatMap {
                 case Ok =>
                   val retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
-                  f(AuthenticatedRequest(retrievals, request))
+                  f(AuthenticatedRequest(retrievals, request, formAndTemplate.form, formAndTemplate.template))
                 case authRedirect => Future.successful(authRedirect)
               }
             }
         }.recover(redirectToGGLogin(request))
   }
 
-  private def performHMRCAuth(f: AuthenticatedRequest => Future[Result])(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[Result] = {
+  private def performHMRCAuth(formAndTemplate: FormAndTemplate, f: AuthenticatedRequest => Future[Result])(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[Result] = {
     authorised(
       AuthProviders(AuthProvider.GovernmentGateway)
     ).retrieve(
@@ -103,7 +101,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
               gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, _, credentialStrength, agentCode)
             }
 
-            retrievalsF.flatMap(retrievals => f(AuthenticatedRequest(retrievals, request)))
+            retrievalsF.flatMap(retrievals => f(AuthenticatedRequest(retrievals, request, formAndTemplate.form, formAndTemplate.template)))
         }.recover(redirectToGGLogin(request))
   }
 
@@ -116,9 +114,16 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
   }
 }
 
-case class AuthenticatedRequest(retrievals: gform.auth.models.Retrievals, request: Request[AnyContent])
+case class AuthenticatedRequest(
+  retrievals: gform.auth.models.Retrievals,
+  request: Request[AnyContent],
+  maybeForm: Option[Form],
+  formTemplate: FormTemplate
+)
 
 object AuthenticatedRequest {
   implicit def retrievals(implicit authenticatedRequest: AuthenticatedRequest): gform.auth.models.Retrievals = authenticatedRequest.retrievals
   implicit def request(implicit authenticatedRequest: AuthenticatedRequest): Request[AnyContent] = authenticatedRequest.request
+  implicit def maybeForm(implicit authenticatedRequest: AuthenticatedRequest): Option[Form] = authenticatedRequest.maybeForm
+  implicit def formTemplate(implicit authenticatedRequest: AuthenticatedRequest): FormTemplate = authenticatedRequest.formTemplate
 }

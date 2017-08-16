@@ -88,15 +88,14 @@ class FormController @Inject() (
     }
   }
 
-  def form(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formId = Some(formId)) { implicit c =>
+  def form(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formIdOpt = Some(formId)) { implicit c =>
+
+    val form = maybeForm.get
+    val fieldData = getFormData(form)
 
     for {// format: OFF
-      form            <- gformConnector.getForm(formId)
-      fieldData       =  getFormData(form)
       _               <- repeatService.loadData(form.repeatingGroupStructure)
-      formTemplateF   =  gformConnector.getFormTemplate(form.formTemplateId)
       envelopeF       =  fileUploadService.getEnvelope(form.envelopeId)
-      formTemplate    <- formTemplateF
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
       response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService).renderPage(fieldData, formId, None, dynamicSections)
@@ -104,19 +103,18 @@ class FormController @Inject() (
     } yield response
   }
 
-  def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = authentication.async(formId = Some(formId)) { implicit c =>
+  def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = authentication.async(formIdOpt = Some(formId)) { implicit c =>
     val fileId = FileId(fId)
 
     val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber)
     val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber)
 
     def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
-    for {
-      form <- gformConnector.getForm(formId)
-      formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-    } yield Ok(
+
+    val form = maybeForm.get
+    Future.successful(Ok(
       uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, formTemplate, actionUrl(form.envelopeId))
-    )
+    ))
   }
 
   private def getFormData(form: Form): Map[FieldId, List[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
@@ -142,30 +140,20 @@ class FormController @Inject() (
     }
   }
 
-  def updateFormData(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formId = Some(formId)) { implicit c =>
+  def updateFormData(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formIdOpt = Some(formId)) { implicit c =>
 
-    val formF = gformConnector.getForm(formId)
-    val envelopeIdF = formF.map(_.envelopeId)
+    val form = maybeForm.get
     val envelopeF = for {
-      envelopeId <- envelopeIdF
-      envelope <- fileUploadService.getEnvelope(envelopeId)
+      envelope <- fileUploadService.getEnvelope(form.envelopeId)
     } yield envelope
 
-    val formTemplateF = for {
-      form <- formF
-      formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-    } yield formTemplate
-
     val pageF = for {
-      form <- formF
       envelope <- envelopeF
-      formTemplate <- formTemplateF
     } yield Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService)
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
       val sectionsF = for {
-        formTemplate <- formTemplateF
         sections <- repeatService.getAllSections(formTemplate, data)
       } yield sections
 
@@ -181,18 +169,14 @@ class FormController @Inject() (
 
       val validatedDataResultF: Future[ValidatedType] = for {
         sectionFields <- sectionFieldsF
-        form <- formF
-        envelopeId = form.envelopeId
         validatedData <- Future.sequence(sectionFields.map(fv =>
-          validationService.validateComponents(fv, data, envelopeId)))
+          validationService.validateComponents(fv, data, form.envelopeId)))
       } yield Monoid[ValidatedType].combineAll(validatedData)
 
       val finalResult: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
         for {
           validatedDataResult <- validatedDataResultF
-          form <- formF
-          envelopeId = form.envelopeId
-          envelope <- fileUploadService.getEnvelope(envelopeId)
+          envelope <- fileUploadService.getEnvelope(form.envelopeId)
           allFieldsInTemplate <- allFieldsInTemplateF
         } yield ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validatedDataResult, data, envelope)
 
@@ -272,23 +256,19 @@ class FormController @Inject() (
 
       val optNextPage = for {// format: OFF
         envelope     <- envelopeF
-        envelopeId   <- envelopeIdF
-        formTemplate <- formTemplateF
         sections     <- sectionsF
         booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
         optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
         // format: ON
-      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId, prepopService))
+      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService))
 
       val optBackPage = for {// format: OFF
         envelope     <- envelopeF
-        envelopeId   <- envelopeIdF
-        formTemplate <- formTemplateF
         sections     <- sectionsF
         booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
         optSectionIdx = BooleanExpr.backTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
         // format: ON
-      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, envelopeId, prepopService))
+      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService))
 
       val actionE: Future[Either[String, FormAction]] = for {
         optNextPage <- optNextPage
@@ -302,26 +282,21 @@ class FormController @Inject() (
           action match {
             case SaveAndContinue(nextPageToRender) =>
               for {
-                form <- formF
                 dynamicSections <- sectionsF
                 result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, formId, None, dynamicSections))
               } yield result
 
             case SaveAndExit =>
               for {
-                form <- formF
-                envelopeId <- envelopeIdF
-                result <- processSaveAndExit(userId, form, envelopeId)
+                result <- processSaveAndExit(userId, form, form.envelopeId)
               } yield result
             case Back(lastPage) =>
               for {
-                form <- formF
                 dynamicSections <- sectionsF
                 result <- processBack(userId, form)(lastPage.renderPage(data, formId, None, dynamicSections))
               } yield result
             case SaveAndSummary =>
               for {
-                form <- formF
                 result <- processSaveAndContinue(userId, form)(Future.successful(Redirect(routes.SummaryGen.summaryById(formId))))
               } yield result
 
