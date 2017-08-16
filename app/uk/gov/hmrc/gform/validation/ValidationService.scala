@@ -207,7 +207,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, NINO) => checkId(value)
       case (_, value :: Nil, UkVrn) => checkVrn(value)
       case (_, value :: Nil, NonUkCountryCode) => checkNonUkCountryCode(value)
-      case (_, value :: Nil, UkCountryCode) => checkUkCountryCode(value)
+      case (_, value :: Nil, CountryCode) => checkCountryCode(value)
       case (_, value :: Nil, TelephoneNumber) => textValidator(value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
       case (_, value :: Nil, Email) => Monoid.combine(email(value), textValidator(value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
@@ -240,10 +240,10 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  private def checkUkCountryCode(value: String) = {
-    val ukCountryCode = "[A-Z]{2}".r
+  private def checkCountryCode(value: String) = {
+    val countryCode = "[A-Z]{2}".r
     value match {
-      case ukCountryCode() => Valid(())
+      case countryCode() => Valid(())
       case _ => getError("Not a valid country code")
     }
   }
