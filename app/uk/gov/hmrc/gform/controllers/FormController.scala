@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models.{ Page, _ }
@@ -129,6 +129,33 @@ class FormController @Inject() (
     } yield response
   }
 
+  def formError(formId: FormId, sectionNumber: SectionNumber) = authentication.async { implicit c =>
+
+    def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId) = {
+      val fields = sections(sectionNumber.value).atomicFields(repeatService)
+      val allFields = sections.flatMap(_.atomicFields(repeatService))
+      Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map { validationResult =>
+        ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
+          case Left(x) => x.map((validResult: FormFieldValidationResult) => extractedFieldValue(validResult) -> validResult).toMap
+          case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
+        }
+      }
+    }
+
+    for {// format: OFF
+      form            <- gformConnector.getForm(formId)
+      fieldData       =  getFormData(form)
+      formTemplateF   =  gformConnector.getFormTemplate(form.formTemplateId)
+      envelopeF       =  fileUploadService.getEnvelope(form.envelopeId)
+      formTemplate    <- formTemplateF
+      envelope        <- envelopeF
+      dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
+      errors          <- getErrors(dynamicSections, fieldData, envelope, form.envelopeId)
+      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService).renderPage(fieldData, formId, Some(errors.get), dynamicSections)
+      // format: ON
+    } yield response
+  }
+
   def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = authentication.async { implicit c =>
     val fileId = FileId(fId)
 
@@ -225,27 +252,21 @@ class FormController @Inject() (
 
       def processSaveAndContinue(userId: UserId, form: Form)(continueF: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
         case Left(listFormValidation) =>
-          val map: Map[FieldValue, FormFieldValidationResult] = listFormValidation.map { (validResult: FormFieldValidationResult) =>
-            extractedFieldValue(validResult) -> validResult
-          }.toMap
+          val formFieldIds = listFormValidation.map(_.toFormField)
+          val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
 
+          val formData = FormData(formFields)
           for {
-            dynamicSections <- sectionsF
-            page <- pageF
-            result <- page.renderPage(data, formId, Some(map.get), dynamicSections)
-          } yield result
-
+            keystore <- repeatService.getData()
+            userData = UserData(formData, keystore)
+            _ <- gformConnector.updateUserData(formId, userData)
+          } yield Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.formError(formId, sectionNumber))
         case Right(listFormValidation) =>
 
           val formFieldIds = listFormValidation.map(_.toFormField)
           val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
 
           val formData = FormData(formFields)
-
-          val outCome: SaveResult => Future[Result] = {
-            case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
-            case _ => continueF
-          }
 
           //TODO figure out if we should save the structure constantly or should we figure out when they leave the form another way other than the two buttons.
           for {
@@ -329,10 +350,8 @@ class FormController @Inject() (
               for {
                 userDetails <- userDetailsF
                 form <- formF
-                dynamicSections <- sectionsF
-                result <- processSaveAndContinue(userDetails.userId, form)(nextPageToRender.renderPage(data, formId, None, dynamicSections))
+                result <- processSaveAndContinue(userDetails.userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber.nextPage))))
               } yield result
-
             case SaveAndExit =>
               for {
                 userDetails <- userDetailsF
@@ -344,8 +363,7 @@ class FormController @Inject() (
               for {
                 userDetails <- userDetailsF
                 form <- formF
-                dynamicSections <- sectionsF
-                result <- processBack(userDetails.userId, form)(lastPage.renderPage(data, formId, None, dynamicSections))
+                result <- processBack(userDetails.userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber.backPage))))
               } yield result
             case SaveAndSummary =>
               for {
