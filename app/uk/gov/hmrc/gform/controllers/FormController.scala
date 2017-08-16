@@ -21,6 +21,7 @@ import javax.inject.Inject
 import cats._
 import cats.instances.all._
 import cats.syntax.all._
+import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
@@ -132,6 +133,7 @@ class FormController @Inject() (
   def formError(formId: FormId, sectionNumber: SectionNumber) = authentication.async { implicit c =>
 
     def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId) = {
+      Logger.debug(data + "this is data in get errors")
       val fields = sections(sectionNumber.value).atomicFields(repeatService)
       val allFields = sections.flatMap(_.atomicFields(repeatService))
       Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map { validationResult =>
@@ -252,10 +254,9 @@ class FormController @Inject() (
 
       def processSaveAndContinue(userId: UserId, form: Form)(continueF: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
         case Left(listFormValidation) =>
-          val formFieldIds = listFormValidation.map(_.toFormField)
-          val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
 
-          val formData = FormData(formFields)
+          val formData = FormData(listFormValidation.flatMap(_.toFormFieldTolerant))
+
           for {
             keystore <- repeatService.getData()
             userData = UserData(formData, keystore)

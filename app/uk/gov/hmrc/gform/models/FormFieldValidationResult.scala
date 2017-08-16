@@ -80,12 +80,10 @@ sealed trait FormFieldValidationResult {
 
   def toFormFieldTolerant: List[FormField] = this match {
     case FieldOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
-    case FieldError(fieldValue, _, _) => List(FormField(fieldValue.id, ""))
-    case FieldGlobalError(_, _, _) => List.empty[FormField]
-    case FieldGlobalOk(_, _) => List.empty[FormField]
+    case FieldError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
+    case FieldGlobalError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
+    case FieldGlobalOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
     case ComponentField(fieldValue, data) =>
-      Logger.debug(fieldValue.id + "this is fieldvalueId")
-      List(FormField(fieldValue.id, ""))
       fieldValue.`type` match {
         case Choice(_, _, _, _, _) => List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
         case _ =>
