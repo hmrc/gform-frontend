@@ -44,8 +44,8 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   override lazy val assetsPrefix = loadConfig(s"assets.url") + loadConfig(s"assets.version")
   override lazy val analyticsToken = loadConfig(s"google-analytics.token")
   override lazy val analyticsHost = loadConfig(s"google-analytics.host")
-  override lazy val reportAProblemPartialUrl = s"$contactHost/contact/problem_reports_ajax?service=$contactFormServiceIdentifier"
-  override lazy val reportAProblemNonJSUrl = s"$contactHost/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier"
+  override lazy val reportAProblemPartialUrl = s"/contact/problem_reports_ajax?service=$contactFormServiceIdentifier"
+  override lazy val reportAProblemNonJSUrl = s"/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier"
 
   override lazy val governmentGatewaySignInUrl = config.getString("government-gateway-sign-in-url").getOrElse("")
   //  override lazy val governmentGatewaySignInUrl = "http://localhost:9025/gg/sign-in"
@@ -53,7 +53,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
   // this will be empty in non-local environments
   override lazy val gformFrontendBaseUrl = config.getString("gform-frontend-base-url").getOrElse("")
 
-  override lazy val betaFeedbackUrlNoAuth = s"$gformFrontendBaseUrl/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier"
+  override lazy val betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier"
 
   override lazy val sessionCacheDomain: String = config.getString("cachable.session-cache.domain").getOrElse("")
   override lazy val sessionCacheBaseUri: String = baseUrl("cachable.session-cache")
