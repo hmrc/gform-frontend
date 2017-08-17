@@ -51,7 +51,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     formAndTemplateF.flatMap { formAndTemplate =>
       formAndTemplate.template.authConfig.authModule match {
         case AuthConfigModule("legacyEEITTAuth") => performEEITTAuth(formAndTemplate, f)
-        case AuthConfigModule("hmrc") => performHMRCAuth(formAndTemplate, f)
+        //case AuthConfigModule("hmrc") => performHMRCAuth(formAndTemplate, f) THIS WILL BE ENABLED IN ANOTHER TICKET
         case others => Future.failed(new RuntimeException(s"Invalid authModule value in template's authConfig section: ${others.value}"))
       }
     }
