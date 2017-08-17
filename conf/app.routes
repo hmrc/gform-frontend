@@ -17,4 +17,5 @@ POST        /summary/:formId/:formTemplateId                             @uk.gov
 
 GET         /assets/*file                                                controllers.Assets.versioned(path="/public", file: Asset)
 
-GET         /api/exposed-config                                          @uk.gov.hmrc.gform.config.ConfigController.exposedConfig()
+GET         /api/exposed-config                                          @uk.gov.hmrc.gform.restapi.RestApiController.exposedConfig()
+DELETE      /api/forms/:formId/deleteFile/:fileId                        @uk.gov.hmrc.gform.restapi.RestApiController.deleteFile(formId: FormId, fileId: FileId)

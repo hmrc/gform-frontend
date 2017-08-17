@@ -14,23 +14,36 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.config
+package uk.gov.hmrc.gform.restapi
 
 import javax.inject.Inject
 
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.Results._
+import play.api.mvc.{ Action, RequestHeader }
+import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.global
+class RestApiController @Inject() (
+  gformBackendModule: GformBackendModule,
+  controllersModule: ControllersModule
+)
+    extends FrontendController {
+  import uk.gov.hmrc.gform.controllers.AuthenticatedRequest._
 
-class ConfigController @Inject() (gformBackendModule: GformBackendModule) extends FrontendController {
+  //TODO: use proxy actions here
+  //TODO: proxy actions must rely on WsHttp
 
   def exposedConfig() = Action.async { implicit r =>
     gformConnector.getExposedConfig.map(ec => Ok(Json.toJson(ec)))
   }
 
+  def deleteFile(formId: FormId, fileId: FileId) = authentication.async { implicit c =>
+    gformConnector.deleteFile(formId, fileId).map(_ => NoContent)
+  }
+
   private lazy val gformConnector = gformBackendModule.gformConnector
+  private lazy val authentication = controllersModule.authenticatedRequestActions
 }
