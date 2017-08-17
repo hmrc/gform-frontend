@@ -21,6 +21,7 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
@@ -29,7 +30,6 @@ import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -46,7 +46,7 @@ class PageShader(
     envelopeId: EnvelopeId,
     prepopService: PrepopService,
     dynamicSections: List[Section]
-)(implicit authContext: AuthContext, hc: HeaderCarrier) {
+)(implicit retrievals: Retrievals, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
     val section = dynamicSections(sectionNumber.value)

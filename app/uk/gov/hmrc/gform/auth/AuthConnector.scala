@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.userdetails
+package uk.gov.hmrc.gform.auth
 
-import play.api.libs.json.Json
+import uk.gov.hmrc.auth.core.PlayAuthConnector
+import uk.gov.hmrc.gform.auth.models.UserDetails
+import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.ws.WSHttp
 
-case class UserDetails(affinityGroup: AffinityGroup, groupIdentifier: GroupId)
+import scala.concurrent.Future
 
-object UserDetails {
-  implicit val reads = Json.reads[UserDetails]
+class AuthConnector(baseUrl: String, wsHttp: WSHttp) extends PlayAuthConnector with ServicesConfig {
+  val serviceUrl = baseUrl
+  lazy val http = wsHttp
+
+  def getUserDetails(uri: String)(implicit hc: HeaderCarrier): Future[UserDetails] = {
+    http.GET[UserDetails](uri)
+  }
 }

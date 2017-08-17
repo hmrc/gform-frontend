@@ -17,11 +17,12 @@
 package uk.gov.hmrc.gform.prepop
 
 import play.api.Logger
+import uk.gov.hmrc.auth.core.retrieve.GGCredId
+import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.models.userdetails.UserDetails
+import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
-import uk.gov.hmrc.play.frontend.auth.AuthContext
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,32 +30,35 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 class AuthContextPrepop {
-  def values(value: AuthInfo, authContext: AuthContext): String = (value match {
-    case GG => authContext.user.governmentGatewayToken
-    case PayeNino => authContext.principal.accounts.paye.map(_.nino.nino)
-    case SaUtr => authContext.principal.accounts.sa.map(_.utr.utr)
-    case CtUtr => authContext.principal.accounts.ct.map(_.utr.utr)
-  }).getOrElse("")
+  def values(value: AuthInfo)(implicit retrievals: Retrievals): String = value match {
+    case GG => getGGCredId(retrievals)
+    case PayeNino => getTaxIdValue(None, "NINO", retrievals)
+    case SaUtr => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
+    case CtUtr => getTaxIdValue(Some("IR-CT"), "UTR", retrievals)
+  }
+
+  private def getGGCredId(retrievals: Retrievals) = retrievals.authProviderId match {
+    case GGCredId(credId) => credId
+    case _ => ""
+  }
 }
 
 class PrepopService(
     eeittConnector: EeittConnector,
-    authConnector: AuthConnector,
     authContextPrepop: AuthContextPrepop
 ) {
 
-  def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] = {
+  def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[String] = {
     expr match {
-      case AuthCtx(value) => Future.successful(authContextPrepop.values(value, authContext))
+      case AuthCtx(value) => Future.successful(authContextPrepop.values(value))
       case Constant(value) => Future.successful(value)
       case EeittCtx(eeitt) =>
 
         val prepop =
           for {
-            userDetails <- authConnector.getUserDetails[UserDetails](authContext)
             prepopData <- eeitt match {
-              case BusinessUser => eeittConnector.prepopulationBusinessUser(userDetails.groupIdentifier, formTemplateId).map(_.registrationNumber)
-              case Agent => eeittConnector.prepopulationAgent(userDetails.groupIdentifier).map(_.arn)
+              case BusinessUser => eeittConnector.prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), formTemplateId).map(_.registrationNumber)
+              case Agent => eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
             }
           } yield prepopData
 

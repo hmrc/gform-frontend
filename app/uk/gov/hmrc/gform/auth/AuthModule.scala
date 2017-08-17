@@ -17,57 +17,21 @@
 package uk.gov.hmrc.gform.auth
 
 import javax.inject.Inject
-
-import play.api.mvc.Results.Redirect
-import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
-import uk.gov.hmrc.play.frontend.auth
-import uk.gov.hmrc.play.frontend.auth._
-import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
-import uk.gov.hmrc.play.http.HttpGet
-
-import scala.concurrent.Future
 
 class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModule) { self =>
 
-  //don't use it. Use AuthorisationService instead
-  private lazy val authConnector = new AuthConnector {
-    override val serviceUrl: String = configModule.serviceConfig.baseUrl("auth")
-    override val http: HttpGet = wSHttpModule.auditableWSHttp
-  }
-
-  lazy val authActions: auth.Actions = new uk.gov.hmrc.play.frontend.auth.Actions {
-    def authConnector: AuthConnector = self.authConnector
-  }
-
-  lazy val authorisationService: AuthorisationService = new AuthorisationService(eeittAuthorisationDelegate, authConnector)
-
-  lazy val authenticatedBy: auth.Actions#AuthenticatedBy = new authActions.AuthenticatedBy(governmentGateway, taxRegime, alwaysVisiblePageVisibility)
-
-  /********************* private *********************/
-
-  private lazy val governmentGateway = new GovernmentGateway {
-    override def redirectToLogin(implicit request: Request[_]): Future[Result] = {
-      val queryStringParams = Map("continue" -> Seq(continueURL + request.uri))
-      Future.successful(Redirect(loginURL, queryStringParams))
-    }
-    override def continueURL: String = configModule.appConfig.`gform-frontend-base-url`
-    override def loginURL: String = configModule.appConfig.`government-gateway-sign-in-url`
-  }
-
-  private lazy val alwaysVisiblePageVisibility = new PageVisibilityPredicate {
-    def apply(authContext: AuthContext, request: Request[AnyContent]): Future[PageVisibilityResult] = Future.successful(PageIsVisible)
-  }
-
-  private lazy val taxRegime: Option[TaxRegime] = None
+  lazy val authConnector = new AuthConnector(
+    configModule.serviceConfig.baseUrl("auth"),
+    wSHttpModule.auditableWSHttp
+  )
 
   private lazy val eeittConnector = new EeittConnector(
     s"${configModule.serviceConfig.baseUrl("eeitt")}/eeitt",
     wSHttpModule.auditableWSHttp
   )
 
-  private lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule.appConfig)
+  lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule)
 }

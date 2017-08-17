@@ -25,11 +25,11 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processRespo
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldId
 import uk.gov.hmrc.gform.validation.DeclarationFieldValidationService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 
 @Singleton
 class DeclarationController @Inject() (
@@ -38,41 +38,37 @@ class DeclarationController @Inject() (
     repeatService: RepeatingComponentService,
     fieldValidator: DeclarationFieldValidationService,
     auditingModule: AuditingModule
-)(implicit ec: ExecutionContext) extends FrontendController {
+) extends FrontendController {
 
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def showDeclaration(formId: FormId) = auth.async { implicit authRequest =>
-    val formF = gformConnector.getForm(formId)
-    for {
-      form <- formF
-      formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-    } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, Map.empty, Map.empty))
+  def showDeclaration(formId: FormId) = auth.async(formIdOpt = Some(formId)) { implicit authRequest =>
+    val form = maybeForm.get
+    Future.successful(
+      Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, Map.empty, Map.empty))
+    )
   }
 
-  def submitDeclaration(formId: FormId) = auth.async { implicit c =>
+  def submitDeclaration(formId: FormId) = auth.async(formIdOpt = Some(formId)) { implicit c =>
     processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
         case "Continue" :: Nil =>
-          val formF = gformConnector.getForm(formId)
-          val templateF: FormTemplateId => Future[FormTemplate] = gformConnector.getFormTemplate
+          val form = maybeForm.get
+
           fieldValidator.validateDeclarationFields(data) match {
             case Valid(()) =>
+              val updatedForm = updateFormWithDeclaration(form, data)
               for {
-                form <- formF
-                updatedForm = updateFormWithDeclaration(form, data)
                 _ <- gformConnector.updateUserData(form._id, UserData(updatedForm.formData, None))
                 response <- gformConnector.submitForm(formId)
-                template <- templateF(form.formTemplateId) //TODO move this outside this single case.
                 _ <- repeatService.clearSession
               } yield {
-                auditService.sendSubmissionEvent(form, template.sections)
+                auditService.sendSubmissionEvent(form, formTemplate.sections)
                 Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
               }
             case Invalid(validationMap) =>
               for {
-                form <- formF
                 formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
               } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, validationMap, data))
           }

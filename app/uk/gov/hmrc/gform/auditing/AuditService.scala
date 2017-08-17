@@ -17,11 +17,12 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.Request
+import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldValue, Section, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.frontend.auth.AuthContext
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
@@ -52,23 +53,24 @@ trait AuditService {
 
     dataMap ++ data
   }
-  def sendSubmissionEvent(form: Form, sections: List[Section])(implicit ex: ExecutionContext, hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) = {
+
+  def sendSubmissionEvent(form: Form, sections: List[Section])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
     sendEvent(formToMap(form, sections))
   }
 
-  private def sendEvent(detail: Map[String, String])(implicit ex: ExecutionContext, hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) =
+  private def sendEvent(detail: Map[String, String])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) =
     auditConnector.sendEvent(eventFor(detail))
 
-  private def eventFor(detail: Map[String, String])(implicit hc: HeaderCarrier, authContext: AuthContext, request: Request[_]) = {
+  private def eventFor(detail: Map[String, String])(implicit hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
     DataEvent(
       auditSource = "GForm",
       auditType = "submission complete auditing",
       tags = hc.headers.toMap,
       detail = detail ++ Map(
-      "nino" -> authContext.principal.name.getOrElse(""),
-      "vrn" -> authContext.principal.accounts.vat.map(_.vrn.vrn).getOrElse(""),
-      "saUtr" -> authContext.principal.accounts.ated.getOrElse("").toString,
-      "ctUtr" -> authContext.principal.accounts.ct.getOrElse("").toString,
+      "nino" -> getTaxIdValue(None, "NINO", retrievals),
+      "vrn" -> getTaxIdValue(None, "VATRegNo", retrievals),
+      "saUtr" -> getTaxIdValue(Some("IR-SA"), "UTR", retrievals),
+      "ctUtr" -> getTaxIdValue(Some("IR-CT"), "UTR", retrievals),
       "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
     )
     )
