@@ -16,17 +16,18 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import play.api.mvc.Results._
-import uk.gov.hmrc.auth.core.AuthorisedFunctions
-import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, Retrievals, ~ }
+import uk.gov.hmrc.auth.core.{AuthorisedFunctions, NoActiveSession}
+import uk.gov.hmrc.auth.core.retrieve.{AuthProvider, AuthProviders, Retrievals, ~}
 import uk.gov.hmrc._
-import uk.gov.hmrc.gform.auth.AuthModule
+import uk.gov.hmrc.gform.auth.{AuthModule, EeittAuthResult}
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AuthConfigModule, FormTemplate, FormTemplateId}
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -72,11 +73,11 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       ) {
           case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
             authConnector.getUserDetails(userDetailsUri.get).flatMap { userDetails =>
-              eeittDelegate.legacyAuth(formAndTemplate.template, userDetails).flatMap {
-                case Ok =>
+              eeittDelegate.legacyAuth(formAndTemplate.template.authConfig.regimeId, userDetails).flatMap {
+                case EeittAuthResult(true, _) =>
                   val retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
                   f(AuthenticatedRequest(retrievals, request, formAndTemplate.form, formAndTemplate.template))
-                case authRedirect => Future.successful(authRedirect)
+                case EeittAuthResult(false, loginUrl) => Future.successful(Redirect(loginUrl))
               }
             }
         }.recover(redirectToGGLogin(request))
@@ -106,11 +107,13 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
   }
 
   private def redirectToGGLogin(request: Request[AnyContent]): PartialFunction[scala.Throwable, Result] = {
-    case _ =>
+    case _: NoActiveSession =>
       val continueUrl = configModule.appConfig.`gform-frontend-base-url` + request.uri
       val ggLoginUrl = configModule.appConfig.`government-gateway-sign-in-url`
       val parameters = Map("continue" -> Seq(continueUrl))
       Redirect(ggLoginUrl, parameters)
+
+    case otherException => throw otherException
   }
 }
 

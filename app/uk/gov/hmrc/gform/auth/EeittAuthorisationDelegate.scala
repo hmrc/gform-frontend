@@ -18,30 +18,35 @@ package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.connectors.{EeittConnector, Verification}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormTemplateId, RegimeId}
 import uk.gov.hmrc.play.http.HeaderCarrier
-import play.api.mvc.{ AnyContent, Request, Result }
+import play.api.mvc.{AnyContent, Request, Result}
 import play.api.mvc.Results._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: ConfigModule) {
 
-  def legacyAuth(formTemplate: FormTemplate, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[Result] = {
+  def legacyAuth(regimeId: RegimeId, userDetails: UserDetails)
+                (implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[EeittAuthResult] = {
 
-    val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, formTemplate.authConfig.regimeId, userDetails.affinityGroup)
+    val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, regimeId, userDetails.affinityGroup)
 
-    authResultF.flatMap {
-      case Verification(true) => Future.successful(Ok)
-      case Verification(false) => redirectToEeitt(formTemplate._id)
+    authResultF.map {
+      case Verification(true) => EeittAuthResult(true, "")
+      case Verification(false) => EeittAuthResult(false, eeittLoginUrl())
     }
   }
 
-  private def redirectToEeitt(formTemplateId: FormTemplateId)(implicit request: Request[AnyContent]): Future[Result] = {
-    val continueUrl = configModule.appConfig.`gform-frontend-base-url` + request.uri
+  private def eeittLoginUrl()(implicit request: Request[AnyContent]): String = {
+
+    val continueUrl = java.net.URLEncoder.encode(
+      configModule.appConfig.`gform-frontend-base-url` + request.uri, "UTF-8"
+    )
     val eeittLoginUrl = s"${configModule.serviceConfig.baseUrl("eeitt-frontend")}/eeitt-auth/enrollment-verification"
-    val parameters = Map("callbackUrl" -> Seq(continueUrl))
-    Future.successful(Redirect(eeittLoginUrl, parameters))
+    s"${eeittLoginUrl}?callbackUrl=${continueUrl}"
   }
 }
+
+case class EeittAuthResult(isAuthorised: Boolean, loginUrl: String)

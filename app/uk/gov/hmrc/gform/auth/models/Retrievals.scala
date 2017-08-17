@@ -31,12 +31,10 @@ case class Retrievals(
 )
 
 object Retrievals {
-  def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String)(implicit retrievals: Retrievals) = {
+  def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String, retrievals: Retrievals) = {
 
     val maybeEnrolmentIdentifier = maybeEnrolment match {
-      case Some(enrolment) => retrievals.enrolments.getEnrolment(enrolment)
-        .fold[Option[EnrolmentIdentifier]](None)(_.getIdentifier(taxIdName))
-
+      case Some(enrolment) => retrievals.enrolments.getEnrolment(enrolment).flatMap(_.getIdentifier(taxIdName))
       case None => retrievals.enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(taxIdName))
     }
 

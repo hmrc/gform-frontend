@@ -32,10 +32,9 @@ import scala.util.control.NonFatal
 class AuthContextPrepop {
   def values(value: AuthInfo)(implicit retrievals: Retrievals): String = value match {
     case GG => getGGCredId(retrievals)
-    case PayeNino => getTaxIdValue(None, "NINO")
-    case SaUtr => getTaxIdValue(Some("IR-SA"), "UTR")
-    case CtUtr => getTaxIdValue(Some("IR-CT"), "UTR")
-    case _ => ""
+    case PayeNino => getTaxIdValue(None, "NINO", retrievals)
+    case SaUtr => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
+    case CtUtr => getTaxIdValue(Some("IR-CT"), "UTR", retrievals)
   }
 
   private def getGGCredId(retrievals: Retrievals) = retrievals.authProviderId match {
