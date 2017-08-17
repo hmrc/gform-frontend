@@ -309,18 +309,15 @@ class FormController @Inject() (
           action match {
             case SaveAndContinue(nextPageToRender) =>
               for {
-                dynamicSections <- sectionsF
-                result <- processSaveAndContinue(userId, form)(nextPageToRender.renderPage(data, formId, None, dynamicSections))
+                result <- processSaveAndContinue(userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, nextPageToRender.sectionNumber))))
               } yield result
-
             case SaveAndExit =>
               for {
                 result <- processSaveAndExit(userId, form, form.envelopeId)
               } yield result
             case Back(lastPage) =>
               for {
-                dynamicSections <- sectionsF
-                result <- processBack(userId, form)(lastPage.renderPage(data, formId, None, dynamicSections))
+                result <- processBack(userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, lastPage.sectionNumber))))
               } yield result
             case SaveAndSummary =>
               for {
