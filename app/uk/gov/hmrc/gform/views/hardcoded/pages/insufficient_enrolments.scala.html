@@ -1,0 +1,9 @@
+@(pageTitle: String)(implicit request: Request[_])
+
+@import play.api.Play.current
+@import play.api.i18n.Messages.Implicits._
+
+@uk.gov.hmrc.gform.views.html.main_template(title = pageTitle, bodyClasses = None) {
+
+<h1>Insufficient Enrolments</h1>
+}

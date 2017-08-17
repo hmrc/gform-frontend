@@ -18,15 +18,17 @@ package uk.gov.hmrc.gform.controllers
 
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import play.api.mvc.Results._
-import uk.gov.hmrc.auth.core.AuthorisedFunctions
+import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
 import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, Retrievals, ~ }
 import uk.gov.hmrc._
+import uk.gov.hmrc.auth.core.authorise.Enrolment
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -51,7 +53,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     formAndTemplateF.flatMap { formAndTemplate =>
       formAndTemplate.template.authConfig.authModule match {
         case AuthConfigModule("legacyEEITTAuth") => performEEITTAuth(formAndTemplate, f)
-        //case AuthConfigModule("hmrc") => performHMRCAuth(formAndTemplate, f) THIS WILL BE ENABLED IN ANOTHER TICKET
+        case AuthConfigModule("hmrc") => performHMRCAuth(formAndTemplate, f)
         case others => Future.failed(new RuntimeException(s"Invalid authModule value in template's authConfig section: ${others.value}"))
       }
     }
@@ -79,38 +81,49 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
                 case authRedirect => Future.successful(authRedirect)
               }
             }
-        }.recover(redirectToGGLogin(request))
+        }.recover(redirectToGGLogin(request, formAndTemplate))
   }
 
   private def performHMRCAuth(formAndTemplate: FormAndTemplate, f: AuthenticatedRequest => Future[Result])(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[Result] = {
+    val predicate = formAndTemplate.template.authConfig.serviceId match {
+      case Some(serviceId) => AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(serviceId.value)
+      case None => AuthProviders(AuthProvider.GovernmentGateway)
+    }
+
     authorised(
-      AuthProviders(AuthProvider.GovernmentGateway)
+      predicate
     ).retrieve(
-        Retrievals.authProviderId and
-          Retrievals.allEnrolments and
-          Retrievals.affinityGroup and
-          Retrievals.internalId and
-          Retrievals.externalId and
-          Retrievals.userDetailsUri and
-          Retrievals.credentialStrength and
-          Retrievals.agentCode
-      ) {
-          case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
+      Retrievals.authProviderId and
+        Retrievals.allEnrolments and
+        Retrievals.affinityGroup and
+        Retrievals.internalId and
+        Retrievals.externalId and
+        Retrievals.userDetailsUri and
+        Retrievals.credentialStrength and
+        Retrievals.agentCode
+    ) {
+        case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
 
-            val retrievalsF = authConnector.getUserDetails(userDetailsUri.get).map {
-              gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, _, credentialStrength, agentCode)
-            }
+          val retrievalsF = authConnector.getUserDetails(userDetailsUri.get).map {
+            gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, _, credentialStrength, agentCode)
+          }
 
-            retrievalsF.flatMap(retrievals => f(AuthenticatedRequest(retrievals, request, formAndTemplate.form, formAndTemplate.template)))
-        }.recover(redirectToGGLogin(request))
+          retrievalsF.flatMap(retrievals => f(AuthenticatedRequest(retrievals, request, formAndTemplate.form, formAndTemplate.template)))
+      }.recover(redirectToGGLogin(request, formAndTemplate))
   }
 
-  private def redirectToGGLogin(request: Request[AnyContent]): PartialFunction[scala.Throwable, Result] = {
-    case _ =>
+  private def redirectToGGLogin(request: Request[AnyContent], formAndTemplate: FormAndTemplate): PartialFunction[scala.Throwable, Result] = {
+    case _: InsufficientEnrolments =>
+      Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
+        .flashing("formTitle" -> formAndTemplate.template.formName)
+
+    case _: NoActiveSession =>
       val continueUrl = configModule.appConfig.`gform-frontend-base-url` + request.uri
       val ggLoginUrl = configModule.appConfig.`government-gateway-sign-in-url`
       val parameters = Map("continue" -> Seq(continueUrl))
       Redirect(ggLoginUrl, parameters)
+
+    case otherException => throw otherException
   }
 }
 
