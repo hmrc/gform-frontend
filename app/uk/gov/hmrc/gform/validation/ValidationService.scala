@@ -354,10 +354,11 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
   }
 
   private def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
-    val choiceValue = data.get(fieldValue.id).toList.flatten
+    val choiceValue = data.get(fieldValue.id).toList.flatten.headOption
 
     (fieldValue.mandatory, choiceValue) match {
-      case (true, Nil) => getError("is required")
+      case (true, None) => getError("Please enter required data")
+      case (true, Some("")) => getError("Please enter required data")
       case _ => Valid(())
     }
   }
