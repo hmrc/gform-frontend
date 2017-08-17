@@ -16,19 +16,20 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.temporal.TemporalField
-import javax.inject.{Inject, Singleton}
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import javax.inject.{ Inject, Singleton }
 
-import cats.data.Validated.{Invalid, Valid}
-import play.api.libs.json.Json
+import cats.data.Validated.{ Invalid, Valid }
+import org.joda.time.format
 import play.api.mvc.Request
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{get, processResponseDataFromBody}
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField, FormId, UserData}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FieldId, FormTemplate, FormTemplateId}
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
@@ -36,6 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldId
 import uk.gov.hmrc.gform.validation.DeclarationFieldValidationService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.Future
 
@@ -74,7 +76,9 @@ class DeclarationController @Inject() (
               } yield {
                 auditService.sendSubmissionEvent(form, formTemplate.sections)
                 Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
+                ackPage(template)
               }
+
             case Invalid(validationMap) =>
               for {
                 form <- formF
@@ -93,10 +97,12 @@ class DeclarationController @Inject() (
          |<p>${b.content}</p>
        """.stripMargin
     ))
-    val timeFormat = new SimpleDateFormat("HH:mm")
-    val now = LocalDate.now()
-    s""" at ${timeFormat.format(now)} on ${now.getDayOfMonth} ${now.getMonth.name()} ${now.getYear}"""
-    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(now, content))
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    val now = LocalDateTime.now()
+
+    val t = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
+    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(t, content))
   }
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
