@@ -18,7 +18,12 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
 
-case class SectionNumber(value: Int)
+case class SectionNumber(value: Int) {
+
+  def nextPage: SectionNumber = SectionNumber(value + 1)
+
+  def backPage: SectionNumber = SectionNumber(value - 1)
+}
 
 object SectionNumber {
   implicit val format: Format[SectionNumber] = Format[SectionNumber](

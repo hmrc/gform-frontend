@@ -21,13 +21,14 @@ import javax.inject.Inject
 import cats._
 import cats.instances.all._
 import cats.syntax.all._
+import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models._
@@ -99,6 +100,33 @@ class FormController @Inject() (
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
       response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService).renderPage(fieldData, formId, None, dynamicSections)
+      // format: ON
+    } yield response
+  }
+
+  def formError(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formIdOpt = Some(formId)) { implicit c =>
+
+    val form = maybeForm.get
+    val fieldData = getFormData(form)
+    val envelopeF = fileUploadService.getEnvelope(form.envelopeId)
+
+    def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId) = {
+      Logger.debug(data + "this is data in get errors")
+      val fields = sections(sectionNumber.value).atomicFields(repeatService)
+      val allFields = sections.flatMap(_.atomicFields(repeatService))
+      Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map { validationResult =>
+        ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
+          case Left(x) => x.map((validResult: FormFieldValidationResult) => extractedFieldValue(validResult) -> validResult).toMap
+          case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
+        }
+      }
+    }
+
+    for {// format: OFF
+      envelope        <- envelopeF
+      dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
+      errors          <- getErrors(dynamicSections, fieldData, envelope, form.envelopeId)
+      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService).renderPage(fieldData, formId, Some(errors.get), dynamicSections)
       // format: ON
     } yield response
   }
@@ -182,15 +210,14 @@ class FormController @Inject() (
 
       def processSaveAndContinue(userId: UserId, form: Form)(continueF: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
         case Left(listFormValidation) =>
-          val map: Map[FieldValue, FormFieldValidationResult] = listFormValidation.map { (validResult: FormFieldValidationResult) =>
-            extractedFieldValue(validResult) -> validResult
-          }.toMap
+
+          val formData = FormData(listFormValidation.flatMap(_.toFormFieldTolerant))
 
           for {
-            dynamicSections <- sectionsF
-            page <- pageF
-            result <- page.renderPage(data, formId, Some(map.get), dynamicSections)
-          } yield result
+            keystore <- repeatService.getData()
+            userData = UserData(formData, keystore)
+            _ <- gformConnector.updateUserData(formId, userData)
+          } yield Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.formError(formId, sectionNumber))
 
         case Right(listFormValidation) =>
 
@@ -243,11 +270,11 @@ class FormController @Inject() (
         val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 
-        val formData = formFields.map(formFields => FormData(formFields))
+        val formDataF = formFields.map(formFields => FormData(formFields))
 
         for {
           keystore <- repeatService.getData()
-          formData <- formData
+          formData <- formDataF
           userData = UserData(formData, keystore)
           result <- gformConnector.updateUserData(formId, userData).flatMap(response => continue)
         } yield result
