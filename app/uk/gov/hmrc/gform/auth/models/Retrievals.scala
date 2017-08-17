@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import uk.gov.hmrc.auth.core.authorise.{ AffinityGroup, Enrolments }
+import uk.gov.hmrc.auth.core.authorise.{ AffinityGroup, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.LegacyCredentials
 
 case class Retrievals(
@@ -29,3 +29,20 @@ case class Retrievals(
   credentialStrength: Option[String],
   agentCode: Option[String]
 )
+
+object Retrievals {
+  def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String)(implicit retrievals: Retrievals) = {
+
+    val maybeEnrolmentIdentifier = maybeEnrolment match {
+      case Some(enrolment) => retrievals.enrolments.getEnrolment(enrolment)
+        .fold[Option[EnrolmentIdentifier]](None)(_.getIdentifier(taxIdName))
+
+      case None => retrievals.enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(taxIdName))
+    }
+
+    maybeEnrolmentIdentifier match {
+      case Some(enrolmentId) => enrolmentId.value
+      case None => ""
+    }
+  }
+}

@@ -17,9 +17,9 @@
 package uk.gov.hmrc.gform.prepop
 
 import play.api.Logger
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, OneTimeLogin, PAClientId, VerifyPid }
-import uk.gov.hmrc.gform.auth.AuthConnector
+import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
@@ -30,20 +30,18 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 class AuthContextPrepop {
-  def values(retrievals: Retrievals): String = {
-    retrievals.authProviderId match {
-      case GGCredId(credId) => credId
-      case VerifyPid(pid) => pid
-      case PAClientId(clientId) => clientId
-      case OneTimeLogin => "otl"
-    }
+  def values(value: AuthInfo)(implicit retrievals: Retrievals): String = value match {
+    case GG => getGGCredId(retrievals)
+    case PayeNino => getTaxIdValue(None, "NINO")
+    case SaUtr => getTaxIdValue(Some("IR-SA"), "UTR")
+    case CtUtr => getTaxIdValue(Some("IR-CT"), "UTR")
+    case _ => ""
   }
-  /*def values(value: AuthInfo, retrievals: Retrievals): String = (value match {
-    case GG => authContext.user.governmentGatewayToken
-    case PayeNino => authContext.principal.accounts.paye.map(_.nino.nino)
-    case SaUtr => authContext.principal.accounts.sa.map(_.utr.utr)
-    case CtUtr => authContext.principal.accounts.ct.map(_.utr.utr)
-  }).getOrElse("")*/
+
+  private def getGGCredId(retrievals: Retrievals) = retrievals.authProviderId match {
+    case GGCredId(credId) => credId
+    case _ => ""
+  }
 }
 
 class PrepopService(
@@ -53,7 +51,7 @@ class PrepopService(
 
   def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[String] = {
     expr match {
-      case AuthCtx(value) => Future.successful(authContextPrepop.values(retrievals))
+      case AuthCtx(value) => Future.successful(authContextPrepop.values(value))
       case Constant(value) => Future.successful(value)
       case EeittCtx(eeitt) =>
 

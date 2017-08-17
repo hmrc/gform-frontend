@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.Request
-import uk.gov.hmrc.auth.core.authorise.EnrolmentIdentifier
 import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldValue, Section, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -74,20 +74,5 @@ trait AuditService {
       "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
     )
     )
-  }
-
-  private def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String)(implicit retrievals: Retrievals) = {
-
-    val maybeEnrolmentIdentifier = maybeEnrolment match {
-      case Some(enrolment) => retrievals.enrolments.getEnrolment(enrolment)
-        .fold[Option[EnrolmentIdentifier]](None)(_.getIdentifier(taxIdName))
-
-      case None => retrievals.enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(taxIdName))
-    }
-
-    maybeEnrolmentIdentifier match {
-      case Some(enrolmentId) => enrolmentId.value
-      case None => ""
-    }
   }
 }

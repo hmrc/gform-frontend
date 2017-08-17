@@ -28,23 +28,6 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
     wSHttpModule.auditableWSHttp
   )
 
-  /********************* private *********************/
-
-  /*private lazy val governmentGateway = new GovernmentGateway {
-    override def redirectToLogin(implicit request: Request[_]): Future[Result] = {
-      val queryStringParams = Map("continue" -> Seq(continueURL + request.uri))
-      Future.successful(Redirect(loginURL, queryStringParams))
-    }
-    override def continueURL: String = configModule.appConfig.`gform-frontend-base-url`
-    override def loginURL: String = configModule.appConfig.`government-gateway-sign-in-url`
-  }
-
-  private lazy val alwaysVisiblePageVisibility = new PageVisibilityPredicate {
-    def apply(authContext: AuthContext, request: Request[AnyContent]): Future[PageVisibilityResult] = Future.successful(PageIsVisible)
-  }
-
-  private lazy val taxRegime: Option[TaxRegime] = None*/
-
   private lazy val eeittConnector = new EeittConnector(
     s"${configModule.serviceConfig.baseUrl("eeitt")}/eeitt",
     wSHttpModule.auditableWSHttp
