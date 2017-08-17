@@ -351,7 +351,7 @@ class FormController @Inject() (
               for {
                 userDetails <- userDetailsF
                 form <- formF
-                result <- processSaveAndContinue(userDetails.userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber.nextPage))))
+                result <- processSaveAndContinue(userDetails.userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, nextPageToRender.sectionNumber))))
               } yield result
             case SaveAndExit =>
               for {
@@ -364,7 +364,7 @@ class FormController @Inject() (
               for {
                 userDetails <- userDetailsF
                 form <- formF
-                result <- processBack(userDetails.userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber.backPage))))
+                result <- processBack(userDetails.userId, form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, lastPage.sectionNumber))))
               } yield result
             case SaveAndSummary =>
               for {
