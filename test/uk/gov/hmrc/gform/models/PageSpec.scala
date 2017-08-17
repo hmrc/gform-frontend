@@ -20,14 +20,13 @@ import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Extractors.extractNames
 import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.play.frontend.auth.AuthContext
-import uk.gov.hmrc.play.frontend.auth.connectors.domain.{ Accounts, Authority, ConfidenceLevel, CredentialStrength }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -49,15 +48,14 @@ class PageSpec extends Spec {
     sections = List(section0, section1, section2)
   )
 
-  val mockPrepopService = new PrepopService(null, null, null) {
-    override def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit authContext: AuthContext, hc: HeaderCarrier): Future[String] =
+  val mockPrepopService = new PrepopService(null, null) {
+    override def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[String] =
       Future.successful("")
   }
   val mockRepeatService = mock[RepeatingComponentService]
   when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(formTemplate.sections))
   override val formId = FormId("formid-123")
-  val authority = Authority("uri", Accounts(), None, None, CredentialStrength.None, ConfidenceLevel.L0, None, None, None, "String")
-  implicit val authContext = AuthContext(authority)
+  implicit val retrievals = mock[Retrievals]
   implicit val headerCarrier = HeaderCarrier()
 
   "Page" should "display first page" in {
