@@ -39,7 +39,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
   implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
   def async(formTemplateIdOpt: Option[FormTemplateId] = None, formIdOpt: Option[FormId] = None)(f: AuthenticatedRequest => Future[Result]): Action[AnyContent] = Action.async { implicit request =>
-
+    require(formTemplateIdOpt.isDefined || formIdOpt.isDefined, "formTemplateIdOpt or formIdOpt must be provided")
     val formAndTemplateF = formTemplateIdOpt match {
       case Some(formTemplateId) => gformConnector.getFormTemplate(formTemplateId).map(t => FormAndTemplate(None, t))
       case None => for {
