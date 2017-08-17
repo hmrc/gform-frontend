@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import play.api.mvc.{Action, AnyContent, Request, Result}
 import play.api.mvc.Results._
-import uk.gov.hmrc.auth.core.{AuthorisedFunctions, NoActiveSession}
-import uk.gov.hmrc.auth.core.retrieve.{AuthProvider, AuthProviders, Retrievals, ~}
+import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc._
-import uk.gov.hmrc.gform.auth.{AuthModule, EeittAuthResult}
+import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, Retrievals, ~ }
+import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, NoActiveSession }
+import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthResult }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AuthConfigModule, FormTemplate, FormTemplateId}
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -72,14 +72,17 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
           Retrievals.agentCode
       ) {
           case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
+
             authConnector.getUserDetails(userDetailsUri.get).flatMap { userDetails =>
               eeittDelegate.legacyAuth(formAndTemplate.template.authConfig.regimeId, userDetails).flatMap {
                 case EeittAuthResult(true, _) =>
                   val retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
                   f(AuthenticatedRequest(retrievals, request, formAndTemplate.form, formAndTemplate.template))
-                case EeittAuthResult(false, loginUrl) => Future.successful(Redirect(loginUrl))
+                case EeittAuthResult(false, loginUrl) =>
+                  Future.successful(Redirect(loginUrl))
               }
             }
+
         }.recover(redirectToGGLogin(request))
   }
 

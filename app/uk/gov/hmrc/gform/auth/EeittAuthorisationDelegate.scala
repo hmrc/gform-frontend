@@ -18,18 +18,17 @@ package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.connectors.{EeittConnector, Verification}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormTemplateId, RegimeId}
+import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, RegimeId }
 import uk.gov.hmrc.play.http.HeaderCarrier
-import play.api.mvc.{AnyContent, Request, Result}
+import play.api.mvc.{ AnyContent, Request, Result }
 import play.api.mvc.Results._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: ConfigModule) {
 
-  def legacyAuth(regimeId: RegimeId, userDetails: UserDetails)
-                (implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[EeittAuthResult] = {
+  def legacyAuth(regimeId: RegimeId, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[EeittAuthResult] = {
 
     val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, regimeId, userDetails.affinityGroup)
 
