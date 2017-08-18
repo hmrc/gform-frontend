@@ -47,7 +47,8 @@ class SummarySpec extends Spec {
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
-    sections = List(section0, section1, section2)
+    sections = List(section0, section1, section2),
+    List.empty[AckSection]
   )
   val mockRepeatService = mock[RepeatingComponentService]
   when(mockRepeatService.getAllFieldsInGroupForSummary(any(), any())(any())).thenReturn(List[FieldValue]())
