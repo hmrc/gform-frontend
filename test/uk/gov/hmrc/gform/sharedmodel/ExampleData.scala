@@ -58,6 +58,10 @@ trait ExampleFieldId {
   def `fieldId - startDate-month` = FieldId("startDate-month")
   def default = FieldId("test")
 
+  //fieldId when submitting form
+  def `fieldId - save` = FieldId("save")
+
+
 }
 
 trait ExampleFieldValue { dependecies: ExampleFieldId =>
@@ -128,6 +132,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 }
 
 trait ExampleSectionNumber {
+  val `sectionNumber-1` = SectionNumber(-1)
   val sectionNumber0 = SectionNumber(0)
   val sectionNumber1 = SectionNumber(1)
   val sectionNumber2 = SectionNumber(2)
@@ -200,7 +205,16 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
   def `formField - startDateMonth` = FormField(`fieldId - startDate-month`, "10")
   def `formField - startDateYear` = FormField(`fieldId - startDate-year`, "2008")
 
-  def data = Map(
+  //actions:
+
+  def `formField - Save` = FormField(`fieldId - save`, "Save")
+  def `formField - Continue` = FormField(`fieldId - save`, "Continue")
+  def `formField - Back` = FormField(`fieldId - save`, "Back")
+  def `formField - AddGroup` = FormField(`fieldId - save`, "AddGroup")
+  def `formField - RemoveGroup` = FormField(`fieldId - save`, "RemoveGroup")
+
+  def data: Map[FieldId, FormField] = Map(
+    `fieldId - save` -> `formField - Save`,
     `fieldId - facePhoto` -> `formField - facePhoto`,
     `fieldId - firstName` -> `formField - firstName`,
     `fieldId - surname` -> `formField - surname`,
@@ -210,6 +224,8 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
     `fieldId - startDate-day` -> `formField - startDateDay`,
     `fieldId - businessName` -> `formField - businessName`
   )
+
+  def rawDataFromBrowser: Map[FieldId, Seq[String]] = data.mapValues(x => Seq(x.value))
 }
 
 trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>

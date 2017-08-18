@@ -28,6 +28,7 @@ final case class Equals(left: Expr, right: Expr) extends BooleanExpr
 final case class Or(left: BooleanExpr, right: BooleanExpr) extends BooleanExpr
 final case class And(left: BooleanExpr, right: BooleanExpr) extends BooleanExpr
 final case object IsTrue extends BooleanExpr
+final case object IsFalse extends BooleanExpr
 
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat
@@ -40,26 +41,6 @@ object BooleanExpr {
       case IsTrue => true
       case _ => false
     }
-
-  //TODO: move this logic out of data
-  @tailrec
-  def nextTrueIdxOpt(idx: SectionNumber, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[SectionNumber] = {
-
-    if (idx.value >= expressions.size - 1) return None
-
-    if (isTrue(expressions(idx.next.value), data)) return Some(idx.next)
-
-    nextTrueIdxOpt(idx.next, expressions, data)
-  }
-
-  @tailrec
-  def backTrueIdxOpt(idx: SectionNumber, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[SectionNumber] = {
-
-    if (idx.value >= expressions.size) return None
-    if (isTrue(expressions(idx.value), data)) return Some(idx.previous)
-
-    backTrueIdxOpt(idx.previous, expressions, data)
-  }
 }
 
 sealed trait Comparison
