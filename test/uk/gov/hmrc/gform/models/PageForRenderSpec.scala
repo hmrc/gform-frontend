@@ -105,7 +105,8 @@ class PageForRenderSpec extends Spec {
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
-    sections = List(section)
+    sections = List(section),
+    List.empty[AckSection]
   )
 
   val mockRepeatService = mock[RepeatingComponentService]
