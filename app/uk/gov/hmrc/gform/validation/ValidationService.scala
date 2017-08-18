@@ -357,8 +357,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     val choiceValue = data.get(fieldValue.id).toList.flatten.headOption
 
     (fieldValue.mandatory, choiceValue) match {
-      case (true, None) => getError("Please enter required data")
-      case (true, Some("")) => getError("Please enter required data")
+      case (true, None | Some("")) => getError("Please enter required data")
       case _ => Valid(())
     }
   }
