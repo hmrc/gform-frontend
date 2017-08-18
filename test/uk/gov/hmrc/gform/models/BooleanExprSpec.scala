@@ -17,9 +17,10 @@
 package uk.gov.hmrc.gform.models
 
 import org.scalatest._
+import uk.gov.hmrc.gform.sharedmodel.ExampleSectionNumber
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
 
-class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
+class BooleanExprSpec extends FlatSpec with Matchers with EitherValues with ExampleSectionNumber {
 
   val section0 = Section("Your details", None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
 
@@ -48,9 +49,9 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
 
     var booleanExprs = formTemplate.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
 
-    BooleanExpr.nextTrueIdxOpt(0, booleanExprs, data) shouldBe Some(1)
-    BooleanExpr.nextTrueIdxOpt(1, booleanExprs, data) shouldBe Some(2)
-    BooleanExpr.nextTrueIdxOpt(2, booleanExprs, data) shouldBe None
+    BooleanExpr.nextTrueIdxOpt(sectionNumber0, booleanExprs, data) shouldBe Some(sectionNumber1)
+    BooleanExpr.nextTrueIdxOpt(sectionNumber1, booleanExprs, data) shouldBe Some(sectionNumber2)
+    BooleanExpr.nextTrueIdxOpt(sectionNumber2, booleanExprs, data) shouldBe None
 
     val templWithMiddleSectionIncl = formTemplate.copy(
       sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))), section2)
@@ -58,9 +59,9 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
 
     booleanExprs = templWithMiddleSectionIncl.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
 
-    BooleanExpr.nextTrueIdxOpt(0, booleanExprs, data) shouldBe Some(1)
-    BooleanExpr.nextTrueIdxOpt(1, booleanExprs, data) shouldBe Some(2)
-    BooleanExpr.nextTrueIdxOpt(2, booleanExprs, data) shouldBe None
+    BooleanExpr.nextTrueIdxOpt(sectionNumber0, booleanExprs, data) shouldBe Some(sectionNumber1)
+    BooleanExpr.nextTrueIdxOpt(sectionNumber1, booleanExprs, data) shouldBe Some(sectionNumber2)
+    BooleanExpr.nextTrueIdxOpt(sectionNumber2, booleanExprs, data) shouldBe None
 
     val templWithMiddleSectionExcl = formTemplate.copy(
       sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pet"))))), section2)
@@ -68,9 +69,9 @@ class BooleanExprSpec extends FlatSpec with Matchers with EitherValues {
 
     booleanExprs = templWithMiddleSectionExcl.sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
 
-    BooleanExpr.nextTrueIdxOpt(0, booleanExprs, data) shouldBe Some(2)
-    BooleanExpr.nextTrueIdxOpt(1, booleanExprs, data) shouldBe Some(2)
-    BooleanExpr.nextTrueIdxOpt(2, booleanExprs, data) shouldBe None
+    BooleanExpr.nextTrueIdxOpt(sectionNumber0, booleanExprs, data) shouldBe Some(sectionNumber2)
+    BooleanExpr.nextTrueIdxOpt(sectionNumber1, booleanExprs, data) shouldBe Some(sectionNumber2)
+    BooleanExpr.nextTrueIdxOpt(sectionNumber2, booleanExprs, data) shouldBe None
   }
 
 }

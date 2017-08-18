@@ -285,7 +285,7 @@ class FormController @Inject() (
         envelope     <- envelopeF
         sections     <- sectionsF
         booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
-        optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
+        optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber, booleanExprs, data)
         // format: ON
       } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService))
 
@@ -293,7 +293,7 @@ class FormController @Inject() (
         envelope     <- envelopeF
         sections     <- sectionsF
         booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
-        optSectionIdx = BooleanExpr.backTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
+        optSectionIdx = BooleanExpr.backTrueIdxOpt(sectionNumber, booleanExprs, data)
         // format: ON
       } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, form.envelopeId, prepopService))
 

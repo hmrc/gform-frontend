@@ -20,9 +20,9 @@ import play.api.libs.json._
 
 case class SectionNumber(value: Int) {
 
-  def nextPage: SectionNumber = SectionNumber(value + 1)
+  def next: SectionNumber = SectionNumber(value + 1)
 
-  def backPage: SectionNumber = SectionNumber(value - 1)
+  def previous: SectionNumber = SectionNumber(value - 1)
 }
 
 object SectionNumber {

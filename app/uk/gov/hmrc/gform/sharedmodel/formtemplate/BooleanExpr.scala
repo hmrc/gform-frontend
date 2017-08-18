@@ -43,21 +43,22 @@ object BooleanExpr {
 
   //TODO: move this logic out of data
   @tailrec
-  def nextTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
+  def nextTrueIdxOpt(idx: SectionNumber, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[SectionNumber] = {
 
-    if (idx >= expressions.size - 1) return None
-    if (isTrue(expressions(idx + 1), data)) return Some(idx + 1)
+    if (idx.value >= expressions.size - 1) return None
 
-    nextTrueIdxOpt(idx + 1, expressions, data)
+    if (isTrue(expressions(idx.next.value), data)) return Some(idx.next)
+
+    nextTrueIdxOpt(idx.next, expressions, data)
   }
 
   @tailrec
-  def backTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
+  def backTrueIdxOpt(idx: SectionNumber, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[SectionNumber] = {
 
-    if (idx >= expressions.size) return None
-    if (isTrue(expressions(idx), data)) return Some(idx - 1)
+    if (idx.value >= expressions.size) return None
+    if (isTrue(expressions(idx.value), data)) return Some(idx.previous)
 
-    backTrueIdxOpt(idx - 1, expressions, data)
+    backTrueIdxOpt(idx.previous, expressions, data)
   }
 }
 
