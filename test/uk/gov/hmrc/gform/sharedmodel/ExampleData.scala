@@ -29,6 +29,7 @@ trait ExampleData
   with ExampleFieldValue
   with ExampleFormField
   with ExampleSection
+  with ExampleSectionNumber
   with ExampleForm
   with ExampleAuthConfig
 
@@ -126,6 +127,12 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
 }
 
+trait ExampleSectionNumber {
+  val sectionNumber0 = SectionNumber(0)
+  val sectionNumber1 = SectionNumber(1)
+  val sectionNumber2 = SectionNumber(2)
+  val sectionNumber3 = SectionNumber(3)
+}
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
   def `section - about you` = Section("About you", None, None, None, None, None, List(

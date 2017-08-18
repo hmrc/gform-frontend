@@ -35,7 +35,7 @@ import scala.util.{ Success, Try }
 @Singleton
 class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
 
-  def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier) = {
+  def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
     sessionCache.fetch().map { maybeCacheMap =>
       val cacheMap = maybeCacheMap.getOrElse(CacheMap("Empty", Map.empty))
       formTemplate.sections.flatMap { section =>
