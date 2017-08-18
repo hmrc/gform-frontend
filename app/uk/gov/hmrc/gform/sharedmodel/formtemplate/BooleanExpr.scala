@@ -54,10 +54,11 @@ object BooleanExpr {
   @tailrec
   def backTrueIdxOpt(idx: Int, expressions: List[BooleanExpr], data: Map[FieldId, Seq[String]]): Option[Int] = {
 
+    val index = if (idx != 0) idx - 1 else idx
     if (idx >= expressions.size) return None
-    if (isTrue(expressions(idx), data)) return Some(idx - 1)
+    if (isTrue(expressions(index), data)) return Some(idx - 1)
 
-    backTrueIdxOpt(idx - 1, expressions, data)
+    backTrueIdxOpt(index, expressions, data)
   }
 }
 
