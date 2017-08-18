@@ -33,8 +33,8 @@ class RestApiController @Inject() (
     extends FrontendController {
   import uk.gov.hmrc.gform.controllers.AuthenticatedRequest._
 
-  //TODO: use proxy actions here
-  //TODO: proxy actions must rely on WsHttp
+  //TODO: use `ProxyActions` here which are backed by AkkaStreams thus we can benefit of fastter serving respons while it's still received from backend. No additional memory overhead will be engaged.
+  //TODO: Make that `ProxyActions` rely on WsHttp which sets proper http headers according to tax platform standards and does proper auditing.
 
   def exposedConfig() = Action.async { implicit r =>
     gformConnector.getExposedConfig.map(ec => Ok(Json.toJson(ec)))
