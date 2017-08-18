@@ -50,21 +50,20 @@ class SummaryGen @Inject() (
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId) = auth.async(formIdOpt = Some(formId)) { implicit c =>
-    val form = maybeForm.get
-    val envelopeF = fileUploadService.getEnvelope(form.envelopeId)
+  def summaryById(formId: FormId) = auth.async(formId) { implicit c =>
+    val envelopeF = fileUploadService.getEnvelope(theForm.envelopeId)
 
     for {// format: OFF
       envelope       <- envelopeF
-      map = formDataMap(form.formData)
+      map = formDataMap(theForm.formData)
       result <- Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
       // format: ON
     } yield result
   }
 
-  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formIdOpt = Some(formId)) { implicit c =>
+  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formId) { implicit c =>
 
-    processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
+    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
         case "Exit" :: Nil =>
           Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTypeId)))

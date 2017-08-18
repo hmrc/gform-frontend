@@ -67,10 +67,10 @@ trait AuditService {
       auditType = "submission complete auditing",
       tags = hc.headers.toMap,
       detail = detail ++ Map(
-      "nino" -> getTaxIdValue(None, "NINO"),
-      "vrn" -> getTaxIdValue(None, "VATRegNo"),
-      "saUtr" -> getTaxIdValue(Some("IR-SA"), "UTR"),
-      "ctUtr" -> getTaxIdValue(Some("IR-CT"), "UTR"),
+      "nino" -> getTaxIdValue(None, "NINO", retrievals),
+      "vrn" -> getTaxIdValue(None, "VATRegNo", retrievals),
+      "saUtr" -> getTaxIdValue(Some("IR-SA"), "UTR", retrievals),
+      "ctUtr" -> getTaxIdValue(Some("IR-CT"), "UTR", retrievals),
       "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
     )
     )
