@@ -14,36 +14,33 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.restapi
+package uk.gov.hmrc.gform.fileupload
 
 import javax.inject.Inject
 
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, RequestHeader }
+import play.api.mvc.Action
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.play.http.HeaderCarrier
 
-class RestApiController @Inject() (
+class FileUploadController @Inject() (
   gformBackendModule: GformBackendModule,
-  controllersModule: ControllersModule
+  controllersModule: ControllersModule,
+  fileUploadModule: FileUploadModule
 )
     extends FrontendController {
   import uk.gov.hmrc.gform.controllers.AuthenticatedRequest._
 
-  //TODO: use `ProxyActions` here which are backed by AkkaStreams thus we can benefit of fastter serving respons while it's still received from backend. No additional memory overhead will be engaged.
-  //TODO: Make that `ProxyActions` rely on WsHttp which sets proper http headers according to tax platform standards and does proper auditing.
-
-  def exposedConfig() = Action.async { implicit r =>
-    gformConnector.getExposedConfig.map(ec => Ok(Json.toJson(ec)))
-  }
-
   def deleteFile(formId: FormId, fileId: FileId) = authentication.async { implicit c =>
-    gformConnector.deleteFile(formId, fileId).map(_ => NoContent)
+    for {
+      form <- gformConnector.getForm(formId)
+      _ <- fileUploadService.deleteFile(form.envelopeId, fileId)
+    } yield NoContent
   }
 
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val authentication = controllersModule.authenticatedRequestActions
+  private lazy val fileUploadService = fileUploadModule.fileUploadService
 }
