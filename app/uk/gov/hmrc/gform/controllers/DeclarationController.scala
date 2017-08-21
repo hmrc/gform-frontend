@@ -93,8 +93,7 @@ class DeclarationController @Inject() (
   def ackPage(template: FormTemplate)(implicit request: Request[_]) = {
     val content = template.acknowledgementSection
       .map((ackSection: AckSection) =>
-        uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection)
-      )
+        uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection))
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val now = LocalDateTime.now()
