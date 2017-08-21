@@ -210,7 +210,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, Email) => Monoid.combine(email(value), textValidator(value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
-      case (_, _, ShortText) => Valid(())
+      case (false, Nil, _) => Valid(())
       case (_, value :: rest, _) => Valid(()) // we don't support multiple values yet
     }
   }
