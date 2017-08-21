@@ -16,19 +16,28 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
 
 import cats.data.Validated.{ Invalid, Valid }
+import org.joda.time.format
 import play.api.libs.json.Json
+import play.api.mvc.{ Request, WebSocket }
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AckSection, FieldId, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
 import uk.gov.hmrc.gform.validation.DeclarationFieldValidationService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.Future
 
 @Singleton
@@ -59,11 +68,14 @@ class DeclarationController @Inject() (
               for {
                 _ <- gformConnector.updateUserData(theForm._id, UserData(updatedForm.formData, None))
                 response <- gformConnector.submitForm(formId)
+                template <- gformConnector.getFormTemplate(form.formTemplateId)
                 _ <- repeatService.clearSession
               } yield {
                 auditService.sendSubmissionEvent(theForm, formTemplate.sections)
                 Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
+                ackPage(template)
               }
+
             case Invalid(validationMap) =>
               for {
                 formTemplate <- gformConnector.getFormTemplate(theForm.formTemplateId)
@@ -75,6 +87,18 @@ class DeclarationController @Inject() (
     }
   }
 
+  def ackPage(template: FormTemplate)(implicit request: Request[_]) = {
+    val content = template.acknowledgementSection
+      .map((ackSection: AckSection) =>
+        uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection)
+      )
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    val now = LocalDateTime.now()
+
+    val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
+    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, content))
+  }
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val auditService = auditingModule.auditService

@@ -45,7 +45,8 @@ class PageSpec extends Spec {
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"), None),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
-    sections = List(section0, section1, section2)
+    sections = List(section0, section1, section2),
+    List.empty[AckSection]
   )
 
   val mockPrepopService = new PrepopService(null, null) {

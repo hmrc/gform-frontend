@@ -1,0 +1,37 @@
+@import uk.gov.hmrc.gform.service.LabelHelper
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import java.time.LocalDate
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.InfoType
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.StandardInfo
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LongInfo
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ImportantInfo
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.BannerInfo
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
+
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.models._
+
+@import views.html.helper.CSRF
+@(str: String, supportContents: List[Html])(implicit request: Request[_], messages: Messages)
+
+@uk.gov.hmrc.gform.views.html.main_template(title = "Acknowledgement", bodyClasses = None) {
+
+<div style="background-color : #28A197 ; text-align : center ; padding : 10 px ; color : #ffffff ;">
+    <h1 class="bold-medium"><span class="tick" role="img" aria-label="tick"></span> Your claim has been submitted</h1>
+    <p>
+        @str
+    </p>
+</div>
+
+<h2 class="heading-medium">Print a copy of your return</h2>
+<p>
+    <a href="javascript:window.print()" class="print-link print-hidden js-visible">Print your return</a> //TODO print actual PDF
+</p>
+
+@supportContents.map { supportContent =>
+    @supportContent
+    <br>
+    }
+}
