@@ -276,66 +276,32 @@ class FormController @Inject() (
 
       }
 
-      val optNextPage = for {// format: OFF
-        envelope     <- envelopeF
-        sections     <- sectionsF
-        booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
-        optSectionIdx = BooleanExpr.nextTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
-        // format: ON
-      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService))
+      def processAddGroup(groupId: String): Future[Result] = for {
+        _ <- repeatService.appendNewGroup(groupId)
+        page <- pageF
+        dynamicSections <- sectionsF
+        result <- page.renderPage(data, formId, None, dynamicSections)
+      } yield result
 
-      val optBackPage = for {// format: OFF
-        envelope     <- envelopeF
-        sections     <- sectionsF
-        booleanExprs  = sections.map(_.includeIf.getOrElse(IncludeIf(IsTrue)).expr)
-        optSectionIdx = BooleanExpr.backTrueIdxOpt(sectionNumber.value, booleanExprs, data).map(SectionNumber(_))
-        // format: ON
-      } yield optSectionIdx.map(sectionNumber => Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService))
-
-      val actionE: Future[Either[String, FormAction]] = for {
-        optNextPage <- optNextPage
-        optBackPage <- optBackPage
-      } yield FormAction.determineAction(data, optNextPage, optBackPage)
+      def processRemoveGroup(groupId: String): Future[Result] = for {
+        updatedData <- repeatService.removeGroup(groupId, data)
+        page <- pageF
+        dynamicSections <- sectionsF
+        result <- page.renderPage(updatedData, formId, None, dynamicSections)
+      } yield result
 
       val userId = UserId(retrievals.userDetails.groupIdentifier)
+      val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
 
-      actionE.flatMap {
-        case Right(action) =>
-          action match {
-            case SaveAndContinue(nextPageToRender) =>
-              for {
-                result <- processSaveAndContinue(userId, theForm)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, nextPageToRender.sectionNumber))))
-              } yield result
-            case SaveAndExit =>
-              for {
-                result <- processSaveAndExit(userId, theForm, theForm.envelopeId)
-              } yield result
-            case Back(lastPage) =>
-              for {
-                result <- processBack(userId, theForm)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, lastPage.sectionNumber))))
-              } yield result
-            case SaveAndSummary =>
-              for {
-                result <- processSaveAndContinue(userId, theForm)(Future.successful(Redirect(routes.SummaryGen.summaryById(formId))))
-              } yield result
-
-            case AddGroup(groupId) =>
-              for {
-                _ <- repeatService.appendNewGroup(groupId)
-                page <- pageF
-                dynamicSections <- sectionsF
-                result <- page.renderPage(data, formId, None, dynamicSections)
-              } yield result
-
-            case RemoveGroup(groupId) =>
-              for {
-                updatedData <- repeatService.removeGroup(groupId, data)
-                page <- pageF
-                dynamicSections <- sectionsF
-                result <- page.renderPage(updatedData, formId, None, dynamicSections)
-              } yield result
-          }
-        case Left(error) => Future.successful(BadRequest(error))
+      navigationF.flatMap {
+        // format: OFF
+        case SaveAndContinue(sectionNumber) => processSaveAndContinue(userId, theForm)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber))))
+        case SaveAndExit                    => processSaveAndExit(userId, theForm, theForm.envelopeId)
+        case Back(sectionNumber)            => processBack(userId, theForm)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber))))
+        case SaveAndSummary                 => processSaveAndContinue(userId, theForm)(Future.successful(Redirect(routes.SummaryGen.summaryById(formId))))
+        case AddGroup(groupId)              => processAddGroup(groupId)
+        case RemoveGroup(groupId)           => processRemoveGroup(groupId)
+        // format: ON
       }
 
     }

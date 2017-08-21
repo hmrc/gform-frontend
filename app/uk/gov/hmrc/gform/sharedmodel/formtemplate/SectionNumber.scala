@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.json._
 
 case class SectionNumber(value: Int) {
-
-  def nextPage: SectionNumber = SectionNumber(value + 1)
-
-  def backPage: SectionNumber = SectionNumber(value - 1)
+  def >(sn: SectionNumber): Boolean = this.value > sn.value
+  def >=(sn: SectionNumber): Boolean = this.value >= sn.value
+  def <(sn: SectionNumber): Boolean = this.value < sn.value
+  def <=(sn: SectionNumber): Boolean = this.value <= sn.value
 }
 
 object SectionNumber {

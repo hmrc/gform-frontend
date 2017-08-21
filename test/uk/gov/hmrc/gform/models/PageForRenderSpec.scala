@@ -102,7 +102,7 @@ class PageForRenderSpec extends Spec {
     formName = "AAA000",
     description = "YEAHH man!",
     dmsSubmission = dmsSubmission,
-    authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
+    authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"), None),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section)
