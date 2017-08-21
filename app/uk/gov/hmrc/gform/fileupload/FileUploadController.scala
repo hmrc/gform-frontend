@@ -14,23 +14,33 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.config
+package uk.gov.hmrc.gform.fileupload
 
 import javax.inject.Inject
 
 import play.api.libs.json.Json
 import play.api.mvc.Action
-import play.api.mvc.Results._
+import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.ExecutionContext.global
+class FileUploadController @Inject() (
+  gformBackendModule: GformBackendModule,
+  controllersModule: ControllersModule,
+  fileUploadModule: FileUploadModule
+)
+    extends FrontendController {
+  import uk.gov.hmrc.gform.controllers.AuthenticatedRequest._
 
-class ConfigController @Inject() (gformBackendModule: GformBackendModule) extends FrontendController {
-
-  def exposedConfig() = Action.async { implicit r =>
-    gformConnector.getExposedConfig.map(ec => Ok(Json.toJson(ec)))
+  def deleteFile(formId: FormId, fileId: FileId) = authentication.async { implicit c =>
+    for {
+      form <- gformConnector.getForm(formId)
+      _ <- fileUploadService.deleteFile(form.envelopeId, fileId)
+    } yield NoContent
   }
 
   private lazy val gformConnector = gformBackendModule.gformConnector
+  private lazy val authentication = controllersModule.authenticatedRequestActions
+  private lazy val fileUploadService = fileUploadModule.fileUploadService
 }

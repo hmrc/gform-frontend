@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -25,6 +25,10 @@ class FileUploadService(fileUploadConnector: FileUploadConnector) {
 
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
     fileUploadConnector.getEnvelope(envelopeId)
+  }
+
+  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier) = {
+    fileUploadConnector.deleteFile(envelopeId, fileId)
   }
 
 }
