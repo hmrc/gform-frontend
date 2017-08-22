@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform
 
 import play.api.Play.{ configuration, current }
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.play.config.ServicesConfig
 
 trait AppConfig {
@@ -30,6 +31,7 @@ trait AppConfig {
   val betaFeedbackUrlNoAuth: String
   def sessionCacheDomain: String
   def sessionCacheBaseUri: String
+
 }
 
 object FrontendAppConfig extends AppConfig with ServicesConfig {
@@ -57,4 +59,5 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   override lazy val sessionCacheDomain: String = config.getString("cachable.session-cache.domain").getOrElse("")
   override lazy val sessionCacheBaseUri: String = baseUrl("cachable.session-cache")
+
 }

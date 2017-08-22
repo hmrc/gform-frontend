@@ -17,10 +17,12 @@
 package uk.gov.hmrc.gform.config
 
 import pureconfig._
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.play.config.ServicesConfig
 
 class ConfigModule {
   lazy val appConfig: AppConfig = AppConfig.loadOrThrow()
+
   lazy val serviceConfig: ServicesConfig = {
 
     val c = new ServicesConfig {}
@@ -34,12 +36,17 @@ class ConfigModule {
 }
 
 case class AppConfig(
-  appName: String,
-  `google-analytics`: GoogleAnalytics,
-  `government-gateway-sign-in-url`: String,
-  `gform-frontend-base-url`: String,
-  feature: FeatureToggle
-)
+    appName: String,
+    `google-analytics`: GoogleAnalytics,
+    `government-gateway-sign-in-url`: String,
+    `gform-frontend-base-url`: String,
+    feature: FeatureToggle,
+    formMaxAttachmentSizeMB: Int,
+    /*we can't override list in app-config-base:*/
+    contentTypesSeparatedByPipe: String
+) {
+  def contentTypes: List[ContentType] = contentTypesSeparatedByPipe.split('|').toList.map(ContentType.apply)
+}
 
 case class GoogleAnalytics(
   token: String,

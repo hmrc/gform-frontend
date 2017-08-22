@@ -9,7 +9,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
 
 
-@(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
+@(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int, formMaxAttachmentSizeMB: Int)
 
 @currentValue = @{
     val v = for {
@@ -29,9 +29,9 @@
        data-file-id="@{fieldValue.id.value}"
        data-upload-text="@{defaultLabel}"
        data-change-text="Change document"
-       data-max-file-size="1048576"
+       data-max-file-size="@{formMaxAttachmentSizeMB * 1024 * 1024}"
        data-label="@LabelHelper.buildRepeatingLabel(fieldValue, index)"
-       data-file-size-error="File exceeds max size allowed"
+       data-file-size-error="This document may not exceed @{formMaxAttachmentSizeMB}MB"
        data-initial-text="@if(currentValue == defaultLabel) {Upload document} else {Change document}"
        data-default-label="@{defaultLabel}"
   >

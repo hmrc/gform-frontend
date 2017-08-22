@@ -31,7 +31,17 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class PageForRender(formId: FormId, sectionNumber: SectionNumber, sectionTitle: String, sectionDescription: Option[String], hiddenFieldsSnippets: List[Html], snippets: List[Html], javascripts: String, envelopeId: EnvelopeId) //TODO maybe pass full section object into page for render to get access to all information
+case class PageForRender(
+  formId: FormId,
+  sectionNumber: SectionNumber,
+  sectionTitle: String,
+  sectionDescription: Option[String],
+  hiddenFieldsSnippets: List[Html],
+  snippets: List[Html],
+  javascripts: String,
+  envelopeId: EnvelopeId,
+  formMaxAttachmentSizeMB: Int
+) //TODO maybe pass full section object into page for render to get access to all information
 
 object PageForRender {
   def apply(
@@ -44,16 +54,17 @@ object PageForRender {
     envelope: Envelope,
     envelopeId: EnvelopeId,
     prepopService: PrepopService,
-    dynamicSections: List[Section]
-  )(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] = new PageShader(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections).render()
+    dynamicSections: List[Section],
+    formMaxAttachmentSizeMB: Int
+  )(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] = new PageShader(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections, formMaxAttachmentSizeMB).render()
 
 }
 
 case class Page(formId: FormId, sectionNumber: SectionNumber, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, envelopeId: EnvelopeId, prepopService: PrepopService) {
-  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section])(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] =
-    PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections)
+  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section], formMaxAttachmentSizeMB: Int)(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] =
+    PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections, formMaxAttachmentSizeMB)
 
-  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: FormId, f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section])(implicit request: Request[_], messages: Messages, retrievals: Retrievals, hc: HeaderCarrier): Future[Result] = {
-    pageForRender(fieldData, f, dynamicSections).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
+  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: FormId, f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section], formMaxAttachmentSizeMB: Int)(implicit request: Request[_], messages: Messages, retrievals: Retrievals, hc: HeaderCarrier): Future[Result] = {
+    pageForRender(fieldData, f, dynamicSections, formMaxAttachmentSizeMB).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
   }
 }

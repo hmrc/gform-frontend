@@ -45,7 +45,8 @@ class PageShader(
     envelope: Envelope,
     envelopeId: EnvelopeId,
     prepopService: PrepopService,
-    dynamicSections: List[Section]
+    dynamicSections: List[Section],
+    formMaxAttachmentSizeMB: Int
 )(implicit retrievals: Retrievals, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
@@ -55,7 +56,7 @@ class PageShader(
       javascript = fieldJavascript(dynamicSections.flatMap(_.atomicFields(repeatService)))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
-    } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId)
+    } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId, formMaxAttachmentSizeMB)
   }
 
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {
@@ -80,7 +81,7 @@ class PageShader(
 
   private def htmlForFileUpload(fieldValue: FieldValue, index: Int) = {
     validate(fieldValue).map { validatedValue =>
-      uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validatedValue, index)
+      uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validatedValue, index, formMaxAttachmentSizeMB)
     }
   }
 
