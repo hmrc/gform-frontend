@@ -54,4 +54,11 @@ object Javascript {
     }
   }
 
+  def collapsingGroupJavascript(fieldId: FieldId, group: Group) = {
+    s"""
+       |function removeOnClick$fieldId() {
+       |${group.fields.map(fv => s"""document.getElementById("${fv.id}").value = '' """).mkString(";\n")}
+       |}
+     """.stripMargin
+  }
 }

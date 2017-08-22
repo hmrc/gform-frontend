@@ -12,6 +12,8 @@ optionElements: Html,
 dataEntered: Boolean
 )
 
+
+@id(groupId: FieldId) = @{ "removeOnClick"+groupId.toString + "()"}
 <div class="form-group">
     <div>
         <fieldset>
@@ -25,7 +27,8 @@ dataEntered: Boolean
                        name="@{groupId}"
                        value=""
                        type="checkbox"
-                       @if(dataEntered) {checked}/>
+                       @if(dataEntered) {checked}
+                onchange="@id(groupId)" />
                 @groupLabel
             </label>
 
