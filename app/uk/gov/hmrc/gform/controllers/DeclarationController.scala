@@ -18,24 +18,22 @@ package uk.gov.hmrc.gform.controllers
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import javax.inject.{Inject, Singleton}
-
+import javax.inject.{ Inject, Singleton }
 import cats.Monoid
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
+import cats.instances.all._
 import play.api.libs.json.Json
 import play.api.mvc.Request
-import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{get, processResponseDataFromBody}
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.models.SectionRenderingService
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField, FormId, UserData}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AckSection, FieldId, FormTemplate, SectionNumber}
-import uk.gov.hmrc.gform.validation.{DeclarationFieldValidationService, ValidationModule}
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.{ DeclarationFieldValidationService, ValidationModule }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -55,10 +53,10 @@ class DeclarationController @Inject() (
   import controllersModule.i18nSupport._
 
   def showDeclaration(formId: FormId) = auth.async(formId) { implicit authRequest =>
-    renderer.renderDeclarationSection(formId, formTemplate).map(Ok(_))
+    renderer.renderDeclarationSection(formId, formTemplate, None).map(Ok(_))
   }
 
-  def submitDeclaration(formId: FormId) = auth.async(formId) { implicit c =>
+  def submitDeclaration(formId: FormId) = auth.async(formId) { implicit authRequest =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
       val validationResultF = Future.sequence(
@@ -67,33 +65,50 @@ class DeclarationController @Inject() (
       ).map(Monoid[ValidatedType].combineAll)
 
       get(data, FieldId("save")) match {
-        case "Continue" :: Nil =>
-          fieldValidator.validateDeclarationFields(data) match {
-            case Valid(()) =>
-              val updatedForm = updateFormWithDeclaration(theForm, data)
-              for {
-                _ <- gformConnector.updateUserData(theForm._id, UserData(updatedForm.formData, None))
-                response <- gformConnector.submitForm(formId)
-                template <- gformConnector.getFormTemplate(theForm.formTemplateId)
-                _ <- repeatService.clearSession
-              } yield {
-                auditService.sendSubmissionEvent(theForm, formTemplate.sections)
-                Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
-                ackPage(template)
-              }
+        case "Continue" :: Nil => validationResultF.flatMap {
+          case Valid(()) =>
+            val updatedForm = updateFormWithDeclaration(theForm, formTemplate, data)
+            for {
+              _ <- gformConnector.updateUserData(theForm._id, UserData(updatedForm.formData, None))
+              response <- gformConnector.submitForm(formId)
+              template <- gformConnector.getFormTemplate(theForm.formTemplateId)
+              _ <- repeatService.clearSession
+            } yield {
+              auditService.sendSubmissionEvent(theForm, formTemplate.sections)
+              Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
+              acknowledgementPage(template)
+            }
 
-            case Invalid(validationMap) =>
-              for {
-                formTemplate <- gformConnector.getFormTemplate(theForm.formTemplateId)
-              } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, theForm._id, validationMap, data))
-          }
+          case validationResult @ Invalid(_) =>
+            val errorMap = getErrorMap(validationResult, data, formTemplate)
+            for {
+              html <- renderer.renderDeclarationSection(formId, formTemplate, Some(errorMap.get))
+            } yield Ok(html)
+        }
         case _ =>
           Future.successful(BadRequest("Cannot determine action"))
       }
     }
   }
 
-  def ackPage(template: FormTemplate)(implicit request: Request[_]) = {
+  private lazy val auth = controllersModule.authenticatedRequestActions
+  private lazy val gformConnector = gformBackendModule.gformConnector
+  private lazy val auditService = auditingModule.auditService
+  private lazy val validationService = validationModule.validationService
+
+  private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]) = {
+    val fieldNames = data.keySet.map(_.value)
+    val declarationFields = formTemplate.declarationSection.fields.filter(_.submissible).flatMap { fieldValue =>
+      fieldNames
+        .filter(_.startsWith(fieldValue.id.value))
+        .map(name => FormField(FieldId(name), data(FieldId(name)).head))
+    }
+    val updatedFields = form.formData.fields ++ declarationFields
+
+    form.copy(formData = form.formData.copy(fields = updatedFields))
+  }
+
+  private def acknowledgementPage(template: FormTemplate)(implicit request: Request[_]) = {
     val content = template.acknowledgementSection
       .map((ackSection: AckSection) =>
         uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection))
@@ -104,22 +119,12 @@ class DeclarationController @Inject() (
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, content))
   }
-  private lazy val auth = controllersModule.authenticatedRequestActions
-  private lazy val gformConnector = gformBackendModule.gformConnector
-  private lazy val auditService = auditingModule.auditService
-  private lazy val validationService = validationModule.validationService
 
-  private def updateFormWithDeclaration(form: Form, data: Map[FieldId, Seq[String]]) = {
-    val updatedFields = data.foldLeft(form.formData.fields) {
-      case (result, element) => element match {
-        case a @ (FieldId("declaration-firstname"), value) => if (value.mkString.isEmpty) result else result :+ FormField(a._1, value.mkString)
-        case a @ (FieldId("declaration-lastname"), value) => if (value.mkString.isEmpty) result else result :+ FormField(a._1, value.mkString)
-        case a @ (FieldId("declaration-status"), value) => if (value.mkString.isEmpty) result else result :+ FormField(a._1, value.mkString)
-        case a @ (FieldId("declaration-email2"), value) => if (value.mkString.isEmpty) result else result :+ FormField(a._1, value.mkString)
-        case _ => result
-      }
+  private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate) = {
+    ValidationUtil.evaluateValidationResult(formTemplate.declarationSection.fields, validationResult, data, Envelope(Nil)) match {
+      case Left(validationResults) =>
+        validationResults.map(result => ValidationUtil.extractedFieldValue(result) -> result).toMap
+      case Right(_) => Map.empty[FieldValue, FormFieldValidationResult]
     }
-
-    form.copy(formData = form.formData.copy(fields = updatedFields))
   }
 }

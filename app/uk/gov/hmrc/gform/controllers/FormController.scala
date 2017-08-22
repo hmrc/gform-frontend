@@ -23,9 +23,7 @@ import cats.instances.all._
 import cats.syntax.all._
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
-import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.AuthModule
-import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
@@ -114,7 +112,7 @@ class FormController @Inject() (
       val allFields = sections.flatMap(_.atomicFields(repeatService))
       Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map { validationResult =>
         ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
-          case Left(x) => x.map((validResult: FormFieldValidationResult) => extractedFieldValue(validResult) -> validResult).toMap
+          case Left(x) => x.map((validResult: FormFieldValidationResult) => ValidationUtil.extractedFieldValue(validResult) -> validResult).toMap
           case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
         }
       }
@@ -124,7 +122,7 @@ class FormController @Inject() (
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
       errors          <- getErrors(dynamicSections, fieldData, envelope, theForm.envelopeId)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, Some(errors.get), envelope, theForm.envelopeId, dynamicSections)
       // format: ON
     } yield Ok(html)
   }
@@ -218,11 +216,6 @@ class FormController @Inject() (
 
           val formData = FormData(formFields)
 
-          val outCome: SaveResult => Future[Result] = {
-            case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
-            case _ => continueF
-          }
-
           //TODO figure out if we should save the structure constantly or should we figure out when they leave the form another way other than the two buttons.
           for {
             keystore <- repeatService.getData()
@@ -281,7 +274,7 @@ class FormController @Inject() (
       } yield Ok(html)
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
-        updatedData <- repeatService.removeGroup(groupId, data)
+        _ <- repeatService.removeGroup(groupId, data)
         envelope <- envelopeF
         dynamicSections <- sectionsF
         html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
@@ -304,15 +297,6 @@ class FormController @Inject() (
     }
   }
 
-  private def extractedFieldValue(validResult: FormFieldValidationResult): FieldValue = validResult match {
-    case FieldOk(fv, _) => fv
-    case FieldError(fv, _, _) => fv
-    case ComponentField(fv, _) => fv
-    case FieldGlobalOk(fv, _) => fv
-    case FieldGlobalError(fv, _, _) => fv
-  }
-
-  private lazy val prepopService = prePopModule.prepopService
   private lazy val authentication = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val firstSection = SectionNumber(0)

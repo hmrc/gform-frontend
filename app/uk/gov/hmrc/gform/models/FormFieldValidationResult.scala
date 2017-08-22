@@ -272,4 +272,12 @@ object ValidationUtil {
     }
   }
 
+  def extractedFieldValue(validResult: FormFieldValidationResult): FieldValue = validResult match {
+    case FieldOk(fv, _) => fv
+    case FieldError(fv, _, _) => fv
+    case ComponentField(fv, _) => fv
+    case FieldGlobalOk(fv, _) => fv
+    case FieldGlobalError(fv, _, _) => fv
+  }
+
 }
