@@ -54,7 +54,7 @@ var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
 var uploaderDefaults = {
   uploadText: 'Browse',
   changeText: 'Change',
-  maxFileSize: 1048576,
+  maxFileSize: window.gform.formMaxAttachmentSizeMB * 1024 * 1024,
   uploaderLabel: 'Your uploaded file will appear here',
   maxFileSizeError: 'File exceeds max size allowed'
 };
