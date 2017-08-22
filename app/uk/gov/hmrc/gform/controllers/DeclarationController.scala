@@ -18,26 +18,26 @@ package uk.gov.hmrc.gform.controllers
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 
-import cats.data.Validated.{ Invalid, Valid }
-import org.joda.time.format
+import cats.Monoid
+import cats.data.Validated.{Invalid, Valid}
 import play.api.libs.json.Json
-import play.api.mvc.{ Request, WebSocket }
+import play.api.mvc.Request
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{get, processResponseDataFromBody}
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.models.SectionRenderingService
+import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.service.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AckSection, FieldId, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
-import uk.gov.hmrc.gform.validation.DeclarationFieldValidationService
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField, FormId, UserData}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AckSection, FieldId, FormTemplate, SectionNumber}
+import uk.gov.hmrc.gform.validation.{DeclarationFieldValidationService, ValidationModule}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.Future
 
 @Singleton
@@ -46,20 +46,26 @@ class DeclarationController @Inject() (
     gformBackendModule: GformBackendModule,
     repeatService: RepeatingComponentService,
     fieldValidator: DeclarationFieldValidationService,
-    auditingModule: AuditingModule
+    auditingModule: AuditingModule,
+    renderer: SectionRenderingService,
+    validationModule: ValidationModule
 ) extends FrontendController {
 
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
   def showDeclaration(formId: FormId) = auth.async(formId) { implicit authRequest =>
-    Future.successful(
-      Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, theForm._id, Map.empty, Map.empty))
-    )
+    renderer.renderDeclarationSection(formId, formTemplate).map(Ok(_))
   }
 
   def submitDeclaration(formId: FormId) = auth.async(formId) { implicit c =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
+
+      val validationResultF = Future.sequence(
+        formTemplate.declarationSection.fields
+          .map(fieldValue => validationService.validateComponents(fieldValue, data, theForm.envelopeId))
+      ).map(Monoid[ValidatedType].combineAll)
+
       get(data, FieldId("save")) match {
         case "Continue" :: Nil =>
           fieldValidator.validateDeclarationFields(data) match {
@@ -101,6 +107,7 @@ class DeclarationController @Inject() (
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val auditService = auditingModule.auditService
+  private lazy val validationService = validationModule.validationService
 
   private def updateFormWithDeclaration(form: Form, data: Map[FieldId, Seq[String]]) = {
     val updatedFields = data.foldLeft(form.formData.fields) {

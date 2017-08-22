@@ -52,7 +52,8 @@ class FormController @Inject() (
     fileUploadModule: FileUploadModule,
     authModule: AuthModule,
     validationModule: ValidationModule,
-    prePopModule: PrepopModule
+    prePopModule: PrepopModule,
+    renderer: SectionRenderingService
 ) extends FrontendController {
 
   import AuthenticatedRequest._
@@ -97,9 +98,9 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(theForm.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
-      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, None, dynamicSections)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
       // format: ON
-    } yield response
+    } yield Ok(html)
   }
 
   def formError(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formId) { implicit c =>
@@ -123,9 +124,9 @@ class FormController @Inject() (
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
       errors          <- getErrors(dynamicSections, fieldData, envelope, theForm.envelopeId)
-      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, Some(errors.get), dynamicSections)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
       // format: ON
-    } yield response
+    } yield Ok(html)
   }
 
   def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = authentication.async(formId) { implicit c =>
@@ -169,10 +170,6 @@ class FormController @Inject() (
     val envelopeF = for {
       envelope <- fileUploadService.getEnvelope(theForm.envelopeId)
     } yield envelope
-
-    val pageF = for {
-      envelope <- envelopeF
-    } yield Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService)
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
@@ -278,17 +275,17 @@ class FormController @Inject() (
 
       def processAddGroup(groupId: String): Future[Result] = for {
         _ <- repeatService.appendNewGroup(groupId)
-        page <- pageF
+        envelope <- envelopeF
         dynamicSections <- sectionsF
-        result <- page.renderPage(data, formId, None, dynamicSections)
-      } yield result
+        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
+      } yield Ok(html)
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
         updatedData <- repeatService.removeGroup(groupId, data)
-        page <- pageF
+        envelope <- envelopeF
         dynamicSections <- sectionsF
-        result <- page.renderPage(updatedData, formId, None, dynamicSections)
-      } yield result
+        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
+      } yield Ok(html)
 
       val userId = UserId(retrievals.userDetails.groupIdentifier)
       val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
