@@ -24,8 +24,8 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
+import uk.gov.hmrc.gform.models.helpers.{ Fields, Javascript }
+import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
@@ -55,10 +55,19 @@ class PageShader(
     val section = dynamicSections(sectionNumber.value)
     for {
       snippets <- Future.sequence(section.fields.map(f => htmlFor(f, 0)))
-      javascript = fieldJavascript(dynamicSections.flatMap(_.atomicFields(repeatService)))
+      javascript = createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(_.atomicFields(repeatService)))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
     } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId, formMaxAttachmentSizeMB, contentTypes)
+  }
+
+  private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue]) = {
+    val groups: List[(FieldId, Group)] = fieldList.flatMap(fv => fv.`type` match {
+      case group @ Group(_, _, _, _, _, _) => List((fv.id, group))
+      case _ => List.empty[(FieldId, Group)]
+    })
+
+    groups.map(x => collapsingGroupJavascript(x._1, x._2)).mkString(";\n") + fieldJavascript(atomicFields)
   }
 
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {
