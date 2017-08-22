@@ -68,7 +68,7 @@ class DeclarationController @Inject() (
               for {
                 _ <- gformConnector.updateUserData(theForm._id, UserData(updatedForm.formData, None))
                 response <- gformConnector.submitForm(formId)
-                template <- gformConnector.getFormTemplate(form.formTemplateId)
+                template <- gformConnector.getFormTemplate(theForm.formTemplateId)
                 _ <- repeatService.clearSession
               } yield {
                 auditService.sendSubmissionEvent(theForm, formTemplate.sections)
@@ -90,8 +90,7 @@ class DeclarationController @Inject() (
   def ackPage(template: FormTemplate)(implicit request: Request[_]) = {
     val content = template.acknowledgementSection
       .map((ackSection: AckSection) =>
-        uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection)
-      )
+        uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection))
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val now = LocalDateTime.now()
