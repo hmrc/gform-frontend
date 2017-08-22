@@ -97,7 +97,7 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(theForm.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
-      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, None, dynamicSections, formMaxAttachmentSizeMB)
+      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       // format: ON
     } yield response
   }
@@ -123,7 +123,7 @@ class FormController @Inject() (
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
       errors          <- getErrors(dynamicSections, fieldData, envelope, theForm.envelopeId)
-      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, Some(errors.get), dynamicSections, formMaxAttachmentSizeMB)
+      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, Some(errors.get), dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       // format: ON
     } yield response
   }
@@ -280,14 +280,14 @@ class FormController @Inject() (
         _ <- repeatService.appendNewGroup(groupId)
         page <- pageF
         dynamicSections <- sectionsF
-        result <- page.renderPage(data, formId, None, dynamicSections, formMaxAttachmentSizeMB)
+        result <- page.renderPage(data, formId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       } yield result
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
         updatedData <- repeatService.removeGroup(groupId, data)
         page <- pageF
         dynamicSections <- sectionsF
-        result <- page.renderPage(updatedData, formId, None, dynamicSections, formMaxAttachmentSizeMB)
+        result <- page.renderPage(updatedData, formId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       } yield result
 
       val userId = UserId(retrievals.userDetails.groupIdentifier)
@@ -323,4 +323,5 @@ class FormController @Inject() (
   private lazy val validationService = validationModule.validationService
   private lazy val appConfig = configModule.appConfig
   private lazy val formMaxAttachmentSizeMB = configModule.appConfig.formMaxAttachmentSizeMB
+  private lazy val contentTypes = configModule.appConfig.contentTypes
 }

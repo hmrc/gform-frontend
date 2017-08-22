@@ -49,6 +49,7 @@
       window.gform = window.gform || {};
       window.gform.envelopeId = "@page.envelopeId.value";
       window.gform.formMaxAttachmentSizeMB = "@page.formMaxAttachmentSizeMB";
+      window.gform.contentTypes = "@page.contentTypes.map(_.value).mkString(", ")";
 
       @Html(page.javascripts)
     </script>
