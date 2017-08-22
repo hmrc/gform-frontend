@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ DeclarationFieldValidationService, ValidationModule }
+import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -43,7 +43,6 @@ class DeclarationController @Inject() (
     controllersModule: ControllersModule,
     gformBackendModule: GformBackendModule,
     repeatService: RepeatingComponentService,
-    fieldValidator: DeclarationFieldValidationService,
     auditingModule: AuditingModule,
     renderer: SectionRenderingService,
     validationModule: ValidationModule
