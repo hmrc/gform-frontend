@@ -61,7 +61,6 @@ trait ExampleFieldId {
   //fieldId when submitting form
   def `fieldId - save` = FieldId("save")
 
-
 }
 
 trait ExampleFieldValue { dependecies: ExampleFieldId =>

@@ -33,7 +33,7 @@ class FileUploadController @Inject() (
     extends FrontendController {
   import uk.gov.hmrc.gform.controllers.AuthenticatedRequest._
 
-  def deleteFile(formId: FormId, fileId: FileId) = authentication.async { implicit c =>
+  def deleteFile(formId: FormId, fileId: FileId) = authentication.async(formIdOpt = Some(formId)) { implicit c =>
     for {
       form <- gformConnector.getForm(formId)
       _ <- fileUploadService.deleteFile(form.envelopeId, fileId)
