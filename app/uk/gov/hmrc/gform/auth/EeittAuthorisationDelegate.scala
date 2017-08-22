@@ -16,25 +16,24 @@
 
 package uk.gov.hmrc.gform.auth
 
+import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, RegimeId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.RegimeId
 import uk.gov.hmrc.play.http.HeaderCarrier
-import play.api.mvc.{ AnyContent, Request, Result }
-import play.api.mvc.Results._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: ConfigModule) {
 
-  def legacyAuth(regimeId: RegimeId, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[EeittAuthResult] = {
+  def authenticate(regimeId: RegimeId, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[EeittAuthResult] = {
 
     val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, regimeId, userDetails.affinityGroup)
 
     authResultF.map {
-      case Verification(true) => EeittAuthResult(true, "")
-      case Verification(false) => EeittAuthResult(false, eeittLoginUrl())
+      case Verification(true) => EeittAuthorisationSuccessful
+      case Verification(false) => EeittUnauthorisationFailed(eeittLoginUrl())
     }
   }
 
@@ -48,4 +47,6 @@ class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: C
   }
 }
 
-case class EeittAuthResult(isAuthorised: Boolean, loginUrl: String)
+sealed trait EeittAuthResult
+final object EeittAuthorisationSuccessful extends EeittAuthResult
+final case class EeittUnauthorisationFailed(loginUrl: String) extends EeittAuthResult

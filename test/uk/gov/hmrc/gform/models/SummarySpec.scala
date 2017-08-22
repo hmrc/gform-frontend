@@ -44,7 +44,7 @@ class SummarySpec extends Spec {
     formName = "IPT100",
     description = "abc",
     dmsSubmission = dmsSubmission,
-    authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST")),
+    authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"), None),
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2),

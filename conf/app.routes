@@ -14,6 +14,7 @@ GET         /summary/:formId                                             @uk.gov
 GET         /declaration/:formId                                         @uk.gov.hmrc.gform.controllers.DeclarationController.showDeclaration(formId: FormId)
 POST        /declaration/:formId                                         @uk.gov.hmrc.gform.controllers.DeclarationController.submitDeclaration(formId: FormId)
 POST        /summary/:formId/:formTemplateId                             @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateId: FormTemplateId)
+GET         /error/insufficient-enrolments                               uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
 
 GET         /assets/*file                                                controllers.Assets.versioned(path="/public", file: Asset)
 

@@ -52,37 +52,34 @@ class DeclarationController @Inject() (
   import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def showDeclaration(formId: FormId) = auth.async(formIdOpt = Some(formId)) { implicit authRequest =>
-    val form = maybeForm.get
+  def showDeclaration(formId: FormId) = auth.async(formId) { implicit authRequest =>
     Future.successful(
-      Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, Map.empty, Map.empty))
+      Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, theForm._id, Map.empty, Map.empty))
     )
   }
 
-  def submitDeclaration(formId: FormId) = auth.async(formIdOpt = Some(formId)) { implicit c =>
-    processResponseDataFromBody(c.request) { (data: Map[FieldId, Seq[String]]) =>
+  def submitDeclaration(formId: FormId) = auth.async(formId) { implicit c =>
+    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
         case "Continue" :: Nil =>
-          val form = maybeForm.get
-
           fieldValidator.validateDeclarationFields(data) match {
             case Valid(()) =>
-              val updatedForm = updateFormWithDeclaration(form, data)
+              val updatedForm = updateFormWithDeclaration(theForm, data)
               for {
-                _ <- gformConnector.updateUserData(form._id, UserData(updatedForm.formData, None))
+                _ <- gformConnector.updateUserData(theForm._id, UserData(updatedForm.formData, None))
                 response <- gformConnector.submitForm(formId)
-                template <- gformConnector.getFormTemplate(form.formTemplateId)
+                template <- gformConnector.getFormTemplate(theForm.formTemplateId)
                 _ <- repeatService.clearSession
               } yield {
-                auditService.sendSubmissionEvent(form, formTemplate.sections)
+                auditService.sendSubmissionEvent(theForm, formTemplate.sections)
                 Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
                 ackPage(template)
               }
 
             case Invalid(validationMap) =>
               for {
-                formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-              } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, form._id, validationMap, data))
+                formTemplate <- gformConnector.getFormTemplate(theForm.formTemplateId)
+              } yield Ok(uk.gov.hmrc.gform.views.html.declaration(formTemplate, theForm._id, validationMap, data))
           }
         case _ =>
           Future.successful(BadRequest("Cannot determine action"))
