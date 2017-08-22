@@ -15,10 +15,9 @@
 
 @import views.html.helper.CSRF
 
-@(ackSection: AckSection)(implicit request: Request[_], messages: Messages){
+@(ackSection: AckSection)(implicit request: Request[_], messages: Messages)
 
-<h2 class="heading-medium">${ackSection.title}</h2>
-<p>${ackSection.content}</p>
+<h2 class="heading-medium">@{ackSection.title}</h2>
+<p>@{ackSection.content}</p>
 
-}
 

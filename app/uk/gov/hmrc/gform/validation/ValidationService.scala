@@ -53,7 +53,7 @@ class ValidationService(fileUploadService: FileUploadService) {
 class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {
 
   def validate()(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
-    case sortCode @ UkSortCode(_) => validateSortCode(fieldValue, sortCode)(data)
+    case sortCode @ UkSortCode(_) => validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data)
     case date @ Date(_, _, _) => validateDate(date)
     case text @ Text(_, _, _) => validateText(fieldValue, text)(data)
     case address @ Address(_) => validateAddress(fieldValue, address)(data)
@@ -210,7 +210,7 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
       case (_, value :: Nil, Email) => Monoid.combine(email(value), textValidator(value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) => validateNumber(value, maxWhole, maxFractional, true)
-      case (_, _, ShortText) => Valid(())
+      case (false, Nil, _) => Valid(())
       case (_, value :: rest, _) => Valid(()) // we don't support multiple values yet
     }
   }
@@ -293,15 +293,16 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     }
   }
 
-  private def validateSortCode(fieldValue: FieldValue, sC: UkSortCode)(data: Map[FieldId, Seq[String]]) = Future.successful {
+  private def validateSortCode(fieldValue: FieldValue, sC: UkSortCode, mandatory: Boolean)(data: Map[FieldId, Seq[String]]) = Future.successful {
     Monoid[ValidatedType].combineAll(UkSortCode.fields(fieldValue.id).map { fieldId =>
       val sortCode: Seq[String] = {
         data.get(fieldId).toList.flatten
       }
-      sortCode.filterNot(_.isEmpty) match {
-        case Nil => getError("must be a whole number of 2 length")
-        case value :: Nil => checkLength(value, 2)
-        case value :: Nil => Valid(()) //Does not support multiple values
+      (sortCode.filterNot(_.isEmpty), mandatory) match {
+        case (Nil, true) => getError("must be a whole number of 2 length")
+        case (Nil, false) => Valid(())
+        case (value :: Nil, _) => checkLength(value, 2)
+        case (value :: Nil, _) => Valid(()) //Does not support multiple values
       }
     })
   }
