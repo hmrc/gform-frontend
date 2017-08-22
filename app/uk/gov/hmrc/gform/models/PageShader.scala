@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.prepop.PrepopService
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -46,7 +47,8 @@ class PageShader(
     envelopeId: EnvelopeId,
     prepopService: PrepopService,
     dynamicSections: List[Section],
-    formMaxAttachmentSizeMB: Int
+    formMaxAttachmentSizeMB: Int,
+    contentTypes: List[ContentType]
 )(implicit retrievals: Retrievals, hc: HeaderCarrier) {
 
   def render(): Future[PageForRender] = {
@@ -56,7 +58,7 @@ class PageShader(
       javascript = fieldJavascript(dynamicSections.flatMap(_.atomicFields(repeatService)))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(_.atomicFields(repeatService))
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields, repeatService).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
-    } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId, formMaxAttachmentSizeMB)
+    } yield PageForRender(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId, formMaxAttachmentSizeMB, contentTypes)
   }
 
   private def htmlFor(fieldValue: FieldValue, index: Int): Future[Html] = {

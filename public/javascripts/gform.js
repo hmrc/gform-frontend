@@ -56,7 +56,8 @@ var uploaderDefaults = {
   changeText: 'Change',
   maxFileSize: window.gform.formMaxAttachmentSizeMB * 1024 * 1024,
   uploaderLabel: 'Your uploaded file will appear here',
-  maxFileSizeError: 'File exceeds max size allowed'
+  maxFileSizeError: 'File exceeds max size allowed',
+    contentTypes: window.gform.contentTypes
 };
 
 var showHideContent = new GOVUK.ShowHideContent();
@@ -80,7 +81,7 @@ var uploader = function(el) {
   var uploadedFileEl = el.find('.file-upload__file-list-item').eq(0);
   var fileLinks = uploadedFileEl.find('.file-upload__file-list-item-link');
   var uploadErrorsEl = el.find('.file-upload__errors').eq(0);
-  var uploaderEl = $('<input id="' + fileId + '" type="file" class="file-upload__file" />');
+  var uploaderEl = $('<input id="' + fileId + '" type="file" class="file-upload__file" accept="'+config.contentTypes+'"/>');
   var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label">' + config.initialText + '</label>');
 
   var handleError = function(text) {
