@@ -26,7 +26,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
+import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
@@ -72,7 +72,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
     for {
       snippets <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
-      javascript = fieldJavascript(dynamicSections.flatMap(repeatService.atomicFields))
+      javascript = createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(repeatService.atomicFields)
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
       renderingInfo = SectionRenderingInformation(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId, actionForm, true, "Save and Continue", formMaxAttachmentSizeMB, contentTypes)
@@ -87,6 +87,13 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formId), false, "Confirm and send", 0, Nil)
     } yield uk.gov.hmrc.gform.views.html.form(formTemplate, renderingInfo, formId)
+  }
+
+  private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue]) = {
+    val groups: List[(FieldId, Group)] = fieldList.map(fv => (fv.id, fv.`type`)).collect {
+      case (fieldId, group: Group) => (fieldId, group)
+    }
+    groups.map(x => collapsingGroupJavascript(x._1, x._2)).mkString(";\n") + fieldJavascript(atomicFields)
   }
 
   private def htmlFor(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals): Future[Html] = {
