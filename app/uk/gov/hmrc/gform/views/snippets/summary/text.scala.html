@@ -4,9 +4,8 @@
 
 @import uk.gov.hmrc.gform.views.html.localisation
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
-@(fieldValue: FieldValue, text: Text, validationResult: Option[FormFieldValidationResult])
+
+@(fieldValue: FieldValue, text: Text, validationResult: Option[FormFieldValidationResult], formCategory: FormCategory)
 
 @* TODO: What should total style be? *@
 <tr @if(text.total) {class="table__row--bold"}>

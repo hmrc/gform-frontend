@@ -23,6 +23,7 @@ case class FormTemplate(
   _id: FormTemplateId,
   formName: String,
   description: String,
+  formCategory: Option[FormCategory],
   dmsSubmission: DmsSubmission,
   authConfig: formtemplate.AuthConfig,
   submitSuccessUrl: String,
@@ -35,4 +36,3 @@ object FormTemplate {
 
   implicit val format: OFormat[FormTemplate] = Json.format[FormTemplate]
 }
-

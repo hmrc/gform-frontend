@@ -1,7 +1,7 @@
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.localisation
 
-@(fieldValue: FieldValue, selections: List[String])
+@(fieldValue: FieldValue, selections: List[String], formCategory: FormCategory)
 
 <tr>
   @if(fieldValue.label || fieldValue.shortName) {
