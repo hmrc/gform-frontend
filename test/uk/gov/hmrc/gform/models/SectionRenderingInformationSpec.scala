@@ -130,7 +130,9 @@ class SectionRenderingInformationSpec extends Spec {
       envelope,
       envelopeId,
       mockPrepopService,
-      formTemplate.sections
+      formTemplate.sections,
+      10,
+      Nil
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -221,7 +223,9 @@ class SectionRenderingInformationSpec extends Spec {
       envelope,
       envelopeId,
       mockPrepopService,
-      List(grpSection)
+      List(grpSection),
+      10,
+      Nil
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)
@@ -260,7 +264,9 @@ class SectionRenderingInformationSpec extends Spec {
       envelope,
       envelopeId,
       mockPrepopService,
-      List(grpSection)
+      List(grpSection),
+      10,
+      Nil
     )
 
     val pageToRender = Await.result(pageToRenderF, 10 seconds)

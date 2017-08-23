@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 
 import cats.data.NonEmptyList
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
@@ -28,16 +28,18 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
+import uk.gov.hmrc.gform.prepop.{PrepopModule, PrepopService}
 import uk.gov.hmrc.gform.service.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{EnvelopeId, FormId}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
 @Singleton
 class SectionRenderingService @Inject() (repeatService: RepeatingComponentService, prePopModule: PrepopModule) {
@@ -60,7 +62,9 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     f: Option[FieldValue => Option[FormFieldValidationResult]],
     envelope: Envelope,
     envelopeId: EnvelopeId,
-    dynamicSections: List[Section]
+    dynamicSections: List[Section],
+    formMaxAttachmentSizeMB: Int,
+    contentTypes: List[ContentType]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals): Future[Html] = {
 
     val ei = ExtraInfo(formId, sectionNumber, fieldData, formTemplate, f, envelope)
@@ -108,7 +112,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
   private def htmlForFileUpload(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
     validate(fieldValue, ei).map { validatedValue =>
-      uk.gov.hmrc.gform.views.html.field_template_file_upload(ei.formId, ei.sectionNumber, fieldValue, validatedValue, index)
+      uk.gov.hmrc.gform.views.html.field_template_file_upload(ei.formId, ei.sectionNumber, fieldValue, validatedValue, index, ei.formMaxAttachmentSizeMB)
     }
   }
 

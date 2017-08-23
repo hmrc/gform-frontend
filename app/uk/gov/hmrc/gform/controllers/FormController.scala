@@ -96,7 +96,7 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(theForm.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes))
       // format: ON
     } yield Ok(html)
   }
@@ -122,7 +122,7 @@ class FormController @Inject() (
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
       errors          <- getErrors(dynamicSections, fieldData, envelope, theForm.envelopeId)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, Some(errors.get), envelope, theForm.envelopeId, dynamicSections)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, Some(errors.get), envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       // format: ON
     } yield Ok(html)
   }
@@ -270,14 +270,14 @@ class FormController @Inject() (
         _ <- repeatService.appendNewGroup(groupId)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
+        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       } yield Ok(html)
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
         _ <- repeatService.removeGroup(groupId, data)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections)
+        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       } yield Ok(html)
 
       val userId = UserId(retrievals.userDetails.groupIdentifier)
@@ -303,4 +303,6 @@ class FormController @Inject() (
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val validationService = validationModule.validationService
   private lazy val appConfig = configModule.appConfig
+  private lazy val formMaxAttachmentSizeMB = configModule.appConfig.formMaxAttachmentSizeMB
+  private lazy val contentTypes = configModule.appConfig.contentTypes
 }
