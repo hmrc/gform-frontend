@@ -92,7 +92,7 @@ class PageShader(
 
   private def htmlForFileUpload(fieldValue: FieldValue, index: Int) = {
     validate(fieldValue).map { validatedValue =>
-      uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validatedValue, index, formCategory, formMaxAttachmentSizeMB))
+      uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validatedValue, index, formCategory, formMaxAttachmentSizeMB)
     }
   }
 
