@@ -64,8 +64,8 @@ class PageShader(
   }
 
   private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue]) = {
-    val groups: List[(FieldId, Group)] = fieldList.map(fv => (fv.id, fv.`type`)).collect{
-      case (fieldId, group : Group) => (fieldId, group)
+    val groups: List[(FieldId, Group)] = fieldList.map(fv => (fv.id, fv.`type`)).collect {
+      case (fieldId, group: Group) => (fieldId, group)
     }
     groups.map(x => collapsingGroupJavascript(x._1, x._2)).mkString(";\n") + fieldJavascript(atomicFields)
   }
