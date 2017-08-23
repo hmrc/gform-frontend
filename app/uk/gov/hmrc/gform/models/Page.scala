@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import play.api.mvc.Call
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -32,7 +33,9 @@ case class SectionRenderingInformation(
   envelopeId: EnvelopeId,
   formAction: Call,
   renderComeBackLater: Boolean,
-  continueLabel: String
+  continueLabel: String,
+  formMaxAttachmentSizeMB: Int,
+  contentTypes: scala.List[ContentType]
 ) //TODO maybe pass full section object into page for render to get access to all information
 /*
 object PageForRender {

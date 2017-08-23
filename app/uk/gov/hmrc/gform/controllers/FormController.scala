@@ -96,7 +96,7 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(theForm.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes))
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       // format: ON
     } yield Ok(html)
   }
@@ -108,8 +108,8 @@ class FormController @Inject() (
 
     def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId) = {
       Logger.debug(data + "this is data in get errors")
-      val fields = sections(sectionNumber.value).atomicFields(repeatService)
-      val allFields = sections.flatMap(_.atomicFields(repeatService))
+      val fields = repeatService.atomicFields(sections(sectionNumber.value))
+      val allFields = sections.flatMap(repeatService.atomicFields)
       Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map { validationResult =>
         ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
           case Left(x) => x.map((validResult: FormFieldValidationResult) => ValidationUtil.extractedFieldValue(validResult) -> validResult).toMap
@@ -178,11 +178,11 @@ class FormController @Inject() (
       val sectionFieldsF = for {
         sections <- sectionsF
         section = sections(sectionNumber.value)
-      } yield section.atomicFields(repeatService)
+      } yield repeatService.atomicFields(section)
 
       val allFieldsInTemplateF = for {
         sections <- sectionsF
-        allFieldsInTemplate = sections.flatMap(_.atomicFields(repeatService))
+        allFieldsInTemplate = sections.flatMap(repeatService.atomicFields)
       } yield allFieldsInTemplate
 
       val validatedDataResultF: Future[ValidatedType] = for {

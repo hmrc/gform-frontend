@@ -37,9 +37,9 @@ object SummaryForRender {
   def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
 
     repeatService.getAllSections(formTemplate, data).map { sections =>
-      val fields: List[FieldValue] = sections.flatMap(s => s.atomicFields(repeatService))
+      val fields: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
 
-      val values: FieldValue => Option[FormFieldValidationResult] = okValues(data, fields, repeatService, envelope)
+      val values: FieldValue => Option[FormFieldValidationResult] = okValues(data, fields, envelope)
 
       def valueToHtml(fieldValue: FieldValue): Html = {
 

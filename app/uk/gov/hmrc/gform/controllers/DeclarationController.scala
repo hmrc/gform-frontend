@@ -59,7 +59,7 @@ class DeclarationController @Inject() (
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
       val validationResultF = Future.sequence(
-        formTemplate.declarationSection.fields
+        getAllDeclarationFields(formTemplate.declarationSection.fields)
           .map(fieldValue => validationService.validateComponents(fieldValue, data, theForm.envelopeId))
       ).map(Monoid[ValidatedType].combineAll)
 
@@ -97,12 +97,13 @@ class DeclarationController @Inject() (
 
   private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]) = {
     val fieldNames = data.keySet.map(_.value)
-    val declarationFields = formTemplate.declarationSection.fields.filter(_.submissible).flatMap { fieldValue =>
+    val allDeclarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
+    val submissibleFormFields = allDeclarationFields.filter(_.submissible).flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
         .map(name => FormField(FieldId(name), data(FieldId(name)).head))
     }
-    val updatedFields = form.formData.fields ++ declarationFields
+    val updatedFields = form.formData.fields ++ submissibleFormFields
 
     form.copy(formData = form.formData.copy(fields = updatedFields))
   }
@@ -120,10 +121,20 @@ class DeclarationController @Inject() (
   }
 
   private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate) = {
-    ValidationUtil.evaluateValidationResult(formTemplate.declarationSection.fields, validationResult, data, Envelope(Nil)) match {
+    val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
+    ValidationUtil.evaluateValidationResult(declarationFields, validationResult, data, Envelope(Nil)) match {
       case Left(validationResults) =>
         validationResults.map(result => ValidationUtil.extractedFieldValue(result) -> result).toMap
       case Right(_) => Map.empty[FieldValue, FormFieldValidationResult]
+    }
+  }
+
+  private def getAllDeclarationFields(fields: List[FieldValue]): List[FieldValue] = {
+    fields.flatMap { fieldValue =>
+      fieldValue.`type` match {
+        case Group(grpFields, _, _, _, _, _) => getAllDeclarationFields(grpFields)
+        case _ => List(fieldValue)
+      }
     }
   }
 }
