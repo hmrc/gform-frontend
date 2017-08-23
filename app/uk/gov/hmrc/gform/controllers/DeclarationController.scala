@@ -30,8 +30,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processRespo
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AckSection, FieldId, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
 import uk.gov.hmrc.gform.validation.DeclarationFieldValidationService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -96,7 +95,7 @@ class DeclarationController @Inject() (
     val now = LocalDateTime.now()
 
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
-    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, content))
+    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, content, template.formCategory.getOrElse(Default)))
   }
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector

@@ -4,8 +4,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int, formCategory: FormCategory)
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).toString

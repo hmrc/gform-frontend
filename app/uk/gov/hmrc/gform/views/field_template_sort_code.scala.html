@@ -6,7 +6,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkSortCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
-@(fieldValue: FieldValue, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
+@(fieldValue: FieldValue, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, formCategory: FormCategory)
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">

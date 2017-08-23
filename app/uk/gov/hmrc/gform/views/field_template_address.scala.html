@@ -1,9 +1,9 @@
 @import uk.gov.hmrc.gform.models.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.service.LabelHelper
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-@(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
+@(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int, formCategory: FormCategory)
 
 @safeId(id: String) = @{
   fieldValue.id.withSuffix(id).toString
