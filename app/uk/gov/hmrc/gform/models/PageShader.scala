@@ -74,7 +74,7 @@ class PageShader(
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, fieldValue, index)
       case Date(_, offset, dateValue) => htmlForDate(fieldValue, offset, dateValue, index)
       case Address(international) => htmlForAddress(fieldValue, international, index)
-      case t @ Text(_, expr, _) => htmlForText(fieldValue, t, expr, index)
+      case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index)
       case Choice(choice, options, orientation, selections, optionalHelpText) => htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index)
       case FileUpload() => htmlForFileUpload(fieldValue, index)
       case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText, index)
