@@ -43,7 +43,10 @@ object SummaryForRender {
 
       def valueToHtml(fieldValue: FieldValue): Html = {
 
-        def groupToHtml(fieldValue: FieldValue): Html = fieldValue.`type` match {
+        def groupToHtml(fieldValue: FieldValue, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
+          case group: Group if presentationHint contains SummariseGroupAsGrid =>
+            val value = group.fields.map(values(_))
+            uk.gov.hmrc.gform.views.html.snippets.summary.group_grid(fieldValue, value)
           case groupField @ Group(_, orientation, _, _, _, _) => {
             val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
             val htmlList: List[Html] = fvs.map {
@@ -70,7 +73,7 @@ object SummaryForRender {
             uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(AnyText, Constant("file")), values(fieldValue))
           }
           case InformationMessage(_, _) => Html("")
-          case Group(_, _, _, _, _, _) => groupToHtml(fieldValue)
+          case Group(_, _, _, _, _, _) => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
         }
       }
 
