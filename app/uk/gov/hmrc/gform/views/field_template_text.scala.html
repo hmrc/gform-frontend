@@ -6,7 +6,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
-@(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, formCategory: FormCategory)
+@(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">

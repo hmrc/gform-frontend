@@ -51,8 +51,6 @@ class PageShader(
     contentTypes: List[ContentType]
 )(implicit retrievals: Retrievals, hc: HeaderCarrier) {
 
-  val formCategory: FormCategory = formTemplate.formCategory.getOrElse(Default)
-
   def render(): Future[PageForRender] = {
     val section = dynamicSections(sectionNumber.value)
     for {
@@ -87,12 +85,12 @@ class PageShader(
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(infoText)
     val parsedMarkdownText = new HtmlGenerator(infoText, parsedTree, flavour, false).generateHtml
-    Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText), index, formCategory))
+    Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText), index))
   }
 
   private def htmlForFileUpload(fieldValue: FieldValue, index: Int) = {
     validate(fieldValue).map { validatedValue =>
-      uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validatedValue, index, formCategory, formMaxAttachmentSizeMB)
+      uk.gov.hmrc.gform.views.html.field_template_file_upload(formId, sectionNumber, fieldValue, validatedValue, index, formMaxAttachmentSizeMB)
     }
   }
 
@@ -104,9 +102,9 @@ class PageShader(
 
     val snippetF = validate(fieldValue).map { validatedValue =>
       choice match {
-        case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index, formCategory)
-        case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index, formCategory)
-        case Inline => uk.gov.hmrc.gform.views.html.choiceInline(fieldValue, options, prepopValues, validatedValue, optionalHelpText, index, formCategory)
+        case Radio | YesNo => uk.gov.hmrc.gform.views.html.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index)
+        case Checkbox => uk.gov.hmrc.gform.views.html.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index)
+        case Inline => uk.gov.hmrc.gform.views.html.choiceInline(fieldValue, options, prepopValues, validatedValue, optionalHelpText, index)
       }
     }
 
@@ -123,7 +121,7 @@ class PageShader(
     for {
       prepopValue <- prepopValueF
       validatedValue <- validatedValueF
-    } yield uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validatedValue, index, formCategory)
+    } yield uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validatedValue, index)
   }
 
   private def htmlForSortCode(fieldValue: FieldValue, sC: UkSortCode, expr: Expr, index: Int) = {
@@ -136,20 +134,20 @@ class PageShader(
     for {
       prepopValue <- prepopValueF
       validatedValue <- validatedValueF
-    } yield uk.gov.hmrc.gform.views.html.field_template_sort_code(fieldValue, sC, prepopValue, validatedValue, index, formCategory)
+    } yield uk.gov.hmrc.gform.views.html.field_template_sort_code(fieldValue, sC, prepopValue, validatedValue, index)
 
   }
 
   private def htmlForAddress(fieldValue: FieldValue, international: Boolean, index: Int) = {
     validate(fieldValue).map { validatedValue =>
-      uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, validatedValue, index, formCategory)
+      uk.gov.hmrc.gform.views.html.field_template_address(international, fieldValue, validatedValue, index)
     }
   }
 
   private def htmlForDate(fieldValue: FieldValue, offset: Offset, dateValue: Option[DateValue], index: Int) = {
     val prepopValues = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
     validate(fieldValue).map { validatedValue =>
-      uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validatedValue, prepopValues, index, formCategory)
+      uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validatedValue, prepopValues, index)
     }
   }
 
@@ -157,7 +155,7 @@ class PageShader(
     val fgrpHtml = htmlForGroup0(grp, fieldValue, index)
 
     fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
-      case Some(true) => fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, fieldValue.label, grpHtml, FormDataHelpers.dataEnteredInGroup(grp, fieldData), formCategory))
+      case Some(true) => fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, fieldValue.label, grpHtml, FormDataHelpers.dataEnteredInGroup(grp, fieldData)))
       case _ => fgrpHtml
     }
   }
@@ -165,7 +163,7 @@ class PageShader(
   private def htmlForGroup0(groupField: Group, fieldValue: FieldValue, index: Int) = {
     for {
       (lhtml, limitReached) <- getGroupForRendering(fieldValue, groupField, groupField.orientation)
-    } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, groupField.orientation, limitReached, index, formCategory)
+    } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, groupField.orientation, limitReached, index)
   }
 
   private def getGroupForRendering(fieldValue: FieldValue, groupField: Group, orientation: Orientation): Future[(List[Html], Boolean)] = {
@@ -175,7 +173,7 @@ class PageShader(
           Future.sequence((1 to groupList.size).map { count =>
             Future.sequence(groupList(count - 1).map(fv =>
               htmlFor(fv, count))).map { lhtml =>
-              uk.gov.hmrc.gform.views.html.group_element(fieldValue, groupField, lhtml, orientation, count, count == 1, formCategory)
+              uk.gov.hmrc.gform.views.html.group_element(fieldValue, groupField, lhtml, orientation, count, count == 1)
             }
           }.toList).map(a => (a, isLimit))
       }
