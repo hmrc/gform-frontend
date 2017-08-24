@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.prepop.PrepopModule
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._

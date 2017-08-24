@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/*
 package uk.gov.hmrc.gform.models
 
 import org.jsoup.Jsoup
@@ -284,3 +285,4 @@ class SectionRenderingInformationSpec extends Spec {
   }
 
 }
+*/ 

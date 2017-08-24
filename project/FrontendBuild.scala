@@ -37,7 +37,6 @@ object FrontendBuild extends Build with MicroService {
     "org.pegdown" % "pegdown" % "1.6.0" % scope,
     "org.jsoup" % "jsoup" % "1.9.2" % scope,
     "com.ironcorelabs" %% "cats-scalatest" % "2.2.0" % scope,
-//    "com.typesafe.play" %% "play-test" % PlayVersion.current % scope
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
     "org.mockito" % "mockito-all" % "1.10.19" % scope

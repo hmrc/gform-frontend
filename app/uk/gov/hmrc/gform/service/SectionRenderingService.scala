@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.service
 
 import javax.inject.{ Inject, Singleton }
+
 import cats.data.NonEmptyList
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import play.api.i18n.Messages
+import play.api.mvc.Request
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
+import uk.gov.hmrc.gform.models.{ DateExpr, FormFieldValidationResult, SectionRenderingInformation }
 import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
-import play.api.mvc.Request
-import uk.gov.hmrc.gform.auth.models.Retrievals
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
 @Singleton
 class SectionRenderingService @Inject() (repeatService: RepeatingComponentService, prePopModule: PrepopModule) {
