@@ -6,7 +6,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkSortCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], formCategory: FormCategory)
+@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).value

@@ -8,7 +8,7 @@
 @import uk.gov.hmrc.gform.service.LabelHelper
 
 
-@(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int, formCategory: FormCategory, formMaxAttachmentSizeMB: Int)
+@(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int, formMaxAttachmentSizeMB: Int)
 
 @currentValue = @{
     val v = for {
