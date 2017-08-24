@@ -6,8 +6,8 @@
 @import scala.concurrent.Future
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
-@(fieldValue: FieldValue, snippets: List[Html], orientation: Orientation)
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@(fieldValue: FieldValue, snippets: List[Html], orientation: Orientation, formCategory: FormCategory)
 
 <tr>
     <td>

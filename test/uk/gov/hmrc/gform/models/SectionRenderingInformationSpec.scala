@@ -101,6 +101,7 @@ class SectionRenderingInformationSpec extends Spec {
     _id = FormTemplateId(""),
     formName = "AAA000",
     description = "YEAHH man!",
+    formCategory = Some(Default),
     dmsSubmission = dmsSubmission,
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"), None),
     submitSuccessUrl = "success-url",

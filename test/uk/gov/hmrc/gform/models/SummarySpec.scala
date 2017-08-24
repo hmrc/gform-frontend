@@ -43,6 +43,7 @@ class SummarySpec extends Spec {
     _id = FormTemplateId("formid-123"),
     formName = "IPT100",
     description = "abc",
+    formCategory = Some(Default),
     dmsSubmission = dmsSubmission,
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"), None),
     submitSuccessUrl = "success-url",

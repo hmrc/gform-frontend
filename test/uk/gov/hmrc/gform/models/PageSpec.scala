@@ -41,6 +41,7 @@ class PageSpec extends Spec {
     _id = FormTemplateId(""),
     formName = "IPT100",
     description = "abc",
+    formCategory = Some(Default),
     dmsSubmission = dmsSubmission,
     authConfig = AuthConfig(AuthConfigModule("TEST"), None, RegimeId("TEST"), None),
     submitSuccessUrl = "success-url",

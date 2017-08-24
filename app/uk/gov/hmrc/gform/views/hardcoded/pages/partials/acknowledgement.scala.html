@@ -14,7 +14,7 @@
 @import uk.gov.hmrc.gform.models._
 
 @import views.html.helper.CSRF
-@(str: String, supportContents: List[Html])(implicit request: Request[_], messages: Messages)
+@(str: String, supportContents: List[Html], formCategory: FormCategory)(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = "Acknowledgement", bodyClasses = None) {
 
