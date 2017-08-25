@@ -101,7 +101,7 @@ case class Summary(formTemplate: FormTemplate) {
 
   def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope)(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
     summaryForRender(formFields, formId, repeatService, envelope).map { summaryForRender =>
-      Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender, formId))
+      Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default)))
     }
   }
 }
