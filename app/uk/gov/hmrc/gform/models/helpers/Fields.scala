@@ -41,7 +41,7 @@ object Fields {
       case Address(_) => componentField(Address.fields(fieldValue.id))
       case Date(_, _, _) => componentField(Date.fields(fieldValue.id))
       case UkSortCode(_) => componentField(UkSortCode.fields(fieldValue.id))
-      case Text(_, _, _) | Group(_, _, _, _, _, _) => formFields.get(fieldValue.id).map { formField =>
+      case Text(_, _) | Group(_, _, _, _, _, _) => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
       case Choice(_, _, _, _, _) =>
@@ -75,7 +75,7 @@ object Fields {
         case Address(_) => Address.fields(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
         case UkSortCode(_) => UkSortCode.fields(fv.id).map(getFieldData)
-        case Text(_, _, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
+        case Text(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload() => List(getFieldData(fv.id))
         case InformationMessage(_, _) => List()
       }

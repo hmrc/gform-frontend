@@ -1,0 +1,28 @@
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.views.html.localisation
+@import views.html.helper.CSRF
+@import uk.gov.hmrc.gform.models.FormFieldValidationResult
+@import scala.concurrent.Future
+
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@(fieldValue: FieldValue, fields: List[Option[FormFieldValidationResult]])
+
+<tr>
+
+        <div class="row">
+            <td>
+            <div style="float: left;padding: 15px;">
+                @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+            </div>
+
+            <td>
+            @fields.map{ field =>
+            <div style="float: right;padding: 15px;">
+                @field.map(_.getCurrentValue).getOrElse("")
+            </div>
+            }
+        </div>
+</tr>

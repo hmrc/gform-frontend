@@ -159,7 +159,7 @@ class PageForRenderSpec extends Spec {
 
   val grpTextField = FieldValue(
     id = FieldId("INNER_TEXT_FIELD"),
-    `type` = Text(AnyText, Constant("CONSTANT_TEXT"), false),
+    `type` = Text(AnyText, Constant("CONSTANT_TEXT")),
     label = "INNER_TEXT_LABEL",
     shortName = None,
     helpText = None,

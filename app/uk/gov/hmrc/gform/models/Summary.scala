@@ -43,7 +43,10 @@ object SummaryForRender {
 
       def valueToHtml(fieldValue: FieldValue): Html = {
 
-        def groupToHtml(fieldValue: FieldValue): Html = fieldValue.`type` match {
+        def groupToHtml(fieldValue: FieldValue, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
+          case group: Group if presentationHint contains SummariseGroupAsGrid =>
+            val value = group.fields.map(values(_))
+            uk.gov.hmrc.gform.views.html.snippets.summary.group_grid(fieldValue, value)
           case groupField @ Group(_, orientation, _, _, _, _) => {
             val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
             val htmlList: List[Html] = fvs.map {
@@ -58,7 +61,7 @@ object SummaryForRender {
           case UkSortCode(_) => uk.gov.hmrc.gform.views.html.snippets.summary.sort_code(fieldValue, values(fieldValue))
           case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, values(fieldValue))
           case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, values(fieldValue))
-          case t @ Text(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
+          case t @ Text(_, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, values(fieldValue))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex.map {
               case (option, index) =>
@@ -67,10 +70,18 @@ object SummaryForRender {
 
             uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
           case FileUpload() => {
-            uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(AnyText, Constant("file"), false), values(fieldValue))
+            uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(AnyText, Constant("file")), values(fieldValue))
           }
           case InformationMessage(_, _) => Html("")
-          case Group(_, _, _, _, _, _) => groupToHtml(fieldValue)
+          case Group(_, _, _, _, _, _) => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
+        }
+      }
+
+      def showOnSummary(fieldValue: FieldValue) = {
+        (fieldValue.presentationHint, fieldValue.submissible) match {
+          case (Some(x), _) if x contains InvisibleInSummary => false
+          case (_, false) => false
+          case (_, true) => true
         }
       }
 
@@ -83,7 +94,7 @@ object SummaryForRender {
           case (section, index) =>
 
             uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index) ::
-              section.fields.filter(_.submissible)
+              section.fields.filter(showOnSummary)
               .map {
                 valueToHtml(_)
               } ++

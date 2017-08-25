@@ -32,7 +32,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number format" should "accepts whole numbers" in {
     val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -48,7 +48,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number format" should "return invalid for non-numeric" in {
     val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -64,7 +64,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number format" should "accepts decimal fractions" in {
     val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -80,7 +80,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "PositiveWholeNumber format" should "return invalid for non-numeric" in {
     val textConstraint = PositiveNumber(maxFractionalDigits = 0)
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -96,7 +96,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "PositiveNumber format" should "accepts whole numbers" in {
     val textConstraint = PositiveNumber()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -112,7 +112,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number format" should "accepts negative numbers" in {
     val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -128,7 +128,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "PositiveNumber format" should "return invalid for negative" in {
     val textConstraint = PositiveNumber()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -144,7 +144,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number format" should "return invalid for too many digits" in {
     val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -160,7 +160,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number format" should "return invalid for too many whole digits" in {
     val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -176,7 +176,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number(maxFractionalDigits = 0) format" should "return invalid for too many whole digits" in {
     val textConstraint = Number(maxFractionalDigits = 0)
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -192,7 +192,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number format" should "return invalid for too many fractional digits" in {
     val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -208,7 +208,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number(2,1) format" should "return invalid for too many digits" in {
     val textConstraint = Number(2, 1)
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, None)
@@ -224,7 +224,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
 
   "Number(2,1) format" should "return supplied error message" in {
     val textConstraint = Number(2, 1)
-    val number = Text(textConstraint, Constant(""), false)
+    val number = Text(textConstraint, Constant(""))
 
     val fieldValue = FieldValue(FieldId("n"), number,
       "sample label", None, None, true, false, false, Some("New error message"))
