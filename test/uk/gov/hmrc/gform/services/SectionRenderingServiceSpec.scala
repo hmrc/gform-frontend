@@ -91,9 +91,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames.size should be(6)
     hiddenFieldNames should be(List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum"))
-    visibleFields.size should be(2)
     visibleFields should be(List("firstName", "surname"))
   }
 
@@ -117,9 +115,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames.size should be(4)
     hiddenFieldNames should be(List("csrfToken", "firstName", "surname", "facePhoto"))
-    visibleFields.size should be(5)
     visibleFields should be(List("nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum"))
   }
 
