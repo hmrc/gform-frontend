@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.controllers
 
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.controllers.Navigator
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, IsFalse }
 

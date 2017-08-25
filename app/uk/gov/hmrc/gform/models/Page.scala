@@ -16,23 +16,13 @@
 
 package uk.gov.hmrc.gform.models
 
-import play.api.i18n.Messages
-import play.api.mvc.Results.Ok
-import play.api.mvc.{ Request, Result }
+import play.api.mvc.Call
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.prepop.PrepopService
-import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
-case class PageForRender(
+case class SectionRenderingInformation(
   formId: FormId,
   sectionNumber: SectionNumber,
   sectionTitle: String,
@@ -41,10 +31,13 @@ case class PageForRender(
   snippets: List[Html],
   javascripts: String,
   envelopeId: EnvelopeId,
+  formAction: Call,
+  renderComeBackLater: Boolean,
+  continueLabel: String,
   formMaxAttachmentSizeMB: Int,
-  contentTypes: List[ContentType]
+  contentTypes: scala.List[ContentType]
 ) //TODO maybe pass full section object into page for render to get access to all information
-
+/*
 object PageForRender {
   def apply(
     formId: FormId,
@@ -56,18 +49,17 @@ object PageForRender {
     envelope: Envelope,
     envelopeId: EnvelopeId,
     prepopService: PrepopService,
-    dynamicSections: List[Section],
-    formMaxAttachmentSizeMB: Int,
-    contentTypes: List[ContentType]
-  )(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] = new PageShader(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections, formMaxAttachmentSizeMB, contentTypes).render()
+    dynamicSections: List[Section]
+  )(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] = new PageShader(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections).render()
 
 }
+*/
 
-case class Page(formId: FormId, sectionNumber: SectionNumber, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, envelopeId: EnvelopeId, prepopService: PrepopService) {
-  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section], formMaxAttachmentSizeMB: Int, contentTypes: List[ContentType])(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] =
-    PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
+/*case class Page(formId: FormId, sectionNumber: SectionNumber, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, envelopeId: EnvelopeId, prepopService: PrepopService) {
+  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section])(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] =
+    PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections)
 
-  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: FormId, f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section], formMaxAttachmentSizeMB: Int, contentTypes: List[ContentType])(implicit request: Request[_], messages: Messages, retrievals: Retrievals, hc: HeaderCarrier): Future[Result] = {
-    pageForRender(fieldData, f, dynamicSections, formMaxAttachmentSizeMB, contentTypes: List[ContentType]).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
+  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: FormId, f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section])(implicit request: Request[_], messages: Messages, retrievals: Retrievals, hc: HeaderCarrier): Future[Result] = {
+    pageForRender(fieldData, f, dynamicSections).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
   }
-}
+}*/

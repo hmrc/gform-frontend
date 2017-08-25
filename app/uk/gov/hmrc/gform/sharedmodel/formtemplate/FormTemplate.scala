@@ -29,7 +29,8 @@ case class FormTemplate(
   submitSuccessUrl: String,
   submitErrorUrl: String,
   sections: List[Section],
-  acknowledgementSection: List[AckSection]
+  acknowledgementSection: List[AckSection],
+  declarationSection: DeclarationSection
 )
 
 object FormTemplate {

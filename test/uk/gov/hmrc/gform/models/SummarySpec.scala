@@ -18,9 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import org.jsoup.Jsoup
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Extractors._
@@ -49,11 +46,27 @@ class SummarySpec extends Spec {
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2),
-    List.empty[AckSection]
+    List.empty[AckSection],
+    declarationSection = DeclarationSection("Declaration", None, None, Nil)
   )
-  val mockRepeatService = mock[RepeatingComponentService]
-  when(mockRepeatService.getAllFieldsInGroupForSummary(any(), any())(any())).thenReturn(List[FieldValue]())
-  when(mockRepeatService.getAllFieldsInGroup(any(), any())(any())).thenReturn(List[FieldValue]())
+  val mockRepeatService = new RepeatingComponentService(null) {
+    override def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
+      Future.successful(formTemplate.sections)
+    }
+
+    override def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
+      List[FieldValue]()
+    }
+
+    override def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
+      List[FieldValue]()
+    }
+
+    override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FieldValue] = {
+      section.fields
+    }
+  }
+
   implicit val hc = HeaderCarrier()
 
   "Summary" should "display the summary sections" in {
@@ -66,8 +79,11 @@ class SummarySpec extends Spec {
       FieldId("nameOfBusiness") -> Seq("Test!Business details!Test")
     )
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(formData, FormId(""), mockRepeatService, Envelope(Nil))
+
+    render.recover {
+      case e => e.printStackTrace()
+    }
 
     render.futureValue.snippets.size should be(9)
 
@@ -84,10 +100,16 @@ class SummarySpec extends Spec {
       )
     )
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
-    val render = summary.summaryForRender(Map(), FormId("form-id-123"), mockRepeatService, Envelope(Nil))
+    val localFormId = FormId("form-id-123")
+    val render = summary.summaryForRender(Map(), localFormId, mockRepeatService, Envelope(Nil))
+
     val testStringValues = extractAllHrefs(render.futureValue.snippets)
-    testStringValues should be(List("/form/form-id-123/0", "/form/form-id-123/1"))
+    val expectedResult = List(
+      uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(0)).url,
+      uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(1)).url
+    )
+
+    testStringValues should be(expectedResult)
   }
 
   it should "display values for each field type with a submissible field, " in {
@@ -114,7 +136,6 @@ class SummarySpec extends Spec {
       FieldId("HomeAddress-country") -> Seq("Test!UK!Test")
     )
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(formFields, FormId(""), mockRepeatService, Envelope(Nil))
 
     val testStringValues = extractAllTestStringValues(render.futureValue.snippets)
@@ -125,7 +146,6 @@ class SummarySpec extends Spec {
   it should "display the title when shortName is not present in the section" in {
     val summary = Summary(formTemplate)
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.head.toString())
@@ -137,7 +157,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(shortName = Some(shortName))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.head.toString())
@@ -160,7 +179,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -184,7 +202,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -209,7 +226,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -234,7 +250,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -259,7 +274,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -284,7 +298,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -309,7 +322,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -334,7 +346,6 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     val summary = Summary(formTemplate.copy(sections = List(section)))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val render = summary.summaryForRender(Map.empty, FormId(""), mockRepeatService, Envelope(Nil))
 
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
@@ -348,7 +359,6 @@ class SummarySpec extends Spec {
       sections = List(section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))))
     ))
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(summary.formTemplate.sections))
     val renderWithDataMatching = summary.summaryForRender(Map(FieldId("firstName") -> Seq("Pete")), FormId(""), mockRepeatService, Envelope(Nil))
     renderWithDataMatching.futureValue.snippets.size shouldBe 3
 
@@ -371,7 +381,6 @@ class SummarySpec extends Spec {
       sections = List(section0)
     )
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(formTemplateWGroupNoShortname.sections))
     val render0 = Summary(formTemplateWGroupNoShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService, Envelope(Nil))
     extractAllTestStringValues(render0.futureValue.snippets) should be(List("group-label"))
 
@@ -379,7 +388,6 @@ class SummarySpec extends Spec {
       sections = List(Section("", None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
     )
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(formTemplateWGroupWithShortname.sections))
     val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(Map.empty[FieldId, Seq[String]], FormId(""), mockRepeatService, Envelope(Nil))
     extractAllTestStringValues(render1.futureValue.snippets) should be(List("group-shortname"))
   }
@@ -391,8 +399,8 @@ class SummarySpec extends Spec {
     )
     val summary = Summary(ftWithOneInclIfSection)
 
-    when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(ftWithOneInclIfSection.sections))
-    val summaryForRender = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), FormId("formid-123"), mockRepeatService, Envelope(Nil))
+    val localFormId = FormId("formid-123")
+    val summaryForRender = summary.summaryForRender(Map(FieldId("firstName") -> Seq("*Not*Pete")), localFormId, mockRepeatService, Envelope(Nil))
     val htmls = summaryForRender.futureValue.snippets
 
     val htmlAheadOfSection2 = htmls(3)
@@ -401,7 +409,7 @@ class SummarySpec extends Spec {
 
     val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
 
-    urlOfHrefToSection2 shouldBe "/form/formid-123/2"
+    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(2)).url
   }
 }
 

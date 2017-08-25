@@ -23,9 +23,7 @@ import cats.instances.all._
 import cats.syntax.all._
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
-import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.AuthModule
-import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
@@ -33,7 +31,7 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.prepop.PrepopModule
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -52,7 +50,8 @@ class FormController @Inject() (
     fileUploadModule: FileUploadModule,
     authModule: AuthModule,
     validationModule: ValidationModule,
-    prePopModule: PrepopModule
+    prePopModule: PrepopModule,
+    renderer: SectionRenderingService
 ) extends FrontendController {
 
   import AuthenticatedRequest._
@@ -97,9 +96,9 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(theForm.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
-      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       // format: ON
-    } yield response
+    } yield Ok(html)
   }
 
   def formError(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formId) { implicit c =>
@@ -109,11 +108,11 @@ class FormController @Inject() (
 
     def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId) = {
       Logger.debug(data + "this is data in get errors")
-      val fields = sections(sectionNumber.value).atomicFields(repeatService)
-      val allFields = sections.flatMap(_.atomicFields(repeatService))
+      val fields = repeatService.atomicFields(sections(sectionNumber.value))
+      val allFields = sections.flatMap(repeatService.atomicFields)
       Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map { validationResult =>
         ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
-          case Left(x) => x.map((validResult: FormFieldValidationResult) => extractedFieldValue(validResult) -> validResult).toMap
+          case Left(x) => x.map((validResult: FormFieldValidationResult) => ValidationUtil.extractedFieldValue(validResult) -> validResult).toMap
           case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
         }
       }
@@ -123,9 +122,9 @@ class FormController @Inject() (
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(formTemplate, fieldData)
       errors          <- getErrors(dynamicSections, fieldData, envelope, theForm.envelopeId)
-      response        <- Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService).renderPage(fieldData, formId, Some(errors.get), dynamicSections, formMaxAttachmentSizeMB, contentTypes)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, formTemplate, Some(errors.get), envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
       // format: ON
-    } yield response
+    } yield Ok(html)
   }
 
   def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = authentication.async(formId) { implicit c =>
@@ -170,10 +169,6 @@ class FormController @Inject() (
       envelope <- fileUploadService.getEnvelope(theForm.envelopeId)
     } yield envelope
 
-    val pageF = for {
-      envelope <- envelopeF
-    } yield Page(formId, sectionNumber, formTemplate, repeatService, envelope, theForm.envelopeId, prepopService)
-
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
       val sectionsF = for {
@@ -183,11 +178,11 @@ class FormController @Inject() (
       val sectionFieldsF = for {
         sections <- sectionsF
         section = sections(sectionNumber.value)
-      } yield section.atomicFields(repeatService)
+      } yield repeatService.atomicFields(section)
 
       val allFieldsInTemplateF = for {
         sections <- sectionsF
-        allFieldsInTemplate = sections.flatMap(_.atomicFields(repeatService))
+        allFieldsInTemplate = sections.flatMap(repeatService.atomicFields)
       } yield allFieldsInTemplate
 
       val validatedDataResultF: Future[ValidatedType] = for {
@@ -220,11 +215,6 @@ class FormController @Inject() (
           val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
 
           val formData = FormData(formFields)
-
-          val outCome: SaveResult => Future[Result] = {
-            case SaveResult(_, Some(error)) => Future.successful(BadRequest(error))
-            case _ => continueF
-          }
 
           //TODO figure out if we should save the structure constantly or should we figure out when they leave the form another way other than the two buttons.
           for {
@@ -278,17 +268,17 @@ class FormController @Inject() (
 
       def processAddGroup(groupId: String): Future[Result] = for {
         _ <- repeatService.appendNewGroup(groupId)
-        page <- pageF
+        envelope <- envelopeF
         dynamicSections <- sectionsF
-        result <- page.renderPage(data, formId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
-      } yield result
+        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
+      } yield Ok(html)
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
-        updatedData <- repeatService.removeGroup(groupId, data)
-        page <- pageF
+        _ <- repeatService.removeGroup(groupId, data)
+        envelope <- envelopeF
         dynamicSections <- sectionsF
-        result <- page.renderPage(updatedData, formId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
-      } yield result
+        html <- renderer.renderSection(formId, sectionNumber, data, formTemplate, None, envelope, theForm.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes)
+      } yield Ok(html)
 
       val userId = UserId(retrievals.userDetails.groupIdentifier)
       val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
@@ -307,15 +297,6 @@ class FormController @Inject() (
     }
   }
 
-  private def extractedFieldValue(validResult: FormFieldValidationResult): FieldValue = validResult match {
-    case FieldOk(fv, _) => fv
-    case FieldError(fv, _, _) => fv
-    case ComponentField(fv, _) => fv
-    case FieldGlobalOk(fv, _) => fv
-    case FieldGlobalError(fv, _, _) => fv
-  }
-
-  private lazy val prepopService = prePopModule.prepopService
   private lazy val authentication = controllersModule.authenticatedRequestActions
   private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val firstSection = SectionNumber(0)

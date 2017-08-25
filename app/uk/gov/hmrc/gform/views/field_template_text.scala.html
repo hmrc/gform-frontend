@@ -9,6 +9,7 @@
 @(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
 <div class="form-group">
+
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
         @* TODO: What should total style be? *@
       <label @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="form-label-bold"} else {class="form-label"} for="@{fieldValue.id}">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</label>

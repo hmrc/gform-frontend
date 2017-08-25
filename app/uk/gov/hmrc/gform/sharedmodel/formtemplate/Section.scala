@@ -23,36 +23,36 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
 
-case class Section(
-    title: String,
-    description: Option[String],
-    shortName: Option[String],
-    includeIf: Option[IncludeIf],
-    repeatsMax: Option[TextExpression],
-    repeatsMin: Option[TextExpression],
-    fields: List[FieldValue]
-) {
-
-  //TODO remove all logic from that case class representing data
-  //TODO move this to repeate service. Case class representing data is not a place for such logic
-  def atomicFields(repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): List[FieldValue] = {
-
-    def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
-      fields.flatMap {
-        case (fv: FieldValue) => fv.`type` match {
-          case groupField @ Group(_, _, _, _, _, _) =>
-            atomicFields(repeatService.getAllFieldsInGroup(fv, groupField))
-          case _ => List(fv)
-        }
-      }
-    }
-
-    atomicFields(fields)
-  }
+sealed trait BaseSection {
+  def title: String
+  def description: Option[String]
+  def shortName: Option[String]
+  def fields: List[FieldValue]
 }
+
+case class Section(
+  title: String,
+  description: Option[String],
+  shortName: Option[String],
+  includeIf: Option[IncludeIf],
+  repeatsMax: Option[TextExpression],
+  repeatsMin: Option[TextExpression],
+  fields: List[FieldValue]
+) extends BaseSection
 
 object Section {
   implicit val format = Json.format[Section]
+}
+
+case class DeclarationSection(
+  title: String,
+  description: Option[String],
+  shortName: Option[String],
+  fields: List[FieldValue]
+) extends BaseSection
+
+object DeclarationSection {
+  implicit val format = Json.format[DeclarationSection]
 }
 
 case class SectionFormField(

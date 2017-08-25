@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/*
 package uk.gov.hmrc.gform.models
 
 import org.jsoup.Jsoup
@@ -34,7 +35,7 @@ import scala.collection.immutable.List
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
-class PageForRenderSpec extends Spec {
+class SectionRenderingInformationSpec extends Spec {
 
   val markdown =
     """
@@ -121,7 +122,7 @@ class PageForRenderSpec extends Spec {
   "PageForRender for info field" should "return the HMTL representation of provided markdown" in {
     when(mockRepeatService.getAllSections(any(), any())(any())).thenReturn(Future.successful(formTemplate.sections))
 
-    val pageToRenderF = PageForRender(
+    val pageToRenderF = SectionRenderingInformation(
       formId,
       sectionNumber,
       fieldData = Map.empty[FieldId, Seq[String]],
@@ -214,7 +215,7 @@ class PageForRenderSpec extends Spec {
       }
     }
 
-    val pageToRenderF = PageForRender(
+    val pageToRenderF = SectionRenderingInformation(
       formId,
       SectionNumber(0),
       fieldData = Map.empty[FieldId, Seq[String]],
@@ -255,7 +256,7 @@ class PageForRenderSpec extends Spec {
       }
     }
 
-    val pageToRenderF = PageForRender(
+    val pageToRenderF = SectionRenderingInformation(
       formId,
       SectionNumber.firstSection,
       fieldData = Map.empty[FieldId, Seq[String]],
@@ -284,3 +285,4 @@ class PageForRenderSpec extends Spec {
   }
 
 }
+*/ 

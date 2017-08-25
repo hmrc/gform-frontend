@@ -16,19 +16,15 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import java.io
-
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Fields {
 
-  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], repeatService: RepeatingComponentService, envelope: Envelope)(fieldValue: FieldValue)(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
-    val formFields = toFormField(formFieldMap, fieldValues, repeatService).map(hf => hf.id -> hf).toMap
+  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], envelope: Envelope)(fieldValue: FieldValue): Option[FormFieldValidationResult] = {
+    val formFields = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
 
     def componentField(list: List[FieldId]) = {
       val data = list.map { fieldId =>
@@ -60,7 +56,7 @@ object Fields {
     }
   }
 
-  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue], repeatService: RepeatingComponentService)(implicit hc: HeaderCarrier): List[FormField] = {
+  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue]): List[FormField] = {
 
     val getFieldData: FieldId => FormField = fieldId => {
       val value = fieldData.get(fieldId).toList.flatten.headOption.getOrElse("")
@@ -69,9 +65,9 @@ object Fields {
 
     def getFormFields(templateFields: List[FieldValue]): List[FormField] = templateFields.flatMap { fv =>
       fv.`type` match {
-        case groupField @ Group(fvs, _, _, _, _, _) => {
-          getFormFields(repeatService.getAllFieldsInGroup(fv, groupField))
-        }
+        case Group(_, _, _, _, _, _) =>
+          require(true, "There shouldn't be Group fields here")
+          Nil // For completion, there shouldn't be Groups here
         case Address(_) => Address.fields(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
         case UkSortCode(_) => UkSortCode.fields(fv.id).map(getFieldData)

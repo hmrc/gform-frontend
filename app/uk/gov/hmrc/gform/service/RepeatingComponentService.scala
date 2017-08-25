@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
@@ -307,6 +308,21 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
   }
 
   def clearSession(implicit hc: HeaderCarrier) = sessionCache.remove()
+
+  def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FieldValue] = {
+    def atomicFields(fields: List[FieldValue]): List[FieldValue] = {
+      fields.flatMap {
+        case (fv: FieldValue) => fv.`type` match {
+          case groupField @ Group(_, _, _, _, _, _) => section match {
+            case Section(_, _, _, _, _, _, _) => atomicFields(getAllFieldsInGroup(fv, groupField))
+            case DeclarationSection(_, _, _, _) => atomicFields(groupField.fields)
+          }
+          case _ => List(fv)
+        }
+      }
+    }
+    atomicFields(section.fields)
+  }
 
   private def buildGroupFieldsLabelsForSummary(list: List[List[FieldValue]], fieldValue: FieldValue) = {
     (0 until list.size).flatMap { i =>
