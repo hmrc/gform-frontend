@@ -91,7 +91,7 @@ class DeclarationController @Inject() (
   private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]) = {
     val fieldNames = data.keySet.map(_.value)
     val allDeclarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
-    val submissibleFormFields = allDeclarationFields.filter(_.submissible).flatMap { fieldValue =>
+    val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
         .map(name => FormField(FieldId(name), data(FieldId(name)).head))
