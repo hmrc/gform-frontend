@@ -18,13 +18,20 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
 
-trait FormCategory
-object HMRCReturnForm extends FormCategory
-object HMRCClaimForm extends FormCategory
-object Default extends FormCategory
+sealed trait FormCategory {
+  def getString: String
+}
+case object HMRCReturnForm extends FormCategory {
+  override def getString: String = "return"
+}
+case object HMRCClaimForm extends FormCategory {
+  override def getString: String = "claim"
+}
+case object Default extends FormCategory {
+  override def getString: String = "form"
+}
 
 object FormCategory {
-
   implicit val format: Format[FormCategory] = new Format[FormCategory] {
     override def writes(o: FormCategory): JsValue = o match {
       case HMRCReturnForm => JsString("hmrcReturnForm")
@@ -37,7 +44,7 @@ object FormCategory {
         case JsString("hmrcReturnForm") => JsSuccess(HMRCReturnForm)
         case JsString("hmrcClaimForm") => JsSuccess(HMRCClaimForm)
         case JsString("default") => JsSuccess(Default)
-        case JsString(err) => JsError(s"only two valid categories, hmrcReturnForm or hmrcClaimForm $err is not valid")
+        case JsString(err) => JsError(s"only three valid categories, hmrcReturnForm, hmrcClaimForm or default $err is not valid")
         case _ => JsError("Failure")
       }
     }

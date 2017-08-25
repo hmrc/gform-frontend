@@ -4,13 +4,13 @@
 
 @import uk.gov.hmrc.gform.models.SummaryForRender
 @import views.html.helper.CSRF
-@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId)(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId, formCategory: FormCategory)(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {
     <h1 class="h1-heading">Check your details</h1>
 
     <p>
-      Make sure that the information you have given is correct before submitting your return.
+      Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
 
     <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryGen.submit(formId, formTemplate._id).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
@@ -29,7 +29,7 @@
 
 
         <div class="alert alert--info alert--info__light alert--borderless print-hidden">
-          <h2 class="heading-medium">Review your return</h2>
+          <h2 class="heading-medium">Review your @{formCategory.getString}</h2>
 
           <p>You can print this summary page then come back later to complete your submission.</p>
 
@@ -43,9 +43,9 @@
         </div>
 
         <div class="print-hidden">
-          <h2 class="heading-medium">Ready to submit your return</h2>
+          <h2 class="heading-medium">Ready to submit your @{formCategory.getString}</h2>
 
-          <p>If you are happy with the return details above, save and continue with your submission.</p>
+          <p>If you are happy with the @{formCategory.getString} details above, save and continue with your submission.</p>
 
           <button type="submit" class="button" name="save" value="Declaration">Continue</button>
         </div>

@@ -33,9 +33,9 @@ import scala.concurrent.Future
 class SummarySpec extends Spec {
 
   override val dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-  val section0 = Section("Your details", None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant(""), total = false), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
-  val section1 = Section("About you", None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant(""), total = false), "First Name", None, None, true, true, true, None)))
-  val section2 = Section("Business details", None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant(""), total = false), "Name of business", None, None, true, true, true, None)))
+  val section0 = Section("Your details", None, None, None, None, None, List(FieldValue(FieldId("iptRegNum"), Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
+  val section1 = Section("About you", None, None, None, None, None, List(FieldValue(FieldId("firstName"), Text(AnyText, Constant("")), "First Name", None, None, true, true, true, None)))
+  val section2 = Section("Business details", None, None, None, None, None, List(FieldValue(FieldId("nameOfBusiness"), Text(AnyText, Constant("")), "Name of business", None, None, true, true, true, None)))
   override val formTemplate = FormTemplate(
     _id = FormTemplateId("formid-123"),
     formName = "IPT100",
@@ -115,8 +115,8 @@ class SummarySpec extends Spec {
   it should "display values for each field type with a submissible field, " in {
 
     val section = Section("Personal details", None, None, None, None, None, List(
-      FieldValue(FieldId("Surname"), Text(AnyText, Constant(""), total = false), "Surname", None, None, true, true, true, None),
-      FieldValue(FieldId("Info"), Text(AnyText, Constant(""), total = false), "Info", None, None, true, true, submissible = false, None),
+      FieldValue(FieldId("Surname"), Text(AnyText, Constant("")), "Surname", None, None, true, true, true, None),
+      FieldValue(FieldId("Info"), Text(AnyText, Constant("")), "Info", None, None, true, true, submissible = false, None),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true, None),
       FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true, None)
     ))
@@ -213,7 +213,7 @@ class SummarySpec extends Spec {
     val shortName = "JUST_A_VERY_SHORT_NAME"
     val addressField = FieldValue(
       id = FieldId("anId"),
-      `type` = Text(AnyText, Constant("DA"), total = false),
+      `type` = Text(AnyText, Constant("DA")),
       label = "label",
       shortName = Some(shortName),
       helpText = None,
@@ -237,7 +237,7 @@ class SummarySpec extends Spec {
     val label = "THIS_IS_A_LABEL"
     val addressField = FieldValue(
       id = FieldId("anId"),
-      `type` = Text(AnyText, Constant("DA"), total = false),
+      `type` = Text(AnyText, Constant("DA")),
       label = label,
       shortName = None,
       helpText = None,

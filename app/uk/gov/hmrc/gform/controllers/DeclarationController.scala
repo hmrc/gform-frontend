@@ -117,13 +117,8 @@ class DeclarationController @Inject() (
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val now = LocalDateTime.now()
 
-    val contentLabel = template.formCategory.getOrElse(Default) match {
-      case HMRCReturnForm => "return"
-      case HMRCClaimForm => "claim"
-      case Default => "form"
-    }
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
-    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, content, contentLabel))
+    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, content, template.formCategory.getOrElse(Default)))
   }
 
   private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate) = {

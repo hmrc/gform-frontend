@@ -12,7 +12,7 @@
 
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
         @* TODO: What should total style be? *@
-      <label @if(text.total) {class="form-label-bold"} else {class="form-label"} for="@{fieldValue.id}">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</label>
+      <label @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="form-label-bold"} else {class="form-label"} for="@{fieldValue.id}">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</label>
 
       @if(fieldValue.helpText) {
       <div class="form-field--hint">@{fieldValue.helpText}</div>

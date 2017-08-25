@@ -162,6 +162,6 @@ class FormatValidationSpec extends Spec {
     new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
   }
 
-  private val fieldValueFunction: TextConstraint => FieldValue = contraint => fieldValue(Text(contraint, Constant(""), false))
+  private val fieldValueFunction: TextConstraint => FieldValue = contraint => fieldValue(Text(contraint, Constant("")))
 
 }

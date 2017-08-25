@@ -163,7 +163,7 @@ object ValidationUtil {
           case None => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
         }
       }
-      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _) =>
+      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _) =>
         List[(FieldId, FormFieldValidationResult)]()
     }
   }
@@ -221,7 +221,7 @@ object ValidationUtil {
 
           ComponentField(fieldValue, dataMap)
 
-        case Text(constraint, _, _) =>
+        case Text(constraint, _) =>
           val data = constraint match {
             case UkVrn => dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
             case _ => dataGetter(fieldValue.id).headOption.getOrElse("")

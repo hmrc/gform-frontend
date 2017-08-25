@@ -104,7 +104,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, fieldValue, index, ei)
       case Date(_, offset, dateValue) => Future.successful(htmlForDate(fieldValue, offset, dateValue, index, ei))
       case Address(international) => Future.successful(htmlForAddress(fieldValue, international, index, ei))
-      case t @ Text(_, expr, _) => htmlForText(fieldValue, t, expr, index, ei)
+      case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, ei)
       case Choice(choice, options, orientation, selections, optionalHelpText) => Future.successful(htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, ei))
       case FileUpload() => Future.successful(htmlForFileUpload(fieldValue, index, ei))
       case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
