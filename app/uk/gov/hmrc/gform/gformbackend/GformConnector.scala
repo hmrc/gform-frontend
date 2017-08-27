@@ -87,10 +87,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   }
 
   /******file-upload*******/
-
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").map(_ => ())
   }
+
+  /********Validators******/
+  def validatePostCodeUtr(utr: String, postCode: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+    ws.GET[Boolean](s"$baseUrl/validate/$utr/$postCode")
 
   import scala.io.Source
   def fileToByteStr(filename: String): ByteString = ByteString(Source.fromFile(filename).mkString)

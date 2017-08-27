@@ -19,6 +19,8 @@ package uk.gov.hmrc.gform.controllers
 import javax.inject.Inject
 
 import cats._
+import cats.data.Validated
+import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
 import cats.syntax.all._
 import play.api.Logger
@@ -28,7 +30,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.models.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.prepop.PrepopModule
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
@@ -185,14 +187,37 @@ class FormController @Inject() (
         allFieldsInTemplate = sections.flatMap(repeatService.atomicFields)
       } yield allFieldsInTemplate
 
+      val validatedDataResultF: Future[ValidatedType] = for {
+        sectionFields <- sectionFieldsF
+        validatedData <- Future.sequence(sectionFields.map(fv =>
+          validationService.validateComponents(fv, data, cache.form.envelopeId)))
+      } yield Monoid[ValidatedType].combineAll(validatedData)
+
+      val validateSections: Future[ValidatedType] = for {
+        sections <- sectionsF
+        atomicFields <- sectionFieldsF
+        section = sections(sectionNumber.value)
+        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(fv, section, data, cache.form.envelopeId)(_.getValidator.validate(data)(x =>
+          gformConnector.validatePostCodeUtr(x._1, x._2)))))
+      } yield Monoid[ValidatedType].combineAll(y)
+
+      val validationF: Future[ValidatedType] = validateSections.flatMap { t =>
+        validatedDataResultF.map { x =>
+          val y: Either[GformError, Unit] = for {
+            _ <- x.toEither
+            _ <- t.toEither
+          } yield ()
+          Validated.fromEither(y)
+        }
+      }
+
       val finalResultF: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
         for {
           sectionFields <- sectionFieldsF
-          onlyValidationErrors0: immutable.Seq[ValidatedType] <- Future.sequence(sectionFields.map(fv => validationService.validateComponents(fv, data, cache.form.envelopeId)))
-          onlyValidationErrors = Monoid[ValidatedType].combineAll(onlyValidationErrors0)
+          thing <- validationF
           allFieldsInTemplate <- allFieldsInTemplateF
           envelope <- envelopeF
-          x: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(allFieldsInTemplate, onlyValidationErrors, data, envelope)
+          x: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(allFieldsInTemplate, thing, data, envelope)
         } yield x
 
       val isFormValidF: Future[Boolean] = finalResultF.map(_.fold(_ => false, _ => true))

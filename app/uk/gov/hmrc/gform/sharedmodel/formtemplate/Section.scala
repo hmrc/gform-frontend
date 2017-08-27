@@ -37,6 +37,7 @@ case class Section(
   includeIf: Option[IncludeIf],
   repeatsMax: Option[TextExpression],
   repeatsMin: Option[TextExpression],
+  validators: Option[Validators],
   fields: List[FieldValue]
 ) extends BaseSection
 

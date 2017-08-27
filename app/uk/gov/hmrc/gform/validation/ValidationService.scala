@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
@@ -48,6 +48,10 @@ class ValidationService(fileUploadService: FileUploadService) {
 
   def validateComponents(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(fieldValue, data, fileUploadService, envelopeId).validate()
+
+  def validateSections(fieldValue: FieldValue, section: Section, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(f: Validators => Future[ValidatedType])(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    new ComponentsValidator(fieldValue, data, fileUploadService, envelopeId).validateValidators(section.validators)(f)
+
 }
 
 class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {
@@ -62,6 +66,9 @@ class ComponentsValidator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]
     case FileUpload() => validateFileUpload()
     case InformationMessage(_, _) => validF
   }
+
+  def validateValidators(maybeValidators: Option[Validators])(f: Validators => Future[Validated[Map[FieldId, Set[String]], Unit]])(implicit ex: ExecutionContext): Future[ValidatedType] =
+    maybeValidators.fold[Future[ValidatedType]](Future.successful(Valid(())))(f(_))
 
   private lazy val validF = Future.successful(Valid(()))
 

@@ -27,6 +27,10 @@ final case class AuthCtx(value: AuthInfo) extends Expr
 final case class EeittCtx(value: Eeitt) extends Expr
 final case class Constant(value: String) extends Expr
 
+object FormCtx {
+  implicit val format: OFormat[FormCtx] = derived.oformat[FormCtx]
+}
+
 object Expr {
   implicit val format: OFormat[Expr] = derived.oformat
 }
