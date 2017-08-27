@@ -20,6 +20,9 @@ import javax.inject.{ Inject, Singleton }
 import cats.Monoid
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
+import play.api.libs.json.Json
+import play.api.mvc.Request
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
@@ -70,7 +73,6 @@ class DeclarationController @Inject() (
               auditService.sendSubmissionEvent(theForm, formTemplate.sections :+ formTemplate.declarationSection)
               Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId))
             }
-
           case validationResult @ Invalid(_) =>
             val errorMap = getErrorMap(validationResult, data, formTemplate)
             for {
@@ -100,6 +102,9 @@ class DeclarationController @Inject() (
 
     form.copy(formData = form.formData.copy(fields = updatedFields))
   }
+
+  private def acknowledgementPage(template: FormTemplate, formId: FormId)(implicit authRequest: AuthenticatedRequest): Future[Html] =
+    renderer.renderAcknowledgementSection(formId, template)
 
   private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate) = {
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)

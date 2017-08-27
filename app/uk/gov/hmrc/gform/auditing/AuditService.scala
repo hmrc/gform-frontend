@@ -38,7 +38,10 @@ trait AuditService {
       "FormTemplateId" -> form.formTemplateId.value,
       "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
     )
-    val optSortCode: List[FieldValue] = sections.flatMap(_.fields.filter(_.`type` == UkSortCode))
+    val optSortCode: List[FieldValue] = sections.flatMap(_.fields.filter(_.`type` match {
+      case x : UkSortCode => true
+      case _ => false
+    }))
 
     val processedData: Seq[FormField] = {
       optSortCode.flatMap { fieldValue =>
