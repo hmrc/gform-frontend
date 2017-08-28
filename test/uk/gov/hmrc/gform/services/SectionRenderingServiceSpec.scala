@@ -178,7 +178,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
       )
     }
 
-    override def `section - about you` = Section("About you", None, None, None, None, None, List(
+    override def `section - about you` = Section("About you", None, None, None, None, None, None, List(
       `fieldValue - firstName`
     ))
 
