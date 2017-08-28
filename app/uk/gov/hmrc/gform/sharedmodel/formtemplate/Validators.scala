@@ -23,11 +23,11 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class Validators(validatorName: String, errorMessage: String, parameters: Map[String, Seq[FormCtx]]) {
+case class Validators(validatorName: String, errorMessage: String, parameters: Map[String, FormCtx]) {
 
   def getValidator = {
     validatorName match {
-      case "hmrcUTRPostcodeCheck" => HMRCUTRPostcodeCheck(parameters("utr").head, parameters("postCode").head, errorMessage)
+      case "hmrcUTRPostcodeCheck" => HMRCUTRPostcodeCheck(parameters("utr"), parameters("postCode"), errorMessage)
     }
   }
 }
@@ -44,13 +44,13 @@ trait Validator[A] {
 
 case class HMRCUTRPostcodeCheck(utr: FormCtx, postcode: FormCtx, errorMessage: String) extends Validator[(String, String)] {
 
-  val utrFieldId = FieldId(utr.value)
-  val postcodeFieldId = FieldId(postcode.value)
+  private val utrFieldId = FieldId(utr.value)
+  private val postcodeFieldId = FieldId(postcode.value)
 
   override def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]] = {
     val dataGetter: FieldId => String = id => data.get(id).toList.flatten.headOption.getOrElse("")
     val utrString = dataGetter(utrFieldId)
     val postCodeString = dataGetter(postcodeFieldId)
-    f(utrString -> postCodeString).map(if (_) Valid(()) else Invalid(Map(FieldId("B") -> Set(errorMessage))))
+    f(utrString -> postCodeString).map(if (_) Valid(()) else Invalid(Map(utrFieldId -> Set(errorMessage), postcodeFieldId -> Set(errorMessage))))
   }
 }
