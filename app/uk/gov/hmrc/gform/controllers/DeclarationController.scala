@@ -103,9 +103,6 @@ class DeclarationController @Inject() (
     form.copy(formData = form.formData.copy(fields = updatedFields))
   }
 
-  private def acknowledgementPage(template: FormTemplate, formId: FormId)(implicit authRequest: AuthenticatedRequest): Future[Html] =
-    renderer.renderAcknowledgementSection(formId, template)
-
   private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate) = {
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
     ValidationUtil.evaluateValidationResult(declarationFields, validationResult, data, Envelope(Nil)) match {
