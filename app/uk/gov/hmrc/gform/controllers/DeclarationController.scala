@@ -16,15 +16,10 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
-
 import cats.Monoid
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
-import play.api.libs.json.Json
-import play.api.mvc.Request
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
@@ -36,7 +31,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-
 import scala.concurrent.Future
 
 @Singleton
@@ -70,13 +64,11 @@ class DeclarationController @Inject() (
             val updatedForm = updateFormWithDeclaration(theForm, formTemplate, data)
             for {
               _ <- gformConnector.updateUserData(theForm._id, UserData(updatedForm.formData, None))
-              response <- gformConnector.submitForm(formId)
-              template <- gformConnector.getFormTemplate(theForm.formTemplateId)
+              _ <- gformConnector.submitForm(formId)
               _ <- repeatService.clearSession
             } yield {
-              auditService.sendSubmissionEvent(theForm, formTemplate.sections)
-              Ok(Json.obj("envelope" -> response.body, "formId" -> Json.toJson(formId)))
-              acknowledgementPage(template)
+              auditService.sendSubmissionEvent(theForm, formTemplate.sections :+ formTemplate.declarationSection)
+              Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId))
             }
 
           case validationResult @ Invalid(_) =>
@@ -99,7 +91,7 @@ class DeclarationController @Inject() (
   private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]) = {
     val fieldNames = data.keySet.map(_.value)
     val allDeclarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
-    val submissibleFormFields = allDeclarationFields.filter(_.submissible).flatMap { fieldValue =>
+    val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
         .map(name => FormField(FieldId(name), data(FieldId(name)).head))
@@ -107,18 +99,6 @@ class DeclarationController @Inject() (
     val updatedFields = form.formData.fields ++ submissibleFormFields
 
     form.copy(formData = form.formData.copy(fields = updatedFields))
-  }
-
-  private def acknowledgementPage(template: FormTemplate)(implicit request: Request[_]) = {
-    val content = template.acknowledgementSection
-      .map((ackSection: AckSection) =>
-        uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection))
-    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
-    val now = LocalDateTime.now()
-
-    val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
-    Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, content, template.formCategory.getOrElse(Default)))
   }
 
   private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate) = {
@@ -133,7 +113,7 @@ class DeclarationController @Inject() (
   private def getAllDeclarationFields(fields: List[FieldValue]): List[FieldValue] = {
     fields.flatMap { fieldValue =>
       fieldValue.`type` match {
-        case Group(grpFields, _, _, _, _, _) => getAllDeclarationFields(grpFields)
+        case grp: Group => getAllDeclarationFields(grp.fields)
         case _ => List(fieldValue)
       }
     }

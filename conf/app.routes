@@ -13,6 +13,7 @@ POST        /form/:formId/:sectionNumber                                 @uk.gov
 GET         /summary/:formId                                             @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
 GET         /declaration/:formId                                         @uk.gov.hmrc.gform.controllers.DeclarationController.showDeclaration(formId: FormId)
 POST        /declaration/:formId                                         @uk.gov.hmrc.gform.controllers.DeclarationController.submitDeclaration(formId: FormId)
+GET         /acknowledgement/:formId                                     @uk.gov.hmrc.gform.controllers.AcknowledgementController.showAcknowledgement(formId: FormId)
 POST        /summary/:formId/:formTemplateId                             @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateId: FormTemplateId)
 GET         /error/insufficient-enrolments                               uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
 

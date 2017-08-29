@@ -20,7 +20,7 @@ import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldValue, Section, UkSortCode }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FieldValue, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -31,14 +31,14 @@ trait AuditService {
 
   def auditConnector: AuditConnector
 
-  def formToMap(form: Form, section: List[Section]): Map[String, String] = {
+  def formToMap(form: Form, sections: List[BaseSection]): Map[String, String] = {
     val dataMap = Map(
       "FormId" -> form._id.value,
       "EnvelopeId" -> form.envelopeId.value,
       "FormTemplateId" -> form.formTemplateId.value,
       "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
     )
-    val optSortCode: List[FieldValue] = section.flatMap(_.fields.filter(_.`type` == UkSortCode))
+    val optSortCode: List[FieldValue] = sections.flatMap(_.fields.filter(_.`type` == UkSortCode))
 
     val processedData: Seq[FormField] = {
       optSortCode.flatMap { fieldValue =>
@@ -54,7 +54,7 @@ trait AuditService {
     dataMap ++ data
   }
 
-  def sendSubmissionEvent(form: Form, sections: List[Section])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
+  def sendSubmissionEvent(form: Form, sections: List[BaseSection])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
     sendEvent(formToMap(form, sections))
   }
 
