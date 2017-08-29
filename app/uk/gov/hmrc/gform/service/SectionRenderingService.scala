@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.service
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
 import cats.data.NonEmptyList
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
@@ -89,6 +91,21 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formId), false, "Confirm and send", 0, Nil)
     } yield uk.gov.hmrc.gform.views.html.form(formTemplate, renderingInfo, formId)
+  }
+
+  def renderAcknowledgementSection(formId: FormId, formTemplate: FormTemplate, retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+
+    val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, None, Envelope(Nil), List(formTemplate.acknowledgementSection), 0, retrievals)
+
+    val formCategory = formTemplate.formCategory.getOrElse(Default)
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    val now = LocalDateTime.now()
+    val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
+    for {
+      snippets <- Future.sequence(formTemplate.acknowledgementSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
+      renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), formTemplate.acknowledgementSection.title, formTemplate.acknowledgementSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formId), false, "Confirm and send", 0, Nil)
+    } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory)
   }
 
   private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue]) = {

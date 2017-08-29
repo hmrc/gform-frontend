@@ -23,10 +23,16 @@ import akka.util.ByteString
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
+import uk.gov.hmrc.gform.gformbackend.{ GformBackendModule, GformConnector }
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 @Singleton
-class TestOnly @Inject() (proxy: ProxyActions) extends Controller with ServicesConfig {
+class TestOnly @Inject() (
+    proxy: ProxyActions,
+    gformBackendModule: GformBackendModule
+) extends FrontendController with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 
@@ -40,6 +46,11 @@ class TestOnly @Inject() (proxy: ProxyActions) extends Controller with ServicesC
     Ok("session cleared").withSession()
   }
 
+  def getEnvelopeId(formId: FormId) = Action.async { implicit request =>
+    gformConnector.getForm(formId).map(form => Ok(form.envelopeId.value))
+  }
+
+  private lazy val gformConnector: GformConnector = gformBackendModule.gformConnector
   private lazy val gformBaseUrl = baseUrl("gform")
   private lazy val fileUploadBaseUrl = baseUrl("file-upload")
 }

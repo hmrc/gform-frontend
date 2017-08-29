@@ -20,6 +20,9 @@ import javax.inject.{ Inject, Singleton }
 import cats.Monoid
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
+import play.api.libs.json.Json
+import play.api.mvc.Request
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
@@ -69,7 +72,6 @@ class DeclarationController @Inject() (
               auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
               Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId))
             }
-
           case validationResult @ Invalid(_) =>
             val errorMap = getErrorMap(validationResult, data, cache.formTemplate)
             for {

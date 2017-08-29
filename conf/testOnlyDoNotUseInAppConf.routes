@@ -26,3 +26,5 @@ DELETE     /submissions/test-only/proxy-to-file-upload/*path       @uk.gov.hmrc.
 
 GET        /submissions/test-only/whats-in-session                 @uk.gov.hmrc.gform.controllers.testonly.TestOnly.whatsInSession()
 GET        /submissions/test-only/clear-session                    @uk.gov.hmrc.gform.controllers.testonly.TestOnly.clearSession()
+
+GET        /submissions/test-only/envelope-id/:formId              @uk.gov.hmrc.gform.controllers.testonly.TestOnly.getEnvelopeId(formId: FormId)
