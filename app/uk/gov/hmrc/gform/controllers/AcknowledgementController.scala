@@ -27,11 +27,10 @@ import scala.concurrent.Future
 @Singleton
 class AcknowledgementController @Inject() (controllersModule: ControllersModule) extends FrontendController {
 
-  import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def showAcknowledgement(formId: FormId) = auth.async(formId) { implicit authRequest =>
-    val content = authRequest.formTemplate.acknowledgementSection.map((ackSection: AckSection) =>
+  def showAcknowledgement(formId: FormId) = auth.async(formId) { implicit request => cache =>
+    val content = cache.formTemplate.acknowledgementSection.map((ackSection: AckSection) =>
       uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement_content_partial(ackSection))
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -41,7 +40,7 @@ class AcknowledgementController @Inject() (controllersModule: ControllersModule)
     Future.successful(
       Ok(
         uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(
-          timeMessage, content, authRequest.formTemplate.formCategory.getOrElse(Default)
+          timeMessage, content, cache.formTemplate.formCategory.getOrElse(Default)
         )
       )
     )

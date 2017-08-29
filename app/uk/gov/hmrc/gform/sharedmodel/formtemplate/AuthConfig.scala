@@ -51,8 +51,6 @@ case class AuthConfigModule(value: String) {
 }
 
 object AuthConfigModule {
-
-  val legacyEEITTAuth = "legacyEEITTAuth"
   implicit val format: Format[AuthConfigModule] = ValueClassFormat.oformat("authModule", AuthConfigModule.apply, _.value)
 }
 

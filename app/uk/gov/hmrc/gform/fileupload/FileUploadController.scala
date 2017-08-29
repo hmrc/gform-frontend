@@ -18,22 +18,18 @@ package uk.gov.hmrc.gform.fileupload
 
 import javax.inject.Inject
 
-import play.api.libs.json.Json
-import play.api.mvc.Action
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 class FileUploadController @Inject() (
-  gformBackendModule: GformBackendModule,
-  controllersModule: ControllersModule,
-  fileUploadModule: FileUploadModule
-)
-    extends FrontendController {
-  import uk.gov.hmrc.gform.controllers.AuthenticatedRequest._
+    gformBackendModule: GformBackendModule,
+    controllersModule: ControllersModule,
+    fileUploadModule: FileUploadModule
+) extends FrontendController {
 
-  def deleteFile(formId: FormId, fileId: FileId) = authentication.async(formId) { implicit c =>
+  def deleteFile(formId: FormId, fileId: FileId) = authentication.async(formId) { implicit request => cache =>
     for {
       form <- gformConnector.getForm(formId)
       _ <- fileUploadService.deleteFile(form.envelopeId, fileId)

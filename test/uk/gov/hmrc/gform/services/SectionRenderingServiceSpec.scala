@@ -43,10 +43,10 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
     fakeRequest.copyFakeRequest(tags = fakeRequest.tags + ("CSRF_TOKEN_NAME" -> "csrfToken") + ("CSRF_TOKEN" -> "o'ight mate?"))
   }
   implicit val messages = mock[play.api.i18n.Messages]
-  implicit val retrievals = mock[Retrievals]
+  val retrievals = mock[Retrievals]
 
   val mockPrepopService = new PrepopService(null, null) {
-    override def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[String] =
+    override def prepopData(expr: Expr, formTemplateId: FormTemplateId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] =
       Future.successful("")
   }
 
@@ -83,7 +83,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         envelopeId,
         allSections,
         0,
-        Nil
+        Nil,
+        retrievals
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -107,7 +108,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         envelopeId,
         allSections,
         0,
-        Nil
+        Nil,
+        retrievals
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -195,7 +197,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         envelopeId,
         allSections,
         0,
-        Nil
+        Nil,
+        retrievals
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -244,7 +247,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         envelopeId,
         allSections,
         0,
-        Nil
+        Nil,
+        retrievals
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -299,7 +303,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         envelopeId,
         allSections,
         0,
-        Nil
+        Nil,
+        retrievals
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
