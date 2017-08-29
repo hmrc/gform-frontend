@@ -46,7 +46,7 @@ class SummarySpec extends Spec {
     submitSuccessUrl = "success-url",
     submitErrorUrl = "error-url",
     sections = List(section0, section1, section2),
-    acknowledgementSection = AcknowledgementSection("", None, None, Nil),
+    acknowledgementSection = acknowledgementSection,
     declarationSection = DeclarationSection("Declaration", None, None, Nil)
   )
   val mockRepeatService = new RepeatingComponentService(null) {

@@ -39,7 +39,7 @@ trait AuditService {
       "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
     )
     val optSortCode: List[FieldValue] = sections.flatMap(_.fields.filter(_.`type` match {
-      case x : UkSortCode => true
+      case x: UkSortCode => true
       case _ => false
     }))
 

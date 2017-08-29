@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.controllers
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AckSection, Default}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AckSection, Default }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
