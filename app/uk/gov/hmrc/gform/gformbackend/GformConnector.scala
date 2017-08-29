@@ -21,7 +21,7 @@ import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
@@ -93,7 +93,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /********Validators******/
   def validatePostCodeUtr(utr: String, postCode: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
-    ws.GET[Boolean](s"$baseUrl/validate/$utr/$postCode")
+    ws.GET[HttpResponse](s"$baseUrl/validate/des/$utr/$postCode").map(_ => true).recover {
+      case _: NotFoundException => false
+    }
 
   import scala.io.Source
   def fileToByteStr(filename: String): ByteString = ByteString(Source.fromFile(filename).mkString)
