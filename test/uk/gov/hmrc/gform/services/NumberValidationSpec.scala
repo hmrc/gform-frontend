@@ -41,7 +41,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("123")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beRight(())
   }
@@ -57,7 +57,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("THX1138")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be a number")))
   }
@@ -73,7 +73,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("123.4")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beRight(())
   }
@@ -89,7 +89,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("123.4")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number")))
   }
@@ -105,7 +105,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("123")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beRight(())
   }
@@ -121,7 +121,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("-789")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beRight(())
   }
@@ -137,7 +137,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("-789")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be a positive number")))
   }
@@ -153,7 +153,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("1234567890123456789.87654321")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 11 whole digits and decimal fraction must be at most 2 digits")))
   }
@@ -169,7 +169,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("1234567890123456789.87")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 11 whole digits")))
   }
@@ -185,7 +185,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("1234567890123456789")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("must be at most 11 digits")))
   }
@@ -201,7 +201,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("9.87654321")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("decimal fraction must be at most 2 digits")))
   }
@@ -217,7 +217,7 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("123.21")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 2 whole digits and decimal fraction must be at most 1 digits")))
   }
@@ -233,8 +233,11 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
       FieldId("n") -> Seq("123.21")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = validator(fieldValue, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("New error message")))
   }
+
+  def validator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) =
+    new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 }

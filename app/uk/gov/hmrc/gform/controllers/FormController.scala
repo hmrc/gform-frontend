@@ -112,7 +112,23 @@ class FormController @Inject() (
       Logger.debug(data + "this is data in get errors")
       val fields = repeatService.atomicFields(sections(sectionNumber.value))
       val allFields = sections.flatMap(repeatService.atomicFields)
-      Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map { validationResult =>
+      val x: Future[Either[GformError, Unit]] = Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map(_.toEither)
+      val y = validationService.validateSections(sections(sectionNumber.value), data, theForm.envelopeId)(_.getValidator.validate(data)(x =>
+        gformConnector.validatePostCodeUtr(x._1, x._2))).map(_.toEither)
+
+      val z: Future[ValidatedType] = {
+        val a: Future[Either[GformError, Unit]] = x.flatMap { c =>
+          y.map { d =>
+            for {
+              _ <- c
+              _ <- d
+            } yield ()
+          }
+        }
+        a.map(Validated.fromEither)
+      }
+
+      z.map { validationResult =>
         ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
           case Left(x) => x.map((validResult: FormFieldValidationResult) => ValidationUtil.extractedFieldValue(validResult) -> validResult).toMap
           case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
@@ -197,7 +213,7 @@ class FormController @Inject() (
         sections <- sectionsF
         atomicFields <- sectionFieldsF
         section = sections(sectionNumber.value)
-        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(fv, section, data, cache.form.envelopeId)(_.getValidator.validate(data)(x =>
+        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(section, data, cache.form.envelopeId)(_.getValidator.validate(data)(x =>
           gformConnector.validatePostCodeUtr(x._1, x._2)))))
       } yield Monoid[ValidatedType].combineAll(y)
 
