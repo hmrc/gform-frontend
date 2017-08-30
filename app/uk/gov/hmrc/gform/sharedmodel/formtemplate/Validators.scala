@@ -75,3 +75,4 @@ object HMRCUTRPostcodeCheckValidator {
   val reads = readCustom | (basic: Reads[HMRCUTRPostcodeCheckValidator])
   implicit val format: OFormat[HMRCUTRPostcodeCheckValidator] = OFormat(reads, writesCustom)
 }
+//TODO Unit tests for this Idk how id start with that.
