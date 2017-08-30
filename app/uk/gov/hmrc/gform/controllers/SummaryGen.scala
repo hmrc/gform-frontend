@@ -37,31 +37,25 @@ import scala.concurrent.{ ExecutionContext, Future }
 @Singleton
 class SummaryGen @Inject() (
   controllersModule: ControllersModule,
-  gformBackendModule: GformBackendModule,
-  configModule: ConfigModule,
   repeatService: RepeatingComponentService,
-  fileUploadModule: FileUploadModule,
-  authModule: AuthModule,
-  val messagesApi: MessagesApi,
-  auditingModule: AuditingModule
+  fileUploadModule: FileUploadModule
 )(implicit ec: ExecutionContext)
     extends FrontendController {
 
-  import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId) = auth.async(formId) { implicit c =>
-    val envelopeF = fileUploadService.getEnvelope(theForm.envelopeId)
+  def summaryById(formId: FormId) = auth.async(formId) { implicit request => cache =>
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
     for {// format: OFF
       envelope       <- envelopeF
-      map = formDataMap(theForm.formData)
-      result <- Summary(formTemplate).renderSummary(map, formId, repeatService, envelope)
+      map = formDataMap(cache.form.formData)
+      result <- Summary(cache.formTemplate).renderSummary(map, formId, repeatService, envelope)
       // format: ON
     } yield result
   }
 
-  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formId) { implicit c =>
+  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formId) { implicit request => cache =>
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
@@ -77,7 +71,4 @@ class SummaryGen @Inject() (
 
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val auth = controllersModule.authenticatedRequestActions
-  private lazy val gformConnector = gformBackendModule.gformConnector
-  private lazy val auditService = auditingModule.auditService
-
 }

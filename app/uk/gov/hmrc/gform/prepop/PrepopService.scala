@@ -30,7 +30,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 class AuthContextPrepop {
-  def values(value: AuthInfo)(implicit retrievals: Retrievals): String = value match {
+  def values(value: AuthInfo, retrievals: Retrievals): String = value match {
     case GG => getGGCredId(retrievals)
     case PayeNino => getTaxIdValue(None, "NINO", retrievals)
     case SaUtr => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
@@ -48,9 +48,9 @@ class PrepopService(
     authContextPrepop: AuthContextPrepop
 ) {
 
-  def prepopData(expr: Expr, formTemplateId: FormTemplateId)(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[String] = {
+  def prepopData(expr: Expr, formTemplateId: FormTemplateId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] = {
     expr match {
-      case AuthCtx(value) => Future.successful(authContextPrepop.values(value))
+      case AuthCtx(value) => Future.successful(authContextPrepop.values(value, retrievals))
       case Constant(value) => Future.successful(value)
       case EeittCtx(eeitt) =>
 

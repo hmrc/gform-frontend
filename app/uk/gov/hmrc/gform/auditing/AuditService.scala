@@ -57,14 +57,14 @@ trait AuditService {
     dataMap ++ data
   }
 
-  def sendSubmissionEvent(form: Form, sections: List[BaseSection])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
-    sendEvent(formToMap(form, sections))
+  def sendSubmissionEvent(form: Form, sections: List[BaseSection], retrievals: Retrievals)(implicit ex: ExecutionContext, hc: HeaderCarrier, request: Request[_]) = {
+    sendEvent(formToMap(form, sections), retrievals)
   }
 
-  private def sendEvent(detail: Map[String, String])(implicit ex: ExecutionContext, hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) =
-    auditConnector.sendEvent(eventFor(detail))
+  private def sendEvent(detail: Map[String, String], retrievals: Retrievals)(implicit ex: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
+    auditConnector.sendEvent(eventFor(detail, retrievals))
 
-  private def eventFor(detail: Map[String, String])(implicit hc: HeaderCarrier, retrievals: Retrievals, request: Request[_]) = {
+  private def eventFor(detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
     DataEvent(
       auditSource = "GForm",
       auditType = "submission complete auditing",

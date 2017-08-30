@@ -27,13 +27,13 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: ConfigModule) {
 
-  def authenticate(regimeId: RegimeId, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[EeittAuthResult] = {
+  def authenticate(regimeId: RegimeId, userDetails: UserDetails)(implicit hc: HeaderCarrier, ex: ExecutionContext, request: Request[AnyContent]): Future[EeittAuth] = {
 
     val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, regimeId, userDetails.affinityGroup)
 
     authResultF.map {
       case Verification(true) => EeittAuthorisationSuccessful
-      case Verification(false) => EeittUnauthorisationFailed(eeittLoginUrl())
+      case Verification(false) => EeittAuthorisationFailed(eeittLoginUrl())
     }
   }
 
@@ -47,6 +47,6 @@ class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: C
   }
 }
 
-sealed trait EeittAuthResult
-final object EeittAuthorisationSuccessful extends EeittAuthResult
-final case class EeittUnauthorisationFailed(loginUrl: String) extends EeittAuthResult
+sealed trait EeittAuth
+final object EeittAuthorisationSuccessful extends EeittAuth
+case class EeittAuthorisationFailed(loginUrl: String) extends EeittAuth

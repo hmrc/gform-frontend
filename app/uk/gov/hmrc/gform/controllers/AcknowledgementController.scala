@@ -16,25 +16,18 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
-
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AckSection, Default }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-
-import scala.concurrent.Future
 
 @Singleton
 class AcknowledgementController @Inject() (controllersModule: ControllersModule, renderer: SectionRenderingService) extends FrontendController {
 
-  import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def showAcknowledgement(formId: FormId) = auth.async(formId) { implicit authRequest =>
-    renderer.renderAcknowledgementSection(formId, formTemplate).map(Ok(_))
+  def showAcknowledgement(formId: FormId) = auth.async(formId) { implicit request => cache =>
+    renderer.renderAcknowledgementSection(formId, cache.formTemplate, cache.retrievals).map(Ok(_))
   }
 
   private lazy val auth = controllersModule.authenticatedRequestActions

@@ -105,7 +105,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     `fieldId - businessName`,
     InformationMessage(NoFormat, "some text"),
     "someLabel",
-    None, None, false, false, false, None)
+    None, None, false, false, false, None
+  )
 
   def `group - type` = Group(
     fields = List(`fieldValue - firstName`),

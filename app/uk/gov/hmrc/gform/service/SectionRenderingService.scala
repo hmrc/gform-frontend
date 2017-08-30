@@ -52,7 +52,8 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     f: Option[FieldValue => Option[FormFieldValidationResult]],
     envelope: Envelope,
     dynamicSections: List[BaseSection],
-    formMaxAttachmentSizeMB: Int
+    formMaxAttachmentSizeMB: Int,
+    retrievals: Retrievals
   )
 
   def renderSection(
@@ -65,10 +66,11 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     envelopeId: EnvelopeId,
     dynamicSections: List[Section],
     formMaxAttachmentSizeMB: Int,
-    contentTypes: List[ContentType]
-  )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals): Future[Html] = {
+    contentTypes: List[ContentType],
+    retrievals: Retrievals
+  )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
-    val ei = ExtraInfo(formId, sectionNumber, fieldData, formTemplate, f, envelope, dynamicSections, formMaxAttachmentSizeMB)
+    val ei = ExtraInfo(formId, sectionNumber, fieldData, formTemplate, f, envelope, dynamicSections, formMaxAttachmentSizeMB, retrievals)
     val section = dynamicSections(sectionNumber.value)
     val actionForm = uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId, sectionNumber)
 
@@ -81,9 +83,9 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.form(formTemplate, renderingInfo, formId)
   }
 
-  def renderDeclarationSection(formId: FormId, formTemplate: FormTemplate, f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals): Future[Html] = {
+  def renderDeclarationSection(formId: FormId, formTemplate: FormTemplate, f: Option[FieldValue => Option[FormFieldValidationResult]], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
-    val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, f, Envelope(Nil), List(formTemplate.declarationSection), 0)
+    val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, f, Envelope(Nil), List(formTemplate.declarationSection), 0, retrievals)
 
     for {
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
@@ -91,9 +93,9 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.form(formTemplate, renderingInfo, formId)
   }
 
-  def renderAcknowledgementSection(formId: FormId, formTemplate: FormTemplate)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals): Future[Html] = {
+  def renderAcknowledgementSection(formId: FormId, formTemplate: FormTemplate, retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
-    val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, None, Envelope(Nil), List(formTemplate.acknowledgementSection), 0)
+    val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, None, Envelope(Nil), List(formTemplate.acknowledgementSection), 0, retrievals)
 
     val formCategory = formTemplate.formCategory.getOrElse(Default)
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
@@ -113,7 +115,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     groups.map { case (fieldId, group) => collapsingGroupJavascript(fieldId, group) }.mkString(";\n") + fieldJavascript(atomicFields)
   }
 
-  private def htmlFor(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals): Future[Html] = {
+  private def htmlFor(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index, ei)
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, fieldValue, index, ei)
@@ -152,9 +154,9 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
   }
 
-  private def htmlForText(fieldValue: FieldValue, t: Text, expr: Expr, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, retrievals: Retrievals) = {
+  private def htmlForText(fieldValue: FieldValue, t: Text, expr: Expr, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
     val prepopValueF = ei.fieldData.get(fieldValue.id) match {
-      case None => prepopService.prepopData(expr, ei.formTemplate._id)
+      case None => prepopService.prepopData(expr, ei.formTemplate._id, ei.retrievals)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = validate(fieldValue, ei)
@@ -164,9 +166,9 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validatedValue, index)
   }
 
-  private def htmlForSortCode(fieldValue: FieldValue, sC: UkSortCode, expr: Expr, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, retrievals: Retrievals) = {
+  private def htmlForSortCode(fieldValue: FieldValue, sC: UkSortCode, expr: Expr, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
     val prepopValueF = ei.fieldData.get(fieldValue.id) match {
-      case None => prepopService.prepopData(expr, ei.formTemplate._id)
+      case None => prepopService.prepopData(expr, ei.formTemplate._id, ei.retrievals)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = validate(fieldValue, ei)
@@ -186,7 +188,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validate(fieldValue, ei), prepopValues, index)
   }
 
-  private def htmlForGroup(grp: Group, fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals): Future[Html] = {
+  private def htmlForGroup(grp: Group, fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     val fgrpHtml = htmlForGroup0(grp, fieldValue, index, ei)
 
     fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
@@ -195,13 +197,13 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
   }
 
-  private def htmlForGroup0(groupField: Group, fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages, retrievals: Retrievals) = {
+  private def htmlForGroup0(groupField: Group, fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages) = {
     for {
       (lhtml, limitReached) <- getGroupForRendering(fieldValue, groupField, groupField.orientation, ei)
     } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, groupField.orientation, limitReached, index)
   }
 
-  private def getGroupForRendering(fieldValue: FieldValue, groupField: Group, orientation: Orientation, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messsages: Messages, retrievals: Retrievals): Future[(List[Html], Boolean)] = {
+  private def getGroupForRendering(fieldValue: FieldValue, groupField: Group, orientation: Orientation, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messsages: Messages): Future[(List[Html], Boolean)] = {
     if (groupField.repeatsMax.isDefined) {
       repeatService.getRepeatingGroupsForRendering(fieldValue, groupField).flatMap {
         case (groupList, isLimit) =>

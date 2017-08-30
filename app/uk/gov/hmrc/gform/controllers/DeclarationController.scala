@@ -46,37 +46,36 @@ class DeclarationController @Inject() (
     validationModule: ValidationModule
 ) extends FrontendController {
 
-  import AuthenticatedRequest._
   import controllersModule.i18nSupport._
 
-  def showDeclaration(formId: FormId) = auth.async(formId) { implicit authRequest =>
-    renderer.renderDeclarationSection(formId, formTemplate, None).map(Ok(_))
+  def showDeclaration(formId: FormId) = auth.async(formId) { implicit request => cache =>
+    renderer.renderDeclarationSection(formId, cache.formTemplate, None, cache.retrievals).map(Ok(_))
   }
 
-  def submitDeclaration(formId: FormId) = auth.async(formId) { implicit authRequest =>
+  def submitDeclaration(formId: FormId) = auth.async(formId) { implicit request => cache =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
       val validationResultF = Future.sequence(
-        getAllDeclarationFields(formTemplate.declarationSection.fields)
-          .map(fieldValue => validationService.validateComponents(fieldValue, data, theForm.envelopeId))
+        getAllDeclarationFields(cache.formTemplate.declarationSection.fields)
+          .map(fieldValue => validationService.validateComponents(fieldValue, data, cache.form.envelopeId))
       ).map(Monoid[ValidatedType].combineAll)
 
       get(data, FieldId("save")) match {
         case "Continue" :: Nil => validationResultF.flatMap {
           case Valid(()) =>
-            val updatedForm = updateFormWithDeclaration(theForm, formTemplate, data)
+            val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
             for {
-              _ <- gformConnector.updateUserData(theForm._id, UserData(updatedForm.formData, None))
+              _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None))
               _ <- gformConnector.submitForm(formId)
               _ <- repeatService.clearSession
             } yield {
-              auditService.sendSubmissionEvent(theForm, formTemplate.sections :+ formTemplate.declarationSection)
+              auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
               Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId))
             }
           case validationResult @ Invalid(_) =>
-            val errorMap = getErrorMap(validationResult, data, formTemplate)
+            val errorMap = getErrorMap(validationResult, data, cache.formTemplate)
             for {
-              html <- renderer.renderDeclarationSection(formId, formTemplate, Some(errorMap.get))
+              html <- renderer.renderDeclarationSection(formId, cache.formTemplate, Some(errorMap.get), cache.retrievals)
             } yield Ok(html)
         }
         case _ =>
