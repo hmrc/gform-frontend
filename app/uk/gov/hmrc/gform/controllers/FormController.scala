@@ -113,7 +113,7 @@ class FormController @Inject() (
       val fields = repeatService.atomicFields(sections(sectionNumber.value))
       val allFields = sections.flatMap(repeatService.atomicFields)
       val x: Future[Either[GformError, Unit]] = Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map(_.toEither)
-      val y = validationService.validateSections(sections(sectionNumber.value), data, theForm.envelopeId)(_.getValidator.validate(data)(x =>
+      val y = validationService.validateSections(sections(sectionNumber.value), data, cache.form.envelopeId)(_.validate(data)(x =>
         gformConnector.validatePostCodeUtr(x._1, x._2))).map(_.toEither)
 
       val z: Future[ValidatedType] = {
