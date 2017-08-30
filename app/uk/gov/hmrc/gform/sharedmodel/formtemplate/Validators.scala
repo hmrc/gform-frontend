@@ -18,39 +18,60 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
 import play.api.libs.json._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class Validators(validatorName: String, errorMessage: String, parameters: Map[String, FormCtx]) {
+sealed trait Validator {
+  def errorMessage: String
+  def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]]
+}
 
-  def getValidator = {
-    validatorName match {
-      case "hmrcUTRPostcodeCheck" => HMRCUTRPostcodeCheck(parameters("utr"), parameters("postCode"), errorMessage)
+case object Validator {
+
+  val reads: Reads[Validator] = Reads { json =>
+    (json \ "validatorName").as[String] match {
+      case "hmrcUTRPostcodeCheck" => json.validate[HMRCUTRPostcodeCheckValidator]
     }
   }
+
+  val writes: OWrites[Validator] = OWrites {
+    case v: HMRCUTRPostcodeCheckValidator => HMRCUTRPostcodeCheckValidator.format.writes(v)
+
+  }
+
+  implicit val format = OFormat(reads, writes)
+
 }
 
-object Validators {
+case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, postcode: FormCtx) extends Validator {
 
-  implicit val format = Json.format[Validators]
-}
+  val utrFieldId = FieldId(utr.value)
+  val postcodeFieldId = FieldId(postcode.value)
 
-trait Validator[A] {
-
-  def validate(data: Map[FieldId, Seq[String]])(f: A => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]]
-}
-
-case class HMRCUTRPostcodeCheck(utr: FormCtx, postcode: FormCtx, errorMessage: String) extends Validator[(String, String)] {
-
-  private val utrFieldId = FieldId(utr.value)
-  private val postcodeFieldId = FieldId(postcode.value)
-
-  override def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]] = {
+  def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]] = {
     val dataGetter: FieldId => String = id => data.get(id).toList.flatten.headOption.getOrElse("")
     val utrString = dataGetter(utrFieldId)
     val postCodeString = dataGetter(postcodeFieldId)
     f(utrString -> postCodeString).map(if (_) Valid(()) else Invalid(Map(utrFieldId -> Set(errorMessage), postcodeFieldId -> Set(errorMessage))))
   }
+}
+
+object HMRCUTRPostcodeCheckValidator {
+  val basic: OFormat[HMRCUTRPostcodeCheckValidator] = Json.format[HMRCUTRPostcodeCheckValidator]
+  val writesCustom: OWrites[HMRCUTRPostcodeCheckValidator] = OWrites { o =>
+    Json.obj("validatorName" -> "hmrcUTRPostcodeCheck") ++
+      basic.writes(o)
+  }
+
+  val writes: OWrites[HMRCUTRPostcodeCheckValidator] = writesCustom
+  val readCustom: Reads[HMRCUTRPostcodeCheckValidator] = ((JsPath \ "errorMessage").read[String] and
+    (JsPath \ "parameters" \\ "utr").read[FormCtx] and
+    (JsPath \ "parameters" \\ "postcode").read[FormCtx])(HMRCUTRPostcodeCheckValidator.apply _)
+
+  val reads = readCustom | (basic: Reads[HMRCUTRPostcodeCheckValidator])
+  implicit val format: OFormat[HMRCUTRPostcodeCheckValidator] = OFormat(reads, writesCustom)
 }

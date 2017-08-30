@@ -213,7 +213,7 @@ class FormController @Inject() (
         sections <- sectionsF
         atomicFields <- sectionFieldsF
         section = sections(sectionNumber.value)
-        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(section, data, cache.form.envelopeId)(_.getValidator.validate(data)(x =>
+        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(section, data, cache.form.envelopeId)(_.validate(data)(x =>
           gformConnector.validatePostCodeUtr(x._1, x._2)))))
       } yield Monoid[ValidatedType].combineAll(y)
 

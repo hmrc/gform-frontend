@@ -49,7 +49,7 @@ class ValidationService(fileUploadService: FileUploadService) {
   def validateComponents(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(data, fileUploadService, envelopeId).validate(fieldValue)
 
-  def validateSections(section: Section, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(f: Validators => Future[ValidatedType])(implicit hc: HeaderCarrier): Future[ValidatedType] =
+  def validateSections(section: Section, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(f: Validator => Future[ValidatedType])(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(data, fileUploadService, envelopeId).validateValidators(section.validators)(f)
 
 }
@@ -67,7 +67,7 @@ class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: Fi
     case InformationMessage(_, _) => validF
   }
 
-  def validateValidators(maybeValidators: Option[Validators])(f: Validators => Future[Validated[Map[FieldId, Set[String]], Unit]])(implicit ex: ExecutionContext): Future[ValidatedType] =
+  def validateValidators(maybeValidators: Option[Validator])(f: Validator => Future[Validated[Map[FieldId, Set[String]], Unit]])(implicit ex: ExecutionContext): Future[ValidatedType] =
     maybeValidators.fold[Future[ValidatedType]](Future.successful(Valid(())))(f(_))
 
   private lazy val validF = Future.successful(Valid(()))
