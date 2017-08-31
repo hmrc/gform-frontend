@@ -17,34 +17,40 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FieldId, FieldValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Expr, FieldId, FieldValue}
+
+import scala.concurrent.Future
 
 object Javascript {
 
-  def fieldJavascript(fields: List[FieldValue], groupList: List[List[List[FieldValue]]]): String = {
+  def fieldJavascript(fields: List[FieldValue], groupList: Future[List[List[List[FieldValue]]]]): Future[String] = {
 
     val fieldIdWithExpr: List[(FieldId, Expr)] =
       fields.collect {
         case FieldValue(id, Text(_, expr), _, _, _, _, _, _, _, _) => (id, expr)
       }
 
-    fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList)).mkString(";\n")
+    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n"))
   }
 
-  def toJavascriptFn(fieldId: FieldId, expr: Expr, groupList: List[List[List[FieldValue]]]): String = {
+  def toJavascriptFn(fieldId: FieldId, expr: Expr, groupList: Future[List[List[List[FieldValue]]]]): Future[String] = {
 
     expr match {
       case Sum(FormCtx(id)) =>
-        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { x =>
+        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { x => x.map(y =>
           s"""document.getElementById("$x").addEventListener("change",sum$id);
               document.getElementById("$x").addEventListener("keyup",sum$id);
            """
-        }.mkString("\n")
+        ).mkString("\n")}
 
-        val groups = Group.getGroup(groupList, FieldId(id)).map { x =>
+        val groups = Group.getGroup(groupList, FieldId(id)).map { x => x.map(y =>
           s"""parseInt(document.getElementById("$x").value) || 0"""
-        }.mkString(",")
-        s"""function sum$id() {
+        ).mkString(",")}
+        for{
+          listeners <- eventListeners
+          values <- groups
+        } yield {
+          s"""function sum$id() {
               var sum = [${groups}];
               var result = sum.reduce(add, 0);
               return document.getElementById("${fieldId.value}").value = result;
@@ -55,6 +61,7 @@ object Javascript {
             };
             $eventListeners
             """
+        }
       case Add(FormCtx(amountA), FormCtx(amountB)) =>
 
         val functionName = "add" + fieldId.value;
@@ -65,15 +72,15 @@ object Javascript {
             event <- List("change", "keyup")
           } yield s"""document.getElementById("$elementId").addEventListener("$event",$functionName);"""
 
-        s"""|function $functionName() {
+        Future.successful(s"""|function $functionName() {
             |  var el1 = document.getElementById("$amountA").value;
             |  var el2 = document.getElementById("$amountB").value;
             |  var result = (parseInt(el1) || 0) + (parseInt(el2) || 0);
             |  return document.getElementById("${fieldId.value}").value = result;
             |};
             |${eventListeners.mkString("\n")}
-            |""".stripMargin
-      case otherwise => ""
+            |""".stripMargin)
+      case otherwise => Future.successful("")
     }
   }
 

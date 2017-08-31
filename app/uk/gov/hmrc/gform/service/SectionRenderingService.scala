@@ -78,7 +78,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
     for {
       snippets <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
-      javascript = createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
+      javascript <- createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(repeatService.atomicFields)
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
       renderingInfo = SectionRenderingInformation(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippets, javascript, envelopeId, actionForm, true, "Save and Continue", formMaxAttachmentSizeMB, contentTypes)
@@ -110,16 +110,18 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory)
   }
 
-  private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue])(implicit hc: HeaderCarrier) = {
+  private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue])(implicit hc: HeaderCarrier): Future[String] = {
     val groups: List[(FieldId, Group)] = fieldList.filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel)).map(fv => (fv.id, fv.`type`)).collect {
       case (fieldId, group: Group) => (fieldId, group)
     }
 
     val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
-    val repeatingSections = fieldList.map(fv => (fv.id, fv.`type`)).collect {
-      case (fieldId, group: Group) => Await.result(cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil)), 10 seconds)
+    val repeatingSections: Future[List[List[List[FieldValue]]]] = Future.sequence(fieldList.map(fv => (fv.id, fv.`type`)).collect {
+      case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil))
+    })
+    fieldJavascript(atomicFields, repeatingSections).flatMap { x =>
+      Future.sequence(groups.map { case (fieldId, group) => Future.successful(collapsingGroupJavascript(fieldId, group)) }).map(_.mkString("\n")).map(y => y + x)
     }
-    groups.map { case (fieldId, group) => collapsingGroupJavascript(fieldId, group) }.mkString(";\n") + fieldJavascript(atomicFields, repeatingSections)
   }
 
   private def htmlFor(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
