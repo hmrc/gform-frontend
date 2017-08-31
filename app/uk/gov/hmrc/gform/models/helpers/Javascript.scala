@@ -64,24 +64,30 @@ object Javascript {
             $listeners
             """
         }
-      case Add(FormCtx(amountA), FormCtx(amountB)) =>
+      case Add(amountA, amountB) =>
+        val amountAString = toJavascriptFn(fieldId, amountA, groupList)
+        val amountBString = toJavascriptFn(fieldId, amountB, groupList)
 
         val functionName = "add" + fieldId.value;
 
-        val eventListeners =
-          for {
-            elementId <- List(amountA, amountB)
-            event <- List("change", "keyup")
-          } yield s"""document.getElementById("$elementId").addEventListener("$event",$functionName);"""
-
-        Future.successful(s"""|function $functionName() {
-            |  var el1 = document.getElementById("$amountA").value;
+        amountAString.flatMap(x =>
+          amountBString.map( y => s"""|function $functionName() {
+            |  var el1 = document.getElementById("$amountAString").value;
             |  var el2 = document.getElementById("$amountB").value;
             |  var result = (parseInt(el1) || 0) + (parseInt(el2) || 0);
             |  return document.getElementById("${fieldId.value}").value = result;
             |};
-            |${eventListeners.mkString("\n")}
-            |""".stripMargin)
+            |${x.split("|").head.mkString("\n")} ${y.split("|").head}
+            |""".stripMargin))
+      case FormCtx(amountX) =>
+        val functionName = "add" + fieldId.value;
+        val eventListeners =
+          for {
+            elementId <- List(amountX)
+            event <- List("change", "keyup")
+          } yield s"""document.getElementById("$elementId").addEventListener("$event",$functionName);"""
+        Future.successful(s"""${eventListeners.mkString("\n")}|document.getElementById("$amountX").value;""")
+
       case otherwise => Future.successful("")
     }
   }
