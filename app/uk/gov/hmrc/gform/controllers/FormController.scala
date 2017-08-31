@@ -113,8 +113,10 @@ class FormController @Inject() (
       val fields = repeatService.atomicFields(sections(sectionNumber.value))
       val allFields = sections.flatMap(repeatService.atomicFields)
       val x: Future[Either[GformError, Unit]] = Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map(_.toEither)
-      val y = validationService.validateSections(sections(sectionNumber.value), data, cache.form.envelopeId)(_.validate(data)(x =>
-        gformConnector.validatePostCodeUtr(x._1, x._2))).map(_.toEither)
+      val y = validationService.validateSections(sections(sectionNumber.value), data, cache.form.envelopeId) {
+        case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
+          gformConnector.validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse("")).map(if (_) Valid(()) else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+      }.map(_.toEither)
 
       val z: Future[ValidatedType] = {
         val a: Future[Either[GformError, Unit]] = x.flatMap { c =>
@@ -213,8 +215,10 @@ class FormController @Inject() (
         sections <- sectionsF
         atomicFields <- sectionFieldsF
         section = sections(sectionNumber.value)
-        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(section, data, cache.form.envelopeId)(_.validate(data)(x =>
-          gformConnector.validatePostCodeUtr(x._1, x._2)))))
+        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(section, data, cache.form.envelopeId) {
+          case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
+            gformConnector.validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse("")).map(if (_) Valid(()) else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+        }))
       } yield Monoid[ValidatedType].combineAll(y)
 
       val validationF: Future[ValidatedType] = validateSections.flatMap { t =>

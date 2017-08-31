@@ -27,7 +27,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait Validator {
   def errorMessage: String
-  def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]]
+  //  def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]]
 }
 
 case object Validator {
@@ -52,12 +52,12 @@ case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, pos
   val utrFieldId = FieldId(utr.value)
   val postcodeFieldId = FieldId(postcode.value)
 
-  def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]] = {
-    val dataGetter: FieldId => String = id => data.get(id).toList.flatten.headOption.getOrElse("")
-    val utrString = dataGetter(utrFieldId)
-    val postCodeString = dataGetter(postcodeFieldId)
-    f(utrString -> postCodeString).map(if (_) Valid(()) else Invalid(Map(utrFieldId -> Set(errorMessage), postcodeFieldId -> Set(errorMessage))))
-  }
+  //  def validate(data: Map[FieldId, Seq[String]])(f: ((String, String)) => Future[Boolean])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Validated[Map[FieldId, Set[String]], Unit]] = {
+  //    val dataGetter: FieldId => String = id => data.get(id).toList.flatten.headOption.getOrElse("")
+  //    val utrString = dataGetter(utrFieldId)
+  //    val postCodeString = dataGetter(postcodeFieldId)
+  //    f(utrString -> postCodeString).map(if (_) Valid(()) else Invalid(Map(utrFieldId -> Set(errorMessage), postcodeFieldId -> Set(errorMessage))))
+  //  }
 }
 
 object HMRCUTRPostcodeCheckValidator {
