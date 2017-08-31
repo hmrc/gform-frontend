@@ -21,17 +21,40 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FieldId, FieldValue }
 
 object Javascript {
 
-  def fieldJavascript(fields: List[FieldValue]): String = {
+  def fieldJavascript(fields: List[FieldValue], groupList: List[List[List[FieldValue]]]): String = {
 
     val fieldIdWithExpr: List[(FieldId, Expr)] =
-      fields.collect { case FieldValue(id, Text(_, expr), _, _, _, _, _, _, _, _) => (id, expr) }
+      fields.collect {
+        case FieldValue(id, Text(_, expr), _, _, _, _, _, _, _, _) => (id, expr)
+      }
 
-    fieldIdWithExpr.map((toJavascriptFn _).tupled).mkString(";\n")
+    fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList)).mkString(";\n")
   }
 
-  def toJavascriptFn(fieldId: FieldId, expr: Expr): String = {
+  def toJavascriptFn(fieldId: FieldId, expr: Expr, groupList: List[List[List[FieldValue]]]): String = {
 
     expr match {
+      case Sum(FormCtx(id)) =>
+        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { x =>
+          s"""document.getElementById("$x").addEventListener("change",sum$id);
+              document.getElementById("$x").addEventListener("keyup",sum$id);
+           """
+        }.mkString("\n")
+
+        val groups = Group.getGroup(groupList, FieldId(id)).map { x =>
+          s"""parseInt(document.getElementById("$x").value) || 0"""
+        }.mkString(",")
+        s"""function sum$id() {
+              var sum = [${groups}];
+              var result = sum.reduce(add, 0);
+              return document.getElementById("${fieldId.value}").value = result;
+            };
+
+            function add(a, b) {
+             return a + b
+            };
+            $eventListeners
+            """
       case Add(FormCtx(amountA), FormCtx(amountB)) =>
 
         val functionName = "add" + fieldId.value;

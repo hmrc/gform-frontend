@@ -36,9 +36,11 @@ import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 
 @Singleton
 class SectionRenderingService @Inject() (repeatService: RepeatingComponentService, prePopModule: PrepopModule) {
@@ -108,11 +110,16 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory)
   }
 
-  private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue]) = {
-    val groups: List[(FieldId, Group)] = fieldList.map(fv => (fv.id, fv.`type`)).collect {
+  private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue])(implicit hc: HeaderCarrier) = {
+    val groups: List[(FieldId, Group)] = fieldList.filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel)).map(fv => (fv.id, fv.`type`)).collect {
       case (fieldId, group: Group) => (fieldId, group)
     }
-    groups.map { case (fieldId, group) => collapsingGroupJavascript(fieldId, group) }.mkString(";\n") + fieldJavascript(atomicFields)
+
+    val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
+    val repeatingSections = fieldList.map(fv => (fv.id, fv.`type`)).collect {
+      case (fieldId, group: Group) => Await.result(cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil)), 10 seconds)
+    }
+    groups.map { case (fieldId, group) => collapsingGroupJavascript(fieldId, group) }.mkString(";\n") + fieldJavascript(atomicFields, repeatingSections)
   }
 
   private def htmlFor(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {

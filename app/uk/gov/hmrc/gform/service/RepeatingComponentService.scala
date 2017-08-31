@@ -49,6 +49,12 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
+  def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] = {
+    sessionCache.fetch().map {
+      case Some(cacheMap) => cacheMap
+      case None => CacheMap("empty", Map.empty)
+    }
+  }
   private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.repeatsMin.isDefined
 
   private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]],
@@ -119,6 +125,13 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     expr match {
       case Add(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) + evaluateExpression(expr2, formTemplate, data)
       case Multiply(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) * evaluateExpression(expr2, formTemplate, data)
+      case Sum(FormCtx(expr1)) =>
+        val dataGetter: FieldId => Int = fieldId => Try(data.get(fieldId).toList.flatten.headOption.getOrElse("0").toInt).getOrElse(0)
+        val cacheMap: Future[CacheMap] = getAllRepeatingGroups
+        val repeatingSections = formTemplate.sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
+          case (fieldId, group: Group) => Await.result(cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil)), 10 seconds)
+        }
+        Group.getGroup(repeatingSections, FieldId(expr1)).map(dataGetter).sum
       case formExpr @ FormCtx(_) => getFormFieldIntValue(TextExpression(formExpr), data)
       case Constant(value) => Try(value.toInt) match {
         case Success(intValue) => intValue

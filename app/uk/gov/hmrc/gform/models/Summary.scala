@@ -26,9 +26,11 @@ import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
+import scala.concurrent.duration._
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 case class SummaryForRender(snippets: List[Html], javascripts: String)
 
@@ -101,7 +103,10 @@ object SummaryForRender {
               List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate._id, formId, section.title, index))
         }
       }
-      SummaryForRender(snippets, fieldJavascript(fields))
+      val repeatingSections = formTemplate.sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
+        case (fieldId, group: Group) => Await.result(repeatService.getAllRepeatingGroups.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil)), 10 seconds)
+      }
+      SummaryForRender(snippets, fieldJavascript(fields, repeatingSections))
     }
   }
 }
