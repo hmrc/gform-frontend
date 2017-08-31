@@ -104,6 +104,25 @@ case class Group(
   repeatAddAnotherText: Option[String] = None
 ) extends ComponentType
 
+object Group {
+
+  def getGroup(list: List[List[List[FieldValue]]], fieldId: FieldId): List[FieldId] = {
+    val x: List[List[FieldValue]] = list.find(x => x.flatMap(y => y.map(_.id.value.contains(fieldId.value))).contains(true)).fold(List.empty[List[FieldValue]])(z => z)
+
+    getGroupLength(x.size, fieldId)
+  }
+
+  private def getGroupLength(max: Int, id: FieldId): List[FieldId] = {
+    val suffix = List.range(0, max)
+    suffix.map(x =>
+      if (x == 0) {
+        id
+      } else {
+        FieldId(s"$x" + s"_${id.value}")
+      })
+  }
+}
+
 case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
 
 case class FileUpload() extends ComponentType
