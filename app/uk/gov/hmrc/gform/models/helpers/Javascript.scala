@@ -65,29 +65,34 @@ object Javascript {
             """
         }
       case Add(amountA, amountB) =>
-        val amountAString = toJavascriptFn(fieldId, amountA, groupList)
-        val amountBString = toJavascriptFn(fieldId, amountB, groupList)
 
-        val functionName = "add" + fieldId.value;
+        val functionName = "add" + fieldId.value
+        val ids = (toJavascriptFn(fieldId, amountA, groupList).flatMap(x => toJavascriptFn(fieldId, amountB, groupList).map(_ + x))).map(_.split(",").toList.filter(_.nonEmpty))
 
-        amountAString.flatMap(x =>
-          amountBString.map( y => s"""|function $functionName() {
-            |  var el1 = document.getElementById("$amountAString").value;
-            |  var el2 = document.getElementById("$amountB").value;
-            |  var result = (parseInt(el1) || 0) + (parseInt(el2) || 0);
+        def eventListeners(id: String) = {
+          s"""document.getElementById("$id").addEventListener("change",$functionName);
+             |document.getElementById("$id").addEventListener("keyup",$functionName);
+       """.stripMargin
+        }
+
+        def values(id: String) = s"""parseInt(document.getElementById("$id").value) || 0"""
+        val demValues = ids.map(_.map(values).mkString(", "))
+        val listeners = ids.map(_.map(eventListeners).mkString("\n"))
+
+        demValues.flatMap(values =>
+          listeners.map( listener =>
+        s"""|function $functionName() {
+            |  var x = [ $values];
+            |  var result = x.reduce(add, 0);
             |  return document.getElementById("${fieldId.value}").value = result;
             |};
-            |${x.split("|").head.mkString("\n")} ${y.split("|").head}
-            |""".stripMargin))
-      case FormCtx(amountX) =>
-        val functionName = "add" + fieldId.value;
-        val eventListeners =
-          for {
-            elementId <- List(amountX)
-            event <- List("change", "keyup")
-          } yield s"""document.getElementById("$elementId").addEventListener("$event",$functionName);"""
-        Future.successful(s"""${eventListeners.mkString("\n")}|document.getElementById("$amountX").value;""")
-
+            |
+            |function add(a, b) {
+            | return a + b;
+            |};
+            |$listener
+            |""".stripMargin ) )
+      case FormCtx(amountX) =>Future.successful( amountX + ",")
       case otherwise => Future.successful("")
     }
   }
