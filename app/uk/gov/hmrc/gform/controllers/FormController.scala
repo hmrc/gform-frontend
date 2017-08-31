@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -179,59 +180,44 @@ class FormController @Inject() (
         section = sections(sectionNumber.value)
       } yield repeatService.atomicFields(section)
 
-      val allFieldsInTemplateF = for {
+      val allFieldsInTemplateF: Future[List[FieldValue]] = for {
         sections <- sectionsF
         allFieldsInTemplate = sections.flatMap(repeatService.atomicFields)
       } yield allFieldsInTemplate
 
-      val validatedDataResultF: Future[ValidatedType] = for {
-        sectionFields <- sectionFieldsF
-        validatedData <- Future.sequence(sectionFields.map(fv =>
-          validationService.validateComponents(fv, data, cache.form.envelopeId)))
-      } yield Monoid[ValidatedType].combineAll(validatedData)
-
-      val finalResult: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
+      val finalResultF: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
         for {
-          validatedDataResult <- validatedDataResultF
-          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          sectionFields <- sectionFieldsF
+          onlyValidationErrors0: immutable.Seq[ValidatedType] <- Future.sequence(sectionFields.map(fv => validationService.validateComponents(fv, data, cache.form.envelopeId)))
+          onlyValidationErrors = Monoid[ValidatedType].combineAll(onlyValidationErrors0)
           allFieldsInTemplate <- allFieldsInTemplateF
-        } yield ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validatedDataResult, data, envelope)
+          envelope <- envelopeF
+          x: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(allFieldsInTemplate, onlyValidationErrors, data, envelope)
+        } yield x
 
-      def processSaveAndContinue(userId: UserId, form: Form)(continueF: Future[Result])(implicit hc: HeaderCarrier): Future[Result] = finalResult.flatMap {
-        case Left(listFormValidation) =>
+      val isFormValidF: Future[Boolean] = finalResultF.map(_.fold(_ => false, _ => true))
+      val formFieldValidationResultF: Future[List[FormFieldValidationResult]] = finalResultF.map(_.fold(identity, identity))
 
-          val formData = FormData(listFormValidation.flatMap(_.toFormFieldTolerant))
+      val fieldsF: Future[Seq[FormField]] = formFieldValidationResultF.map(_.flatMap(_.toFormFieldTolerant))
+      val formDataF: Future[FormData] = fieldsF.map(FormData(_))
 
-          for {
-            keystore <- repeatService.getData()
-            userData = UserData(formData, keystore)
-            _ <- gformConnector.updateUserData(formId, userData)
-          } yield Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.formError(formId, sectionNumber))
-
-        case Right(listFormValidation) =>
-
-          val formFieldIds = listFormValidation.map(_.toFormField)
-          val formFields = formFieldIds.sequenceU.map(_.flatten).toList.flatten
-
-          val formData = FormData(formFields)
-
-          //TODO figure out if we should save the structure constantly or should we figure out when they leave the form another way other than the two buttons.
-          for {
-            keystore <- repeatService.getData()
-            userData = UserData(formData, keystore)
-            _ <- gformConnector.updateUserData(formId, userData)
-            continue <- continueF
-          } yield continue
-      } //End processSaveAndContinue
+      def processSaveAndContinue(userId: UserId, form: Form, nextPage: Result)(implicit hc: HeaderCarrier): Future[Result] =
+        for {
+          formData <- formDataF
+          keystore <- repeatService.getData()
+          userData = UserData(formData, keystore)
+          _ <- gformConnector.updateUserData(formId, userData)
+          isFormValid <- isFormValidF
+        } yield if (isFormValid) nextPage else Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.formError(formId, sectionNumber))
 
       def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] = {
 
-        val formFieldsList: Future[List[FormFieldValidationResult]] = finalResult.map {
+        val formFieldsListF: Future[List[FormFieldValidationResult]] = finalResultF.map {
           case Left(formFieldResultList) => formFieldResultList
           case Right(formFieldResultList) => formFieldResultList
         }
 
-        val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
+        val formFieldIds: Future[List[List[FormField]]] = formFieldsListF.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 
         val formDataF = formFields.map(formFields => FormData(formFields))
@@ -246,12 +232,7 @@ class FormController @Inject() (
       }
 
       def processBack(userId: UserId, form: Form)(continue: Future[Result]): Future[Result] = {
-        val formFieldsList: Future[List[FormFieldValidationResult]] = finalResult.map {
-          case Left(formFieldResultList) => formFieldResultList
-          case Right(formFieldResultList) => formFieldResultList
-        }
-
-        val formFieldIds: Future[List[List[FormField]]] = formFieldsList.map(_.map(_.toFormFieldTolerant))
+        val formFieldIds: Future[List[List[FormField]]] = formFieldValidationResultF.map(_.map(_.toFormFieldTolerant))
         val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
 
         val formDataF = formFields.map(formFields => FormData(formFields))
@@ -284,10 +265,10 @@ class FormController @Inject() (
 
       navigationF.flatMap {
         // format: OFF
-        case SaveAndContinue(sectionNumber) => processSaveAndContinue(userId, cache.form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber))))
+        case SaveAndContinue(sn)            => processSaveAndContinue(userId, cache.form, Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sn)))
         case SaveAndExit                    => processSaveAndExit(userId, cache.form, cache.form.envelopeId)
-        case Back(sectionNumber)            => processBack(userId, cache.form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber))))
-        case SaveAndSummary                 => processSaveAndContinue(userId, cache.form)(Future.successful(Redirect(routes.SummaryGen.summaryById(formId))))
+        case Back(sn)                       => processBack(userId, cache.form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sn))))
+        case SaveAndSummary                 => processSaveAndContinue(userId, cache.form, Redirect(routes.SummaryGen.summaryById(formId)))
         case AddGroup(groupId)              => processAddGroup(groupId)
         case RemoveGroup(groupId)           => processRemoveGroup(groupId)
         // format: ON

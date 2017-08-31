@@ -33,7 +33,7 @@ case class Text(
 case class UkSortCode(value: Expr) extends ComponentType
 
 object UkSortCode {
-  val fields = (id: FieldId) => List("1", "2", "3").map(id.withSuffix)
+  def fields(id: FieldId): List[FieldId] = List("1", "2", "3").map(id.withSuffix)
 }
 
 case class Date(
