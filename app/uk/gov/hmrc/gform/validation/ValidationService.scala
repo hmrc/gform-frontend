@@ -29,6 +29,7 @@ import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService }
 import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService, Infected }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
@@ -39,18 +40,19 @@ import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
-class ValidationService(fileUploadService: FileUploadService) {
+class ValidationService(fileUploadService: FileUploadService, gformConnector: GformConnector) {
 
   def validateComponents(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(data, fileUploadService, envelopeId).validate(fieldValue)
 
-  def validateSections(section: Section, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(f: Validator => Future[ValidatedType])(implicit hc: HeaderCarrier): Future[ValidatedType] =
-    new ComponentsValidator(data, fileUploadService, envelopeId).validateValidators(section.validators)(f)
+  def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = v match {
+    case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) => gformConnector.validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse("")).map(if (_) Valid(()) else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+  }
 
 }
 
@@ -66,9 +68,6 @@ class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: Fi
     case FileUpload() => validateFileUpload(fieldValue)
     case InformationMessage(_, _) => validF
   }
-
-  def validateValidators(maybeValidators: Option[Validator])(f: Validator => Future[Validated[Map[FieldId, Set[String]], Unit]])(implicit ex: ExecutionContext): Future[ValidatedType] =
-    maybeValidators.fold[Future[ValidatedType]](Future.successful(Valid(())))(f(_))
 
   private lazy val validF = Future.successful(Valid(()))
 
@@ -301,17 +300,18 @@ class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: Fi
   }
 
   private def validateSortCode(fieldValue: FieldValue, sC: UkSortCode, mandatory: Boolean)(data: Map[FieldId, Seq[String]]) = Future.successful {
-    Monoid[ValidatedType].combineAll(UkSortCode.fields(fieldValue.id).map { fieldId =>
-      val sortCode: Seq[String] = {
-        data.get(fieldId).toList.flatten
-      }
-      (sortCode.filterNot(_.isEmpty), mandatory) match {
-        case (Nil, true) => getError(fieldValue, "must be a whole number of 2 length")
-        case (Nil, false) => Valid(())
-        case (value :: Nil, _) => checkLength(fieldValue, value, 2)
-        case (value :: Nil, _) => Valid(()) //Does not support multiple values
-      }
-    })
+    Monoid[ValidatedType].combineAll(
+      UkSortCode.fields(fieldValue.id)
+        .map { fieldId =>
+          val sortCode: Seq[String] = data.get(fieldId).toList.flatten
+          (sortCode.filterNot(_.isEmpty), mandatory) match {
+            case (Nil, true) => getError(fieldValue, "must be a whole number of 2 length")
+            case (Nil, false) => Valid(())
+            case (value :: Nil, _) => checkLength(fieldValue, value, 2)
+            case (value :: Nil, _) => Valid(()) //Does not support multiple values
+          }
+        }
+    )
   }
 
   private def validateNumber(fieldValue: FieldValue, value: String, maxWhole: Int, maxFractional: Int, mustBePositive: Boolean): ValidatedType = {

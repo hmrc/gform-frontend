@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
+package uk.gov.hmrc.gform
+package controllers
 
 import javax.inject.Inject
 
 import cats._
-import cats.data.Validated
+import cats.data.{ EitherT, Validated }
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
 import cats.syntax.all._
@@ -108,27 +109,30 @@ class FormController @Inject() (
     val fieldData = getFormData(cache.form)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
-    def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId) = {
-      Logger.debug(data + "this is data in get errors")
-      val fields = repeatService.atomicFields(sections(sectionNumber.value))
-      val allFields = sections.flatMap(repeatService.atomicFields)
-      val x: Future[Either[GformError, Unit]] = Future.sequence(fields.map(fv => validationService.validateComponents(fv, data, envelopeId))).map(Monoid[ValidatedType].combineAll).map(_.toEither)
-      val y = validationService.validateSections(sections(sectionNumber.value), data, cache.form.envelopeId) {
-        case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
-          gformConnector.validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse("")).map(if (_) Valid(()) else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
-      }.map(_.toEither)
+    def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId): Future[Map[FieldValue, FormFieldValidationResult]] = {
+      val sectionFields: List[FieldValue] = repeatService.atomicFields(sections(sectionNumber.value))
+      val allFields: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
 
-      val z: Future[ValidatedType] = {
-        val a: Future[Either[GformError, Unit]] = x.flatMap { c =>
-          y.map { d =>
-            for {
-              _ <- c
-              _ <- d
-            } yield ()
-          }
-        }
-        a.map(Validated.fromEither)
+      val validatedSectionFieldsFE: EitherT[Future, GformError, Unit] = {
+        val vs = sectionFields
+          .map(fv => validationService.validateComponents(fv, data, envelopeId))
+          .sequenceU
+          .map(Monoid[ValidatedType].combineAll)
+          .map(_.toEither)
+        EitherT(vs)
       }
+
+      val sectionAdditionalValidation: EitherT[Future, GformError, Unit] = {
+        val section = sections(sectionNumber.value)
+        val validator = section.validators
+        val vs = validator.map(validationService.validateUsingSectionValidators(_, data)).getOrElse(Future.successful(Valid(()))).map(_.toEither)
+        EitherT(vs)
+      }
+
+      val z: Future[Validated[GformError, Unit]] = (for {
+        _ <- validatedSectionFieldsFE
+        _ <- sectionAdditionalValidation
+      } yield ()).value.map(Validated.fromEither)
 
       z.map { validationResult =>
         ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
@@ -205,30 +209,25 @@ class FormController @Inject() (
         allFieldsInTemplate = sections.flatMap(repeatService.atomicFields)
       } yield allFieldsInTemplate
 
-      val validatedDataResultF: Future[ValidatedType] = for {
+      //Leave it's lazy, we don't want to spawn this computation if we got validation other validation errors
+      lazy val validatorsResult: Future[ValidatedType] = for {
         sectionFields <- sectionFieldsF
-        validatedData <- Future.sequence(sectionFields.map(fv =>
-          validationService.validateComponents(fv, data, cache.form.envelopeId)))
+        validatedData <- Future.sequence(sectionFields.map(fv => validationService.validateComponents(fv, data, cache.form.envelopeId)))
       } yield Monoid[ValidatedType].combineAll(validatedData)
 
       val validateSections: Future[ValidatedType] = for {
         sections <- sectionsF
         atomicFields <- sectionFieldsF
         section = sections(sectionNumber.value)
-        y <- Future.sequence(atomicFields.map(fv => validationService.validateSections(section, data, cache.form.envelopeId) {
-          case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
-            gformConnector.validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse("")).map(if (_) Valid(()) else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
-        }))
-      } yield Monoid[ValidatedType].combineAll(y)
+        y <- section.validators.map(validationService.validateUsingSectionValidators(_, data)).getOrElse(Future.successful(Valid(())))
+      } yield y
 
-      val validationF: Future[ValidatedType] = validateSections.flatMap { t =>
-        validatedDataResultF.map { x =>
-          val y: Either[GformError, Unit] = for {
-            _ <- x.toEither
-            _ <- t.toEither
-          } yield ()
-          Validated.fromEither(y)
-        }
+      val validationF: Future[ValidatedType] = {
+        val eT = for {
+          _ <- EitherT(validateSections.map(_.toEither))
+          _ <- EitherT(validatorsResult.map(_.toEither))
+        } yield ()
+        eT.value.map(Validated.fromEither)
       }
 
       val finalResultF: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =

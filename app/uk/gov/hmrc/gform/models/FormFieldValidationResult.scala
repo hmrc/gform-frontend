@@ -180,9 +180,7 @@ object ValidationUtil {
     val dataGetter: FieldId => Seq[String] = fId => data.get(fId).toList.flatten
 
     val gFormErrors = validationResult match {
-      case Invalid(errors) =>
-        errors
-
+      case Invalid(errors) => errors
       case Valid(()) => Map.empty[FieldId, Set[String]]
     }
 
