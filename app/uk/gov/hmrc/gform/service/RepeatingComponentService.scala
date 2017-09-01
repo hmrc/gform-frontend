@@ -141,7 +141,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  private def sumFunctionality(expr1: String, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]) = {
+  private def sumFunctionality(expr1: String, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier, ex: ExecutionContext) = {
     val dataGetter: FieldId => Int = fieldId => Try(data.get(fieldId).toList.flatten.headOption.getOrElse("0").toInt).getOrElse(0)
     val cacheMap: Future[CacheMap] = getAllRepeatingGroups
     val repeatingSections: Future[List[List[List[FieldValue]]]] = Future.sequence(formTemplate.sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
