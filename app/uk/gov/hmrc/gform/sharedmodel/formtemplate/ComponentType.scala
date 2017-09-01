@@ -22,7 +22,7 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 import scala.collection.immutable._
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait ComponentType
 
@@ -107,7 +107,7 @@ case class Group(
 
 object Group {
 
-  def getGroup(list: Future[List[List[List[FieldValue]]]], fieldId: FieldId): Future[List[FieldId]] = {
+  def getGroup(list: Future[List[List[List[FieldValue]]]], fieldId: FieldId)(implicit ex: ExecutionContext): Future[List[FieldId]] = {
     val x: Future[List[List[FieldValue]]] = list.map(_.find(x => x.flatMap(y => y.map(_.id.value.contains(fieldId.value))).contains(true)).fold(List.empty[List[FieldValue]])(z => z))
 
     x.map(matchList => getGroupLength(matchList.size, fieldId))

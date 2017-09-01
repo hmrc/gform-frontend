@@ -1,7 +1,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
-
+@import scala.concurrent.ExecutionContext.Implicits.global
 @import uk.gov.hmrc.gform.models.SummaryForRender
 @import views.html.helper.CSRF
 @(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId, formCategory: FormCategory)(implicit request: Request[_], messages: Messages)
@@ -52,6 +52,6 @@
     </form>
 
     <script type="text/javascript">
-      @Html(summary.javascripts)
+      @summary.javascripts.map(x => Html(x))
     </script>
 }
