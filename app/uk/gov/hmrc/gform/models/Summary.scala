@@ -104,10 +104,10 @@ object SummaryForRender {
         }
       }
       val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
-      val repeatingSections: Future[List[List[List[FieldValue]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
+      val repeatingGroups: Future[List[List[List[FieldValue]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
         case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil))
       })
-      SummaryForRender(snippets, fieldJavascript(fields, repeatingSections))
+      SummaryForRender(snippets, fieldJavascript(fields, repeatingGroups))
     }
   }
 }

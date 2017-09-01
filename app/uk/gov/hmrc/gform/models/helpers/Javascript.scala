@@ -37,16 +37,16 @@ object Javascript {
 
     expr match {
       case Sum(FormCtx(id)) =>
-        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { x =>
-          x.map(y =>
-            s"""document.getElementById("$x").addEventListener("change",sum$id);
-              document.getElementById("$x").addEventListener("keyup",sum$id);
+        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
+          listFieldId.map(fieldId =>
+            s"""document.getElementById("${fieldId.value}").addEventListener("change",sum$id);
+              document.getElementById("${fieldId.value}").addEventListener("keyup",sum$id);
            """).mkString("\n")
         }
 
-        val groups = Group.getGroup(groupList, FieldId(id)).map { x =>
-          x.map(y =>
-            s"""parseInt(document.getElementById("$x").value) || 0""").mkString(",")
+        val groups = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
+          listFieldId.map(fieldId =>
+            s"""parseInt(document.getElementById("${fieldId.value}").value) || 0""").mkString(",")
         }
         for {
           listeners <- eventListeners
