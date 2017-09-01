@@ -19,9 +19,10 @@ package uk.gov.hmrc.gform.validation
 import javax.inject.Inject
 
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 
-class ValidationModule @Inject() (fileUploadModule: FileUploadModule) {
+class ValidationModule @Inject() (fileUploadModule: FileUploadModule, gformBackendModule: GformBackendModule) {
 
-  val validationService = new ValidationService(fileUploadModule.fileUploadService)
+  val validationService = new ValidationService(fileUploadModule.fileUploadService, gformBackendModule.gformConnector)
 
 }
