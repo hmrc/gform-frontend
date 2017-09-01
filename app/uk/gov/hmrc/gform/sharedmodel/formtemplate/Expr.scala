@@ -22,10 +22,16 @@ import play.api.libs.json._
 sealed trait Expr
 final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr
-final case class FormCtx(value: String) extends Expr
+final case class FormCtx(value: String) extends Expr {
+  def toFieldId = FieldId(this.value)
+}
 final case class AuthCtx(value: AuthInfo) extends Expr
 final case class EeittCtx(value: Eeitt) extends Expr
 final case class Constant(value: String) extends Expr
+
+object FormCtx {
+  implicit val format: OFormat[FormCtx] = derived.oformat[FormCtx]
+}
 
 object Expr {
   implicit val format: OFormat[Expr] = derived.oformat

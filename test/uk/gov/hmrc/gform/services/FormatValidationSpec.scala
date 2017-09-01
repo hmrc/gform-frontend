@@ -159,7 +159,7 @@ class FormatValidationSpec extends Spec {
   implicit lazy val hc = HeaderCarrier()
 
   private def validator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) = {
-    new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
   }
 
   private val fieldValueFunction: TextConstraint => FieldValue = contraint => fieldValue(Text(contraint, Constant("")))

@@ -50,7 +50,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result: ValidatedType = new ComponentsValidator(speccedDate, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedDate).futureValue
 
     result.value shouldBe (())
   }
@@ -71,7 +71,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beRight(())
   }
@@ -92,7 +92,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.value shouldBe (())
   }
@@ -113,7 +113,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set(s"Date should be after 2017-06-21")))
   }
@@ -134,7 +134,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.value shouldBe (())
   }
@@ -155,7 +155,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.value shouldBe (())
   }
@@ -176,7 +176,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.value shouldBe (())
   }
@@ -197,7 +197,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.value shouldBe (())
   }
@@ -218,7 +218,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.value shouldBe (())
   }
@@ -239,7 +239,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(acceptedAfter.getYear.toString)
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.value shouldBe (())
   }
@@ -258,7 +258,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq("2017")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id.withSuffix("day") -> Set(s"entered is greater than 31")))
   }
@@ -277,7 +277,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq("222017")
     )
 
-    val result = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id.withSuffix("year") -> Set(s"is not a 4 digit number")))
   }
@@ -298,7 +298,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate-year") -> Seq(LocalDate.now().getYear.toString)
     )
 
-    val result: ValidatedType = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(
       fieldValue.id.withSuffix("day") -> Set(s"must be non-numeric"),
@@ -319,7 +319,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate.year") -> Seq("1970")
     )
 
-    val result: ValidatedType = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(FieldId("accPeriodStartDate") -> Set("Date is missing")))
   }
@@ -337,7 +337,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       FieldId("accPeriodStartDate.year") -> Seq("1970")
     )
 
-    val result: ValidatedType = new ComponentsValidator(fieldValue, data, mock[FileUploadService], EnvelopeId("whatever")).validate().futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(FieldId("accPeriodStartDate") -> Set("New error message")))
   }

@@ -314,7 +314,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
       fields.flatMap {
         case (fv: FieldValue) => fv.`type` match {
           case groupField @ Group(_, _, _, _, _, _) => section match {
-            case Section(_, _, _, _, _, _, _) => atomicFields(getAllFieldsInGroup(fv, groupField))
+            case Section(_, _, _, _, _, _, _, _) => atomicFields(getAllFieldsInGroup(fv, groupField))
             case DeclarationSection(_, _, _, _) => atomicFields(groupField.fields)
           }
           case _ => List(fv)
