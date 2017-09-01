@@ -35,6 +35,27 @@ object Javascript {
 
   def toJavascriptFn(fieldId: FieldId, expr: Expr, groupList: Future[List[List[List[FieldValue]]]])(implicit ex: ExecutionContext): Future[String] = {
 
+    val functionName = "add" + fieldId.value
+
+    def eventListeners(id: String) = {
+      s"""document.getElementById("$id").addEventListener("change",$functionName);
+         |document.getElementById("$id").addEventListener("keyup",$functionName);
+       """.stripMargin
+    }
+
+    def values(id: String) = s"""parseInt(document.getElementById("$id").value) || 0"""
+
+    def ids(expr: Expr): List[String] = {
+      expr match {
+        case Add(amountA, amountB) => ids(amountA) ::: ids(amountB)
+        case FormCtx(amountX) => List(amountX)
+        case otherwise => List("")
+      }
+    }
+
+    val demValues = ids(expr).map(values).mkString(", ")
+    val listeners = ids(expr).map(eventListeners).mkString("\n")
+
     expr match {
       case Sum(FormCtx(id)) =>
         val eventListeners = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
@@ -45,8 +66,7 @@ object Javascript {
         }
 
         val groups: Future[String] = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
-          listFieldId.map(fieldId =>
-            s"""parseInt(document.getElementById("${fieldId.value}").value) || 0""").mkString(",")
+          listFieldId.map(_.value).map(values).mkString(",")
         }
         for {
           listeners <- eventListeners
@@ -64,35 +84,18 @@ object Javascript {
             $listeners
             """
         }
-      case Add(amountA, amountB) =>
-
-        val functionName = "add" + fieldId.value
-        val ids = (toJavascriptFn(fieldId, amountA, groupList).flatMap(x => toJavascriptFn(fieldId, amountB, groupList).map(_ + x))).map(_.split(",").toList.filter(_.nonEmpty))
-
-        def eventListeners(id: String) = {
-          s"""document.getElementById("$id").addEventListener("change",$functionName);
-             |document.getElementById("$id").addEventListener("keyup",$functionName);
-       """.stripMargin
-        }
-
-        def values(id: String) = s"""parseInt(document.getElementById("$id").value) || 0"""
-        val demValues = ids.map(_.map(values).mkString(", "))
-        val listeners = ids.map(_.map(eventListeners).mkString("\n"))
-
-        demValues.flatMap(values =>
-          listeners.map( listener =>
-        s"""|function $functionName() {
-            |  var x = [ $values];
-            |  var result = x.reduce(add, 0);
-            |  return document.getElementById("${fieldId.value}").value = result;
-            |};
-            |
-            |function add(a, b) {
-            | return a + b;
-            |};
-            |$listener
-            |""".stripMargin ) )
-      case FormCtx(amountX) =>Future.successful( amountX + ",")
+      case Add(b, sn) =>
+        Future.successful(s"""|function $functionName() {
+        |  var x = [ $demValues];
+        |  var result = x.reduce(add, 0);
+        |  return document.getElementById("${fieldId.value}").value = result;
+        |};
+        |
+        |function add(a, b) {
+        | return a + b;
+        |};
+        |$listeners
+       |""".stripMargin)
       case otherwise => Future.successful("")
     }
   }
