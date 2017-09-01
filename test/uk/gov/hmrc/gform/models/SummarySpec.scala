@@ -18,12 +18,14 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import org.jsoup.Jsoup
+import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
@@ -53,6 +55,9 @@ class SummarySpec extends Spec {
     override def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
       Future.successful(formTemplate.sections)
     }
+
+    override def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] =
+      Future.successful(CacheMap("Empty", Map.empty[String, JsValue]))
 
     override def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
       List[FieldValue]()
