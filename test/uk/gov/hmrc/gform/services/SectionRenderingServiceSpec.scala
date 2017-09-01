@@ -20,6 +20,7 @@ import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.Retrievals
@@ -30,6 +31,7 @@ import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingSe
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.JavaConverters
@@ -59,6 +61,9 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
     override def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
       Future.successful(allSections)
     }
+
+    override def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] =
+      Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
 
     override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FieldValue] = {
       section.fields
@@ -267,6 +272,9 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
       override def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
         Future.successful(allSections)
       }
+
+      override def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] =
+        Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
 
       override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FieldValue] = {
         section.fields
