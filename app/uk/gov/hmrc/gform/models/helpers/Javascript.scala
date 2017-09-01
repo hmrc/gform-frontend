@@ -38,13 +38,13 @@ object Javascript {
     expr match {
       case Sum(FormCtx(id)) =>
         val eventListeners = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
-          listFieldId.map(fieldId =>
-            s"""document.getElementById("${fieldId.value}").addEventListener("change",sum$id);
-              document.getElementById("${fieldId.value}").addEventListener("keyup",sum$id);
+          listFieldId.map(groupFieldId =>
+            s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
+              document.getElementById("${groupFieldId.value}").addEventListener("keyup",sum$id);
            """).mkString("\n")
         }
 
-        val groups = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
+        val groups: Future[String] = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
           listFieldId.map(fieldId =>
             s"""parseInt(document.getElementById("${fieldId.value}").value) || 0""").mkString(",")
         }
@@ -53,7 +53,7 @@ object Javascript {
           values <- groups
         } yield {
           s"""function sum$id() {
-              var sum = [${groups}];
+              var sum = [$values];
               var result = sum.reduce(add, 0);
               return document.getElementById("${fieldId.value}").value = result;
             };
@@ -61,7 +61,7 @@ object Javascript {
             function add(a, b) {
              return a + b
             };
-            $eventListeners
+            $listeners
             """
         }
       case Add(FormCtx(amountA), FormCtx(amountB)) =>
