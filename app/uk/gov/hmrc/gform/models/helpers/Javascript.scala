@@ -17,13 +17,13 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Expr, FieldId, FieldValue}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FieldId, FieldValue }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 object Javascript {
 
-  def fieldJavascript(fields: List[FieldValue], groupList: Future[List[List[List[FieldValue]]]]): Future[String] = {
+  def fieldJavascript(fields: List[FieldValue], groupList: Future[List[List[List[FieldValue]]]])(implicit ex: ExecutionContext): Future[String] = {
 
     val fieldIdWithExpr: List[(FieldId, Expr)] =
       fields.collect {
@@ -33,20 +33,22 @@ object Javascript {
     Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n"))
   }
 
-  def toJavascriptFn(fieldId: FieldId, expr: Expr, groupList: Future[List[List[List[FieldValue]]]]): Future[String] = {
+  def toJavascriptFn(fieldId: FieldId, expr: Expr, groupList: Future[List[List[List[FieldValue]]]])(implicit ex: ExecutionContext): Future[String] = {
 
     expr match {
       case Sum(FormCtx(id)) =>
-        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { x => x.map(y =>
-          s"""document.getElementById("$x").addEventListener("change",sum$id);
+        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { x =>
+          x.map(y =>
+            s"""document.getElementById("$x").addEventListener("change",sum$id);
               document.getElementById("$x").addEventListener("keyup",sum$id);
-           """
-        ).mkString("\n")}
+           """).mkString("\n")
+        }
 
-        val groups = Group.getGroup(groupList, FieldId(id)).map { x => x.map(y =>
-          s"""parseInt(document.getElementById("$x").value) || 0"""
-        ).mkString(",")}
-        for{
+        val groups = Group.getGroup(groupList, FieldId(id)).map { x =>
+          x.map(y =>
+            s"""parseInt(document.getElementById("$x").value) || 0""").mkString(",")
+        }
+        for {
           listeners <- eventListeners
           values <- groups
         } yield {

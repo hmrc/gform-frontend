@@ -30,22 +30,22 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.{ Success, Try }
 
 @Singleton
 class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
 
   def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
-    sessionCache.fetch().map { maybeCacheMap =>
+    sessionCache.fetch().flatMap { maybeCacheMap =>
       val cacheMap = maybeCacheMap.getOrElse(CacheMap("Empty", Map.empty))
-      formTemplate.sections.flatMap { section =>
+      Future.sequence(formTemplate.sections.map { section =>
         if (isRepeatingSection(section)) {
           generateDynamicSections(section, formTemplate, data, cacheMap)
         } else {
-          List(section)
+          Future.successful(List(section))
         }
-      }
+      }).map(x => x.flatten)
     }
   }
 
@@ -58,13 +58,17 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
   private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.repeatsMin.isDefined
 
   private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]],
-    cacheMap: CacheMap)(implicit hc: HeaderCarrier): List[Section] = {
+    cacheMap: CacheMap)(implicit hc: HeaderCarrier): Future[List[Section]] = {
 
-    val count = getRequestedCount(section.repeatsMax.get, formTemplate, data, cacheMap)
+    val countF = getRequestedCount(section.repeatsMax.get, formTemplate, data, cacheMap)
 
-    (1 to count).map { i =>
-      copySection(section, i, data, cacheMap)
-    }.toList
+    for {
+      count <- countF
+    } yield {
+      (1 to count).map { i =>
+        copySection(section, i, data, cacheMap)
+      }.toList
+    }
   }
 
   private def copySection(section: Section, index: Int, data: Map[FieldId, Seq[String]],
@@ -121,29 +125,29 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Int = {
+  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Int] = {
     expr match {
-      case Add(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) + evaluateExpression(expr2, formTemplate, data)
-      case Multiply(expr1, expr2) => evaluateExpression(expr1, formTemplate, data) * evaluateExpression(expr2, formTemplate, data)
+      case Add(expr1, expr2) => evaluateExpression(expr1, formTemplate, data).flatMap(x => evaluateExpression(expr2, formTemplate, data).map(_ + x))
+      case Multiply(expr1, expr2) => evaluateExpression(expr1, formTemplate, data).flatMap(x => evaluateExpression(expr2, formTemplate, data).map(_ * x))
       case Sum(FormCtx(expr1)) =>
         val dataGetter: FieldId => Int = fieldId => Try(data.get(fieldId).toList.flatten.headOption.getOrElse("0").toInt).getOrElse(0)
         val cacheMap: Future[CacheMap] = getAllRepeatingGroups
-        val repeatingSections = formTemplate.sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
-          case (fieldId, group: Group) => Await.result(cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil)), 10 seconds)
-        }
-        Group.getGroup(repeatingSections, FieldId(expr1)).map(dataGetter).sum
+        val repeatingSections: Future[List[List[List[FieldValue]]]] = Future.sequence(formTemplate.sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
+          case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil))
+        })
+        Group.getGroup(repeatingSections, FieldId(expr1)).flatMap(x => Future.successful(x.map(dataGetter).sum))
       case formExpr @ FormCtx(_) => getFormFieldIntValue(TextExpression(formExpr), data)
       case Constant(value) => Try(value.toInt) match {
-        case Success(intValue) => intValue
-        case _ => 0
+        case Success(intValue) => Future.successful(intValue)
+        case _ => Future.successful(0)
       }
       //      case AuthCtx(value: AuthInfo) =>
       //      case EeittCtx(value: Eeitt) =>
-      case _ => 0
+      case _ => Future.successful(0)
     }
   }
 
-  private def getRequestedCount(expr: TextExpression, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier) = {
+  private def getRequestedCount(expr: TextExpression, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier): Future[Int] = {
 
     val repeatingGroupsFound = findRepeatingGroupsContainingField(expr, formTemplate)
 
@@ -152,20 +156,20 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     } else {
       val groupFieldValue = repeatingGroupsFound.head
       val fieldsInGroup = cacheMap.getEntry[List[List[FieldValue]]](groupFieldValue.id.value).getOrElse(Nil).flatten
-      fieldsInGroup.size
+      Future.successful(fieldsInGroup.size)
     }
   }
 
-  private def getFormFieldIntValue(expr: TextExpression, data: Map[FieldId, Seq[String]]) = {
+  private def getFormFieldIntValue(expr: TextExpression, data: Map[FieldId, Seq[String]]): Future[Int] = {
 
     val id = extractFieldId(expr)
 
     data.get(FieldId(id)) match {
       case Some(value) => Try(value.head.toInt) match {
-        case Success(intValue) => intValue
-        case _ => 0
+        case Success(intValue) => Future.successful(intValue)
+        case _ => Future.successful(0)
       }
-      case None => 0
+      case None => Future.successful(0)
     }
   }
 

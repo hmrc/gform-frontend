@@ -32,7 +32,7 @@ import scala.concurrent.duration._
 
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
-case class SummaryForRender(snippets: List[Html], javascripts: String)
+case class SummaryForRender(snippets: List[Html], javascripts: Future[String])
 
 object SummaryForRender {
 
@@ -103,9 +103,10 @@ object SummaryForRender {
               List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate._id, formId, section.title, index))
         }
       }
-      val repeatingSections = formTemplate.sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
-        case (fieldId, group: Group) => Await.result(repeatService.getAllRepeatingGroups.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil)), 10 seconds)
-      }
+      val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
+      val repeatingSections: Future[List[List[List[FieldValue]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
+        case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil))
+      })
       SummaryForRender(snippets, fieldJavascript(fields, repeatingSections))
     }
   }
