@@ -172,7 +172,7 @@ class FormController @Inject() (
       } yield ffvr
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(!_.values.view.exists(!_.isOk))
-      val fieldsF: Future[Seq[FormField]] = formFieldValidationResultsF.map(_.values.toSeq.flatMap(_.toFormFieldTolerant))
+      val fieldsF: Future[Seq[FormField]] = formFieldValidationResultsF.map(_.values.toSeq.flatMap(_.toFormField))
       val formDataF: Future[FormData] = fieldsF.map(FormData(_))
 
       def processSaveAndContinue(userId: UserId, form: Form, nextPage: Result)(implicit hc: HeaderCarrier): Future[Result] =
@@ -264,11 +264,11 @@ class FormController @Inject() (
     }
 
     val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] =
-      validationResultF.map { vr =>
-        ValidationUtil.evaluateValidationResult(allFieldsInTemplate, vr, data, envelope) match {
-          case Left(x) => x.map((validResult: FormFieldValidationResult) => ValidationUtil.extractedFieldValue(validResult) -> validResult).toMap
-          case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
-        }
+      validationResultF.map { validated =>
+        ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validated, data, envelope)
+          .fold(identity, identity)
+          .map(v => ValidationUtil.extractedFieldValue(v) -> v)
+          .toMap
       }
 
     formFieldValidationResultsF
