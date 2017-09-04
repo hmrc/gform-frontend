@@ -89,7 +89,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         allSections,
         0,
         Nil,
-        retrievals
+        retrievals,
+        None
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -114,7 +115,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         allSections,
         0,
         Nil,
-        retrievals
+        retrievals,
+        None
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -203,7 +205,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         allSections,
         0,
         Nil,
-        retrievals
+        retrievals,
+        None
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -253,7 +256,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         allSections,
         0,
         Nil,
-        retrievals
+        retrievals,
+        None
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -312,7 +316,8 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         allSections,
         0,
         Nil,
-        retrievals
+        retrievals,
+        None
       ).futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
