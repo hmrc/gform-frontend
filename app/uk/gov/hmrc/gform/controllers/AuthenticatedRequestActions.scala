@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, EnrolmentSection, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,30 +45,38 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 
-  def async(formTemplateId: FormTemplateId)(f: Request[AnyContent] => CacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async { implicit request =>
-    gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
-      authenticateAndAuthorise(formTemplate).flatMap {
-        case GGAuthSuccessful(retrievals) => f(request)(CacheWithoutForm(retrievals, formTemplate))
-        case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
-        case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
+  def async(formTemplateId: FormTemplateId)(f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async { implicit request =>
+    // format: OFF
+    for {
+      formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+      authResult   <- authenticateAndAuthorise(formTemplate)
+      result       <- authResult match {
+        case GGAuthSuccessful(retrievals) => f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
+        case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
-    }
+    } yield result
+    // format: ON
   }
 
-  def async(formId: FormId)(f: Request[AnyContent] => CacheWithForm => Future[Result]): Action[AnyContent] = Action.async { implicit request =>
-    val resultF = for {
-      form <- gformConnector.getForm(formId)
+  def async(formId: FormId)(f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] = Action.async { implicit request =>
+    // format: OFF
+    for {
+      form         <- gformConnector.getForm(formId)
       formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-      authResult <- authenticateAndAuthorise(formTemplate)
-    } yield (form, formTemplate, authResult)
+      authResult   <- authenticateAndAuthorise(formTemplate)
+      result       <- authResult match {
+        case GGAuthSuccessful(retrievals) => f(request)(AuthCacheWithForm(retrievals, form, formTemplate))
+        case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
+      }
+    } yield result
+    // format: ON
+  }
 
-    resultF.flatMap {
-      case (form, formTemplate, authResult) =>
-        authResult match {
-          case GGAuthSuccessful(retrievals) => f(request)(CacheWithForm(retrievals, form, formTemplate))
-          case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
-          case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
-        }
+  private def handleCommonAuthResults(result: AuthResult, formTemplate: FormTemplate) = {
+    result match {
+      case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
+      case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
+      case EnrolmentRequired => Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.EnrolmentController.showEnrolment(formTemplate._id).url))
     }
   }
 
@@ -81,7 +89,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
   }
 
   private def performEEITTAuth(template: FormTemplate)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
-    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway)).flatMap {
+    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), template.authConfig.enrolmentSection).flatMap {
       case ggSuccessfulAuth @ GGAuthSuccessful(retrievals) =>
         eeittDelegate.authenticate(template.authConfig.regimeId, retrievals.userDetails).map {
           case EeittAuthorisationSuccessful => ggSuccessfulAuth
@@ -96,22 +104,24 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       case Some(serviceId) => AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(serviceId.value)
       case None => AuthProviders(AuthProvider.GovernmentGateway)
     }
-    ggAuthorised(predicate)
+    ggAuthorised(predicate, template.authConfig.enrolmentSection)
   }
 
-  private def ggAuthorised(predicate: Predicate)(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
+  private def ggAuthorised(predicate: Predicate, enrolmentSection: Option[EnrolmentSection])(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
     authorised(predicate).retrieve(defaultRetrievals) {
       case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
         for {
           userDetails <- authConnector.getUserDetails(userDetailsUri.get)
           retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
         } yield GGAuthSuccessful(retrievals)
-    }.recover(handleErrorCondition(request))
+    }.recover(handleErrorCondition(request, enrolmentSection))
   }
 
-  private def handleErrorCondition(request: Request[AnyContent]): PartialFunction[scala.Throwable, AuthResult] = {
-    case _: InsufficientEnrolments =>
-      AuthorisationFailed(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+  private def handleErrorCondition(request: Request[AnyContent], enrolmentSection: Option[EnrolmentSection]): PartialFunction[scala.Throwable, AuthResult] = {
+    case _: InsufficientEnrolments => enrolmentSection match {
+      case Some(_) => EnrolmentRequired
+      case None => AuthorisationFailed(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+    }
 
     case _: NoActiveSession =>
       val continueUrl = java.net.URLEncoder.encode(configModule.appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
@@ -123,18 +133,18 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
   }
 }
 
-sealed trait Cache {
+sealed trait AuthCache {
   def retrievals: gform.auth.models.Retrievals
   def formTemplate: FormTemplate
 }
 
-case class CacheWithForm(
+case class AuthCacheWithForm(
   retrievals: gform.auth.models.Retrievals,
   form: Form,
   formTemplate: FormTemplate
-) extends Cache
+) extends AuthCache
 
-case class CacheWithoutForm(
+case class AuthCacheWithoutForm(
   retrievals: gform.auth.models.Retrievals,
   formTemplate: FormTemplate
-) extends Cache
+) extends AuthCache

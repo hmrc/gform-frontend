@@ -42,7 +42,7 @@ trait ExampleAuthConfig {
 
   def regimeId = RegimeId("TestRegimeId")
 
-  def authConfig = AuthConfig(authConfigModule, None, regimeId, None)
+  def authConfig = AuthConfig(authConfigModule, regimeId, None, None)
 }
 
 trait ExampleFieldId {

@@ -24,7 +24,6 @@ import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.models.helpers.Fields.okValues
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
