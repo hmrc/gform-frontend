@@ -95,7 +95,7 @@ object SummaryForRender {
         sectionsToRender.flatMap {
           case (section, index) =>
 
-            uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index) ::
+            uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size) ::
               section.fields.filter(showOnSummary)
               .map {
                 valueToHtml(_)

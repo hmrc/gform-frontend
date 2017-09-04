@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.{ Inject, Singleton }
 
+import play.api.Logger
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
@@ -59,12 +60,9 @@ class SummaryGen @Inject() (
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
-        case "Exit" :: Nil =>
-          Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTypeId)))
-        case "Declaration" :: Nil =>
-          Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId)))
-        case _ =>
-          Future.successful(BadRequest("Cannot determine action"))
+        case "Exit" :: Nil => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTypeId, cache.formTemplate.sections.size)))
+        case "Declaration" :: Nil => Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId)))
+        case _ => Future.successful(BadRequest("Cannot determine action"))
       }
     }
   }

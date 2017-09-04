@@ -1,22 +1,22 @@
 # microservice specific routes
 
-GET         /new-form/:formTemplateId                                    @uk.gov.hmrc.gform.controllers.FormController.newForm(formTemplateId: FormTemplateId)
-GET         /form/:formId/:sectionNumber/file-upload-page/:fileId        @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fileId: String)
+GET         /new-form/:formTemplateId                                             @uk.gov.hmrc.gform.controllers.FormController.newForm(formTemplateId: FormTemplateId)
+GET         /form/:formId/:sectionNumber/file-upload-page/:fileId/:totalSection   @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fileId: String, totalSection: Int)
 
-GET         /form/:formId/:sectionNumber                                 @uk.gov.hmrc.gform.controllers.FormController.form(formId: FormId, sectionNumber: SectionNumber)
-GET         /form/:formId/:sectionNumber/validate                        @uk.gov.hmrc.gform.controllers.FormController.formError(formId: FormId, sectionNumber: SectionNumber)
+GET         /form/:formId/:sectionNumber/:totalSectionNumber                      @uk.gov.hmrc.gform.controllers.FormController.form(formId: FormId, sectionNumber: SectionNumber, totalSectionNumber: Int)
+GET         /form/:formId/:sectionNumber/validate                                 @uk.gov.hmrc.gform.controllers.FormController.formError(formId: FormId, sectionNumber: SectionNumber)
 
-POST        /form/:formTemplateId/:formId/decision                       @uk.gov.hmrc.gform.controllers.FormController.decision(formTemplateId: FormTemplateId, formId: FormId)
-GET         /form/:formTemplateId/:formId/delete                         @uk.gov.hmrc.gform.controllers.FormController.delete(formTemplateId: FormTemplateId, formId: FormId)
-POST        /form/:formId/:sectionNumber                                 @uk.gov.hmrc.gform.controllers.FormController.updateFormData(formId: FormId, sectionNumber: SectionNumber)
+POST        /form/:formTemplateId/:formId/decision                                @uk.gov.hmrc.gform.controllers.FormController.decision(formTemplateId: FormTemplateId, formId: FormId)
+GET         /form/:formTemplateId/:formId/delete                                  @uk.gov.hmrc.gform.controllers.FormController.delete(formTemplateId: FormTemplateId, formId: FormId)
+POST        /form/:formId/:sectionNumber/:totalSection                            @uk.gov.hmrc.gform.controllers.FormController.updateFormData(formId: FormId, sectionNumber: SectionNumber, totalSection: Int)
 
-GET         /summary/:formId                                             @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
-GET         /declaration/:formId                                         @uk.gov.hmrc.gform.controllers.DeclarationController.showDeclaration(formId: FormId)
-POST        /declaration/:formId                                         @uk.gov.hmrc.gform.controllers.DeclarationController.submitDeclaration(formId: FormId)
-GET         /acknowledgement/:formId                                     @uk.gov.hmrc.gform.controllers.AcknowledgementController.showAcknowledgement(formId: FormId)
-POST        /summary/:formId/:formTemplateId                             @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateId: FormTemplateId)
-GET         /error/insufficient-enrolments                               uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
+GET         /summary/:formId                                                      @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId)
+GET         /declaration/:formId                                                  @uk.gov.hmrc.gform.controllers.DeclarationController.showDeclaration(formId: FormId)
+POST        /declaration/:formId                                                  @uk.gov.hmrc.gform.controllers.DeclarationController.submitDeclaration(formId: FormId)
+GET         /acknowledgement/:formId                                              @uk.gov.hmrc.gform.controllers.AcknowledgementController.showAcknowledgement(formId: FormId)
+POST        /summary/:formId/:formTemplateId                                      @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateId: FormTemplateId)
+GET         /error/insufficient-enrolments                                         uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
 
-GET         /assets/*file                                                controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                                                          controllers.Assets.versioned(path="/public", file: Asset)
 
-DELETE      /api/forms/:formId/deleteFile/:fileId                        @uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formId: FormId, fileId: FileId)
+DELETE      /api/forms/:formId/deleteFile/:fileId                                 @uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formId: FormId, fileId: FileId)

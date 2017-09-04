@@ -74,10 +74,10 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
     val ei = ExtraInfo(formId, sectionNumber, fieldData, formTemplate, f, envelope, dynamicSections, formMaxAttachmentSizeMB, retrievals)
     val section = dynamicSections(sectionNumber.value)
-    val actionForm = uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId, sectionNumber)
+    val actionForm = uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId, sectionNumber, dynamicSections.size)
 
     for {
-      snippets <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
+      snippets <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, 0, ei, dynamicSections.size)))
       javascript <- createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(repeatService.atomicFields)
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => uk.gov.hmrc.gform.views.html.hidden_field(formField))
@@ -90,7 +90,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, f, Envelope(Nil), List(formTemplate.declarationSection), 0, retrievals)
 
     for {
-      snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
+      snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei, formTemplate.sections.size)))
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formId), false, "Confirm and send", 0, Nil)
     } yield uk.gov.hmrc.gform.views.html.form(formTemplate, renderingInfo, formId)
   }
@@ -105,7 +105,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     val now = LocalDateTime.now()
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
-      snippets <- Future.sequence(formTemplate.acknowledgementSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
+      snippets <- Future.sequence(formTemplate.acknowledgementSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei, formTemplate.sections.size)))
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), formTemplate.acknowledgementSection.title, formTemplate.acknowledgementSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formId), false, "Confirm and send", 0, Nil)
     } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory)
   }
@@ -124,7 +124,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
   }
 
-  private def htmlFor(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+  private def htmlFor(fieldValue: FieldValue, index: Int, ei: ExtraInfo, totalSections: Int)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index, ei)
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, fieldValue, index, ei)
@@ -132,7 +132,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       case Address(international) => Future.successful(htmlForAddress(fieldValue, international, index, ei))
       case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, ei)
       case Choice(choice, options, orientation, selections, optionalHelpText) => Future.successful(htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, ei))
-      case FileUpload() => Future.successful(htmlForFileUpload(fieldValue, index, ei))
+      case FileUpload() => Future.successful(htmlForFileUpload(fieldValue, index, ei, totalSections))
       case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
     }
   }
@@ -144,8 +144,8 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText), index))
   }
 
-  private def htmlForFileUpload(fieldValue: FieldValue, index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
-    uk.gov.hmrc.gform.views.html.field_template_file_upload(ei.formId, ei.sectionNumber, fieldValue, validate(fieldValue, ei), index, ei.formMaxAttachmentSizeMB)
+  private def htmlForFileUpload(fieldValue: FieldValue, index: Int, ei: ExtraInfo, totalSections: Int)(implicit hc: HeaderCarrier) = {
+    uk.gov.hmrc.gform.views.html.field_template_file_upload(ei.formId, ei.sectionNumber, fieldValue, validate(fieldValue, ei), index, ei.formMaxAttachmentSizeMB, totalSections)
   }
 
   private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]], index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
@@ -218,13 +218,13 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
         case (groupList, isLimit) =>
           Future.sequence((1 to groupList.size).map { count =>
             Future.sequence(groupList(count - 1).map(fv =>
-              htmlFor(fv, count, ei))).map { lhtml =>
+              htmlFor(fv, count, ei, ei.dynamicSections.size))).map { lhtml =>
               uk.gov.hmrc.gform.views.html.group_element(fieldValue, groupField, lhtml, orientation, count, count == 1)
             }
           }.toList).map(a => (a, isLimit))
       }
     } else {
-      Future.sequence(groupField.fields.map(fv => htmlFor(fv, 0, ei))).map(a => (a, true))
+      Future.sequence(groupField.fields.map(fv => htmlFor(fv, 0, ei, ei.dynamicSections.size))).map(a => (a, true))
     }
   }
 

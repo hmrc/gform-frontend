@@ -45,19 +45,12 @@ sealed trait FormFieldValidationResult {
   }
 
   def getOptionalCurrentValue(key: String): Option[String] = this match {
-    case ComponentField(_, data) =>
-      val x = data.get(key).flatMap(_.getCurrentValue)
-      Logger.debug(key + "KEY" + data + "DATA" + x + "this is x OPTIONAL")
-      x
+    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue)
     case _ => None
   }
 
   def getCurrentValue(key: String): String = this match {
-    case ComponentField(_, data) => {
-      val x = data.get(key).flatMap(_.getCurrentValue).getOrElse("")
-      Logger.debug(key + "KEY" + data + "DATA" + x + "this is x")
-      x
-    }
+    case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue).getOrElse("")
     case _ => ""
   }
 

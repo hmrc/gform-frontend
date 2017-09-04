@@ -25,7 +25,7 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.all._
 import cats.syntax.all._
 import play.api.Logger
-import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.mvc._
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
@@ -61,7 +61,7 @@ class FormController @Inject() (
   import controllersModule.i18nSupport._
 
   def newForm(formTemplateId: FormTemplateId) = authentication.async(formTemplateId) { implicit request => cache =>
-    result(formTemplateId, UserId(cache.retrievals.userDetails.groupIdentifier))
+    result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier))
   }
 
   //true - it got the form, false - new form was created
@@ -79,19 +79,19 @@ class FormController @Inject() (
     } yield (form, maybeForm.isDefined)
   }
 
-  private def result(formTemplateId: FormTemplateId, userId: UserId)(implicit hc: HeaderCarrier, request: Request[_]) = {
+  private def result(formTemplate: FormTemplate, userId: UserId)(implicit hc: HeaderCarrier, request: Request[_]) = {
     for {
-      (form, wasFormFound) <- getOrStartForm(formTemplateId, userId)
+      (form, wasFormFound) <- getOrStartForm(formTemplate._id, userId)
     } yield {
       if (wasFormFound) {
-        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplateId, form._id))
+        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplate._id, form._id))
       } else {
-        Redirect(routes.FormController.form(form._id, SectionNumber.firstSection))
+        Redirect(routes.FormController.form(form._id, SectionNumber.firstSection, formTemplate.sections.size))
       }
     }
   }
 
-  def form(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formId) { implicit request => cache =>
+  def form(formId: FormId, sectionNumber: SectionNumber, totalSections: Int) = authentication.async(formId) { implicit request => cache =>
     val fieldData = getFormData(cache.form)
 
     for {// format: OFF
@@ -119,16 +119,16 @@ class FormController @Inject() (
     } yield Ok(html)
   }
 
-  def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String) = authentication.async(formId) { implicit request => cache =>
+  def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String, totalSection: Int) = authentication.async(formId) { implicit request => cache =>
     val fileId = FileId(fId)
 
-    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber)
-    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber)
+    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber, totalSection)
+    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber, totalSection)
 
     def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
 
     Future.successful(Ok(
-      uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId))
+      uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection)
     ))
   }
 
@@ -142,7 +142,7 @@ class FormController @Inject() (
     choice.bindFromRequest.fold(
       _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplateId, formId))),
       {
-        case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection /*TODO: once we store section number we could continumer from specific section*/ )))
+        case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection, cache.formTemplate.sections.size /*TODO: once we store section number we could continumer from specific section*/ )))
         case "delete" => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.confirm_delete(formTemplateId, formId)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId)))
       }
@@ -187,11 +187,12 @@ class FormController @Inject() (
       def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] = {
 
         for {
+          section <- sectionsF
           keystore <- repeatService.getData()
           formData <- formDataF
           userData = UserData(formData, keystore)
 
-          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId)))
+          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size)))
         } yield result
       }
 
@@ -223,11 +224,17 @@ class FormController @Inject() (
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
       val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
 
+      def redirection(call: Int => Call): Future[Result] = {
+        for {
+          section <- sectionsF
+        } yield Redirect(call(section.size))
+      }
+
       navigationF.flatMap {
         // format: OFF
-        case SaveAndContinue(sn)            => processSaveAndContinue(userId, cache.form, Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sn)))
+        case SaveAndContinue(sn)            => redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber, _)).flatMap(x => processSaveAndContinue(userId, cache.form, x))
         case SaveAndExit                    => processSaveAndExit(userId, cache.form, cache.form.envelopeId)
-        case Back(sn)                       => processBack(userId, cache.form)(Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sn))))
+        case Back(sn)                       => processBack(userId, cache.form)(redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sn, _)))
         case SaveAndSummary                 => processSaveAndContinue(userId, cache.form, Redirect(routes.SummaryGen.summaryById(formId)))
         case AddGroup(groupId)              => processAddGroup(groupId)
         case RemoveGroup(groupId)           => processRemoveGroup(groupId)

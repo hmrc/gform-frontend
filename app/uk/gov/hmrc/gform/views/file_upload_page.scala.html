@@ -10,7 +10,8 @@
         sectionNumber: SectionNumber,
         fileId: FileId,
         formTemplate: FormTemplate,
-        actionUrl: String
+        actionUrl: String,
+        totalSections: Int
 )(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
@@ -30,5 +31,5 @@
       </div>
     </form>
 
-    <a href="@{routes.FormController.form(formId, sectionNumber)}">back to form</a>
+    <a href="@{routes.FormController.form(formId, sectionNumber, totalSections)}">back to form</a>
 }
