@@ -20,23 +20,29 @@ import javax.inject.{ Inject, Singleton }
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
-
 import scala.concurrent.Future
 
-case class GGEnrolmentRequest(portalId: String, serviceName: String, friendlyName: String, knownFacts: Seq[String])
+case class TaxEnrolment(key: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])
 
-object GGEnrolmentRequest {
-  implicit val format = Json.format[GGEnrolmentRequest]
+object TaxEnrolment {
+  implicit val format = Json.format[TaxEnrolment]
+}
+
+case class TaxEnrolmentRequest(enrolments: List[TaxEnrolment])
+
+object TaxEnrolmentRequest {
+  implicit val format = Json.format[TaxEnrolmentRequest]
 }
 
 @Singleton
-class GovernmentGatewayConnector @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModule) {
+class TaxEnrolmentsConnector @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModule) {
   val http = wSHttpModule.auditableWSHttp
-  val baseUrl = configModule.serviceConfig.baseUrl("gg")
+  val baseUrl = configModule.serviceConfig.baseUrl("tax-enrolments")
 
-  def enrolGGUser(request: GGEnrolmentRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    http.POST(s"${baseUrl}/enrol", request)
+  def enrolGGUser(request: TaxEnrolmentRequest, service: ServiceId)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    http.PUT(s"${baseUrl}/tax-enrolments/service/${service.value}/enrolments", request)
 }
 
