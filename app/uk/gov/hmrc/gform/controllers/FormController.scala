@@ -108,45 +108,13 @@ class FormController @Inject() (
 
     val fieldData = getFormData(cache.form)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-
-    def getErrors(sections: List[Section], data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId): Future[Map[FieldValue, FormFieldValidationResult]] = {
-      val sectionFields: List[FieldValue] = repeatService.atomicFields(sections(sectionNumber.value))
-      val allFields: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
-
-      val validatedSectionFieldsFE: EitherT[Future, GformError, Unit] = {
-        val vs = sectionFields
-          .map(fv => validationService.validateComponents(fv, data, envelopeId))
-          .sequenceU
-          .map(Monoid[ValidatedType].combineAll)
-          .map(_.toEither)
-        EitherT(vs)
-      }
-
-      val sectionAdditionalValidation: EitherT[Future, GformError, Unit] = {
-        val section = sections(sectionNumber.value)
-        val validator = section.validators
-        val vs = validator.map(validationService.validateUsingSectionValidators(_, data)).getOrElse(Future.successful(Valid(()))).map(_.toEither)
-        EitherT(vs)
-      }
-
-      val z: Future[Validated[GformError, Unit]] = (for {
-        _ <- validatedSectionFieldsFE
-        _ <- sectionAdditionalValidation
-      } yield ()).value.map(Validated.fromEither)
-
-      z.map { validationResult =>
-        ValidationUtil.evaluateValidationResult(allFields, validationResult, data, envelope) match {
-          case Left(x) => x.map((validResult: FormFieldValidationResult) => ValidationUtil.extractedFieldValue(validResult) -> validResult).toMap
-          case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
-        }
-      }
-    }
+    val sectionsF = repeatService.getAllSections(cache.formTemplate, fieldData)
 
     for {// format: OFF
       envelope        <- envelopeF
-      dynamicSections <- repeatService.getAllSections(cache.formTemplate, fieldData)
-      errors          <- getErrors(dynamicSections, fieldData, envelope, cache.form.envelopeId)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, Some(errors.get), envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals)
+      sections        <- sectionsF
+      errors          <- getFormFieldValidationResults(sections, sectionNumber, fieldData, envelope, cache.form.envelopeId)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, Some(errors.get), envelope, cache.form.envelopeId, sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals)
       // format: ON
     } yield Ok(html)
   }
@@ -195,54 +163,16 @@ class FormController @Inject() (
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
-      val sectionsF = for {
-        sections <- repeatService.getAllSections(cache.formTemplate, data)
-      } yield sections
+      val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
 
-      val sectionFieldsF = for {
+      val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] = for {
         sections <- sectionsF
-        section = sections(sectionNumber.value)
-      } yield repeatService.atomicFields(section)
+        envelope <- envelopeF
+        ffvr <- getFormFieldValidationResults(sections, sectionNumber, data, envelope, cache.form.envelopeId)
+      } yield ffvr
 
-      val allFieldsInTemplateF: Future[List[FieldValue]] = for {
-        sections <- sectionsF
-        allFieldsInTemplate = sections.flatMap(repeatService.atomicFields)
-      } yield allFieldsInTemplate
-
-      //Leave it's lazy, we don't want to spawn this computation if we got validation other validation errors
-      lazy val validatorsResult: Future[ValidatedType] = for {
-        sectionFields <- sectionFieldsF
-        validatedData <- Future.sequence(sectionFields.map(fv => validationService.validateComponents(fv, data, cache.form.envelopeId)))
-      } yield Monoid[ValidatedType].combineAll(validatedData)
-
-      val validateSections: Future[ValidatedType] = for {
-        sections <- sectionsF
-        atomicFields <- sectionFieldsF
-        section = sections(sectionNumber.value)
-        y <- section.validators.map(validationService.validateUsingSectionValidators(_, data)).getOrElse(Future.successful(Valid(())))
-      } yield y
-
-      val validationF: Future[ValidatedType] = {
-        val eT = for {
-          _ <- EitherT(validateSections.map(_.toEither))
-          _ <- EitherT(validatorsResult.map(_.toEither))
-        } yield ()
-        eT.value.map(Validated.fromEither)
-      }
-
-      val finalResultF: Future[Either[List[FormFieldValidationResult], List[FormFieldValidationResult]]] =
-        for {
-          sectionFields <- sectionFieldsF
-          thing <- validationF
-          allFieldsInTemplate <- allFieldsInTemplateF
-          envelope <- envelopeF
-          x: Either[List[FormFieldValidationResult], List[FormFieldValidationResult]] = ValidationUtil.evaluateValidationResult(allFieldsInTemplate, thing, data, envelope)
-        } yield x
-
-      val isFormValidF: Future[Boolean] = finalResultF.map(_.fold(_ => false, _ => true))
-      val formFieldValidationResultF: Future[List[FormFieldValidationResult]] = finalResultF.map(_.fold(identity, identity))
-
-      val fieldsF: Future[Seq[FormField]] = formFieldValidationResultF.map(_.flatMap(_.toFormFieldTolerant))
+      val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(!_.values.view.exists(!_.isOk))
+      val fieldsF: Future[Seq[FormField]] = formFieldValidationResultsF.map(_.values.toSeq.flatMap(_.toFormFieldTolerant))
       val formDataF: Future[FormData] = fieldsF.map(FormData(_))
 
       def processSaveAndContinue(userId: UserId, form: Form, nextPage: Result)(implicit hc: HeaderCarrier): Future[Result] =
@@ -256,16 +186,6 @@ class FormController @Inject() (
 
       def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] = {
 
-        val formFieldsListF: Future[List[FormFieldValidationResult]] = finalResultF.map {
-          case Left(formFieldResultList) => formFieldResultList
-          case Right(formFieldResultList) => formFieldResultList
-        }
-
-        val formFieldIds: Future[List[List[FormField]]] = formFieldsListF.map(_.map(_.toFormFieldTolerant))
-        val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
-
-        val formDataF = formFields.map(formFields => FormData(formFields))
-
         for {
           keystore <- repeatService.getData()
           formData <- formDataF
@@ -276,10 +196,6 @@ class FormController @Inject() (
       }
 
       def processBack(userId: UserId, form: Form)(continue: Future[Result]): Future[Result] = {
-        val formFieldIds: Future[List[List[FormField]]] = formFieldValidationResultF.map(_.map(_.toFormFieldTolerant))
-        val formFields: Future[List[FormField]] = formFieldIds.map(_.flatten)
-
-        val formDataF = formFields.map(formFields => FormData(formFields))
 
         for {
           keystore <- repeatService.getData()
@@ -319,6 +235,43 @@ class FormController @Inject() (
       }
 
     }
+  }
+
+  private def getFormFieldValidationResults(sections: List[Section], sectionNumber: SectionNumber, data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Map[FieldValue, FormFieldValidationResult]] = {
+    val section = sections(sectionNumber.value)
+    val sectionFields: List[FieldValue] = repeatService.atomicFields(section)
+    val allFieldsInTemplate: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
+
+    //Leave it's lazy, we don't want to spawn this computation if we got validation other validation errors
+    lazy val validatorsValidationResultF: Future[ValidatedType] =
+      sectionFields
+        .map(fv => validationService.validateComponents(fv, data, envelopeId))
+        .sequenceU
+        .map(Monoid[ValidatedType].combineAll)
+
+    val sectionValidationResultF: Future[ValidatedType] =
+      section
+        .validators
+        .map(validationService.validateUsingSectionValidators(_, data))
+        .getOrElse(().valid.pure[Future])
+
+    val validationResultF: Future[ValidatedType] = {
+      val eT = for {
+        _ <- EitherT(sectionValidationResultF.map(_.toEither))
+        _ <- EitherT(validatorsValidationResultF.map(_.toEither))
+      } yield ()
+      eT.value.map(Validated.fromEither)
+    }
+
+    val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] =
+      validationResultF.map { vr =>
+        ValidationUtil.evaluateValidationResult(allFieldsInTemplate, vr, data, envelope) match {
+          case Left(x) => x.map((validResult: FormFieldValidationResult) => ValidationUtil.extractedFieldValue(validResult) -> validResult).toMap
+          case Right(y) => Map.empty[FieldValue, FormFieldValidationResult]
+        }
+      }
+
+    formFieldValidationResultsF
   }
 
   private lazy val authentication = controllersModule.authenticatedRequestActions
