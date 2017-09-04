@@ -16,8 +16,8 @@ POST        /declaration/:formTemplateId4Ga/:formId                             
 GET         /acknowledgement/:formTemplateId4Ga/:formId                                                     @uk.gov.hmrc.gform.controllers.AcknowledgementController.showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String])
 POST        /summary/:formTemplateId4Ga/:formId/:totalSectionForGa                                          @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalSectionForGa: Int, lang: Option[String])
 GET         /error/insufficient-enrolments                                                                  uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
-GET         /enrolment/:formTemplateId4Ga                                                                   @uk.gov.hmrc.gform.controllers.EnrolmentController.showEnrolment(formTemplateId: formTemplateId4Ga)
-POST        /enrolment/:formTemplateId4Ga                                                                   @uk.gov.hmrc.gform.controllers.EnrolmentController.submitEnrolment(formTemplateId: formTemplateId4Ga)
+GET         /enrolment/:formTemplateId                                                                      @uk.gov.hmrc.gform.controllers.EnrolmentController.showEnrolment(formTemplateId: FormTemplateId, lang: Option[String])
+POST        /enrolment/:formTemplateId                                                                      @uk.gov.hmrc.gform.controllers.EnrolmentController.submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String])
 
 GET         /assets/*file                                                                                     controllers.Assets.versioned(path="/public", file: Asset)
 

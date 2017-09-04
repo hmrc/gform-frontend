@@ -118,13 +118,13 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory)
   }
 
-  def renderEnrolmentSection(formTemplate: FormTemplate, f: Option[FieldValue => Option[FormFieldValidationResult]])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+  def renderEnrolmentSection(formTemplate: FormTemplate, f: Option[FieldValue => Option[FormFieldValidationResult]], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     val enrolmentSection = formTemplate.authConfig.enrolmentSection.get
     val formId = FormId("")
     val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, f, Envelope(Nil), List(enrolmentSection), 0, emptyRetrievals)
     for {
-      snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, 0, ei)))
-      renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.EnrolmentController.submitEnrolment(formTemplate._id), false, "Confirm and send", 0, Nil)
+      snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, lang)))
+      renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
     } yield uk.gov.hmrc.gform.views.html.form(formTemplate, renderingInfo, formId)
   }
 
