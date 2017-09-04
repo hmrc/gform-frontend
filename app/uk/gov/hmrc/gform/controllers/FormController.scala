@@ -91,7 +91,7 @@ class FormController @Inject() (
     }
   }
 
-  def form(formId: FormId, formTemplateIdForGa: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+  def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
     val fieldData = getFormData(cache.form)
 
     for {// format: OFF
@@ -104,7 +104,7 @@ class FormController @Inject() (
     } yield Ok(html)
   }
 
-  def formError(formId: FormId, formTemplateIdForGa: FormTemplateId, sectionNumber: SectionNumber, totalPage: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+  def formError(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalPage: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
 
     val fieldData = getFormData(cache.form)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -119,11 +119,11 @@ class FormController @Inject() (
     } yield Ok(html)
   }
 
-  def fileUploadPage(formId: FormId, formTemplateIdForGa: FormTemplateId, sectionNumber: SectionNumber, fId: String, totalSection: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+  def fileUploadPage(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, fId: String, totalSection: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
     val fileId = FileId(fId)
 
-    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, formTemplateIdForGa, sectionNumber, totalSection, lang)
-    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, formTemplateIdForGa, sectionNumber, totalSection, lang)
+    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, totalSection, lang)
+    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, totalSection, lang)
 
     def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
 

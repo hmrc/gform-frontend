@@ -1,20 +1,20 @@
 # microservice specific routes
 
 GET         /new-form/:formTemplateId                                                                         @uk.gov.hmrc.gform.controllers.FormController.newForm(formTemplateId: FormTemplateId, lang : Option[String])
-GET         /form/:formTemplateIdForGa/:formId/:sectionNumber/file-upload-page/:fileId/:totalSectionForGa     @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(formId: FormId, formTemplateIdForGa: FormTemplateId, sectionNumber: SectionNumber, fileId: String, totalSectionForGa: Int, lang: Option[String])
+GET         /form/:formTemplateId4Ga/:formId/:sectionNumber/file-upload-page/:fileId/:totalSectionForGa     @uk.gov.hmrc.gform.controllers.FormController.fileUploadPage(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, fileId: String, totalSectionForGa: Int, lang: Option[String])
 
-GET         /form/:formTemplateIdForGa/:formId/:sectionNumber/:totalSectionForGa                              @uk.gov.hmrc.gform.controllers.FormController.form(formId: FormId, formTemplateIdForGa: FormTemplateId, sectionNumber: SectionNumber, totalSectionForGa: Int, lang: Option[String])
-GET         /form/:formTemplateIdForGa/:formId/:sectionNumber/:totalSectionForGa/validate                     @uk.gov.hmrc.gform.controllers.FormController.formError(formId: FormId, formTemplateIdForGa: FormTemplateId, sectionNumber: SectionNumber, totalSectionForGa: Int, lang: Option[String])
+GET         /form/:formTemplateId4Ga/:formId/:sectionNumber/:totalSectionForGa                              @uk.gov.hmrc.gform.controllers.FormController.form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSectionForGa: Int, lang: Option[String])
+GET         /form/:formTemplateId4Ga/:formId/:sectionNumber/:totalSectionForGa/validate                     @uk.gov.hmrc.gform.controllers.FormController.formError(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSectionForGa: Int, lang: Option[String])
 
 POST        /form/:formTemplateId/:formId/decision                                                            @uk.gov.hmrc.gform.controllers.FormController.decision(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String])
-GET         /form/:formTemplateIdForGa/:formId/delete                                                         @uk.gov.hmrc.gform.controllers.FormController.delete(formTemplateIdForGa: FormTemplateId, formId: FormId, lang: Option[String])
+GET         /form/:formTemplateId4Ga/:formId/delete                                                         @uk.gov.hmrc.gform.controllers.FormController.delete(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String])
 POST        /form/:formId/:sectionNumber                                                                      @uk.gov.hmrc.gform.controllers.FormController.updateFormData(formId: FormId, sectionNumber: SectionNumber, lang: Option[String])
 
-GET         /summary/:formTemplateIdForGa/:formId                                                             @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId, formTemplateIdForGa: FormTemplateId, lang: Option[String])
-GET         /declaration/:formTemplateIdForGa/:formId                                                         @uk.gov.hmrc.gform.controllers.DeclarationController.showDeclaration(formId: FormId, formTemplateIdForGa: FormTemplateId, lang: Option[String])
-POST        /declaration/:formTemplateIdForGa/:formId                                                         @uk.gov.hmrc.gform.controllers.DeclarationController.submitDeclaration(formTemplateIdForGa: FormTemplateId, formId: FormId, lang: Option[String])
-GET         /acknowledgement/:formTemplateIdForGa/:formId                                                     @uk.gov.hmrc.gform.controllers.AcknowledgementController.showAcknowledgement(formId: FormId, formTemplateIdForGa: FormTemplateId, lang: Option[String])
-POST        /summary/:formTemplateIdForGa/:formId/:totalSectionForGa                                          @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateIdForGa: FormTemplateId, totalSectionForGa: Int, lang: Option[String])
+GET         /summary/:formTemplateId4Ga/:formId                                                             @uk.gov.hmrc.gform.controllers.SummaryGen.summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String])
+GET         /declaration/:formTemplateId4Ga/:formId                                                         @uk.gov.hmrc.gform.controllers.DeclarationController.showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String])
+POST        /declaration/:formTemplateId4Ga/:formId                                                         @uk.gov.hmrc.gform.controllers.DeclarationController.submitDeclaration(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String])
+GET         /acknowledgement/:formTemplateId4Ga/:formId                                                     @uk.gov.hmrc.gform.controllers.AcknowledgementController.showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String])
+POST        /summary/:formTemplateId4Ga/:formId/:totalSectionForGa                                          @uk.gov.hmrc.gform.controllers.SummaryGen.submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalSectionForGa: Int, lang: Option[String])
 GET         /error/insufficient-enrolments                                                                    uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
 
 GET         /assets/*file                                                                                     controllers.Assets.versioned(path="/public", file: Asset)
