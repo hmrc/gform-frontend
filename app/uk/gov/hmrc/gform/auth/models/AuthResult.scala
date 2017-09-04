@@ -16,15 +16,8 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-/*
-sealed trait AuthResult
-
-object UnAuthenticated extends AuthResult
-object NeedsAuthenticated extends AuthResult
-object Authenticated extends AuthResult
-*/
-
 sealed trait AuthResult
 final case class GGAuthSuccessful(retrievals: Retrievals) extends AuthResult
-final case class AuthenticationFailed(errorUrl: String) extends AuthResult
-final case class AuthorisationFailed(loginUrl: String) extends AuthResult
+final case class AuthenticationFailed(loginUrl: String) extends AuthResult
+final case class AuthorisationFailed(errorUrl: String) extends AuthResult
+final object EnrolmentRequired extends AuthResult

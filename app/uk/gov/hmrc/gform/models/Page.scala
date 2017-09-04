@@ -36,30 +36,4 @@ case class SectionRenderingInformation(
   continueLabel: String,
   formMaxAttachmentSizeMB: Int,
   contentTypes: scala.List[ContentType]
-) //TODO maybe pass full section object into page for render to get access to all information
-/*
-object PageForRender {
-  def apply(
-    formId: FormId,
-    sectionNumber: SectionNumber,
-    fieldData: Map[FieldId, Seq[String]],
-    formTemplate: FormTemplate,
-    f: Option[FieldValue => Option[FormFieldValidationResult]],
-    repeatService: RepeatingComponentService,
-    envelope: Envelope,
-    envelopeId: EnvelopeId,
-    prepopService: PrepopService,
-    dynamicSections: List[Section]
-  )(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] = new PageShader(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections).render()
-
-}
-*/
-
-/*case class Page(formId: FormId, sectionNumber: SectionNumber, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, envelopeId: EnvelopeId, prepopService: PrepopService) {
-  def pageForRender(fieldData: Map[FieldId, Seq[String]], f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section])(implicit retrievals: Retrievals, hc: HeaderCarrier): Future[PageForRender] =
-    PageForRender(formId, sectionNumber, fieldData, formTemplate, f, repeatService, envelope, envelopeId, prepopService, dynamicSections)
-
-  def renderPage(fieldData: Map[FieldId, Seq[String]], formId: FormId, f: Option[FieldValue => Option[FormFieldValidationResult]], dynamicSections: List[Section])(implicit request: Request[_], messages: Messages, retrievals: Retrievals, hc: HeaderCarrier): Future[Result] = {
-    pageForRender(fieldData, f, dynamicSections).map(page => Ok(uk.gov.hmrc.gform.views.html.form(formTemplate, page, formId)))
-  }
-}*/
+)
