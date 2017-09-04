@@ -18,27 +18,54 @@ package uk.gov.hmrc.gform.auth
 
 import javax.inject.{ Inject, Singleton }
 
+import play.api.libs.json.Json
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 @Singleton
-class EnrolmentService @Inject() (configModule: ConfigModule, ggConnector: GovernmentGatewayConnector) {
+class EnrolmentService @Inject() (
+    configModule: ConfigModule, ggConnector: GovernmentGatewayConnector, taxEnrolmentConnector: TaxEnrolmentsConnector
+) {
 
   def enrolUser(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])(implicit hc: HeaderCarrier) = {
-    val request = buildEnrolmentRequest(serviceId, serviceId.value, verifiers)
-    ggConnector.enrolGGUser(request)
+    val useTaxEnrolments = configModule.serviceConfig.getConfBool("enrolment-service.use-tax-enrolments", false)
+    if (useTaxEnrolments) {
+      val request = buildTaxEnrolmentsRequest(serviceId, identifiers, verifiers)
+      taxEnrolmentConnector.enrolGGUser(request, serviceId)
+    } else {
+      val request = buildGGEnrolmentRequest(serviceId, serviceId.value, verifiers)
+      ggConnector.enrolGGUser(request)
+    }
   }
 
-  private def buildEnrolmentRequest(serviceId: ServiceId, friendlyName: String, knownFacts: List[Verifier]) = {
-    EnrolmentRequest(
+  private def buildGGEnrolmentRequest(serviceId: ServiceId, friendlyName: String, knownFacts: List[Verifier]) = {
+    GGEnrolmentRequest(
       portalId = configModule.serviceConfig.getConfString("gg.enrol.portalId", ""),
       serviceName = serviceId.value,
       friendlyName = friendlyName,
       knownFacts = knownFacts.map(_.value)
     )
   }
+
+  private def buildTaxEnrolmentsRequest(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier]) = {
+    val taxEnrolment = TaxEnrolment(
+      key = serviceId,
+      identifiers = identifiers,
+      verifiers = verifiers
+    )
+    TaxEnrolmentRequest(List(taxEnrolment))
+  }
 }
 
 case class Identifier(key: String, value: String)
+
+object Identifier {
+  implicit val format = Json.format[Identifier]
+}
+
 case class Verifier(key: String, value: String)
+
+object Verifier {
+  implicit val format = Json.format[Verifier]
+}
