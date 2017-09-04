@@ -110,8 +110,8 @@ class SummarySpec extends Spec {
 
     val testStringValues = extractAllHrefs(render.futureValue.snippets)
     val expectedResult = List(
-      uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(0)).url,
-      uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(1)).url
+      uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(0), 2).url,
+      uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(1), 2).url
     )
 
     testStringValues should be(expectedResult)
@@ -414,7 +414,7 @@ class SummarySpec extends Spec {
 
     val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
 
-    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(2)).url
+    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.controllers.routes.FormController.form(localFormId, SectionNumber(2), 3).url
   }
 }
 

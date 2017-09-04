@@ -48,11 +48,11 @@ class DeclarationController @Inject() (
 
   import controllersModule.i18nSupport._
 
-  def showDeclaration(formId: FormId) = auth.async(formId) { implicit request => cache =>
-    renderer.renderDeclarationSection(formId, cache.formTemplate, None, cache.retrievals).map(Ok(_))
+  def showDeclaration(formId: FormId, formTemplateId: FormTemplateId, welsh: Option[String]) = auth.async(formId) { implicit request => cache =>
+    renderer.renderDeclarationSection(formId, cache.formTemplate, None, cache.retrievals, welsh).map(Ok(_))
   }
 
-  def submitDeclaration(formId: FormId) = auth.async(formId) { implicit request => cache =>
+  def submitDeclaration(formTemplateId: FormTemplateId, formId: FormId, welsh: Option[String]) = auth.async(formId) { implicit request => cache =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
       val validationResultF = Future.sequence(
@@ -70,12 +70,12 @@ class DeclarationController @Inject() (
               _ <- repeatService.clearSession
             } yield {
               auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
-              Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId))
+              Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId, formTemplateId, welsh))
             }
           case validationResult @ Invalid(_) =>
             val errorMap = getErrorMap(validationResult, data, cache.formTemplate)
             for {
-              html <- renderer.renderDeclarationSection(formId, cache.formTemplate, Some(errorMap.get), cache.retrievals)
+              html <- renderer.renderDeclarationSection(formId, cache.formTemplate, Some(errorMap.get), cache.retrievals, welsh)
             } yield Ok(html)
         }
         case _ =>

@@ -17,8 +17,10 @@
 package uk.gov.hmrc.gform.controllers
 
 import javax.inject.{ Inject, Singleton }
+
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 @Singleton
@@ -26,8 +28,8 @@ class AcknowledgementController @Inject() (controllersModule: ControllersModule,
 
   import controllersModule.i18nSupport._
 
-  def showAcknowledgement(formId: FormId) = auth.async(formId) { implicit request => cache =>
-    renderer.renderAcknowledgementSection(formId, cache.formTemplate, cache.retrievals).map(Ok(_))
+  def showAcknowledgement(formId: FormId, formTemplateId: FormTemplateId, welsh: Option[String]) = auth.async(formId) { implicit request => cache =>
+    renderer.renderAcknowledgementSection(formId, cache.formTemplate, cache.retrievals, welsh).map(Ok(_))
   }
 
   private lazy val auth = controllersModule.authenticatedRequestActions

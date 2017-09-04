@@ -60,8 +60,8 @@ class FormController @Inject() (
 
   import controllersModule.i18nSupport._
 
-  def newForm(formTemplateId: FormTemplateId) = authentication.async(formTemplateId) { implicit request => cache =>
-    result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier))
+  def newForm(formTemplateId: FormTemplateId, welsh: Option[String]) = authentication.async(formTemplateId) { implicit request => cache =>
+    result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier), welsh)
   }
 
   //true - it got the form, false - new form was created
@@ -79,19 +79,19 @@ class FormController @Inject() (
     } yield (form, maybeForm.isDefined)
   }
 
-  private def result(formTemplate: FormTemplate, userId: UserId)(implicit hc: HeaderCarrier, request: Request[_]) = {
+  private def result(formTemplate: FormTemplate, userId: UserId, welsh: Option[String])(implicit hc: HeaderCarrier, request: Request[_]) = {
     for {
       (form, wasFormFound) <- getOrStartForm(formTemplate._id, userId)
     } yield {
       if (wasFormFound) {
-        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplate._id, form._id))
+        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplate._id, form._id, welsh))
       } else {
-        Redirect(routes.FormController.form(form._id, SectionNumber.firstSection, formTemplate.sections.size))
+        Redirect(routes.FormController.form(form._id, formTemplate._id, SectionNumber.firstSection, formTemplate.sections.size, welsh))
       }
     }
   }
 
-  def form(formId: FormId, sectionNumber: SectionNumber, totalSections: Int) = authentication.async(formId) { implicit request => cache =>
+  def form(formId: FormId, formTemplateId: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, welsh: Option[String]) = authentication.async(formId) { implicit request => cache =>
     val fieldData = getFormData(cache.form)
 
     for {// format: OFF
@@ -99,12 +99,12 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(cache.form.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(cache.formTemplate, fieldData)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, welsh)
       // format: ON
     } yield Ok(html)
   }
 
-  def formError(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formId) { implicit request => cache =>
+  def formError(formId: FormId, formTemplateId: FormTemplateId, sectionNumber: SectionNumber, totalPage: Int, welsh: Option[String]) = authentication.async(formId) { implicit request => cache =>
 
     val fieldData = getFormData(cache.form)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -114,21 +114,21 @@ class FormController @Inject() (
       envelope        <- envelopeF
       sections        <- sectionsF
       errors          <- getFormFieldValidationResults(sections, sectionNumber, fieldData, envelope, cache.form.envelopeId)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, Some(errors.get), envelope, cache.form.envelopeId, sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, Some(errors.get), envelope, cache.form.envelopeId, sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, welsh)
       // format: ON
     } yield Ok(html)
   }
 
-  def fileUploadPage(formId: FormId, sectionNumber: SectionNumber, fId: String, totalSection: Int) = authentication.async(formId) { implicit request => cache =>
+  def fileUploadPage(formId: FormId, formTemplateId: FormTemplateId, sectionNumber: SectionNumber, fId: String, totalSection: Int, welsh: Option[String]) = authentication.async(formId) { implicit request => cache =>
     val fileId = FileId(fId)
 
-    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber, totalSection)
-    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, sectionNumber, totalSection)
+    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, formTemplateId, sectionNumber, totalSection, welsh)
+    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, formTemplateId, sectionNumber, totalSection, welsh)
 
     def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
 
     Future.successful(Ok(
-      uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection)
+      uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection, welsh)
     ))
   }
 
@@ -138,24 +138,24 @@ class FormController @Inject() (
     "decision" -> play.api.data.Forms.nonEmptyText
   ))
 
-  def decision(formTemplateId: FormTemplateId, formId: FormId): Action[AnyContent] = authentication.async(formTemplateId) { implicit request => cache =>
+  def decision(formTemplateId: FormTemplateId, formId: FormId, welsh: Option[String]): Action[AnyContent] = authentication.async(formId) { implicit request => cache =>
     choice.bindFromRequest.fold(
-      _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplateId, formId))),
+      _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplateId, formId, welsh))),
       {
-        case "continue" => Future.successful(Redirect(routes.FormController.form(formId, firstSection, cache.formTemplate.sections.size /*TODO: once we store section number we could continumer from specific section*/ )))
-        case "delete" => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.confirm_delete(formTemplateId, formId)))
-        case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId)))
+        case "continue" => Future.successful(Redirect(routes.FormController.form(formId, formTemplateId, firstSection, cache.formTemplate.sections.size, welsh))) //TODO get dyanmic sections in here ???
+        case "delete" => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.confirm_delete(formTemplateId, formId, welsh)))
+        case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, welsh)))
       }
     )
   }
 
-  def delete(formTemplateId: FormTemplateId, formId: FormId): Action[AnyContent] = authentication.async(formTemplateId) { implicit request => cache =>
+  def delete(formTemplateId: FormTemplateId, formId: FormId, welsh: Option[String]): Action[AnyContent] = authentication.async(formTemplateId) { implicit request => cache =>
     gformConnector.deleteForm(formId).map { x =>
-      Redirect(routes.FormController.newForm(formTemplateId))
+      Redirect(routes.FormController.newForm(formTemplateId, welsh))
     }
   }
 
-  def updateFormData(formId: FormId, sectionNumber: SectionNumber) = authentication.async(formId) { implicit request => cache =>
+  def updateFormData(formId: FormId, sectionNumber: SectionNumber, welsh: Option[String]) = authentication.async(formId) { implicit request => cache =>
 
     val envelopeF = for {
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -179,10 +179,11 @@ class FormController @Inject() (
         for {
           formData <- formDataF
           keystore <- repeatService.getData()
+          section <- sectionsF
           userData = UserData(formData, keystore)
           _ <- gformConnector.updateUserData(formId, userData)
           isFormValid <- isFormValidF
-        } yield if (isFormValid) nextPage else Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.formError(formId, sectionNumber))
+        } yield if (isFormValid) nextPage else Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, welsh))
 
       def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] = {
 
@@ -192,7 +193,7 @@ class FormController @Inject() (
           formData <- formDataF
           userData = UserData(formData, keystore)
 
-          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size)))
+          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size, welsh)))
         } yield result
       }
 
@@ -211,14 +212,14 @@ class FormController @Inject() (
         _ <- repeatService.appendNewGroup(groupId)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals)
+        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, welsh)
       } yield Ok(html)
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
         _ <- repeatService.removeGroup(groupId, data)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals)
+        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, welsh)
       } yield Ok(html)
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
@@ -232,10 +233,10 @@ class FormController @Inject() (
 
       navigationF.flatMap {
         // format: OFF
-        case SaveAndContinue(sn)            => redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sectionNumber, _)).flatMap(x => processSaveAndContinue(userId, cache.form, x))
+        case SaveAndContinue(sn)            => redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, cache.formTemplate._id, sn, _, welsh)).flatMap(x => processSaveAndContinue(userId, cache.form, x))
         case SaveAndExit                    => processSaveAndExit(userId, cache.form, cache.form.envelopeId)
-        case Back(sn)                       => processBack(userId, cache.form)(redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, sn, _)))
-        case SaveAndSummary                 => processSaveAndContinue(userId, cache.form, Redirect(routes.SummaryGen.summaryById(formId)))
+        case Back(sn)                       => processBack(userId, cache.form)(redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, cache.formTemplate._id, sn, _, welsh)))
+        case SaveAndSummary                 => processSaveAndContinue(userId, cache.form, Redirect(routes.SummaryGen.summaryById(formId, cache.formTemplate._id, welsh)))
         case AddGroup(groupId)              => processAddGroup(groupId)
         case RemoveGroup(groupId)           => processRemoveGroup(groupId)
         // format: ON

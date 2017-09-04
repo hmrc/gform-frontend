@@ -1,7 +1,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-@(formTemplateId: FormTemplateId, formId: FormId)(implicit request: Request[_])
+@(formTemplateId: FormTemplateId, formId: FormId, welsh: Option[String])(implicit request: Request[_])
 
 @import helper._
 @import play.api.Play.current
@@ -9,7 +9,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(title = "Confirm Delete", bodyClasses = None) {
 
-<form action="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTemplateId, formId)" method="GET">
+<form action="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTemplateId, formId, welsh)" method="GET">
     <h1>Confirm Delete</h1>
 
     @{
@@ -25,7 +25,7 @@
     <br><br><button class="button">Delete</button><br><br>
 
     <p class="back-to-previous">
-        <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.newForm(formTemplateId)" >Back</a>
+        <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.newForm(formTemplateId, welsh)" >Back</a>
     </p>
 </form>
 }
