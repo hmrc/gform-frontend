@@ -36,7 +36,7 @@ case class SummaryForRender(snippets: List[Html], javascripts: Future[String], t
 
 object SummaryForRender {
 
-  def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, welsh: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
+  def apply(data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
 
     repeatService.getAllSections(formTemplate, data).map { sections =>
       val fields: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
@@ -95,7 +95,7 @@ object SummaryForRender {
         sectionsToRender.flatMap {
           case (section, index) =>
 
-            uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size, welsh) ::
+            uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size, lang) ::
               section.fields.filter(showOnSummary)
               .map {
                 valueToHtml(_)
@@ -113,12 +113,12 @@ object SummaryForRender {
 }
 
 case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, welsh: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
-    SummaryForRender(formFields, formId, formTemplate, repeatService, envelope, welsh)
+  def summaryForRender(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
+    SummaryForRender(formFields, formId, formTemplate, repeatService, envelope, lang)
 
-  def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, welsh: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    summaryForRender(formFields, formId, repeatService, envelope, welsh).map { summaryForRender =>
-      Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), welsh))
+  def renderSummary(formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+    summaryForRender(formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
+      Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang))
     }
   }
 }

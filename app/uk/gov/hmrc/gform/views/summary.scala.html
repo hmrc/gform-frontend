@@ -4,7 +4,7 @@
 @import scala.concurrent.ExecutionContext.Implicits.global
 @import uk.gov.hmrc.gform.models.SummaryForRender
 @import views.html.helper.CSRF
-@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId, formCategory: FormCategory, welsh: Option[String])(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId, formCategory: FormCategory, lang: Option[String])(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {
     <h1 class="h1-heading">Check your details</h1>
@@ -13,7 +13,7 @@
       Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
 
-    <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryGen.submit(formId, formTemplate._id, summary.totalPage, welsh).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryGen.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
             CSRF.formField

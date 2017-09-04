@@ -3,12 +3,12 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import play.api.i18n.Messages.Implicits._
-@(formTemplateId: FormTemplateId, formId: FormId, welsh: Option[String])(implicit request: Request[_], messages: Messages)
+@(formTemplateIdForGa: FormTemplateId, formId: FormId, lang: Option[String])(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = "Continue Where you left Off", bodyClasses = None) {
 <h1>Form Started, Continue or Delete and Start again</h1>
 
-<form action=@uk.gov.hmrc.gform.controllers.routes.FormController.decision(formTemplateId, formId, welsh) method="POST">
+<form action=@uk.gov.hmrc.gform.controllers.routes.FormController.decision(formTemplateIdForGa, formId, lang) method="POST">
 
     @{CSRF.formField}
 

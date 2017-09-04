@@ -10,14 +10,14 @@
 
 @(
 formId: FormId,
-formTemplateId: FormTemplateId,
+formTemplateIdForGa: FormTemplateId,
 sectionNumber: SectionNumber,
 fieldValue: FieldValue,
 validationResult: Option[FormFieldValidationResult],
 index: Int,
 formMaxAttachmentSizeMB: Int,
 totalSections: Int,
-welsh: Option[String]
+lang: Option[String]
 )
 
 @currentValue = @{
@@ -50,11 +50,11 @@ welsh: Option[String]
         <a class="file-upload__file-list-item-link" href=@{
             routes.FormController.fileUploadPage(
               formId,
-              formTemplateId,
+              formTemplateIdForGa,
               sectionNumber,
               FileId(fieldValue.id.value).value,
               totalSections,
-              welsh
+              lang
             )
         }>
             @{currentValue}
