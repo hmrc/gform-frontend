@@ -8,7 +8,7 @@
 @import uk.gov.hmrc.gform.service.LabelHelper
 
 
-@(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int, formMaxAttachmentSizeMB: Int)
+@(formId: FormId, sectionNumber: SectionNumber, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int, formMaxAttachmentSizeMB: Int, totalSections: Int)
 
 @currentValue = @{
     val v = for {
@@ -41,7 +41,8 @@
             routes.FormController.fileUploadPage(
               formId,
               sectionNumber,
-              FileId(fieldValue.id.value).value
+              FileId(fieldValue.id.value).value,
+              totalSections
             )
         }>
             @{currentValue}

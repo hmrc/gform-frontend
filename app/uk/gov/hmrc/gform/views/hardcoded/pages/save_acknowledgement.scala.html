@@ -2,7 +2,7 @@
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
-@(formId: FormId, formTemplateId: FormTemplateId)(implicit request: Request[_])
+@(formId: FormId, formTemplateId: FormTemplateId, totalSections: Int)(implicit request: Request[_])
 
 @uk.gov.hmrc.gform.views.html.main_template(title = "Save And Come Back Later", bodyClasses = None) {
 <br>
@@ -24,7 +24,7 @@
 <p>You Can</p>
 
 <li>
-    <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, SectionNumber(0))">
+    <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, SectionNumber(0), totalSections)">
         Continue the Form
     </a>
 </li>
