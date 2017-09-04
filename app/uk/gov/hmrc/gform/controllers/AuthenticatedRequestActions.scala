@@ -76,7 +76,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     result match {
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
-      case EnrolmentRequired => Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.EnrolmentController.showEnrolment(formTemplate._id).url))
+      case EnrolmentRequired => Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
     }
   }
 

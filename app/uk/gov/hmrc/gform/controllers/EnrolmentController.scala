@@ -47,14 +47,14 @@ class EnrolmentController @Inject() (
 
   import controllersModule.i18nSupport._
 
-  def showEnrolment(formTemplateId: FormTemplateId) = Action.async { implicit request =>
+  def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = Action.async { implicit request =>
     for {
       formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-      result <- renderer.renderEnrolmentSection(formTemplate, None).map(Ok(_))
+      result <- renderer.renderEnrolmentSection(formTemplate, None, lang).map(Ok(_))
     } yield result
   }
 
-  def submitEnrolment(formTemplateId: FormTemplateId) = Action.async { implicit request =>
+  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = Action.async { implicit request =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
 
@@ -70,14 +70,14 @@ class EnrolmentController @Inject() (
               val (identifiers, verifiers) = extractIdentifiersAndVerifiers(formTemplate, data)
 
               enrolmentService.enrolUser(formTemplate.authConfig.serviceId.get, identifiers, verifiers).map { _ =>
-                Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.newForm(formTemplateId))
+                Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.newForm(formTemplateId, lang))
               }
 
             case validationResult @ Invalid(_) =>
 
               val errorMap = getErrorMap(validationResult, data, formTemplate)
               for {
-                html <- renderer.renderEnrolmentSection(formTemplate, Some(errorMap.get))
+                html <- renderer.renderEnrolmentSection(formTemplate, Some(errorMap.get), lang)
               } yield Ok(html)
 
           }
