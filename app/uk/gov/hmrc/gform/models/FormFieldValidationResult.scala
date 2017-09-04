@@ -62,45 +62,19 @@ sealed trait FormFieldValidationResult {
   }
 
   private def withId(f: FormField, id: String) = f.copy(FieldId(id))
-  /**
-   * If `this` field is not ok, we want to indicate error by using Left(())
-   */
-  def toFormField: Either[Unit, List[FormField]] = this match {
-    case FieldOk(fieldValue, cv) => Right(List(FormField(fieldValue.id, cv)))
-    case FieldGlobalError(_, _, _) => Right(List.empty[FormField])
-    case FieldGlobalOk(_, _) => Right(List.empty[FormField])
-    case ComponentField(fieldValue, data) =>
-      fieldValue `type` match {
-        case Choice(_, _, _, _, _) => Right(List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(","))))
-        case _ => data.map { case (suffix, value) => value.toFormField.map(_.map(withId(_, suffix))) }.toList.sequenceU.map(_.flatten)
-      }
 
-    case _ => Left(())
-  }
-
-  def toFormFieldTolerant: List[FormField] = this match {
+  def toFormField: List[FormField] = this match {
     case FieldOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
     case FieldError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
     case FieldGlobalError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
     case FieldGlobalOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
     case ComponentField(fieldValue, data) =>
       fieldValue.`type` match {
-        case Choice(_, _, _, _, _) => List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
-        case _ =>
-          data.flatMap {
-            case (suffix, value) =>
-              value.toFormFieldTolerant.map(withId(_, suffix))
-          }.toList
+        case c: Choice => List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
+        case _ => data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
       }
   }
 
-  private def toAddressFormField(data: Map[String, FormFieldValidationResult]) = {
-    data.map {
-      case (fieldName, formFieldValidationResult) => formFieldValidationResult.toFormField.map { formField =>
-        formField.map { _.copy(id = FieldId(fieldName)) }
-      }
-    }.toList.sequenceU.map(_.flatten)
-  }
 }
 
 case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
