@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.views
 
 package object html {
 
-  // No Welsh support yet
+  // No lang support yet
   def localisation(str: String): String = {
     str.split('|') match {
       case Array() => ""
