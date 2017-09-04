@@ -45,23 +45,23 @@ class SummaryGen @Inject() (
 
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId) = auth.async(formId) { implicit request => cache =>
+  def summaryById(formId: FormId, formTemplateId: FormTemplateId, welsh: Option[String]) = auth.async(formId) { implicit request => cache =>
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
     for {// format: OFF
       envelope       <- envelopeF
       map = formDataMap(cache.form.formData)
-      result <- Summary(cache.formTemplate).renderSummary(map, formId, repeatService, envelope)
+      result <- Summary(cache.formTemplate).renderSummary(map, formId, repeatService, envelope, welsh)
       // format: ON
     } yield result
   }
 
-  def submit(formId: FormId, formTypeId: FormTemplateId) = auth.async(formId) { implicit request => cache =>
+  def submit(formId: FormId, formTemplateId: FormTemplateId, totalPage: Int, welsh: Option[String]) = auth.async(formId) { implicit request => cache =>
 
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
       get(data, FieldId("save")) match {
-        case "Exit" :: Nil => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTypeId, cache.formTemplate.sections.size)))
-        case "Declaration" :: Nil => Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId)))
+        case "Exit" :: Nil => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTemplateId, totalPage, welsh)))
+        case "Declaration" :: Nil => Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId, welsh)))
         case _ => Future.successful(BadRequest("Cannot determine action"))
       }
     }
