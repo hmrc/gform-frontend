@@ -10,7 +10,7 @@
 
 @(
 formId: FormId,
-formTemplateIdForGa: FormTemplateId,
+formTemplateId4Ga: FormTemplateId,
 sectionNumber: SectionNumber,
 fieldValue: FieldValue,
 validationResult: Option[FormFieldValidationResult],
@@ -50,7 +50,7 @@ lang: Option[String]
         <a class="file-upload__file-list-item-link" href=@{
             routes.FormController.fileUploadPage(
               formId,
-              formTemplateIdForGa,
+              formTemplateId4Ga,
               sectionNumber,
               FileId(fieldValue.id.value).value,
               totalSections,

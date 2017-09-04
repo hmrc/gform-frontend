@@ -125,15 +125,15 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
   }
 
-  private def htmlFor(fieldValue: FieldValue, formTemplateIdForGa: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+  private def htmlFor(fieldValue: FieldValue, formTemplateId4Ga: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index, ei)
-      case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, formTemplateIdForGa, fieldValue, index, ei, lang)
+      case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, formTemplateId4Ga, fieldValue, index, ei, lang)
       case Date(_, offset, dateValue) => Future.successful(htmlForDate(fieldValue, offset, dateValue, index, ei))
       case Address(international) => Future.successful(htmlForAddress(fieldValue, international, index, ei))
       case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, ei)
       case Choice(choice, options, orientation, selections, optionalHelpText) => Future.successful(htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, ei))
-      case FileUpload() => Future.successful(htmlForFileUpload(fieldValue, formTemplateIdForGa, index, ei, totalSections, lang))
+      case FileUpload() => Future.successful(htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, totalSections, lang))
       case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
     }
   }
@@ -145,8 +145,8 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     Future.successful(uk.gov.hmrc.gform.views.html.field_template_info(fieldValue, infoType, Html(parsedMarkdownText), index))
   }
 
-  private def htmlForFileUpload(fieldValue: FieldValue, formTemplateIdForGa: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, lang: Option[String])(implicit hc: HeaderCarrier) = {
-    uk.gov.hmrc.gform.views.html.field_template_file_upload(ei.formId, formTemplateIdForGa, ei.sectionNumber, fieldValue, validate(fieldValue, ei), index, ei.formMaxAttachmentSizeMB, totalSections, lang)
+  private def htmlForFileUpload(fieldValue: FieldValue, formTemplateId4Ga: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, lang: Option[String])(implicit hc: HeaderCarrier) = {
+    uk.gov.hmrc.gform.views.html.field_template_file_upload(ei.formId, formTemplateId4Ga, ei.sectionNumber, fieldValue, validate(fieldValue, ei), index, ei.formMaxAttachmentSizeMB, totalSections, lang)
   }
 
   private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]], index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
@@ -198,8 +198,8 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     uk.gov.hmrc.gform.views.html.field_template_date(fieldValue, validate(fieldValue, ei), prepopValues, index)
   }
 
-  private def htmlForGroup(grp: Group, formTemplateIdForGa: FormTemplateId, fieldValue: FieldValue, index: Int, ei: ExtraInfo, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
-    val fgrpHtml = htmlForGroup0(grp, formTemplateIdForGa, fieldValue, index, ei, lang)
+  private def htmlForGroup(grp: Group, formTemplateId4Ga: FormTemplateId, fieldValue: FieldValue, index: Int, ei: ExtraInfo, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+    val fgrpHtml = htmlForGroup0(grp, formTemplateId4Ga, fieldValue, index, ei, lang)
 
     fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
       case Some(true) => fgrpHtml.map(grpHtml => uk.gov.hmrc.gform.views.html.collapsable(fieldValue.id, fieldValue.label, grpHtml, FormDataHelpers.dataEnteredInGroup(grp, ei.fieldData)))
@@ -207,25 +207,25 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
   }
 
-  private def htmlForGroup0(groupField: Group, formTemplateIdForGa: FormTemplateId, fieldValue: FieldValue, index: Int, ei: ExtraInfo, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages) = {
+  private def htmlForGroup0(groupField: Group, formTemplateId4Ga: FormTemplateId, fieldValue: FieldValue, index: Int, ei: ExtraInfo, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages) = {
     for {
-      (lhtml, limitReached) <- getGroupForRendering(fieldValue, formTemplateIdForGa, groupField, groupField.orientation, ei, lang)
+      (lhtml, limitReached) <- getGroupForRendering(fieldValue, formTemplateId4Ga, groupField, groupField.orientation, ei, lang)
     } yield uk.gov.hmrc.gform.views.html.group(fieldValue, groupField, lhtml, groupField.orientation, limitReached, index)
   }
 
-  private def getGroupForRendering(fieldValue: FieldValue, formTemplateIdForGa: FormTemplateId, groupField: Group, orientation: Orientation, ei: ExtraInfo, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messsages: Messages): Future[(List[Html], Boolean)] = {
+  private def getGroupForRendering(fieldValue: FieldValue, formTemplateId4Ga: FormTemplateId, groupField: Group, orientation: Orientation, ei: ExtraInfo, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messsages: Messages): Future[(List[Html], Boolean)] = {
     if (groupField.repeatsMax.isDefined) {
       repeatService.getRepeatingGroupsForRendering(fieldValue, groupField).flatMap {
         case (groupList, isLimit) =>
           Future.sequence((1 to groupList.size).map { count =>
             Future.sequence(groupList(count - 1).map(fv =>
-              htmlFor(fv, formTemplateIdForGa, count, ei, ei.dynamicSections.size, lang))).map { lhtml =>
+              htmlFor(fv, formTemplateId4Ga, count, ei, ei.dynamicSections.size, lang))).map { lhtml =>
               uk.gov.hmrc.gform.views.html.group_element(fieldValue, groupField, lhtml, orientation, count, count == 1)
             }
           }.toList).map(a => (a, isLimit))
       }
     } else {
-      Future.sequence(groupField.fields.map(fv => htmlFor(fv, formTemplateIdForGa, 0, ei, ei.dynamicSections.size, lang))).map(a => (a, true))
+      Future.sequence(groupField.fields.map(fv => htmlFor(fv, formTemplateId4Ga, 0, ei, ei.dynamicSections.size, lang))).map(a => (a, true))
     }
   }
 

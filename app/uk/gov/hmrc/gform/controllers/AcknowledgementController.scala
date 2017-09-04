@@ -28,7 +28,7 @@ class AcknowledgementController @Inject() (controllersModule: ControllersModule,
 
   import controllersModule.i18nSupport._
 
-  def showAcknowledgement(formId: FormId, formTemplateIdForGa: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
+  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     renderer.renderAcknowledgementSection(formId, cache.formTemplate, cache.retrievals, lang).map(Ok(_))
   }
 
