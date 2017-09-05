@@ -18,12 +18,10 @@ package uk.gov.hmrc.gform.validation
 
 import java.time.LocalDate
 
-import cats.Semigroup
+import cats.{ Monoid, Semigroup }
 import cats.data.Validated.{ Invalid, Valid }
 import cats.data._
 import cats.implicits._
-import cats.kernel.Monoid
-import cats.syntax._
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.fileupload._
@@ -31,7 +29,6 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.ValidationUtil._
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -53,19 +50,28 @@ class ValidationService(
   def validateComponents(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(data, fileUploadService, envelopeId).validate(fieldValue)
 
+  def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = v match {
+    case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
+      gformConnector
+        .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
+        .map(if (_)
+          ().valid
+        else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+  }
+
   def getFormFieldValidationResults(sections: List[Section], sectionNumber: SectionNumber, data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Map[FieldValue, FormFieldValidationResult]] = {
     val section = sections(sectionNumber.value)
     val sectionFields: List[FieldValue] = repeatService.atomicFields(section)
     val allFieldsInTemplate: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
 
-    //Leave it's lazy, we don't want to spawn this computation if we got validation other validation errors
-    lazy val validatorsValidationResultF: Future[ValidatedType] =
+    val validatorsValidationResultF: Future[ValidatedType] =
       sectionFields
         .map(fv => validateComponents(fv, data, envelopeId))
         .sequenceU
         .map(Monoid[ValidatedType].combineAll)
 
-    val sectionValidationResultF: Future[ValidatedType] =
+    //Leave it's lazy, we don't want to spawn this computation if we got validation other validation errors
+    lazy val sectionValidationResultF: Future[ValidatedType] =
       section
         .validators
         .map(validateUsingSectionValidators(_, data))
@@ -79,19 +85,12 @@ class ValidationService(
       eT.value.map(Validated.fromEither)
     }
 
-    val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] =
-      validationResultF.map { validated =>
-        ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validated, data, envelope)
-          .fold(identity, identity)
-          .map(v => ValidationUtil.extractedFieldValue(v) -> v)
-          .toMap
-      }
-
-    formFieldValidationResultsF
-  }
-
-  private def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = v match {
-    case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) => gformConnector.validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse("")).map(if (_) ().valid else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+    validationResultF.map { validated =>
+      ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validated, data, envelope)
+        .fold(identity, identity)
+        .map(v => v.fieldValue -> v)
+        .toMap
+    }
   }
 
 }

@@ -30,6 +30,8 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 sealed trait FormFieldValidationResult {
+  def fieldValue: FieldValue
+
   def isOk: Boolean = this match {
     case FieldOk(_, _) => true
     case FieldGlobalOk(_, _) => true
@@ -232,14 +234,6 @@ object ValidationUtil {
       case Invalid(_) => Left(resultErrors)
       case Valid(()) => Right(resultErrors)
     }
-  }
-
-  def extractedFieldValue(validResult: FormFieldValidationResult): FieldValue = validResult match {
-    case FieldOk(fv, _) => fv
-    case FieldError(fv, _, _) => fv
-    case ComponentField(fv, _) => fv
-    case FieldGlobalOk(fv, _) => fv
-    case FieldGlobalError(fv, _, _) => fv
   }
 
 }

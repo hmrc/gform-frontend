@@ -106,7 +106,7 @@ class DeclarationController @Inject() (
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
     ValidationUtil.evaluateValidationResult(declarationFields, validationResult, data, Envelope(Nil)) match {
       case Left(validationResults) =>
-        validationResults.map(result => ValidationUtil.extractedFieldValue(result) -> result).toMap
+        validationResults.map(result => result.fieldValue -> result).toMap
       case Right(_) => Map.empty[FieldValue, FormFieldValidationResult]
     }
   }

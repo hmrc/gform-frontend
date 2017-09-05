@@ -45,6 +45,8 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import views.html.hardcoded.pages._
+import views.html._
 
 class FormController @Inject() (
     controllersModule: ControllersModule,
@@ -84,7 +86,7 @@ class FormController @Inject() (
       (form, wasFormFound) <- getOrStartForm(formTemplate._id, userId)
     } yield {
       if (wasFormFound) {
-        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplate._id, form._id, lang))
+        Ok(continue_form_page(formTemplate._id, form._id, lang))
       } else {
         Redirect(routes.FormController.form(form._id, formTemplate._id, SectionNumber.firstSection, formTemplate.sections.size, lang))
       }
@@ -113,7 +115,7 @@ class FormController @Inject() (
     for {// format: OFF
       envelope        <- envelopeF
       sections        <- sectionsF
-      errors          <- getFormFieldValidationResults(sections, sectionNumber, fieldData, envelope, cache.form.envelopeId)
+      errors          <- validationService.getFormFieldValidationResults(sections, sectionNumber, fieldData, envelope, cache.form.envelopeId)
       html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, Some(errors.get), envelope, cache.form.envelopeId, sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
     } yield Ok(html)
@@ -128,7 +130,7 @@ class FormController @Inject() (
     def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
 
     Future.successful(Ok(
-      uk.gov.hmrc.gform.views.html.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection, lang)
+      file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection, lang)
     ))
   }
 
@@ -140,19 +142,17 @@ class FormController @Inject() (
 
   def decision(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formId) { implicit request => cache =>
     choice.bindFromRequest.fold(
-      _ => Future.successful(BadRequest(uk.gov.hmrc.gform.views.html.hardcoded.pages.continue_form_page(formTemplateId, formId, lang))),
+      _ => Future.successful(BadRequest(continue_form_page(formTemplateId, formId, lang))),
       {
         case "continue" => Future.successful(Redirect(routes.FormController.form(formId, formTemplateId, firstSection, cache.formTemplate.sections.size, lang))) //TODO get dyanmic sections in here ???
-        case "delete" => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.confirm_delete(formTemplateId, formId, lang)))
+        case "delete" => Future.successful(Ok(confirm_delete(formTemplateId, formId, lang)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
       }
     )
   }
 
   def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formTemplateId) { implicit request => cache =>
-    gformConnector.deleteForm(formId).map { x =>
-      Redirect(routes.FormController.newForm(formTemplateId, lang))
-    }
+    gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
   }
 
   def updateFormData(formId: FormId, sectionNumber: SectionNumber, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
@@ -168,7 +168,7 @@ class FormController @Inject() (
       val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] = for {
         sections <- sectionsF
         envelope <- envelopeF
-        ffvr <- getFormFieldValidationResults(sections, sectionNumber, data, envelope, cache.form.envelopeId)
+        ffvr <- validationService.getFormFieldValidationResults(sections, sectionNumber, data, envelope, cache.form.envelopeId)
       } yield ffvr
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(!_.values.view.exists(!_.isOk))
@@ -183,7 +183,7 @@ class FormController @Inject() (
           userData = UserData(formData, keystore)
           _ <- gformConnector.updateUserData(formId, userData)
           isFormValid <- isFormValidF
-        } yield if (isFormValid) nextPage else Redirect(uk.gov.hmrc.gform.controllers.routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, lang))
+        } yield if (isFormValid) nextPage else Redirect(routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, lang))
 
       def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] = {
 
@@ -193,7 +193,7 @@ class FormController @Inject() (
           formData <- formDataF
           userData = UserData(formData, keystore)
 
-          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size, lang)))
+          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size, lang)))
         } yield result
       }
 
@@ -243,43 +243,6 @@ class FormController @Inject() (
       }
 
     }
-  }
-
-  private def getFormFieldValidationResults(sections: List[Section], sectionNumber: SectionNumber, data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Map[FieldValue, FormFieldValidationResult]] = {
-    val section = sections(sectionNumber.value)
-    val sectionFields: List[FieldValue] = repeatService.atomicFields(section)
-    val allFieldsInTemplate: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
-
-    //Leave it's lazy, we don't want to spawn this computation if we got validation other validation errors
-    lazy val validatorsValidationResultF: Future[ValidatedType] =
-      sectionFields
-        .map(fv => validationService.validateComponents(fv, data, envelopeId))
-        .sequenceU
-        .map(Monoid[ValidatedType].combineAll)
-
-    val sectionValidationResultF: Future[ValidatedType] =
-      section
-        .validators
-        .map(validationService.validateUsingSectionValidators(_, data))
-        .getOrElse(().valid.pure[Future])
-
-    val validationResultF: Future[ValidatedType] = {
-      val eT = for {
-        _ <- EitherT(sectionValidationResultF.map(_.toEither))
-        _ <- EitherT(validatorsValidationResultF.map(_.toEither))
-      } yield ()
-      eT.value.map(Validated.fromEither)
-    }
-
-    val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] =
-      validationResultF.map { validated =>
-        ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validated, data, envelope)
-          .fold(identity, identity)
-          .map(v => ValidationUtil.extractedFieldValue(v) -> v)
-          .toMap
-      }
-
-    formFieldValidationResultsF
   }
 
   private lazy val authentication = controllersModule.authenticatedRequestActions
