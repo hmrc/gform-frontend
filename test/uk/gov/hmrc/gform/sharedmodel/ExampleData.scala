@@ -56,6 +56,8 @@ trait ExampleFieldId {
   def `fieldId - startDate-year` = FieldId("startDate-year")
   def `fieldId - startDate-day` = FieldId("startDate-day")
   def `fieldId - startDate-month` = FieldId("startDate-month")
+  def `fieldId - number` = FieldId("number")
+
   def default = FieldId("test")
 
   //fieldId when submitting form
@@ -127,6 +129,12 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     editable = false,
     submissible = true,
     errorMessage = None
+  )
+
+  def `fieldValue - number` = FieldValue(
+    `fieldId - number`,
+    Text(Number(), Constant("")),
+    "sample label", None, None, true, false, false, None
   )
 
   def fieldValue(text: Text) = FieldValue(
@@ -219,6 +227,7 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
   def `formField - startDateDay` = FormField(`fieldId - startDate-day`, "11")
   def `formField - startDateMonth` = FormField(`fieldId - startDate-month`, "10")
   def `formField - startDateYear` = FormField(`fieldId - startDate-year`, "2008")
+  def `formField - number` = FormField(`fieldId - number`, "£1,234")
 
   //actions:
 
@@ -237,7 +246,8 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
     `fieldId - startDate-year` -> `formField - startDateYear`,
     `fieldId - startDate-month` -> `formField - startDateMonth`,
     `fieldId - startDate-day` -> `formField - startDateDay`,
-    `fieldId - businessName` -> `formField - businessName`
+    `fieldId - businessName` -> `formField - businessName`,
+    `fieldId - number` -> `formField - number`
   )
 
   def rawDataFromBrowser: Map[FieldId, Seq[String]] = data.mapValues(x => Seq(x.value))

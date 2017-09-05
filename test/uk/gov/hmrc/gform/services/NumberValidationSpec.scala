@@ -21,12 +21,13 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
+class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with ExampleData {
 
   implicit lazy val hc = HeaderCarrier()
 
@@ -47,17 +48,9 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
   }
 
   "Number format" should "accept stirling pound and commas within numbers" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
+    val fieldValue = `fieldValue - number`
 
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("£1,234")
-    )
-
-    val result = validator(fieldValue, data)
+    val result = validator(fieldValue, rawDataFromBrowser)
 
     result.toEither should beRight(())
   }
