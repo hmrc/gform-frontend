@@ -46,6 +46,22 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
     result.toEither should beRight(())
   }
 
+  "Number format" should "accept stirling pound and commas within numbers" in {
+    val textConstraint = Number()
+    val number = Text(textConstraint, Constant(""))
+
+    val fieldValue = FieldValue(FieldId("n"), number,
+      "sample label", None, None, true, false, false, None)
+
+    val data = Map(
+      FieldId("n") -> Seq("£1,234")
+    )
+
+    val result = validator(fieldValue, data)
+
+    result.toEither should beRight(())
+  }
+
   "Number format" should "return invalid for non-numeric" in {
     val textConstraint = Number()
     val number = Text(textConstraint, Constant(""))
