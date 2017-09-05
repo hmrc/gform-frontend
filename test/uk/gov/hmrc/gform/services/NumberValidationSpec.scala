@@ -32,57 +32,37 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
   implicit lazy val hc = HeaderCarrier()
 
   "Number format" should "accepts whole numbers" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("123")
+      `fieldId - number` -> Seq("123")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
     result.toEither should beRight(())
   }
 
   "Number format" should "accept stirling pound and commas within numbers" in {
-    val fieldValue = `fieldValue - number`
-
-    val result = validator(fieldValue, rawDataFromBrowser)
+    val result = validator(`fieldValue - number`, rawDataFromBrowser)
 
     result.toEither should beRight(())
   }
 
   "Number format" should "return invalid for non-numeric" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("THX1138")
+      `fieldId - number` -> Seq("THX1138")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a number")))
+    result.toEither should beLeft(Map(`fieldId - number` -> Set("must be a number")))
   }
 
   "Number format" should "accepts decimal fractions" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("123.4")
+      `fieldId - number` -> Seq("123.4")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
     result.toEither should beRight(())
   }
@@ -120,17 +100,11 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
   }
 
   "Number format" should "accepts negative numbers" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("-789")
+      `fieldId - number` -> Seq("-789")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
     result.toEither should beRight(())
   }
@@ -152,67 +126,43 @@ class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers wi
   }
 
   "Number format" should "return invalid for too many digits" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("1234567890123456789.87654321")
+      `fieldId - number` -> Seq("1234567890123456789.87654321")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 11 whole digits and decimal fraction must be at most 2 digits")))
+    result.toEither should beLeft(Map(`fieldId - number` -> Set("number must be at most 11 whole digits and decimal fraction must be at most 2 digits")))
   }
 
   "Number format" should "return invalid for too many whole digits" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("1234567890123456789.87")
+      `fieldId - number` -> Seq("1234567890123456789.87")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 11 whole digits")))
+    result.toEither should beLeft(Map(`fieldId - number` -> Set("number must be at most 11 whole digits")))
   }
 
   "Number(maxFractionalDigits = 0) format" should "return invalid for too many whole digits" in {
-    val textConstraint = Number(maxFractionalDigits = 0)
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("1234567890123456789")
+      `fieldId - number` -> Seq("1234567890123456789")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be at most 11 digits")))
+    result.toEither should beLeft(Map(`fieldId - number` -> Set("must be at most 11 digits")))
   }
 
   "Number format" should "return invalid for too many fractional digits" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
     val data = Map(
-      FieldId("n") -> Seq("9.87654321")
+      `fieldId - number` -> Seq("9.87654321")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(`fieldValue - number`, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("decimal fraction must be at most 2 digits")))
+    result.toEither should beLeft(Map(`fieldId - number` -> Set("decimal fraction must be at most 2 digits")))
   }
 
   "Number(2,1) format" should "return invalid for too many digits" in {
