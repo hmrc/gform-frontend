@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AnyText, _ }
 
@@ -134,6 +135,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     text,
     "sample label", None, None, true, false, false, None
   )
+
+  def listFieldValue = List()
 
 }
 
@@ -258,6 +261,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
   def formDataNil = FormData(fields = Nil)
 
   def envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
+
+  def envelope = Envelope(Nil)
 
   def form = Form(
     formId,

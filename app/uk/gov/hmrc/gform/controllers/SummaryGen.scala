@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
@@ -31,7 +32,11 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import cats._
+import cats.implicits._
+import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -39,19 +44,27 @@ import scala.concurrent.{ ExecutionContext, Future }
 class SummaryGen @Inject() (
   controllersModule: ControllersModule,
   repeatService: RepeatingComponentService,
-  fileUploadModule: FileUploadModule
+  fileUploadModule: FileUploadModule,
+  validationModule: ValidationModule
 )(implicit ec: ExecutionContext)
     extends FrontendController {
 
   import controllersModule.i18nSupport._
 
   def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
+    val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+    val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
 
     for {// format: OFF
-      envelope       <- envelopeF
-      map = formDataMap(cache.form.formData)
-      result <- Summary(cache.formTemplate).renderSummary(map, formId, repeatService, envelope, lang)
+      envelope          <- envelopeF
+      sections          <- sectionsF
+      allFields         =  sections.flatMap(repeatService.atomicFields)
+      componentsErrors  = validationService.validateComponents(allFields, data, cache.form.envelopeId)
+      sectionErrors     = sections.map(validationService.validateUsingValidators(_, data)).sequenceU.map(Monoid[ValidatedType].combineAll)
+      v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
+      errors            = validationService.evaluateValidation(v, allFields, data, envelope)
+      result            <- Summary(cache.formTemplate).renderSummary(errors.get, data, formId, repeatService, envelope, lang)
       // format: ON
     } yield result
   }
@@ -69,4 +82,5 @@ class SummaryGen @Inject() (
 
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val auth = controllersModule.authenticatedRequestActions
+  private lazy val validationService = validationModule.validationService
 }
