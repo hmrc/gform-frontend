@@ -55,10 +55,7 @@ class DeclarationController @Inject() (
   def submitDeclaration(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
 
-      val validationResultF = Future.sequence(
-        getAllDeclarationFields(cache.formTemplate.declarationSection.fields)
-          .map(fieldValue => validationService.validateComponents(fieldValue, data, cache.form.envelopeId))
-      ).map(Monoid[ValidatedType].combineAll)
+      val validationResultF = validationService.validateComponents(getAllDeclarationFields(cache.formTemplate.declarationSection.fields), data, cache.form.envelopeId)
 
       get(data, FieldId("save")) match {
         case "Continue" :: Nil => validationResultF.flatMap {

@@ -47,40 +47,26 @@ class ValidationService(
     repeatService: RepeatingComponentService
 ) {
 
-  def validateComponents(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+  private def validateFieldValue(fieldValue: FieldValue, data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(data, fileUploadService, envelopeId).validate(fieldValue)
 
-  def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = v match {
-    case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
-      gformConnector
-        .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
-        .map(if (_)
-          ().valid
-        else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
-  }
+  def validateComponents(fieldValues: List[FieldValue], data: Map[FieldId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    fieldValues
+      .map(fv => validateFieldValue(fv, data, envelopeId))
+      .sequenceU
+      .map(Monoid[ValidatedType].combineAll)
 
-  def getFormFieldValidationResults(sections: List[Section], sectionNumber: SectionNumber, data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Map[FieldValue, FormFieldValidationResult]] = {
-    val section = sections(sectionNumber.value)
-    val sectionFields: List[FieldValue] = repeatService.atomicFields(section)
-    val allFieldsInTemplate: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
+  def validateUsingValidators(section: Section, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    section
+      .validators
+      .map(validateUsingSectionValidators(_, data))
+      .getOrElse(().valid.pure[Future])
 
-    val validatorsValidationResultF: Future[ValidatedType] =
-      sectionFields
-        .map(fv => validateComponents(fv, data, envelopeId))
-        .sequenceU
-        .map(Monoid[ValidatedType].combineAll)
-
-    //Leave it's lazy, we don't want to spawn this computation if we got validation other validation errors
-    lazy val sectionValidationResultF: Future[ValidatedType] =
-      section
-        .validators
-        .map(validateUsingSectionValidators(_, data))
-        .getOrElse(().valid.pure[Future])
-
+  def getFormFieldValidationResults(sectionFields: List[FieldValue], allFieldsInTemplate: List[FieldValue], section: Section, data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Map[FieldValue, FormFieldValidationResult]] = {
     val validationResultF: Future[ValidatedType] = {
       val eT = for {
-        _ <- EitherT(sectionValidationResultF.map(_.toEither))
-        _ <- EitherT(validatorsValidationResultF.map(_.toEither))
+        _ <- EitherT(validateComponents(sectionFields, data, envelopeId).map(_.toEither))
+        _ <- EitherT(validateUsingValidators(section, data).map(_.toEither))
       } yield ()
       eT.value.map(Validated.fromEither)
     }
@@ -93,6 +79,14 @@ class ValidationService(
     }
   }
 
+  private def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = v match {
+    case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
+      gformConnector
+        .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
+        .map(if (_)
+          ().valid
+        else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+  }
 }
 
 class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {
