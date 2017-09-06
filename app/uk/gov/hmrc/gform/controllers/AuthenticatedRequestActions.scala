@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAutho
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -65,7 +66,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
       authResult   <- authenticateAndAuthorise(formTemplate)
       result       <- authResult match {
-        case GGAuthSuccessful(retrievals) => f(request)(AuthCacheWithForm(retrievals, form, formTemplate))
+        case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(request)(AuthCacheWithForm(retrievals, form, formTemplate)))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -79,6 +80,13 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
+  }
+
+  private def checkUser(form: Form, retrievals: Retrievals)(success: Future[Result]): Future[Result] = {
+    if (form.userId.value == retrievals.userDetails.groupIdentifier)
+      success
+    else
+      Future.successful(Forbidden)
   }
 
   private def authenticateAndAuthorise(template: FormTemplate)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
