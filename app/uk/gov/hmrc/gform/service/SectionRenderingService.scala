@@ -118,8 +118,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory)
   }
 
-  def renderEnrolmentSection(formTemplate: FormTemplate, f: Option[FieldValue => Option[FormFieldValidationResult]], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
-    val enrolmentSection = formTemplate.authConfig.enrolmentSection.get
+  def renderEnrolmentSection(formTemplate: FormTemplate, enrolmentSection: EnrolmentSection, f: Option[FieldValue => Option[FormFieldValidationResult]], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     val formId = FormId("")
     val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, f, Envelope(Nil), List(enrolmentSection), 0, emptyRetrievals)
     for {

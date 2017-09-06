@@ -33,5 +33,22 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
     wSHttpModule.auditableWSHttp
   )
 
+  private lazy val ggConnector = new GovernmentGatewayConnector(
+    configModule.serviceConfig.baseUrl("gg"),
+    wSHttpModule.wSHttp
+  )
+
+  private lazy val taxEnrolmentsConnector = new TaxEnrolmentsConnector(
+    configModule.serviceConfig.baseUrl("tax-enrolments"),
+    wSHttpModule.auditableWSHttp
+  )
+
+  lazy val enrolmentService = new EnrolmentService(
+    configModule.serviceConfig.getConfBool("enrolment-service.use-tax-enrolments", false),
+    configModule.serviceConfig.getConfString("gg.enrol.portalId", ""),
+    ggConnector,
+    taxEnrolmentsConnector
+  )
+
   lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule)
 }
