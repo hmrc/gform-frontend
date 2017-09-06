@@ -157,7 +157,7 @@ class FormController @Inject() (
     )
   }
 
-  def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formTemplateId) { implicit request => cache =>
+  def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formId) { implicit request => cache =>
     gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
   }
 

@@ -79,14 +79,25 @@ class ValidationService(
     }
   }
 
-  private def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = v match {
-    case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
-      gformConnector
-        .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
-        .map(if (_)
-          ().valid
-        else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+  private def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
+    def dataGetter(fieldId: FieldId): String =
+      data.get(fieldId).toList.flatten.headOption.getOrElse("")
+
+    def getValidated(is: Boolean, errors: Map[FieldId, Set[String]]) =
+      if (is) ().valid else errors.invalid
+
+    v match {
+      case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
+        gformConnector
+          .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
+          .map(getValidated(_, Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+      case BankAccountModulusCheck(errorMessage, accountNumber, sortCode) =>
+        val sortCodeCombined = UkSortCode.fields(sortCode.toFieldId).map(dataGetter).mkString("-")
+        gformConnector.validateBankModulus(dataGetter(accountNumber.toFieldId), sortCodeCombined)
+          .map(getValidated(_, Map(accountNumber.toFieldId -> Set(errorMessage), sortCode.toFieldId -> Set(errorMessage))))
+    }
   }
+
 }
 
 class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {

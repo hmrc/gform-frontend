@@ -67,4 +67,27 @@ object HMRCUTRPostcodeCheckValidator {
   val reads = readCustom | (basic: Reads[HMRCUTRPostcodeCheckValidator])
   implicit val format: OFormat[HMRCUTRPostcodeCheckValidator] = OFormat(reads, writesCustom)
 }
-//TODO Unit tests for this Idk how id start with that.
+
+case class BankAccountModulusCheck(errorMessage: String, accountNumber: FormCtx, sortCode: FormCtx) extends SectionValidator {
+
+  val accountNumberId = accountNumber.toFieldId
+  val sortCodeId = sortCode.toFieldId
+}
+
+object BankAccountModulusCheck {
+
+  val basic: OFormat[BankAccountModulusCheck] = Json.format[BankAccountModulusCheck]
+  val writesCustom: OWrites[BankAccountModulusCheck] = OWrites { o =>
+    Json.obj("validatorName" -> "hmrcUTRPostcodeCheck") ++
+      basic.writes(o)
+  }
+
+  val writes: OWrites[BankAccountModulusCheck] = writesCustom
+  val readCustom: Reads[BankAccountModulusCheck] = ((JsPath \ "errorMessage").read[String] and
+    (JsPath \ "parameters" \\ "accountNumber").read[FormCtx] and
+    (JsPath \ "parameters" \\ "sortCode").read[FormCtx])(BankAccountModulusCheck.apply _)
+
+  val reads = readCustom | (basic: Reads[BankAccountModulusCheck])
+  implicit val format: OFormat[BankAccountModulusCheck] = OFormat(reads, writesCustom)
+}
+
