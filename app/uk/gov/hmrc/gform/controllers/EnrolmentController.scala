@@ -62,7 +62,7 @@ class EnrolmentController @Inject() (
         val hmrcAuthConfig = authConfig(formTemplate)
         val validationResultF = Future.sequence(
           getAllEnrolmentFields(hmrcAuthConfig.enrolmentSection.get.fields)
-            .map(fieldValue => validationService.validateComponents(fieldValue, data, EnvelopeId("")))
+            .map(fieldValue => validationService.validateComponents(List(fieldValue), data, EnvelopeId("")))
         ).map(Monoid[ValidatedType].combineAll)
 
         get(data, FieldId("save")) match {
@@ -101,7 +101,7 @@ class EnrolmentController @Inject() (
     val enrolmentFields = getAllEnrolmentFields(hmrcAuthConfig.enrolmentSection.get.fields)
     ValidationUtil.evaluateValidationResult(enrolmentFields, validationResult, data, Envelope(Nil)) match {
       case Left(validationResults) =>
-        validationResults.map(result => ValidationUtil.extractedFieldValue(result) -> result).toMap
+        validationResults.map(result => result.fieldValue -> result).toMap
       case Right(_) => Map.empty[FieldValue, FormFieldValidationResult]
     }
   }
