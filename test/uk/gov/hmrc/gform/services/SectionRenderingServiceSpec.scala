@@ -181,6 +181,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         mandatory = true,
         editable = false,
         submissible = false,
+        derived = true,
         errorMessage = None
       )
     }

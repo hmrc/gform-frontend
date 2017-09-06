@@ -30,7 +30,7 @@ class GroupSpec extends Spec {
     val formData4: Map[FieldId, Seq[String]] = Map(FieldId("tid") -> Seq("", "", "nonempty"))
     val formData5: Map[FieldId, Seq[String]] = Map(FieldId("tid2") -> Seq("", "", "nonempty"))
 
-    val grp: Group = Group(List(FieldValue(FieldId("tid"), Text(AnyText, Constant("")), "tlabel", None, None, false, true, true, None)), Horizontal, Some(5), Some(1), Some("repeatLabel"), Some("repeatAddAnotherText"))
+    val grp: Group = Group(List(FieldValue(FieldId("tid"), Text(AnyText, Constant("")), "tlabel", None, None, false, true, true, true, None)), Horizontal, Some(5), Some(1), Some("repeatLabel"), Some("repeatAddAnotherText"))
 
     FormDataHelpers.dataEnteredInGroup(grp, Map.empty[FieldId, Seq[String]]) should be(false)
     FormDataHelpers.dataEnteredInGroup(grp, formData2) should be(false)

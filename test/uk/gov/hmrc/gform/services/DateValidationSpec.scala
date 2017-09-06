@@ -40,7 +40,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val speccedDate = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.now().plusDays(2)
 
@@ -61,7 +61,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.now().plusDays(1)
 
@@ -82,7 +82,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(6)
 
@@ -103,7 +103,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(2)
 
@@ -124,7 +124,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.now()
 
@@ -145,7 +145,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-4)
 
@@ -166,7 +166,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.now()
 
@@ -187,7 +187,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.now().plusDays(-1)
 
@@ -208,7 +208,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.now().plusDays(-2)
 
@@ -229,7 +229,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-6)
 
@@ -250,7 +250,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val data = Map(
       FieldId("accPeriodStartDate-day") -> Seq("35"),
@@ -269,7 +269,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
-      "sample label", None, None, true, false, false, None)
+      "sample label", None, None, true, false, false, true, None)
 
     val data = Map(
       FieldId("accPeriodStartDate-day") -> Seq("15"),
@@ -290,7 +290,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, None, false,
-      false, false, None)
+      false, false, true, None)
 
     val data = Map(
       FieldId("accPeriodStartDate-day") -> Seq("Tuesday"),
@@ -311,7 +311,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, None, false,
-      false, false, None)
+      false, false, true, None)
 
     val data = Map(
       FieldId("accPeriodStartDate.day") -> Seq("01"),
@@ -329,7 +329,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     val fieldValue = FieldValue(FieldId("accPeriodStartDate"), date,
       "sample label", None, None, false,
-      false, false, Some("New error message"))
+      false, false, true, Some("New error message"))
 
     val data = Map(
       FieldId("accPeriodStartDate.day") -> Seq("01"),

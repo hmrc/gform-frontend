@@ -130,7 +130,7 @@ class NumberValidationSpec extends Spec {
     override def `fieldValue - number` = FieldValue(
       `fieldId - number`,
       Text(Number(), Constant("")),
-      "sample label", None, None, true, false, false, None
+      "sample label", None, None, true, false, false, false, None
     )
 
     override def data = Map(
