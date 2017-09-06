@@ -36,13 +36,15 @@ trait ExampleData
 
 trait ExampleAuthConfig {
 
-  def authConfigModule = AuthConfigModule("TESTAuthConfigModule")
+  def authConfigModule = AuthConfigModule("hmrc")
 
   def dmsSubmission = DmsSubmission("nino", "BT-NRU-Environmental", "FinanceOpsCorpT")
 
   def regimeId = RegimeId("TestRegimeId")
 
-  def authConfig = AuthConfig(authConfigModule, regimeId, None, None)
+  def serviceId = ServiceId("TestServiceId")
+
+  def authConfig = HMRCAuthConfig(authConfigModule, Some(regimeId), Some(serviceId), None)
 }
 
 trait ExampleFieldId {
