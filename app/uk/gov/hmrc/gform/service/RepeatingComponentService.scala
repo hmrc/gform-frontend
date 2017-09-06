@@ -242,9 +242,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
       Future.successful(
         y.structure.foreach(x =>
           x._2.asOpt[List[List[FieldValue]]] match {
-            case Some(z) =>
-              Logger.debug("RELOADTHING" + Json.prettyPrint(Json.toJson(z)))
-              sessionCache.cache[List[List[FieldValue]]](x._1, z)
+            case Some(z) => sessionCache.cache[List[List[FieldValue]]](x._1, z)
           })
       ))
   }

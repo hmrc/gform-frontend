@@ -79,13 +79,7 @@ object SummaryForRender {
         }
       }
 
-      def showOnSummary(fieldValue: FieldValue) = {
-        (fieldValue.presentationHint, fieldValue.submissible) match {
-          case (Some(x), _) if x contains InvisibleInSummary => false
-          case (_, false) => false
-          case (_, true) => true
-        }
-      }
+      def showOnSummary(fieldValue: FieldValue) = fieldValue.presentationHint.fold(true)(x => x contains InvisibleInSummary)
 
       val snippets: List[Html] = {
         val allSections = sections.zipWithIndex

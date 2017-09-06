@@ -97,6 +97,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       case _: NotFoundException => false
     }
 
+  def validateBankModulus(accountNumber: String, sortCode: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
+    ws.GET[HttpResponse](s"$baseUrl/validate/bank/$accountNumber/$sortCode").map(_ => true).recover {
+      case _: NotFoundException => false
+    }
   import scala.io.Source
   def fileToByteStr(filename: String): ByteString = ByteString(Source.fromFile(filename).mkString)
   //TODO other formTemplate endpoints
