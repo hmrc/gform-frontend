@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfigModule, EnrolmentSection, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -81,17 +81,16 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
   }
 
   private def authenticateAndAuthorise(template: FormTemplate)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
-    template.authConfig.authModule match {
-      case AuthConfigModule("legacyEEITTAuth") => performEEITTAuth(template)
-      case AuthConfigModule("hmrc") => performHMRCAuth(template)
-      case others => Future.failed(new RuntimeException(s"Invalid authModule value in template's authConfig section: ${others.value}"))
+    template.authConfig match {
+      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig)
+      case authConfig: HMRCAuthConfig => performHMRCAuth(authConfig)
     }
   }
 
-  private def performEEITTAuth(template: FormTemplate)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
-    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), template.authConfig.enrolmentSection).flatMap {
+  private def performEEITTAuth(authConfig: EEITTAuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
+    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), None).flatMap {
       case ggSuccessfulAuth @ GGAuthSuccessful(retrievals) =>
-        eeittDelegate.authenticate(template.authConfig.regimeId, retrievals.userDetails).map {
+        eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails).map {
           case EeittAuthorisationSuccessful => ggSuccessfulAuth
           case EeittAuthorisationFailed(eeittLoginUrl) => AuthorisationFailed(eeittLoginUrl)
         }
@@ -99,12 +98,12 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     }
   }
 
-  private def performHMRCAuth(template: FormTemplate)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
-    val predicate = template.authConfig.serviceId match {
+  private def performHMRCAuth(authConfig: HMRCAuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
+    val predicate = authConfig.serviceId match {
       case Some(serviceId) => AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(serviceId.value)
       case None => AuthProviders(AuthProvider.GovernmentGateway)
     }
-    ggAuthorised(predicate, template.authConfig.enrolmentSection)
+    ggAuthorised(predicate, authConfig.enrolmentSection)
   }
 
   private def ggAuthorised(predicate: Predicate, enrolmentSection: Option[EnrolmentSection])(implicit request: Request[AnyContent], hc: HeaderCarrier) = {

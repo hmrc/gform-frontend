@@ -16,14 +16,9 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.data.Validated
-import cats.data.Validated.{ Invalid, Valid }
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
-import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait SectionValidator {
   def errorMessage: String
@@ -55,18 +50,17 @@ case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, pos
 
 object HMRCUTRPostcodeCheckValidator {
   val basic: OFormat[HMRCUTRPostcodeCheckValidator] = Json.format[HMRCUTRPostcodeCheckValidator]
-  val writesCustom: OWrites[HMRCUTRPostcodeCheckValidator] = OWrites { o =>
+  val writes: OWrites[HMRCUTRPostcodeCheckValidator] = OWrites { o =>
     Json.obj("validatorName" -> "bankAccountModulusCheck") ++
       basic.writes(o)
   }
 
-  val writes: OWrites[HMRCUTRPostcodeCheckValidator] = writesCustom
   val readCustom: Reads[HMRCUTRPostcodeCheckValidator] = ((JsPath \ "errorMessage").read[String] and
     (JsPath \ "parameters" \\ "utr").read[FormCtx] and
     (JsPath \ "parameters" \\ "postcode").read[FormCtx])(HMRCUTRPostcodeCheckValidator.apply _)
 
   val reads = readCustom | (basic: Reads[HMRCUTRPostcodeCheckValidator])
-  implicit val format: OFormat[HMRCUTRPostcodeCheckValidator] = OFormat(reads, writesCustom)
+  implicit val format: OFormat[HMRCUTRPostcodeCheckValidator] = OFormat(reads, writes)
 }
 
 case class BankAccoutnModulusCheck(errorMessage: String, accountNumber: FormCtx, sortCode: FormCtx) extends SectionValidator {

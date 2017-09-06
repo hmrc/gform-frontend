@@ -16,20 +16,18 @@
 
 package uk.gov.hmrc.gform.auth
 
-import javax.inject.{ Inject, Singleton }
-
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-@Singleton
-class EnrolmentService @Inject() (
-    configModule: ConfigModule, ggConnector: GovernmentGatewayConnector, taxEnrolmentConnector: TaxEnrolmentsConnector
+class EnrolmentService(
+    useTaxEnrolments: Boolean,
+    portalId: String,
+    ggConnector: GovernmentGatewayConnector,
+    taxEnrolmentConnector: TaxEnrolmentsConnector
 ) {
 
   def enrolUser(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])(implicit hc: HeaderCarrier) = {
-    val useTaxEnrolments = configModule.serviceConfig.getConfBool("enrolment-service.use-tax-enrolments", false)
     if (useTaxEnrolments) {
       val request = buildTaxEnrolmentsRequest(serviceId, identifiers, verifiers)
       taxEnrolmentConnector.enrolGGUser(request, serviceId)
@@ -41,7 +39,7 @@ class EnrolmentService @Inject() (
 
   private def buildGGEnrolmentRequest(serviceId: ServiceId, friendlyName: String, knownFacts: List[Verifier]) = {
     GGEnrolmentRequest(
-      portalId = configModule.serviceConfig.getConfString("gg.enrol.portalId", ""),
+      portalId = this.portalId,
       serviceName = serviceId.value,
       friendlyName = friendlyName,
       knownFacts = knownFacts.map(_.value)

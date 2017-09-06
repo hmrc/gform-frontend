@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.gform.auth
 
-import javax.inject.{ Inject, Singleton }
-
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.play.http.ws.WSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.Future
@@ -31,10 +30,7 @@ object GGEnrolmentRequest {
   implicit val format = Json.format[GGEnrolmentRequest]
 }
 
-@Singleton
-class GovernmentGatewayConnector @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModule) {
-  val http = wSHttpModule.auditableWSHttp
-  val baseUrl = configModule.serviceConfig.baseUrl("gg")
+class GovernmentGatewayConnector(baseUrl: String, http: WSHttp) {
 
   def enrolGGUser(request: GGEnrolmentRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     http.POST(s"${baseUrl}/enrol", request)
