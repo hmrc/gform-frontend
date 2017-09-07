@@ -26,12 +26,12 @@
 
         @UkSortCode.fields(fieldValue.id).map{ fieldId =>
         <input
-                type="text"
-                name="@fieldId"
-        @if(!fieldValue.editable) { readonly="" }
-        id="@fieldId"
-        value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
-        class="input--xxsmall if(fieldId.last == 1){push--left}"> @if(fieldId.toString.last == 3) { - }
+          type="text"
+          name="@fieldId"
+          @if(!fieldValue.editable) { readonly="" }
+          id="@fieldId"
+          value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
+          class="input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
         }
 
     </div>
