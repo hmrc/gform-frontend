@@ -91,7 +91,7 @@ class ValidationService(
         gformConnector
           .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
           .map(getValidated(_, Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
-      case BankAccountModulusCheck(errorMessage, accountNumber, sortCode) =>
+      case BankAccoutnModulusCheck(errorMessage, accountNumber, sortCode) =>
         val sortCodeCombined = UkSortCode.fields(sortCode.toFieldId).map(dataGetter).mkString("-")
         gformConnector.validateBankModulus(dataGetter(accountNumber.toFieldId), sortCodeCombined)
           .map(getValidated(_, Map(accountNumber.toFieldId -> Set(errorMessage), sortCode.toFieldId -> Set(errorMessage))))

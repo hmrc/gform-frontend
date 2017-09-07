@@ -79,7 +79,9 @@ object SummaryForRender {
         }
       }
 
-      def showOnSummary(fieldValue: FieldValue) = fieldValue.presentationHint.fold(true)(x => x contains InvisibleInSummary)
+      def showOnSummary(fieldValue: FieldValue) =
+        fieldValue.presentationHint
+          .fold(false)(x => x.contains(InvisibleInSummary))
 
       val snippets: List[Html] = {
         val allSections = sections.zipWithIndex
@@ -90,7 +92,7 @@ object SummaryForRender {
           case (section, index) =>
 
             uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size, lang) ::
-              section.fields.filter(showOnSummary)
+              section.fields.filterNot(showOnSummary)
               .map {
                 valueToHtml(_)
               } ++

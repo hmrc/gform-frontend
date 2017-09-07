@@ -121,7 +121,7 @@ class SummarySpec extends Spec {
 
     val section = Section("Personal details", None, None, None, None, None, None, List(
       FieldValue(FieldId("Surname"), Text(AnyText, Constant("")), "Surname", None, None, true, true, true, None),
-      FieldValue(FieldId("Info"), Text(AnyText, Constant("")), "Info", None, None, true, true, submissible = false, None),
+      FieldValue(FieldId("Info"), Text(AnyText, Constant("")), "Info", None, None, true, true, submissible = false, None, presentationHint = Some(List(InvisibleInSummary))),
       FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true, None),
       FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true, None)
     ))
