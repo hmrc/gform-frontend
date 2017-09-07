@@ -13,28 +13,21 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
 @(fieldValue: FieldValue, groupField: Group, snippets: List[Html], orientation: Orientation, disableAddButton: Boolean, index: Int)
 
-
 <fieldset>
   <legend class="visuallyhidden">
     Add @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
   </legend>
 
-  @if(groupField.repeatsMax.isDefined) {
+  @if(!fieldValue.label.isEmpty) {
     <div class="subsection">
       <div class="divider--bottom">
         <div class="form-field-group">
           <h2 class="heading-small">
-            @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-          </h2>
-        </div>
-      </div>
-    </div>
-  } else {
-    <div class="subsection">
-      <div class="divider--bottom">
-        <div class="form-field-group">
-          <h2 class="heading-small">
-            @localisation(fieldValue.label)
+            @if(!groupField.repeatsMax.isDefined) {
+              @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+            } else {
+              @localisation(fieldValue.label)
+            }
           </h2>
         </div>
       </div>
