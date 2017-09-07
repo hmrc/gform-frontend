@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import cats._
 import cats.implicits._
-import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import scala.concurrent.{ ExecutionContext, Future }
 

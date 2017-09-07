@@ -1,4 +1,4 @@
-@import uk.gov.hmrc.gform.models.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
@@ -6,6 +6,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
+@import uk.gov.hmrc.gform.validation.ValidationUtil
 @(fieldValue: FieldValue, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
 <div class="form-group">
