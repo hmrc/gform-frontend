@@ -51,7 +51,7 @@ case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, pos
 object HMRCUTRPostcodeCheckValidator {
   val basic: OFormat[HMRCUTRPostcodeCheckValidator] = Json.format[HMRCUTRPostcodeCheckValidator]
   val writes: OWrites[HMRCUTRPostcodeCheckValidator] = OWrites { o =>
-    Json.obj("validatorName" -> "bankAccountModulusCheck") ++
+    Json.obj("validatorName" -> "hmrcUTRPostcodeCheck") ++
       basic.writes(o)
   }
 
