@@ -187,6 +187,11 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
     val validatedValue = validate(fieldValue, ei)
 
+    val isStirling = fieldValue.`type` match {
+      case Text(Sterling, _) => true
+      case _ => false
+    }
+
     for {
       prepopValue <- prepopValueF
     } yield uk.gov.hmrc.gform.views.html.field_template_text(fieldValue, t, prepopValue, validatedValue, index)
