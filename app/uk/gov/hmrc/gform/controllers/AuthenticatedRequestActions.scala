@@ -76,19 +76,20 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     result match {
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
-      case EnrolmentRequired => Future.successful(Redirect(uk.gov.hmrc.gform.controllers.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
+      case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
+      case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
   }
 
   private def authenticateAndAuthorise(template: FormTemplate)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
     template.authConfig match {
       case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig)
-      case authConfig: HMRCAuthConfig => performHMRCAuth(authConfig)
+      case authConfig => performHMRCAuth(authConfig)
     }
   }
 
   private def performEEITTAuth(authConfig: EEITTAuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
-    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), None).flatMap {
+    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), authConfig).flatMap {
       case ggSuccessfulAuth @ GGAuthSuccessful(retrievals) =>
         eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails).map {
           case EeittAuthorisationSuccessful => ggSuccessfulAuth
@@ -98,28 +99,28 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     }
   }
 
-  private def performHMRCAuth(authConfig: HMRCAuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
-    val predicate = authConfig.serviceId match {
-      case Some(serviceId) => AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(serviceId.value)
-      case None => AuthProviders(AuthProvider.GovernmentGateway)
+  private def performHMRCAuth(authConfig: AuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
+    val predicate = authConfig match {
+      case config: AuthConfigWithEnrolment => AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(config.serviceId.value)
+      case _ => AuthProviders(AuthProvider.GovernmentGateway)
     }
-    ggAuthorised(predicate, authConfig.enrolmentSection)
+    ggAuthorised(predicate, authConfig)
   }
 
-  private def ggAuthorised(predicate: Predicate, enrolmentSection: Option[EnrolmentSection])(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
+  private def ggAuthorised(predicate: Predicate, authConfig: AuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
     authorised(predicate).retrieve(defaultRetrievals) {
       case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
         for {
           userDetails <- authConnector.getUserDetails(userDetailsUri.get)
           retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
         } yield GGAuthSuccessful(retrievals)
-    }.recover(handleErrorCondition(request, enrolmentSection))
+    }.recover(handleErrorCondition(request, authConfig))
   }
 
-  private def handleErrorCondition(request: Request[AnyContent], enrolmentSection: Option[EnrolmentSection]): PartialFunction[scala.Throwable, AuthResult] = {
-    case _: InsufficientEnrolments => enrolmentSection match {
-      case Some(_) => EnrolmentRequired
-      case None => AuthorisationFailed(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+  private def handleErrorCondition(request: Request[AnyContent], authConfig: AuthConfig): PartialFunction[scala.Throwable, AuthResult] = {
+    case _: InsufficientEnrolments => authConfig match {
+      case _: AuthConfigWithEnrolment => EnrolmentRequired
+      case _ => AuthorisationFailed(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
     }
 
     case _: NoActiveSession =>
