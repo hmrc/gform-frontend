@@ -82,9 +82,9 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     }
   }
 
-  private def checkUser(form: Form, retrievals: Retrievals)(success: Future[Result]): Future[Result] = {
+  private def checkUser(form: Form, retrievals: Retrievals)(actionResult: Future[Result]): Future[Result] = {
     if (form.userId.value == retrievals.userDetails.groupIdentifier)
-      success
+      actionResult
     else
       Future.successful(Forbidden)
   }
