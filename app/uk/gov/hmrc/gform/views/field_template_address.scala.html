@@ -1,8 +1,9 @@
-@import uk.gov.hmrc.gform.models.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.service.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+@import uk.gov.hmrc.gform.validation.ValidationUtil
 @(international: Boolean, fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], index: Int)
 
 @safeId(id: String) = @{
@@ -72,7 +73,9 @@
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
         val errors: Set[String] = ValidationUtil.printErrors(map)
 
-        errors.map(e => errorInline(e, e, Seq("")))
+//        errors.map(e => errorInline(e, e, Seq("")))
+        errors.map(e => <span class="our-code">{e}</span>)
+
         }
 
         <div class="form-group-compound">

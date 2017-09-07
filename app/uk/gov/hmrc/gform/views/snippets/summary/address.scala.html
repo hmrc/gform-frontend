@@ -1,30 +1,37 @@
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.localisation
+@import uk.gov.hmrc.gform.validation.ValidationUtil
+@import uk.gov.hmrc.play.views.html.helpers._
 
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
 
-@safeId(id: String) = @{
-  fieldValue.id.withSuffix(id).value
-}
-
-<tr>
-  <td>
-    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-  </td>
-
-  <td>
-    @List(
-        "street1",
-        "street2",
-        "street3",
-        "street4",
-        "postcode",
-        "country"
-    ).map { suffix =>
-        @if(validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
-            @validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")<br />
-        }
+    @safeId(id: String) = @{
+        fieldValue.id.withSuffix(id).value
     }
-  </td>
-</tr>
+<tr>
+
+    <tr>
+
+        <td>
+        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+        </td>
+        <td>
+
+        @for(suffix <- List("street1","street2","street3","street4","postcode","country")) {
+            @{
+                val fieldId = safeId(suffix)
+//
+//                if(validationResult.map(_.getCurrentValue(fieldId).isEmpty).contains(false)) {
+//                    validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
+//                            <br/>
+//                }
+//
+                val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+                val x = map.get(fieldId).getOrElse(Set()) ++ map.get(fieldValue.id.value).getOrElse(Set())
+                x
+            }
+            <br/>
+            }
+        </td>
+    </tr>
