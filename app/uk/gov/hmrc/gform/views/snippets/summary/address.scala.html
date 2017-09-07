@@ -9,29 +9,35 @@
     @safeId(id: String) = @{
         fieldValue.id.withSuffix(id).value
     }
-<tr>
 
-    <tr>
+    <tr class="error"> //need If statement here.
 
         <td>
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
         </td>
         <td>
 
-        @for(suffix <- List("street1","street2","street3","street4","postcode","country")) {
             @{
-                val fieldId = safeId(suffix)
-//
-//                if(validationResult.map(_.getCurrentValue(fieldId).isEmpty).contains(false)) {
-//                    validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
-//                            <br/>
-//                }
-//
-                val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-                val x = map.get(fieldId).getOrElse(Set()) ++ map.get(fieldValue.id.value).getOrElse(Set())
-                x
+            val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+            val errors: Set[String] = ValidationUtil.printErrors(map)
+
+            errors.map(e => errorInline(e, e, Seq("")))
             }
-            <br/>
+
+        </td>
+        <td>
+            @List(
+            "street1",
+            "street2",
+            "street3",
+            "street4",
+            "postcode",
+            "country"
+            ).map { suffix =>
+            @if(validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
+            @validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
+            <br />
+            }
             }
         </td>
     </tr>
