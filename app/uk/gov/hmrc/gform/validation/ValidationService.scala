@@ -26,7 +26,7 @@ import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.ValidationUtil._
+import uk.gov.hmrc.gform.models.ValidationUtil.{ ValidatedType, _ }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
@@ -62,31 +62,39 @@ class ValidationService(
       .map(validateUsingSectionValidators(_, data))
       .getOrElse(().valid.pure[Future])
 
-  def getFormFieldValidationResults(sectionFields: List[FieldValue], allFieldsInTemplate: List[FieldValue], section: Section, data: Map[FieldId, Seq[String]], envelope: Envelope, envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Map[FieldValue, FormFieldValidationResult]] = {
-    val validationResultF: Future[ValidatedType] = {
-      val eT = for {
-        _ <- EitherT(validateComponents(sectionFields, data, envelopeId).map(_.toEither))
-        _ <- EitherT(validateUsingValidators(section, data).map(_.toEither))
-      } yield ()
-      eT.value.map(Validated.fromEither)
-    }
+  def sequenceValidations(v1: Future[ValidatedType], v2: => Future[ValidatedType])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
+    val eT = for {
+      _ <- EitherT(v1.map(_.toEither))
+      _ <- EitherT(v2.map(_.toEither))
+    } yield ()
+    eT.value.map(Validated.fromEither)
+  }
 
-    validationResultF.map { validated =>
-      ValidationUtil.evaluateValidationResult(allFieldsInTemplate, validated, data, envelope)
-        .fold(identity, identity)
-        .map(v => v.fieldValue -> v)
-        .toMap
+  def evaluateValidation(v: ValidatedType, fields: List[FieldValue], data: Map[FieldId, Seq[String]], envelope: Envelope): Map[FieldValue, FormFieldValidationResult] =
+    ValidationUtil.evaluateValidationResult(fields, v, data, envelope)
+      .fold(identity, identity)
+      .map(v => v.fieldValue -> v)
+      .toMap
+
+  private def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
+    def dataGetter(fieldId: FieldId): String =
+      data.get(fieldId).toList.flatten.headOption.getOrElse("")
+
+    def getValidated(is: Boolean, errors: Map[FieldId, Set[String]]) =
+      if (is) ().valid else errors.invalid
+
+    v match {
+      case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
+        gformConnector
+          .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
+          .map(getValidated(_, Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
+      case BankAccoutnModulusCheck(errorMessage, accountNumber, sortCode) =>
+        val sortCodeCombined = UkSortCode.fields(sortCode.toFieldId).map(dataGetter).mkString("-")
+        gformConnector.validateBankModulus(dataGetter(accountNumber.toFieldId), sortCodeCombined)
+          .map(getValidated(_, Map(accountNumber.toFieldId -> Set(errorMessage), sortCode.toFieldId -> Set(errorMessage))))
     }
   }
 
-  private def validateUsingSectionValidators(v: SectionValidator, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = v match {
-    case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
-      gformConnector
-        .validatePostCodeUtr(data.get(FieldId(utr.value)).toList.flatten.headOption.getOrElse(""), data.get(FieldId(postcode.value)).toList.flatten.headOption.getOrElse(""))
-        .map(if (_)
-          ().valid
-        else Invalid(Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
-  }
 }
 
 class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {

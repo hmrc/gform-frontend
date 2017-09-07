@@ -34,6 +34,7 @@ case object SectionValidator {
   val reads: Reads[SectionValidator] = Reads { json =>
     (json \ "validatorName").as[String] match {
       case "hmrcUTRPostcodeCheck" => json.validate[HMRCUTRPostcodeCheckValidator]
+      case "bankAccountModulusCheck" => json.validate[BankAccoutnModulusCheck]
     }
   }
 
@@ -55,7 +56,7 @@ case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, pos
 object HMRCUTRPostcodeCheckValidator {
   val basic: OFormat[HMRCUTRPostcodeCheckValidator] = Json.format[HMRCUTRPostcodeCheckValidator]
   val writesCustom: OWrites[HMRCUTRPostcodeCheckValidator] = OWrites { o =>
-    Json.obj("validatorName" -> "hmrcUTRPostcodeCheck") ++
+    Json.obj("validatorName" -> "bankAccountModulusCheck") ++
       basic.writes(o)
   }
 
@@ -67,4 +68,25 @@ object HMRCUTRPostcodeCheckValidator {
   val reads = readCustom | (basic: Reads[HMRCUTRPostcodeCheckValidator])
   implicit val format: OFormat[HMRCUTRPostcodeCheckValidator] = OFormat(reads, writesCustom)
 }
-//TODO Unit tests for this Idk how id start with that.
+
+case class BankAccoutnModulusCheck(errorMessage: String, accountNumber: FormCtx, sortCode: FormCtx) extends SectionValidator {
+
+  val accountNumberId = accountNumber.toFieldId
+  val sortCodeId = sortCode.toFieldId
+}
+
+object BankAccoutnModulusCheck {
+  val basic: OFormat[BankAccoutnModulusCheck] = Json.format[BankAccoutnModulusCheck]
+  val writesCustom: OWrites[BankAccoutnModulusCheck] = OWrites { o =>
+    Json.obj("validatorName" -> "bankAccountModulusCheck") ++
+      basic.writes(o)
+  }
+
+  val writes: OWrites[BankAccoutnModulusCheck] = writesCustom
+  val readCustom: Reads[BankAccoutnModulusCheck] = ((JsPath \ "errorMessage").read[String] and
+    (JsPath \ "parameters" \\ "accountNumber").read[FormCtx] and
+    (JsPath \ "parameters" \\ "sortCode").read[FormCtx])(BankAccoutnModulusCheck.apply _)
+
+  val reads = readCustom | (basic: Reads[BankAccoutnModulusCheck])
+  implicit val format: OFormat[BankAccoutnModulusCheck] = OFormat(reads, writesCustom)
+}

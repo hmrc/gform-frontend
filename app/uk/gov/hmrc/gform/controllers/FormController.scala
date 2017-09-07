@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform
 package controllers
 
 import javax.inject.Inject
+import helpers._
 
 import cats._
 import cats.data.{ EitherT, Validated }
@@ -94,7 +95,7 @@ class FormController @Inject() (
   }
 
   def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
-    val fieldData = getFormData(cache.form)
+    val fieldData = FormDataHelpers.formDataMap(cache.form.formData)
 
     for {// format: OFF
       _               <- repeatService.loadData(cache.form.repeatingGroupStructure)
@@ -108,18 +109,21 @@ class FormController @Inject() (
 
   def formError(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalPage: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
 
-    val data = getFormData(cache.form)
+    val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
 
     for {// format: OFF
-      envelope        <- envelopeF
-      sections        <- sectionsF
-      section         = sections(sectionNumber.value)
-      sectionFields   = repeatService.atomicFields(section)
-      allFields       =  sections.flatMap(repeatService.atomicFields)
-      errors          <- validationService.getFormFieldValidationResults(sectionFields, allFields, section, data, envelope, cache.form.envelopeId)
-      html            <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, Some(errors.get), envelope, cache.form.envelopeId, sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+      envelope          <- envelopeF
+      sections          <- sectionsF
+      section           = sections(sectionNumber.value)
+      sectionFields     = repeatService.atomicFields(section)
+      allFields         =  sections.flatMap(repeatService.atomicFields)
+      componentsErrors  = validationService.validateComponents(sectionFields, data, cache.form.envelopeId)
+      sectionErrors     = validationService.validateUsingValidators(section, data)
+      v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
+      errors            = validationService.evaluateValidation(v, allFields, data, envelope)
+      html              <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, Some(errors.get), envelope, cache.form.envelopeId, sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
     } yield Ok(html)
   }
@@ -137,11 +141,6 @@ class FormController @Inject() (
     ))
   }
 
-  //TODO: fix the bug:
-  //for choice component, in mongo we have '1,2,3' but in request from browser we have List(1,2,2)
-  //however we can't split formField.value by comma because other data could have it in it
-  private def getFormData(form: Form): Map[FieldId, List[String]] = form.formData.fields.map(fd => fd.id -> List(fd.value)).toMap
-
   val choice = play.api.data.Form(play.api.data.Forms.single(
     "decision" -> play.api.data.Forms.nonEmptyText
   ))
@@ -157,7 +156,7 @@ class FormController @Inject() (
     )
   }
 
-  def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formTemplateId) { implicit request => cache =>
+  def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formId) { implicit request => cache =>
     gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
   }
 
@@ -171,14 +170,18 @@ class FormController @Inject() (
 
       val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
 
-      val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] = for {
-        sections <- sectionsF
-        envelope <- envelopeF
-        section = sections(sectionNumber.value)
-        sectionFields = repeatService.atomicFields(section)
-        allFields = sections.flatMap(repeatService.atomicFields)
-        ffvr <- validationService.getFormFieldValidationResults(sectionFields, allFields, section, data, envelope, cache.form.envelopeId)
-      } yield ffvr
+      val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] = for { // format: OFF
+        sections          <- sectionsF
+        envelope          <- envelopeF
+        section           = sections(sectionNumber.value)
+        sectionFields     = repeatService.atomicFields(section)
+        allFields         = sections.flatMap(repeatService.atomicFields)
+        componentsErrors  = validationService.validateComponents(sectionFields, data, cache.form.envelopeId)
+        sectionErrors     = validationService.validateUsingValidators(section, data)
+        v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
+        errors            = validationService.evaluateValidation(v, allFields, data, envelope)
+      // format: OFF
+      } yield errors
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(!_.values.view.exists(!_.isOk))
       val fieldsF: Future[Seq[FormField]] = formFieldValidationResultsF.map(_.values.toSeq.flatMap(_.toFormField))

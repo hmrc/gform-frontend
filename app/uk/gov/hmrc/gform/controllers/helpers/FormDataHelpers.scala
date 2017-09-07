@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.controllers.helpers
 
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, Group }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -26,6 +26,9 @@ import scala.concurrent.Future
 
 object FormDataHelpers {
 
+  //TODO: fix the bug:
+  //for choice component, in mongo we have '1,2,3' but in request from browser we have List(1,2,2)
+  //however we can't split formField.value by comma because other data could have it in it
   def formDataMap(formData: FormData): Map[FieldId, Seq[String]] =
     formData.fields.map(fd => fd.id -> List(fd.value)).toMap
 
