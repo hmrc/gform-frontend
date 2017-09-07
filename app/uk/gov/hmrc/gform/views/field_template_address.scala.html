@@ -73,9 +73,7 @@
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
         val errors: Set[String] = ValidationUtil.printErrors(map)
 
-//        errors.map(e => errorInline(e, e, Seq("")))
-        errors.map(e => <span class="our-code">{e}</span>)
-
+        errors.map(e => errorInline(e, e, Seq("")))
         }
 
         <div class="form-group-compound">
