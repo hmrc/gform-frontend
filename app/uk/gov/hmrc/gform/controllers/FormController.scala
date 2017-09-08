@@ -228,10 +228,10 @@ class FormController @Inject() (
       } yield Ok(html)
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
-        _ <- repeatService.removeGroup(groupId, data)
+        updatedData <- repeatService.removeGroup(groupId, data)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+        html <- renderer.renderSection(formId, sectionNumber, updatedData, cache.formTemplate, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       } yield Ok(html)
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
