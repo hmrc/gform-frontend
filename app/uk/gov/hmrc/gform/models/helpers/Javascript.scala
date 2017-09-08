@@ -62,7 +62,7 @@ object Javascript {
           listFieldId.map(groupFieldId =>
             s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
               document.getElementById("${groupFieldId.value}").addEventListener("keyup",sum$id);
-              document.getElementById("${groupFieldId.value}").addEventListener("load",sum$id);
+              window.addEventListener("load",sum$id);
            """).mkString("\n")
         }
 
