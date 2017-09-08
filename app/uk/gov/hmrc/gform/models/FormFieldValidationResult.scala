@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.models
 
 import cats.implicits._
-import cats.kernel.Monoid
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -41,9 +40,6 @@ sealed trait FormFieldValidationResult {
     case cf: ComponentField => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.globalErrors)
     case _ => Set()
   }
-
-  private def combine(a: Map[FieldValue, Set[String]], b: Map[FieldValue, Set[String]]): Map[FieldValue, Set[String]] =
-    Monoid[Map[FieldValue, Set[String]]].combine(a, b)
 
   def fieldValue: FieldValue
 
