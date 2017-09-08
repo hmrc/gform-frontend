@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{get, processResponseDataFromBody}
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.service.{RepeatingComponentService, SectionRenderingService}
-import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField, FormId, UserData}
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
