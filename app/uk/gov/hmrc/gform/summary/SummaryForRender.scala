@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.summary
 
-import play.api.i18n.Messages
-import play.api.mvc.Results.Ok
-import play.api.mvc.{ Request, Result }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.helpers.Fields._
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-import uk.gov.hmrc.gform.views.html
-import uk.gov.hmrc.gform.views.html.snippets._
+import uk.gov.hmrc.gform.views.html.snippets.summary
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)
 
@@ -105,17 +99,6 @@ object SummaryForRender {
         case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil))
       })
       SummaryForRender(snippets, fieldJavascript(fields, repeatingGroups), sections.size)
-    }
-  }
-}
-
-case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
-    SummaryForRender(f, formFields, formId, formTemplate, repeatService, envelope, lang)
-
-  def renderSummary(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    summaryForRender(f, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
-      Ok(html.summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang))
     }
   }
 }
