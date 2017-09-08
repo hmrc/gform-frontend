@@ -24,8 +24,9 @@ import uk.gov.hmrc.gform.auth.{ AuthModule, Identifier, Verifier }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.models.ValidationUtil.{ GformError, ValidatedType }
-import uk.gov.hmrc.gform.models.{ FormFieldValidationResult, ValidationUtil }
+import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
+import uk.gov.hmrc.gform.validation.ValidationUtil
+import uk.gov.hmrc.gform.models.FormFieldValidationResult
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._

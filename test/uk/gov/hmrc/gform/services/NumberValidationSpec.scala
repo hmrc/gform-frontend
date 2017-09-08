@@ -24,7 +24,7 @@ import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.FileUploadService
-import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
