@@ -1,10 +1,9 @@
-@import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.service.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.validation.ValidationUtil
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
 
 @safeId(id: String) = @{

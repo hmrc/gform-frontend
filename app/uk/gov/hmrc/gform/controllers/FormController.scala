@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform
 package controllers
 
 import javax.inject.Inject
-import helpers._
 
+import helpers._
 import cats._
 import cats.data.{ EitherT, Validated }
 import cats.data.Validated.{ Invalid, Valid }
@@ -39,7 +39,7 @@ import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingSe
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 

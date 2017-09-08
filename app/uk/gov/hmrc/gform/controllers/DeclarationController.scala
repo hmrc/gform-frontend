@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 

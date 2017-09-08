@@ -38,13 +38,16 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
-import uk.gov.hmrc.gform.models.{ DateExpr, FormFieldValidationResult, SectionRenderingInformation }
+import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
+import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Await, Future }

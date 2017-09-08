@@ -26,10 +26,11 @@ import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
 case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)
