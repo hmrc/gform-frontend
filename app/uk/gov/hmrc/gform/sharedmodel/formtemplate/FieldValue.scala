@@ -30,7 +30,7 @@ case class FieldValue(
   submissible: Boolean,
   derived: Boolean,
   errorMessage: Option[String],
-  presentationHint: Option[List[PresentationHint]] = Option.empty[List[PresentationHint]]
+  presentationHint: Option[List[PresentationHint]] = None
 
 )
 
