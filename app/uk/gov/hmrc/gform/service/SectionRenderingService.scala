@@ -19,14 +19,21 @@ package uk.gov.hmrc.gform.service
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
+
+import cats.Eval.Call
 import cats.data.NonEmptyList
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
+import org.joda.time.LocalDate
 import play.api.i18n.Messages
+import play.api.mvc
 import play.api.mvc.Request
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.auth.core.authorise.AffinityGroup.Individual
+import uk.gov.hmrc.auth.core.authorise.{ AffinityGroup, Enrolments }
+import uk.gov.hmrc.auth.core.retrieve.{ LegacyCredentials, OneTimeLogin }
+import uk.gov.hmrc.gform.auth.models.{ AuthProviderType, Retrievals, UserDetails }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
@@ -111,6 +118,15 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory)
   }
 
+  def renderEnrolmentSection(formTemplate: FormTemplate, enrolmentSection: EnrolmentSection, f: Option[FieldValue => Option[FormFieldValidationResult]], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+    val formId = FormId("")
+    val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, f, Envelope(Nil), List(enrolmentSection), 0, emptyRetrievals)
+    for {
+      snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, lang)))
+      renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
+    } yield uk.gov.hmrc.gform.views.html.form(formTemplate, renderingInfo, formId)
+  }
+
   private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue])(implicit hc: HeaderCarrier): Future[String] = {
     val groups: List[(FieldId, Group)] = fieldList.filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel)).map(fv => (fv.id, fv.`type`)).collect {
       case (fieldId, group: Group) => (fieldId, group)
@@ -170,6 +186,11 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = validate(fieldValue, ei)
+
+    val isStirling = fieldValue.`type` match {
+      case Text(Sterling, _) => true
+      case _ => false
+    }
 
     for {
       prepopValue <- prepopValueF
@@ -235,5 +256,22 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       Fields.okValues(ei.fieldData, repeatService.atomicFields(section), ei.envelope)
     ei.f.getOrElse(okF)(fieldValue)
   }
+
+  private def emptyRetrievals = Retrievals(
+    authProviderId = OneTimeLogin,
+    enrolments = Enrolments(Set.empty),
+    affinityGroup = None,
+    internalId = None,
+    externalId = None,
+    userDetails = UserDetails(
+      authProviderId = None,
+      authProviderType = None,
+      name = "",
+      affinityGroup = Individual,
+      groupIdentifier = ""
+    ),
+    credentialStrength = None,
+    agentCode = None
+  )
 }
 

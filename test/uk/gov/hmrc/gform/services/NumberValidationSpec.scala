@@ -16,228 +16,131 @@
 
 package uk.gov.hmrc.gform.services
 
+import cats.data.Validated
+import cats.data.Validated.Valid
 import cats.scalatest.EitherMatchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
+import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.FileUploadService
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.models.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.play.http.HeaderCarrier
+import cats.implicits._
 
-class NumberValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
+class NumberValidationSpec extends Spec {
 
-  implicit lazy val hc = HeaderCarrier()
-
-  "Number format" should "accepts whole numbers" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beRight(())
+  "Number format" should "accepts whole numbers" in new Test {
+    override val value = "123"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
 
-  "Number format" should "return invalid for non-numeric" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("THX1138")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a number")))
+  "Number format" should "accept stirling pound and commas within numbers" in new Test {
+    override val value = "£1,234"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
 
-  "Number format" should "accepts decimal fractions" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123.4")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beRight(())
+  "Number format" should "return invalid for non-numeric" in new Test {
+    override val value = "THX1138"
+    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support alphabetics in number formats"
   }
 
-  "PositiveWholeNumber format" should "return invalid for non-numeric" in {
+  "Number format" should "accepts decimal fractions" in new Test {
+    override val value = "123.4"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "PositiveWholeNumber format" should "return invalid for decimal fractions" in new Test {
+    override val value = "123.4"
     val textConstraint = PositiveNumber(maxFractionalDigits = 0)
     val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123.4")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number")))
+    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
+    val expected = Map(`fieldValue - number`.id -> Set("must be a whole number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support dots in number formats"
   }
 
-  "PositiveNumber format" should "accepts whole numbers" in {
+  "PositiveNumber format" should "accept whole numbers" in new Test {
+    override val value = "123"
     val textConstraint = PositiveNumber()
     val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beRight(())
+    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
 
-  "Number format" should "accepts negative numbers" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("-789")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beRight(())
+  "Number format" should "accept negative numbers" in new Test {
+    override val value = "-789"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
 
-  "PositiveNumber format" should "return invalid for negative" in {
+  "PositiveNumber format" should "return invalid for negative" in new Test {
+    override val value = "-123"
     val textConstraint = PositiveNumber()
     val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("-789")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a positive number")))
+    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
+    val expected = Map(`fieldValue - number`.id -> Set("must be a positive number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support negative numbers in postive number formats"
   }
 
-  "Number format" should "return invalid for too many digits" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("1234567890123456789.87654321")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 11 whole digits and decimal fraction must be at most 2 digits")))
+  "Number format" should "return invalid for too many digits" in new Test {
+    override val value = "1234567890123456789.87654321"
+    val expected = Map(`fieldValue - number`.id -> Set("number must be at most 11 whole digits and decimal fraction must be at most 2 digits")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 
-  "Number format" should "return invalid for too many whole digits" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("1234567890123456789.87")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 11 whole digits")))
+  "Number format" should "return invalid for too many whole digits" in new Test {
+    override val value = "1234567890123456789.87"
+    val expected = Map(`fieldValue - number`.id -> Set("number must be at most 11 whole digits")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 
-  "Number(maxFractionalDigits = 0) format" should "return invalid for too many whole digits" in {
+  "Number(maxFractionalDigits = 0) format" should "return invalid for too many whole digits" in new Test {
+    override val value = "1234567890123456789"
     val textConstraint = Number(maxFractionalDigits = 0)
     val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("1234567890123456789")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be at most 11 digits")))
+    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
+    val expected = Map(`fieldValue - number`.id -> Set("must be at most 11 digits")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 
-  "Number format" should "return invalid for too many fractional digits" in {
-    val textConstraint = Number()
-    val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("9.87654321")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("decimal fraction must be at most 2 digits")))
+  "Number format" should "return invalid for too many fractional digits" in new Test {
+    override val value = "9.87654321"
+    val expected = Map(`fieldValue - number`.id -> Set("decimal fraction must be at most 2 digits")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 
-  "Number(2,1) format" should "return invalid for too many digits" in {
+  "Number(2,1) format" should "return invalid for too many digits" in new Test {
+    override val value = "123.21"
     val textConstraint = Number(2, 1)
     val number = Text(textConstraint, Constant(""))
-
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, None)
-
-    val data = Map(
-      FieldId("n") -> Seq("123.21")
-    )
-
-    val result = validator(fieldValue, data)
-
-    result.toEither should beLeft(Map(fieldValue.id -> Set("number must be at most 2 whole digits and decimal fraction must be at most 1 digits")))
+    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
+    val expected = Map(`fieldValue - number`.id -> Set("number must be at most 2 whole digits and decimal fraction must be at most 1 digits")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 
-  "Number(2,1) format" should "return supplied error message" in {
-    val textConstraint = Number(2, 1)
-    val number = Text(textConstraint, Constant(""))
+  trait Test extends ExampleData {
+    def value: String
 
-    val fieldValue = FieldValue(FieldId("n"), number,
-      "sample label", None, None, true, false, false, Some("New error message"))
+    override def `formField - number` = FormField(`fieldId - number`, value)
 
-    val data = Map(
-      FieldId("n") -> Seq("123.21")
+    override def `fieldValue - number` = FieldValue(
+      `fieldId - number`,
+      Text(Number(), Constant("")),
+      "sample label", None, None, true, false, false, false, None
     )
 
-    val result = validator(fieldValue, data)
+    override def data = Map(
+      `fieldId - number` -> `formField - number`
+    )
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("New error message")))
+    def validate(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) =
+      new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue)
+
+    implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }
 
-  def validator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) =
-    new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 }

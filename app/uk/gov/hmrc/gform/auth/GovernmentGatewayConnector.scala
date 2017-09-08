@@ -16,13 +16,23 @@
 
 package uk.gov.hmrc.gform.auth
 
-import uk.gov.hmrc.gform.auth.models.{ AuthResult, UserDetails }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-import uk.gov.hmrc.play.http.HeaderCarrier
+import play.api.libs.json.Json
+import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.play.http.ws.WSHttp
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthorisationService(eeittAuth: EeittAuthorisationDelegate, val authConnector: AuthConnector) {
+case class GGEnrolmentRequest(portalId: String, serviceName: String, friendlyName: String, knownFacts: Seq[String])
 
+object GGEnrolmentRequest {
+  implicit val format = Json.format[GGEnrolmentRequest]
 }
+
+class GovernmentGatewayConnector(baseUrl: String, http: WSHttp) {
+
+  def enrolGGUser(request: GGEnrolmentRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+    http.POST(s"${baseUrl}/enrol", request)
+}
+

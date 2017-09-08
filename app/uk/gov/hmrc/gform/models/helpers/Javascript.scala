@@ -27,7 +27,7 @@ object Javascript {
 
     val fieldIdWithExpr: List[(FieldId, Expr)] =
       fields.collect {
-        case FieldValue(id, Text(_, expr), _, _, _, _, _, _, _, _) => (id, expr)
+        case FieldValue(id, Text(_, expr), _, _, _, _, _, _, _, _, _) => (id, expr)
       }
 
     Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n"))
@@ -62,6 +62,7 @@ object Javascript {
           listFieldId.map(groupFieldId =>
             s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
               document.getElementById("${groupFieldId.value}").addEventListener("keyup",sum$id);
+              window.addEventListener("load",sum$id);
            """).mkString("\n")
         }
 

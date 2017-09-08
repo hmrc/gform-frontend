@@ -14,28 +14,21 @@ dataEntered: Boolean
 
 
 @id(groupId: FieldId) = @{ "removeOnClick"+groupId.toString + "()"}
-<div class="form-group">
-    <div>
-        <fieldset>
 
-            <label
-                    for="@{groupId}"
-                    class="block-label selection-button-radio"
-                    data-target="helptext-@{groupId}"
-            >
-                <input id="@{groupId}"
-                       name="@{groupId}"
-                       value=""
-                       type="checkbox"
-                       @if(dataEntered) {checked}
-                onchange="@id(groupId)" />
-                @groupLabel
-            </label>
+<label
+        for="@{groupId}"
+        class="block-label selection-button-radio"
+        data-target="helptext-@{groupId}"
+>
+    <input id="@{groupId}"
+           name="@{groupId}"
+           value=""
+           type="checkbox"
+           @if(dataEntered) {checked}
+           onchange="@id(groupId)" />
+    @groupLabel
+</label>
 
-            <div id="helptext-@{groupId}" class="panel-indent js-hidden" aria-hidden="true">
-                @optionElements
-            </div>
-
-        </fieldset>
-    </div>
+<div id="helptext-@{groupId}" class="panel-indent js-hidden" aria-hidden="true">
+    @optionElements
 </div>

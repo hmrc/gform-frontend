@@ -19,16 +19,103 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
-case class AuthConfig(
+sealed trait AuthConfig {
+  def authModule: AuthConfigModule
+}
+
+trait AuthConfigWithEnrolment {
+  def serviceId: ServiceId
+  def enrolmentSection: EnrolmentSection
+}
+
+case class EEITTAuthConfig(
   authModule: AuthConfigModule,
-  predicates: Option[List[Predicate]],
+  regimeId: RegimeId
+) extends AuthConfig
+
+object EEITTAuthConfig {
+  implicit val format = Json.format[EEITTAuthConfig]
+}
+
+case class HMRCAuthConfigWithAuthModule(
+  authModule: AuthConfigModule
+) extends AuthConfig
+
+object HMRCAuthConfigWithAuthModule {
+  implicit val format = Json.format[HMRCAuthConfigWithAuthModule]
+}
+
+case class HMRCAuthConfigWithServiceId(
+  authModule: AuthConfigModule,
+  serviceId: ServiceId
+) extends AuthConfig
+
+object HMRCAuthConfigWithServiceId {
+  implicit val format = Json.format[HMRCAuthConfigWithServiceId]
+}
+
+case class HMRCAuthConfigWithRegimeId(
+  authModule: AuthConfigModule,
+  serviceId: ServiceId,
+  regimeId: RegimeId
+) extends AuthConfig
+object HMRCAuthConfigWithRegimeId {
+  implicit val format = Json.format[HMRCAuthConfigWithRegimeId]
+}
+
+case class HMRCAuthConfigWithEnrolment(
+  authModule: AuthConfigModule,
+  serviceId: ServiceId,
+  enrolmentSection: EnrolmentSection
+) extends AuthConfig with AuthConfigWithEnrolment
+object HMRCAuthConfigWithEnrolment {
+  implicit val format = Json.format[HMRCAuthConfigWithEnrolment]
+
+}
+
+case class HMRCAuthConfig(
+  authModule: AuthConfigModule,
+  serviceId: ServiceId,
   regimeId: RegimeId,
-  serviceId: Option[ServiceId]
-)
+  enrolmentSection: EnrolmentSection
+) extends AuthConfig with AuthConfigWithEnrolment
+object HMRCAuthConfig {
+  implicit val format = Json.format[HMRCAuthConfig]
+
+}
 
 object AuthConfig {
+  implicit val format: OFormat[AuthConfig] = {
+    // format: OFF
+    val reads = Reads[AuthConfig] { json =>
+      for {
+        authModule       <- (json \ "authModule").validate[AuthConfigModule]
+        regimeId         <- (json \ "regimeId").validateOpt[RegimeId]
+        serviceId        <- (json \ "serviceId").validateOpt[ServiceId]
+        enrolmentSection <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
+        result           <- (authModule, regimeId, serviceId, enrolmentSection) match {
+          case (AuthConfigModule("legacyEEITTAuth"), Some(_), None, None) => EEITTAuthConfig.format.reads(json)
+          case (AuthConfigModule("hmrc"), None,    None,    None)    => HMRCAuthConfigWithAuthModule.format.reads(json)
+          case (AuthConfigModule("hmrc"), None,    Some(_), None)    => HMRCAuthConfigWithServiceId.format.reads(json)
+          case (AuthConfigModule("hmrc"), Some(_), Some(_), None)    => HMRCAuthConfigWithRegimeId.format.reads(json)
+          case (AuthConfigModule("hmrc"), None,    Some(_), Some(_)) => HMRCAuthConfigWithEnrolment.format.reads(json)
+          case (AuthConfigModule("hmrc"), Some(_), Some(_), Some(_)) => HMRCAuthConfig.format.reads(json)
+          case _ => JsError("")
+        }
+      } yield result
+    }
 
-  implicit val format: OFormat[AuthConfig] = Json.format[AuthConfig]
+    val writes = OWrites[AuthConfig] {
+      case conf: EEITTAuthConfig              => EEITTAuthConfig.format.writes(conf)
+      case conf: HMRCAuthConfigWithAuthModule => HMRCAuthConfigWithAuthModule.format.writes(conf)
+      case conf: HMRCAuthConfigWithServiceId  => HMRCAuthConfigWithServiceId.format.writes(conf)
+      case conf: HMRCAuthConfigWithRegimeId   => HMRCAuthConfigWithRegimeId.format.writes(conf)
+      case conf: HMRCAuthConfigWithEnrolment  => HMRCAuthConfigWithEnrolment.format.writes(conf)
+      case conf: HMRCAuthConfig               => HMRCAuthConfig.format.writes(conf)
+    }
+    // format: ON
+    OFormat(reads, writes)
+  }
 }
 
 case class ServiceId(value: String)
@@ -52,16 +139,4 @@ case class AuthConfigModule(value: String) {
 
 object AuthConfigModule {
   implicit val format: Format[AuthConfigModule] = ValueClassFormat.oformat("authModule", AuthConfigModule.apply, _.value)
-}
-
-case class Predicate(enrolment: String, identifiers: List[KeyValue], delegatedAuthRule: String)
-
-object Predicate {
-  implicit val format: OFormat[Predicate] = Json.format[Predicate]
-}
-
-case class KeyValue(key: String, value: String)
-
-object KeyValue {
-  implicit val format: OFormat[KeyValue] = Json.format[KeyValue]
 }

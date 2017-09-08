@@ -28,8 +28,10 @@ case class FieldValue(
   mandatory: Boolean,
   editable: Boolean,
   submissible: Boolean,
+  derived: Boolean,
   errorMessage: Option[String],
   presentationHint: Option[List[PresentationHint]] = None
+
 )
 
 object FieldValue {

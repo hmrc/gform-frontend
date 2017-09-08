@@ -24,7 +24,6 @@ import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.models.helpers.Fields.okValues
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -37,9 +36,9 @@ class SummarySpec extends Spec {
 
   trait Test extends ExampleData {
     override def dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-    def section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, true, true, true, None)))
-    def section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, true, true, true, None)))
-    def section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, true, true, true, None)))
+    def section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, true, true, true, false, None)))
+    def section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, true, true, true, false, None)))
+    def section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, true, true, true, false, None)))
 
     override def `formField - iptRegNum` = super.`formField - iptRegNum`.copy(value = "Test!Your details!Test")
     override def `formField - firstName` = super.`formField - firstName`.copy(value = "Test!About you!Test")
@@ -99,10 +98,10 @@ class SummarySpec extends Spec {
   it should "display values for each field type with a submissible field, " in new Test {
 
     val section = Section("Personal details", None, None, None, None, None, None, List(
-      FieldValue(FieldId("Surname"), Text(AnyText, Constant("")), "Surname", None, None, true, true, true, None),
-      FieldValue(FieldId("Info"), Text(AnyText, Constant("")), "Info", None, None, true, true, submissible = false, None, presentationHint = Some(List(InvisibleInSummary))),
-      FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true, None),
-      FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true, None)
+      FieldValue(FieldId("Surname"), Text(AnyText, Constant("")), "Surname", None, None, true, true, true, false, None),
+      FieldValue(FieldId("Info"), Text(AnyText, Constant("")), "Info", None, None, true, true, submissible = false, false, None, presentationHint = Some(List(InvisibleInSummary))),
+      FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true, false, None),
+      FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true, false, None)
     ))
 
     override def formTemplate = super.formTemplate.copy(sections = List(section))
@@ -163,6 +162,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
 
@@ -185,6 +185,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
@@ -206,6 +207,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
 
@@ -228,6 +230,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
 
@@ -250,6 +253,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
 
@@ -272,6 +276,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
 
@@ -294,6 +299,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
 
@@ -316,6 +322,7 @@ class SummarySpec extends Spec {
       mandatory = true,
       editable = true,
       submissible = true,
+      derived = true,
       errorMessage = None
     )
 
@@ -353,7 +360,7 @@ class SummarySpec extends Spec {
         List(),
         Horizontal
       ),
-      "Test!group-label!Test", None, None, true, true, true, None
+      "Test!group-label!Test", None, None, true, true, true, true, None
     )
     override def section0 = Section("", None, None, None, None, None, None, List(groupFieldValue))
     override def formTemplate = super.formTemplate.copy(sections = List(section0))

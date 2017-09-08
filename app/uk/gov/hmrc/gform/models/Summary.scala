@@ -49,9 +49,9 @@ object SummaryForRender {
             uk.gov.hmrc.gform.views.html.snippets.summary.group_grid(fieldValue, value)
           case groupField @ Group(_, orientation, _, _, _, _) => {
             val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
-            val htmlList: List[Html] = fvs.map {
+            val htmlList = fvs.map {
               case (fv: FieldValue) => valueToHtml(fv)
-            }
+            }.toList
             uk.gov.hmrc.gform.views.html.snippets.summary.group(fieldValue, htmlList, orientation)
           }
           case _ => valueToHtml(fieldValue)
@@ -61,7 +61,10 @@ object SummaryForRender {
           case UkSortCode(_) => uk.gov.hmrc.gform.views.html.snippets.summary.sort_code(fieldValue, f(fieldValue))
           case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, f(fieldValue))
           case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, f(fieldValue))
-          case t @ Text(_, _) => uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, f(fieldValue))
+          case t @ Text(_, _) =>
+            val x = f(fieldValue).map(_.getCurrentValue).getOrElse("")
+            x
+            uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, f(fieldValue))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex.map {
               case (option, index) =>

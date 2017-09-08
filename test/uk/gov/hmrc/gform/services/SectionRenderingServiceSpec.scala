@@ -181,13 +181,12 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
         mandatory = true,
         editable = false,
         submissible = false,
+        derived = true,
         errorMessage = None
       )
     }
 
-    override def `section - about you` = Section("About you", None, None, None, None, None, None, List(
-      `fieldValue - firstName`
-    ))
+    override def `section - about you` = super.`section - about you`.copy(fields = List(`fieldValue - firstName`))
 
     override def allSections = List(
       `section - about you`

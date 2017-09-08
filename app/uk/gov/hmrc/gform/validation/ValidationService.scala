@@ -357,7 +357,7 @@ class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: Fi
   private def validateNumber(fieldValue: FieldValue, value: String, maxWhole: Int, maxFractional: Int, mustBePositive: Boolean): ValidatedType = {
     val WholeShape = "([+-]?)(\\d+)[.]?".r
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
-    (value, maxFractional, mustBePositive) match {
+    (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
       case (WholeShape(_, whole), _, _) if whole.size > maxWhole => getError(fieldValue, s"must be at most ${maxWhole} digits")
       case (WholeShape("-", _), _, true) => getError(fieldValue, "must be a positive number")
       case (WholeShape(_, _), _, _) => ().valid

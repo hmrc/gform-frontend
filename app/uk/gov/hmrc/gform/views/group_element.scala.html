@@ -13,36 +13,30 @@
 @(fieldValue: FieldValue, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)
 
 
-<fieldset>
-    @if(groupField.repeatLabel.isDefined) {
-    <div class="subsection">
-        <div class="divider--bottom">
-            <div class="form-field-group">
-                <h2 class="heading-small">
-                    @localisation(GroupHelper.buildRepeatLabel(groupField, instance))
-                </h2>
-            </div>
+@if(groupField.repeatLabel.isDefined) {
+<div class="subsection">
+    <div class="divider--bottom">
+        <div class="form-field-group">
+            <h2 class="heading-small">
+                @localisation(GroupHelper.buildRepeatLabel(groupField, instance))
+            </h2>
         </div>
     </div>
-    }
+</div>
+}
 
-    <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
-        @{
-        snippets
-        }
+@{
+snippets
+}
 
-        @if(!disableRemoveButton) {
-        <div class="form-group">
-          <button
-                  type="submit"
-                  class="button button--link soft--left"
-                  name="save"
-                  value="RemoveGroup-@{instance}_@{fieldValue.id}">
-              @localisation("Remove")
-          </button>
-        </div>
-        }
-    </div>
-
-
-</fieldset>
+@if(!disableRemoveButton) {
+<div class="form-group">
+  <button
+          type="submit"
+          class="button button--link soft--left"
+          name="save"
+          value="RemoveGroup-@{instance}_@{fieldValue.id}">
+      @localisation("Remove")
+  </button>
+</div>
+}
