@@ -278,7 +278,13 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
 
   private def addGroupEntry(dynamicList: List[List[FieldValue]]) = {
     val countForNewEntry = dynamicList.size
-    val newEntry = dynamicList(0).map { field => field.copy(id = FieldId(s"${countForNewEntry}_${field.id.value}")) }
+    val newEntry = dynamicList(0).map { field =>
+      field.copy(
+        id = FieldId(s"${countForNewEntry}_${field.id.value}"),
+        label = LabelHelper.buildRepeatingLabel(field, countForNewEntry + 1),
+        shortName = LabelHelper.buildRepeatingLabel(field.shortName, countForNewEntry + 1)
+      )
+    }
     dynamicList :+ newEntry
   }
 
@@ -305,9 +311,14 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
       case Some(min) if min == 1 | min <= 0 => List(group.fields)
       case Some(min) if min > 1 =>
         group.fields +: (1 until min).map { i =>
-          group.fields.map(field => field.copy(id = FieldId(s"${i}_${field.id.value}")))
-        }.toList
-      case None => List(group.fields)
+          group.fields.map(field =>
+            field.copy(
+              id = FieldId(s"${i}_${field.id.value}"),
+              label = LabelHelper.buildRepeatingLabel(field, i + 1),
+              shortName = LabelHelper.buildRepeatingLabel(field.shortName, i + 1)
+            ))
+        }.toList //Not changing first Element to pass $n through repeated groups when adding new group
+      case None => List(group.fields) //This should never happen only repeating groups get here.
     }
 
     sessionCache.cache[List[List[FieldValue]]](parentField.id.value, dynamicList).map { _ =>
@@ -315,12 +326,12 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
+  def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[List[FieldValue]] = {
     val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)
-    resultOpt.getOrElse(List(groupField.fields)).flatten
+    resultOpt.getOrElse(List(groupField.fields))
   }
 
-  def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
+  def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier) = {
     val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FieldValue]]](topFieldValue.id.value), 10 seconds)
     buildGroupFieldsLabelsForSummary(resultOpt.getOrElse(List(groupField.fields)), topFieldValue)
   }
@@ -332,7 +343,16 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
       fields.flatMap {
         case (fv: FieldValue) => fv.`type` match {
           case groupField @ Group(_, _, _, _, _, _) => section match {
-            case Section(_, _, _, _, _, _, _, _) => atomicFields(getAllFieldsInGroup(fv, groupField))
+            case Section(_, _, _, _, _, _, _, _) => atomicFields {
+              val fields = getAllFieldsInGroup(fv, groupField)
+              val first = fields.head.map { nv =>
+                nv.copy(
+                  shortName = LabelHelper.buildRepeatingLabel(nv.shortName, 1),
+                  label = LabelHelper.buildRepeatingLabel(nv, 1)
+                )
+              }
+              (first +: fields.tail).flatten
+            }
             case DeclarationSection(_, _, _, _) => atomicFields(groupField.fields)
           }
           case _ => List(fv)
@@ -342,7 +362,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     atomicFields(section.fields)
   }
 
-  private def buildGroupFieldsLabelsForSummary(list: List[List[FieldValue]], fieldValue: FieldValue) = {
+  private def buildGroupFieldsLabelsForSummary(list: List[List[FieldValue]], fieldValue: FieldValue): Seq[FieldValue] = {
     (0 until list.size).flatMap { i =>
       list(i).map { field =>
         field.copy(
