@@ -58,8 +58,8 @@ class SummarySpec extends Spec {
         List[FieldValue]()
       }
 
-      override def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
-        List[FieldValue]()
+      override def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[List[FieldValue]] = {
+        List.empty[List[FieldValue]]
       }
 
       override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FieldValue] = {
