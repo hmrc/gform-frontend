@@ -16,24 +16,19 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 
-import cats.Monoid
-import cats.data.Validated.{ Invalid, Valid }
-import cats.instances.all._
-import play.api.libs.json.Json
-import play.api.mvc.Request
-import play.twirl.api.Html
+import cats.data.Validated.{Invalid, Valid}
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{get, processResponseDataFromBody}
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
+import uk.gov.hmrc.gform.service.{RepeatingComponentService, SectionRenderingService}
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormField, FormId, UserData}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ ValidationModule, ValidationUtil }
+import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -101,13 +96,9 @@ class DeclarationController @Inject() (
     form.copy(formData = form.formData.copy(fields = updatedFields))
   }
 
-  private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate) = {
+  private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate): Map[FieldValue, FormFieldValidationResult] = {
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
-    ValidationUtil.evaluateValidationResult(declarationFields, validationResult, data, Envelope(Nil)) match {
-      case Left(validationResults) =>
-        validationResults.map(result => result.fieldValue -> result).toMap
-      case Right(_) => Map.empty[FieldValue, FormFieldValidationResult]
-    }
+    validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))
   }
 
   private def getAllDeclarationFields(fields: List[FieldValue]): List[FieldValue] = {
