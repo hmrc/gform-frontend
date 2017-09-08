@@ -1,29 +1,34 @@
 @import uk.gov.hmrc.gform.models.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.localisation
-@import uk.gov.hmrc.gform.validation.ValidationUtil
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FieldValue, validationResultO: Option[FormFieldValidationResult])
+
+    @validationResult = @{
+        //it's always there, TODO: change template signature
+        validationResultO.get
+    }
 
     @safeId(id: String) = @{
         fieldValue.id.withSuffix(id).value
     }
 
-    <tr class="error"> //need If statement here.
+    @showError(e: String) = @{
+        errorInline(e, e, Seq(""))
+    }
+
+    <tr class="@{if(validationResult.isNotOk) "error"}">
 
         <td>
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
         </td>
         <td>
 
-            @{
-            val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-            val errors: Set[String] = ValidationUtil.printErrors(map)
-
-            errors.map(e => errorInline(e, e, Seq("")))
-            }
-
+            @{validationResult.globalErrors.map {error => {error}  }}
+            @{validationResult.fieldErrorsByField.map {case(field, errors) =>
+                errors.map(e => showError(e))
+            }}
         </td>
         <td>
             @List(
@@ -34,8 +39,8 @@
             "postcode",
             "country"
             ).map { suffix =>
-            @if(validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
-            @validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
+            @if(validationResultO.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
+            @validationResultO.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
             <br />
             }
             }
