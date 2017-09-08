@@ -16,20 +16,35 @@
 
 package uk.gov.hmrc.gform.models
 
-import java.time.LocalDate
-
-import cats.data.Validated.{ Invalid, Valid }
-import cats.data.Validated
-import cats.instances.either._
-import cats.instances.list._
-import cats.syntax.traverse._
-import cats.syntax.either._
-import play.api.Logger
-import uk.gov.hmrc.gform.fileupload.{ Envelope, File }
+import cats.implicits._
+import cats.kernel.Monoid
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 sealed trait FormFieldValidationResult {
+
+  lazy val fieldErrors: Set[String] = this match {
+    case e: FieldError => e.errors
+    case cf: ComponentField => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.fieldErrors)
+    case _ => Set()
+  }
+
+  lazy val fieldErrorsByField: Map[FieldValue, Set[String]] = this match {
+    case e: FieldError => Map(fieldValue -> e.errors)
+    case cf: ComponentField =>
+      cf.data.values.foldLeft[Map[FieldValue, Set[String]]](Map())(_ |+| _.fieldErrorsByField)
+    case _ => Map()
+  }
+
+  lazy val globalErrors: Set[String] = this match {
+    case e: FieldGlobalError => e.errors
+    case cf: ComponentField => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.globalErrors)
+    case _ => Set()
+  }
+
+  private def combine(a: Map[FieldValue, Set[String]], b: Map[FieldValue, Set[String]]): Map[FieldValue, Set[String]] =
+    Monoid[Map[FieldValue, Set[String]]].combine(a, b)
+
   def fieldValue: FieldValue
 
   def isOk: Boolean = this match {
@@ -38,6 +53,8 @@ sealed trait FormFieldValidationResult {
     case ComponentField(_, data) => data.values.forall(_.isOk)
     case _ => false
   }
+
+  def isNotOk: Boolean = !isOk
 
   def getCurrentValue: Option[String] = this match {
     case FieldOk(_, "") => None
