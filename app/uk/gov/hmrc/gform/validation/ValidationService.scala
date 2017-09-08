@@ -72,7 +72,6 @@ class ValidationService(
 
   def evaluateValidation(v: ValidatedType, fields: List[FieldValue], data: Map[FieldId, Seq[String]], envelope: Envelope): Map[FieldValue, FormFieldValidationResult] =
     ValidationUtil.evaluateValidationResult(fields, v, data, envelope)
-      .fold(identity, identity)
       .map(v => v.fieldValue -> v)
       .toMap
 
