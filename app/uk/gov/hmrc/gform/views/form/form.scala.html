@@ -1,16 +1,19 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
 
 @import views.html.helper.CSRF
-@(formTemplate: FormTemplate, page: SectionRenderingInformation, formId: FormId)(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, pageLevelError: Html, page: SectionRenderingInformation, formId: FormId)(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
     @if(page.sectionDescription.isDefined){
     <p class="page-description">@localisation(page.sectionDescription.get)</p>
     }
+
+    @pageLevelError
 
     <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
@@ -48,6 +51,10 @@
         }
     </form>
 
+<div id="Please-enter-required-data" >
+
+    test section in our form page
+</div>
     <script type="text/javascript">
       window.gform = window.gform || {};
       window.gform.envelopeId = "@page.envelopeId.value";

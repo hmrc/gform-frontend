@@ -73,6 +73,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     fieldData: Map[FieldId, Seq[String]],
     formTemplate: FormTemplate,
     f: Option[FieldValue => Option[FormFieldValidationResult]],
+    errors: Option[Map[FieldValue, FormFieldValidationResult]],
     envelope: Envelope,
     envelopeId: EnvelopeId,
     dynamicSections: List[Section],
@@ -85,14 +86,27 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     val ei = ExtraInfo(formId, sectionNumber, fieldData, formTemplate, f, envelope, dynamicSections, formMaxAttachmentSizeMB, retrievals)
     val section = dynamicSections(sectionNumber.value)
     val actionForm = uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(formId, sectionNumber, lang)
+    val listResult = errors.map(error => error.values.toList).getOrElse(Nil)
 
     for {
       snippetsForFields <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, dynamicSections.size, lang)))
       javascript <- createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(repeatService.atomicFields)
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => snippets.hidden_field(formField))
+      bec = pageLevel(listResult)
       renderingInfo = SectionRenderingInformation(formId, sectionNumber, section.title, section.description, hiddenSnippets, snippetsForFields, javascript, envelopeId, actionForm, true, "Save and Continue", formMaxAttachmentSizeMB, contentTypes)
-    } yield form(formTemplate, renderingInfo, formId)
+    } yield form(formTemplate, bec, renderingInfo, formId)
+  }
+
+  def pageLevel(listValidation: List[FormFieldValidationResult]): Html = {
+    val sec: List[Html] = listValidation.filter(_.isNotOk).flatMap { x =>
+      x.fieldErrors.map(y =>
+        errors.error_message_component(x, y))
+    }
+    if (listValidation.forall(_.isNotOk))
+      errors.page_level_error(sec, listValidation)
+    else
+      errors.empty_html()
   }
 
   def renderDeclarationSection(formId: FormId, formTemplate: FormTemplate, f: Option[FieldValue => Option[FormFieldValidationResult]], retrievals: Retrievals, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
@@ -102,7 +116,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     for {
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, lang)))
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formTemplate._id, formId, lang), false, "Confirm and send", 0, Nil)
-    } yield form(formTemplate, renderingInfo, formId)
+    } yield form(formTemplate, errors.empty_html(), renderingInfo, formId)
   }
 
   def renderAcknowledgementSection(formId: FormId, formTemplate: FormTemplate, retrievals: Retrievals, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
@@ -126,7 +140,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     for {
       snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, lang)))
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
-    } yield form(formTemplate, renderingInfo, formId)
+    } yield form(formTemplate, errors.empty_html(), renderingInfo, formId)
   }
 
   private def createJavascript(fieldList: List[FieldValue], atomicFields: List[FieldValue])(implicit hc: HeaderCarrier): Future[String] = {
@@ -250,7 +264,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } else {
       Future.sequence(groupField.fields.map(fv => htmlFor(fv, formTemplateId4Ga, 0, ei, ei.dynamicSections.size, lang))).map(a => (a, true))
     }
-  }
+  };
 
   private def validate(fieldValue: FieldValue, ei: ExtraInfo)(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
     val section = ei.dynamicSections(ei.sectionNumber.value)
