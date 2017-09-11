@@ -27,6 +27,16 @@ import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplateId }
 import uk.gov.hmrc.gform.summary.Summary
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import cats._
+import cats.implicits._
+import org.jsoup.Jsoup
+import org.jsoup.nodes.{ Comment, Element, Node }
+import org.jsoup.safety.Whitelist
+import play.twirl.api.Html
+import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
@@ -40,7 +50,8 @@ class SummaryController @Inject() (
   controllersModule: ControllersModule,
   repeatService: RepeatingComponentService,
   fileUploadModule: FileUploadModule,
-  validationModule: ValidationModule
+  validationModule: ValidationModule,
+  pdfGeneratorModule: PdfGeneratorModule
 )(implicit ec: ExecutionContext)
     extends FrontendController {
 
@@ -108,7 +119,46 @@ class SummaryController @Inject() (
     } yield (v, errors)
   }
 
+  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
+    val data = FormDataHelpers.formDataMap(cache.form.formData)
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+
+    for {// format: OFF
+      envelope <- envelopeF
+      summary  <- Summary(cache.formTemplate).generateHTML(_ => None, formId, data, repeatService, envelope, lang)
+      html     = sanitiseHtml(summary)
+      pdf      <- pdfService.generatePDF(html)
+      // format: ON
+    } yield Ok(pdf).as("application/pdf")
+  }
+
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val validationService = validationModule.validationService
+  private lazy val pdfService = pdfGeneratorModule.pdfGeneratorService
+
+  private def sanitiseHtml(html: Html): String = {
+    val doc = Jsoup.parse(html.body)
+    removeComments(doc)
+    doc.getElementsByTag("script").remove
+    doc.getElementsByTag("a").remove
+    doc.getElementsByClass("footer-wrapper").remove
+    doc.getElementById("global-cookie-message").remove
+    doc.getElementsByClass("print-hidden").remove
+
+    doc.html
+  }
+
+  def removeComments(node: Node): Unit = {
+    var i = 0
+    while ({ i < node.childNodeSize() }) {
+      val child = node.childNode(i)
+      if (child.nodeName.equals("#comment")) {
+        child.remove
+      } else {
+        removeComments(child)
+        i += 1
+      }
+    }
+  }
 }

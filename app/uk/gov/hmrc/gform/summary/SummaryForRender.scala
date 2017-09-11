@@ -18,6 +18,10 @@ package uk.gov.hmrc.gform.summary
 
 import cats.data.Validated.{ Invalid, Valid }
 import play.twirl.api.Html
+import play.api.i18n.Messages
+import play.api.mvc.Results.Ok
+import play.api.mvc.{ Request, Result }
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
@@ -31,6 +35,9 @@ import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)
 
@@ -111,5 +118,20 @@ object SummaryForRender {
       })
       SummaryForRender(snippets, fieldJavascript(fields, repeatingGroups), sections.size)
     }
+  }
+}
+
+case class Summary(formTemplate: FormTemplate) {
+  def summaryForRender(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
+    SummaryForRender(f, formFields, formId, formTemplate, repeatService, envelope, lang)
+
+  def generateHTML(f: FieldValue => Option[FormFieldValidationResult], formId: FormId, formFields: Map[FieldId, Seq[String]], repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Html] = {
+    summaryForRender(f, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
+      uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang)
+    }
+  }
+
+  def renderSummary(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+    generateHTML(f, formId, formFields, repeatService, envelope, lang).map(Ok(_))
   }
 }
