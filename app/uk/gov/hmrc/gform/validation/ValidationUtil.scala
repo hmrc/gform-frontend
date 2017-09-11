@@ -143,22 +143,15 @@ object ValidationUtil {
 
         }
 
-        case Choice(_, _, _, _, _) =>
-
+        case c: Choice =>
           gFormErrors.get(fieldValue.id) match {
-            case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
             case None =>
-
-              val optionalData = data.get(fieldValue.id).map { selectedValue =>
-
-                selectedValue.map { index =>
-
-                  fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
-                }.toMap
-
+              val values: Map[String, FormFieldValidationResult] = {
+                Choice.suffix(c, fieldValue.id)
+                  .map(y => y.toString -> FieldOk(fieldValue, dataGetter(y).headOption.getOrElse(""))).toMap
               }
-
-              ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
+              ComponentField(fieldValue, values)
+            case Some(errors) => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
           }
         case FileUpload() => {
           val fileName = envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("Upload document")
@@ -173,5 +166,4 @@ object ValidationUtil {
     }
     resultErrors
   }
-
 }
