@@ -25,12 +25,10 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processRespo
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
-import uk.gov.hmrc.gform.validation.ValidationUtil
-import uk.gov.hmrc.gform.models.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.{ BadRequestException, HeaderCarrier, Upstream4xxResponse, Upstream5xxResponse }
 
@@ -117,13 +115,8 @@ class EnrolmentController @Inject() (
     data: Map[FieldId, Seq[String]],
     authConfig: AuthConfigWithEnrolment
   ): Map[FieldValue, FormFieldValidationResult] = {
-
     val enrolmentFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
-    ValidationUtil.evaluateValidationResult(enrolmentFields, validationResult, data, Envelope(Nil)) match {
-      case Left(validationResults) =>
-        validationResults.map(result => result.fieldValue -> result).toMap
-      case Right(_) => Map.empty[FieldValue, FormFieldValidationResult]
-    }
+    validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
   }
 
   private def getAllEnrolmentFields(fields: List[FieldValue]): List[FieldValue] = {

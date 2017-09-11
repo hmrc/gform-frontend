@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.summary
 
-import play.api.i18n.Messages
-import play.api.mvc.Results.Ok
-import play.api.mvc.{ Request, Result }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.helpers.Fields._
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
-import scala.concurrent.duration._
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)
 
@@ -46,34 +43,31 @@ object SummaryForRender {
         def groupToHtml(fieldValue: FieldValue, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
           case group: Group if presentationHint contains SummariseGroupAsGrid =>
             val value = group.fields.map(f(_))
-            uk.gov.hmrc.gform.views.html.snippets.summary.group_grid(fieldValue, value)
+            group_grid(fieldValue, value)
           case groupField @ Group(_, orientation, _, _, _, _) => {
             val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
             val htmlList = fvs.map {
               case (fv: FieldValue) => valueToHtml(fv)
             }.toList
-            uk.gov.hmrc.gform.views.html.snippets.summary.group(fieldValue, htmlList, orientation)
+            group(fieldValue, htmlList, orientation)
           }
           case _ => valueToHtml(fieldValue)
         }
 
         fieldValue.`type` match {
-          case UkSortCode(_) => uk.gov.hmrc.gform.views.html.snippets.summary.sort_code(fieldValue, f(fieldValue))
-          case Date(_, _, _) => uk.gov.hmrc.gform.views.html.snippets.summary.date(fieldValue, f(fieldValue))
-          case Address(_) => uk.gov.hmrc.gform.views.html.snippets.summary.address(fieldValue, f(fieldValue))
-          case t @ Text(_, _) =>
-            val x = f(fieldValue).map(_.getCurrentValue).getOrElse("")
-            x
-            uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, t, f(fieldValue))
+          case UkSortCode(_) => sort_code(fieldValue, f(fieldValue))
+          case Date(_, _, _) => date(fieldValue, f(fieldValue))
+          case Address(_) => address(fieldValue, f(fieldValue))
+          case t @ Text(_, _) => text(fieldValue, t, f(fieldValue))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex.map {
               case (option, index) =>
                 f(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
             }.collect { case Some(selection) => selection }
 
-            uk.gov.hmrc.gform.views.html.snippets.summary.choice(fieldValue, selections)
+            choice(fieldValue, selections)
           case FileUpload() => {
-            uk.gov.hmrc.gform.views.html.snippets.summary.text(fieldValue, Text(AnyText, Constant("file")), f(fieldValue))
+            text(fieldValue, Text(AnyText, Constant("file")), f(fieldValue))
           }
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _) => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
@@ -92,12 +86,12 @@ object SummaryForRender {
         sectionsToRender.flatMap {
           case (section, index) =>
 
-            uk.gov.hmrc.gform.views.html.snippets.summary.begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size, lang) ::
+            begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size, lang) ::
               section.fields.filterNot(showOnSummary)
               .map {
                 valueToHtml(_)
               } ++
-              List(uk.gov.hmrc.gform.views.html.snippets.summary.end_section(formTemplate._id, formId, section.title, index))
+              List(end_section(formTemplate._id, formId, section.title, index))
         }
       }
       val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
@@ -105,17 +99,6 @@ object SummaryForRender {
         case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil))
       })
       SummaryForRender(snippets, fieldJavascript(fields, repeatingGroups), sections.size)
-    }
-  }
-}
-
-case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
-    SummaryForRender(f, formFields, formId, formTemplate, repeatService, envelope, lang)
-
-  def renderSummary(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    summaryForRender(f, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
-      Ok(uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang))
     }
   }
 }
