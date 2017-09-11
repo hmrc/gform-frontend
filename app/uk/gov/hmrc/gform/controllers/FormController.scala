@@ -18,36 +18,28 @@ package uk.gov.hmrc.gform
 package controllers
 
 import javax.inject.Inject
-import helpers._
 
-import cats._
-import cats.data.{ EitherT, Validated }
-import cats.data.Validated.{ Invalid, Valid }
-import cats.instances.all._
-import cats.syntax.all._
-import play.api.Logger
+import cats.implicits._
+import uk.gov.hmrc.gform.views.html.form._
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
+import uk.gov.hmrc.gform.controllers.helpers._
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.prepop.PrepopModule
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.gform.views.html.hardcoded.pages._
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
-
-import scala.collection.immutable
+import cats.implicits._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import views.html.hardcoded.pages._
-import views.html._
 
 class FormController @Inject() (
     controllersModule: ControllersModule,
@@ -136,9 +128,9 @@ class FormController @Inject() (
 
     def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
 
-    Future.successful(Ok(
-      file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection, lang)
-    ))
+    Ok(
+      snippets.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection, lang)
+    ).pure[Future]
   }
 
   val choice = play.api.data.Form(play.api.data.Forms.single(

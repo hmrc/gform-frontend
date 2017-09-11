@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation._
 
 class FormFieldValidationResultSpec extends FlatSpec with Matchers {
 

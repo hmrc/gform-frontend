@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.validation
 
+import uk.gov.hmrc.gform.models._
 import cats.implicits._
-import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-sealed trait FormFieldValidationResult {
+import uk.gov.hmrc.gform.sharedmodel.form.FormField
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FieldId, FieldValue }
+
+case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
+case class FieldGlobalOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
+case class FieldError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
+case class FieldGlobalError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
+case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
+
+trait FormFieldValidationResult {
 
   lazy val fieldErrors: Set[String] = this match {
     case e: FieldError => e.errors
@@ -84,14 +92,4 @@ sealed trait FormFieldValidationResult {
   }
 
 }
-
-case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
-
-case class FieldGlobalOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
-
-case class FieldError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
-
-case class FieldGlobalError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
-
-case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
 

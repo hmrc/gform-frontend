@@ -20,6 +20,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation._
 
 object Fields {
 

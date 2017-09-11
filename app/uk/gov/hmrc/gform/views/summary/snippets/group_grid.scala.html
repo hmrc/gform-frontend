@@ -3,11 +3,11 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.views.html.localisation
 @import views.html.helper.CSRF
-@import uk.gov.hmrc.gform.models.FormFieldValidationResult
-@import scala.concurrent.Future
 
+@import scala.concurrent.Future
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @(fieldValue: FieldValue, fields: List[Option[FormFieldValidationResult]])
 
 <tr>
