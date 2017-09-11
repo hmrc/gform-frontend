@@ -41,14 +41,11 @@ object Fields {
       case Text(_, _) | Group(_, _, _, _, _, _) => formFields.get(fieldValue.id).map { formField =>
         FieldOk(fieldValue, formField.value)
       }
-      case Choice(_, _, _, _, _) =>
+      case c: Choice =>
         val fieldId = fieldValue.id
-        val fieldOks = formFields.get(fieldId).map { formField =>
-          val selections = formField.value.split(",").toList
-          selections.map(selectedIndex => fieldId.value + selectedIndex -> FieldOk(fieldValue, selectedIndex)).toMap
-        }
-        fieldOks.map(data => ComponentField(fieldValue, data))
-
+        val fieldOks = Choice.suffix(c, fieldId).map(id => id -> formFields.get(id))
+        val data = fieldOks.map { case (id, value) => id.toString -> FieldOk(fieldValue, value.map(_.value).getOrElse("")) }.toMap
+        Some(ComponentField(fieldValue, data))
       case FileUpload() => formFields.get(fieldValue.id).map { formField =>
         val fileName = envelope.files.find(_.fileId.value == formField.id.value).map(_.fileName).getOrElse("")
         FieldOk(fieldValue, fileName)
@@ -72,7 +69,8 @@ object Fields {
         case Address(_) => Address.fields(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
         case UkSortCode(_) => UkSortCode.fields(fv.id).map(getFieldData)
-        case Text(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
+        case Text(_, _) => List(getFieldData(fv.id))
+        case c: Choice => Choice.suffix(c, fv.id).map(getFieldData)
         case FileUpload() => List(getFieldData(fv.id))
         case InformationMessage(_, _) => List()
       }

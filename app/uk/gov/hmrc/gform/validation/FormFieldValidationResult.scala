@@ -85,10 +85,7 @@ trait FormFieldValidationResult {
     case FieldGlobalError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
     case FieldGlobalOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
     case ComponentField(fieldValue, data) =>
-      fieldValue.`type` match {
-        case c: Choice => List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
-        case _ => data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
-      }
+      data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
   }
 
 }
