@@ -71,16 +71,18 @@
         <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
         }
 
-        @{
-        val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-        val errors: Set[String] = ValidationUtil.printErrors(map)
+        @safeError(suffix : String) = @{
+        val errors: Set[String] = validationResult.map(_.fieldErrorsWithSuffix(suffix)).getOrElse(Set())
 
         errors.map(e => errorInline(e, e, Seq("")))
         }
 
+
+
         <div class="form-group-compound">
             <label class="form-label" for="@safeId("street1")">Address 1</label>
 
+            @safeError("street1")
             <input type="text"
                    class="input--medium"
                    name="@safeId("street1")"
@@ -90,7 +92,7 @@
 
         <div class="form-group-compound">
             <label class="form-label" for="@safeId("street2")">Address 2 (optional)</label>
-
+            @safeError("street2")
             <input type="text"
                    class="input--medium"
                    name="@safeId("street2")"
@@ -101,6 +103,7 @@
         <div class="form-group-related">
             <label class="form-label" for="@safeId("street3")">Address 3 (optional)</label>
 
+            @safeError("street3")
             <input type="text"
                    class="input--medium"
                    name="@safeId("street3")"
@@ -111,6 +114,7 @@
         <div class="form-field-group">
             <label class="form-label" for="@safeId("street4")">Address 4 (optional)</label>
 
+            @safeError("street4")
             <input type="text"
                    class="input--medium"
                    name="@safeId("street4")"
@@ -123,6 +127,7 @@
           <div class="form-group">
             <label class="form-label" for="@safeId("postcode")">Postcode</label>
 
+              @safeError("postcode")
             <input type="text"
                    class="input--small"
                    name="@safeId("postcode")"
@@ -135,6 +140,7 @@
           <div class="form-group">
             <label class="form-label" for="@safeId("country")">Country</label>
 
+              @safeError("country")
             <input type="text"
                    name="@safeId("country")"
                    id="@safeId("country")"
@@ -145,17 +151,20 @@
           <div class="form-group">
             <label class="form-label" for="@safeId("postcode")">Postcode</label>
 
+              @safeError("postcode")
             <input type="text"
                    class="input--small"
                    name="@safeId("postcode")"
                    id="@safeId("postcode")"
                    value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
 
+              @safeError("country")
             <input type="hidden"
                    name="@safeId("country")"
                    id="@safeId("country")"
                    value="" />
           </div>
         }
+
     </fieldset>
 </div>
