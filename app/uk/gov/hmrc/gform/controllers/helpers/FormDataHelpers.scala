@@ -30,7 +30,7 @@ object FormDataHelpers {
   //for choice component, in mongo we have '1,2,3' but in request from browser we have List(1,2,2)
   //however we can't split formField.value by comma because other data could have it in it
   def formDataMap(formData: FormData): Map[FieldId, Seq[String]] =
-    formData.fields.map(fd => fd.id -> List(fd.value)).toMap
+    formData.fields.map(formField => formField.id -> List(formField.value)).toMap
 
   def processResponseDataFromBody(request: Request[AnyContent])(continuation: Map[FieldId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
     request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FieldId(a), b) }) match {

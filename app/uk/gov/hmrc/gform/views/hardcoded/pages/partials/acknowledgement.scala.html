@@ -14,20 +14,22 @@
 @import uk.gov.hmrc.gform.models._
 
 @import views.html.helper.CSRF
-@(str: String, supportContents: SectionRenderingInformation, formCategory: FormCategory)(implicit request: Request[_], messages: Messages)
+@(timeMessage: String, supportContents: SectionRenderingInformation, formCategory: FormCategory, formTemplate: FormTemplate, lang: Option[String])(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = supportContents.sectionTitle, bodyClasses = None) {
 
 <div style="background-color : #28A197 ; text-align : center ; padding : 10 px ; color : #ffffff ;">
     <h1 class="bold-medium"><span class="tick" role="img" aria-label="tick"></span>Your @{formCategory.getString} has been submitted</h1>
     <p>
-        @str
+        @timeMessage
     </p>
 </div>
 
 <h2 class="heading-medium">Print a copy of your @{formCategory.getString}</h2>
 <p>
-    <a href="javascript:window.print()" class="print-link print-hidden js-visible">Print your @{formCategory.getString}</a> //TODO print actual PDF
+    <a href="@uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang).url" class="print-link print-hidden js-visible">
+        Print your @{formCategory.getString}
+    </a>
 </p>
 
 @{

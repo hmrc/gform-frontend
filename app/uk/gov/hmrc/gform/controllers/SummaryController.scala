@@ -20,28 +20,28 @@ import javax.inject.{ Inject, Singleton }
 
 import cats._
 import cats.implicits._
+import cats._
+import cats.implicits._
+import play.api.mvc.{ Action, AnyContent, Request }
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
+import uk.gov.hmrc.gform.fileupload.FileUploadModule
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplateId }
 import uk.gov.hmrc.gform.summary.Summary
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.validation.ValidationModule
-import uk.gov.hmrc.play.frontend.controller.FrontendController
-import cats._
-import cats.implicits._
-import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Comment, Element, Node }
-import org.jsoup.safety.Whitelist
-import play.twirl.api.Html
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplateId }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
+import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -57,17 +57,41 @@ class SummaryController @Inject() (
 
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
+  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>getSummaryHTML(formId, cache, lang).map(Ok(_))
+    getSummaryHTML(formId, cache, lang).map(Ok(_))
+  }
 
+  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+
+    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
+      get(data, FieldId("save")) match {
+        case "Exit" :: Nil => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTemplateId4Ga, totalPage, lang)))
+        case "Declaration" :: Nil => Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang)))
+        case _ => Future.successful(BadRequest("Cannot determine action"))
+      }
+    }
+  }
+
+  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+    // format: OFF
+    for {
+      summaryHml <- getSummaryHTML(formId, cache, lang)
+      htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
+      pdf        <- pdfService.generatePDF(htmlForPDF)
+    } yield Ok(pdf).as("application/pdf")
+    // format: ON
+  }
+
+  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(implicit request: Request[_]): Future[Html] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
 
-    for {// format: OFF
+    // format: OFF
+    for {
       envelope          <- envelopeF
       (v, _)            <- validateForm(cache, envelope)
       result            <- Summary(cache.formTemplate).renderSummary(v, data, formId, repeatService, envelope, lang)
-      // format: ON
     } yield result
   }
 
@@ -126,46 +150,18 @@ class SummaryController @Inject() (
     } yield (v, errors)
   }
 
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
-    val data = FormDataHelpers.formDataMap(cache.form.formData)
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-
-    for {// format: OFF
-      envelope <- envelopeF
-      summary  <- Summary(cache.formTemplate).generateHTML(_ => None, formId, data, repeatService, envelope, lang)
-      html     = sanitiseHtml(summary)
-      pdf      <- pdfService.generatePDF(html)
-      // format: ON
+  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+    // format: OFF
+    for {
+      summaryHml <- getSummaryHTML(formId, cache, lang)
+      htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
+      pdf        <- pdfService.generatePDF(htmlForPDF)
     } yield Ok(pdf).as("application/pdf")
+    // format: ON
   }
 
   private lazy val fileUploadService = fileUploadModule.fileUploadService
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val validationService = validationModule.validationService
   private lazy val pdfService = pdfGeneratorModule.pdfGeneratorService
-
-  private def sanitiseHtml(html: Html): String = {
-    val doc = Jsoup.parse(html.body)
-    removeComments(doc)
-    doc.getElementsByTag("script").remove
-    doc.getElementsByTag("a").remove
-    doc.getElementsByClass("footer-wrapper").remove
-    doc.getElementById("global-cookie-message").remove
-    doc.getElementsByClass("print-hidden").remove
-
-    doc.html
-  }
-
-  def removeComments(node: Node): Unit = {
-    var i = 0
-    while ({ i < node.childNodeSize() }) {
-      val child = node.childNode(i)
-      if (child.nodeName.equals("#comment")) {
-        child.remove
-      } else {
-        removeComments(child)
-        i += 1
-      }
-    }
-  }
 }

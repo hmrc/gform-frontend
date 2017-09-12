@@ -125,13 +125,9 @@ case class Summary(formTemplate: FormTemplate) {
   def summaryForRender(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
     SummaryForRender(f, formFields, formId, formTemplate, repeatService, envelope, lang)
 
-  def generateHTML(f: FieldValue => Option[FormFieldValidationResult], formId: FormId, formFields: Map[FieldId, Seq[String]], repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Html] = {
+  def renderSummary(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Html] = {
     summaryForRender(f, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
       uk.gov.hmrc.gform.views.html.summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang)
     }
-  }
-
-  def renderSummary(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    generateHTML(f, formId, formFields, repeatService, envelope, lang).map(Ok(_))
   }
 }
