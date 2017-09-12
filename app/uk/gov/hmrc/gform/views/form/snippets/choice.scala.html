@@ -16,7 +16,7 @@ options: NonEmptyList[String],
 orientation: Orientation,
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
-optionHelpText: Option[List[String]],
+optionHelpText: Option[List[Html]],
 index: Int
 )
 
@@ -60,7 +60,7 @@ fieldValue.id.withSuffix(id).toString
 
             @if(optionHelpText) {
                 <div id="helptext-@{fieldValue.id}@index" class="panel-indent js-hidden" aria-hidden="true">
-                    @localisation(optionHelpText.getOrElse(List.empty)(index))
+                    @Html(optionHelpText.getOrElse(List.empty)(index).body)
                 </div>
             }
           }
