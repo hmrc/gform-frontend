@@ -19,12 +19,14 @@ package uk.gov.hmrc.gform.service
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
+
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded
 import cats.data.NonEmptyList
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
+import org.jsoup.Jsoup
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
@@ -171,9 +173,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
   }
 
   private def htmlForInformationMessage(fieldValue: FieldValue, infoType: InfoType, infoText: String, index: Int, ei: ExtraInfo) = {
-    val flavour = new GFMFlavourDescriptor
-    val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(infoText)
-    val parsedMarkdownText = new HtmlGenerator(infoText, parsedTree, flavour, false).generateHtml
+    val parsedMarkdownText = markDownParser(infoText)
     Future.successful(snippets.field_template_info(fieldValue, infoType, Html(parsedMarkdownText), index))
   }
 
@@ -181,18 +181,32 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     snippets.field_template_file_upload(ei.formId, formTemplateId4Ga, ei.sectionNumber, fieldValue, validate(fieldValue, ei), index, ei.formMaxAttachmentSizeMB, totalSections, lang)
   }
 
+  private def markDownParser(markDownText: String) = {
+    val flavour = new GFMFlavourDescriptor
+    val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
+    new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
+  }
+
   private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]], index: Int, ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
+
+    def addTargetToLinks(html: String) = {
+      val doc = Jsoup.parse(html)
+      doc.getElementsByTag("a").attr("target", "_blank")
+      doc.html
+    }
+
     val prepopValues = ei.fieldData.get(fieldValue.id) match {
       case None => selections.map(_.toString).toSet
       case Some(_) => Set.empty[String] // Don't prepop something we already submitted
     }
+    val optionalHelpTextMarkDown = optionalHelpText.map(_.map(markDownParser)).map(_.map(x => Html(addTargetToLinks(x))))
 
     val validatedValue = validate(fieldValue, ei)
 
     choice match {
-      case Radio | YesNo => snippets.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index)
-      case Checkbox => snippets.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpText, index)
-      case Inline => snippets.choiceInline(fieldValue, options, prepopValues, validatedValue, optionalHelpText, index)
+      case Radio | YesNo => snippets.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
+      case Checkbox => snippets.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
+      case Inline => snippets.choiceInline(fieldValue, options, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
     }
   }
 
