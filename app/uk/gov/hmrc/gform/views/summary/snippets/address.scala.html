@@ -26,7 +26,7 @@
         <td>
 
             @{validationResult.globalErrors.map {error => {error}  }}
-            @{validationResult.fieldErrorsByField.map {case(field, errors) =>
+            @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
                 errors.map(e => showError(e))
             }}
         </td>
