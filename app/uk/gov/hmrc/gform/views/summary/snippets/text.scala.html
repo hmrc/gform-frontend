@@ -6,12 +6,28 @@
 
 @(fieldValue: FieldValue, text: Text, validationResult: Option[FormFieldValidationResult])
 
+@isSterling = @{
+fieldValue.`type` match {
+case Text(Sterling, _) => true
+case _ => false
+}
+}
+
+
 @* TODO: What should total style be? *@
 <tr @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="table__row--bold"}>
   <td>
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </td>
-  <td>
+
+      @if(!isSterling){
+    <td>
     @validationResult.map(_.getCurrentValue).getOrElse("")
-  </td>
+    </td>
+      }else{
+    <td>
+        <span class="input-currency input--no-spinner input--left-padding input--small" >@validationResult.map(_.getCurrentValue).getOrElse("")</span>
+    </td>
+      }
+
 </tr>
