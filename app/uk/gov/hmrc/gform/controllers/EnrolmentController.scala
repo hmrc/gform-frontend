@@ -161,7 +161,7 @@ class EnrolmentController @Inject() (
 
     val errorMap = getErrorMap(validationResult, data, authConfig)
     for {
-      html <- renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Some(errorMap.get), lang)
+      html <- renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Some(validationResult), lang)
     } yield Ok(html)
   }
 

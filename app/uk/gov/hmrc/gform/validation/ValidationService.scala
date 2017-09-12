@@ -103,7 +103,7 @@ class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: Fi
     case date @ Date(_, _, _) => validateDate(fieldValue, date)
     case text @ Text(_, _) => validateText(fieldValue, text)(data)
     case address @ Address(_) => validateAddress(fieldValue, address)(data)
-    case c @ Choice(_, _, _, _, _) => validateChoice(fieldValue, c)(data)
+    case c @ Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
     case Group(_, _, _, _, _, _) => validF //a group is read-only
     case FileUpload() => validateFileUpload(fieldValue)
     case InformationMessage(_, _) => validF
@@ -400,11 +400,11 @@ class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: Fi
     }
   }
 
-  private def validateChoice(fieldValue: FieldValue, choice: Choice)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
-    val choiceValue: List[String] = Choice.suffix(choice, fieldValue.id).flatMap(id => data.get(id).toList.flatten.headOption).filterNot(x => x.isEmpty)
+  private def validateChoice(fieldValue: FieldValue)(data: Map[FieldId, Seq[String]]): Future[ValidatedType] = Future.successful {
+    val choiceValue = data.get(fieldValue.id).toList.flatten.headOption
 
     (fieldValue.mandatory, choiceValue) match {
-      case (true, Nil) => getError(fieldValue, "Please enter required data")
+      case (true, None | Some("")) => getError(fieldValue, "Please enter required data")
       case _ => ().valid
     }
   }

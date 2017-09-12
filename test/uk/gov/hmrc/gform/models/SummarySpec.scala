@@ -17,17 +17,19 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import cats.data.Validated.Valid
 import org.jsoup.Jsoup
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.models.helpers.Extractors._
-import uk.gov.hmrc.gform.models.helpers.Fields.okValues
+import uk.gov.hmrc.gform.models.helpers.Fields.valuesValidate
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.summary.Summary
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
@@ -71,9 +73,8 @@ class SummarySpec extends Spec {
     }
 
     def summary = Summary(formTemplate)
-    def filedValues = formTemplate.sections.flatMap(_.fields)
-    def f: FieldValue => Option[FormFieldValidationResult] = okValues(rawDataFromBrowser, filedValues, envelope)
-
+    def fieldValues = formTemplate.sections.flatMap(_.fields)
+    def f: ValidatedType = Valid(()) //valuesValidate(rawDataFromBrowser, fieldValues, envelope, Map.empty[FieldId, Set[String]])
     implicit val hc = HeaderCarrier()
 
   }
@@ -123,8 +124,8 @@ class SummarySpec extends Spec {
       FieldId("HomeAddress-country") -> Seq("Test!UK!Test")
     )
 
-    override def filedValues = formTemplate.sections.flatMap(_.fields)
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(rawDataFromBrowser, filedValues, envelope)
+    override def fieldValues = formTemplate.sections.flatMap(_.fields)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(rawDataFromBrowser, fieldValues, envelope)
     val render = summary.summaryForRender(f, rawDataFromBrowser, formId, mockRepeatService, envelope, None)
     val testStringValues = extractAllTestStringValues(render.futureValue.snippets)
     testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
@@ -133,7 +134,7 @@ class SummarySpec extends Spec {
 
   it should "display the title when shortName is not present in the section" in new Test {
 
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
 
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
 
@@ -146,7 +147,7 @@ class SummarySpec extends Spec {
     val section = section0.copy(shortName = Some(shortName))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
 
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
 
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
 
@@ -171,7 +172,7 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
@@ -193,7 +194,7 @@ class SummarySpec extends Spec {
     )
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
@@ -216,7 +217,7 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
@@ -239,7 +240,7 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
@@ -262,7 +263,7 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
@@ -285,7 +286,7 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
@@ -308,7 +309,7 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
@@ -331,7 +332,7 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = summary.summaryForRender(f, Map.empty, formId, mockRepeatService, envelope, None)
     val doc = Jsoup.parse(render.futureValue.snippets.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
@@ -344,14 +345,14 @@ class SummarySpec extends Spec {
       sections = List(section1)
     )
 
-    val f1: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("Pete")), filedValues, envelope)
+    //    val f1: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("Pete")), fieldValues, envelope)
 
-    val renderWithDataMatching = summary.summaryForRender(f1, Map(FieldId("firstName") -> Seq("Pete")), formId, mockRepeatService, envelope, None)
+    val renderWithDataMatching = summary.summaryForRender(f, Map(FieldId("firstName") -> Seq("Pete")), formId, mockRepeatService, envelope, None)
     renderWithDataMatching.futureValue.snippets.size shouldBe 3
 
-    val f2: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), filedValues, envelope)
+    //    val f2: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), fieldValues, envelope)
 
-    val renderWithDataMismatch = summary.summaryForRender(f2, Map(FieldId("firstName") -> Seq("*Not*Pete")), formId, mockRepeatService, envelope, None)
+    val renderWithDataMismatch = summary.summaryForRender(f, Map(FieldId("firstName") -> Seq("*Not*Pete")), formId, mockRepeatService, envelope, None)
     renderWithDataMismatch.futureValue.snippets.size shouldBe 0
   }
 
@@ -367,7 +368,7 @@ class SummarySpec extends Spec {
     )
     override def section0 = Section("", None, None, None, None, None, None, List(groupFieldValue))
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
-    override def f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty[FieldId, Seq[String]], filedValues, envelope)
+    //    override def f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty[FieldId, Seq[String]], fieldValues, envelope)
     val render0 = Summary(formTemplate).summaryForRender(f, Map.empty[FieldId, Seq[String]], formId, mockRepeatService, envelope, None)
     extractAllTestStringValues(render0.futureValue.snippets) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
@@ -376,9 +377,9 @@ class SummarySpec extends Spec {
 
     val filedValues1 = formTemplate.sections.flatMap(_.fields)
 
-    val f1: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty[FieldId, Seq[String]], filedValues1, envelope)
+    //    val f1: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty[FieldId, Seq[String]], filedValues1, envelope)
 
-    val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(f1, Map.empty[FieldId, Seq[String]], formId, mockRepeatService, envelope, None)
+    val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(f, Map.empty[FieldId, Seq[String]], formId, mockRepeatService, envelope, None)
     extractAllTestStringValues(render1.futureValue.snippets) should be(List("group-shortname"))
   }
 
@@ -387,7 +388,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(
       sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))), section2)
     )
-    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), filedValues, envelope)
+    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), fieldValues, envelope)
 
     val summaryForRender = summary.summaryForRender(f, Map(FieldId("firstName") -> Seq("*Not*Pete")), formId, mockRepeatService, envelope, None)
     val htmls = summaryForRender.futureValue.snippets

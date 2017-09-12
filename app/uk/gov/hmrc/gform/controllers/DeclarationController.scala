@@ -46,7 +46,7 @@ class DeclarationController @Inject() (
   import controllersModule.i18nSupport._
 
   def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
-    renderer.renderDeclarationSection(formId, cache.formTemplate, None, cache.retrievals, lang).map(Ok(_))
+    renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, None, lang).map(Ok(_))
   }
 
   def submitDeclaration(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
@@ -67,9 +67,9 @@ class DeclarationController @Inject() (
               Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId, formTemplateId4Ga, lang))
             }
           case validationResult @ Invalid(_) =>
-            val errorMap = getErrorMap(validationResult, data, cache.formTemplate)
+            val errorMap: Map[FieldValue, FormFieldValidationResult] = getErrorMap(validationResult, data, cache.formTemplate)
             for {
-              html <- renderer.renderDeclarationSection(formId, cache.formTemplate, Some(errorMap.get), cache.retrievals, lang)
+              html <- renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, Some(validationResult), lang)
             } yield Ok(html)
         }
         case _ =>
