@@ -63,13 +63,6 @@ case class Choice(
   optionHelpText: Option[List[String]]
 ) extends ComponentType
 
-object Choice {
-
-  def suffix(c: Choice, fieldId: FieldId) =
-    c.options.toList.zipWithIndex.map { case (_, idx) => fieldId.withSuffix(idx.toString) }
-
-}
-
 sealed trait ChoiceType
 final case object Radio extends ChoiceType
 final case object Checkbox extends ChoiceType

@@ -24,17 +24,18 @@ import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary._
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
-    SummaryForRender(f, formFields, formId, formTemplate, repeatService, envelope, lang)
+  def summaryForRender(validatedType: ValidatedType, formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
+    SummaryForRender(validatedType, formFields, formId, formTemplate, repeatService, envelope, lang)
 
-  def renderSummary(f: FieldValue => Option[FormFieldValidationResult], formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    summaryForRender(f, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
+  def renderSummary(validatedType: ValidatedType, formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+    summaryForRender(validatedType, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
       Ok(summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang))
     }
   }
