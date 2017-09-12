@@ -1,0 +1,21 @@
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.views.html._
+
+@(validations: List[Html], t: List[FormFieldValidationResult])
+
+<div class="flash error-summary@if(t.map(_.isNotOk).forall(x => x)) { error-summary--show}"
+     id="error-summary-display"
+     role="alert"
+     aria-labelledby="error-summary-heading"
+     tabindex="-1">
+    <h2 id="error-summary-heading" class="h3-heading">Errors Found</h2>
+    <ul class="js-error-summary-messages">
+
+        @for(error <- validations){
+            @error
+        }
+    </ul>
+</div>
