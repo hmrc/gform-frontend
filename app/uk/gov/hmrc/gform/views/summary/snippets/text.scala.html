@@ -15,6 +15,7 @@ case _ => false
 }
 
 
+
 @* TODO: What should total style be? *@
 <tr @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="table__row--bold"}>
   <td>
