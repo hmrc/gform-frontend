@@ -59,7 +59,7 @@ fieldValue.id.withSuffix(id).toString
             </label>
 
             @if(optionHelpText) {
-                <div id="helptext-@{fieldValue.id}@index" class="panel-indent js-hidden" aria-hidden="true">
+                <div id="helptext-@{fieldValue.id}@index" class="panel-indent js-hidden panel panel-info" aria-hidden="true">
                     @Html(optionHelpText.getOrElse(List.empty)(index).body)
                 </div>
             }
