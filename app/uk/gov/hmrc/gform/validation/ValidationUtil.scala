@@ -24,6 +24,8 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+import scala.concurrent.Future
+
 object ValidationUtil {
 
   type GformError = Map[FieldId, Set[String]]
@@ -31,11 +33,16 @@ object ValidationUtil {
   type ValidatedNumeric = Validated[String, Int]
   type ValidatedConcreteDate = Validated[GformError, ConcreteDate]
 
+  //TODO: name it and use it
+  type XXX = Map[FieldValue, FormFieldValidationResult]
+
   type ValidatedType = Validated[GformError, Unit]
 
   val printErrors: (Map[String, Set[String]]) => Set[String] = (map: Map[String, Set[String]]) => {
     map.foldLeft(Set[String]())(_ ++ _._2)
   }
+
+  def isFormValid(errors: Map[FieldValue, FormFieldValidationResult]): Boolean = !errors.values.view.exists(!_.isOk)
 
   def renderErrors(value: String, validationResult: FormFieldValidationResult): Map[String, Set[String]] = {
 
