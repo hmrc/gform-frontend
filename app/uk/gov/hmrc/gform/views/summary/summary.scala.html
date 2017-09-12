@@ -15,7 +15,7 @@
       Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
 
-    <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryGen.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryController.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
             CSRF.formField

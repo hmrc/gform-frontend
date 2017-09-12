@@ -241,7 +241,7 @@ class FormController @Inject() (
         case SaveAndContinue(sn)            => redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)).flatMap(x => processSaveAndContinue(userId, cache.form, x))
         case SaveAndExit                    => processSaveAndExit(userId, cache.form, cache.form.envelopeId)
         case Back(sn)                       => processBack(userId, cache.form)(redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)))
-        case SaveAndSummary                 => processSaveAndContinue(userId, cache.form, Redirect(routes.SummaryGen.summaryById(formId, cache.formTemplate._id, lang)))
+        case SaveAndSummary                 => processSaveAndContinue(userId, cache.form, Redirect(routes.SummaryController.summaryById(formId, cache.formTemplate._id, lang)))
         case AddGroup(groupId)              => processAddGroup(groupId)
         case RemoveGroup(groupId)           => processRemoveGroup(groupId)
         // format: ON
