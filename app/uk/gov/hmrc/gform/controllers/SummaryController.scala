@@ -18,34 +18,25 @@ package uk.gov.hmrc.gform.controllers
 
 import javax.inject.{ Inject, Singleton }
 
-import play.api.Logger
-import play.api.i18n.MessagesApi
-import play.api.libs.json.Json
-import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.auth.AuthModule
-import uk.gov.hmrc.gform.config.ConfigModule
+import cats._
+import cats.implicits._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
-import uk.gov.hmrc.play.frontend.controller.FrontendController
-import cats._
-import cats.implicits._
-import play.api.mvc.Result
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplateId }
 import uk.gov.hmrc.gform.summary.Summary
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class SummaryGen @Inject() (
+class SummaryController @Inject() (
   controllersModule: ControllersModule,
   repeatService: RepeatingComponentService,
   fileUploadModule: FileUploadModule,
