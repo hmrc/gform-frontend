@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
@@ -66,8 +67,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")
   }
 
-  def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    ws.GET[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")
+  def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier): Future[Submission] = {
+    ws.GET[Submission](s"$baseUrl/forms/${formId.value}/submission")
   }
 
   /******formTemplate*******/

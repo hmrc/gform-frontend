@@ -17,8 +17,10 @@
 package uk.gov.hmrc.gform.summarypdf
 
 import play.mvc.Http.{ HeaderNames, MimeTypes }
+import play.twirl.api.Html
 import uk.gov.hmrc.play.http.HeaderCarrier
-
+import org.jsoup.Jsoup
+import org.jsoup.nodes.{ Comment, Element, Node }
 import scala.concurrent.Future
 
 class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
@@ -27,5 +29,30 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
     val body = Map("html" -> Seq(html))
     pdfGeneratorConnector.generatePDF(body, headers)
+  }
+
+  def sanitiseHtmlForPDF(html: Html): String = {
+    val doc = Jsoup.parse(html.body)
+    removeComments(doc)
+    doc.getElementsByTag("script").remove
+    doc.getElementsByTag("a").remove
+    doc.getElementsByClass("footer-wrapper").remove
+    doc.getElementById("global-cookie-message").remove
+    doc.getElementsByClass("print-hidden").remove
+
+    doc.html
+  }
+
+  private def removeComments(node: Node): Unit = {
+    var i = 0
+    while (i < node.childNodeSize()) {
+      val child = node.childNode(i)
+      if (child.nodeName.equals("#comment")) {
+        child.remove
+      } else {
+        removeComments(child)
+        i += 1
+      }
+    }
   }
 }
