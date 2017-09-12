@@ -19,6 +19,7 @@ package controllers
 
 import javax.inject.Inject
 
+import cats.Monoid
 import cats.implicits._
 import uk.gov.hmrc.gform.views.html.form._
 import play.api.mvc._
@@ -38,6 +39,7 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModul
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 import cats.implicits._
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -112,9 +114,7 @@ class FormController @Inject() (
       section           = sections(sectionNumber.value)
       sectionFields     = repeatService.atomicFields(section)
       allFields         =  sections.flatMap(repeatService.atomicFields)
-      componentsErrors  = validationService.validateComponents(sectionFields, data, cache.form.envelopeId)
-      sectionErrors     = validationService.validateUsingValidators(section, data)
-      v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
+      v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(data)
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       html              <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, Some(errors), envelope, cache.form.envelopeId, Some(v), sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
@@ -169,9 +169,7 @@ class FormController @Inject() (
         section           = sections(sectionNumber.value)
         sectionFields     = repeatService.atomicFields(section)
         allFields         = sections.flatMap(repeatService.atomicFields)
-        componentsErrors  = validationService.validateComponents(sectionFields, data, cache.form.envelopeId)
-        sectionErrors     = validationService.validateUsingValidators(section, data)
-        v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
+        v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(data)
         errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       // format: OFF
       } yield errors
