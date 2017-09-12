@@ -74,13 +74,14 @@ class SummaryController @Inject() (
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
       lazy val redirectToDeclaration = Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang))
+      lazy val redirectToSummary = Redirect(routes.SummaryController.summaryById(formId, formTemplateId4Ga, lang))
       lazy val handleDeclaration = for {
         // format: OFF
         envelope    <- envelopeF
         (v, _)      <- formFieldValidationResultsF
         result      <- isFormValidF.ifM(
           redirectToDeclaration.pure[Future],
-          Summary(cache.formTemplate).renderSummary(v, data, formId, repeatService, envelope, lang)
+          redirectToSummary.pure[Future]
         )
         // format: ON
       } yield result
@@ -101,9 +102,7 @@ class SummaryController @Inject() (
     for {// format: OFF
       sections          <- sectionsF
       allFields         =  sections.flatMap(repeatService.atomicFields)
-      componentsErrors  = validationService.validateComponents(allFields, data, cache.form.envelopeId)
-      sectionErrors     = sections.map(validationService.validateUsingValidators(_, data)).sequenceU.map(Monoid[ValidatedType].combineAll)
-      v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
+      v                 <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       // format: ON
     } yield (v, errors)

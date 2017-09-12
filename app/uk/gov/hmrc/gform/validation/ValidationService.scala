@@ -56,16 +56,16 @@ class ValidationService(
       .sequenceU
       .map(Monoid[ValidatedType].combineAll)
 
-  def validateUsingValidators(section: Section, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] =
+  private def validateUsingValidators(section: Section, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] =
     section
       .validators
       .map(validateUsingSectionValidators(_, data))
       .getOrElse(().valid.pure[Future])
 
-  def sequenceValidations(v1: Future[ValidatedType], v2: => Future[ValidatedType])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
+  def validateForm(sectionFields: List[FieldValue], section: Section, envelopeId: EnvelopeId)(data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
     val eT = for {
-      _ <- EitherT(v1.map(_.toEither))
-      _ <- EitherT(v2.map(_.toEither))
+      _ <- EitherT(validateComponents(sectionFields, data, envelopeId).map(_.toEither))
+      _ <- EitherT(validateUsingValidators(section, data).map(_.toEither))
     } yield ()
     eT.value.map(Validated.fromEither)
   }
