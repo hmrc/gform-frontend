@@ -19,11 +19,6 @@ validationResult: Option[FormFieldValidationResult],
 optionHelpText: Option[List[Html]],
 index: Int
 )
-
-@safeId(id: String) = @{
-fieldValue.id.withSuffix(id).toString
-}
-
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
         <fieldset>
@@ -40,21 +35,22 @@ fieldValue.id.withSuffix(id).toString
             <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
             @options.toList.zipWithIndex.map{ case (option, index) =>
             <label
-              for=@{safeId(index.toString)}
-              class="block-label selection-button-radio"
-              @if(optionHelpText) {
-              data-target="helptext-@{safeId(index.toString)}"
-              }
+                    for="@{fieldValue.id}@index"
+                    class="block-label selection-button-radio"
+                    @if(optionHelpText) {
+                    data-target="helptext-@{fieldValue.id}@index"
+                    }
             >
-                <input id=@{safeId(index.toString)}
-                       name=@{safeId(index.toString)}
+                <input id="@{fieldValue.id}@index"
+                       name="@{fieldValue.id}"
                        value="@index"
                        type="@inputType"
                        @if(optionHelpText) {
                        aria-controls="helptext-@{fieldValue.id}@index"
                        aria-expanded="false"
                        }
-                       @validationResult.flatMap(_.getOptionalCurrentValue(safeId(index.toString))).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
+                       @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
+                       index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
                 @option
             </label>
 
@@ -63,8 +59,8 @@ fieldValue.id.withSuffix(id).toString
                     @Html(optionHelpText.getOrElse(List.empty)(index).body)
                 </div>
             }
-          }
-        </div>
+            }
+    </div>
     </fieldset>
 </div>
 </div>

@@ -36,12 +36,14 @@ trait FormFieldValidationResult {
     case _ => Set()
   }
 
-  lazy val fieldErrorsByField: Map[FieldValue, Set[String]] = this match {
+  lazy val fieldErrorsByFieldValue: Map[FieldValue, Set[String]] = this match {
     case e: FieldError => Map(fieldValue -> e.errors)
     case cf: ComponentField =>
-      cf.data.values.foldLeft[Map[FieldValue, Set[String]]](Map())(_ |+| _.fieldErrorsByField)
+      cf.data.values.foldLeft[Map[FieldValue, Set[String]]](Map())(_ |+| _.fieldErrorsByFieldValue)
     case _ => Map()
   }
+
+  def f(s: String): Map[FieldId, Set[String]] = fieldErrorsByFieldValue.map(x => x._1.id.withSuffix(s) -> x._2)
 
   lazy val globalErrors: Set[String] = this match {
     case e: FieldGlobalError => e.errors
@@ -85,7 +87,10 @@ trait FormFieldValidationResult {
     case FieldGlobalError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
     case FieldGlobalOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
     case ComponentField(fieldValue, data) =>
-      data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
+      fieldValue.`type` match {
+        case c: Choice => List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
+        case _ => data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
+      }
   }
 
 }

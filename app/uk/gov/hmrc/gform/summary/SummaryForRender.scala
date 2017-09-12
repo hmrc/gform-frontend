@@ -16,13 +16,16 @@
 
 package uk.gov.hmrc.gform.summary
 
+import cats.data.Validated.{ Invalid, Valid }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -33,16 +36,24 @@ case class SummaryForRender(snippets: List[Html], javascripts: Future[String], t
 
 object SummaryForRender {
 
-  def apply(f: FieldValue => Option[FormFieldValidationResult], data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
+  def apply(validatedType: ValidatedType, data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
 
     repeatService.getAllSections(formTemplate, data).map { sections =>
       val fields: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
+
+      def validate(fieldValue: FieldValue) = {
+        val gformErrors = validatedType match {
+          case Invalid(errors) => errors
+          case Valid(()) => Map.empty[FieldId, Set[String]]
+        }
+        Fields.valuesValidate(data, fields, envelope, gformErrors)(fieldValue)
+      }
 
       def valueToHtml(fieldValue: FieldValue): Html = {
 
         def groupToHtml(fieldValue: FieldValue, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
           case group: Group if presentationHint contains SummariseGroupAsGrid =>
-            val value = group.fields.map(f(_))
+            val value = group.fields.map(validate(_))
             group_grid(fieldValue, value)
           case groupField @ Group(_, orientation, _, _, _, _) => {
             val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
@@ -55,19 +66,19 @@ object SummaryForRender {
         }
 
         fieldValue.`type` match {
-          case UkSortCode(_) => sort_code(fieldValue, f(fieldValue))
-          case Date(_, _, _) => date(fieldValue, f(fieldValue))
-          case Address(_) => address(fieldValue, f(fieldValue))
-          case t @ Text(_, _) => text(fieldValue, t, f(fieldValue))
+          case UkSortCode(_) => sort_code(fieldValue, validate(fieldValue))
+          case Date(_, _, _) => date(fieldValue, validate(fieldValue))
+          case Address(_) => address(fieldValue, validate(fieldValue))
+          case t @ Text(_, _) => text(fieldValue, t, validate(fieldValue))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex.map {
               case (option, index) =>
-                f(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
+                validate(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
             }.collect { case Some(selection) => selection }
 
             choice(fieldValue, selections)
           case FileUpload() => {
-            text(fieldValue, Text(AnyText, Constant("file")), f(fieldValue))
+            text(fieldValue, Text(AnyText, Constant("file")), validate(fieldValue))
           }
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _) => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))

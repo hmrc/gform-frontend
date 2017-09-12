@@ -19,18 +19,61 @@ package uk.gov.hmrc.gform.models.helpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, _ }
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 
 object Fields {
 
-  def okValues(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], envelope: Envelope)(fieldValue: FieldValue): Option[FormFieldValidationResult] = {
-    val formFields = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
+  def evaluateWithSuffix(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]): List[(FieldId, FormFieldValidationResult)] = {
+    val data: FieldId => String = id => dGetter(id).headOption.map(_.value).getOrElse("")
+    fieldValue.`type` match {
+      case UkSortCode(_) => UkSortCode.fields(fieldValue.id).map { fieldId =>
+        gformErrors.get(fieldId) match {
+          case Some(errors) => (fieldId, FieldError(fieldValue, data(fieldId), errors))
+          case None => (fieldId, FieldOk(fieldValue, data(fieldId)))
+        }
+      }
+      case Address(_) => Address.fields(fieldValue.id).map { fieldId =>
+
+        gformErrors.get(fieldId) match {
+          case Some(errors) => (fieldId, FieldError(fieldValue, data(fieldId), errors))
+          case None => (fieldId, FieldOk(fieldValue, data(fieldId)))
+        }
+      }
+
+      case Date(_, _, _) => Date.fields(fieldValue.id).map { fieldId =>
+        gformErrors.get(fieldId) match {
+          case Some(errors) => (fieldId, FieldError(fieldValue, data(fieldId), errors))
+          case None => (fieldId, FieldOk(fieldValue, data(fieldId)))
+        }
+      }
+      case FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _) =>
+        List[(FieldId, FormFieldValidationResult)]()
+    }
+  }
+
+  def evaluateWithoutSuffix(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]): (FieldId, FormFieldValidationResult) = {
+
+    val data = dGetter(fieldValue.id).headOption.map(_.value).getOrElse("")
+    gformErrors.get(fieldValue.id) match {
+      //without suffix
+      case Some(errors) => (fieldValue.id, FieldGlobalError(fieldValue, data, errors))
+      case None => (fieldValue.id, FieldGlobalOk(fieldValue, data))
+    }
+  }
+
+  def evaluateComponent(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]) =
+    (evaluateWithoutSuffix(fieldValue, gformErrors)(dGetter) :: evaluateWithSuffix(fieldValue, gformErrors)(dGetter))
+      .map(kv => kv._1.value -> kv._2).toMap
+
+  def valuesValidate(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], envelope: Envelope, gformErrors: Map[FieldId, Set[String]])(fieldValue: FieldValue): Option[FormFieldValidationResult] = {
+    val formFields: Map[FieldId, FormField] = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
+
+    val dataGetter: FieldId => List[FormField] = fId => formFields.get(fId).toList
 
     def componentField(list: List[FieldId]) = {
-      val data = list.map { fieldId =>
-        fieldId.value -> FieldOk(fieldValue, formFields.get(fieldId).map(_.value).getOrElse(""))
-      }.toMap
+      val data = evaluateComponent(fieldValue, gformErrors)(dataGetter)
       Some(ComponentField(fieldValue, data))
     }
 
@@ -39,19 +82,28 @@ object Fields {
       case Date(_, _, _) => componentField(Date.fields(fieldValue.id))
       case UkSortCode(_) => componentField(UkSortCode.fields(fieldValue.id))
       case Text(_, _) | Group(_, _, _, _, _, _) => formFields.get(fieldValue.id).map { formField =>
-        FieldOk(fieldValue, formField.value)
+        gformErrors.get(fieldValue.id).fold[FormFieldValidationResult](FieldOk(fieldValue, formField.value))(errors => FieldError(fieldValue, formField.value, errors))
       }
-      case c: Choice =>
-        val fieldId = fieldValue.id
-        val fieldOks = Choice.suffix(c, fieldId).map(id => id -> formFields.get(id))
-        val data = fieldOks.map { case (id, value) => id.toString -> FieldOk(fieldValue, value.map(_.value).getOrElse("")) }.toMap
-        Some(ComponentField(fieldValue, data))
+      case Choice(_, _, _, _, _) => evalChoice(fieldValue, gformErrors)(dataGetter)
       case FileUpload() => formFields.get(fieldValue.id).map { formField =>
         val fileName = envelope.files.find(_.fileId.value == formField.id.value).map(_.fileName).getOrElse("")
-        FieldOk(fieldValue, fileName)
+        gformErrors.get(fieldValue.id).fold[FormFieldValidationResult](FieldOk(fieldValue, fileName))(errors => FieldError(fieldValue, fileName, errors))
       }
       case InformationMessage(_, _) => None
     }
+  }
+
+  def evalChoice(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]) = gformErrors.get(fieldValue.id) match {
+    case None =>
+      val data = dGetter(fieldValue.id).flatMap { formField =>
+        formField.value.split(",").toList.map(selectedIndex => fieldValue.id.value + selectedIndex -> FieldOk(fieldValue, selectedIndex))
+      }.toMap
+      Some(ComponentField(fieldValue, data))
+    case Some(errors) =>
+      val data = dGetter(fieldValue.id).flatMap { formField =>
+        formField.value.split(",").toList.map(selectedIndex => fieldValue.id.value + selectedIndex -> FieldError(fieldValue, selectedIndex, errors))
+      }.toMap
+      Some(ComponentField(fieldValue, data))
   }
 
   def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue]): List[FormField] = {
@@ -69,8 +121,7 @@ object Fields {
         case Address(_) => Address.fields(fv.id).map(getFieldData)
         case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
         case UkSortCode(_) => UkSortCode.fields(fv.id).map(getFieldData)
-        case Text(_, _) => List(getFieldData(fv.id))
-        case c: Choice => Choice.suffix(c, fv.id).map(getFieldData)
+        case Text(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload() => List(getFieldData(fv.id))
         case InformationMessage(_, _) => List()
       }

@@ -54,8 +54,8 @@ class SummaryController @Inject() (
 
     for {// format: OFF
       envelope          <- envelopeF
-      errors            <- validateForm(cache, envelope)
-      result            <- Summary(cache.formTemplate).renderSummary(errors.get, data, formId, repeatService, envelope, lang)
+      (v, _)            <- validateForm(cache, envelope)
+      result            <- Summary(cache.formTemplate).renderSummary(v, data, formId, repeatService, envelope, lang)
       // format: ON
     } yield result
   }
@@ -68,8 +68,8 @@ class SummaryController @Inject() (
 
       val formFieldValidationResultsF = for {
         envelope <- envelopeF
-        ffvrs <- validateForm(cache, envelope)
-      } yield ffvrs
+        (_, errors) <- validateForm(cache, envelope)
+      } yield errors
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(ValidationUtil.isFormValid)
 
@@ -80,7 +80,7 @@ class SummaryController @Inject() (
         ffvrs       <- formFieldValidationResultsF
         result      <- isFormValidF.ifM(
           redirectToDeclaration.pure[Future],
-          Summary(cache.formTemplate).renderSummary(ffvrs.get, data, formId, repeatService, envelope, lang)
+          Summary(cache.formTemplate).renderSummary(v, data, formId, repeatService, envelope, lang)
         )
         // format: ON
       } yield result
@@ -95,7 +95,7 @@ class SummaryController @Inject() (
     }
   }
 
-  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[Map[FieldValue, FormFieldValidationResult]] = {
+  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FieldValue, FormFieldValidationResult])] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
     for {// format: OFF
@@ -106,7 +106,7 @@ class SummaryController @Inject() (
       v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       // format: ON
-    } yield errors
+    } yield (v, errors)
   }
 
   private lazy val fileUploadService = fileUploadModule.fileUploadService

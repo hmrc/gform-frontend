@@ -95,7 +95,7 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(cache.form.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(cache.formTemplate, fieldData)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, None, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, None, envelope, cache.form.envelopeId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
     } yield Ok(html)
   }
@@ -116,7 +116,7 @@ class FormController @Inject() (
       sectionErrors     = validationService.validateUsingValidators(section, data)
       v                 <- validationService.sequenceValidations(componentsErrors, sectionErrors)
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
-      html              <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, Some(errors.get), Some(errors), envelope, cache.form.envelopeId, sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+      html              <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, Some(errors), envelope, cache.form.envelopeId, Some(v), sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
     } yield Ok(html)
   }
@@ -217,14 +217,14 @@ class FormController @Inject() (
         _ <- repeatService.appendNewGroup(groupId)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, envelope, cache.form.envelopeId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       } yield Ok(html)
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
         updatedData <- repeatService.removeGroup(groupId, data)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, updatedData, cache.formTemplate, None, None, envelope, cache.form.envelopeId, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+        html <- renderer.renderSection(formId, sectionNumber, updatedData, cache.formTemplate, None, envelope, cache.form.envelopeId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       } yield Ok(html)
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
