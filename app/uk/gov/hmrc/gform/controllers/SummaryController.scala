@@ -102,7 +102,11 @@ class SummaryController @Inject() (
     for {// format: OFF
       sections          <- sectionsF
       allFields         =  sections.flatMap(repeatService.atomicFields)
-      v                 <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
+      v1                 <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
+      v                 = Monoid.combine(
+                          v1,
+                          ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope)
+                        )
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       // format: ON
     } yield (v, errors)

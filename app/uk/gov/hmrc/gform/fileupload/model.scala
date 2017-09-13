@@ -44,8 +44,8 @@ object File {
     case FileRaw(id, name, "CLEANED", _)            => File(FileId(id), Cleaned, name)
     case FileRaw(id, name, "AVAILABLE", _)          => File(FileId(id), Available, name)
     case FileRaw(id, name, "INFECTED", _)           => File(FileId(id), Infected, name)
-    case FileRaw(id, name, ERROR, Some(reason))     => File(FileId(id), Error(reason), name)
-    case FileRaw(id, name, other, _)                => File(FileId(id), Other(other), name)
+    case FileRaw(id, name, ERROR, reason)           => File(FileId(id), Error(reason), name)
+    case FileRaw(id, name, other, reason)           => File(FileId(id), Other(other, reason), name)
     // format: ON
   }
   private lazy val fileRawReads: Reads[FileRaw] = Json.reads[FileRaw]
@@ -59,5 +59,5 @@ case object Quarantined extends Status
 case object Infected extends Status
 case object Cleaned extends Status
 case object Available extends Status
-case class Other(value: String) extends Status
-case class Error(reason: String) extends Status
+case class Other(value: String, reason: Option[String]) extends Status
+case class Error(reason: Option[String]) extends Status //based on experience FU not always sets reason field
