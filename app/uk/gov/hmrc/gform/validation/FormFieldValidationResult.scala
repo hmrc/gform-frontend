@@ -43,7 +43,11 @@ trait FormFieldValidationResult {
     case _ => Map()
   }
 
-  def f(s: String): Map[FieldId, Set[String]] = fieldErrorsByFieldValue.map(x => x._1.id.withSuffix(s) -> x._2)
+  def fieldErrorsWithSuffix(suffix: String): Set[String] = this match {
+    case e: FieldError => e.errors
+    case cf: ComponentField => cf.data.get(fieldValue.id.withSuffix(suffix).value).map(_.fieldErrors).getOrElse(Set())
+    case _ => Set()
+  }
 
   lazy val globalErrors: Set[String] = this match {
     case e: FieldGlobalError => e.errors
