@@ -6,7 +6,7 @@
 
 @(validations: List[Html], t: List[FormFieldValidationResult])
 
-<div class="flash error-summary@if(t.map(_.isNotOk).forall(x => x)) { error-summary--show}"
+<div class="flash error-summary@if(t.exists(_.isNotOk)) { error-summary--show}"
      id="error-summary-display"
      role="alert"
      aria-labelledby="error-summary-heading"
