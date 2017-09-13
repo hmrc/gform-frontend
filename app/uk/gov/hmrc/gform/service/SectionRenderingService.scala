@@ -41,16 +41,16 @@ import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
 import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
+import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.Equals
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -102,14 +102,33 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
   }
 
   def pageLevel(listValidation: List[FormFieldValidationResult]): Html = {
-    val sec: List[Html] = listValidation.filter(_.isNotOk).flatMap { x =>
+    val nestedResult: List[FormFieldValidationResult] = listValidation.collect { case componentField: ComponentField => componentField }.flatMap(parseFormFieldValidationResult)
+    val list: List[FormFieldValidationResult] = listValidation.filter {
+      case x: ComponentField => false
+      case _ => true
+    }.toList
+    val newList: Seq[FormFieldValidationResult] = (nestedResult ::: list)
+    val sec: List[Html] = newList.filter(_.isNotOk).flatMap { x =>
       x.fieldErrors.map(y =>
         errors.error_message_component(x, y))
-    }
+    }.toList
     if (listValidation.exists(_.isNotOk))
       errors.page_level_error(sec, listValidation)
     else
       errors.empty_html()
+  }
+
+  def parseFormFieldValidationResult(result: ComponentField): List[FormFieldValidationResult] = {
+    def reassignFieldValue(id: String, x: FormFieldValidationResult): FormFieldValidationResult = x match {
+      case x: FieldError =>
+        val newFieldValue = x.fieldValue.copy(id = FieldId(id))
+        x.copy(fieldValue = newFieldValue)
+      case y: FieldGlobalError =>
+        val newFieldValue = y.fieldValue.copy(id = FieldId(id))
+        y.copy(fieldValue = newFieldValue)
+      case err => err
+    }
+    result.data.map(field => reassignFieldValue(field._1, field._2)).toList
   }
 
   def renderDeclarationSection(formId: FormId, formTemplate: FormTemplate, retrievals: Retrievals, maybeValidatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
