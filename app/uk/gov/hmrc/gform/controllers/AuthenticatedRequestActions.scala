@@ -56,8 +56,9 @@ class AuthenticatedRequestActions(
     for {
       formTemplate <- gformConnector.getFormTemplate(formTemplateId)
       authResult   <- authenticateAndAuthorise(formTemplate)
+      newRequest   = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
-        case GGAuthSuccessful(retrievals) => f(removeEeittAuthId(request))(AuthCacheWithoutForm(retrievals, formTemplate))
+        case GGAuthSuccessful(retrievals) => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -70,8 +71,9 @@ class AuthenticatedRequestActions(
       form         <- gformConnector.getForm(formId)
       formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
       authResult   <- authenticateAndAuthorise(formTemplate)
+      newRequest    = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
-        case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(removeEeittAuthId(request))(AuthCacheWithForm(retrievals, form, formTemplate)))
+        case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate)))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -85,17 +87,6 @@ class AuthenticatedRequestActions(
       case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
-  }
-
-  private def removeEeittAuthId(request: Request[AnyContent]): Request[AnyContent] = {
-    val newSession = request.session - EEITTAuthConfig.idName
-    val sessionCookie = Session.encodeAsCookie(newSession)
-    val newCookies = request.cookies.toSeq :+ sessionCookie
-    val cookieHeader = Cookies.encodeCookieHeader(newCookies)
-    val updatedHeaders = request.headers.replace(HeaderNames.COOKIE -> cookieHeader)
-    val cosa = Request[AnyContent](request.copy(headers = updatedHeaders), request.body)
-    println("HOLAS: " + cosa.session)
-    cosa
   }
 
   private def checkUser(form: Form, retrievals: Retrievals)(actionResult: Future[Result]): Future[Result] = {
@@ -125,12 +116,20 @@ class AuthenticatedRequestActions(
 
   private def updateEnrolments(authSuccessful: GGAuthSuccessful, request: Request[_]): GGAuthSuccessful = {
     // the registrationNumber will be stored in the session by eeittAuth
-    request.session.get(EEITTAuthConfig.idName) match {
+    val nonAgentUpdate = request.session.get(EEITTAuthConfig.nonAgentIdName) match {
       case Some(regNum) =>
-        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(EEITTAuthConfig.idName, regNum)
+        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(EEITTAuthConfig.nonAgentIdName, regNum)
         val newEnrolments = Enrolments(authSuccessful.retrievals.enrolments.enrolments + newEnrolment)
         authSuccessful.copy(retrievals = authSuccessful.retrievals.copy(enrolments = newEnrolments))
       case None => authSuccessful
+    }
+
+    request.session.get(EEITTAuthConfig.agentIdName) match {
+      case Some(regNum) =>
+        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(EEITTAuthConfig.agentIdName, regNum)
+        val newEnrolments = Enrolments(authSuccessful.retrievals.enrolments.enrolments + newEnrolment)
+        nonAgentUpdate.copy(retrievals = nonAgentUpdate.retrievals.copy(enrolments = newEnrolments))
+      case None => nonAgentUpdate
     }
   }
 
@@ -165,6 +164,22 @@ class AuthenticatedRequestActions(
       AuthenticationFailed(url)
 
     case otherException => throw otherException
+  }
+
+  private def removeEeittAuthIdFromSession(
+    request: Request[AnyContent],
+    authConfig: AuthConfig
+  ): Request[AnyContent] = authConfig match {
+
+    // a bit of session clean up due to the session's size restrictions.
+    // The registrationNumber/arn passed by eeitt-auth in the session is saved in the user's enrolments field after
+    // successful authentication, in which case there is no need to keep it in the session anymore
+    case _: EEITTAuthConfig =>
+      val sessionCookie = Session.encodeAsCookie(request.session - EEITTAuthConfig.nonAgentIdName - EEITTAuthConfig.agentIdName)
+      val updatedCookies = request.cookies.filterNot(cookie => cookie.name.equals(Session.COOKIE_NAME)).toSeq :+ sessionCookie
+      val updatedHeaders = request.headers.replace(HeaderNames.COOKIE -> Cookies.encodeCookieHeader(updatedCookies))
+      Request[AnyContent](request.copy(headers = updatedHeaders), request.body)
+    case _ => request
   }
 }
 

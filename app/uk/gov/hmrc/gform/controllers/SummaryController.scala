@@ -71,9 +71,7 @@ class SummaryController @Inject() (
       lazy val redirectToSummary = Redirect(routes.SummaryController.summaryById(formId, formTemplateId4Ga, lang))
       lazy val handleDeclaration = for {
         // format: OFF
-//        envelope    <- envelopeF
-//        (v, _)      <- formFieldValidationResultsF
-        result      <- isFormValidF.ifM(
+        result <- isFormValidF.ifM(
           redirectToDeclaration.pure[Future],
           redirectToSummary.pure[Future]
         )
@@ -115,7 +113,6 @@ class SummaryController @Inject() (
   def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(implicit request: Request[_]): Future[Html] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-    //    val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
 
     // format: OFF
     for {

@@ -55,6 +55,7 @@ final case object GG extends AuthInfo
 final case object PayeNino extends AuthInfo
 final case object SaUtr extends AuthInfo
 final case object CtUtr extends AuthInfo
+final case object EtmpRegistrationNumber extends AuthInfo
 
 object AuthInfo {
   implicit val format: OFormat[AuthInfo] = derived.oformat

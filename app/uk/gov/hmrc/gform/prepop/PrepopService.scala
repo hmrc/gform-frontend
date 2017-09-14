@@ -35,6 +35,7 @@ class AuthContextPrepop {
     case PayeNino => getTaxIdValue(None, "NINO", retrievals)
     case SaUtr => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
     case CtUtr => getTaxIdValue(Some("IR-CT"), "UTR", retrievals)
+    case EtmpRegistrationNumber => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
   }
 
   private def getGGCredId(retrievals: Retrievals) = retrievals.authProviderId match {
