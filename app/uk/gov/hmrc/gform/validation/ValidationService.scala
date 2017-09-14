@@ -27,6 +27,7 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import ValidationUtil.{ ValidatedType, _ }
+import play.api.Logger
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
@@ -35,6 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
@@ -69,6 +71,8 @@ class ValidationService(
     } yield ()
     eT.value.map(Validated.fromEither)
   }
+
+  def validateSizeOfEnvelope() = ???
 
   def evaluateValidation(v: ValidatedType, fields: List[FieldValue], data: Map[FieldId, Seq[String]], envelope: Envelope): Map[FieldValue, FormFieldValidationResult] =
     ValidationUtil.evaluateValidationResult(fields, v, data, envelope)
@@ -227,7 +231,8 @@ class ComponentsValidator(data: Map[FieldId, Seq[String]], fileUploadService: Fi
 
       file match {
         // format: OFF
-        case Some(File(fileId, Error(reason), _))  => getError(fieldValue, reason)
+        case Some(File(fileId, Error(Some(reason)), _))  => getError(fieldValue, reason)
+        case Some(File(fileId, Error(None), _))    => getError(fieldValue, "Unknown error from file upload")
         case Some(File(fileId, Infected, _))       => getError(fieldValue, "Virus detected")
         case Some(File(fileId, _, _))              => ().valid
         case None if fieldValue.mandatory          => getError(fieldValue, "Please upload the file")

@@ -17,10 +17,13 @@
 package uk.gov.hmrc.gform.validation
 
 import java.time.LocalDate
+import cats.implicits._
 
+import cats.Monoid
 import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
-import uk.gov.hmrc.gform.fileupload.Envelope
+import play.api.Logger
+import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -179,5 +182,33 @@ object ValidationUtil {
 
     }
     resultErrors
+  }
+
+  def validateFileUploadHasScannedFiles(fieldValues: List[FieldValue], e: Envelope): Validated[GformError, Unit] = {
+    val fileUploads: Map[FieldId, FieldValue] = fieldValues.collect {
+      case fv @ FieldValue(id, _: FileUpload, _, _, _, _, _, _, _, _, _) => id -> fv
+    }.toMap
+
+    //TODO: below code was borrowed from components validator. make it reusable in ValidationUtil
+    def errors(fieldValue: FieldValue, defaultErr: String): Set[String] = Set(fieldValue.errorMessage.getOrElse(defaultErr))
+    def getError(fieldValue: FieldValue, defaultMessage: String): Validated[Map[FieldId, Set[String]], Nothing] = Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
+
+    val flakies: Seq[ValidatedType] = e.files.collect {
+      case f @ File(_, s @ Quarantined, _) =>
+        //not processed (scanned by virus scanner) files are in quarantined state
+        (f, "File has not been scanned, please wait and try again")
+      case f @ File(_, s: Other, _) =>
+        val message = s"Internal server problem. Please contact support. (Unsupported state from FU: $s)"
+        Logger.error(message)
+        (f, message)
+      case f @ File(_, s: Error, _) =>
+        val message = s"Internal server problem. Please contact support. (Error state from FU: $s)"
+        Logger.error(message)
+        (f, message)
+    }.map { fs =>
+      val fieldValue = fieldValues.find(_.id == fs._1.fileId.toFieldId).getOrElse(throw new UnexpectedStateException(s"Looks like there are more files in the envelope than we expected to have. Could not find 'FieldValue' to corresponding file: $fs"))
+      getError(fieldValue, fs._2)
+    }
+    Monoid[ValidatedType].combineAll(flakies)
   }
 }

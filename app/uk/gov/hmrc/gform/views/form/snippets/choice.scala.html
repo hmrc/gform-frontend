@@ -32,7 +32,7 @@ index: Int
 
             @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq(""))
 
-            <div class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
+            <div id="@{fieldValue.id}" class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
             @options.toList.zipWithIndex.map{ case (option, index) =>
             <label
                     for="@{fieldValue.id}@index"
