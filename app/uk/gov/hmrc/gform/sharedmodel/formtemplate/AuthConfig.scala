@@ -34,6 +34,9 @@ case class EEITTAuthConfig(
 ) extends AuthConfig
 
 object EEITTAuthConfig {
+
+  lazy val idName = "registrationNumber"
+
   implicit val format = Json.format[EEITTAuthConfig]
 }
 
@@ -85,6 +88,10 @@ object HMRCAuthConfig {
 }
 
 object AuthConfig {
+
+  lazy val eeittAuth = "legacyEEITTAuth"
+  lazy val hmrcAuth = "hmrc"
+
   implicit val format: OFormat[AuthConfig] = {
     // format: OFF
     val reads = Reads[AuthConfig] { json =>
@@ -94,12 +101,12 @@ object AuthConfig {
         serviceId        <- (json \ "serviceId").validateOpt[ServiceId]
         enrolmentSection <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
         result           <- (authModule, regimeId, serviceId, enrolmentSection) match {
-          case (AuthConfigModule("legacyEEITTAuth"), Some(_), None, None) => EEITTAuthConfig.format.reads(json)
-          case (AuthConfigModule("hmrc"), None,    None,    None)    => HMRCAuthConfigWithAuthModule.format.reads(json)
-          case (AuthConfigModule("hmrc"), None,    Some(_), None)    => HMRCAuthConfigWithServiceId.format.reads(json)
-          case (AuthConfigModule("hmrc"), Some(_), Some(_), None)    => HMRCAuthConfigWithRegimeId.format.reads(json)
-          case (AuthConfigModule("hmrc"), None,    Some(_), Some(_)) => HMRCAuthConfigWithEnrolment.format.reads(json)
-          case (AuthConfigModule("hmrc"), Some(_), Some(_), Some(_)) => HMRCAuthConfig.format.reads(json)
+          case (AuthConfigModule(`eeittAuth`), Some(_), None, None) => EEITTAuthConfig.format.reads(json)
+          case (AuthConfigModule(`hmrcAuth`), None,    None,    None)    => HMRCAuthConfigWithAuthModule.format.reads(json)
+          case (AuthConfigModule(`hmrcAuth`), None,    Some(_), None)    => HMRCAuthConfigWithServiceId.format.reads(json)
+          case (AuthConfigModule(`hmrcAuth`), Some(_), Some(_), None)    => HMRCAuthConfigWithRegimeId.format.reads(json)
+          case (AuthConfigModule(`hmrcAuth`), None,    Some(_), Some(_)) => HMRCAuthConfigWithEnrolment.format.reads(json)
+          case (AuthConfigModule(`hmrcAuth`), Some(_), Some(_), Some(_)) => HMRCAuthConfig.format.reads(json)
           case _ => JsError("")
         }
       } yield result

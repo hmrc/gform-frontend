@@ -20,28 +20,21 @@ import javax.inject.{ Inject, Singleton }
 
 import cats._
 import cats.implicits._
-import cats._
-import cats.implicits._
 import play.api.mvc.{ Action, AnyContent, Request }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplateId }
 import uk.gov.hmrc.gform.summary.Summary
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FormTemplateId }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
-import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -57,42 +50,8 @@ class SummaryController @Inject() (
 
   import controllersModule.i18nSupport._
 
-  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>getSummaryHTML(formId, cache, lang).map(Ok(_))
+  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     getSummaryHTML(formId, cache, lang).map(Ok(_))
-  }
-
-  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-
-    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
-      get(data, FieldId("save")) match {
-        case "Exit" :: Nil => Future.successful(Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement(formId, formTemplateId4Ga, totalPage, lang)))
-        case "Declaration" :: Nil => Future.successful(Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang)))
-        case _ => Future.successful(BadRequest("Cannot determine action"))
-      }
-    }
-  }
-
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-    // format: OFF
-    for {
-      summaryHml <- getSummaryHTML(formId, cache, lang)
-      htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
-      pdf        <- pdfService.generatePDF(htmlForPDF)
-    } yield Ok(pdf).as("application/pdf")
-    // format: ON
-  }
-
-  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(implicit request: Request[_]): Future[Html] = {
-    val data = FormDataHelpers.formDataMap(cache.form.formData)
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-    val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
-
-    // format: OFF
-    for {
-      envelope          <- envelopeF
-      (v, _)            <- validateForm(cache, envelope)
-      result            <- Summary(cache.formTemplate).renderSummary(v, data, formId, repeatService, envelope, lang)
-    } yield result
   }
 
   def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
@@ -112,8 +71,8 @@ class SummaryController @Inject() (
       lazy val redirectToSummary = Redirect(routes.SummaryController.summaryById(formId, formTemplateId4Ga, lang))
       lazy val handleDeclaration = for {
         // format: OFF
-        envelope    <- envelopeF
-        (v, _)      <- formFieldValidationResultsF
+//        envelope    <- envelopeF
+//        (v, _)      <- formFieldValidationResultsF
         result      <- isFormValidF.ifM(
           redirectToDeclaration.pure[Future],
           redirectToSummary.pure[Future]
@@ -129,6 +88,16 @@ class SummaryController @Inject() (
         // format: ON
       }
     }
+  }
+
+  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+    // format: OFF
+    for {
+      summaryHml <- getSummaryHTML(formId, cache, lang)
+      htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
+      pdf        <- pdfService.generatePDF(htmlForPDF)
+    } yield Ok(pdf).as("application/pdf")
+    // format: ON
   }
 
   private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FieldValue, FormFieldValidationResult])] = {
@@ -150,14 +119,17 @@ class SummaryController @Inject() (
     } yield (v, errors)
   }
 
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(implicit request: Request[_]): Future[Html] = {
+    val data = FormDataHelpers.formDataMap(cache.form.formData)
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+    //    val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
+
     // format: OFF
     for {
-      summaryHml <- getSummaryHTML(formId, cache, lang)
-      htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
-      pdf        <- pdfService.generatePDF(htmlForPDF)
-    } yield Ok(pdf).as("application/pdf")
-    // format: ON
+      envelope          <- envelopeF
+      (v, _)            <- validateForm(cache, envelope)
+      result            <- Summary(cache.formTemplate).renderSummary(v, data, formId, repeatService, envelope, lang)
+    } yield result
   }
 
   private lazy val fileUploadService = fileUploadModule.fileUploadService
