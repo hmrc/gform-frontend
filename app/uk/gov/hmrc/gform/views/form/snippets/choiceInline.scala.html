@@ -4,7 +4,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html._
-
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 @(
@@ -12,7 +11,7 @@ fieldValue: FieldValue,
 options: NonEmptyList[String],
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
-optionHelpText: Option[List[Html]],
+optionHelpText: List[Html],
 index: Int
 )
 

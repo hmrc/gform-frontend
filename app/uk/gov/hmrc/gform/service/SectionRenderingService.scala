@@ -28,6 +28,7 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
+import play.api.Logger
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
@@ -202,9 +203,12 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
   }
 
   private def markDownParser(markDownText: String) = {
-    val flavour = new GFMFlavourDescriptor
-    val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
-    new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
+    if (markDownText.nonEmpty) {
+      val flavour = new GFMFlavourDescriptor
+      val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
+      new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
+    } else
+      markDownText
   }
 
   private def htmlForChoice(fieldValue: FieldValue, choice: ChoiceType, options: NonEmptyList[String], orientation: Orientation, selections: List[Int], optionalHelpText: Option[List[String]], index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
@@ -219,10 +223,17 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       case None => selections.map(_.toString).toSet
       case Some(_) => Set.empty[String] // Don't prepop something we already submitted
     }
-    val optionalHelpTextMarkDown = optionalHelpText.map(_.map(markDownParser)).map(_.map(x => Html(addTargetToLinks(x))))
+
+    val optionalHelpTextMarkDown: List[Html] = optionalHelpText.map(_.map(markDownParser)).map(_.map(x =>
+      if (x.nonEmpty) {
+        Html(addTargetToLinks(x))
+      } else {
+        Html("")
+      })).getOrElse(List())
 
     val validatedValue = validate(fieldValue, ei, validatedType)
 
+    Logger.debug(optionalHelpTextMarkDown.toString + "THIS IS A VALUE")
     choice match {
       case Radio | YesNo => snippets.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
       case Checkbox => snippets.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
