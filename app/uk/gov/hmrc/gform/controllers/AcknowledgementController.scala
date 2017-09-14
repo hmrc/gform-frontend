@@ -16,16 +16,19 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
 
 import org.jsoup.Jsoup
 import play.api.mvc.{ Action, AnyContent }
+import uk.gov.hmrc.auth.core.authorise.AffinityGroup
+import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.prepop.AuthContextPrepop
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -51,7 +54,7 @@ class AcknowledgementController @Inject() (
         summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
         submission <- gformConnector.submissionStatus(formId)
         cleanHtml  = pdfService.sanitiseHtmlForPDF(summaryHml)
-        htmlForPDF = addExtraDataToHTML(cleanHtml, submission)
+        htmlForPDF = addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
         pdf <- pdfService.generatePDF(htmlForPDF)
       } yield Ok(pdf).as("application/pdf")
     // format: ON
@@ -61,11 +64,26 @@ class AcknowledgementController @Inject() (
   private lazy val pdfService = pdfGeneratorModule.pdfGeneratorService
   private lazy val gformConnector = gformBackendModule.gformConnector
 
-  private def addExtraDataToHTML(html: String, submissionDetails: Submission): String = {
+  private def addExtraDataToHTML(
+    html: String,
+    submissionDetails: Submission,
+    authConfig: AuthConfig,
+    submissionReference: Option[TextExpression],
+    retrievals: Retrievals
+  ): String = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime = s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
 
+    // format: OFF
+    val referenceNumber = (authConfig, submissionReference) match {
+      case (_,                  Some(textExpression)) => evaluateSubmissionReference(textExpression, retrievals)
+      case (_: EEITTAuthConfig, None)                 => eeitReferenceNumber(retrievals)
+      case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
+    }
+    // format: ON
+
+    // TODO: Add Submission mark when it's implemented for the submission auditing event
     val extraData =
       s"""
         |<table class="table--font-reset ">
@@ -82,7 +100,11 @@ class AcknowledgementController @Inject() (
         |    </tr>
         |    <tr>
         |      <td>Submission reference</td>
-        |      <td>${submissionDetails.submissionRef.value}</td>
+        |      <td>${referenceNumber}</td>
+        |    </tr>
+        |    <tr>
+        |      <td>Submission mark</td>
+        |      <td></td>
         |    </tr>
         |  </tbody>
         |</table>
@@ -91,5 +113,26 @@ class AcknowledgementController @Inject() (
     val doc = Jsoup.parse(html)
     doc.select("article[class*=content__body]").append(extraData)
     doc.html
+  }
+
+  private def eeitReferenceNumber(retrievals: Retrievals) = retrievals.userDetails.affinityGroup match {
+    case AffinityGroup.Agent => retrievals.enrolments
+      .getEnrolment(AuthConfig.eeittAuth)
+      .fold("")(_.getIdentifier(EEITTAuthConfig.agentIdName).fold("")(_.value))
+    case _ => retrievals.enrolments
+      .getEnrolment(AuthConfig.eeittAuth)
+      .fold("")(_.getIdentifier(EEITTAuthConfig.nonAgentIdName).fold("")(_.value))
+  }
+
+  private def evaluateSubmissionReference(expression: TextExpression, retrievals: Retrievals): String = {
+
+    expression.expr match {
+      case AuthCtx(value) =>
+        val authContextPrepop = new AuthContextPrepop()
+        authContextPrepop.values(value, retrievals)
+
+      case EeittCtx(eeitt) => eeitReferenceNumber(retrievals)
+      case _ => ""
+    }
   }
 }
