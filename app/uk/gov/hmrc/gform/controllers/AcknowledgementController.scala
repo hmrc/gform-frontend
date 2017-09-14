@@ -34,7 +34,7 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 class AcknowledgementController @Inject() (
     controllersModule: ControllersModule,
     renderer: SectionRenderingService,
-    summaryGen: SummaryGen,
+    summaryController: SummaryController,
     gformBackendModule: GformBackendModule,
     pdfGeneratorModule: PdfGeneratorModule
 ) extends FrontendController {
@@ -48,7 +48,7 @@ class AcknowledgementController @Inject() (
   def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
       // format: OFF
       for {
-        summaryHml <- summaryGen.getSummaryHTML(formId, cache, lang)
+        summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
         submission <- gformConnector.submissionStatus(formId)
         cleanHtml  = pdfService.sanitiseHtmlForPDF(summaryHml)
         htmlForPDF = addExtraDataToHTML(cleanHtml, submission)

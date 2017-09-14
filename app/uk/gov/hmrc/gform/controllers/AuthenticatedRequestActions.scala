@@ -17,16 +17,16 @@
 package uk.gov.hmrc.gform.controllers
 
 import play.api.mvc.Results._
-import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.mvc.{ Action, AnyContent, Cookies, Cookie, Request, Result, Session }
+import play.api.http.HeaderNames
 import uk.gov.hmrc._
-import uk.gov.hmrc.auth.core.authorise.{ Enrolment, Predicate }
+import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, Retrievals, ~ }
 import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
-import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful }
 import uk.gov.hmrc.gform.auth.models._
+import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -34,7 +34,12 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthModule, configModule: ConfigModule) extends AuthorisedFunctions {
+class AuthenticatedRequestActions(
+    gformConnector: GformConnector,
+    authMod: AuthModule,
+    configModule: ConfigModule
+) extends AuthorisedFunctions {
+
   val authConnector = authMod.authConnector
   val eeittDelegate = authMod.eeittAuthorisationDelegate
   // format: OFF
@@ -52,7 +57,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       formTemplate <- gformConnector.getFormTemplate(formTemplateId)
       authResult   <- authenticateAndAuthorise(formTemplate)
       result       <- authResult match {
-        case GGAuthSuccessful(retrievals) => f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
+        case GGAuthSuccessful(retrievals) => f(removeEeittAuthId(request))(AuthCacheWithoutForm(retrievals, formTemplate))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -66,7 +71,7 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
       authResult   <- authenticateAndAuthorise(formTemplate)
       result       <- authResult match {
-        case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(request)(AuthCacheWithForm(retrievals, form, formTemplate)))
+        case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(removeEeittAuthId(request))(AuthCacheWithForm(retrievals, form, formTemplate)))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -80,6 +85,17 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
       case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
+  }
+
+  private def removeEeittAuthId(request: Request[AnyContent]): Request[AnyContent] = {
+    val newSession = request.session - EEITTAuthConfig.idName
+    val sessionCookie = Session.encodeAsCookie(newSession)
+    val newCookies = request.cookies.toSeq :+ sessionCookie
+    val cookieHeader = Cookies.encodeCookieHeader(newCookies)
+    val updatedHeaders = request.headers.replace(HeaderNames.COOKIE -> cookieHeader)
+    val cosa = Request[AnyContent](request.copy(headers = updatedHeaders), request.body)
+    println("HOLAS: " + cosa.session)
+    cosa
   }
 
   private def checkUser(form: Form, retrievals: Retrievals)(actionResult: Future[Result]): Future[Result] = {
@@ -100,10 +116,21 @@ class AuthenticatedRequestActions(gformConnector: GformConnector, authMod: AuthM
     ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), authConfig).flatMap {
       case ggSuccessfulAuth @ GGAuthSuccessful(retrievals) =>
         eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails).map {
-          case EeittAuthorisationSuccessful => ggSuccessfulAuth
+          case EeittAuthorisationSuccessful => updateEnrolments(ggSuccessfulAuth, request)
           case EeittAuthorisationFailed(eeittLoginUrl) => AuthorisationFailed(eeittLoginUrl)
         }
       case otherAuthResults => Future.successful(otherAuthResults)
+    }
+  }
+
+  private def updateEnrolments(authSuccessful: GGAuthSuccessful, request: Request[_]): GGAuthSuccessful = {
+    // the registrationNumber will be stored in the session by eeittAuth
+    request.session.get(EEITTAuthConfig.idName) match {
+      case Some(regNum) =>
+        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(EEITTAuthConfig.idName, regNum)
+        val newEnrolments = Enrolments(authSuccessful.retrievals.enrolments.enrolments + newEnrolment)
+        authSuccessful.copy(retrievals = authSuccessful.retrievals.copy(enrolments = newEnrolments))
+      case None => authSuccessful
     }
   }
 

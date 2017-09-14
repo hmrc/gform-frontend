@@ -17,13 +17,12 @@
 package uk.gov.hmrc.gform.summary
 
 import play.api.i18n.Messages
-import play.api.mvc.Results.Ok
-import play.api.mvc.{ Request, Result }
+import play.api.mvc.Request
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary._
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -34,9 +33,9 @@ case class Summary(formTemplate: FormTemplate) {
   def summaryForRender(validatedType: ValidatedType, formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
     SummaryForRender(validatedType, formFields, formId, formTemplate, repeatService, envelope, lang)
 
-  def renderSummary(validatedType: ValidatedType, formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+  def renderSummary(validatedType: ValidatedType, formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Html] = {
     summaryForRender(validatedType, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
-      Ok(summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang))
+      summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang)
     }
   }
 }

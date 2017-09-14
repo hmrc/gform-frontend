@@ -59,6 +59,7 @@ class FormController @Inject() (
   import controllersModule.i18nSupport._
 
   def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = authentication.async(formTemplateId) { implicit request => cache =>
+    println("HOLA: " + request.session.data)
     result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier), lang)
   }
 
