@@ -18,10 +18,12 @@ package uk.gov.hmrc.gform.auditing
 
 import javax.inject.Inject
 
+import play.api.mvc.Headers
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.{ AuditingConfig, LoadAuditingConfig }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.hooks.HttpHook
 
 class AuditingModule @Inject() (configModule: ConfigModule) { self =>
@@ -42,4 +44,9 @@ class AuditingModule @Inject() (configModule: ConfigModule) { self =>
   lazy val auditService = new AuditService {
     override def auditConnector = auditConnectorImpl
   }
+}
+
+object loggingHelpers {
+  def cleanHeaders(headers: Headers) = s", headers: '${headers.remove("Authorization", "token")}'"
+  def cleanHeaderCarrierHeader(hc: HeaderCarrier): String = s"headers: ' ${hc.sessionId} ${hc.deviceID} ${hc.requestId} ${hc.requestChain}'"
 }
