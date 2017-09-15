@@ -37,8 +37,4 @@ class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {
     wSHttp.DELETE[HttpResponse](s"$baseUrl/file-upload/envelopes/${envelopeId.value}/files/${fileId.value}")
       .map(_ => ())
   }
-
-  def uploadFileNonJavaScript() = {
-
-  }
 }
