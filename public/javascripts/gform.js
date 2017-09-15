@@ -60,6 +60,8 @@ var uploaderDefaults = {
     contentTypes: window.gform.contentTypes
 };
 
+var details = $('details');
+
 var showHideContent = new GOVUK.ShowHideContent();
 
 var uploader = function(el) {
@@ -153,7 +155,6 @@ var uploader = function(el) {
 
   // Template changes the label if an error on load (need to keep for non-js version)
   // so we are going to have to update the label in this situation
-  console.log('LABEL', !isEmptyEl(uploadErrorsEl), uploadedFileEl.text().trim() === config.defaultUploaderLabel)
   if (uploadedFileEl.text().trim() === config.defaultUploaderLabel) {
     uploadedFileEl.empty().html(config.uploaderLabel);
   }
@@ -165,5 +166,19 @@ if (window.File && window.FileList && window.FormData) {
     uploader($(this));
   });
 }
+
+// Add `aria-hidden` attriobute to hidden content to ensure screen readers can 'see' the content
+details.on('click', function(evt) {
+  var summaryEl = $(evt.currentTarget).find('summary');
+  var isExpanded = summaryEl.attr('aria-expanded') === true;
+  var summaryControls = summaryEl.attr('aria-controls');
+  var toggleTarget = summaryEl.next('#' + summaryControls);
+
+  if (isExpanded) {
+    toggleTarget.attr('aria-hidden', false);
+  } else {
+    toggleTarget.attr('aria-hidden', true);
+  }
+});
 
 showHideContent.init();
