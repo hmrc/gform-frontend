@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormComponent, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.Summary
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -101,8 +101,9 @@ class SummaryController @Inject() (
   private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
+    val filteredSections = sectionsF.map(_.filter(x => BooleanExpr.isTrue(x.includeIf.map(_.expr).getOrElse(IsTrue), data)))
     for {// format: OFF
-      sections          <- sectionsF
+      sections          <- filteredSections
       allFields         =  sections.flatMap(repeatService.atomicFields)
       v1                 <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
       v                 = v1
