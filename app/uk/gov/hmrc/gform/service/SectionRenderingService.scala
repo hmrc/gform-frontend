@@ -202,7 +202,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     snippets.field_template_file_upload(ei.formId, formTemplateId4Ga, ei.sectionNumber, fieldValue, validate(fieldValue, ei, validatedType), index, ei.formMaxAttachmentSizeMB, totalSections, lang)
   }
 
-  private def markDownParser(markDownText: String) = {
+  private def markDownParser(markDownText: String): String = {
     if (markDownText.nonEmpty) {
       val flavour = new GFMFlavourDescriptor
       val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
@@ -229,7 +229,9 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
         Html(addTargetToLinks(x))
       } else {
         Html("")
-      })).getOrElse(List())
+      })).getOrElse(
+      options.toList.map(_ => Html("Daniel TODO"))
+    )
 
     val validatedValue = validate(fieldValue, ei, validatedType)
 
