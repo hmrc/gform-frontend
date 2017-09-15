@@ -33,9 +33,9 @@ final case object IsFalse extends BooleanExpr
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat
 
-  def isTrue(expr: BooleanExpr, data: Map[FieldId, Seq[String]]): Boolean =
+  def isTrue(expr: BooleanExpr, data: Map[FormComponentId, Seq[String]]): Boolean =
     expr match {
-      case Equals(FormCtx(fieldId), Constant(value)) if FormDataHelpers.get(data, FieldId(fieldId)).contains(value) => true
+      case Equals(FormCtx(fieldId), Constant(value)) if FormDataHelpers.get(data, FormComponentId(fieldId)).contains(value) => true
       case Or(expr1, expr2) => isTrue(expr1, data) | isTrue(expr2, data)
       case And(expr1, expr2) => isTrue(expr1, data) & isTrue(expr2, data)
       case IsTrue => true

@@ -30,10 +30,10 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class Summary(formTemplate: FormTemplate) {
-  def summaryForRender(validatedType: ValidatedType, formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
+  def summaryForRender(validatedType: ValidatedType, formFields: Map[FormComponentId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] =
     SummaryForRender(validatedType, formFields, formId, formTemplate, repeatService, envelope, lang)
 
-  def renderSummary(validatedType: ValidatedType, formFields: Map[FieldId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Html] = {
+  def renderSummary(validatedType: ValidatedType, formFields: Map[FormComponentId, Seq[String]], formId: FormId, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit request: Request[_], messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Html] = {
     summaryForRender(validatedType, formFields, formId, repeatService, envelope, lang).map { summaryForRender =>
       summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang)
     }

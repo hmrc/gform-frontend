@@ -17,23 +17,23 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FieldId, FieldValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormComponent }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object Javascript {
 
-  def fieldJavascript(fields: List[FieldValue], groupList: Future[List[List[List[FieldValue]]]])(implicit ex: ExecutionContext): Future[String] = {
+  def fieldJavascript(fields: List[FormComponent], groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
 
-    val fieldIdWithExpr: List[(FieldId, Expr)] =
+    val fieldIdWithExpr: List[(FormComponentId, Expr)] =
       fields.collect {
-        case FieldValue(id, Text(_, expr), _, _, _, _, _, _, _, _, _) => (id, expr)
+        case FormComponent(id, Text(_, expr), _, _, _, _, _, _, _, _, _) => (id, expr)
       }
 
     Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n"))
   }
 
-  def toJavascriptFn(fieldId: FieldId, expr: Expr, groupList: Future[List[List[List[FieldValue]]]])(implicit ex: ExecutionContext): Future[String] = {
+  def toJavascriptFn(fieldId: FormComponentId, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
 
     val functionName = "add" + fieldId.value
 
@@ -58,7 +58,7 @@ object Javascript {
 
     expr match {
       case Sum(FormCtx(id)) =>
-        val eventListeners = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
+        val eventListeners = Group.getGroup(groupList, FormComponentId(id)).map { listFieldId =>
           listFieldId.map(groupFieldId =>
             s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
               document.getElementById("${groupFieldId.value}").addEventListener("keyup",sum$id);
@@ -66,7 +66,7 @@ object Javascript {
            """).mkString("\n")
         }
 
-        val groups: Future[String] = Group.getGroup(groupList, FieldId(id)).map { listFieldId =>
+        val groups: Future[String] = Group.getGroup(groupList, FormComponentId(id)).map { listFieldId =>
           listFieldId.map(_.value).map(values).mkString(",")
         }
         for {
@@ -101,7 +101,7 @@ object Javascript {
     }
   }
 
-  def collapsingGroupJavascript(fieldId: FieldId, group: Group) = {
+  def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) = {
     s"""
        |function removeOnClick$fieldId() {
        |${group.fields.map(fv => s"""document.getElementById("${fv.id}").value = '' """).mkString(";\n")}

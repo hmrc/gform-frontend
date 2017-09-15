@@ -3,13 +3,13 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.service.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkSortCode
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
 
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FieldValue, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
+@(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">

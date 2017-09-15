@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.controllers.helpers
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, Group }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -29,23 +29,23 @@ object FormDataHelpers {
   //TODO: fix the bug:
   //for choice component, in mongo we have '1,2,3' but in request from browser we have List(1,2,2)
   //however we can't split formField.value by comma because other data could have it in it
-  def formDataMap(formData: FormData): Map[FieldId, Seq[String]] =
+  def formDataMap(formData: FormData): Map[FormComponentId, Seq[String]] =
     formData.fields.map(formField => formField.id -> List(formField.value)).toMap
 
-  def processResponseDataFromBody(request: Request[AnyContent])(continuation: Map[FieldId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
-    request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FieldId(a), b) }) match {
+  def processResponseDataFromBody(request: Request[AnyContent])(continuation: Map[FormComponentId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+    request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FormComponentId(a), b) }) match {
       case Some(data) => continuation(data)
       case None => Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check
     }
   }
 
-  def get(data: Map[FieldId, Seq[String]], id: FieldId): List[String] =
+  def get(data: Map[FormComponentId, Seq[String]], id: FormComponentId): List[String] =
     data.get(id).toList.flatten
 
-  def anyFormId(data: Map[FieldId, Seq[String]]): Option[FormId] =
-    data.get(FieldId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
+  def anyFormId(data: Map[FormComponentId, Seq[String]]): Option[FormId] =
+    data.get(FormComponentId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
 
-  def dataEnteredInGroup(group: Group, fieldData: Map[FieldId, Seq[String]]): Boolean = {
+  def dataEnteredInGroup(group: Group, fieldData: Map[FormComponentId, Seq[String]]): Boolean = {
 
     group.fields.map(_.id).find(id => {
       fieldData.get(id).isDefined && fieldData.get(id).get.find(!_.isEmpty).isDefined

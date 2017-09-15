@@ -50,11 +50,11 @@ class DeclarationController @Inject() (
   }
 
   def submitDeclaration(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
-    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
+    processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
 
       val validationResultF = validationService.validateComponents(getAllDeclarationFields(cache.formTemplate.declarationSection.fields), data, cache.form.envelopeId)
 
-      get(data, FieldId("save")) match {
+      get(data, FormComponentId("save")) match {
         case "Continue" :: Nil => validationResultF.flatMap {
           case Valid(()) =>
             val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
@@ -67,7 +67,7 @@ class DeclarationController @Inject() (
               Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId, formTemplateId4Ga, lang))
             }
           case validationResult @ Invalid(_) =>
-            val errorMap: Map[FieldValue, FormFieldValidationResult] = getErrorMap(validationResult, data, cache.formTemplate)
+            val errorMap: Map[FormComponent, FormFieldValidationResult] = getErrorMap(validationResult, data, cache.formTemplate)
             for {
               html <- renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, Some(validationResult), lang)
             } yield Ok(html)
@@ -83,25 +83,25 @@ class DeclarationController @Inject() (
   private lazy val auditService = auditingModule.auditService
   private lazy val validationService = validationModule.validationService
 
-  private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: Map[FieldId, Seq[String]]) = {
+  private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]]) = {
     val fieldNames = data.keySet.map(_.value)
     val allDeclarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
     val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
-        .map(name => FormField(FieldId(name), data(FieldId(name)).head))
+        .map(name => FormField(FormComponentId(name), data(FormComponentId(name)).head))
     }
     val updatedFields = form.formData.fields ++ submissibleFormFields
 
     form.copy(formData = form.formData.copy(fields = updatedFields))
   }
 
-  private def getErrorMap(validationResult: ValidatedType, data: Map[FieldId, Seq[String]], formTemplate: FormTemplate): Map[FieldValue, FormFieldValidationResult] = {
+  private def getErrorMap(validationResult: ValidatedType, data: Map[FormComponentId, Seq[String]], formTemplate: FormTemplate): Map[FormComponent, FormFieldValidationResult] = {
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
     validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))
   }
 
-  private def getAllDeclarationFields(fields: List[FieldValue]): List[FieldValue] = {
+  private def getAllDeclarationFields(fields: List[FormComponent]): List[FormComponent] = {
     fields.flatMap { fieldValue =>
       fieldValue.`type` match {
         case grp: Group => getAllDeclarationFields(grp.fields)

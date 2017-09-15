@@ -2,20 +2,20 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html._
 
 
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@(groupId: FieldId,
+@(groupId: FormComponentId,
 groupLabel: String,
 optionElements: Html,
 dataEntered: Boolean
 )
 
 
-@id(groupId: FieldId) = @{ "removeOnClick"+groupId.toString + "()"}
+@id(groupId: FormComponentId) = @{ "removeOnClick"+groupId.toString + "()"}
 
 <label
         for="@{groupId}"

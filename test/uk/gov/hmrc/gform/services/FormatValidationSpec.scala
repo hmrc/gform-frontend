@@ -37,13 +37,13 @@ class FormatValidationSpec extends Spec {
   "UkSortCode" should "be valid with 2 digits in each box" in {
     val text = UkSortCode(Constant(""))
 
-    val fieldValue = FieldValue(FieldId("n"), text,
+    val fieldValue = FormComponent(FormComponentId("n"), text,
       "sample label", None, None, true, false, false, true, None)
 
     val data = Map(
-      FieldId("n-1") -> Seq("12"),
-      FieldId("n-2") -> Seq("12"),
-      FieldId("n-3") -> Seq("12")
+      FormComponentId("n-1") -> Seq("12"),
+      FormComponentId("n-2") -> Seq("12"),
+      FormComponentId("n-3") -> Seq("12")
     )
 
     val result = validator(fieldValue, data)
@@ -54,13 +54,13 @@ class FormatValidationSpec extends Spec {
   "UkSortCode" should "be invalid with 3 digits in one box" in {
     val text = UkSortCode(Constant(""))
 
-    val fieldValue = FieldValue(FieldId("n"), text,
+    val fieldValue = FormComponent(FormComponentId("n"), text,
       "sample label", None, None, true, false, false, true, None)
 
     val data = Map(
-      FieldId("n-1") -> Seq("12"),
-      FieldId("n-2") -> Seq("123"),
-      FieldId("n-3") -> Seq("12")
+      FormComponentId("n-1") -> Seq("12"),
+      FormComponentId("n-2") -> Seq("123"),
+      FormComponentId("n-3") -> Seq("12")
     )
 
     val result = validator(fieldValue, data)
@@ -71,13 +71,13 @@ class FormatValidationSpec extends Spec {
   "UkSortCode" should "return an error message" in {
     val text = UkSortCode(Constant(""))
 
-    val fieldValue = FieldValue(FieldId("n"), text,
+    val fieldValue = FormComponent(FormComponentId("n"), text,
       "sample label", None, None, true, false, false, true, None)
 
     val data = Map(
-      FieldId("n-1") -> Seq(""),
-      FieldId("n-2") -> Seq(""),
-      FieldId("n-3") -> Seq("")
+      FormComponentId("n-1") -> Seq(""),
+      FormComponentId("n-2") -> Seq(""),
+      FormComponentId("n-3") -> Seq("")
     )
 
     val result = validator(fieldValue, data)
@@ -88,13 +88,13 @@ class FormatValidationSpec extends Spec {
   "UkSortCode" should "return invalid data on -" in {
     val text = UkSortCode(Constant(""))
 
-    val fieldValue = FieldValue(FieldId("n"), text,
+    val fieldValue = FormComponent(FormComponentId("n"), text,
       "sample label", None, None, true, false, false, true, None)
 
     val data = Map(
-      FieldId("n-1") -> Seq("-1"),
-      FieldId("n-2") -> Seq("24"),
-      FieldId("n-3") -> Seq("24")
+      FormComponentId("n-1") -> Seq("-1"),
+      FormComponentId("n-2") -> Seq("24"),
+      FormComponentId("n-3") -> Seq("24")
     )
 
     val result = validator(fieldValue, data)
@@ -105,13 +105,13 @@ class FormatValidationSpec extends Spec {
   "UkSortCode" should "be invalid with decimals" in {
     val text = UkSortCode(Constant(""))
 
-    val fieldValue = FieldValue(FieldId("n"), text,
+    val fieldValue = FormComponent(FormComponentId("n"), text,
       "sample label", None, None, true, false, false, true, None)
 
     val data = Map(
-      FieldId("n-1") -> Seq("1.2"),
-      FieldId("n-2") -> Seq("1.3"),
-      FieldId("n-3") -> Seq("1.2")
+      FormComponentId("n-1") -> Seq("1.2"),
+      FormComponentId("n-2") -> Seq("1.3"),
+      FormComponentId("n-3") -> Seq("1.2")
     )
 
     val result = validator(fieldValue, data)
@@ -154,14 +154,14 @@ class FormatValidationSpec extends Spec {
   private def createFailTest(data: String, constrait: TextConstraint, errorMessage: String) =
     validator(fieldValueFunction(constrait), getData(data)).toEither should beLeft(Map(default -> Set(errorMessage)))
 
-  private val getData: String => Map[FieldId, Seq[String]] = str => Map(default -> Seq(str))
+  private val getData: String => Map[FormComponentId, Seq[String]] = str => Map(default -> Seq(str))
 
   implicit lazy val hc = HeaderCarrier()
 
-  private def validator(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) = {
+  private def validator(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) = {
     new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
   }
 
-  private val fieldValueFunction: TextConstraint => FieldValue = contraint => fieldValue(Text(contraint, Constant("")))
+  private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Constant("")))
 
 }

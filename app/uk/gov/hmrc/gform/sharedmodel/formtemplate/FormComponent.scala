@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class FieldValue(
-  id: FieldId,
+case class FormComponent(
+  id: FormComponentId,
   `type`: ComponentType,
   label: String,
   helpText: Option[String],
@@ -34,7 +34,7 @@ case class FieldValue(
 
 )
 
-object FieldValue {
-  implicit val format = Json.format[FieldValue]
+object FormComponent {
+  implicit val format = Json.format[FormComponent]
 }
 

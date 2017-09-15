@@ -19,14 +19,14 @@ package uk.gov.hmrc.gform.models.helpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, _ }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 
 object Fields {
 
-  def evaluateWithSuffix(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]): List[(FieldId, FormFieldValidationResult)] = {
-    val data: FieldId => String = id => dGetter(id).headOption.map(_.value).getOrElse("")
+  def evaluateWithSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(dGetter: (FormComponentId) => List[FormField]): List[(FormComponentId, FormFieldValidationResult)] = {
+    val data: FormComponentId => String = id => dGetter(id).headOption.map(_.value).getOrElse("")
     fieldValue.`type` match {
       case UkSortCode(_) => UkSortCode.fields(fieldValue.id).map { fieldId =>
         gformErrors.get(fieldId) match {
@@ -49,11 +49,11 @@ object Fields {
         }
       }
       case FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _) =>
-        List[(FieldId, FormFieldValidationResult)]()
+        List[(FormComponentId, FormFieldValidationResult)]()
     }
   }
 
-  def evaluateWithoutSuffix(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]): (FieldId, FormFieldValidationResult) = {
+  def evaluateWithoutSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(dGetter: (FormComponentId) => List[FormField]): (FormComponentId, FormFieldValidationResult) = {
 
     val data = dGetter(fieldValue.id).headOption.map(_.value).getOrElse("")
     gformErrors.get(fieldValue.id) match {
@@ -63,16 +63,16 @@ object Fields {
     }
   }
 
-  def evaluateComponent(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]) =
+  def evaluateComponent(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(dGetter: (FormComponentId) => List[FormField]) =
     (evaluateWithoutSuffix(fieldValue, gformErrors)(dGetter) :: evaluateWithSuffix(fieldValue, gformErrors)(dGetter))
       .map(kv => kv._1.value -> kv._2).toMap
 
-  def valuesValidate(formFieldMap: Map[FieldId, Seq[String]], fieldValues: List[FieldValue], envelope: Envelope, gformErrors: Map[FieldId, Set[String]])(fieldValue: FieldValue): Option[FormFieldValidationResult] = {
-    val formFields: Map[FieldId, FormField] = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
+  def valuesValidate(formFieldMap: Map[FormComponentId, Seq[String]], fieldValues: List[FormComponent], envelope: Envelope, gformErrors: Map[FormComponentId, Set[String]])(fieldValue: FormComponent): Option[FormFieldValidationResult] = {
+    val formFields: Map[FormComponentId, FormField] = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
 
-    val dataGetter: FieldId => List[FormField] = fId => formFields.get(fId).toList
+    val dataGetter: FormComponentId => List[FormField] = fId => formFields.get(fId).toList
 
-    def componentField(list: List[FieldId]) = {
+    def componentField(list: List[FormComponentId]) = {
       val data = evaluateComponent(fieldValue, gformErrors)(dataGetter)
       Some(ComponentField(fieldValue, data))
     }
@@ -93,7 +93,7 @@ object Fields {
     }
   }
 
-  def evalChoice(fieldValue: FieldValue, gformErrors: Map[FieldId, Set[String]])(dGetter: (FieldId) => List[FormField]) = gformErrors.get(fieldValue.id) match {
+  def evalChoice(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(dGetter: (FormComponentId) => List[FormField]) = gformErrors.get(fieldValue.id) match {
     case None =>
       val data = dGetter(fieldValue.id).flatMap { formField =>
         formField.value.split(",").toList.map(selectedIndex => fieldValue.id.value + selectedIndex -> FieldOk(fieldValue, selectedIndex))
@@ -106,14 +106,14 @@ object Fields {
       Some(ComponentField(fieldValue, data))
   }
 
-  def toFormField(fieldData: Map[FieldId, Seq[String]], templateFields: List[FieldValue]): List[FormField] = {
+  def toFormField(fieldData: Map[FormComponentId, Seq[String]], templateFields: List[FormComponent]): List[FormField] = {
 
-    val getFieldData: FieldId => FormField = fieldId => {
+    val getFieldData: FormComponentId => FormField = fieldId => {
       val value = fieldData.get(fieldId).toList.flatten.headOption.getOrElse("")
       FormField(fieldId, value)
     }
 
-    def getFormFields(templateFields: List[FieldValue]): List[FormField] = templateFields.flatMap { fv =>
+    def getFormFields(templateFields: List[FormComponent]): List[FormField] = templateFields.flatMap { fv =>
       fv.`type` match {
         case Group(_, _, _, _, _, _) =>
           require(true, "There shouldn't be Group fields here")

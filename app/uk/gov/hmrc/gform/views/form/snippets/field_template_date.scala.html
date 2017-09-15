@@ -8,7 +8,7 @@
 
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).toString

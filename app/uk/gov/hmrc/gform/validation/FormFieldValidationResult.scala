@@ -20,13 +20,13 @@ import uk.gov.hmrc.gform.models._
 import cats.implicits._
 
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FieldId, FieldValue }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponentId, FormComponent }
 
-case class FieldOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
-case class FieldGlobalOk(fieldValue: FieldValue, currentValue: String) extends FormFieldValidationResult
-case class FieldError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
-case class FieldGlobalError(fieldValue: FieldValue, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
-case class ComponentField(fieldValue: FieldValue, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
+case class FieldOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
+case class FieldGlobalOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
+case class FieldError(fieldValue: FormComponent, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
+case class FieldGlobalError(fieldValue: FormComponent, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
+case class ComponentField(fieldValue: FormComponent, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
 
 trait FormFieldValidationResult {
 
@@ -36,10 +36,10 @@ trait FormFieldValidationResult {
     case _ => Set()
   }
 
-  lazy val fieldErrorsByFieldValue: Map[FieldValue, Set[String]] = this match {
+  lazy val fieldErrorsByFieldValue: Map[FormComponent, Set[String]] = this match {
     case e: FieldError => Map(fieldValue -> e.errors)
     case cf: ComponentField =>
-      cf.data.values.foldLeft[Map[FieldValue, Set[String]]](Map())(_ |+| _.fieldErrorsByFieldValue)
+      cf.data.values.foldLeft[Map[FormComponent, Set[String]]](Map())(_ |+| _.fieldErrorsByFieldValue)
     case _ => Map()
   }
 
@@ -55,7 +55,7 @@ trait FormFieldValidationResult {
     case _ => Set()
   }
 
-  def fieldValue: FieldValue
+  def fieldValue: FormComponent
 
   def isOk: Boolean = this match {
     case FieldOk(_, _) => true
@@ -83,7 +83,7 @@ trait FormFieldValidationResult {
     case _ => ""
   }
 
-  private def withId(f: FormField, id: String) = f.copy(FieldId(id))
+  private def withId(f: FormField, id: String) = f.copy(FormComponentId(id))
 
   def toFormField: List[FormField] = this match {
     case FieldOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))

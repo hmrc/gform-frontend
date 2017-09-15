@@ -127,7 +127,7 @@ class NumberValidationSpec extends Spec {
 
     override def `formField - number` = FormField(`fieldId - number`, value)
 
-    override def `fieldValue - number` = FieldValue(
+    override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Constant("")),
       "sample label", None, None, true, false, false, false, None
@@ -137,7 +137,7 @@ class NumberValidationSpec extends Spec {
       `fieldId - number` -> `formField - number`
     )
 
-    def validate(fieldValue: FieldValue, data: Map[FieldId, Seq[String]]) =
+    def validate(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) =
       new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()

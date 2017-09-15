@@ -18,10 +18,10 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 case class FileId(value: String) {
-  def toFieldId: FieldId = FieldId(value)
+  def toFieldId: FormComponentId = FormComponentId(value)
 }
 
 object FileId {

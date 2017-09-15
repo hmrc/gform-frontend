@@ -22,8 +22,8 @@ import uk.gov.hmrc.gform.validation._
 
 class FormFieldValidationResultSpec extends FlatSpec with Matchers {
 
-  val mockDateFieldValue = FieldValue(
-    id = FieldId("StartDate"),
+  val mockDateFieldValue = FormComponent(
+    id = FormComponentId("StartDate"),
     `type` = Date(AnyDate, Offset(0), Some(ExactDateValue(2010, 10, 10))),
     label = "label",
     helpText = None,
@@ -39,9 +39,9 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     val testFieldComponent = ComponentField(
       fieldValue = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(FieldValue(FieldId("day"), Text(AnyText, Constant("")), "label", None, None, false, true, true, true, None), "1"),
-        "month" -> FieldOk(FieldValue(FieldId("month"), Text(AnyText, Constant("")), "label", None, None, false, true, true, true, None), "1"),
-        "year" -> FieldError(FieldValue(FieldId("year"), Text(AnyText, Constant("")), "label", None, None, false, true, true, true, None), "NOT_RIGHT", Set("NAN"))
+        "day" -> FieldOk(FormComponent(FormComponentId("day"), Text(AnyText, Constant("")), "label", None, None, false, true, true, true, None), "1"),
+        "month" -> FieldOk(FormComponent(FormComponentId("month"), Text(AnyText, Constant("")), "label", None, None, false, true, true, true, None), "1"),
+        "year" -> FieldError(FormComponent(FormComponentId("year"), Text(AnyText, Constant("")), "label", None, None, false, true, true, true, None), "NOT_RIGHT", Set("NAN"))
       )
     )
 
@@ -53,9 +53,9 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     val testFieldComponent = ComponentField(
       fieldValue = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(FieldValue(FieldId("day"), Text(AnyText, Constant("")), "day", None, None, false, true, true, true, None), "1"),
-        "month" -> FieldOk(FieldValue(FieldId("month"), Text(AnyText, Constant("")), "month", None, None, false, true, true, true, None), "1"),
-        "year" -> FieldOk(FieldValue(FieldId("year"), Text(AnyText, Constant("")), "year", None, None, false, true, true, true, None), "2017")
+        "day" -> FieldOk(FormComponent(FormComponentId("day"), Text(AnyText, Constant("")), "day", None, None, false, true, true, true, None), "1"),
+        "month" -> FieldOk(FormComponent(FormComponentId("month"), Text(AnyText, Constant("")), "month", None, None, false, true, true, true, None), "1"),
+        "year" -> FieldOk(FormComponent(FormComponentId("year"), Text(AnyText, Constant("")), "year", None, None, false, true, true, true, None), "2017")
       )
     )
 

@@ -4,7 +4,7 @@
 @import uk.gov.hmrc.gform.views.html.localisation
 
 
-@(fieldValue: FieldValue, text: Text, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, text: Text, validationResult: Option[FormFieldValidationResult])
 
 @isSterling = @{
 fieldValue.`type` match {
