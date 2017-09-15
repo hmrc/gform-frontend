@@ -2,6 +2,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.localisation
+@import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 
 @(fieldValue: FormComponent, text: Text, validationResult: Option[FormFieldValidationResult])
@@ -22,11 +23,13 @@ case _ => false
 
       @if(!isSterling){
     <td>
-    @validationResult.map(_.getCurrentValue).getOrElse("")
+      @TextFormatter.formatText(text, validationResult)
     </td>
       }else{
     <td>
-        <span class="input-currency input--no-spinner input--left-padding input--small" >@validationResult.map(_.getCurrentValue).getOrElse("")</span>
+        <span class="input-currency input--no-spinner input--left-padding input--small" >
+          @TextFormatter.formatText(text, validationResult)
+        </span>
     </td>
       }
 

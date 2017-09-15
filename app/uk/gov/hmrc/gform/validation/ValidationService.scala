@@ -72,8 +72,6 @@ class ValidationService(
     eT.value.map(Validated.fromEither)
   }
 
-  def validateSizeOfEnvelope() = ???
-
   def evaluateValidation(v: ValidatedType, fields: List[FormComponent], data: Map[FormComponentId, Seq[String]], envelope: Envelope): Map[FormComponent, FormFieldValidationResult] =
     ValidationUtil.evaluateValidationResult(fields, v, data, envelope)
       .map(v => v.fieldValue -> v)
