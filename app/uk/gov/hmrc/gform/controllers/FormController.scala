@@ -159,11 +159,11 @@ class FormController @Inject() (
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
     } yield envelope
 
-    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
+    processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
 
       val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
 
-      val formFieldValidationResultsF: Future[Map[FieldValue, FormFieldValidationResult]] = for { // format: OFF
+      val formFieldValidationResultsF: Future[Map[FormComponent, FormFieldValidationResult]] = for { // format: OFF
         sections          <- sectionsF
         envelope          <- envelopeF
         section           = sections(sectionNumber.value)

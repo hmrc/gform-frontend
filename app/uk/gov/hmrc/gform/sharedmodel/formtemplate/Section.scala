@@ -26,7 +26,7 @@ import scala.collection.immutable.List
 sealed trait BaseSection {
   def title: String
   def shortName: Option[String]
-  def fields: List[FieldValue]
+  def fields: List[FormComponent]
 }
 
 case class Section(
@@ -37,7 +37,7 @@ case class Section(
   repeatsMax: Option[TextExpression],
   repeatsMin: Option[TextExpression],
   validators: Option[SectionValidator], //TODO List instead of Option
-  fields: List[FieldValue]
+  fields: List[FormComponent]
 ) extends BaseSection
 
 object Section {
@@ -48,7 +48,7 @@ case class DeclarationSection(
   title: String,
   description: Option[String],
   shortName: Option[String],
-  fields: List[FieldValue]
+  fields: List[FormComponent]
 ) extends BaseSection
 
 object DeclarationSection {
@@ -59,7 +59,7 @@ case class AcknowledgementSection(
   title: String,
   description: Option[String],
   shortName: Option[String],
-  fields: List[FieldValue]
+  fields: List[FormComponent]
 ) extends BaseSection
 
 object AcknowledgementSection {
@@ -69,7 +69,7 @@ object AcknowledgementSection {
 case class EnrolmentSection(
   title: String,
   shortName: Option[String],
-  fields: List[FieldValue]
+  fields: List[FormComponent]
 ) extends BaseSection
 
 object EnrolmentSection {
@@ -78,5 +78,5 @@ object EnrolmentSection {
 
 case class SectionFormField(
   title: String,
-  fields: List[(List[FormField], FieldValue)]
+  fields: List[(List[FormField], FormComponent)]
 )

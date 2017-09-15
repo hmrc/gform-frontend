@@ -79,13 +79,13 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     )
     val formTemplate = super.formTemplate.copy(sections = List(thisSection1, thisSection2))
 
-    val textFieldR = `fieldValue - surname`.copy(id = FieldId(s"1_${`fieldId - surname`.value}"))
+    val textFieldR = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
     val sectionR = thisSection2.copy(fields = List(textFieldR), title = "ONE, 1", shortName = Some("1, ONE"))
 
-    val textFieldR2 = `fieldValue - surname`.copy(id = FieldId(s"2_${`fieldId - surname`.value}"))
+    val textFieldR2 = `fieldValue - surname`.copy(id = FormComponentId(s"2_${`fieldId - surname`.value}"))
     val sectionR2 = thisSection2.copy(fields = List(textFieldR2), title = "TWO, 2", shortName = Some("2, TWO"))
 
-    val jsValue = Json.toJson(List(List(`fieldValue - firstName`), List(`fieldValue - firstName`.copy(id = FieldId(s"1_${`fieldId - firstName`}")))))
+    val jsValue = Json.toJson(List(List(`fieldValue - firstName`), List(`fieldValue - firstName`.copy(id = FormComponentId(s"1_${`fieldId - firstName`}")))))
     val mockCache = CacheMap("YEAH_MAN", Map("GroupFieldValueId" -> jsValue))
     val testSessionCacheConnector = new SessionCacheConnector {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(Some(mockCache))
@@ -95,7 +95,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val expectedList = List(thisSection1, sectionR, sectionR2)
 
-    val formData = Map(FieldId("repeatingSectionDriver") -> Seq("ONE"), FieldId("1_repeatingSectionDriver") -> Seq("TWO"))
+    val formData = Map(FormComponentId("repeatingSectionDriver") -> Seq("ONE"), FormComponentId("1_repeatingSectionDriver") -> Seq("TWO"))
 
     testService.getAllSections(formTemplate, formData).futureValue shouldBe expectedList
   }
@@ -116,7 +116,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val testService = new RepeatingComponentService(testSessionCacheConnector)
 
-    val textFieldDosR = `fieldValue - surname`.copy(id = FieldId(s"1_${`fieldId - surname`.value}"))
+    val textFieldDosR = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
     val sectionR = thisSection2.copy(fields = List(textFieldDosR), title = "Repeating section title 1", shortName = Some("shortName 1"))
     val expectedList = List(`section - group`, sectionR)
 
@@ -138,8 +138,8 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val testService = new RepeatingComponentService(testSessionCacheConnector)
 
-    val textFieldDos1 = `fieldValue - surname`.copy(id = FieldId(s"1_${`fieldId - surname`.value}"))
-    val textFieldDos2 = `fieldValue - surname`.copy(id = FieldId(s"2_${`fieldId - surname`.value}"))
+    val textFieldDos1 = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
+    val textFieldDos2 = `fieldValue - surname`.copy(id = FormComponentId(s"2_${`fieldId - surname`.value}"))
     val sectionR1 = thisSection2.copy(fields = List(textFieldDos1), title = "Repeating section title 1", shortName = Some("shortName 1"))
     val sectionR2 = thisSection2.copy(fields = List(textFieldDos2), title = "Repeating section title 2", shortName = Some("shortName 2"))
     val expectedList = List(`section - group`, sectionR1, sectionR2)

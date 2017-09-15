@@ -61,7 +61,7 @@ class EnrolmentController @Inject() (
 
   def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = Action.async { implicit request =>
 
-    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
+    processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
       gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
 
         formTemplate.authConfig match {
@@ -70,7 +70,7 @@ class EnrolmentController @Inject() (
             val allFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
             val validationResultF = validationService.validateComponents(allFields, data, EnvelopeId(""))
 
-            get(data, FieldId("save")) match {
+            get(data, FormComponentId("save")) match {
               case "Continue" :: Nil =>
                 validationResultF.flatMap(processValidation(formTemplate, authConfig, data, lang))
               case _ =>
@@ -93,7 +93,7 @@ class EnrolmentController @Inject() (
   private def processValidation(
     formTemplate: FormTemplate,
     authConfig: AuthConfigWithEnrolment,
-    data: Map[FieldId, Seq[String]],
+    data: Map[FormComponentId, Seq[String]],
     lang: Option[String]
   )(validationResult: ValidatedType)(implicit hc: HeaderCarrier, request: Request[_]): Future[Result] = {
 
@@ -112,14 +112,14 @@ class EnrolmentController @Inject() (
 
   private def getErrorMap(
     validationResult: ValidatedType,
-    data: Map[FieldId, Seq[String]],
+    data: Map[FormComponentId, Seq[String]],
     authConfig: AuthConfigWithEnrolment
-  ): Map[FieldValue, FormFieldValidationResult] = {
+  ): Map[FormComponent, FormFieldValidationResult] = {
     val enrolmentFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
     validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
   }
 
-  private def getAllEnrolmentFields(fields: List[FieldValue]): List[FieldValue] = {
+  private def getAllEnrolmentFields(fields: List[FormComponent]): List[FormComponent] = {
 
     fields.flatMap { fieldValue =>
       fieldValue.`type` match {
@@ -131,10 +131,10 @@ class EnrolmentController @Inject() (
 
   private def extractIdentifiersAndVerifiers(
     authConfig: AuthConfigWithEnrolment,
-    data: Map[FieldId, Seq[String]]
+    data: Map[FormComponentId, Seq[String]]
   ): (List[Identifier], List[Verifier]) = {
 
-    def getValue(fieldValue: FieldValue) = {
+    def getValue(fieldValue: FormComponent) = {
       data.getOrElse(fieldValue.id, Seq("")).head.replaceAll("""\s""", "") // spaces need to be deleted to send to GG
     }
 
@@ -153,7 +153,7 @@ class EnrolmentController @Inject() (
 
   private def displayEnrolmentSectionWithErrors(
     validationResult: ValidatedType,
-    data: Map[FieldId, Seq[String]],
+    data: Map[FormComponentId, Seq[String]],
     authConfig: AuthConfigWithEnrolment,
     formTemplate: FormTemplate,
     lang: Option[String]
@@ -167,10 +167,10 @@ class EnrolmentController @Inject() (
 
   private def buildFailedValidationResult(
     authConfig: AuthConfigWithEnrolment,
-    data: Map[FieldId, Seq[String]]
+    data: Map[FormComponentId, Seq[String]]
   ): Invalid[GformError] = {
 
-    val map = getAllEnrolmentFields(authConfig.enrolmentSection.fields).foldLeft(Map.empty[FieldId, Set[String]]) {
+    val map = getAllEnrolmentFields(authConfig.enrolmentSection.fields).foldLeft(Map.empty[FormComponentId, Set[String]]) {
       (result, current) =>
         data.get(current.id) match {
           case Some(value) if !value.head.isEmpty => result + (current.id -> Set("Please check the values entered"))
@@ -182,7 +182,7 @@ class EnrolmentController @Inject() (
 
   private def handleEnrolmentException(
     authConfig: AuthConfigWithEnrolment,
-    data: Map[FieldId, Seq[String]],
+    data: Map[FormComponentId, Seq[String]],
     formTemplate: FormTemplate,
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_]): PartialFunction[Throwable, Future[Result]] = {

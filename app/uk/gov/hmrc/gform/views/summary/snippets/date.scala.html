@@ -3,7 +3,7 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.localisation
 
-@(fieldValue: FieldValue, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult])
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).toString

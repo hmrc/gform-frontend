@@ -35,29 +35,29 @@ case class SummaryForRender(snippets: List[Html], javascripts: Future[String], t
 
 object SummaryForRender {
 
-  def apply(validatedType: ValidatedType, data: Map[FieldId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
+  def apply(validatedType: ValidatedType, data: Map[FormComponentId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
 
     repeatService.getAllSections(formTemplate, data).map { sections =>
-      val fields: List[FieldValue] = sections.flatMap(repeatService.atomicFields)
+      val fields: List[FormComponent] = sections.flatMap(repeatService.atomicFields)
 
-      def validate(fieldValue: FieldValue) = {
+      def validate(fieldValue: FormComponent) = {
         val gformErrors = validatedType match {
           case Invalid(errors) => errors
-          case Valid(()) => Map.empty[FieldId, Set[String]]
+          case Valid(()) => Map.empty[FormComponentId, Set[String]]
         }
         Fields.valuesValidate(data, fields, envelope, gformErrors)(fieldValue)
       }
 
-      def valueToHtml(fieldValue: FieldValue): Html = {
+      def valueToHtml(fieldValue: FormComponent): Html = {
 
-        def groupToHtml(fieldValue: FieldValue, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
+        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
           case group: Group if presentationHint contains SummariseGroupAsGrid =>
             val value = group.fields.map(validate(_))
             group_grid(fieldValue, value)
           case groupField @ Group(_, orientation, _, _, _, _) => {
             val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
             val htmlList = fvs.map {
-              case (fv: FieldValue) => valueToHtml(fv)
+              case (fv: FormComponent) => valueToHtml(fv)
             }.toList
             group(fieldValue, htmlList, orientation)
           }
@@ -84,7 +84,7 @@ object SummaryForRender {
         }
       }
 
-      def showOnSummary(fieldValue: FieldValue) =
+      def showOnSummary(fieldValue: FormComponent) =
         fieldValue.presentationHint
           .fold(false)(x => x.contains(InvisibleInSummary))
 
@@ -105,8 +105,8 @@ object SummaryForRender {
         }
       }
       val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
-      val repeatingGroups: Future[List[List[List[FieldValue]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
-        case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FieldValue]]](fieldId.value).getOrElse(Nil))
+      val repeatingGroups: Future[List[List[List[FormComponent]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
+        case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FormComponent]]](fieldId.value).getOrElse(Nil))
       })
       SummaryForRender(snippets, fieldJavascript(fields, repeatingGroups), sections.size)
     }

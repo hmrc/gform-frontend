@@ -6,11 +6,11 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.LongInfo
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ImportantInfo
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.BannerInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FieldValue
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.views.html._
 
 
-@(fieldValue: FieldValue, infoType: InfoType, text: Html, index: Int)
+@(fieldValue: FormComponent, infoType: InfoType, text: Html, index: Int)
 
 <div class="subsection">
   @infoType match {

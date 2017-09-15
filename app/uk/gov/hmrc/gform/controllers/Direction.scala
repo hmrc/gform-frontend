@@ -29,7 +29,7 @@ object SaveAndSummary extends Direction
 case class AddGroup(groupId: String) extends Direction
 case class RemoveGroup(groupId: String) extends Direction
 
-class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FieldId, Seq[String]]) {
+class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FormComponentId, Seq[String]]) {
   require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
 
@@ -46,7 +46,7 @@ class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map
   }
 
   private def actionValue: String = {
-    val fieldId = FieldId("save")
+    val fieldId = FormComponentId("save")
     FormDataHelpers
       .get(data, fieldId)
       .headOption

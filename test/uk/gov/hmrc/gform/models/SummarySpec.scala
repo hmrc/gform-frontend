@@ -41,9 +41,9 @@ class SummarySpec extends Spec {
 
   trait Test extends ExampleData {
     override def dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
-    def section0 = Section("Your details", None, None, None, None, None, None, List(FieldValue(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, true, true, true, false, None)))
-    def section1 = Section("About you", None, None, None, None, None, None, List(FieldValue(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, true, true, true, false, None)))
-    def section2 = Section("Business details", None, None, None, None, None, None, List(FieldValue(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, true, true, true, false, None)))
+    def section0 = Section("Your details", None, None, None, None, None, None, List(FormComponent(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, true, true, true, false, None)))
+    def section1 = Section("About you", None, None, None, None, None, None, List(FormComponent(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, true, true, true, false, None)))
+    def section2 = Section("Business details", None, None, None, None, None, None, List(FormComponent(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, true, true, true, false, None)))
 
     override def `formField - iptRegNum` = super.`formField - iptRegNum`.copy(value = "Test!Your details!Test")
     override def `formField - firstName` = super.`formField - firstName`.copy(value = "Test!About you!Test")
@@ -52,22 +52,22 @@ class SummarySpec extends Spec {
     override def formTemplate = super.formTemplate.copy(sections = List(section0, section1, section2))
 
     val mockRepeatService = new RepeatingComponentService(null) {
-      override def getAllSections(formTemplate: FormTemplate, data: Map[FieldId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
+      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
         Future.successful(formTemplate.sections)
       }
 
       override def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] =
         Future.successful(CacheMap("Empty", Map.empty[String, JsValue]))
 
-      override def getAllFieldsInGroupForSummary(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[FieldValue] = {
-        List[FieldValue]()
+      override def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier): List[FormComponent] = {
+        List[FormComponent]()
       }
 
-      override def getAllFieldsInGroup(topFieldValue: FieldValue, groupField: Group)(implicit hc: HeaderCarrier): List[List[FieldValue]] = {
-        List.empty[List[FieldValue]]
+      override def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier): List[List[FormComponent]] = {
+        List.empty[List[FormComponent]]
       }
 
-      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FieldValue] = {
+      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FormComponent] = {
         section.fields
       }
     }
@@ -102,26 +102,26 @@ class SummarySpec extends Spec {
   it should "display values for each field type with a submissible field, " in new Test {
 
     val section = Section("Personal details", None, None, None, None, None, None, List(
-      FieldValue(FieldId("Surname"), Text(AnyText, Constant("")), "Surname", None, None, true, true, true, false, None),
-      FieldValue(FieldId("Info"), Text(AnyText, Constant("")), "Info", None, None, true, true, submissible = false, false, None, presentationHint = Some(List(InvisibleInSummary))),
-      FieldValue(FieldId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true, false, None),
-      FieldValue(FieldId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true, false, None)
+      FormComponent(FormComponentId("Surname"), Text(AnyText, Constant("")), "Surname", None, None, true, true, true, false, None),
+      FormComponent(FormComponentId("Info"), Text(AnyText, Constant("")), "Info", None, None, true, true, submissible = false, false, None, presentationHint = Some(List(InvisibleInSummary))),
+      FormComponent(FormComponentId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, true, true, true, false, None),
+      FormComponent(FormComponentId("HomeAddress"), Address(international = false), "Home address", None, None, true, true, true, false, None)
     ))
 
     override def formTemplate = super.formTemplate.copy(sections = List(section))
 
     override val rawDataFromBrowser = Map(
-      FieldId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
-      FieldId("Info") -> Seq("Test!Royal!Test"),
-      FieldId("BirthDate-day") -> Seq("19"),
-      FieldId("BirthDate-month") -> Seq("11"),
-      FieldId("BirthDate-year") -> Seq("1841"),
-      FieldId("HomeAddress-street1") -> Seq("Test!Street!Test"),
-      FieldId("HomeAddress-street2") -> Seq("Test!Second Street!Test"),
-      FieldId("HomeAddress-street3") -> Seq("Test!Third Street!Test"),
-      FieldId("HomeAddress-street4") -> Seq("Test!Town!Test"),
-      FieldId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
-      FieldId("HomeAddress-country") -> Seq("Test!UK!Test")
+      FormComponentId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
+      FormComponentId("Info") -> Seq("Test!Royal!Test"),
+      FormComponentId("BirthDate-day") -> Seq("19"),
+      FormComponentId("BirthDate-month") -> Seq("11"),
+      FormComponentId("BirthDate-year") -> Seq("1841"),
+      FormComponentId("HomeAddress-street1") -> Seq("Test!Street!Test"),
+      FormComponentId("HomeAddress-street2") -> Seq("Test!Second Street!Test"),
+      FormComponentId("HomeAddress-street3") -> Seq("Test!Third Street!Test"),
+      FormComponentId("HomeAddress-street4") -> Seq("Test!Town!Test"),
+      FormComponentId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
+      FormComponentId("HomeAddress-country") -> Seq("Test!UK!Test")
     )
 
     override def fieldValues = formTemplate.sections.flatMap(_.fields)
@@ -157,8 +157,8 @@ class SummarySpec extends Spec {
 
   it should "display shortName instead of label for Address field" in new Test {
     val shortName = "JUST_A_VERY_SHORT_NAME"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Address(false),
       label = "label",
       shortName = Some(shortName),
@@ -180,8 +180,8 @@ class SummarySpec extends Spec {
 
   it should "display label when shortName not provided for Address field" in new Test {
     val label = "JUST_A_VERY_LONG_LABEL"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Address(false),
       label = label,
       shortName = None,
@@ -202,8 +202,8 @@ class SummarySpec extends Spec {
 
   it should "display shortName instead of label for Text field" in new Test {
     val shortName = "JUST_A_VERY_SHORT_NAME"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Text(AnyText, Constant("DA")),
       label = "label",
       shortName = Some(shortName),
@@ -225,8 +225,8 @@ class SummarySpec extends Spec {
 
   it should "display label if shortName not provided for Text field" in new Test {
     val label = "THIS_IS_A_LABEL"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Text(AnyText, Constant("DA")),
       label = label,
       shortName = None,
@@ -248,8 +248,8 @@ class SummarySpec extends Spec {
 
   it should "display shortName instead of label for Choice field" in new Test {
     val shortName = "JUST_A_VERY_SHORT_NAME"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Choice(Radio, NonEmptyList.of("u"), Vertical, List(), None),
       label = "label",
       shortName = Some(shortName),
@@ -271,8 +271,8 @@ class SummarySpec extends Spec {
 
   it should "display label if shortName not provided for Choice field" in new Test {
     val label = "THIS_IS_A_LABEL"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Choice(Radio, NonEmptyList.of("u"), Vertical, List(), None),
       label = label,
       shortName = None,
@@ -294,8 +294,8 @@ class SummarySpec extends Spec {
 
   it should "display shortName instead of label for Date field" in new Test {
     val shortName = "JUST_A_VERY_SHORT_NAME"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Date(AnyDate, Offset(0), None),
       label = "label",
       shortName = Some(shortName),
@@ -317,8 +317,8 @@ class SummarySpec extends Spec {
 
   it should "display label if shortName not provided for Date field" in new Test {
     val label = "THIS_IS_A_LABEL"
-    val addressField = FieldValue(
-      id = FieldId("anId"),
+    val addressField = FormComponent(
+      id = FormComponentId("anId"),
       `type` = Date(AnyDate, Offset(0), None),
       label = label,
       shortName = None,
@@ -347,19 +347,19 @@ class SummarySpec extends Spec {
 
     //    val f1: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("Pete")), fieldValues, envelope)
 
-    val renderWithDataMatching = summary.summaryForRender(f, Map(FieldId("firstName") -> Seq("Pete")), formId, mockRepeatService, envelope, None)
+    val renderWithDataMatching = summary.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("Pete")), formId, mockRepeatService, envelope, None)
     renderWithDataMatching.futureValue.snippets.size shouldBe 3
 
     //    val f2: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), fieldValues, envelope)
 
-    val renderWithDataMismatch = summary.summaryForRender(f, Map(FieldId("firstName") -> Seq("*Not*Pete")), formId, mockRepeatService, envelope, None)
+    val renderWithDataMismatch = summary.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), formId, mockRepeatService, envelope, None)
     renderWithDataMismatch.futureValue.snippets.size shouldBe 0
   }
 
   it should "display Group Labels (or Group Short Names if specified)" in new Test {
 
-    val groupFieldValue = FieldValue(
-      FieldId("gid"),
+    val groupFieldValue = FormComponent(
+      FormComponentId("gid"),
       Group(
         List(),
         Horizontal
@@ -369,7 +369,7 @@ class SummarySpec extends Spec {
     override def section0 = Section("", None, None, None, None, None, None, List(groupFieldValue))
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     //    override def f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty[FieldId, Seq[String]], fieldValues, envelope)
-    val render0 = Summary(formTemplate).summaryForRender(f, Map.empty[FieldId, Seq[String]], formId, mockRepeatService, envelope, None)
+    val render0 = Summary(formTemplate).summaryForRender(f, Map.empty[FormComponentId, Seq[String]], formId, mockRepeatService, envelope, None)
     extractAllTestStringValues(render0.futureValue.snippets) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
       sections = List(Section("", None, None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
@@ -379,7 +379,7 @@ class SummarySpec extends Spec {
 
     //    val f1: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty[FieldId, Seq[String]], filedValues1, envelope)
 
-    val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(f, Map.empty[FieldId, Seq[String]], formId, mockRepeatService, envelope, None)
+    val render1 = Summary(formTemplateWGroupWithShortname).summaryForRender(f, Map.empty[FormComponentId, Seq[String]], formId, mockRepeatService, envelope, None)
     extractAllTestStringValues(render1.futureValue.snippets) should be(List("group-shortname"))
   }
 
@@ -390,7 +390,7 @@ class SummarySpec extends Spec {
     )
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), fieldValues, envelope)
 
-    val summaryForRender = summary.summaryForRender(f, Map(FieldId("firstName") -> Seq("*Not*Pete")), formId, mockRepeatService, envelope, None)
+    val summaryForRender = summary.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), formId, mockRepeatService, envelope, None)
     val htmls = summaryForRender.futureValue.snippets
     val htmlAheadOfSection2 = htmls(3)
     val doc = Jsoup.parse(htmlAheadOfSection2.toString)

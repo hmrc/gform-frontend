@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FieldId, FieldValue, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormComponent, FormTemplateId }
 import uk.gov.hmrc.gform.summary.Summary
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -56,7 +56,7 @@ class SummaryController @Inject() (
 
   def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
 
-    processResponseDataFromBody(request) { (data: Map[FieldId, Seq[String]]) =>
+    processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
 
       val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
@@ -78,7 +78,7 @@ class SummaryController @Inject() (
         // format: ON
       } yield result
 
-      get(data, FieldId("save")) match {
+      get(data, FormComponentId("save")) match {
         // format: OFF
         case "Exit" :: Nil        => Ok(save_acknowledgement(formId, formTemplateId4Ga, totalPage, lang)).pure[Future]
         case "Declaration" :: Nil => handleDeclaration
@@ -98,7 +98,7 @@ class SummaryController @Inject() (
     // format: ON
   }
 
-  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FieldValue, FormFieldValidationResult])] = {
+  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
     for {// format: OFF

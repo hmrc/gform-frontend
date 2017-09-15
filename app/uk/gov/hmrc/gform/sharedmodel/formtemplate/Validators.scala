@@ -44,8 +44,8 @@ case object SectionValidator {
 
 case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, postcode: FormCtx) extends SectionValidator {
 
-  val utrFieldId = FieldId(utr.value)
-  val postcodeFieldId = FieldId(postcode.value)
+  val utrFieldId = FormComponentId(utr.value)
+  val postcodeFieldId = FormComponentId(postcode.value)
 }
 
 object HMRCUTRPostcodeCheckValidator {

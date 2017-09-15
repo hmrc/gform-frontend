@@ -24,15 +24,15 @@ class GroupSpec extends Spec {
 
   "dataEntered" should "return true if data in the group's fields exist" in {
 
-    val formData1: Map[FieldId, Seq[String]] = Map(FieldId("tid") -> Seq("nonempty"))
-    val formData2: Map[FieldId, Seq[String]] = Map(FieldId("tid") -> Seq(""))
-    val formData3: Map[FieldId, Seq[String]] = Map(FieldId("tid") -> Seq("", ""))
-    val formData4: Map[FieldId, Seq[String]] = Map(FieldId("tid") -> Seq("", "", "nonempty"))
-    val formData5: Map[FieldId, Seq[String]] = Map(FieldId("tid2") -> Seq("", "", "nonempty"))
+    val formData1: Map[FormComponentId, Seq[String]] = Map(FormComponentId("tid") -> Seq("nonempty"))
+    val formData2: Map[FormComponentId, Seq[String]] = Map(FormComponentId("tid") -> Seq(""))
+    val formData3: Map[FormComponentId, Seq[String]] = Map(FormComponentId("tid") -> Seq("", ""))
+    val formData4: Map[FormComponentId, Seq[String]] = Map(FormComponentId("tid") -> Seq("", "", "nonempty"))
+    val formData5: Map[FormComponentId, Seq[String]] = Map(FormComponentId("tid2") -> Seq("", "", "nonempty"))
 
-    val grp: Group = Group(List(FieldValue(FieldId("tid"), Text(AnyText, Constant("")), "tlabel", None, None, false, true, true, true, None)), Horizontal, Some(5), Some(1), Some("repeatLabel"), Some("repeatAddAnotherText"))
+    val grp: Group = Group(List(FormComponent(FormComponentId("tid"), Text(AnyText, Constant("")), "tlabel", None, None, false, true, true, true, None)), Horizontal, Some(5), Some(1), Some("repeatLabel"), Some("repeatAddAnotherText"))
 
-    FormDataHelpers.dataEnteredInGroup(grp, Map.empty[FieldId, Seq[String]]) should be(false)
+    FormDataHelpers.dataEnteredInGroup(grp, Map.empty[FormComponentId, Seq[String]]) should be(false)
     FormDataHelpers.dataEnteredInGroup(grp, formData2) should be(false)
     FormDataHelpers.dataEnteredInGroup(grp, formData3) should be(false)
     FormDataHelpers.dataEnteredInGroup(grp, formData1) should be(true)

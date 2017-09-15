@@ -20,7 +20,7 @@ import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FieldValue, UkSortCode }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -38,7 +38,7 @@ trait AuditService {
       "FormTemplateId" -> form.formTemplateId.value,
       "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
     )
-    val optSortCode: List[FieldValue] = sections.flatMap(_.fields.filter(_.`type` match {
+    val optSortCode: List[FormComponent] = sections.flatMap(_.fields.filter(_.`type` match {
       case x: UkSortCode => true
       case _ => false
     }))

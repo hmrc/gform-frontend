@@ -34,7 +34,7 @@ case class Text(
 case class UkSortCode(value: Expr) extends ComponentType
 
 object UkSortCode {
-  def fields(id: FieldId): List[FieldId] = List("1", "2", "3").map(id.withSuffix)
+  def fields(id: FormComponentId): List[FormComponentId] = List("1", "2", "3").map(id.withSuffix)
 }
 
 case class Date(
@@ -44,15 +44,15 @@ case class Date(
 ) extends ComponentType
 
 case object Date {
-  val fields = (id: FieldId) => List("day", "month", "year").map(id.withSuffix)
+  val fields = (id: FormComponentId) => List("day", "month", "year").map(id.withSuffix)
 }
 
 case class Address(international: Boolean) extends ComponentType
 
 case object Address {
-  val mandatoryFields = (id: FieldId) => List("street1").map(id.withSuffix)
-  val optionalFields = (id: FieldId) => List("street2", "street3", "street4", "uk", "postcode", "country").map(id.withSuffix)
-  val fields = (id: FieldId) => mandatoryFields(id) ++ optionalFields(id)
+  val mandatoryFields = (id: FormComponentId) => List("street1").map(id.withSuffix)
+  val optionalFields = (id: FormComponentId) => List("street2", "street3", "street4", "uk", "postcode", "country").map(id.withSuffix)
+  val fields = (id: FormComponentId) => mandatoryFields(id) ++ optionalFields(id)
 }
 
 case class Choice(
@@ -97,7 +97,7 @@ object InfoType {
 }
 
 case class Group(
-  fields: List[FieldValue],
+  fields: List[FormComponent],
   orientation: Orientation,
   repeatsMax: Option[Int] = None,
   repeatsMin: Option[Int] = None,
@@ -107,19 +107,19 @@ case class Group(
 
 object Group {
 
-  def getGroup(list: Future[List[List[List[FieldValue]]]], fieldId: FieldId)(implicit ex: ExecutionContext): Future[List[FieldId]] = {
-    val x: Future[List[List[FieldValue]]] = list.map(_.find(x => x.flatMap(y => y.map(_.id.value.contains(fieldId.value))).contains(true)).fold(List.empty[List[FieldValue]])(z => z))
+  def getGroup(list: Future[List[List[List[FormComponent]]]], fieldId: FormComponentId)(implicit ex: ExecutionContext): Future[List[FormComponentId]] = {
+    val x: Future[List[List[FormComponent]]] = list.map(_.find(x => x.flatMap(y => y.map(_.id.value.contains(fieldId.value))).contains(true)).fold(List.empty[List[FormComponent]])(z => z))
 
     x.map(matchList => getGroupLength(matchList.size, fieldId))
   }
 
-  private def getGroupLength(max: Int, id: FieldId): List[FieldId] = {
+  private def getGroupLength(max: Int, id: FormComponentId): List[FormComponentId] = {
     val suffix = List.range(0, max)
     suffix.map(x =>
       if (x == 0) {
         id
       } else {
-        FieldId(s"$x" + s"_${id.value}")
+        FormComponentId(s"$x" + s"_${id.value}")
       })
   }
 }
