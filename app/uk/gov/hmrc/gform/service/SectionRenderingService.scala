@@ -285,8 +285,15 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
   private def htmlForGroup(grp: Group, formTemplateId4Ga: FormTemplateId, fieldValue: FormComponent, index: Int, ei: ExtraInfo, validatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     val fgrpHtml = htmlForGroup0(grp, formTemplateId4Ga, fieldValue, index, ei, validatedType, lang)
 
+    val isChecked = {
+      validatedType.exists {
+        case Valid(()) => false
+        case Invalid(y) => grp.fields.exists(fv => y.get(fv.id).isDefined)
+      } || FormDataHelpers.dataEnteredInGroup(grp, ei.fieldData)
+    }
+
     fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
-      case Some(true) => fgrpHtml.map(grpHtml => snippets.collapsable(fieldValue.id, fieldValue.label, grpHtml, FormDataHelpers.dataEnteredInGroup(grp, ei.fieldData)))
+      case Some(true) => fgrpHtml.map(grpHtml => snippets.collapsable(fieldValue.id, fieldValue.label, grpHtml, isChecked))
       case _ => fgrpHtml
     }
   }
