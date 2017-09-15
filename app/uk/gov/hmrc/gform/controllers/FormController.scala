@@ -215,15 +215,26 @@ class FormController @Inject() (
         _ <- repeatService.appendNewGroup(groupId)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, None, envelope, cache.form.envelopeId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
-      } yield Ok(html)
+        keystore          <- repeatService.getData()
+        formData          <- formDataF
+        userData          = UserData(formData, keystore)
+        _                 <- gformConnector.updateUserData(formId, userData)
+      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
-        updatedData <- repeatService.removeGroup(groupId, data)
-        envelope <- envelopeF
-        dynamicSections <- sectionsF
-        html <- renderer.renderSection(formId, sectionNumber, updatedData, cache.formTemplate, None, envelope, cache.form.envelopeId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
-      } yield Ok(html)
+        dynamicSections   <- sectionsF
+        updatedData       <- repeatService.removeGroup(groupId, data)
+        envelope          <- envelopeF
+        section           = dynamicSections(sectionNumber.value)
+        allFields         = dynamicSections.flatMap(repeatService.atomicFields)
+        sectionFields     = repeatService.atomicFields(section)
+        v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(updatedData)
+        errors            = validationService.evaluateValidation(v, allFields, updatedData, envelope)
+        formData          = FormData(errors.values.toSeq.flatMap(_.toFormField))
+        keystore          <- repeatService.getData()
+        userData          = UserData(formData, keystore)
+        _                 <- gformConnector.updateUserData(formId, userData)
+      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
       val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
