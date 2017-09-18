@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, InProgress, UserData, Validated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.summary.Summary
+import uk.gov.hmrc.gform.summary.{SectionRenderingService, SummaryForRender}
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
@@ -118,14 +118,11 @@ class SummaryController @Inject() (
     for {// format: OFF
       sections          <- filteredSections
       allFields         =  sections.flatMap(repeatService.atomicFields)
-      v1                 <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
-      v                 = v1
-//TODO: uncomment below lines and replace v1 with them once created test only proxy to FileUpload
-// otherwise we wont be able to test it
-//                         Monoid.combine(
-//                          v1,
-//                          ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope)
-//                        )
+      v1                <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
+      v                 =  Monoid.combine(
+                             v1,
+                             ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope)
+                           )
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       // format: ON
     } yield (v, errors)
@@ -139,7 +136,7 @@ class SummaryController @Inject() (
     for {
       envelope          <- envelopeF
       (v, _)            <- validateForm(cache, envelope)
-      result            <- Summary(cache.formTemplate).renderSummary(v, data, formId, repeatService, envelope, lang)
+      result            <- SectionRenderingService.renderSummary(cache.formTemplate, v, data, formId, repeatService, envelope, lang)
     } yield result
   }
 
