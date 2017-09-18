@@ -24,9 +24,8 @@ import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.{ StreamedBody, WSClient, WSRequest }
 import play.api.mvc._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class ProxyActions @Inject() (wsClient: WSClient) {
@@ -34,7 +33,7 @@ class ProxyActions @Inject() (wsClient: WSClient) {
   /**
    * This creates actions which proxies incoming request to remote service.
    */
-  def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] = Action.async(streamedBodyParser) { (inboundRequest: Request[Source[ByteString, _]]) =>
+  def apply(remoteServiceBaseUrl: String)(path: String)(implicit ec: ExecutionContext): Action[Source[ByteString, _]] = Action.async(streamedBodyParser) { (inboundRequest: Request[Source[ByteString, _]]) =>
     for {
       outboundRequest <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
       streamedResponse <- outboundRequest.stream
@@ -55,7 +54,7 @@ class ProxyActions @Inject() (wsClient: WSClient) {
     case (key, _) => !key.equalsIgnoreCase(contentTypeHeaderKey) && !key.equalsIgnoreCase(contentLengthHeaderKey)
   }
 
-  private def proxyRequest(path: String, inboundRequest: Request[Source[ByteString, _]]): Future[WSRequest] = Future(
+  private def proxyRequest(path: String, inboundRequest: Request[Source[ByteString, _]])(implicit ec: ExecutionContext): Future[WSRequest] = Future(
     wsClient.url(s"$path")
       .withFollowRedirects(false)
       .withMethod(inboundRequest.method)
@@ -68,5 +67,5 @@ class ProxyActions @Inject() (wsClient: WSClient) {
     inboundHeaders.toSimpleMap.filter(headerKeyValue => !headerKeyValue._1.equals("Host")) ++ extraHeaders.toMap toSeq
   }
 
-  private def streamedBodyParser: BodyParser[Source[ByteString, _]] = BodyParser { _ => Accumulator.source[ByteString].map(Right.apply) }
+  private def streamedBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser { _ => Accumulator.source[ByteString].map(Right.apply) }
 }

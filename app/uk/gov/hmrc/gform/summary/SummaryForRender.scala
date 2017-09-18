@@ -31,7 +31,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)
+case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)(implicit ec: ExecutionContext)
 
 object SummaryForRender {
 
