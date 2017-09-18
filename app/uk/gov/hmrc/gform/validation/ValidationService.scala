@@ -110,8 +110,10 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
     case FileUpload() => validateFileUpload(fieldValue)
     case InformationMessage(_, _) => validF
   }
-  import ExecutionContext.Implicits.global
-  private lazy val validF = ().valid.pure[Future]
+
+  def validF(implicit ec: ExecutionContext) = {
+    ().valid.pure[Future]
+  }
 
   private def validateDate(fieldValue: FormComponent, date: Date): Future[ValidatedType] = Future.successful {
     val reqFieldValidResult = validateDateRequiredField(fieldValue)(data)
