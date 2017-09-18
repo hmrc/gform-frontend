@@ -46,7 +46,7 @@ class DeclarationController @Inject() (
 
   def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case Validated => renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, None, lang).map(Ok(_))
+      case Validated => renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, None, None, lang).map(Ok(_))
       case _ => Future.successful(BadRequest)
     }
   }
@@ -71,7 +71,7 @@ class DeclarationController @Inject() (
           case validationResult @ Invalid(_) =>
             val errorMap: Map[FormComponent, FormFieldValidationResult] = getErrorMap(validationResult, data, cache.formTemplate)
             for {
-              html <- renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, Some(validationResult), lang)
+              html <- renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, Some(validationResult), Some(errorMap), lang)
             } yield Ok(html)
         }
         case _ =>

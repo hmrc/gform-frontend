@@ -132,14 +132,16 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     result.data.map(field => reassignFieldValue(field._1, field._2)).toList
   }
 
-  def renderDeclarationSection(formId: FormId, formTemplate: FormTemplate, retrievals: Retrievals, maybeValidatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+  def renderDeclarationSection(formId: FormId, formTemplate: FormTemplate, retrievals: Retrievals, maybeValidatedType: Option[ValidatedType], errors: Option[Map[FormComponent, FormFieldValidationResult]], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
     val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, Envelope(Nil), List(formTemplate.declarationSection), 0, retrievals)
 
+    val listResult = errors.map(error => error.values.toList).getOrElse(Nil)
     for {
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, maybeValidatedType, lang)))
+      bec = pageLevel(listResult)
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formTemplate._id, formId, lang), false, "Confirm and send", 0, Nil)
-    } yield form(formTemplate, errors.empty_html(), renderingInfo, formId)
+    } yield form(formTemplate, bec, renderingInfo, formId)
   }
 
   def renderAcknowledgementSection(formId: FormId, formTemplate: FormTemplate, retrievals: Retrievals, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
