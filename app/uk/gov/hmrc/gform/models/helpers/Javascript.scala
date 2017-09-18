@@ -43,7 +43,7 @@ object Javascript {
        """.stripMargin
     }
 
-    def values(id: String) = s"""parseInt(document.getElementById("$id").value) || 0"""
+    def values(id: String) = s"""parseInt(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
 
     def ids(expr: Expr): List[String] = {
       expr match {
