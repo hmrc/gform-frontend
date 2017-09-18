@@ -23,12 +23,11 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -46,7 +45,10 @@ class DeclarationController @Inject() (
   import controllersModule.i18nSupport._
 
   def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
-    renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, None, lang).map(Ok(_))
+    cache.form.status match {
+      case Validated => renderer.renderDeclarationSection(formId, cache.formTemplate, cache.retrievals, None, lang).map(Ok(_))
+      case _ => Future.successful(BadRequest)
+    }
   }
 
   def submitDeclaration(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
@@ -59,7 +61,7 @@ class DeclarationController @Inject() (
           case Valid(()) =>
             val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
             for {
-              _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None))
+              _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None, Signed))
               _ <- gformConnector.submitForm(formId)
               _ <- repeatService.clearSession
             } yield {

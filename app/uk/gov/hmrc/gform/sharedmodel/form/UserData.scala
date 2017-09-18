@@ -18,10 +18,13 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.libs.json.{ Json, OFormat }
 
-case class UserData(formData: FormData, repeatingGroupStructure: Option[RepeatingGroupStructure])
+case class UserData(
+  formData: FormData,
+  repeatingGroupStructure: Option[RepeatingGroupStructure],
+  formStatus: FormStatus
+)
 
 object UserData {
 
   implicit val format: OFormat[UserData] = Json.format[UserData]
-
 }

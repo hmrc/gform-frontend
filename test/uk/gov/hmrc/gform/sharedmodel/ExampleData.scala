@@ -284,7 +284,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     userId,
     formTemplateId,
     repeatingGroupStructure,
-    formData
+    formData,
+    InProgress
   )
 
 }

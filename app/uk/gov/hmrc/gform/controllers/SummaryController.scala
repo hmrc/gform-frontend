@@ -25,8 +25,9 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
+import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, InProgress, UserData, Validated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.Summary
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
@@ -44,14 +45,18 @@ class SummaryController @Inject() (
   repeatService: RepeatingComponentService,
   fileUploadModule: FileUploadModule,
   validationModule: ValidationModule,
-  pdfGeneratorModule: PdfGeneratorModule
+  pdfGeneratorModule: PdfGeneratorModule,
+  gformBackendModule: GformBackendModule
 )(implicit ec: ExecutionContext)
     extends FrontendController {
 
   import controllersModule.i18nSupport._
 
   def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-    getSummaryHTML(formId, cache, lang).map(Ok(_))
+    cache.form.status match {
+      case InProgress => getSummaryHTML(formId, cache, lang).map(Ok(_))
+      case _ => Future.successful(BadRequest)
+    }
   }
 
   def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
@@ -67,12 +72,16 @@ class SummaryController @Inject() (
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
-      lazy val redirectToDeclaration = Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang))
+      lazy val redirectToDeclaration = gformConnector
+        .updateUserData(formId, UserData(cache.form.formData, cache.form.repeatingGroupStructure, Validated))
+        .map { _ =>
+          Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang))
+        }
       lazy val redirectToSummary = Redirect(routes.SummaryController.summaryById(formId, formTemplateId4Ga, lang))
       lazy val handleDeclaration = for {
         // format: OFF
         result <- isFormValidF.ifM(
-          redirectToDeclaration.pure[Future],
+          redirectToDeclaration,
           redirectToSummary.pure[Future]
         )
         // format: ON
@@ -89,13 +98,17 @@ class SummaryController @Inject() (
   }
 
   def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-    // format: OFF
-    for {
-      summaryHml <- getSummaryHTML(formId, cache, lang)
-      htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
-      pdf        <- pdfService.generatePDF(htmlForPDF)
-    } yield Ok(pdf).as("application/pdf")
-    // format: ON
+    cache.form.status match {
+      case InProgress =>
+        // format: OFF
+        for {
+          summaryHml <- getSummaryHTML(formId, cache, lang)
+          htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
+          pdf <- pdfService.generatePDF(htmlForPDF)
+        } yield Ok(pdf).as("application/pdf")
+      // format: ON
+      case _ => Future.successful(BadRequest)
+    }
   }
 
   private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
@@ -134,4 +147,5 @@ class SummaryController @Inject() (
   private lazy val auth = controllersModule.authenticatedRequestActions
   private lazy val validationService = validationModule.validationService
   private lazy val pdfService = pdfGeneratorModule.pdfGeneratorService
+  private lazy val gformConnector = gformBackendModule.gformConnector
 }

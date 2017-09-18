@@ -90,6 +90,7 @@ class FormController @Inject() (
   }
 
   def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+    // TODO: Handle cases when the form is no longer marked as InProgress
     val fieldData = FormDataHelpers.formDataMap(cache.form.formData)
 
     for {// format: OFF
@@ -183,7 +184,7 @@ class FormController @Inject() (
           formData <- formDataF
           keystore <- repeatService.getData()
           section <- sectionsF
-          userData = UserData(formData, keystore)
+          userData = UserData(formData, keystore, InProgress)
           _ <- gformConnector.updateUserData(formId, userData)
           isFormValid <- isFormValidF
         } yield if (isFormValid) nextPage else Redirect(routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, lang))
@@ -194,7 +195,7 @@ class FormController @Inject() (
           section <- sectionsF
           keystore <- repeatService.getData()
           formData <- formDataF
-          userData = UserData(formData, keystore)
+          userData = UserData(formData, keystore, InProgress)
 
           result <- gformConnector.updateUserData(formId, userData).map(response => Ok(views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size, lang)))
         } yield result
@@ -205,7 +206,7 @@ class FormController @Inject() (
         for {
           keystore <- repeatService.getData()
           formData <- formDataF
-          userData = UserData(formData, keystore)
+          userData = UserData(formData, keystore, InProgress)
           result <- gformConnector.updateUserData(formId, userData).flatMap(response => continue)
         } yield result
 
@@ -217,7 +218,7 @@ class FormController @Inject() (
         dynamicSections <- sectionsF
         keystore          <- repeatService.getData()
         formData          <- formDataF
-        userData          = UserData(formData, keystore)
+        userData          = UserData(formData, keystore, InProgress)
         _                 <- gformConnector.updateUserData(formId, userData)
       } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
 
@@ -232,7 +233,7 @@ class FormController @Inject() (
         errors            = validationService.evaluateValidation(v, allFields, updatedData, envelope)
         formData          = FormData(errors.values.toSeq.flatMap(_.toFormField))
         keystore          <- repeatService.getData()
-        userData          = UserData(formData, keystore)
+        userData          = UserData(formData, keystore, InProgress)
         _                 <- gformConnector.updateUserData(formId, userData)
       } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
 
