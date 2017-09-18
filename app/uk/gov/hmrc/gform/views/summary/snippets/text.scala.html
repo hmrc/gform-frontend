@@ -1,9 +1,10 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+@import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.gform.views.html.localisation
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
-
+@import uk.gov.hmrc.play.views.html.helpers._
 
 @(fieldValue: FormComponent, text: Text, validationResult: Option[FormFieldValidationResult])
 
@@ -14,22 +15,33 @@ case _ => false
 }
 }
 
+@currentValue = @{TextFormatter.formatText(text, validationResult)}
+
+@hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
+
+@errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
+    errorInline("", e, Seq())
+}}
+
 
 
 @* TODO: What should total style be? *@
-<tr @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="table__row--bold"}>
+<tr @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="table__row--bold"} class="@if(hasErrors) {form-field-group--error}">
   <td>
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </td>
 
-      @if(!isSterling){
+    @if(!isSterling){
     <td>
-      @TextFormatter.formatText(text, validationResult)
+    @currentValue
+    @errors
     </td>
       }else{
     <td>
+        <ul>@errors</ul>
+
         <span class="input-currency input--no-spinner input--left-padding input--small" >
-          @TextFormatter.formatText(text, validationResult)
+            @currentValue
         </span>
     </td>
       }

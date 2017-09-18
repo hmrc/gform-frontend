@@ -26,8 +26,9 @@ import uk.gov.hmrc.gform.models.helpers.Fields.valuesValidate
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.summary.SummaryRenderingService.SummaryForRender
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-import uk.gov.hmrc.gform.summary.Summary
+import uk.gov.hmrc.gform.summary.{Summary, SummaryRenderingService}
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.cache.client.CacheMap
@@ -71,7 +72,6 @@ class SummarySpec extends Spec {
       }
     }
 
-    def summary = Summary(formTemplate)
     def fieldValues = formTemplate.sections.flatMap(_.fields)
     def f: ValidatedType = Valid(()) //valuesValidate(rawDataFromBrowser, fieldValues, envelope, Map.empty[FieldId, Set[String]])
     implicit val hc = HeaderCarrier()
@@ -79,7 +79,7 @@ class SummarySpec extends Spec {
   }
 
   "Summary" should "display the summary sections" in new Test {
-    val render = summary.summaryForRender(f, rawDataFromBrowser, formId, mockRepeatService, envelope, None)
+    val render = SummaryRenderingService.summaryForRender(f, rawDataFromBrowser, formId, mockRepeatService, envelope, None)
     render.futureValue.snippets.size should be(9)
     extractAllTestStringValues(render.futureValue.snippets) should be(List("Your details", "About you", "Business details"))
   }

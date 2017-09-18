@@ -196,7 +196,7 @@ object ValidationUtil {
     val flakies: Seq[ValidatedType] = e.files.collect {
       case f @ File(_, s @ Quarantined, _) =>
         //not processed (scanned by virus scanner) files are in quarantined state
-        (f, "File has not been scanned, please wait and try again")
+        (f, "File has not been processed, please wait and try again")
       case f @ File(_, s: Other, _) =>
         val message = s"Internal server problem. Please contact support. (Unsupported state from FU: $s)"
         Logger.error(message)
