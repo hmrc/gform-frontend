@@ -21,8 +21,7 @@ import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import scala.concurrent.Future
 
 class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {

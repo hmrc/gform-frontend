@@ -35,10 +35,10 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
@@ -110,7 +110,7 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
     case FileUpload() => validateFileUpload(fieldValue)
     case InformationMessage(_, _) => validF
   }
-
+  import ExecutionContext.Implicits.global
   private lazy val validF = ().valid.pure[Future]
 
   private def validateDate(fieldValue: FormComponent, date: Date): Future[ValidatedType] = Future.successful {

@@ -25,8 +25,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
@@ -44,12 +43,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Form] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}")
 
-  def maybeForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[Form]] =
+  def maybeForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}").map(Some(_)).recover {
       case e: NotFoundException => None
     }
 
-  def updateUserData(formId: FormId, userData: UserData)(implicit hc: HeaderCarrier): Future[Unit] = {
+  def updateUserData(formId: FormId, userData: UserData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     ws.PUT[UserData, HttpResponse](s"$baseUrl/forms/${formId.value}", userData).map(_ => ())
   }
 
