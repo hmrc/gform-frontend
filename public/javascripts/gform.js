@@ -51,10 +51,13 @@ global.GOVUK=GOVUK})(window);
 var FORM_ERROR_CLASS = 'form-field-group--error';
 var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
 
+var gform = window.gform || {};
+var formMaxAttachmentSizeMB = parseInt(window.gform.formMaxAttachmentSizeMB || 1, 10);
+
 var uploaderDefaults = {
   uploadText: 'Browse',
   changeText: 'Change',
-  maxFileSize: window.gform.formMaxAttachmentSizeMB * 1024 * 1024,
+  maxFileSize: formMaxAttachmentSizeMB * 1024 * 1024,
   uploaderLabel: 'Your uploaded file will appear here',
   maxFileSizeError: 'File exceeds max size allowed',
     contentTypes: window.gform.contentTypes
