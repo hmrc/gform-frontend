@@ -22,6 +22,7 @@ import javax.inject.{ Inject, Singleton }
 import org.jsoup.Jsoup
 import play.api.mvc.{ Action, AnyContent }
 import uk.gov.hmrc.auth.core.authorise.AffinityGroup
+import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
@@ -41,6 +42,7 @@ class AcknowledgementController @Inject() (
     renderer: SectionRenderingService,
     summaryController: SummaryController,
     gformBackendModule: GformBackendModule,
+    authModule: AuthModule,
     pdfGeneratorModule: PdfGeneratorModule
 ) extends FrontendController {
 
@@ -86,8 +88,8 @@ class AcknowledgementController @Inject() (
 
     // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_,                  Some(textExpression)) => evaluateSubmissionReference(textExpression, retrievals)
-      case (_: EEITTAuthConfig, None)                 => eeitReferenceNumber(retrievals)
+      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals)
+      case (_: EEITTAuthConfig, None)                 => authService.eeitReferenceNumber(retrievals)
       case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
     }
     // format: ON
@@ -124,24 +126,5 @@ class AcknowledgementController @Inject() (
     doc.html
   }
 
-  private def eeitReferenceNumber(retrievals: Retrievals) = retrievals.userDetails.affinityGroup match {
-    case AffinityGroup.Agent => retrievals.enrolments
-      .getEnrolment(AuthConfig.eeittAuth)
-      .fold("")(_.getIdentifier(EEITTAuthConfig.agentIdName).fold("")(_.value))
-    case _ => retrievals.enrolments
-      .getEnrolment(AuthConfig.eeittAuth)
-      .fold("")(_.getIdentifier(EEITTAuthConfig.nonAgentIdName).fold("")(_.value))
-  }
-
-  private def evaluateSubmissionReference(expression: TextExpression, retrievals: Retrievals): String = {
-
-    expression.expr match {
-      case AuthCtx(value) =>
-        val authContextPrepop = new AuthContextPrepop()
-        authContextPrepop.values(value, retrievals)
-
-      case EeittCtx(eeitt) => eeitReferenceNumber(retrievals)
-      case _ => ""
-    }
-  }
+  private val authService = authModule.authService
 }

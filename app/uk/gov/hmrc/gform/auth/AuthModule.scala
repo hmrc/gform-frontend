@@ -51,4 +51,6 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
   )
 
   lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule)
+
+  lazy val authService = new AuthService
 }

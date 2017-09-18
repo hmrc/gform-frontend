@@ -17,13 +17,15 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
-import play.api.libs.json.JsValue
+import play.api.libs.json.{ JsValue, Reads }
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
+
 import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 import scala.concurrent.{ ExecutionContext, Future }
@@ -62,8 +64,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******submission*******/
 
-  def submitForm(formId: FormId)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-    ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")
+  def submitForm(formId: FormId, customerId: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+    implicit val hcNew = hc.withExtraHeaders("customerId" -> customerId)
+    ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")(implicitly[HttpReads[HttpResponse]], hcNew)
   }
 
   def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier): Future[Submission] = {
