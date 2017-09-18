@@ -30,42 +30,44 @@ lang: Option[String]
 @defaultLabel = @{"Upload document"}
 
 <div class="form-group">
+    <div
+      class="file-uploader @if(!validationResult.forall(_.isOk)) { form-field-group--error }"
+      data-form-id="@{formId}"
+      data-file-id="@{fieldValue.id.value}"
+      data-upload-text="@{defaultLabel}"
+      data-change-text="Change document"
+      data-max-file-size="@{formMaxAttachmentSizeMB * 1024 * 1024}"
+      data-label="@LabelHelper.buildRepeatingLabel(fieldValue, index)"
+      data-file-size-error="This document may not exceed @{formMaxAttachmentSizeMB}MB"
+      data-initial-text="@if(currentValue.isEmpty || currentValue == defaultLabel) {Upload document} else {Change document}"
+      data-default-label="@{defaultLabel}">
+        <div class="file-upload__errors">
+          @{
+              val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+              val errors: Set[String] = ValidationUtil.printErrors(map)
+              errors.map(e => errorInline(e, e, Seq("")))
+          }
+        </div>
 
-  <div class="file-uploader @if(!validationResult.forall(_.isOk)) { form-field-group--error }"
-       data-form-id="@{formId}"
-       data-file-id="@{fieldValue.id.value}"
-       data-upload-text="@{defaultLabel}"
-       data-change-text="Change document"
-       data-max-file-size="@{formMaxAttachmentSizeMB * 1024 * 1024}"
-       data-label="@LabelHelper.buildRepeatingLabel(fieldValue, index)"
-       data-file-size-error="This document may not exceed @{formMaxAttachmentSizeMB}MB"
-       data-initial-text="@if(currentValue == defaultLabel) {Upload document} else {Change document}"
-       data-default-label="@{defaultLabel}"
-  >
-
-    <ul class="file-upload__file-list">
-      <li class="file-upload__file-list-item">
-        <a class="file-upload__file-list-item-link" href=@{
-            routes.FormController.fileUploadPage(
-              formId,
-              formTemplateId4Ga,
-              sectionNumber,
-              FileId(fieldValue.id.value).value,
-              totalSections,
-              lang
-            )
-        }>
-            @{currentValue}
-        </a>
-      </li>
-    </ul>
-
-    <div class="file-upload__errors">
-      @{
-          val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-          val errors: Set[String] = ValidationUtil.printErrors(map)
-          errors.map(e => errorInline(e, e, Seq("")))
-      }
+        <ul class="file-upload__file-list">
+          <li class="file-upload__file-list-item">
+            <a class="file-upload__file-list-item-link" href=@{
+                routes.FormController.fileUploadPage(
+                  formId,
+                  formTemplateId4Ga,
+                  sectionNumber,
+                  FileId(fieldValue.id.value).value,
+                  totalSections,
+                  lang
+                )
+            }>
+                @if(currentValue.nonEmpty) {
+                    @{currentValue}
+                } else {
+                    @defaultLabel
+                }
+            </a>
+          </li>
+        </ul>
     </div>
-  </div>
 </div>
