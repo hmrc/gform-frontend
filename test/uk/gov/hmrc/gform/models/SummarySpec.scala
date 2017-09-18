@@ -39,7 +39,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 class SummarySpec extends Spec {
 
   trait Test extends ExampleData {
-    override def dmsSubmission = DmsSubmission("nino", "some-classification-type", "some-business-area")
+    override def dmsSubmission = DmsSubmission(TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
     def section0 = Section("Your details", None, None, None, None, None, None, List(FormComponent(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, true, true, true, false, None)))
     def section1 = Section("About you", None, None, None, None, None, None, List(FormComponent(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, true, true, true, false, None)))
     def section2 = Section("Business details", None, None, None, None, None, None, List(FormComponent(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, true, true, true, false, None)))

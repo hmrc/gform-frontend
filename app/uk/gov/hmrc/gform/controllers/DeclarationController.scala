@@ -20,9 +20,12 @@ import javax.inject.{ Inject, Singleton }
 
 import cats.data.Validated.{ Invalid, Valid }
 import uk.gov.hmrc.gform.auditing.AuditingModule
+import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
 import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -39,7 +42,9 @@ class DeclarationController @Inject() (
     repeatService: RepeatingComponentService,
     auditingModule: AuditingModule,
     renderer: SectionRenderingService,
-    validationModule: ValidationModule
+    validationModule: ValidationModule,
+    authModule: AuthModule,
+    prepopModule: PrepopModule
 ) extends FrontendController {
 
   import controllersModule.i18nSupport._
@@ -56,13 +61,15 @@ class DeclarationController @Inject() (
 
       val validationResultF = validationService.validateComponents(getAllDeclarationFields(cache.formTemplate.declarationSection.fields), data, cache.form.envelopeId)
 
+      val customerId = authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals)
+
       get(data, FormComponentId("save")) match {
         case "Continue" :: Nil => validationResultF.flatMap {
           case Valid(()) =>
             val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
             for {
               _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None, Signed))
-              _ <- gformConnector.submitForm(formId)
+              _ <- gformConnector.submitForm(formId, customerId)
               _ <- repeatService.clearSession
             } yield {
               auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
@@ -111,4 +118,6 @@ class DeclarationController @Inject() (
       }
     }
   }
+
+  private lazy val authService = authModule.authService
 }
