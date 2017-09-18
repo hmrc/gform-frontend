@@ -27,11 +27,13 @@ import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.prepop.AuthContextPrepop
 import uk.gov.hmrc.gform.service.SectionRenderingService
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Signed, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+
+import scala.concurrent.Future
 
 @Singleton
 class AcknowledgementController @Inject() (
@@ -45,19 +47,26 @@ class AcknowledgementController @Inject() (
   import controllersModule.i18nSupport._
 
   def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
-    renderer.renderAcknowledgementSection(formId, cache.formTemplate, cache.retrievals, lang).map(Ok(_))
+    cache.form.status match {
+      case Submitted => renderer.renderAcknowledgementSection(formId, cache.formTemplate, cache.retrievals, lang).map(Ok(_))
+      case _ => Future.successful(BadRequest)
+    }
   }
 
   def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-      // format: OFF
-      for {
-        summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
-        submission <- gformConnector.submissionStatus(formId)
-        cleanHtml  = pdfService.sanitiseHtmlForPDF(summaryHml)
-        htmlForPDF = addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
-        pdf <- pdfService.generatePDF(htmlForPDF)
-      } yield Ok(pdf).as("application/pdf")
-    // format: ON
+    cache.form.status match {
+      case Submitted =>
+        // format: OFF
+        for {
+          summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
+          submission <- gformConnector.submissionStatus(formId)
+          cleanHtml  = pdfService.sanitiseHtmlForPDF(summaryHml)
+          htmlForPDF = addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
+          pdf <- pdfService.generatePDF(htmlForPDF)
+        } yield Ok(pdf).as("application/pdf")
+      // format: ON
+      case _ => Future.successful(BadRequest)
+    }
   }
 
   private lazy val auth = controllersModule.authenticatedRequestActions
