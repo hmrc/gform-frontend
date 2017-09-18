@@ -27,12 +27,13 @@ import uk.gov.hmrc.gform.gformbackend.{ GformBackendModule, GformConnector }
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 @Singleton
 class TestOnly @Inject() (
     proxy: ProxyActions,
     gformBackendModule: GformBackendModule
-) extends FrontendController with ServicesConfig {
+)(implicit mdc: MdcLoggingExecutionContext) extends FrontendController with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 

@@ -2,11 +2,11 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.views.html._
-@import scala.concurrent.ExecutionContext.Implicits.global
 @import uk.gov.hmrc.gform.summary.SummaryForRender
 @import views.html.helper.CSRF
+@import scala.concurrent.ExecutionContext
 
-@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId, formCategory: FormCategory, lang: Option[String])(implicit request: Request[_], messages: Messages)
+@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId, formCategory: FormCategory, lang: Option[String])(implicit request: Request[_], messages: Messages, ec: ExecutionContext)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {
     <h1 class="h1-heading">Check your details</h1>
@@ -54,6 +54,7 @@
     </form>
 
     <script type="text/javascript">
+
       @summary.javascripts.map(x => Html(x))
     </script>
 }

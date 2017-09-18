@@ -36,7 +36,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
   implicit val hc = HeaderCarrier()
@@ -58,18 +58,18 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
 
   val mockRepeatService = new RepeatingComponentService(null) {
 
-    override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
+    override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
       Future.successful(allSections)
     }
 
-    override def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] =
+    override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
       Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
 
     override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FormComponent] = {
       section.fields
     }
 
-    override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier) = {
+    override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
       Future.successful((List(groupField.fields), false))
     }
   }
@@ -276,18 +276,18 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
 
     val mock2RepeatService = new RepeatingComponentService(null) {
 
-      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
+      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
         Future.successful(allSections)
       }
 
-      override def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] =
+      override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
         Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
 
       override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FormComponent] = {
         section.fields
       }
 
-      override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier) = {
+      override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
         Future.successful((List(groupField.fields, groupField.fields), true))
       }
     }

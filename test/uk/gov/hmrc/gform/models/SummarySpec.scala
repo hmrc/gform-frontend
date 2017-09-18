@@ -34,8 +34,7 @@ import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class SummarySpec extends Spec {
 
@@ -52,11 +51,11 @@ class SummarySpec extends Spec {
     override def formTemplate = super.formTemplate.copy(sections = List(section0, section1, section2))
 
     val mockRepeatService = new RepeatingComponentService(null) {
-      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[List[Section]] = {
+      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
         Future.successful(formTemplate.sections)
       }
 
-      override def getAllRepeatingGroups(implicit hc: HeaderCarrier): Future[CacheMap] =
+      override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
         Future.successful(CacheMap("Empty", Map.empty[String, JsValue]))
 
       override def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier): List[FormComponent] = {

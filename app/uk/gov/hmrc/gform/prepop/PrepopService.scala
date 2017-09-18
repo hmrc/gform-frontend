@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -49,7 +50,6 @@ class PrepopService(
 ) {
 
   def prepopData(expr: Expr, formTemplateId: FormTemplateId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] = {
-    import scala.concurrent.ExecutionContext.Implicits.global
     expr match {
       case AuthCtx(value) => Future.successful(authContextPrepop.values(value, retrievals))
       case Constant(value) => Future.successful(value)
