@@ -14,42 +14,30 @@
 
 @(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, disableAddButton: Boolean, index: Int)
 
-<fieldset>
-  <legend class="visuallyhidden">
-    Add @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-  </legend>
-
-  @if(!fieldValue.label.isEmpty) {
-    <div class="subsection">
-      <div class="divider--bottom">
-        <div class="form-field-group">
-          <h2 class="heading-small">
-            @if(!groupField.repeatsMax.isDefined) {
-              @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-            } else {
-              @localisation(fieldValue.label)
-            }
-          </h2>
-        </div>
-      </div>
-    </div>
+<h2 class="heading-small heading-section">
+  @if(!groupField.repeatsMax.isDefined) {
+    @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+  } else {
+    @localisation(fieldValue.label)
   }
+</h2>
 
+<div class="@if(groupField.repeatsMax.isDefined && fieldValue.label.nonEmpty) {divider--top}">
   <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
     @{
-  	   snippets
-  	}
+       snippets
+    }
   </div>
+</div>
 
-  @if(groupField.repeatsMax.isDefined && !disableAddButton) {
-  <div class="form-group">
-    <button
-      type="submit"
-      class="button button--link soft--left"
-      name="save"
-      value="AddGroup-@fieldValue.id">
-      @localisation(groupField.repeatAddAnotherText.getOrElse("Add another"))
-    </button>
-  </div>
-  }
-</fieldset>
+@if(groupField.repeatsMax.isDefined && !disableAddButton) {
+<div class="form-group">
+  <button
+    type="submit"
+    class="button button--link soft--left"
+    name="save"
+    value="AddGroup-@fieldValue.id">
+    @localisation(groupField.repeatAddAnotherText.getOrElse("Add another"))
+  </button>
+</div>
+}

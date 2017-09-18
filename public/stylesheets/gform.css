@@ -121,6 +121,16 @@
   padding: 0;
 }
 
+.heading-section {
+  margin-bottom: 1.5em;
+}
+
+/* Apply appropriate padding, depending on how the repeating section is rendered */
+.section-repeating:first-child,
+.heading-section + .section-repeating {
+  padding-top: 1em;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,

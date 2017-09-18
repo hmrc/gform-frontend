@@ -15,20 +15,17 @@
 
 
 @if(groupField.repeatLabel.isDefined) {
-<div class="subsection">
-    <div class="divider--bottom">
-        <div class="form-field-group">
-            <h2 class="heading-small">
-                @localisation(GroupHelper.buildRepeatLabel(groupField, instance))
-            </h2>
-        </div>
-    </div>
-</div>
+  <h2 class="heading-small heading-section">
+      @localisation(GroupHelper.buildRepeatLabel(groupField, instance))
+  </h2>
 }
 
-@{
-snippets
-}
+<div class="section-repeating @if(groupField.repeatLabel.isDefined) { divider--top}">
+  @{
+  snippets
+  }
+</div>
+
 
 @if(!disableRemoveButton) {
 <div class="form-group">
