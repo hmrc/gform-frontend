@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.summary
 
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
@@ -26,36 +26,34 @@ import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
-object SectionRenderingService {
+case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)
 
-  case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)
+object SummaryRenderingService {
 
   def renderSummary(
-                    formTemplate: FormTemplate,
-                     validatedType: ValidatedType,
-                     formFields: Map[FormComponentId, Seq[String]],
-                     formId: FormId,
-                     repeatService: RepeatingComponentService,
-                     envelope: Envelope,
-                     lang: Option[String]
-                   )(implicit
-                     request: Request[_],
-                     messages: Messages,
-                     hc: HeaderCarrier,
-                     ec: ExecutionContext): Future[Html] = {
-
-    val s = summaryForRender(validatedType, formFields, formId, formTemplate, repeatService, envelope, lang)
-
-    s.map(summaryForRender =>
-      summary(formTemplate, summaryForRender, formId, formTemplate.formCategory.getOrElse(Default), lang))
+    formTemplate: FormTemplate,
+    validatedType: ValidatedType,
+    formFields: Map[FormComponentId, Seq[String]],
+    formId: FormId,
+    repeatService: RepeatingComponentService,
+    envelope: Envelope,
+    lang: Option[String]
+  )(implicit
+    request: Request[_],
+    messages: Messages,
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Html] = {
+    summaryForRender(validatedType, formFields, formId, formTemplate, repeatService, envelope, lang)
+      .map(s => summary(formTemplate, s, formId, formTemplate.formCategory.getOrElse(Default), lang))
   }
 
   def summaryForRender(
@@ -68,18 +66,17 @@ object SectionRenderingService {
     lang: Option[String]
   )(implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext
-  ): Future[SummaryForRender] = {
+    ec: ExecutionContext): Future[SummaryForRender] = {
 
     repeatService.getAllSections(formTemplate, data).flatMap { sections =>
       val fields: List[FormComponent] = sections.flatMap(repeatService.atomicFields)
 
-      def validate(fieldValue: FormComponent) = {
+      def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
         val gformErrors = validatedType match {
           case Invalid(errors) => errors
           case Valid(()) => Map.empty[FormComponentId, Set[String]]
         }
-        Fields.valuesValidate(data, fields, envelope, gformErrors)(fieldValue)
+        Fields.valuesValidate(data, fields, envelope, gformErrors)(formComponent)
       }
 
       def valueToHtml(fieldValue: FormComponent): Html = {

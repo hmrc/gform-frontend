@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, InProgress, UserData, Validated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.{SectionRenderingService, SummaryForRender}
+import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
@@ -136,7 +137,7 @@ class SummaryController @Inject() (
     for {
       envelope          <- envelopeF
       (v, _)            <- validateForm(cache, envelope)
-      result            <- SectionRenderingService.renderSummary(cache.formTemplate, v, data, formId, repeatService, envelope, lang)
+      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, formId, repeatService, envelope, lang)
     } yield result
   }
 
