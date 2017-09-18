@@ -40,8 +40,6 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 import cats.implicits._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class FormController @Inject() (
