@@ -32,6 +32,7 @@ trait FormFieldValidationResult {
 
   lazy val fieldErrors: Set[String] = this match {
     case e: FieldError => e.errors
+    case globalError: FieldGlobalError => globalError.errors
     case cf: ComponentField => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.fieldErrors)
     case _ => Set()
   }
