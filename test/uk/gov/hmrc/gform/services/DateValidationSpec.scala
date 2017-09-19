@@ -301,8 +301,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(
-      fieldValue.id.withSuffix("day") -> Set(s"must be non-numeric"),
-      fieldValue.id.withSuffix("month") -> Set(s"must be non-numeric")
+      fieldValue.id.withSuffix("day") -> Set(s"must be numeric"),
+      fieldValue.id.withSuffix("month") -> Set(s"must be numeric")
     ))
   }
 

@@ -82,7 +82,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a two digit number")))
   }
 
   "UkSortCode" should "return invalid data on -" in {
