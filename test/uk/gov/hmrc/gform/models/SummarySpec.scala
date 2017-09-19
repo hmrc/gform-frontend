@@ -85,7 +85,7 @@ class SummarySpec extends Spec {
   }
 
   it should "display links to page sections" in new Test {
-    override val formTemplate = super.formTemplate.copy(sections = List(section0, section1))
+    override def formTemplate = super.formTemplate.copy(sections = List(section0, section1))
 
     val render = SummaryRenderingService.summaryForRender(f, Map(), formId, formTemplate, mockRepeatService, envelope, None)
 
