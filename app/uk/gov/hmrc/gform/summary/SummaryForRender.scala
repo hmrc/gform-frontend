@@ -31,13 +31,13 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class SummaryForRender(snippets: List[Html], javascripts: Future[String], totalPage: Int)(implicit ec: ExecutionContext)
+case class SummaryForRender(snippets: List[Html], javascripts: Html, totalPage: Int)(implicit ec: ExecutionContext)
 
 object SummaryForRender {
 
   def apply(validatedType: ValidatedType, data: Map[FormComponentId, Seq[String]], formId: FormId, formTemplate: FormTemplate, repeatService: RepeatingComponentService, envelope: Envelope, lang: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SummaryForRender] = {
 
-    repeatService.getAllSections(formTemplate, data).map { sections =>
+    repeatService.getAllSections(formTemplate, data).flatMap { sections =>
       val fields: List[FormComponent] = sections.flatMap(repeatService.atomicFields)
 
       def validate(fieldValue: FormComponent) = {
@@ -108,7 +108,10 @@ object SummaryForRender {
       val repeatingGroups: Future[List[List[List[FormComponent]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
         case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FormComponent]]](fieldId.value).getOrElse(Nil))
       })
-      SummaryForRender(snippets, fieldJavascript(fields, repeatingGroups), sections.size)
+      fieldJavascript(fields, repeatingGroups)
+        .map(javascript =>
+          SummaryForRender(snippets, Html(javascript), sections.size))
+
     }
   }
 }

@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 class TestOnly @Inject() (
     proxy: ProxyActions,
     gformBackendModule: GformBackendModule
-)(implicit mdc: MdcLoggingExecutionContext) extends FrontendController with ServicesConfig {
+) extends FrontendController with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 
