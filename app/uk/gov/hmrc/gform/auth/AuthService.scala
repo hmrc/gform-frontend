@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class AuthService {
 
-  def eeitReferenceNumber(retrievals: Retrievals) = retrievals.userDetails.affinityGroup match {
+  def eeitReferenceNumber(retrievals: Retrievals): String = retrievals.userDetails.affinityGroup match {
     case AffinityGroup.Agent => retrievals.enrolments
       .getEnrolment(AuthConfig.eeittAuth)
       .fold("")(_.getIdentifier(EEITTAuthConfig.agentIdName).fold("")(_.value))
@@ -40,7 +40,7 @@ class AuthService {
         authContextPrepop.values(value, retrievals)
 
       case EeittCtx(eeitt) => eeitReferenceNumber(retrievals)
-      case _ => ""
+      case _ => "" //TODO change this to AuthExpr.
     }
   }
 }
