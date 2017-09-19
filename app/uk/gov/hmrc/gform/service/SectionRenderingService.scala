@@ -103,18 +103,27 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
   }
 
   def pageLevel(listValidation: List[FormFieldValidationResult]): Html = {
-    val nestedResult: List[FormFieldValidationResult] = listValidation.collect { case componentField: ComponentField => componentField }.flatMap(parseFormFieldValidationResult)
-    val list: List[FormFieldValidationResult] = listValidation.filter {
-      case x: ComponentField => false
+    val componentFieldValidationResults: List[FormFieldValidationResult] = listValidation
+      .collect { case componentField: ComponentField => componentField }
+      .flatMap(parseFormFieldValidationResult)
+
+    val otherFieldValidationResults: List[FormFieldValidationResult] = listValidation.filter {
+      case _: ComponentField => false
       case _ => true
-    }.toList
-    val newList: Seq[FormFieldValidationResult] = (nestedResult ::: list)
-    val sec: List[Html] = newList.filter(_.isNotOk).flatMap { x =>
-      x.fieldErrors.map(y =>
-        errors.error_message_component(x, y))
-    }.toList
+    }
+
+    val allValidationResults: Seq[FormFieldValidationResult] = componentFieldValidationResults ::: otherFieldValidationResults
+
+    val errorsHtml: List[Html] = allValidationResults
+      .filter(_.isNotOk)
+      .flatMap { validationResult =>
+        validationResult
+          .fieldErrors
+          .map(errorMessage => errors.error_message_component(validationResult, errorMessage))
+      }.toList
+
     if (listValidation.exists(_.isNotOk))
-      errors.page_level_error(sec, listValidation)
+      errors.page_level_error(errorsHtml, listValidation)
     else
       errors.empty_html()
   }

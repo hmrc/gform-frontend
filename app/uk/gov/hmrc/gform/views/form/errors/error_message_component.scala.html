@@ -6,10 +6,17 @@
 
 @(validation: FormFieldValidationResult, errorMessage: String)
 
+@fieldId = @{
+  validation.fieldValue.`type` match {
+    case _:UkSortCode => UkSortCode.fields(validation.fieldValue.id)(0).value
+    case _            => validation.fieldValue.id.value
+  }
+}
+
 <li role="tooltip">
-    <a href="#@{validation.fieldValue.id.toString}"
+    <a href="#@fieldId"
        id="@{validation.fieldValue.id.toString}-error-summary"
-       data-focuses="@{validation.fieldValue.id.toString}">
+       data-focuses="@fieldId">
         @{errorMessage}
     </a>
 </li>

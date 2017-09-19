@@ -349,7 +349,7 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
         .map { fieldId =>
           val sortCode: Seq[String] = data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
-            case (Nil, true) => getError(fieldValue, "must be a whole number of 2 length")
+            case (Nil, true) => getError(fieldValue, "must be a two digit number")
             case (Nil, false) => ().valid
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
             case (value :: Nil, _) => ().valid //Does not support multiple values
@@ -513,7 +513,7 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
   def isNumeric(str: String): ValidatedNumeric = {
     Try(str.toInt) match {
       case Success(x) => Valid(x)
-      case Failure(_) => Invalid("must be non-numeric")
+      case Failure(_) => Invalid("must be numeric")
     }
   }
 
