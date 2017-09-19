@@ -194,7 +194,8 @@ class EnrolmentController @Inject() (
       val validationResult = buildFailedValidationResult(authConfig, data)
       displayEnrolmentSectionWithErrors(validationResult, data, authConfig, formTemplate, lang)
 
-    case Upstream5xxResponse(message, _, _) if message.contains("missing required bearer token") | message.contains("Invalid security token") =>
+    case Upstream5xxResponse(message, _, _) if message.contains("missing required bearer token") | message.contains("Invalid security token") | message.contains("code:InvalidSecurityToken") =>
+
       // Typically due to a session timeout, redirecting to newform to force going to GG login page again
       Future.successful(
         Redirect(routes.FormController.newForm(formTemplate._id, lang))
