@@ -24,6 +24,9 @@ import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.{ StreamedBody, WSClient, WSRequest }
 import play.api.mvc._
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.logging.{ LoggingDetails, MdcLoggingExecutionContext }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -33,18 +36,23 @@ class ProxyActions @Inject() (wsClient: WSClient) {
   /**
    * This creates actions which proxies incoming request to remote service.
    */
-  def apply(remoteServiceBaseUrl: String)(path: String)(implicit ec: ExecutionContext): Action[Source[ByteString, _]] = Action.async(streamedBodyParser) { (inboundRequest: Request[Source[ByteString, _]]) =>
-    for {
-      outboundRequest <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
-      streamedResponse <- outboundRequest.stream
-    } yield {
-      val headersMap = streamedResponse.headers.headers
-      val contentLength = headersMap.get(contentLengthHeaderKey).flatMap(_.headOption.map(_.toLong))
-      val contentType = headersMap.get(contentTypeHeaderKey).map(_.mkString(", "))
-      Result(
-        ResponseHeader(streamedResponse.headers.status, streamedResponse.headers.headers.mapValues(_.head).filter(filterOutContentHeaders)),
-        Streamed(streamedResponse.body, contentLength, contentType)
-      )
+
+  def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] = {
+    val ec = play.api.libs.concurrent.Execution.defaultContext
+    Action.async(streamedBodyParser(ec)) { implicit inboundRequest: Request[Source[ByteString, _]] =>
+
+      for {
+        outboundRequest <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
+        streamedResponse <- outboundRequest.stream
+      } yield {
+        val headersMap = streamedResponse.headers.headers
+        val contentLength = headersMap.get(contentLengthHeaderKey).flatMap(_.headOption.map(_.toLong))
+        val contentType = headersMap.get(contentTypeHeaderKey).map(_.mkString(", "))
+        Result(
+          ResponseHeader(streamedResponse.headers.status, streamedResponse.headers.headers.mapValues(_.head).filter(filterOutContentHeaders)),
+          Streamed(streamedResponse.body, contentLength, contentType)
+        )
+      }
     }
   }
 
@@ -68,4 +76,7 @@ class ProxyActions @Inject() (wsClient: WSClient) {
   }
 
   private def streamedBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser { _ => Accumulator.source[ByteString].map(Right.apply) }
+
+  private implicit def mdcExecutionContext(implicit loggingDetails: LoggingDetails): ExecutionContext = MdcLoggingExecutionContext.fromLoggingDetails
+  private implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
 }
