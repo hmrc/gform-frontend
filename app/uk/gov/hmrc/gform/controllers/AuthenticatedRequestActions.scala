@@ -16,18 +16,19 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import play.api.Logger
 import play.api.http.HeaderNames
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.retrieve.{AuthProvider, AuthProviders, Retrievals, ~}
-import uk.gov.hmrc.auth.core.{AuthorisedFunctions, InsufficientEnrolments, NoActiveSession}
+import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, Retrievals, ~ }
+import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.auth.{AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful}
+import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
@@ -80,11 +81,13 @@ class AuthenticatedRequestActions(
     // format: ON
   }
 
-  private def handleCommonAuthResults(result: AuthResult, formTemplate: FormTemplate) = {
+  private def handleCommonAuthResults(result: AuthResult, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
     result match {
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
-      case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
+      case EnrolmentRequired =>
+        authConnector.logEnrolments()
+        Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
   }
