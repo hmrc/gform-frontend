@@ -25,6 +25,11 @@ class FileUploadModule @Inject() (wSHttpModule: WSHttpModule, configModule: Conf
 
   val fileUploadService = new FileUploadService(fileUploadConnector)
 
-  private lazy val fileUploadBaseUrl = configModule.serviceConfig.baseUrl("file-upload") + "/file-upload"
+  private lazy val fileUploadBaseUrl = {
+    val baseUrl = configModule.serviceConfig.baseUrl("file-upload")
+    val pathPrefix = configModule.serviceConfig.getConfString("file-upload.path-prefix", "")
+    baseUrl + pathPrefix + "/file-upload"
+  }
+
   private lazy val fileUploadConnector = new FileUploadConnector(wSHttpModule.auditableWSHttp, fileUploadBaseUrl)
 }
