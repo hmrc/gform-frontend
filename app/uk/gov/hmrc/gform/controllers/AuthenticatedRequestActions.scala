@@ -16,22 +16,22 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import play.api.mvc.Results._
-import play.api.mvc.{ Action, AnyContent, Cookies, Cookie, Request, Result, Session }
 import play.api.http.HeaderNames
+import play.api.mvc.Results._
+import play.api.mvc._
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, Retrievals, ~ }
-import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
+import uk.gov.hmrc.auth.core.retrieve.{AuthProvider, AuthProviders, Retrievals, ~}
+import uk.gov.hmrc.auth.core.{AuthorisedFunctions, InsufficientEnrolments, NoActiveSession}
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful }
+import uk.gov.hmrc.gform.auth.{AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful}
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
-
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+
 import scala.concurrent.Future
 
 class AuthenticatedRequestActions(
