@@ -45,16 +45,17 @@ object Javascript {
 
     def values(id: String) = s"""parseInt(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
 
-    def ids(expr: Expr): List[String] = {
+    def ids(expr: Expr): Future[List[String]] = {
       expr match {
-        case Add(amountA, amountB) => ids(amountA) ::: ids(amountB)
-        case FormCtx(amountX) => List(amountX)
-        case otherwise => List("")
+        case Add(amountA, amountB) => ids(amountA).flatMap(first => ids(amountB).map(_ ::: first))
+        case FormCtx(amountX) => Future.successful(List(amountX))
+        case Sum(FormCtx(id)) => Group.getGroup(groupList, FormComponentId(id)).map(fieldId => fieldId.map(_.value))
+        case otherwise => Future.successful(List(""))
       }
     }
 
-    val demValues = ids(expr).map(values).mkString(", ")
-    val listeners = ids(expr).map(eventListeners).mkString("\n")
+    val demValues = ids(expr).map(_.map(values).mkString(", "))
+    val listeners = ids(expr).map(_.map(eventListeners).mkString("\n"))
 
     expr match {
       case Sum(FormCtx(id)) =>
@@ -86,8 +87,12 @@ object Javascript {
             """
         }
       case Add(b, sn) =>
-        Future.successful(s"""|function $functionName() {
-        |  var x = [ $demValues];
+        for {
+          values <- demValues
+          listener <- listeners
+        } yield {
+          s"""|function $functionName() {
+        |  var x = [ $values ];
         |  var result = x.reduce(add, 0);
         |  return document.getElementById("${fieldId.value}").value = result;
         |};
@@ -95,8 +100,9 @@ object Javascript {
         |function add(a, b) {
         | return a + b;
         |};
-        |$listeners
-       |""".stripMargin)
+        |$listener
+        |""".stripMargin
+        }
       case otherwise => Future.successful("")
     }
   }
