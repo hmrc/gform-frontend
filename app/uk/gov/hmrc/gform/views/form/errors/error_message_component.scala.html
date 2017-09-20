@@ -1,21 +1,26 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil, FieldGlobalError}
 @import uk.gov.hmrc.gform.views.html._
 
 @(validation: FormFieldValidationResult, errorMessage: String)
 
 @fieldId = @{
-  validation.fieldValue.`type` match {
-    case _:UkSortCode => UkSortCode.fields(validation.fieldValue.id)(0).value
-    case _            => validation.fieldValue.id.value
+  validation match {
+    case _:FieldGlobalError =>
+      validation.fieldValue.`type` match {
+        case _:UkSortCode => UkSortCode.fields(validation.fieldValue.id)(0).value
+        case _:Date       => Date.fields(validation.fieldValue.id)(0).value
+        case _            => validation.fieldValue.id.value
+    }
+    case _ => validation.fieldValue.id.value
   }
 }
 
 <li role="tooltip">
     <a href="#@fieldId"
-       id="@{validation.fieldValue.id.toString}-error-summary"
+       id="@{validation.fieldValue.id.value}-error-summary"
        data-focuses="@fieldId">
         @{errorMessage}
     </a>
