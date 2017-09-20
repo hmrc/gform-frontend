@@ -28,11 +28,11 @@ import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.prepop.PrepopModule
-import uk.gov.hmrc.gform.service.{RepeatingComponentService, SectionRenderingService}
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationModule, ValidationUtil}
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -94,7 +94,7 @@ class FormController @Inject() (
       envelopeF       =  fileUploadService.getEnvelope(cache.form.envelopeId)
       envelope        <- envelopeF
       dynamicSections <- repeatService.getAllSections(cache.formTemplate, fieldData)
-      html            <- renderer.renderSection(formId, sectionNumber, fieldData, cache.formTemplate, None, envelope, cache.form.envelopeId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+      html            <- renderer.renderSection(cache.form, sectionNumber, fieldData, cache.formTemplate, None, envelope, cache.form.envelopeId, None, dynamicSections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
     } yield Ok(html)
   }
@@ -113,7 +113,7 @@ class FormController @Inject() (
       allFields         =  sections.flatMap(repeatService.atomicFields)
       v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(data)
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
-      html              <- renderer.renderSection(formId, sectionNumber, data, cache.formTemplate, Some(errors), envelope, cache.form.envelopeId, Some(v), sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
+      html              <- renderer.renderSection(cache.form, sectionNumber, data, cache.formTemplate, Some(errors), envelope, cache.form.envelopeId, Some(v), sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
     } yield Ok(html)
   }
@@ -185,6 +185,22 @@ class FormController @Inject() (
           isFormValid <- isFormValidF
         } yield if (isFormValid) nextPage else Redirect(routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, lang))
 
+      def processSaveAndSummary(userId: UserId, form: Form)(implicit hc: HeaderCarrier): Future[Result] = {
+
+          for {
+            // format: OFF
+            formData      <- formDataF
+            keystore      <- repeatService.getData()
+            section       <- sectionsF
+            userData      = UserData(formData, keystore, Summary)
+            _             <- gformConnector.updateUserData(formId, userData)
+            isFormValid   <- isFormValidF
+            gotoSummary   = Redirect(routes.SummaryController.summaryById(formId, cache.formTemplate._id, lang))
+            gotoFormError = Redirect(routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, lang))
+          // format: ON
+        } yield if (isFormValid) gotoSummary else gotoFormError
+      }
+
       def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] = {
 
         for {
@@ -212,25 +228,25 @@ class FormController @Inject() (
         _ <- repeatService.appendNewGroup(groupId)
         envelope <- envelopeF
         dynamicSections <- sectionsF
-        keystore          <- repeatService.getData()
-        formData          <- formDataF
-        userData          = UserData(formData, keystore, InProgress)
-        _                 <- gformConnector.updateUserData(formId, userData)
+        keystore <- repeatService.getData()
+        formData <- formDataF
+        userData = UserData(formData, keystore, InProgress)
+        _ <- gformConnector.updateUserData(formId, userData)
       } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
 
       def processRemoveGroup(groupId: String): Future[Result] = for {
-        dynamicSections   <- sectionsF
-        updatedData       <- repeatService.removeGroup(groupId, data)
-        envelope          <- envelopeF
-        section           = dynamicSections(sectionNumber.value)
-        allFields         = dynamicSections.flatMap(repeatService.atomicFields)
-        sectionFields     = repeatService.atomicFields(section)
-        v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(updatedData)
-        errors            = validationService.evaluateValidation(v, allFields, updatedData, envelope)
-        formData          = FormData(errors.values.toSeq.flatMap(_.toFormField))
-        keystore          <- repeatService.getData()
-        userData          = UserData(formData, keystore, InProgress)
-        _                 <- gformConnector.updateUserData(formId, userData)
+        dynamicSections <- sectionsF
+        updatedData <- repeatService.removeGroup(groupId, data)
+        envelope <- envelopeF
+        section = dynamicSections(sectionNumber.value)
+        allFields = dynamicSections.flatMap(repeatService.atomicFields)
+        sectionFields = repeatService.atomicFields(section)
+        v <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(updatedData)
+        errors = validationService.evaluateValidation(v, allFields, updatedData, envelope)
+        formData = FormData(errors.values.toSeq.flatMap(_.toFormField))
+        keystore <- repeatService.getData()
+        userData = UserData(formData, keystore, InProgress)
+        _ <- gformConnector.updateUserData(formId, userData)
       } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
@@ -244,10 +260,11 @@ class FormController @Inject() (
 
       navigationF.flatMap {
         // format: OFF
-        case SaveAndContinue(sn)            => redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)).flatMap(x => processSaveAndContinue(userId, cache.form, x))
+        case SaveAndContinue(sn)            => redirection(routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)).flatMap(x => processSaveAndContinue(userId, cache.form, x))
         case SaveAndExit                    => processSaveAndExit(userId, cache.form, cache.form.envelopeId)
-        case Back(sn)                       => processBack(userId, cache.form)(redirection(uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)))
-        case SaveAndSummary                 => processSaveAndContinue(userId, cache.form, Redirect(routes.SummaryController.summaryById(formId, cache.formTemplate._id, lang)))
+        case Back(sn)                       => processBack(userId, cache.form)(redirection(routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)))
+        case SaveAndSummary                 => processSaveAndSummary(userId, cache.form)
+        case BackToSummary                  => processSaveAndSummary(userId, cache.form)
         case AddGroup(groupId)              => processAddGroup(groupId)
         case RemoveGroup(groupId)           => processRemoveGroup(groupId)
         // format: ON

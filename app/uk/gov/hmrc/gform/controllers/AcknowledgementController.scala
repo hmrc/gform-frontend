@@ -50,7 +50,7 @@ class AcknowledgementController @Inject() (
 
   def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case Submitted => renderer.renderAcknowledgementSection(formId, cache.formTemplate, cache.retrievals, lang).map(Ok(_))
+      case Submitted => renderer.renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang).map(Ok(_))
       case _ => Future.successful(BadRequest)
     }
   }
