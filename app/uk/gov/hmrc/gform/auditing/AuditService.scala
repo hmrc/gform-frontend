@@ -45,7 +45,7 @@ trait AuditService {
       case _ => false
     }))
 
-    val processedData: Seq[FormField] = if (optSortCode.isEmpty) {
+    val processedData: Seq[FormField] = if (optSortCode.nonEmpty) {
       optSortCode.flatMap { fieldValue =>
         UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
           val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
