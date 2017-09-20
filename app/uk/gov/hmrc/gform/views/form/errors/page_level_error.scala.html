@@ -6,15 +6,16 @@
 
 @(validations: List[Html], t: List[FormFieldValidationResult])
 
-<div class="flash error-summary@if(t.exists(_.isNotOk)) { error-summary--show}"
-     id="error-summary-display"
-     role="alert"
-     aria-labelledby="error-summary-heading"
-     tabindex="-1">
-    <h2 id="error-summary-heading" class="h3-heading">Errors Found</h2>
-    <ul class="js-error-summary-messages">
+<div
+  class="flash error-summary@if(t.exists(_.isNotOk)) { error-summary--show}"
+  id="error-summary-display"
+  role="alert"
+  aria-labelledby="error-summary-heading"
+  tabindex="-1">
+    <h2 id="error-summary-heading" class="heading-small">Please fix the following: </h2>
 
-        @for(error <- validations){
+    <ul class="js-error-summary-messages">
+        @for(error <- validations) {
             @error
         }
     </ul>
