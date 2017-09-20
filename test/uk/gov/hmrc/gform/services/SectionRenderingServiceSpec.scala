@@ -79,7 +79,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
   "SectionRenderingService" should "generate first page" in {
     val generatedHtml = testService
       .renderSection(
-        formId,
+        form,
         SectionNumber.firstSection,
         Map.empty,
         formTemplate,
@@ -106,7 +106,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
   it should "generate second page" in {
     val generatedHtml = testService
       .renderSection(
-        formId,
+        form,
         SectionNumber(1),
         Map.empty,
         formTemplate,
@@ -196,7 +196,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
 
     val generatedHtml = testService
       .renderSection(
-        formId,
+        form,
         SectionNumber(0),
         Map.empty,
         formTemplate,
@@ -248,7 +248,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
 
     val generatedHtml = testService
       .renderSection(
-        formId,
+        form,
         SectionNumber(0),
         Map.empty,
         formTemplate,
@@ -309,7 +309,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
 
     val generatedHtml = thisTestService
       .renderSection(
-        formId,
+        form,
         SectionNumber(0),
         Map.empty,
         formTemplate,

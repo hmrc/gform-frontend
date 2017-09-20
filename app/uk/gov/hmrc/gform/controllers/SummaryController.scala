@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, InProgress, UserData, Validated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryForRender
@@ -55,8 +56,8 @@ class SummaryController @Inject() (
 
   def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case InProgress => getSummaryHTML(formId, cache, lang).map(Ok(_))
-      case _ => Future.successful(BadRequest)
+      case sharedmodel.form.Summary => getSummaryHTML(formId, cache, lang).map(Ok(_))
+      case _ => Future.successful(Locked)
     }
   }
 

@@ -5,7 +5,16 @@
 @import uk.gov.hmrc.gform.views.html._
 
 @import views.html.helper.CSRF
-@(formTemplate: FormTemplate, pageLevelError: Html, page: SectionRenderingInformation, formId: FormId)(implicit request: Request[_], messages: Messages)
+@(
+  formTemplate: FormTemplate,
+  pageLevelError: Html,
+  page: SectionRenderingInformation,
+  formId: FormId,
+  shouldDisplayBackToSummary: Boolean
+)(implicit
+  request: Request[_],
+  messages: Messages
+)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
@@ -49,6 +58,18 @@
                     cursor:pointer;" name="save" value="Back">Back</button>
         </div>
         }
+
+        @if(shouldDisplayBackToSummary){
+          <div class="form-group">
+            <button type="submit" style="background: none !important;
+              border: none;
+              padding: 0 !important;
+              font-family: arial, sans-serif;
+              color: black;
+              cursor: pointer;" name="save" value="BackToSummary">Back to summary</button>
+          </div>
+        }
+
     </form>
 
     <script type="text/javascript">

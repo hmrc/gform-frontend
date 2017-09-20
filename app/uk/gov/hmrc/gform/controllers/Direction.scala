@@ -26,6 +26,7 @@ case class SaveAndContinue(sectionNumber: SectionNumber) extends Direction
 case class Back(sectionNumber: SectionNumber) extends Direction
 object SaveAndExit extends Direction
 object SaveAndSummary extends Direction
+object BackToSummary extends Direction
 case class AddGroup(groupId: String) extends Direction
 case class RemoveGroup(groupId: String) extends Direction
 
@@ -39,6 +40,7 @@ class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map
     case "Continue" if isLastSectionNumber    => SaveAndSummary
     case "Continue" if !isLastSectionNumber   => SaveAndContinue(nextSectionNumber)
     case "Back"                               => Back(previousOrCurrentSectionNumber)
+    case "BackToSummary"                      => BackToSummary
     case  x if x.startsWith("AddGroup")       => AddGroup(x)
     case  x if x.startsWith("RemoveGroup")    => RemoveGroup(x)
     case other                                => throw new BadRequestException(s"Invalid action: $other")
