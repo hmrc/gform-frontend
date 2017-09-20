@@ -30,26 +30,20 @@
       	       value="@{formId.value}" />
 
 
-        <div class="alert alert--info alert--info__light alert--borderless print-hidden">
-          <h2 class="heading-medium">Review your @{formCategory.getString}</h2>
-
+        <div class="print-hidden">
           <p>You can print this summary page then come back later to complete your submission.</p>
 
           <p>
             <a href="@uk.gov.hmrc.gform.controllers.routes.SummaryController.downloadPDF(formId, formTemplate._id, lang).url" class="print-link print-hidden js-visible">Print this summary page</a>
           </p>
-
-          <div class="form-field-group">
-            <button type="submit" class="button--secondary" name="save" value="Exit">Save and come back later</button>
-          </div>
         </div>
 
-        <div class="print-hidden">
-          <h2 class="heading-medium">Ready to submit your @{formCategory.getString}</h2>
+        <div class="form-group divider--top--thick">
+          <button type="submit" class="button" name="save" value="Declaration">Save and continue</button>
+        </div>
 
-          <p>If you are happy with the @{formCategory.getString} details above, save and continue with your submission.</p>
-
-          <button type="submit" class="button" name="save" value="Declaration">Continue</button>
+        <div class="form-group">
+          <button type="submit" class="button--secondary" name="save" value="Exit">Save and come back later</button>
         </div>
     </form>
 
