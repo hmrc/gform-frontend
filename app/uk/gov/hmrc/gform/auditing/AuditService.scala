@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.auditing
 
+import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
@@ -43,13 +45,18 @@ trait AuditService {
       case _ => false
     }))
 
-    val processedData: Seq[FormField] = {
+    val processedData: Seq[FormField] = if (optSortCode.isEmpty) {
       optSortCode.flatMap { fieldValue =>
         UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
           val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
-          form.formData.fields.filterNot(_.id == fieldId) ++ Seq(FormField(fieldValue.id, sortCode))
+          val xc = form.formData.fields.filterNot(_.id == fieldId)
+          Logger.debug("SOmething here " + xc)
+          xc ++ Seq(FormField(fieldValue.id, sortCode))
         }
-      }
+      } //TODO MOVE XC outside the flatMap as when there is nothing it doe not happen.
+    } else {
+      Logger.debug("Something else")
+      form.formData.fields
     }
 
     val data = processedData.map(x => x.id.value -> x.value).toMap
@@ -65,7 +72,7 @@ trait AuditService {
     auditConnector.sendEvent(eventFor(detail, retrievals))
 
   private def eventFor(detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
-    DataEvent(
+    val x = DataEvent(
       auditSource = "GForm",
       auditType = "submission complete auditing",
       tags = hc.headers.toMap,
@@ -77,5 +84,7 @@ trait AuditService {
       "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
     )
     )
+    println(Json.prettyPrint(Json.toJson(x)) + "THIS IS THE SUBMISSION JSON")
+    x
   }
 }
