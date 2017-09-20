@@ -28,11 +28,11 @@ import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.prepop.PrepopModule
-import uk.gov.hmrc.gform.service.{RepeatingComponentService, SectionRenderingService}
+import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationModule, ValidationUtil}
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.play.frontend.controller.FrontendController

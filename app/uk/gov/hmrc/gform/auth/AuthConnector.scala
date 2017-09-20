@@ -26,7 +26,6 @@ import uk.gov.hmrc.play.http.ws.WSHttp
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
 // TODO: Delete after gg enrolments have been tested
 case class Authority(
   uri: String,
