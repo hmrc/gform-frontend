@@ -47,15 +47,16 @@ trait AuditService {
 
     val processedData: Seq[FormField] = if (optSortCode.nonEmpty) {
       optSortCode.flatMap { fieldValue =>
-        UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
-          val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
-          val xc = form.formData.fields.filterNot(_.id == fieldId)
-          Logger.debug("SOmething here " + xc)
-          xc ++ Seq(FormField(fieldValue.id, sortCode))
+        val xc =UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
+           form.formData.fields.filterNot(_.id == fieldId)
         }
-      } //TODO MOVE XC outside the flatMap as when there is nothing it doe not happen.
+        val sortCode = UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
+          val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
+          Seq(FormField(fieldValue.id, sortCode))
+        }
+        xc ++ sortCode
+      }
     } else {
-      Logger.debug("Something else")
       form.formData.fields
     }
 
