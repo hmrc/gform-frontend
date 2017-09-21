@@ -11,18 +11,17 @@
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]])
 
 <tr>
+    <td>
+        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    </td>
 
-        <div class="row">
-            <td>
-            <div style="float: left;padding: 15px;">
-                @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-            </div>
-
-            <td>
-            @fields.map{ field =>
-            <div style="float: right;padding: 15px;">
-                @field.map(_.getCurrentValue).getOrElse("")
-            </div>
+    <td>
+        @fields.map{ field =>
+            @if(fields) {
+                <div>
+                    @field.map(_.getCurrentValue).getOrElse("")
+                </div>
             }
-        </div>
+        }
+    </td>
 </tr>

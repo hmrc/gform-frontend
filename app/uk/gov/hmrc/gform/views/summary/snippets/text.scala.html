@@ -9,10 +9,10 @@
 @(fieldValue: FormComponent, text: Text, validationResult: Option[FormFieldValidationResult])
 
 @isSterling = @{
-fieldValue.`type` match {
-case Text(Sterling, _) => true
-case _ => false
-}
+    fieldValue.`type` match {
+        case Text(Sterling, _) => true
+        case _ => false
+    }
 }
 
 @currentValue = @{TextFormatter.formatText(text, validationResult)}
@@ -23,27 +23,25 @@ case _ => false
     errorInline("", e, Seq())
 }}
 
-
+@if(hasErrors) {
+    <tr>
+        <td>
+            @errors
+        </td>
+    </tr>
+}
 
 @* TODO: What should total style be? *@
-<tr @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="table__row--bold"} class="@if(hasErrors) {form-field-group--error}">
-  <td>
-    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-  </td>
-
-    @if(!isSterling){
+<tr class="@if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {table__row--bold} @if(hasErrors) { form-field-group--error}">
     <td>
-    @currentValue
-    @errors
+        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
     </td>
-      }else{
-    <td>
-        <ul>@errors</ul>
 
-        <span class="input-currency input--no-spinner input--left-padding input--small" >
+    <td>
+        @if(!isSterling) {
             @currentValue
-        </span>
+        } else {
+            @currentValue
+        }
     </td>
-      }
-
 </tr>
