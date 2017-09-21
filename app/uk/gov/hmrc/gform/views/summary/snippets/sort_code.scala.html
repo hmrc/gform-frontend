@@ -15,6 +15,7 @@ fieldValue.id.withSuffix(id).value
   <td>
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </td>
+  
   <td>
     @UkSortCode.fields(fieldValue.id).map{ fieldId =>
      @validationResult.map(_.getCurrentValue(fieldId.toString)).getOrElse("")

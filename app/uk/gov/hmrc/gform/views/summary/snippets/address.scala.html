@@ -18,18 +18,22 @@
         errorInline(e, e, Seq(""))
     }
 
-    <tr class="@{if(validationResult.isNotOk) "error"}">
+    @if(validationResult.isNotOk) {
+    <tr class="error">
+      <td colspan="2">
+        @{validationResult.globalErrors.map {error => {error}  }}
+        @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
+            errors.map(e => showError(e))
+        }}
+      </td>
+    </tr>
+    }
 
+    <tr class="@{if(validationResult.isNotOk) "error"}">
         <td>
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
         </td>
-        <td>
 
-            @{validationResult.globalErrors.map {error => {error}  }}
-            @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
-                errors.map(e => showError(e))
-            }}
-        </td>
         <td>
             @List(
             "street1",
