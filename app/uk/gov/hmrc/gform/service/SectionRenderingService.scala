@@ -194,12 +194,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
   }
 
-  private def transform(fieldValue: FormComponent, baseSection: BaseSection) = {
-    if (fieldValue.label.isEmpty) fieldValue.copy(label = baseSection.title) else fieldValue
-  }
-
-  private def htmlFor(formComponent: FormComponent, formTemplateId4Ga: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, maybeValidated: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
-    val fieldValue = transform(formComponent, ei.section)
+  private def htmlFor(fieldValue: FormComponent, formTemplateId4Ga: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, maybeValidated: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index, maybeValidated, ei)
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, formTemplateId4Ga, fieldValue, index, ei, maybeValidated, lang)
@@ -249,16 +244,15 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       } else {
         Html("")
       })).getOrElse(
-      options.toList.map(_ => Html("Daniel TODO"))
+      options.toList.map(_ => Html(""))
     )
 
     val validatedValue = validate(fieldValue, ei, validatedType)
 
-    Logger.debug(optionalHelpTextMarkDown.toString + "THIS IS A VALUE")
     choice match {
-      case Radio | YesNo => html.form.snippets.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
-      case Checkbox => html.form.snippets.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
-      case Inline => html.form.snippets.choiceInline(fieldValue, options, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
+      case Radio | YesNo => html.form.snippets.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index, ei.section.title)
+      case Checkbox => html.form.snippets.choice("checkbox", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index, ei.section.title)
+      case Inline => html.form.snippets.choiceInline(fieldValue, options, prepopValues, validatedValue, optionalHelpTextMarkDown, index, ei.section.title)
     }
   }
 

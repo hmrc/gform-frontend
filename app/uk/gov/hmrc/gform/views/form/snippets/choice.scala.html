@@ -17,7 +17,8 @@ orientation: Orientation,
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 optionHelpText: List[Html],
-index: Int
+index: Int,
+sectionTitle: String
 )
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
