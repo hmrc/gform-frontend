@@ -47,8 +47,8 @@ trait AuditService {
 
     val processedData: Seq[FormField] = if (optSortCode.nonEmpty) {
       optSortCode.flatMap { fieldValue =>
-        val xc =UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
-           form.formData.fields.filterNot(_.id == fieldId)
+        val xc = UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
+          form.formData.fields.filterNot(_.id == fieldId)
         }
         val sortCode = UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
           val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
