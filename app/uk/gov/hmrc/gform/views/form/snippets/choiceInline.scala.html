@@ -30,7 +30,7 @@ sectionTitle: String
           @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq(""))
         </div>
 
-        <div class="choice-list__item__choices">
+        <div class="choice-list__item__choices inline">
             @options.toList.zipWithIndex.map{ case (option, index) =>
             <div class="multiple-choice">
                 <input
@@ -43,7 +43,7 @@ sectionTitle: String
 
                 <label
                   for="@{fieldValue.id}@index"
-                  class="block-label choice-list__item__block-label">
+                  class="choice-list__item__block-label">
                     @option
                 </label>
             </div>
