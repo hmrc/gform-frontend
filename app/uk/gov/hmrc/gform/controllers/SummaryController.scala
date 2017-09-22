@@ -105,7 +105,7 @@ class SummaryController @Inject() (
         // format: OFF
         for {
           summaryHml <- getSummaryHTML(formId, cache, lang)
-          htmlForPDF <- pdfService.sanitiseHtmlForPDF(summaryHml)
+          htmlForPDF =  pdfService.sanitiseHtmlForPDF(summaryHml)
           pdf <- pdfService.generatePDF(htmlForPDF)
         } yield Ok(pdf).as("application/pdf")
       // format: ON

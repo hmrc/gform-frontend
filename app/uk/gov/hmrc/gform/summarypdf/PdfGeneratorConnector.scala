@@ -31,10 +31,6 @@ class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp) {
     }
   }
 
-  def retrieveCSS(url: String)(implicit hc: HeaderCarrier): Future[String] = {
-    wSHttp.doGet(url).map(_.body)
-  }
-
   lazy val baseURL = servicesConfig.baseUrl("pdf-generator")
 }
 

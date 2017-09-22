@@ -56,13 +56,7 @@ class FormController @Inject() (
   import controllersModule.i18nSupport._
 
   def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = authentication.async(formTemplateId) { implicit request => cache =>
-    // TODO: CSS retrieval for testing purposes, delete after testing
-    val cssUrl = s"http://${request.host}/assets/2.241.0/stylesheets/application.min.css"
-    //    val cssUrl = s"http://localhost:9032/assets/2.241.0/stylesheets/application.min.css"
-    gformConnector.ws.doGet(cssUrl).flatMap { httpResponse =>
-      Logger.debug(s"CSS-newForm: [${httpResponse.body}]")
-      result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier), lang)
-    }
+    result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier), lang)
   }
 
   //true - it got the form, false - new form was created

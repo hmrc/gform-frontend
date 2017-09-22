@@ -62,7 +62,7 @@ class AcknowledgementController @Inject() (
         for {
           summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
           submission <- gformConnector.submissionStatus(formId)
-          cleanHtml  <- pdfService.sanitiseHtmlForPDF(summaryHml)
+          cleanHtml  =  pdfService.sanitiseHtmlForPDF(summaryHml)
           htmlForPDF = addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
           pdf <- pdfService.generatePDF(htmlForPDF)
         } yield Ok(pdf).as("application/pdf")

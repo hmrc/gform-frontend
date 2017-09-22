@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Node
+import play.api.Application
 import play.mvc.Http.{ HeaderNames, MimeTypes }
 import play.twirl.api.Html
 import uk.gov.hmrc.play.http.HeaderCarrier
-import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Comment, Element, Node }
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.io.Source
 
-class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
+class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, application: Application) {
 
   def generatePDF(html: String)(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
@@ -32,10 +33,9 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     pdfGeneratorConnector.generatePDF(body, headers)
   }
 
-  def sanitiseHtmlForPDF(html: Html)(implicit hc: HeaderCarrier): Future[String] = {
+  def sanitiseHtmlForPDF(html: Html)(implicit hc: HeaderCarrier): String = {
     val doc = Jsoup.parse(html.body)
     removeComments(doc)
-    val mainCssUrl = doc.getElementsByAttributeValueContaining("href", "application.min.css").attr("href")
     doc.getElementsByTag("link").remove
     doc.getElementsByTag("meta").remove
     doc.getElementsByTag("script").remove
@@ -43,10 +43,19 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     doc.getElementsByClass("footer-wrapper").remove
     doc.getElementById("global-cookie-message").remove
     doc.getElementsByClass("print-hidden").remove
-    pdfGeneratorConnector.retrieveCSS(mainCssUrl).map { css =>
-      doc.getElementsByTag("head").append(s"<style>$css</style>")
-      println("HOLA: " + doc)
-      doc.html
+    doc.getElementsByTag("head").append(s"<style>${getCss}</style>")
+
+    doc.html
+  }
+
+  private def getCss: String = {
+    application.getExistingFile("public/stylesheets/application.min.css") match {
+      case None => ""
+      case Some(file) =>
+        val openFile = Source.fromFile(file)
+        val result = openFile.getLines.mkString
+        openFile.close
+        result
     }
   }
 

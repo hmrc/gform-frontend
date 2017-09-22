@@ -18,16 +18,18 @@ package uk.gov.hmrc.gform.summarypdf
 
 import javax.inject.Inject
 
+import play.api.DefaultApplication
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class PdfGeneratorModule @Inject() (
     configModule: ConfigModule,
-    wSHttpModule: WSHttpModule
+    wSHttpModule: WSHttpModule,
+    defaultApplication: DefaultApplication
 ) {
 
   val pdfGeneratorConnector = new PdfGeneratorConnector(configModule.serviceConfig, wSHttpModule.auditableWSHttp)
 
-  val pdfGeneratorService = new PdfGeneratorService(pdfGeneratorConnector)
+  val pdfGeneratorService = new PdfGeneratorService(pdfGeneratorConnector, defaultApplication)
 
 }
