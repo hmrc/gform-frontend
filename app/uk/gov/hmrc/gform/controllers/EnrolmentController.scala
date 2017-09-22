@@ -141,7 +141,7 @@ class EnrolmentController @Inject() (
     val identifierPattern = "identifier_(.*)".r
     val verifierPattern = "verifier_(.*)".r
 
-    getAllEnrolmentFields(authConfig.enrolmentSection.fields)
+    val (allIdentifiers, allVerifiers) = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
       .foldLeft((List.empty[Identifier], List.empty[Verifier])) { (result, fieldValue) =>
         fieldValue.id.value match {
           case identifierPattern(identifier) => (result._1 :+ Identifier(identifier, getValue(fieldValue)), result._2)
@@ -149,6 +149,7 @@ class EnrolmentController @Inject() (
           case _ => result
         }
       }
+    (allIdentifiers.filterNot(_.value.equals("")), allVerifiers.filterNot(_.value.equals("")))
   }
 
   private def displayEnrolmentSectionWithErrors(
