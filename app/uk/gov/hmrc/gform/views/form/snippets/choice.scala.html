@@ -37,7 +37,11 @@ sectionTitle: String
 
             <div id="@{fieldValue.id}">
                 @options.toList.zipWithIndex.map{ case (option, index) =>
-                <div class="multiple-choice">
+                <div
+                  class="multiple-choice"
+                  @if(optionHelpText(index).body.nonEmpty) {
+                  data-target="helptext-@{fieldValue.id}@index"
+                  }>
                     <input id="@{fieldValue.id}@index"
                            name="@{fieldValue.id}"
                            value="@index"
@@ -49,12 +53,7 @@ sectionTitle: String
                            @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
                            index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
 
-                    <label
-                      for="@{fieldValue.id}@index"
-                      @if(optionHelpText(index).body.nonEmpty) {
-                      data-target="helptext-@{fieldValue.id}@index"
-                      }
-                    >
+                    <label for="@{fieldValue.id}@index">
                       @option
                     </label>
                 </div>
