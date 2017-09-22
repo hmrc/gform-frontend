@@ -22,6 +22,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{ Comment, Element, Node }
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
 
@@ -31,16 +32,22 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     pdfGeneratorConnector.generatePDF(body, headers)
   }
 
-  def sanitiseHtmlForPDF(html: Html): String = {
+  def sanitiseHtmlForPDF(html: Html)(implicit hc: HeaderCarrier): Future[String] = {
     val doc = Jsoup.parse(html.body)
     removeComments(doc)
+    val mainCssUrl = doc.getElementsByAttributeValueContaining("href", "application.min.css").attr("href")
+    doc.getElementsByTag("link").remove
+    doc.getElementsByTag("meta").remove
     doc.getElementsByTag("script").remove
     doc.getElementsByTag("a").remove
     doc.getElementsByClass("footer-wrapper").remove
     doc.getElementById("global-cookie-message").remove
     doc.getElementsByClass("print-hidden").remove
-
-    doc.html
+    pdfGeneratorConnector.retrieveCSS(mainCssUrl).map { css =>
+      doc.getElementsByTag("head").append(s"<style>$css</style>")
+      println("HOLA: " + doc)
+      doc.html
+    }
   }
 
   private def removeComments(node: Node): Unit = {

@@ -17,9 +17,10 @@
 package uk.gov.hmrc.gform.summarypdf
 
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.http.ws._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+
 import scala.concurrent.Future
 
 class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp) {
@@ -28,6 +29,10 @@ class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp) {
     wSHttp.buildRequest(s"$baseURL/pdf-generator-service/generate").withHeaders(headers: _*).post(payload).map {
       _.bodyAsBytes.toArray
     }
+  }
+
+  def retrieveCSS(url: String)(implicit hc: HeaderCarrier): Future[String] = {
+    wSHttp.doGet(url).map(_.body)
   }
 
   lazy val baseURL = servicesConfig.baseUrl("pdf-generator")
