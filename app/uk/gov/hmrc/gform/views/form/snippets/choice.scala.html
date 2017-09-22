@@ -23,8 +23,10 @@ sectionTitle: String
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
         <fieldset>
-            @if(fieldValue.label) {
+            @if(fieldValue.label.nonEmpty) {
             <legend class="form-label">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</legend>
+            } else {
+            <legend class="visuallyhidden">@{sectionTitle}</legend>
             }
 
             @if(fieldValue.helpText) {

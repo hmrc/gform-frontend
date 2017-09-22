@@ -270,7 +270,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
     for {
       prepopValue <- prepopValueF
-    } yield html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index)
+    } yield html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
   }
 
   private def htmlForSortCode(fieldValue: FormComponent, sC: UkSortCode, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
@@ -361,4 +361,3 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
   private def shouldDisplayBackToSummary(form: Form): Boolean = form.status == Summary
 }
-
