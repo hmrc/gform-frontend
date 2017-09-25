@@ -32,17 +32,17 @@ class EnrolmentService(
       val request = buildTaxEnrolmentsRequest(serviceId, identifiers, verifiers)
       taxEnrolmentConnector.enrolGGUser(request, serviceId)
     } else {
-      val request = buildGGEnrolmentRequest(serviceId, serviceId.value, verifiers)
+      val request = buildGGEnrolmentRequest(serviceId, serviceId.value, identifiers, verifiers)
       ggConnector.enrolGGUser(request)
     }
   }
 
-  private def buildGGEnrolmentRequest(serviceId: ServiceId, friendlyName: String, knownFacts: List[Verifier]) = {
+  private def buildGGEnrolmentRequest(serviceId: ServiceId, friendlyName: String, identifiers: List[Identifier], knownFacts: List[Verifier]) = {
     GGEnrolmentRequest(
       portalId = this.portalId,
       serviceName = serviceId.value,
       friendlyName = friendlyName,
-      knownFacts = knownFacts.map(_.value)
+      knownFacts = identifiers.map(_.value) ++ knownFacts.map(_.value)
     )
   }
 
