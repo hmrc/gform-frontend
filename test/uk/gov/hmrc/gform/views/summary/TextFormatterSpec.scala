@@ -46,12 +46,24 @@ class TextFormatterSpec extends Spec {
     TextFormatter.formatText(text, getValidationResult(component, "100000.00")) shouldBe "100,000.00"
   }
 
+  def testValuesWithPoundSignsAndCommas(text: Text) = {
+    val component = getComponent(text)
+
+    TextFormatter.formatText(text, getValidationResult(component, "£100,00.00")) shouldBe "10,000.00"
+    TextFormatter.formatText(text, getValidationResult(component, "£10,0.00")) shouldBe "100.00"
+    TextFormatter.formatText(text, getValidationResult(component, "£88666,564.59")) shouldBe "88,666,564.59"
+  }
+
   "formatText" should "not add commas for Text component with Sterling constraint and current value's length less than 5" in {
     testValuesLessThan5Digits(Text(Sterling, Constant("")))
   }
 
   it should "add commas for Text component with Sterling constraint and current value's length equal or greater 5" in {
     testValuesGreaterThan5Digits(Text(Sterling, Constant("")))
+  }
+
+  it should "remove pound signs and commas input for Text component with Sterling constraint" in {
+    testValuesWithPoundSignsAndCommas(Text(Sterling, Constant("")))
   }
 
   "formatText" should "not add commas for Text component with Number constraint and current value's length less than 5" in {
@@ -62,12 +74,20 @@ class TextFormatterSpec extends Spec {
     testValuesGreaterThan5Digits(Text(Number(), Constant("")))
   }
 
+  it should "remove pound signs and commas input for Text component with Number constraint" in {
+    testValuesWithPoundSignsAndCommas(Text(Number(), Constant("")))
+  }
+
   "formatText" should "not add commas for Text component with PositiveNumber constraint and current value's length less than 5" in {
     testValuesLessThan5Digits(Text(PositiveNumber(), Constant("")))
   }
 
   it should "add commas for Text component with PositiveNumber constraint and current value's length equal or greater 5" in {
     testValuesGreaterThan5Digits(Text(PositiveNumber(), Constant("")))
+  }
+
+  it should "remove pound signs and commas input for Text component with PositiveNumber constraint " in {
+    testValuesWithPoundSignsAndCommas(Text(PositiveNumber(), Constant("")))
   }
 
   "formatText" should "add a space to a bank account number" in {
