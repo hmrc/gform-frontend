@@ -50,23 +50,13 @@
 
         @if(page.sectionNumber.value != 0){
         <div class="form-group">
-            <button type="submit" style="background:none!important;
-                    border:none;
-                    padding:0!important;
-                    font-family:arial,sans-serif;
-                    color: black;
-                    cursor:pointer;" name="save" value="Back">Back</button>
+            <button type="submit" class="link-back" name="save" value="Back">Back</button>
         </div>
         }
 
         @if(shouldDisplayBackToSummary){
           <div class="form-group">
-            <button type="submit" style="background: none !important;
-              border: none;
-              padding: 0 !important;
-              font-family: arial, sans-serif;
-              color: black;
-              cursor: pointer;" name="save" value="BackToSummary">Back to summary</button>
+            <button type="submit" class="link-back" name="save" value="BackToSummary">Back to summary</button>
           </div>
         }
 
