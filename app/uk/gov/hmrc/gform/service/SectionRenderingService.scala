@@ -79,7 +79,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     sectionNumber: SectionNumber,
     fieldData: Map[FormComponentId, Seq[String]],
     formTemplate: FormTemplate,
-    errors: Option[Map[FormComponent, FormFieldValidationResult]],
+    errors: Option[List[(FormComponent, FormFieldValidationResult)]],
     envelope: Envelope,
     envelopeId: EnvelopeId,
     validatedType: Option[ValidatedType],
@@ -93,29 +93,24 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     val section = dynamicSections(sectionNumber.value)
     val ei = ExtraInfo(form._id, sectionNumber, fieldData, formTemplate, envelope, dynamicSections, formMaxAttachmentSizeMB, section, retrievals)
     val actionForm = uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(form._id, sectionNumber, lang)
-    val listResult = errors.map(error => error.values.toList).getOrElse(Nil)
+    val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
 
     for {
       snippetsForFields <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, dynamicSections.size, validatedType, lang)))
       javascript <- createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
       hiddenTemplateFields = dynamicSections.filterNot(_ == section).flatMap(repeatService.atomicFields)
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => html.form.snippets.hidden_field(formField))
-      bec = pageLevel(listResult)
+      pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(form._id, sectionNumber, section.title, section.description, hiddenSnippets, snippetsForFields, javascript, envelopeId, actionForm, true, "Save and Continue", formMaxAttachmentSizeMB, contentTypes)
-    } yield html.form.form(formTemplate, bec, renderingInfo, form._id, shouldDisplayBackToSummary(form))
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form))
   }
 
-  def pageLevel(listValidation: List[FormFieldValidationResult]): Html = {
-    val componentFieldValidationResults: List[FormFieldValidationResult] = listValidation
-      .collect { case componentField: ComponentField => componentField }
-      .flatMap(parseFormFieldValidationResult)
+  def generatePageLevelErrorHtml(listValidation: List[FormFieldValidationResult]): Html = {
 
-    val otherFieldValidationResults: List[FormFieldValidationResult] = listValidation.filter {
-      case _: ComponentField => false
-      case _ => true
+    val allValidationResults = listValidation.flatMap {
+      case componentField: ComponentField => parseFormFieldValidationResult(componentField)
+      case others => List(others)
     }
-
-    val allValidationResults: Seq[FormFieldValidationResult] = componentFieldValidationResults ::: otherFieldValidationResults
 
     val errorsHtml: List[Html] = allValidationResults
       .filter(_.isNotOk)
@@ -123,12 +118,12 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
         validationResult
           .fieldErrors
           .map(errorMessage => html.form.errors.error_message_component(validationResult, errorMessage))
-      }.toList
+      }
 
-    if (listValidation.exists(_.isNotOk))
+    if (errorsHtml.nonEmpty)
       html.form.errors.page_level_error(errorsHtml, listValidation)
     else
-      html.form.errors.empty_html()
+      Html("")
   }
 
   def parseFormFieldValidationResult(result: ComponentField): List[FormFieldValidationResult] = {
@@ -144,16 +139,24 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     result.data.map(field => reassignFieldValue(field._1, field._2)).toList
   }
 
-  def renderDeclarationSection(form: Form, formTemplate: FormTemplate, retrievals: Retrievals, maybeValidatedType: Option[ValidatedType], errors: Option[Map[FormComponent, FormFieldValidationResult]], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+  def renderDeclarationSection(
+    form: Form,
+    formTemplate: FormTemplate,
+    retrievals: Retrievals,
+    maybeValidatedType: Option[ValidatedType],
+    fieldData: Map[FormComponentId, Seq[String]],
+    errors: Option[List[(FormComponent, FormFieldValidationResult)]],
+    lang: Option[String]
+  )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
-    val ei = ExtraInfo(form._id, SectionNumber(0), Map.empty, formTemplate, Envelope(Nil), List(formTemplate.declarationSection), 0, formTemplate.declarationSection, retrievals)
+    val ei = ExtraInfo(form._id, SectionNumber(0), fieldData, formTemplate, Envelope(Nil), List(formTemplate.declarationSection), 0, formTemplate.declarationSection, retrievals)
 
-    val listResult = errors.map(error => error.values.toList).getOrElse(Nil)
+    val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
     for {
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, maybeValidatedType, lang)))
-      bec = pageLevel(listResult)
+      pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, "Confirm and send", 0, Nil)
-    } yield html.form.form(formTemplate, bec, renderingInfo, form._id, shouldDisplayBackToSummary(form))
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form))
   }
 
   def renderAcknowledgementSection(form: Form, formTemplate: FormTemplate, retrievals: Retrievals, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
@@ -177,7 +180,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     for {
       snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, validatedType, lang)))
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
-    } yield html.form.form(formTemplate, html.form.errors.empty_html(), renderingInfo, formId, false)
+    } yield html.form.form(formTemplate, Html(""), renderingInfo, formId, false)
   }
 
   private def createJavascript(fieldList: List[FormComponent], atomicFields: List[FormComponent])(implicit hc: HeaderCarrier): Future[String] = {
@@ -213,7 +216,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
   }
 
   private def htmlForFileUpload(fieldValue: FormComponent, formTemplateId4Ga: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, validatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier) = {
-    html.form.snippets.field_template_file_upload(ei.formId, formTemplateId4Ga, ei.sectionNumber, fieldValue, validate(fieldValue, ei, validatedType), index, ei.formMaxAttachmentSizeMB, totalSections, lang)
+    html.form.snippets.field_template_file_upload(ei.formId, formTemplateId4Ga, ei.sectionNumber, fieldValue, buildFormFieldValidationResult(fieldValue, ei, validatedType), index, ei.formMaxAttachmentSizeMB, totalSections, lang)
   }
 
   private def markDownParser(markDownText: String): String = {
@@ -247,7 +250,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       options.toList.map(_ => Html(""))
     )
 
-    val validatedValue = validate(fieldValue, ei, validatedType)
+    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
 
     choice match {
       case Radio | YesNo => html.form.snippets.choice("radio", fieldValue, options, orientation, prepopValues, validatedValue, optionalHelpTextMarkDown, index, ei.section.title)
@@ -261,7 +264,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       case None => prepopService.prepopData(expr, ei.formTemplate._id, ei.retrievals)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
-    val validatedValue = validate(fieldValue, ei, validatedType)
+    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
 
     val isStirling = fieldValue.`type` match {
       case Text(Sterling, _) => true
@@ -278,7 +281,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       case None => prepopService.prepopData(expr, ei.formTemplate._id, ei.retrievals)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
-    val validatedValue = validate(fieldValue, ei, validatedType)
+    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
 
     for {
       prepopValue <- prepopValueF
@@ -287,12 +290,12 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
   }
 
   private def htmlForAddress(fieldValue: FormComponent, international: Boolean, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
-    html.form.snippets.field_template_address(international, fieldValue, validate(fieldValue, ei, validatedType), index)
+    html.form.snippets.field_template_address(international, fieldValue, buildFormFieldValidationResult(fieldValue, ei, validatedType), index)
   }
 
   private def htmlForDate(fieldValue: FormComponent, offset: Offset, dateValue: Option[DateValue], index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
     val prepopValues = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
-    html.form.snippets.field_template_date(fieldValue, validate(fieldValue, ei, validatedType), prepopValues, index)
+    html.form.snippets.field_template_date(fieldValue, buildFormFieldValidationResult(fieldValue, ei, validatedType), prepopValues, index)
   }
 
   private def htmlForGroup(grp: Group, formTemplateId4Ga: FormTemplateId, fieldValue: FormComponent, index: Int, ei: ExtraInfo, validatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
@@ -331,14 +334,16 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     }
   }
 
-  private def validate(fieldValue: FormComponent, ei: ExtraInfo, validatedType: Option[ValidatedType])(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
-    val gformErrors = validatedType.fold[ValidatedType](Valid(()))(identity) match {
+  private def buildFormFieldValidationResult(fieldValue: FormComponent, ei: ExtraInfo, validatedType: Option[ValidatedType])(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
+    // TODO: Simplify building this result. When this method is called we already know what component we are dealing with
+    // TODO: it is possible to get inner fields (if any) and build the result.
+    val gformErrors: Map[FormComponentId, Set[String]] = validatedType.fold[ValidatedType](Valid(()))(identity) match {
       case Invalid(errors) => errors
       case Valid(()) => Map.empty[FormComponentId, Set[String]]
     }
     val section = ei.dynamicSections(ei.sectionNumber.value)
     lazy val okF: FormComponent => Option[FormFieldValidationResult] =
-      Fields.valuesValidate(ei.fieldData, repeatService.atomicFields(section), ei.envelope, gformErrors)
+      Fields.getValidationResult(ei.fieldData, repeatService.atomicFields(section), ei.envelope, gformErrors)
     okF(fieldValue)
   }
 

@@ -72,10 +72,10 @@ class ValidationService(
     eT.value.map(Validated.fromEither)
   }
 
-  def evaluateValidation(v: ValidatedType, fields: List[FormComponent], data: Map[FormComponentId, Seq[String]], envelope: Envelope): Map[FormComponent, FormFieldValidationResult] =
+  def evaluateValidation(v: ValidatedType, fields: List[FormComponent], data: Map[FormComponentId, Seq[String]], envelope: Envelope): List[(FormComponent, FormFieldValidationResult)] =
+    // We need to keep the formComponent order as they appear on the form for page-level-error rendering, do not convert to map
     ValidationUtil.evaluateValidationResult(fields, v, data, envelope)
       .map(v => v.fieldValue -> v)
-      .toMap
 
   private def validateUsingSectionValidators(v: SectionValidator, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
     def dataGetter(fieldId: FormComponentId): String =
@@ -193,9 +193,6 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
                 }
               }
 
-              //              case (Before, AnyWord(value)) =>
-              // case (Before, AnyWord(FieldId)) =>
-
               case (After, Today, offset) =>
                 validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                   .andThen(inputDate =>
@@ -212,9 +209,6 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
                           concreteDate, offset,
                           Map(fieldValue.id -> errors(fieldValue, s"Date should be after ${dateWithOffset(concreteDate, offset)}")))(isAfterConcreteDate))
                   }
-
-              //              case (After, AnyWord(value)) =>
-
             }
 
         }

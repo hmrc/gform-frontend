@@ -76,7 +76,7 @@ object SummaryRenderingService {
           case Invalid(errors) => errors
           case Valid(()) => Map.empty[FormComponentId, Set[String]]
         }
-        Fields.valuesValidate(data, fields, envelope, gformErrors)(formComponent)
+        Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
       }
 
       def valueToHtml(fieldValue: FormComponent): Html = {

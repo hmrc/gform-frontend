@@ -125,7 +125,7 @@ class SummaryController @Inject() (
                              v1,
                              ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope)
                            )
-      errors            = validationService.evaluateValidation(v, allFields, data, envelope)
+      errors            = validationService.evaluateValidation(v, allFields, data, envelope).toMap
       // format: ON
     } yield (v, errors)
   }

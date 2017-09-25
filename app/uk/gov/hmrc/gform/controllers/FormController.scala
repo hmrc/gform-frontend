@@ -171,7 +171,7 @@ class FormController @Inject() (
         v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(data)
         errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       // format: OFF
-      } yield errors
+      } yield errors.toMap
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(ValidationUtil.isFormValid)
       val fieldsF: Future[Seq[FormField]] = formFieldValidationResultsF.map(_.values.toSeq.flatMap(_.toFormField))
@@ -228,7 +228,6 @@ class FormController @Inject() (
 
       def processAddGroup(groupId: String): Future[Result] = for {
         _ <- repeatService.appendNewGroup(groupId)
-        envelope <- envelopeF
         dynamicSections <- sectionsF
         keystore <- repeatService.getData()
         formData <- formDataF
@@ -244,7 +243,7 @@ class FormController @Inject() (
         allFields = dynamicSections.flatMap(repeatService.atomicFields)
         sectionFields = repeatService.atomicFields(section)
         v <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(updatedData)
-        errors = validationService.evaluateValidation(v, allFields, updatedData, envelope)
+        errors = validationService.evaluateValidation(v, allFields, updatedData, envelope).toMap
         formData = FormData(errors.values.toSeq.flatMap(_.toFormField))
         keystore <- repeatService.getData()
         userData = UserData(formData, keystore, InProgress)
