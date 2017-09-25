@@ -86,7 +86,7 @@ class AuthenticatedRequestActions(
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
       case EnrolmentRequired =>
-        authConnector.logEnrolments()
+//        authConnector.logEnrolments()
         Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }

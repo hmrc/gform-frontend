@@ -101,8 +101,8 @@ class EnrolmentController @Inject() (
       case Valid(()) =>
         val (identifiers, verifiers) = extractIdentifiersAndVerifiers(authConfig, data)
 
-        enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers).map { _ =>
-          Redirect(routes.FormController.newForm(formTemplate._id, lang))
+        enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers).map { _ => //TODO hard coded for QA tests change to environment BaseUrl
+          Redirect(s"https://www.qa.tax.service.gov.uk/gg/sign-in?continue=/submissions/new-form/${formTemplate._id}")//routes.FormController.newForm(formTemplate._id, lang))
         }.recoverWith(handleEnrolmentException(authConfig, data, formTemplate, lang))
 
       case validationResult @ Invalid(_) =>
