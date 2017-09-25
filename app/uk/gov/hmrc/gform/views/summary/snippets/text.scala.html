@@ -20,19 +20,19 @@
 @hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    errorInline("", e, Seq())
+    errorInline("summary", e, Seq())
 }}
 
 @if(hasErrors) {
-    <tr>
-        <td>
+    <tr class="error summary--error">
+        <td colspan="2">
             @errors
         </td>
     </tr>
 }
 
 @* TODO: What should total style be? *@
-<tr class="@if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {table__row--bold} @if(hasErrors) { form-field-group--error}">
+<tr class="@if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {table__row--bold} @if(hasErrors) { summary--error}">
     <td>
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
     </td>
