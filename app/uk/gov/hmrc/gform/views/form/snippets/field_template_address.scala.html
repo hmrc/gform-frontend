@@ -22,41 +22,38 @@
 
 @if(international) {
   <div class="form-group">
-      <fieldset>
+      <fieldset class="inline">
           <legend class="form-label">
               Is the address based in the UK?
           </legend>
 
-          <div class="inline">
-              <label for="@groupId("address-international-yes")" class="block-label" data-target="@groupId("address-local")">
-                  <input
-                  id="@groupId("address-international-yes")"
-                  type="radio"
-                  name="@safeId("uk")"
-                  value="true"
-                  aria-controls="@groupId("address-local")"
-                  aria-expanded="true"
-                  @if(validationResult.map(_.getCurrentValue(safeId("uk"))) != Some("false")) {
-                      checked
-                  }
-                  />
-                  Yes
-              </label>
+          <div class="multiple-choice" data-target="@groupId("address-local")">
+              <input
+                id="@groupId("address-international-yes")"
+                type="radio"
+                name="@safeId("uk")"
+                value="true"
+                aria-controls="@groupId("address-local")"
+                aria-expanded="true"
+                @if(validationResult.map(_.getCurrentValue(safeId("uk"))) != Some("false")) {
+                    checked
+                }/>
+              <label for="@groupId("address-international-yes")">Yes</label>
+          </div>
 
-              <label for="@groupId("address-international-no")" class="block-label" data-target="@groupId("address-international")">
-                  <input
-                  id="@groupId("address-international-no")"
-                  type="radio"
-                  name="@safeId("uk")"
-                  value="false"
-                  aria-controls="@groupId("address-international")"
-                  aria-expanded="false"
-                  @if(validationResult.map(_.getCurrentValue(safeId("uk"))) == Some("false")) {
-                      checked
-                  }
-                  />
-                  No
-              </label>
+          <div class="multiple-choice" data-target="@groupId("address-international")">
+              <input
+                id="@groupId("address-international-no")"
+                type="radio"
+                name="@safeId("uk")"
+                value="false"
+                aria-controls="@groupId("address-international")"
+                aria-expanded="false"
+                @if(validationResult.map(_.getCurrentValue(safeId("uk"))) == Some("false")) {
+                    checked
+                }/>
+
+              <label for="@groupId("address-international-no")">No</label>
           </div>
       </fieldset>
   </div>

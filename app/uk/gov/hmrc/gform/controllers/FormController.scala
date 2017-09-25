@@ -57,6 +57,7 @@ class FormController @Inject() (
 
   def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = authentication.async(formTemplateId) { implicit request => cache =>
     result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier), lang)
+
   }
 
   //true - it got the form, false - new form was created

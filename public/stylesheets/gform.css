@@ -131,6 +131,11 @@
   padding-top: 1em;
 }
 
+/* Add bottom margin to collapsible panel */
+.multiple-choice + .panel-indent {
+  margin-bottom: 10px;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,
