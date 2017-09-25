@@ -16,14 +16,16 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Node
+import play.api.Application
 import play.mvc.Http.{ HeaderNames, MimeTypes }
 import play.twirl.api.Html
 import uk.gov.hmrc.play.http.HeaderCarrier
-import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Comment, Element, Node }
 import scala.concurrent.Future
+import scala.io.Source
 
-class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
+class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, application: Application) {
 
   def generatePDF(html: String)(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
@@ -34,13 +36,28 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
   def sanitiseHtmlForPDF(html: Html): String = {
     val doc = Jsoup.parse(html.body)
     removeComments(doc)
+    doc.getElementsByTag("link").remove
+    doc.getElementsByTag("meta").remove
     doc.getElementsByTag("script").remove
     doc.getElementsByTag("a").remove
     doc.getElementsByClass("footer-wrapper").remove
     doc.getElementById("global-cookie-message").remove
     doc.getElementsByClass("print-hidden").remove
+    doc.getElementsByTag("head").append(s"<style>${getCss}</style>")
 
     doc.html
+  }
+
+  private def getCss: String = {
+    // TODO: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
+    application.getExistingFile("public/stylesheets/application.min.css") match {
+      case None => ""
+      case Some(file) =>
+        val openFile = Source.fromFile(file)
+        val result = openFile.getLines.mkString
+        openFile.close
+        result
+    }
   }
 
   private def removeComments(node: Node): Unit = {

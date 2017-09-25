@@ -34,7 +34,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * This connector originates in GFORM project.
  * Edit it there first and propagate it from there.
  */
-class GformConnector(val ws: WSHttp, baseUrl: String) {
+class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******form*******/
 

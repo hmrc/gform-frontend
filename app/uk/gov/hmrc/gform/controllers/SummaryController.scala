@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, InProgress, UserData, Validated }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryForRender
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
@@ -101,11 +101,11 @@ class SummaryController @Inject() (
 
   def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case InProgress =>
+      case InProgress | Summary =>
         // format: OFF
         for {
           summaryHml <- getSummaryHTML(formId, cache, lang)
-          htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
+          htmlForPDF =  pdfService.sanitiseHtmlForPDF(summaryHml)
           pdf <- pdfService.generatePDF(htmlForPDF)
         } yield Ok(pdf).as("application/pdf")
       // format: ON
