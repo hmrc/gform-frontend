@@ -18,16 +18,18 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(title = supportContents.sectionTitle, bodyClasses = None) {
 
-<div style="background-color : #28A197 ; text-align : center ; padding : 10 px ; color : #ffffff ;">
-    <h1 class="bold-medium"><span class="tick" role="img" aria-label="tick"></span>Your @{formCategory.getString} has been submitted</h1>
-    <p>
-        @timeMessage
-    </p>
+<div class="govuk-box-highlight">
+  <h1 class="bold-medium">Your @{formCategory.getString} has been submitted</h1>
+
+  <p>@timeMessage</p>
 </div>
 
-<h2 class="heading-medium">Print a copy of your @{formCategory.getString}</h2>
+<p>We have sent you a confirmation email.</p>
+
 <p>
-    <a href="@uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang).url" class="print-link print-hidden js-visible">
+    <a
+      href="@uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang).url"
+      class="print-link print-hidden js-visible">
         Print your @{formCategory.getString}
     </a>
 </p>
