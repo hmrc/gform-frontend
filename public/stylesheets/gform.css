@@ -136,6 +136,16 @@
   margin-bottom: 10px;
 }
 
+/* Summary errors */
+.summary--error td:first-child {
+  border-left: 3px solid #df3034;
+  padding-left: 10px;
+}
+
+.summary--error .error-notification {
+  padding-bottom: 0;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,

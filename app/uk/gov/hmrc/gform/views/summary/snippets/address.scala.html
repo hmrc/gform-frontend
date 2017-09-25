@@ -19,7 +19,7 @@
     }
 
     @if(validationResult.isNotOk) {
-    <tr class="error">
+    <tr class="summary--error">
       <td colspan="2">
         @{validationResult.globalErrors.map {error => {error}  }}
         @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
@@ -29,7 +29,7 @@
     </tr>
     }
 
-    <tr class="@{if(validationResult.isNotOk) "error"}">
+    <tr class="@{if(validationResult.isNotOk) "summary--error"}">
         <td>
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
         </td>
