@@ -40,12 +40,12 @@ class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: C
   private def eeittLoginUrl()(implicit request: Request[AnyContent]): String = {
 
     val continueUrl = java.net.URLEncoder.encode(
-      configModule.appConfig.`gform-frontend-base-url` + request.uri, "UTF-8"
+      request.uri, "UTF-8"
     )
 
     val eeittUrl = configModule.serviceConfig.baseUrl("eeitt-frontend")
 
-    val eeitt = if (eeittUrl.contains("9190")) "" else eeittUrl
+    val eeitt = if (eeittUrl.contains("9190")) "http://localhost" else eeittUrl
 
     val eeittLoginUrl = s"${eeitt}/eeitt-auth/enrollment-verification"
     s"${eeittLoginUrl}?callbackUrl=${continueUrl}"
