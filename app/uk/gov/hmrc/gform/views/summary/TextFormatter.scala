@@ -31,7 +31,9 @@ object TextFormatter {
     component.constraint match {
       case _: Number | _: PositiveNumber | Sterling =>
 
-        val sections = currentValue.replaceAll(",", "").split("""\.""")
+        val poundOrComma = "[£,]".r
+        val valueWithoutPoundsOrCommas = poundOrComma.replaceAllIn(currentValue, "")
+        val sections = valueWithoutPoundsOrCommas.split("""\.""")
 
         if (sections(0).size >= 5) {
           val integerPart = sections(0).reverse.grouped(3).mkString(",").reverse
@@ -40,7 +42,7 @@ object TextFormatter {
           } else {
             integerPart
           }
-        } else currentValue
+        } else valueWithoutPoundsOrCommas
 
       case UkBankAccountNumber => currentValue.grouped(4).mkString(" ")
 
