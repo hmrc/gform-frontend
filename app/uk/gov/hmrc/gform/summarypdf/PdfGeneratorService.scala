@@ -50,7 +50,7 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, applicat
 
   private def getCss: String = {
     // TODO: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
-    application.getExistingFile("public/stylesheets/application.min.css") match {
+    application.getExistingFile("public/stylesheets/reduced-application.min.css") match {
       case None => ""
       case Some(file) =>
         val openFile = Source.fromFile(file)
