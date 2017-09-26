@@ -16,16 +16,20 @@
 
 package uk.gov.hmrc.gform.auditing
 
+import java.util.UUID
+
+import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsString, JsValue, Json }
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.audit.model.DataEvent
+import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
 import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.ExecutionContext
 
@@ -34,16 +38,8 @@ trait AuditService {
   def auditConnector: AuditConnector
 
   def formToMap(form: Form, sections: List[BaseSection]): Map[String, String] = {
-    val dataMap = Map(
-      "FormId" -> form._id.value,
-      "EnvelopeId" -> form.envelopeId.value,
-      "FormTemplateId" -> form.formTemplateId.value,
-      "UserId" -> form.userId.value //TODO is userId required in the formData anymore.
-    )
-    val optSortCode: List[FormComponent] = sections.flatMap(_.fields.filter(_.`type` match {
-      case x: UkSortCode => true
-      case _ => false
-    }))
+
+    val optSortCode: List[FormComponent] = sections.flatMap(_.fields.collect { case x: UkSortCode => x })
 
     val processedData: Seq[FormField] = if (optSortCode.nonEmpty) {
       optSortCode.flatMap { fieldValue =>
@@ -60,32 +56,46 @@ trait AuditService {
       form.formData.fields
     }
 
-    val data = processedData.map(x => x.id.value -> x.value).toMap
-
-    dataMap ++ data
+    processedData.map(x => x.id.value -> x.value).toMap
   }
 
   def sendSubmissionEvent(form: Form, sections: List[BaseSection], retrievals: Retrievals)(implicit ex: ExecutionContext, hc: HeaderCarrier, request: Request[_]) = {
-    sendEvent(formToMap(form, sections), retrievals)
+    sendEvent(form, formToMap(form, sections), retrievals)
   }
 
-  private def sendEvent(detail: Map[String, String], retrievals: Retrievals)(implicit ex: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
-    auditConnector.sendEvent(eventFor(detail, retrievals))
+  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit ex: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
+    auditConnector.sendEvent(eventFor(form, detail, retrievals))
 
-  private def eventFor(detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
-    val x = DataEvent(
-      auditSource = "GForm",
-      auditType = "submission complete auditing",
+  private def eventFor(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
+    val x = ExtendedDataEvent(
+      auditSource = "Gform-Frontend",
+      auditType = "formSubmitted",
       tags = hc.headers.toMap,
-      detail = detail ++ Map(
+      detail = details(form, detail, retrievals)
+    )
+    Logger.debug(Json.prettyPrint(Json.toJson(x)) + "THIS IS THE AUDIT EVENT")
+    x
+  }
+
+  private def details(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier) = {
+
+    val userInfo = Json.toJson(Map(
       "nino" -> getTaxIdValue(None, "NINO", retrievals),
       "vrn" -> getTaxIdValue(None, "VATRegNo", retrievals),
       "saUtr" -> getTaxIdValue(Some("IR-SA"), "UTR", retrievals),
       "ctUtr" -> getTaxIdValue(Some("IR-CT"), "UTR", retrievals),
       "deviceId" -> hc.deviceID.map(a => a).getOrElse("")
+    ).filter(values => values._2.nonEmpty))
+
+    val userValues = Json.toJson(detail.filter(values => values._2.nonEmpty))
+    Json.obj(
+      "FormId" -> form._id.value,
+      "EnvelopeId" -> form.envelopeId.value,
+      "FormTemplateId" -> form.formTemplateId.value,
+      "UserId" -> form.userId.value,
+      "UserValues" -> userValues,
+      "UserInfo" -> userInfo
     )
-    )
-    println(Json.prettyPrint(Json.toJson(x)) + "THIS IS THE SUBMISSION JSON")
-    x
   }
+
 }
