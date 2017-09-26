@@ -21,13 +21,13 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, Retrievals, ~ }
-import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
+import uk.gov.hmrc.auth.core.retrieve.{Retrievals => _, _}
+import uk.gov.hmrc.auth.core.{AuthorisedFunctions, InsufficientEnrolments, NoActiveSession}
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful }
+import uk.gov.hmrc.gform.auth.{AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful}
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
@@ -37,7 +37,8 @@ import scala.concurrent.Future
 class AuthenticatedRequestActions(
     gformConnector: GformConnector,
     authMod: AuthModule,
-    configModule: ConfigModule
+    configModule: ConfigModule,
+    whiteListUser: List[String]
 ) extends AuthorisedFunctions {
 
   val authConnector = authMod.authConnector
@@ -146,10 +147,20 @@ class AuthenticatedRequestActions(
       case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
         for {
           userDetails <- authConnector.getUserDetails(userDetailsUri.get)
+          _           <- whiteListing(userDetails, authProviderId)
           retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
         } yield GGAuthSuccessful(retrievals)
     }.recover(handleErrorCondition(request, authConfig))
   }
+
+  case class WhiteListException(id: String) extends Exception
+  private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials): Unit = {
+    userDetails.email.fold(throw new WhiteListException(authId)){email =>
+      if(!whiteListUser.contains(email)) throw new WhiteListException
+    }
+  }
+
+
 
   private def handleErrorCondition(request: Request[AnyContent], authConfig: AuthConfig): PartialFunction[scala.Throwable, AuthResult] = {
     case _: InsufficientEnrolments => authConfig match {
@@ -163,6 +174,7 @@ class AuthenticatedRequestActions(
       val url = s"${ggLoginUrl}?continue=${continueUrl}"
       AuthenticationFailed(url)
 
+    case _ : WhiteListException() => Logger
     case otherException => throw otherException
   }
 
