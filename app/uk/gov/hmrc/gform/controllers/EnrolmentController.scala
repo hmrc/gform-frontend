@@ -116,7 +116,7 @@ class EnrolmentController @Inject() (
     authConfig: AuthConfigWithEnrolment
   ): Map[FormComponent, FormFieldValidationResult] = {
     val enrolmentFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
-    validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
+    validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil)).toMap
   }
 
   private def getAllEnrolmentFields(fields: List[FormComponent]): List[FormComponent] = {

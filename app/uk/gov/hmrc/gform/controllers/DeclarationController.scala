@@ -51,7 +51,7 @@ class DeclarationController @Inject() (
 
   def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case Validated => renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, None, None, lang).map(Ok(_))
+      case Validated => renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, None, Map.empty, None, lang).map(Ok(_))
       case _ => Future.successful(BadRequest)
     }
   }
@@ -76,9 +76,9 @@ class DeclarationController @Inject() (
               Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId, formTemplateId4Ga, lang))
             }
           case validationResult @ Invalid(_) =>
-            val errorMap: Map[FormComponent, FormFieldValidationResult] = getErrorMap(validationResult, data, cache.formTemplate)
+            val errorMap: List[(FormComponent, FormFieldValidationResult)] = getErrorMap(validationResult, data, cache.formTemplate)
             for {
-              html <- renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, Some(validationResult), Some(errorMap), lang)
+              html <- renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, Some(validationResult), data, Some(errorMap), lang)
             } yield Ok(html)
         }
         case _ =>
@@ -105,7 +105,7 @@ class DeclarationController @Inject() (
     form.copy(formData = form.formData.copy(fields = updatedFields))
   }
 
-  private def getErrorMap(validationResult: ValidatedType, data: Map[FormComponentId, Seq[String]], formTemplate: FormTemplate): Map[FormComponent, FormFieldValidationResult] = {
+  private def getErrorMap(validationResult: ValidatedType, data: Map[FormComponentId, Seq[String]], formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
     validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))
   }

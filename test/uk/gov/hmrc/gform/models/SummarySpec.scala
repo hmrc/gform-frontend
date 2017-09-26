@@ -22,7 +22,7 @@ import org.jsoup.Jsoup
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.models.helpers.Extractors._
-import uk.gov.hmrc.gform.models.helpers.Fields.valuesValidate
+import uk.gov.hmrc.gform.models.helpers.Fields.getValidationResult
 import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
