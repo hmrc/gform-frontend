@@ -25,7 +25,7 @@ import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, UkSortCode }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, Group, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -39,7 +39,22 @@ trait AuditService {
 
   def formToMap(form: Form, sections: List[BaseSection]): Map[String, String] = {
 
-    val optSortCode: List[FormComponent] = sections.flatMap(_.fields.collect { case x: UkSortCode => x })
+    val optSortCode: List[FormComponent] = sections.flatMap { section =>
+      val groupFields = section.fields.collect {
+        case FormComponent(_, Group(fields, _, _, _, _, _), _, _, _, _, _, _, _, _, _) => fields
+      }.flatten
+      (groupFields ++ section.fields.filter(_.`type` match {
+        case x: Group => false
+        case _ => true
+      })).filter(_.`type` match {
+        case x: UkSortCode => true
+        case _ => false
+      })
+    }
+
+    Logger.debug("SECTIONS" + sections.flatMap(_.fields))
+
+    Logger.debug("OPT SORT CODE" + optSortCode)
 
     val processedData: Seq[FormField] = if (optSortCode.nonEmpty) {
       optSortCode.flatMap { fieldValue =>
@@ -47,10 +62,9 @@ trait AuditService {
           form.formData.fields.filterNot(_.id == fieldId)
         }
         val sortCode = UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
-          val sortCode: String = form.formData.fields.filter(_.id == fieldId).map(_.value).mkString("-")
-          Seq(FormField(fieldValue.id, sortCode))
-        }
-        xc ++ sortCode
+          form.formData.fields.filter(_.id == fieldId)
+        }.map(_.value).mkString("-")
+        xc ++ Seq(FormField(fieldValue.id, sortCode))
       }
     } else {
       form.formData.fields
