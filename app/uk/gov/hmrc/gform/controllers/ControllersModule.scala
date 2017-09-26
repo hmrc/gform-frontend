@@ -36,6 +36,6 @@ class ControllersModule @Inject() (
     override def messagesApi: MessagesApi = self.messagesApi
   }
 
-  val authenticatedRequestActions = new AuthenticatedRequestActions(gformBackendModule.gformConnector, authModule, configModule)
+  val authenticatedRequestActions = new AuthenticatedRequestActions(gformBackendModule.gformConnector, authModule, configModule, configModule.users)
 }
 

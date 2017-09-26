@@ -16,8 +16,11 @@
 
 package uk.gov.hmrc.gform.auth.models
 
+import play.api.mvc.Result
+
 sealed trait AuthResult
 final case class GGAuthSuccessful(retrievals: Retrievals) extends AuthResult
 final case class AuthenticationFailed(loginUrl: String) extends AuthResult
+final object AuthenticationWhiteListFailed extends AuthResult
 final case class AuthorisationFailed(errorUrl: String) extends AuthResult
 final object EnrolmentRequired extends AuthResult
