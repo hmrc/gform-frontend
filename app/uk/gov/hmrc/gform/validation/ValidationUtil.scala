@@ -177,7 +177,7 @@ object ValidationUtil {
             case None => FieldOk(fieldValue, fileName)
           }
         }
-        case InformationMessage(_, infoText) => FieldOk(fieldValue, infoText)
+        case InformationMessage(_, infoText) => FieldOk(fieldValue, "")
       }
 
     }
