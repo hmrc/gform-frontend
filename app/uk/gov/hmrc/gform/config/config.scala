@@ -23,6 +23,8 @@ import uk.gov.hmrc.play.config.ServicesConfig
 class ConfigModule {
   lazy val appConfig: AppConfig = AppConfig.loadOrThrow()
 
+  lazy val users: List[String] = loadConfigOrThrow[String]("whitelisting.users").split(",").toList
+
   lazy val serviceConfig: ServicesConfig = {
 
     val c = new ServicesConfig {}
