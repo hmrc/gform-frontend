@@ -17,11 +17,14 @@
 package uk.gov.hmrc.gform.controllers
 
 import play.api.http.HeaderNames
+import play.api.Logger
 import play.api.mvc.Results._
 import play.api.mvc._
+import play.api.i18n.I18nSupport
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _, _ }
+import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, LegacyCredentials, Retrievals, ~ }
+import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, OneTimeLogin, PAClientId, VerifyPid }
 import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful }
@@ -38,9 +41,11 @@ class AuthenticatedRequestActions(
     gformConnector: GformConnector,
     authMod: AuthModule,
     configModule: ConfigModule,
-    whiteListUser: List[String]
+    whiteListUser: List[String],
+    i18nSupport: I18nSupport
 ) extends AuthorisedFunctions {
 
+  import i18nSupport._
   val authConnector = authMod.authConnector
   val eeittDelegate = authMod.eeittAuthorisationDelegate
   // format: OFF
@@ -60,6 +65,7 @@ class AuthenticatedRequestActions(
       newRequest   = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
         case GGAuthSuccessful(retrievals) => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
+        case AuthenticationWhiteListFailed => Future.successful(Ok(uk.gov.hmrc.gform.views.html.error_template("Non WhiteListed User", "Non WhiteListed User", "You are not authorised to access this form, if you believe you need access talk too: barry.johnson@hmrc.gsi.gov.uk or rob.lees@hmrc.gsi.gov.uk")))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -75,6 +81,7 @@ class AuthenticatedRequestActions(
       newRequest    = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
         case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate)))
+        case AuthenticationWhiteListFailed => Future.successful(Ok(uk.gov.hmrc.gform.views.html.error_template("Non WhiteListed User", "Non WhiteListed User", "Non WhiteListed User")))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -85,7 +92,6 @@ class AuthenticatedRequestActions(
     result match {
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
-      case AuthenticationWhiteListFailed => Future.successful(Ok(uk.gov.hmrc.gform.views.html.error_template("Non WhiteListed User", "Non WhiteListed User", "Non WhiteListed User")))
       case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
@@ -148,20 +154,24 @@ class AuthenticatedRequestActions(
       case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
         for {
           userDetails <- authConnector.getUserDetails(userDetailsUri.get)
-          _ <- whiteListing(userDetails, authProviderId)
+          _ = whiteListing(userDetails, authProviderId)
           retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
-        } yield GGAuthSuccessful(retrievals)
+        } yield {
+          Logger.info(s"Passed successful through white listing: ${log(authProviderId)}")
+          GGAuthSuccessful(retrievals)
+        }
     }.recover(handleErrorCondition(request, authConfig))
   }
 
-  case class WhiteListException(id: LegacyCredentials) extends Exception {
-    def logMessage: String = id match {
-      case GGCredId(str) => str
-      case VerifyPid(str) => str
-      case PAClientId(str) => str
-      case OneTimeLogin => "One Time Login"
-    }
+  def log(id: LegacyCredentials) = id match {
+    case GGCredId(str) => str
+    case VerifyPid(str) => str
+    case PAClientId(str) => str
+    case OneTimeLogin => "One Time Login"
   }
+
+  case class WhiteListException(id: LegacyCredentials) extends Exception
+
   private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials): Unit = {
     userDetails.email.fold(throw new WhiteListException(authId)) { email =>
       if (!whiteListUser.contains(email)) throw new WhiteListException(authId)
@@ -181,7 +191,7 @@ class AuthenticatedRequestActions(
       AuthenticationFailed(url)
 
     case x: WhiteListException =>
-      Logger.debug(x.logMessage)
+      Logger.warn(s"user failed whitelisting and is denied access : ${log(x.id)}")
       AuthenticationWhiteListFailed
     case otherException => throw otherException
   }
