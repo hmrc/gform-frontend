@@ -152,6 +152,13 @@ button.link-back {
   box-shadow: none;
 }
 
+button.link-back:hover,
+button.link-back:focus,
+button.link-back:visited {
+  color: ##0B0C09;
+  background: transparent;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,
