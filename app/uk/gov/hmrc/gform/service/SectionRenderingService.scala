@@ -174,13 +174,23 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory, formTemplate, lang)
   }
 
-  def renderEnrolmentSection(formTemplate: FormTemplate, enrolmentSection: EnrolmentSection, validatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+  def renderEnrolmentSection(
+    formTemplate: FormTemplate,
+    enrolmentSection: EnrolmentSection,
+    fieldData: Map[FormComponentId, Seq[String]],
+    errors: List[(FormComponent, FormFieldValidationResult)],
+    validatedType: Option[ValidatedType],
+    lang: Option[String]
+  )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+
     val formId = FormId("")
-    val ei = ExtraInfo(formId, SectionNumber(0), Map.empty, formTemplate, Envelope(Nil), List(enrolmentSection), 0, enrolmentSection, emptyRetrievals)
+    val ei = ExtraInfo(formId, SectionNumber(0), fieldData, formTemplate, Envelope(Nil), List(enrolmentSection), 0, enrolmentSection, emptyRetrievals)
+    val listResult = errors.map { case (_, validationResult) => validationResult }
     for {
       snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, validatedType, lang)))
+      pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
-    } yield html.form.form(formTemplate, Html(""), renderingInfo, formId, false)
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, formId, false)
   }
 
   private def createJavascript(fieldList: List[FormComponent], atomicFields: List[FormComponent])(implicit hc: HeaderCarrier): Future[String] = {

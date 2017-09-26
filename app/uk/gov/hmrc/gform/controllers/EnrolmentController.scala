@@ -21,16 +21,17 @@ import javax.inject.{ Inject, Singleton }
 import cats.data.Validated.{ Invalid, Valid }
 import play.api.mvc.{ Action, Request, Result }
 import uk.gov.hmrc.gform.auth.{ AuthModule, Identifier, Verifier }
+import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.play.http.{ BadRequestException, HeaderCarrier, Upstream4xxResponse, Upstream5xxResponse }
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
@@ -40,7 +41,8 @@ class EnrolmentController @Inject() (
     renderer: SectionRenderingService,
     validationModule: ValidationModule,
     gformBackendModule: GformBackendModule,
-    authModule: AuthModule
+    authModule: AuthModule,
+    configModule: ConfigModule
 ) extends FrontendController {
 
   import controllersModule.i18nSupport._
@@ -50,7 +52,7 @@ class EnrolmentController @Inject() (
     gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
       formTemplate.authConfig match {
         case authConfig: AuthConfigWithEnrolment =>
-          renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, None, lang).map(Ok(_))
+          renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Map.empty, Nil, None, lang).map(Ok(_))
         case _ => Future.successful(
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
             .flashing("formTitle" -> formTemplate.formName)
@@ -101,8 +103,12 @@ class EnrolmentController @Inject() (
       case Valid(()) =>
         val (identifiers, verifiers) = extractIdentifiersAndVerifiers(authConfig, data)
 
-        enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers).map { _ => //TODO hard coded for QA tests change to environment BaseUrl
-          Redirect(s"https://www.qa.tax.service.gov.uk/gg/sign-in?continue=/submissions/new-form/${formTemplate._id}")//routes.FormController.newForm(formTemplate._id, lang))
+        enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers).map { _ =>
+          val newPageUrl = routes.FormController.newForm(formTemplate._id, lang).url
+          val continueUrl = java.net.URLEncoder.encode(configModule.appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
+          val ggLoginUrl = configModule.appConfig.`government-gateway-sign-in-url`
+          val redirectUrl = s"${ggLoginUrl}?continue=${continueUrl}"
+          Redirect(redirectUrl)
         }.recoverWith(handleEnrolmentException(authConfig, data, formTemplate, lang))
 
       case validationResult @ Invalid(_) =>
@@ -114,13 +120,12 @@ class EnrolmentController @Inject() (
     validationResult: ValidatedType,
     data: Map[FormComponentId, Seq[String]],
     authConfig: AuthConfigWithEnrolment
-  ): Map[FormComponent, FormFieldValidationResult] = {
+  ): List[(FormComponent, FormFieldValidationResult)] = {
     val enrolmentFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
-    validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil)).toMap
+    validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
   }
 
   private def getAllEnrolmentFields(fields: List[FormComponent]): List[FormComponent] = {
-
     fields.flatMap { fieldValue =>
       fieldValue.`type` match {
         case grp: Group => getAllEnrolmentFields(grp.fields)
@@ -162,23 +167,8 @@ class EnrolmentController @Inject() (
 
     val errorMap = getErrorMap(validationResult, data, authConfig)
     for {
-      html <- renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Some(validationResult), lang)
+      html <- renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, data, errorMap, Some(validationResult), lang)
     } yield Ok(html)
-  }
-
-  private def buildFailedValidationResult(
-    authConfig: AuthConfigWithEnrolment,
-    data: Map[FormComponentId, Seq[String]]
-  ): Invalid[GformError] = {
-
-    val map = getAllEnrolmentFields(authConfig.enrolmentSection.fields).foldLeft(Map.empty[FormComponentId, Set[String]]) {
-      (result, current) =>
-        data.get(current.id) match {
-          case Some(value) if !value.head.isEmpty => result + (current.id -> Set("Please check the values entered"))
-          case _ => result
-        }
-    }
-    Invalid(map)
   }
 
   private def handleEnrolmentException(
@@ -187,23 +177,11 @@ class EnrolmentController @Inject() (
     formTemplate: FormTemplate,
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_]): PartialFunction[Throwable, Future[Result]] = {
-
-    case _: Upstream4xxResponse | _: BadRequestException =>
-      // As per architect's advice: Enrolment failed, the user entered wrong data
-      //                            sleep 10 secs to try to avoid a brute force attack
-      Thread.sleep(10000)
-      val validationResult = buildFailedValidationResult(authConfig, data)
-      displayEnrolmentSectionWithErrors(validationResult, data, authConfig, formTemplate, lang)
-
-    case Upstream5xxResponse(message, _, _) if message.contains("missing required bearer token") | message.contains("Invalid security token") | message.contains("code:InvalidSecurityToken") =>
-
-      // Typically due to a session timeout, redirecting to newform to force going to GG login page again
+    case _ =>
       Future.successful(
         Redirect(routes.FormController.newForm(formTemplate._id, lang))
           .withNewSession
           .withHeaders(Seq.empty: _*)
       )
-
-    case otherException => throw otherException
   }
 }

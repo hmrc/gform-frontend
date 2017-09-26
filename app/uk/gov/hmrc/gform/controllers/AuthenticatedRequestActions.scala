@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import play.api.Logger
 import play.api.http.HeaderNames
 import play.api.mvc.Results._
 import play.api.mvc._
@@ -85,9 +84,7 @@ class AuthenticatedRequestActions(
     result match {
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
-      case EnrolmentRequired =>
-//        authConnector.logEnrolments()
-        Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
+      case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
   }
