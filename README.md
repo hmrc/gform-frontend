@@ -2,6 +2,12 @@
 
 [![Build Status](https://travis-ci.org/hmrc/gform-frontend.svg)](https://travis-ci.org/hmrc/gform-frontend) [ ![Download](https://api.bintray.com/packages/hmrc/releases/gform-frontend/images/download.svg) ](https://bintray.com/hmrc/releases/gform-frontend/_latestVersion)
 
+Gform is a system for offering more straightforward tax forms online using based on a template of the form in json.
+ 
+This frontend presents those forms based on templates fetched from the backend.  It handles any authorisation using 
+either eeitt authorisation or government gateway, when required it can also manage enrolment for government gateway.
+Data values entered on the forms are persisted by the backend and ultimately submitted to DMS by the backend.
+
 ### Running Gform Locally with Service Manager
 
 When running locally: 
