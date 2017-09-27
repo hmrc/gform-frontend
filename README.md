@@ -14,11 +14,13 @@ Upload a form template:
 
     curl http://localhost:9196/gform/formtemplates -H "Content-Type: application/json" -d '@sample-data/template-aaa999.json'
 
-Upload eeitt test data: 
+this template is in json and has several required fields. 
+
+Upload eeitt test data for legacy eeitt auth if assigned in template: 
     
     curl --data-binary '@sample-data/EEITTTestUsers.txt' http://localhost:9191/eeitt/etmp-data/live/business-users
         
-Aside from a local service, the backend needs to be accessed through the frontend proxy, to try this locally:
+ the backend can be accessed through the frontend proxy, to try this locally:
 
     curl -s http://localhost:9195/submissions/test-only/proxy-to-gform/gform/formtemplates -H "Content-Type: application/json" -H "X-requested-with: foo" -d '@sample-data/template-aaa999.json'
     
@@ -30,7 +32,8 @@ When running locally:
  
     sm --start GFORM_DEP -f
     
- runs all dependent services of gform. 
+runs all dependent services of gform. 
+
 
 ### License
 
