@@ -24,7 +24,7 @@ Upload eeitt test data for legacy eeitt auth if assigned in template:
 
     curl -s http://localhost:9195/submissions/test-only/proxy-to-gform/gform/formtemplates -H "Content-Type: application/json" -H "X-requested-with: foo" -d '@sample-data/template-aaa999.json'
     
-    you can proxy to any backend call. only when application.route=testOnlyDoNotUseInAppConfig.routes
+    you can proxy to any backend call. only when test only routes are enabled.
     
 (Note that you will need to have configured your local gform-frontend for test only routes and CSRF bypass, as in for example app-config-dev
 
