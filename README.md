@@ -2,6 +2,20 @@
 
 [![Build Status](https://travis-ci.org/hmrc/gform-frontend.svg)](https://travis-ci.org/hmrc/gform-frontend) [ ![Download](https://api.bintray.com/packages/hmrc/releases/gform-frontend/images/download.svg) ](https://bintray.com/hmrc/releases/gform-frontend/_latestVersion)
 
+### Running Gform Locally with Service Manager
+
+When running locally: 
+ 
+    sm --start GFORM_DEP -f
+    
+runs all dependent services of gform. 
+
+when using gform: 
+    
+    sm --start GFORM_ALL -f
+    
+run dependencies and gform.
+
 ### Enter a form
 
 To try entering a form locally, with sample data in the gform backend and using the auth-login-stub, browse to:
@@ -27,13 +41,6 @@ Upload eeitt test data for legacy eeitt auth if assigned in template:
     you can proxy to any backend call. only when test only routes are enabled.
     
 (Note that you will need to have configured your local gform-frontend for test only routes and CSRF bypass, as in for example app-config-dev
-
-When running locally: 
- 
-    sm --start GFORM_DEP -f
-    
-runs all dependent services of gform. 
-
 
 ### License
 
