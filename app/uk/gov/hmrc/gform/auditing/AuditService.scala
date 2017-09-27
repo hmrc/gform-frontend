@@ -29,7 +29,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, 
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
 import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.time.DateTimeUtils
 
 import scala.concurrent.ExecutionContext
 
@@ -69,11 +68,11 @@ trait AuditService {
     processedData.map(x => x.id.value -> x.value).toMap
   }
 
-  def sendSubmissionEvent(form: Form, sections: List[BaseSection], retrievals: Retrievals)(implicit ex: ExecutionContext, hc: HeaderCarrier, request: Request[_]) = {
+  def sendSubmissionEvent(form: Form, sections: List[BaseSection], retrievals: Retrievals)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) = {
     sendEvent(form, formToMap(form, sections), retrievals)
   }
 
-  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit ex: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
+  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
     auditConnector.sendEvent(eventFor(form, detail, retrievals))
 
   private def eventFor(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
@@ -105,5 +104,4 @@ trait AuditService {
       "UserInfo" -> userInfo
     )
   }
-
 }
