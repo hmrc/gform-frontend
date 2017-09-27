@@ -44,7 +44,7 @@ import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, Summary }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation._
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
@@ -120,17 +120,29 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       Html("")
   }
 
-  def parseFormFieldValidationResult(result: ComponentField): List[FormFieldValidationResult] = {
-    def reassignFieldValue(id: String, x: FormFieldValidationResult): FormFieldValidationResult = x match {
-      case x: FieldError =>
-        val newFieldValue = x.fieldValue.copy(id = FormComponentId(id))
-        x.copy(fieldValue = newFieldValue)
-      case y: FieldGlobalError =>
-        val newFieldValue = y.fieldValue.copy(id = FormComponentId(id))
-        y.copy(fieldValue = newFieldValue)
+  def parseFormFieldValidationResult(componentField: ComponentField): List[FormFieldValidationResult] = {
+    def reassignFieldValue(id: String, validationResult: FormFieldValidationResult): FormFieldValidationResult = validationResult match {
+      case fieldError: FieldError =>
+        val newFieldValue = fieldError.fieldValue.copy(id = FormComponentId(id))
+        fieldError.copy(fieldValue = newFieldValue)
+      case fieldGlobalError: FieldGlobalError =>
+        val newFieldValue = fieldGlobalError.fieldValue.copy(id = FormComponentId(id))
+        fieldGlobalError.copy(fieldValue = newFieldValue)
       case err => err
     }
-    result.data.map(field => reassignFieldValue(field._1, field._2)).toList
+
+    componentField.data.map(field => reassignFieldValue(field._1, field._2))
+      .toList
+      .sortWith(sortValidationList(componentField))
+  }
+
+  private def sortValidationList(component: ComponentField)(a: FormFieldValidationResult, b: FormFieldValidationResult): Boolean = {
+    component.fieldValue.`type` match {
+      case _: Address => // currently only required for address as other components are in order
+        val indexedFields = Address.fields(component.fieldValue.id).zipWithIndex.toMap
+        indexedFields.getOrElse(a.fieldValue.id, -1) < indexedFields.getOrElse(b.fieldValue.id, -1)
+      case _ => false // keep the order for other components
+    }
   }
 
   def renderDeclarationSection(
