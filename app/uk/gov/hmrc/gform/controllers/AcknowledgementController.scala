@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.prepop.AuthContextPrepop
 import uk.gov.hmrc.gform.service.SectionRenderingService
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Signed, Submitted }
@@ -44,7 +45,8 @@ class AcknowledgementController @Inject() (
     summaryController: SummaryController,
     gformBackendModule: GformBackendModule,
     authModule: AuthModule,
-    pdfGeneratorModule: PdfGeneratorModule
+    pdfGeneratorModule: PdfGeneratorModule,
+    nonRepudiationHelpers: NonRepudiationHelpers
 ) extends FrontendController {
 
   import controllersModule.i18nSupport._
@@ -61,10 +63,13 @@ class AcknowledgementController @Inject() (
       case Submitted =>
         // format: OFF
         for {
-          summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
-          submission <- gformConnector.submissionStatus(formId)
-          cleanHtml  =  pdfService.sanitiseHtmlForPDF(summaryHml)
-          htmlForPDF = addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
+          summaryHml  <- summaryController.getSummaryHTML(formId, cache, lang)
+          formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
+          hashedValue =  nonRepudiationHelpers.computeHash(formString)
+          _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue)
+          submission  <- gformConnector.submissionStatus(formId)
+          cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml)
+          htmlForPDF  =  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue)
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
@@ -84,7 +89,8 @@ class AcknowledgementController @Inject() (
     submissionDetails: Submission,
     authConfig: AuthConfig,
     submissionReference: Option[TextExpression],
-    retrievals: Retrievals
+    retrievals: Retrievals,
+    hashedValue: String
   ): String = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -119,7 +125,7 @@ class AcknowledgementController @Inject() (
         |    </tr>
         |    <tr>
         |      <td>Submission mark</td>
-        |      <td></td>
+        |      <td>${hashedValue}</td>
         |    </tr>
         |  </tbody>
         |</table>
