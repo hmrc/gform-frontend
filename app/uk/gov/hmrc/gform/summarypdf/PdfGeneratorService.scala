@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
+import play.Logger
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Node
 import play.api.Application
@@ -50,12 +51,13 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, applicat
 
   private def getCss: String = {
     // TODO: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
-    application.getExistingFile("public/stylesheets/reduced-application.min.css") match {
-      case None => ""
-      case Some(file) =>
-        val openFile = Source.fromFile(file)
-        val result = openFile.getLines.mkString
-        openFile.close
+    application.resourceAsStream("public/stylesheets/reduced-application.min.css") match {
+      case None =>
+        Logger.debug("HTML for PDF generation error: \"public/stylesheets/reduced-application.min.css\" could not be found")
+        ""
+      case Some(inputStream) =>
+        val result = Source.fromInputStream(inputStream).getLines.mkString
+        inputStream.close
         result
     }
   }
