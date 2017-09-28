@@ -56,7 +56,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
     override lazy val prepopService = mockPrepopService
   }
 
-  val mockRepeatService = new RepeatingComponentService(null) {
+  val mockRepeatService = new RepeatingComponentService(null, null) {
 
     override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
       Future.successful(allSections)
@@ -274,7 +274,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
 
   it should "hide add-group button when limit has been reached (repeating groups)" in new ExampleData {
 
-    val mock2RepeatService = new RepeatingComponentService(null) {
+    val mock2RepeatService = new RepeatingComponentService(null, null) {
 
       override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
         Future.successful(allSections)

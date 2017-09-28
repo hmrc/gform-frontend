@@ -51,7 +51,7 @@ class SummarySpec extends Spec {
 
     override def formTemplate = super.formTemplate.copy(sections = List(section0, section1, section2))
 
-    val mockRepeatService = new RepeatingComponentService(null) {
+    val mockRepeatService = new RepeatingComponentService(null, null) {
       override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
         Future.successful(formTemplate.sections)
       }
