@@ -20,18 +20,20 @@ import javax.inject.{ Inject, Singleton }
 
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
+import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.SessionCacheConnector
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.{ Success, Try }
 
 @Singleton
-class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector) {
+class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector, configModule: ConfigModule) {
 
   def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
     sessionCache.fetch().flatMap { maybeCacheMap =>
@@ -324,12 +326,12 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
   }
 
   def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier): List[List[FormComponent]] = {
-    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FormComponent]]](topFieldValue.id.value), 10 seconds)
+    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FormComponent]]](topFieldValue.id.value), configModule.timeOut seconds)
     resultOpt.getOrElse(List(groupField.fields))
   }
 
   def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier) = {
-    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FormComponent]]](topFieldValue.id.value), 10 seconds)
+    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[List[List[FormComponent]]](topFieldValue.id.value), configModule.timeOut seconds)
     buildGroupFieldsLabelsForSummary(resultOpt.getOrElse(List(groupField.fields)), topFieldValue)
   }
 
