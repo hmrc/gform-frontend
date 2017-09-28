@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.gform.nonRepudiation
 
+import javax.inject.Inject
+
+import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.sharedmodel.form.Form
@@ -23,9 +26,10 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
-case class NonRepudiationHelpers(auditModule: AuditingModule) {
+case class NonRepudiationHelpers @Inject() (auditModule: AuditingModule) {
 
   def formDataToJson(form: Form): String = Json.toJson(form.formData).toString()
+
 
   def computeHash(formJson: String): String = sha256Hash(formJson)
 
