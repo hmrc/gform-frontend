@@ -26,6 +26,9 @@ class ConfigModule {
   private[ConfigModule] case class WhiteListedUsers(users: String)
   lazy val users: List[String] = loadConfigOrThrow[WhiteListedUsers]("whitelisting").users.split(",").toList
 
+  private[ConfigModule] case class TimeOut(int: Int)
+  lazy val timeOut: Int = loadConfigOrThrow[TimeOut]("future.timeout").int
+
   lazy val serviceConfig: ServicesConfig = {
 
     val c = new ServicesConfig {}
