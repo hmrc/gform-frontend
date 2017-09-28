@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.Logger
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Node
@@ -24,11 +26,10 @@ import play.mvc.Http.{ HeaderNames, MimeTypes }
 import play.twirl.api.Html
 import uk.gov.hmrc.play.http.HeaderCarrier
 import scala.concurrent.Future
-import scala.io.Source
 
 class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, application: Application) {
 
-  def generatePDF(html: String)(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
+  def generatePDF(html: String)(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
     val body = Map("html" -> Seq(html))
     pdfGeneratorConnector.generatePDF(body, headers)
@@ -37,14 +38,14 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, applicat
   def sanitiseHtmlForPDF(html: Html): String = {
     val doc = Jsoup.parse(html.body)
     removeComments(doc)
-    doc.getElementsByTag("link").remove
-    doc.getElementsByTag("meta").remove
-    doc.getElementsByTag("script").remove
-    doc.getElementsByTag("a").remove
-    doc.getElementsByClass("footer-wrapper").remove
-    doc.getElementById("global-cookie-message").remove
-    doc.getElementsByClass("print-hidden").remove
-    doc.getElementsByTag("head").append(s"<style>${getCss}</style>")
+    doc.getElementsByTag("link").remove()
+    doc.getElementsByTag("meta").remove()
+    doc.getElementsByTag("script").remove()
+    doc.getElementsByTag("a").remove()
+    doc.getElementsByClass("footer-wrapper").remove()
+    doc.getElementById("global-cookie-message").remove()
+    doc.getElementsByClass("print-hidden").remove()
+    doc.getElementsByTag("head").append(s"<style>$getCss</style>")
 
     doc.html
   }
@@ -56,8 +57,8 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, applicat
         Logger.debug("HTML for PDF generation error: \"public/stylesheets/reduced-application.min.css\" could not be found")
         ""
       case Some(inputStream) =>
-        val result = Source.fromInputStream(inputStream).getLines.mkString
-        inputStream.close
+        val result = scala.io.Source.fromInputStream(inputStream).getLines.mkString
+        inputStream.close()
         result
     }
   }
@@ -67,7 +68,7 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, applicat
     while (i < node.childNodeSize()) {
       val child = node.childNode(i)
       if (child.nodeName.equals("#comment")) {
-        child.remove
+        child.remove()
       } else {
         removeComments(child)
         i += 1

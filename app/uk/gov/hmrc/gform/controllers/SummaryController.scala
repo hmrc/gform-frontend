@@ -20,7 +20,8 @@ import javax.inject.{ Inject, Singleton }
 
 import cats._
 import cats.implicits._
-import play.api.mvc.{ Action, AnyContent, Request }
+import play.api.http.HttpEntity
+import play.api.mvc._
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -105,9 +106,12 @@ class SummaryController @Inject() (
         // format: OFF
         for {
           summaryHml <- getSummaryHTML(formId, cache, lang)
-          htmlForPDF =  pdfService.sanitiseHtmlForPDF(summaryHml)
-          pdf <- pdfService.generatePDF(htmlForPDF)
-        } yield Ok(pdf).as("application/pdf")
+          htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
+          pdfStream <- pdfService.generatePDF(htmlForPDF)
+        } yield Result(
+          header = ResponseHeader(200, Map.empty),
+          body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+        )
       // format: ON
       case _ => Future.successful(BadRequest)
     }

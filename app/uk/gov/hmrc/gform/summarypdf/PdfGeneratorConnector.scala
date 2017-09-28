@@ -16,19 +16,25 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
-import uk.gov.hmrc.play.http.ws._
+import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+import uk.gov.hmrc.play.http.ws._
 
 import scala.concurrent.Future
 
 class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp) {
 
-  def generatePDF(payload: Map[String, Seq[String]], headers: Seq[(String, String)])(implicit hc: HeaderCarrier): Future[Array[Byte]] = {
-    wSHttp.buildRequest(s"$baseURL/pdf-generator-service/generate").withHeaders(headers: _*).post(payload).map {
-      _.bodyAsBytes.toArray
-    }
+  def generatePDF(payload: Map[String, Seq[String]], headers: Seq[(String, String)])(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
+
+    wSHttp.buildRequest(s"$baseURL/pdf-generator-service/generate")
+      .withMethod("POST")
+      .withHeaders(headers: _*)
+      .withBody(payload)
+      .stream()
+      .map(_.body)
   }
 
   lazy val baseURL = servicesConfig.baseUrl("pdf-generator")

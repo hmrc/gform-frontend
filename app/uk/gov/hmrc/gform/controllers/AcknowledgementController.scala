@@ -20,7 +20,8 @@ import java.time.format.DateTimeFormatter
 import javax.inject.{ Inject, Singleton }
 
 import org.jsoup.Jsoup
-import play.api.mvc.{ Action, AnyContent }
+import play.api.http.HttpEntity
+import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
 import uk.gov.hmrc.auth.core.authorise.AffinityGroup
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.auth.models.Retrievals
@@ -64,8 +65,11 @@ class AcknowledgementController @Inject() (
           submission <- gformConnector.submissionStatus(formId)
           cleanHtml  =  pdfService.sanitiseHtmlForPDF(summaryHml)
           htmlForPDF = addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
-          pdf <- pdfService.generatePDF(htmlForPDF)
-        } yield Ok(pdf).as("application/pdf")
+          pdfStream <- pdfService.generatePDF(htmlForPDF)
+        } yield Result(
+          header = ResponseHeader(200, Map.empty),
+          body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+        )
       // format: ON
       case _ => Future.successful(BadRequest)
     }
