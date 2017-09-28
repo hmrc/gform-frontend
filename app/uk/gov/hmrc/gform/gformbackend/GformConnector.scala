@@ -17,18 +17,18 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
-import play.api.libs.json.{ JsValue, Reads }
-import uk.gov.hmrc.gform.sharedmodel.UserId
-import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
+import play.api.libs.json.{JsValue, Reads}
+import uk.gov.hmrc.gform.sharedmodel.{Account, UserId, ValAddress}
+import uk.gov.hmrc.gform.sharedmodel.config.{ContentType, ExposedConfig}
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
-
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpReads, HttpResponse, NotFoundException}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse, NotFoundException}
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
-import scala.concurrent.{ ExecutionContext, Future }
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * This connector originates in GFORM project.
@@ -96,12 +96,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /********Validators******/
   def validatePostCodeUtr(utr: String, postCode: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
-    ws.GET[HttpResponse](s"$baseUrl/validate/des/$utr/$postCode").map(_ => true).recover {
+    ws.POST[ValAddress, HttpResponse](s"$baseUrl/validate/des", ValAddress(utr, postCode)).map(_ => true).recover {
       case _: NotFoundException => false
     }
 
   def validateBankModulus(accountNumber: String, sortCode: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] =
-    ws.GET[HttpResponse](s"$baseUrl/validate/bank/$accountNumber/$sortCode").map(_ => true).recover {
+    ws.POST[Account, HttpResponse](s"$baseUrl/validate/bank", Account(sortCode, accountNumber)).map(_ => true).recover {
       case _: NotFoundException => false
     }
   import scala.io.Source
