@@ -104,4 +104,24 @@ trait AuditService {
       "UserInfo" -> userInfo
     )
   }
+
+  def sendSubmissionEventHashed(hashedValue: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    sendHashedValues(hashedValue)
+  }
+
+  private def sendHashedValues(hash: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = auditConnector.sendEvent(hashedValueEvent(hash))
+
+  private def hashedValueEvent(hashedValue: String)(implicit hc: HeaderCarrier) = {
+    val x = DataEvent(
+      auditSource = "GForm",
+      auditType = "submission complete auditing",
+      tags = hc.headers.toMap,
+      detail = Map(
+        "hashType" -> "sha256",
+        "hashedValue" -> hashedValue
+
+      )
+    )
+    x
+  }
 }

@@ -30,7 +30,6 @@ case class NonRepudiationHelpers @Inject() (auditModule: AuditingModule) {
 
   def formDataToJson(form: Form): String = Json.toJson(form.formData).toString()
 
-
   def computeHash(formJson: String): String = sha256Hash(formJson)
 
   def sendAuditEvent(hashedValue: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = auditModule.auditService.sendSubmissionEventHashed(hashedValue)
