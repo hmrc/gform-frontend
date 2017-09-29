@@ -45,10 +45,9 @@ object FrontendGlobal
   override def standardErrorTemplate(pageTitle: String, heading: String, message: String)(implicit rh: Request[_]): Html =
     uk.gov.hmrc.gform.views.html.error_template(pageTitle, heading, message)
 
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = {
-    Logger.debug("GRAPHITE BOOLEAN" + app.configuration.getConfig("microservice.metrics").get.getBoolean("graphite.enabled").getOrElse(false).toString)
+  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] =
     app.configuration.getConfig(s"microservice.metrics")
-  }
+
 }
 
 object ControllerConfiguration extends ControllerConfig {
