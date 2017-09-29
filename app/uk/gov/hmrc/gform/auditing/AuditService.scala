@@ -52,10 +52,6 @@ trait AuditService {
       })
     }
 
-    Logger.debug("SECTIONS" + sections.flatMap(_.fields))
-
-    Logger.debug("OPT SORT CODE" + optSortCode)
-
     val processedData: Seq[FormField] = if (optSortCode.nonEmpty) {
       optSortCode.flatMap { fieldValue =>
         val xc = UkSortCode.fields(fieldValue.id).flatMap { fieldId =>
@@ -81,14 +77,12 @@ trait AuditService {
     auditConnector.sendEvent(eventFor(form, detail, retrievals))
 
   private def eventFor(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
-    val x = ExtendedDataEvent(
+    ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
       tags = hc.headers.toMap,
       detail = details(form, detail, retrievals)
     )
-    Logger.debug(Json.prettyPrint(Json.toJson(x)) + "THIS IS THE AUDIT EVENT")
-    x
   }
 
   private def details(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier) = {

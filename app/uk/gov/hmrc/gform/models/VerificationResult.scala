@@ -24,10 +24,8 @@ case class SaveResult(success: Option[String], error: Option[String])
 object SaveResult {
 
   val reads = Reads[SaveResult] {
-    case x =>
-      Logger.info("THIS IS X: " + Json.prettyPrint(x))
-      JsSuccess(SaveResult(None, None))
-    case _ => JsError("THIS IS AN ERROR")
+    case x => JsSuccess(SaveResult(None, None))
+    case _ => JsError("Save Failed")
   }
 
   val writes = Writes[SaveResult] { x =>
