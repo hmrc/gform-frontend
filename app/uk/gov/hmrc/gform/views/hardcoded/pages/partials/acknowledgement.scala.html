@@ -8,15 +8,27 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ImportantInfo
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.BannerInfo
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.models._
-
 @import views.html.helper.CSRF
-@(timeMessage: String, supportContents: SectionRenderingInformation, formCategory: FormCategory, formTemplate: FormTemplate, lang: Option[String], eventId: String)(implicit request: Request[_], messages: Messages)
 
-@uk.gov.hmrc.gform.views.html.main_template(title = supportContents.sectionTitle, bodyClasses = None) {
+
+@(timeMessage: String,
+        supportContents: SectionRenderingInformation,
+        formCategory: FormCategory,
+        formTemplate: FormTemplate,
+        lang: Option[String],
+        eventId: String,
+        frontendAppConfig: FrontendAppConfig
+)(implicit request: Request[_], messages: Messages)
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = supportContents.sectionTitle,
+    bodyClasses = None,
+    frontendAppConfig = frontendAppConfig
+) {
 
 <div class="govuk-box-highlight">
   <h1 class="bold-medium">Your @{formCategory.getString} has been submitted</h1>
@@ -28,7 +40,7 @@
 
 <p>
     <a
-      href="@uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang, eventId).url"
+      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang, eventId).url"
       class="print-link print-hidden js-visible">
         Print your @{formCategory.getString}
     </a>

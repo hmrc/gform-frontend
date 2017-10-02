@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.connectors
+package uk.gov.hmrc.gform.keystore
 
-import javax.inject.Singleton
-
-import uk.gov.hmrc.gform.{ FrontendAppConfig, WSHttp }
+import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.cache.client.SessionCache
-import uk.gov.hmrc.play.config.{ AppName, ServicesConfig }
 import uk.gov.hmrc.play.http.{ HttpDelete, HttpGet, HttpPut }
 
-@Singleton
-class SessionCacheConnector extends SessionCache with ServicesConfig with AppName {
+class SessionCacheConnector(
+    sourceName: String,
+    baseUrl: String,
+    val domain: String,
+    wSHttp: WSHttp
+) extends SessionCache {
 
-  override def defaultSource: String = appName
+  override def defaultSource: String = sourceName
 
-  override def baseUri: String = FrontendAppConfig.sessionCacheBaseUri
+  override def baseUri: String = baseUrl
 
-  override def domain: String = FrontendAppConfig.sessionCacheDomain
-
-  override def http: HttpGet with HttpPut with HttpDelete = WSHttp
+  override def http: HttpGet with HttpPut with HttpDelete = wSHttp
 }

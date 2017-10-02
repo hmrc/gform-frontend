@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.service
+package uk.gov.hmrc.gform.gform
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import javax.inject.{ Inject, Singleton }
 
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
@@ -34,12 +33,13 @@ import uk.gov.hmrc.auth.core.authorise.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.authorise.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
-import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -52,9 +52,11 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.Future
 
-@Singleton
-class SectionRenderingService @Inject() (repeatService: RepeatingComponentService, prePopModule: PrepopModule) {
-  val prepopService: PrepopService = prePopModule.prepopService
+class SectionRenderingService(
+    repeatService: RepeatingComponentService,
+    prepopService: PrepopService,
+    frontendAppConfig: FrontendAppConfig
+) {
 
   case class ExtraInfo(
     formId: FormId,
@@ -86,7 +88,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
     val section = dynamicSections(sectionNumber.value)
     val ei = ExtraInfo(form._id, sectionNumber, fieldData, formTemplate, envelope, dynamicSections, formMaxAttachmentSizeMB, section, retrievals)
-    val actionForm = uk.gov.hmrc.gform.controllers.routes.FormController.updateFormData(form._id, sectionNumber, lang)
+    val actionForm = uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(form._id, sectionNumber, lang)
     val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
 
     for {
@@ -96,7 +98,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => html.form.snippets.hidden_field(formField))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(form._id, sectionNumber, section.title, section.description, hiddenSnippets, snippetsForFields, javascript, envelopeId, actionForm, true, "Save and continue", formMaxAttachmentSizeMB, contentTypes)
-    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form))
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form), frontendAppConfig)
   }
 
   def generatePageLevelErrorHtml(listValidation: List[FormFieldValidationResult]): Html = {
@@ -167,8 +169,8 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     for {
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, maybeValidatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
-      renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, confirm, 0, Nil)
-    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form))
+      renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, confirm, 0, Nil)
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form), frontendAppConfig)
   }
 
   def renderAcknowledgementSection(form: Form, formTemplate: FormTemplate, retrievals: Retrievals, lang: Option[String], eventId: String)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
@@ -182,8 +184,8 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
       snippets <- Future.sequence(formTemplate.acknowledgementSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, None, lang)))
-      renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.acknowledgementSection.title, formTemplate.acknowledgementSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, "Confirm and send", 0, Nil)
-    } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory, formTemplate, lang, eventId)
+      renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.acknowledgementSection.title, formTemplate.acknowledgementSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, "Confirm and send", 0, Nil)
+    } yield uk.gov.hmrc.gform.views.html.hardcoded.pages.partials.acknowledgement(timeMessage, renderingInfo, formCategory, formTemplate, lang, eventId, frontendAppConfig)
   }
 
   def renderEnrolmentSection(
@@ -201,8 +203,8 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
     for {
       snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, validatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
-      renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
-    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, formId, false)
+      renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.gform.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, formId, false, frontendAppConfig)
   }
 
   private def createJavascript(fieldList: List[FormComponent], atomicFields: List[FormComponent])(implicit hc: HeaderCarrier): Future[String] = {

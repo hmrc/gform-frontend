@@ -14,38 +14,37 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
-
-import javax.inject.{ Inject, Singleton }
+package uk.gov.hmrc.gform.gform
 
 import cats.data.Validated.{ Invalid, Valid }
+import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, Request, Result }
-import uk.gov.hmrc.gform.auth.{ AuthModule, Identifier, Verifier }
-import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.auth.{ Identifier, Verifier, _ }
+import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.service.SectionRenderingService
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-@Singleton
-class EnrolmentController @Inject() (
-    controllersModule: ControllersModule,
+class EnrolmentController(
+    i18nSupport: I18nSupport,
+    auth: AuthenticatedRequestActions,
     renderer: SectionRenderingService,
-    validationModule: ValidationModule,
-    gformBackendModule: GformBackendModule,
-    authModule: AuthModule,
-    configModule: ConfigModule
+    validationService: ValidationService,
+    gformConnector: GformConnector,
+    enrolmentService: EnrolmentService,
+    appConfig: AppConfig
 ) extends FrontendController {
 
-  import controllersModule.i18nSupport._
+  import i18nSupport._
 
   def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = Action.async { implicit request =>
 
@@ -88,10 +87,6 @@ class EnrolmentController @Inject() (
     }
   }
 
-  private lazy val validationService = validationModule.validationService
-  private lazy val gformConnector = gformBackendModule.gformConnector
-  private lazy val enrolmentService = authModule.enrolmentService
-
   private def processValidation(
     formTemplate: FormTemplate,
     authConfig: AuthConfigWithEnrolment,
@@ -105,8 +100,8 @@ class EnrolmentController @Inject() (
 
         enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers).map { _ =>
           val newPageUrl = routes.FormController.newForm(formTemplate._id, lang).url
-          val continueUrl = java.net.URLEncoder.encode(configModule.appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
-          val ggLoginUrl = configModule.appConfig.`government-gateway-sign-in-url`
+          val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
+          val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
           val redirectUrl = s"${ggLoginUrl}?continue=${continueUrl}"
           Redirect(redirectUrl)
         }.recoverWith(handleEnrolmentException(authConfig, data, formTemplate, lang))
@@ -180,8 +175,7 @@ class EnrolmentController @Inject() (
     case _ =>
       Future.successful(
         Redirect(routes.FormController.newForm(formTemplate._id, lang))
-          .withNewSession
-          .withHeaders(Seq.empty: _*)
+        .withNewSession
       )
   }
 }

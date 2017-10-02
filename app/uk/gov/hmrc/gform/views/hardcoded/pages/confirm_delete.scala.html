@@ -1,15 +1,28 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
-@(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String])(implicit request: Request[_])
-
 @import helper._
-@import play.api.Play.current
-@import play.api.i18n.Messages.Implicits._
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
 
-@uk.gov.hmrc.gform.views.html.main_template(title = "Confirm Delete", bodyClasses = None) {
 
-<form action="@uk.gov.hmrc.gform.controllers.routes.FormController.delete(formTemplateId4Ga, formId, lang)" method="GET">
+@(
+        formTemplateId4Ga: FormTemplateId,
+        formId: FormId,
+        lang: Option[String],
+        frontendAppConfig: FrontendAppConfig
+)(
+        implicit
+        request: RequestHeader, //required by CSRF.formField
+        messages: Messages
+)
+
+
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = "Confirm Delete",
+    frontendAppConfig = frontendAppConfig
+) {
+
+<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplateId4Ga, formId, lang)" method="GET">
     <h1>Confirm Delete</h1>
 
     @{
@@ -25,7 +38,7 @@
     <br><br><button class="button">Delete</button><br><br>
 
     <p class="back-to-previous">
-        <a href="@uk.gov.hmrc.gform.controllers.routes.FormController.newForm(formTemplateId4Ga, lang)" >Back</a>
+        <a href="@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplateId4Ga, lang)" >Back</a>
     </p>
 </form>
 }

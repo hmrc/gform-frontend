@@ -42,7 +42,7 @@ trait Spec
     with PropertyChecks
     with ExampleData {
 
-  override implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(500, Millis)), interval = scaled(Span(15, Millis)))
+  override implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 }

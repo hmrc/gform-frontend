@@ -5,17 +5,33 @@
 @import uk.gov.hmrc.gform.summary.SummaryForRender
 @import views.html.helper.CSRF
 @import scala.concurrent.ExecutionContext
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
 
-@(formTemplate: FormTemplate, summary: SummaryForRender, formId: FormId, formCategory: FormCategory, lang: Option[String])(implicit request: Request[_], messages: Messages, ec: ExecutionContext)
+@(
+    formTemplate: FormTemplate,
+    summary: SummaryForRender,
+    formId: FormId,
+    formCategory: FormCategory,
+    lang: Option[String],
+    frontendAppConfig: FrontendAppConfig
+)(implicit request: Request[_],
+        messages: Messages,
+        ec: ExecutionContext
+)
 
-@uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None, mainClass = Some("full-width")) {
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = localisation(formTemplate.formName),
+    bodyClasses = None,
+    mainClass = Some("full-width"),
+    frontendAppConfig = frontendAppConfig
+) {
     <h1 class="h1-heading">Check your answers</h1>
 
     <p>
       Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
 
-    <form action="@uk.gov.hmrc.gform.controllers.routes.SummaryController.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
 
         @{
             CSRF.formField
@@ -34,7 +50,7 @@
           <p>You can print this summary page then come back later to complete your submission.</p>
 
           <p>
-            <a href="@uk.gov.hmrc.gform.controllers.routes.SummaryController.downloadPDF(formId, formTemplate._id, lang).url" class="print-link print-hidden js-visible">Print this summary page</a>
+            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formId, formTemplate._id, lang).url" class="print-link print-hidden js-visible">Print this summary page</a>
           </p>
         </div>
 

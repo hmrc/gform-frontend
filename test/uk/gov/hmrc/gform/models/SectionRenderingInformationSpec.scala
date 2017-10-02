@@ -23,10 +23,10 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.connectors.SessionCacheConnector
+import uk.gov.hmrc.gform.keystore.SessionCacheConnector
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.prepop.PrepopService
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.gform.PrepopService
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier

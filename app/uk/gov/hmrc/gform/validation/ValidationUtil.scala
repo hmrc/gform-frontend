@@ -194,7 +194,7 @@ object ValidationUtil {
     def getError(fieldValue: FormComponent, defaultMessage: String): Validated[Map[FormComponentId, Set[String]], Nothing] = Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
 
     val flakies: Seq[ValidatedType] = e.files.collect {
-      case f @ File(_, s @ Quarantined, _) =>
+      case f @ File(_, Quarantined, _) =>
         //not processed (scanned by virus scanner) files are in quarantined state
         (f, "File has not been processed, please wait and try again")
       case f @ File(_, s: Other, _) =>

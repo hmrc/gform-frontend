@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.auth.core.authorise.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.prepop.AuthContextPrepop
+import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class AuthService {

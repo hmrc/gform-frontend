@@ -20,10 +20,12 @@ import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, RepeatingGroup }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
@@ -46,14 +48,15 @@ object SummaryRenderingService {
     formId: FormId,
     repeatService: RepeatingComponentService,
     envelope: Envelope,
-    lang: Option[String]
+    lang: Option[String],
+    frontendAppConfig: FrontendAppConfig
   )(implicit
     request: Request[_],
     messages: Messages,
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Html] = {
     summaryForRender(validatedType, formFields, formId, formTemplate, repeatService, envelope, lang)
-      .map(s => summary(formTemplate, s, formId, formTemplate.formCategory.getOrElse(Default), lang))
+      .map(s => summary(formTemplate, s, formId, formTemplate.formCategory.getOrElse(Default), lang, frontendAppConfig))
   }
 
   def summaryForRender(

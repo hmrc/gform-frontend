@@ -50,7 +50,7 @@ object DateHelperFunctions {
 
       val dateWithOffset = LocalDate
         .parse(dateExprToString(dateExpr), dateFormatter)
-        .plusDays(nonZero)
+        .plusDays(nonZero.toLong)
 
       convertToDateExpr(dateWithOffset)
   }

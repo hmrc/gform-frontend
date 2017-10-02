@@ -16,14 +16,20 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import javax.inject.Inject
-
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.controllers.ControllersModule
+import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class FileUploadModule @Inject() (wSHttpModule: WSHttpModule, configModule: ConfigModule) {
+class FileUploadModule(wSHttpModule: WSHttpModule, configModule: ConfigModule, controllersModule: ControllersModule, gformBackendModule: GformBackendModule) {
 
   val fileUploadService = new FileUploadService(fileUploadConnector)
+
+  val fileUploadController = new FileUploadController(
+    fileUploadService,
+    controllersModule.authenticatedRequestActions,
+    gformBackendModule.gformConnector
+  )
 
   private lazy val fileUploadBaseUrl = {
     val baseUrl = configModule.serviceConfig.baseUrl("file-upload")

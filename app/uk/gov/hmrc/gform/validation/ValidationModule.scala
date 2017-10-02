@@ -20,13 +20,17 @@ import javax.inject.Inject
 
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.keystore.KeystoreModule
 
-class ValidationModule @Inject() (
+class ValidationModule(
     fileUploadModule: FileUploadModule,
     gformBackendModule: GformBackendModule,
-    repeatService: RepeatingComponentService
+    keystoreModule: KeystoreModule
 ) {
 
-  val validationService = new ValidationService(fileUploadModule.fileUploadService, gformBackendModule.gformConnector, repeatService)
+  val validationService = new ValidationService(
+    fileUploadModule.fileUploadService,
+    gformBackendModule.gformConnector,
+    keystoreModule.repeatingComponentService
+  )
 }

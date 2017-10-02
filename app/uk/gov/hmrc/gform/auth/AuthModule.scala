@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModule) { self =>
+class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule) { self =>
 
   lazy val authConnector = new AuthConnector(
     configModule.serviceConfig.baseUrl("auth"),
@@ -35,7 +35,7 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
 
   private lazy val ggConnector = new GovernmentGatewayConnector(
     configModule.serviceConfig.baseUrl("gg"),
-    wSHttpModule.wSHttp
+    wSHttpModule.auditableWSHttp
   )
 
   private lazy val taxEnrolmentsConnector = new TaxEnrolmentsConnector(
@@ -43,7 +43,7 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
     wSHttpModule.auditableWSHttp
   )
 
-  lazy val enrolmentService = new EnrolmentService(
+  val enrolmentService: EnrolmentService = new EnrolmentService(
     configModule.serviceConfig.getConfBool("enrolment-service.use-tax-enrolments", false),
     configModule.serviceConfig.getConfString("gg.enrol.portalId", ""),
     ggConnector,
@@ -52,5 +52,5 @@ class AuthModule @Inject() (configModule: ConfigModule, wSHttpModule: WSHttpModu
 
   lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule)
 
-  lazy val authService = new AuthService
+  lazy val authService: AuthService = new AuthService
 }

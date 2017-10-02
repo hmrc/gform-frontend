@@ -22,14 +22,11 @@ import play.api.DefaultApplication
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class PdfGeneratorModule @Inject() (
+class PdfGeneratorModule(
     configModule: ConfigModule,
-    wSHttpModule: WSHttpModule,
-    defaultApplication: DefaultApplication
+    wSHttpModule: WSHttpModule
 ) {
 
-  val pdfGeneratorConnector = new PdfGeneratorConnector(configModule.serviceConfig, wSHttpModule.auditableWSHttp)
-
-  val pdfGeneratorService = new PdfGeneratorService(pdfGeneratorConnector, defaultApplication)
-
+  private val pdfGeneratorConnector = new PdfGeneratorConnector(configModule.serviceConfig, wSHttpModule.auditableWSHttp)
+  val pdfGeneratorService: PdfGeneratorService = new PdfGeneratorService(pdfGeneratorConnector)
 }

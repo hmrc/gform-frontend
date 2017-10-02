@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AnyText, _ }
@@ -33,6 +34,7 @@ trait ExampleData
   with ExampleSectionNumber
   with ExampleForm
   with ExampleAuthConfig
+  with ExampleFrontendAppConfig
 
 trait ExampleAuthConfig {
 
@@ -288,4 +290,18 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     InProgress
   )
 
+}
+
+trait ExampleFrontendAppConfig {
+
+  val frontendAppConfig = FrontendAppConfig(
+    assetsPrefix = "assetsPrefix",
+    analyticsToken = "analyticsToken",
+    analyticsHost = "analyticsHost",
+    reportAProblemPartialUrl = "http://reportProblem.url",
+    reportAProblemNonJSUrl = "http://reportProblem.json.url",
+    governmentGatewaySignInUrl = "http://gofernment.gateway.signin.url",
+    gformFrontendBaseUrl = "gform.frontend.base.url",
+    betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth"
+  )
 }

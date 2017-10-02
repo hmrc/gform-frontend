@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.service
+package uk.gov.hmrc.gform.keystore
 
-import javax.inject.{ Inject, Singleton }
-
-import play.api.Logger
-import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.connectors.SessionCacheConnector
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.service.LabelHelper
+import uk.gov.hmrc.gform.sharedmodel.form.{ RepeatingGroup, RepeatingGroupStructure }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
 
+import scala.concurrent._
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.{ Success, Try }
 
-@Singleton
-class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnector, configModule: ConfigModule) {
+class RepeatingComponentService(
+    sessionCache: SessionCacheConnector,
+    configModule: ConfigModule
+) {
 
   def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
     sessionCache.fetch().flatMap { maybeCacheMap =>
@@ -402,20 +399,5 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
         )
       }
     }.toList
-  }
-}
-
-object LabelHelper {
-  def buildRepeatingLabel(field: FormComponent, index: Int) = {
-    if (field.label.contains("$n")) {
-      field.label.replace("$n", index.toString)
-    } else {
-      field.presentationHint.map(ph => "").orElse(Some(field.label)).get
-    }
-  }
-
-  def buildRepeatingLabel(text: Option[String], index: Int) = text match {
-    case Some(txt) if text.get.contains("$n") => Some(txt.replace("$n", index.toString))
-    case _ => text
   }
 }

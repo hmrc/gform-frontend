@@ -1,4 +1,12 @@
-@(pageTitle: String, heading: String, message: String)(implicit request: Request[_], messages: Messages)
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+
+@(
+  pageTitle: String,
+  heading: String,
+  message: String,
+  frontendAppConfig: FrontendAppConfig
+)(implicit messages: Messages)
+
 
 @contentHeader = {
   <h1>@heading</h1>
@@ -8,4 +16,4 @@
   <p>@message</p>
 }
 
-@govuk_wrapper(appConfig = uk.gov.hmrc.gform.FrontendAppConfig, title = pageTitle, contentHeader = Some(contentHeader), mainContent = mainContent)
+@govuk_wrapper(appConfig = frontendAppConfig, title = pageTitle, contentHeader = Some(contentHeader), mainContent = mainContent)
