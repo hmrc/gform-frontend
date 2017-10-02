@@ -157,7 +157,7 @@ class AuthenticatedRequestActions(
           idx = whiteListing(userDetails, authProviderId)
           retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
         } yield {
-          Logger.info(s"Passed successful through white listing: $idx user")
+          Logger.info(s"Passed successful through white listing: $idx user index")
           GGAuthSuccessful(retrievals)
         }
     }.recover(handleErrorCondition(request, authConfig))
