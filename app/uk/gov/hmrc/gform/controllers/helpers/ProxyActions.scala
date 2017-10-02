@@ -30,8 +30,7 @@ import uk.gov.hmrc.play.http.logging.{ LoggingDetails, MdcLoggingExecutionContex
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-@Singleton
-class ProxyActions @Inject() (wsClient: WSClient) {
+class ProxyActions(wsClient: WSClient) {
 
   /**
    * This creates actions which proxies incoming request to remote service.
@@ -72,7 +71,7 @@ class ProxyActions @Inject() (wsClient: WSClient) {
   )
 
   private def processHeaders(inboundHeaders: Headers, extraHeaders: Seq[(String, String)]): Seq[(String, String)] = {
-    inboundHeaders.toSimpleMap.filter(headerKeyValue => !headerKeyValue._1.equals("Host")) ++ extraHeaders.toMap toSeq
+    (inboundHeaders.toSimpleMap.filter(headerKeyValue => !headerKeyValue._1.equals("Host")) ++ extraHeaders.toMap).toSeq
   }
 
   private def streamedBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser { _ => Accumulator.source[ByteString].map(Right.apply) }

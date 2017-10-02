@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.connectors.SessionCacheConnector
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.keystore.{ RepeatingComponentService, SessionCacheConnector }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -37,7 +36,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`))
 
-    val testSessionCacheConnector = new SessionCacheConnector {
+    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(None)
     }
 
@@ -50,7 +49,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, `repeating section`))
 
-    val testSessionCacheConnector = new SessionCacheConnector {
+    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(None)
     }
 
@@ -88,7 +87,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val jsValue = Json.toJson(RepeatingGroup(List(List(`fieldValue - firstName`), List(`fieldValue - firstName`.copy(id = FormComponentId(s"1_${`fieldId - firstName`}")))), true))
     val mockCache = CacheMap("YEAH_MAN", Map("GroupFieldValueId" -> jsValue))
-    val testSessionCacheConnector = new SessionCacheConnector {
+    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(Some(mockCache))
     }
 
@@ -111,7 +110,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val jsValue = Json.toJson(List(List(`fieldValue - firstName`)))
     val mockCache = CacheMap("YEAH_MAN", Map("GroupFieldValueId" -> jsValue))
-    val testSessionCacheConnector = new SessionCacheConnector {
+    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(Some(mockCache))
     }
 
@@ -133,7 +132,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     )
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, thisSection2))
 
-    val testSessionCacheConnector = new SessionCacheConnector {
+    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
       override def fetch()(implicit hc: HeaderCarrier): Future[Option[CacheMap]] = Future.successful(None)
     }
 

@@ -16,30 +16,9 @@
 
 package uk.gov.hmrc.gform.config
 
+import com.typesafe.config.{ Config => TypeSafeConfig }
 import pureconfig._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
-import uk.gov.hmrc.play.config.ServicesConfig
-
-class ConfigModule {
-  lazy val appConfig: AppConfig = AppConfig.loadOrThrow()
-
-  private[ConfigModule] case class WhiteListedUsers(users: String)
-  lazy val users: List[String] = loadConfigOrThrow[WhiteListedUsers]("whitelisting").users.split(",").toList
-
-  private[ConfigModule] case class TimeOut(int: Int)
-  lazy val timeOut: Int = loadConfigOrThrow[TimeOut]("future.timeout").int
-
-  lazy val serviceConfig: ServicesConfig = {
-
-    val c = new ServicesConfig {}
-    //ensure eagerly that all configs are in place (below will eagerly throw exception if some of the config are missing)
-    c.baseUrl("gform")
-    c.baseUrl("auth")
-    c.baseUrl("eeitt")
-    c.baseUrl("email")
-    c
-  }
-}
 
 case class AppConfig(
     appName: String,
@@ -53,20 +32,6 @@ case class AppConfig(
 ) {
   def contentTypes: List[ContentType] = contentTypesSeparatedByPipe.split('|').toList.map(ContentType.apply)
 }
-
-case class GoogleAnalytics(
-  token: String,
-  host: String
-)
-
-case class Assets(
-  version: String,
-  url: String
-)
-
-case class FeatureToggle(emailEnabled: Boolean)
-
-case class ContactFrontend(host: String)
 
 object AppConfig {
 
@@ -83,3 +48,10 @@ object AppConfig {
 
   class AppConfigException(message: String) extends IllegalArgumentException(message)
 }
+
+case class GoogleAnalytics(
+  token: String,
+  host: String
+)
+
+case class FeatureToggle(emailEnabled: Boolean)

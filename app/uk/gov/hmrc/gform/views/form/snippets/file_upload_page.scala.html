@@ -2,8 +2,9 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.views.html._
-@import uk.gov.hmrc.gform.controllers.routes
+@import uk.gov.hmrc.gform.gform.routes
 @import views.html.helper.CSRF
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
 
 
 @(
@@ -13,10 +14,17 @@
         formTemplate: FormTemplate,
         actionUrl: String,
         totalSections: Int,
-        lang : Option[String]
-)(implicit request: Request[_], messages: Messages)
+        lang : Option[String],
+        frontendAppConfig: FrontendAppConfig
+)(
+        implicit
+        messages: Messages
+)
 
-@uk.gov.hmrc.gform.views.html.main_template(title = localisation(formTemplate.formName), bodyClasses = None) {
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = localisation(formTemplate.formName),
+    frontendAppConfig = frontendAppConfig
+) {
     <h1 class="h1-heading">Upload document</h1>
 
     <form

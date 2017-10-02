@@ -14,46 +14,47 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
-
-import javax.inject.{ Inject, Singleton }
+package uk.gov.hmrc.gform.gform
 
 import cats._
 import cats.implicits._
+import play.api.i18n.I18nSupport
+import play.api.mvc.{ Action, AnyContent, Request }
 import play.api.http.HttpEntity
 import play.api.mvc._
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadModule }
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.service.RepeatingComponentService
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.summary.SummaryForRender
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
+import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-@Singleton
-class SummaryController @Inject() (
-  controllersModule: ControllersModule,
-  repeatService: RepeatingComponentService,
-  fileUploadModule: FileUploadModule,
-  validationModule: ValidationModule,
-  pdfGeneratorModule: PdfGeneratorModule,
-  gformBackendModule: GformBackendModule
-)(implicit ec: ExecutionContext)
-    extends FrontendController {
+class SummaryController(
+    i18nSupport: I18nSupport,
+    auth: AuthenticatedRequestActions,
+    repeatService: RepeatingComponentService,
+    fileUploadService: FileUploadService,
+    validationService: ValidationService,
+    pdfService: PdfGeneratorService,
+    gformConnector: GformConnector,
+    frontendAppConfig: FrontendAppConfig
+) extends FrontendController {
 
-  import controllersModule.i18nSupport._
+  import i18nSupport._
 
   def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
@@ -92,7 +93,7 @@ class SummaryController @Inject() (
 
       get(data, FormComponentId("save")) match {
         // format: OFF
-        case "Exit" :: Nil        => Ok(save_acknowledgement(formId, formTemplateId4Ga, totalPage, lang)).pure[Future]
+        case "Exit" :: Nil        => Ok(save_acknowledgement(formId, formTemplateId4Ga, totalPage, lang, frontendAppConfig)).pure[Future]
         case "Declaration" :: Nil => handleDeclaration
         case _                    => BadRequest("Cannot determine action").pure[Future]
         // format: ON
@@ -142,13 +143,7 @@ class SummaryController @Inject() (
     for {
       envelope          <- envelopeF
       (v, _)            <- validateForm(cache, envelope)
-      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, formId, repeatService, envelope, lang)
+      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, formId, repeatService, envelope, lang, frontendAppConfig)
     } yield result
   }
-
-  private lazy val fileUploadService = fileUploadModule.fileUploadService
-  private lazy val auth = controllersModule.authenticatedRequestActions
-  private lazy val validationService = validationModule.validationService
-  private lazy val pdfService = pdfGeneratorModule.pdfGeneratorService
-  private lazy val gformConnector = gformBackendModule.gformConnector
 }

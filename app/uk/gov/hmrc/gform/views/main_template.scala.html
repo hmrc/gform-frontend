@@ -1,9 +1,13 @@
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+
 @(title: String,
   sidebarLinks: Option[Html] = None,
   contentHeader: Option[Html] = None,
   bodyClasses: Option[String] = None,
   mainClass: Option[String] = None,
-  scriptElem: Option[Html] = None)(mainContent: Html)(implicit request : Request[_], messagesApi: Messages)
+  scriptElem: Option[Html] = None,
+  frontendAppConfig: FrontendAppConfig
+)(mainContent: Html)(implicit messagesApi: Messages)
 
 @import uk.gov.hmrc.play.views.html.layouts
 
@@ -16,8 +20,7 @@
     }
 }
 
-
-@govuk_wrapper(appConfig = uk.gov.hmrc.gform.FrontendAppConfig,
+@govuk_wrapper(appConfig = frontendAppConfig,
                title = title,
                mainClass = mainClass,
                bodyClasses = bodyClasses,

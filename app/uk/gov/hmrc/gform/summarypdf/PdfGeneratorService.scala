@@ -18,16 +18,15 @@ package uk.gov.hmrc.gform.summarypdf
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.Logger
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Node
-import play.api.Application
 import play.mvc.Http.{ HeaderNames, MimeTypes }
 import play.twirl.api.Html
 import uk.gov.hmrc.play.http.HeaderCarrier
+
 import scala.concurrent.Future
 
-class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, application: Application) {
+class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
 
   def generatePDF(html: String)(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
@@ -45,22 +44,9 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, applicat
     doc.getElementsByClass("footer-wrapper").remove()
     doc.getElementById("global-cookie-message").remove()
     doc.getElementsByClass("print-hidden").remove()
-    doc.getElementsByTag("head").append(s"<style>$getCss</style>")
+    doc.getElementsByTag("head").append(s"<style>${PdfGeneratorService.css}</style>")
 
     doc.html
-  }
-
-  private def getCss: String = {
-    // TODO: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
-    application.resourceAsStream("public/stylesheets/reduced-application.min.css") match {
-      case None =>
-        Logger.debug("HTML for PDF generation error: \"public/stylesheets/reduced-application.min.css\" could not be found")
-        ""
-      case Some(inputStream) =>
-        val result = scala.io.Source.fromInputStream(inputStream).getLines.mkString
-        inputStream.close()
-        result
-    }
   }
 
   private def removeComments(node: Node): Unit = {
@@ -75,4 +61,13 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector, applicat
       }
     }
   }
+}
+
+object PdfGeneratorService {
+  // TODO TDC: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
+  lazy val css: String = {
+    val is = getClass.getResourceAsStream("/reduced-application.min.css")
+    scala.io.Source.fromInputStream(is).getLines.mkString
+  }
+
 }

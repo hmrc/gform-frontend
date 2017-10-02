@@ -14,45 +14,48 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
+package uk.gov.hmrc.gform
+package controllers
 
-import play.api.http.HeaderNames
 import play.api.Logger
+import play.api.http.HeaderNames
+import play.api.i18n.I18nSupport
 import play.api.mvc.Results._
 import play.api.mvc._
-import play.api.i18n.I18nSupport
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, LegacyCredentials, Retrievals, ~ }
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, OneTimeLogin, PAClientId, VerifyPid }
 import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
+import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.auth.{ AuthModule, EeittAuthorisationFailed, EeittAuthorisationSuccessful }
-import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+import uk.gov.hmrc.gform.gform.{ routes => gformRoutes }
+import gform.auth.models.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid, Retrievals => cRetrievals }
 
 import scala.concurrent.Future
 
 class AuthenticatedRequestActions(
     gformConnector: GformConnector,
-    authMod: AuthModule,
-    configModule: ConfigModule,
-    whiteListUser: List[String],
+    appConfig: AppConfig,
+    frontendAppConfig: FrontendAppConfig,
+    val authConnector: AuthConnector,
+    eeittDelegate: EeittAuthorisationDelegate,
+    whiteListedUsers: List[String],
     i18nSupport: I18nSupport
 ) extends AuthorisedFunctions {
 
   import i18nSupport._
-  val authConnector = authMod.authConnector
-  val eeittDelegate = authMod.eeittAuthorisationDelegate
+
   // format: OFF
-  val defaultRetrievals = Retrievals.authProviderId     and Retrievals.allEnrolments  and
-                          Retrievals.affinityGroup      and Retrievals.internalId     and
-                          Retrievals.externalId         and Retrievals.userDetailsUri and
-                          Retrievals.credentialStrength and Retrievals.agentCode
+  val defaultRetrievals = cRetrievals.authProviderId     and cRetrievals.allEnrolments  and
+                          cRetrievals.affinityGroup      and cRetrievals.internalId     and
+                          cRetrievals.externalId         and cRetrievals.userDetailsUri and
+                          cRetrievals.credentialStrength and cRetrievals.agentCode
   // format: ON
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
@@ -65,7 +68,14 @@ class AuthenticatedRequestActions(
       newRequest   = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
         case GGAuthSuccessful(retrievals) => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
-        case AuthenticationWhiteListFailed => Future.successful(Ok(uk.gov.hmrc.gform.views.html.error_template("Non WhiteListed User", "Non WhiteListed User", "You are not authorised to access this form, if you believe you need access talk too: barry.johnson@hmrc.gsi.gov.uk or rob.lees@hmrc.gsi.gov.uk")))
+        case AuthenticationWhiteListFailed => Future.successful(Ok(
+          views.html.error_template(
+            pageTitle = "Non WhiteListed User",
+            heading = "Non WhiteListed User",
+            message = "You are not authorised to access this form, if you believe you need access talk too: barry.johnson@hmrc.gsi.gov.uk or rob.lees@hmrc.gsi.gov.uk",
+            frontendAppConfig = frontendAppConfig
+          )
+        ))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -81,7 +91,7 @@ class AuthenticatedRequestActions(
       newRequest    = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
         case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate)))
-        case AuthenticationWhiteListFailed => Future.successful(Ok(uk.gov.hmrc.gform.views.html.error_template("Non WhiteListed User", "Non WhiteListed User", "Non WhiteListed User")))
+        case AuthenticationWhiteListFailed => Future.successful(Ok(uk.gov.hmrc.gform.views.html.error_template("Non WhiteListed User", "Non WhiteListed User", "Non WhiteListed User", frontendAppConfig)))
         case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
       }
     } yield result
@@ -92,7 +102,7 @@ class AuthenticatedRequestActions(
     result match {
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
-      case EnrolmentRequired => Future.successful(Redirect(routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
+      case EnrolmentRequired => Future.successful(Redirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
   }
@@ -150,6 +160,8 @@ class AuthenticatedRequestActions(
   }
 
   private def ggAuthorised(predicate: Predicate, authConfig: AuthConfig, isNewForm: Boolean)(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
+    import uk.gov.hmrc.auth.core.retrieve._
+
     authorised(predicate).retrieve(defaultRetrievals) {
       case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
         for {
@@ -193,8 +205,8 @@ class AuthenticatedRequestActions(
     }
     case _: NoActiveSession =>
       Logger.debug("No Active Session")
-      val continueUrl = java.net.URLEncoder.encode(configModule.appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
-      val ggLoginUrl = configModule.appConfig.`government-gateway-sign-in-url`
+      val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
+      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
       val url = s"${ggLoginUrl}?continue=${continueUrl}"
       AuthenticationFailed(url)
     case x: WhiteListException =>

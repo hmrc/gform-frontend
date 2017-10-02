@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers.testonly
-
-import javax.inject._
+package uk.gov.hmrc.gform.testonly
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
-import uk.gov.hmrc.gform.gformbackend.{ GformBackendModule, GformConnector }
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
-@Singleton
-class TestOnly @Inject() (
+class TestOnlyController(
     proxy: ProxyActions,
-    gformBackendModule: GformBackendModule
+    gformConnector: GformConnector
 ) extends FrontendController with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
@@ -51,7 +47,6 @@ class TestOnly @Inject() (
     gformConnector.getForm(formId).map(form => Ok(form.envelopeId.value))
   }
 
-  private lazy val gformConnector: GformConnector = gformBackendModule.gformConnector
   private lazy val gformBaseUrl = baseUrl("gform")
   private lazy val fileUploadBaseUrl = baseUrl("file-upload")
 }

@@ -14,48 +14,46 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform
-package controllers
+package uk.gov.hmrc.gform.gform
 
-import javax.inject.Inject
-
-import play.Logger
 import cats.implicits._
+import play.Logger
+import play.api.i18n.I18nSupport
 import play.api.mvc._
-import uk.gov.hmrc.gform.auth.AuthModule
-import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.helpers._
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.prepop.PrepopModule
-import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
+import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationModule, ValidationUtil }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
+import uk.gov.hmrc.gform.views
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-class FormController @Inject() (
-    controllersModule: ControllersModule,
-    gformBackendModule: GformBackendModule,
-    configModule: ConfigModule,
+class FormController(
+    appConfig: AppConfig,
+    frontendAppConfig: FrontendAppConfig,
+    i18nSupport: I18nSupport,
+    auth: AuthenticatedRequestActions,
     repeatService: RepeatingComponentService,
-    fileUploadModule: FileUploadModule,
-    authModule: AuthModule,
-    validationModule: ValidationModule,
-    prePopModule: PrepopModule,
-    renderer: SectionRenderingService
+    fileUploadService: FileUploadService,
+    validationService: ValidationService,
+    renderer: SectionRenderingService,
+    gformConnector: GformConnector
 ) extends FrontendController {
 
-  import controllersModule.i18nSupport._
+  import i18nSupport._
 
-  def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = authentication.async(formTemplateId) { implicit request => cache =>
+  def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) { implicit request => cache =>
     result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier), lang)
 
   }
@@ -80,14 +78,14 @@ class FormController @Inject() (
       (form, wasFormFound) <- getOrStartForm(formTemplate._id, userId)
     } yield {
       if (wasFormFound) {
-        Ok(continue_form_page(formTemplate._id, form._id, lang))
+        Ok(continue_form_page(formTemplate._id, form._id, lang, frontendAppConfig))
       } else {
         Redirect(routes.FormController.form(form._id, formTemplate._id, SectionNumber.firstSection, formTemplate.sections.size, lang))
       }
     }
   }
 
-  def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+  def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     // TODO: Handle cases when the form is no longer marked as InProgress
     val fieldData = FormDataHelpers.formDataMap(cache.form.formData)
 
@@ -101,7 +99,7 @@ class FormController @Inject() (
     } yield Ok(html)
   }
 
-  def formError(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalPage: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+  def formError(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalPage: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
 
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -120,7 +118,7 @@ class FormController @Inject() (
     } yield Ok(html)
   }
 
-  def fileUploadPage(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, fId: String, totalSection: Int, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+  def fileUploadPage(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, fId: String, totalSection: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     val fileId = FileId(fId)
 
     val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, totalSection, lang)
@@ -129,7 +127,7 @@ class FormController @Inject() (
     def actionUrl(envelopeId: EnvelopeId) = s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`}&redirect-error-url=${`redirect-error-url`}"
 
     Ok(
-      snippets.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection, lang)
+      snippets.file_upload_page(formId, sectionNumber, fileId, cache.formTemplate, actionUrl(cache.form.envelopeId), totalSection, lang, frontendAppConfig)
     ).pure[Future]
   }
 
@@ -137,22 +135,22 @@ class FormController @Inject() (
     "decision" -> play.api.data.Forms.nonEmptyText
   ))
 
-  def decision(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formId) { implicit request => cache =>
+  def decision(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     choice.bindFromRequest.fold(
-      _ => Future.successful(BadRequest(continue_form_page(formTemplateId, formId, lang))),
+      _ => Future.successful(BadRequest(continue_form_page(formTemplateId, formId, lang, frontendAppConfig))),
       {
         case "continue" => Future.successful(Redirect(routes.FormController.form(formId, formTemplateId, firstSection, cache.formTemplate.sections.size, lang))) //TODO get dyanmic sections in here ???
-        case "delete" => Future.successful(Ok(confirm_delete(formTemplateId, formId, lang)))
+        case "delete" => Future.successful(Ok(confirm_delete(formTemplateId, formId, lang, frontendAppConfig)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
       }
     )
   }
 
-  def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = authentication.async(formId) { implicit request => cache =>
+  def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
   }
 
-  def updateFormData(formId: FormId, sectionNumber: SectionNumber, lang: Option[String]) = authentication.async(formId) { implicit request => cache =>
+  def updateFormData(formId: FormId, sectionNumber: SectionNumber, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
 
     val envelopeF = for {
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -211,7 +209,7 @@ class FormController @Inject() (
           formData <- formDataF
           userData = UserData(formData, keystore, InProgress)
 
-          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size, lang)))
+          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size, lang, frontendAppConfig)))
         } yield result
       }
 
@@ -280,12 +278,7 @@ class FormController @Inject() (
     }
   }
 
-  private lazy val authentication = controllersModule.authenticatedRequestActions
-  private lazy val gformConnector = gformBackendModule.gformConnector
   private lazy val firstSection = SectionNumber(0)
-  private lazy val fileUploadService = fileUploadModule.fileUploadService
-  private lazy val validationService = validationModule.validationService
-  private lazy val appConfig = configModule.appConfig
-  private lazy val formMaxAttachmentSizeMB = configModule.appConfig.formMaxAttachmentSizeMB
-  private lazy val contentTypes = configModule.appConfig.contentTypes
+  private lazy val formMaxAttachmentSizeMB = appConfig.formMaxAttachmentSizeMB
+  private lazy val contentTypes = appConfig.contentTypes
 }

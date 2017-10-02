@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.auth
+package uk.gov.hmrc.gform
+package auth
 
+import play.api.i18n.I18nSupport
 import play.api.mvc.Action
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-object ErrorController extends FrontendController {
+class ErrorController(
+    frontendAppConfig: FrontendAppConfig,
+    i18nSupport: I18nSupport
+) extends FrontendController {
+
+  import i18nSupport._
 
   def insufficientEnrolments = Action.async { implicit request =>
     val pageTitle = request.flash.get("formTitle").getOrElse("")
     Future.successful(
-      Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.insufficient_enrolments(pageTitle))
+      Ok(views.html.hardcoded.pages.insufficient_enrolments(pageTitle, frontendAppConfig))
     )
   }
 }

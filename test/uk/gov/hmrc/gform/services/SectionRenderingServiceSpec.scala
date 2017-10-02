@@ -19,15 +19,14 @@ package uk.gov.hmrc.gform.services
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
-import uk.gov.hmrc.gform.service.{ RepeatingComponentService, SectionRenderingService }
+import uk.gov.hmrc.gform.gform.{ PrepopService, SectionRenderingService }
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
@@ -38,8 +37,8 @@ import scala.collection.JavaConverters
 import scala.collection.immutable.List
 import scala.concurrent.{ ExecutionContext, Future }
 
-class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
-  implicit val hc = HeaderCarrier()
+class SectionRenderingServiceSpec extends SpecWithFakeApp {
+
   implicit val request = {
     val fakeRequest = FakeRequest()
     fakeRequest.copyFakeRequest(tags = fakeRequest.tags + ("CSRF_TOKEN_NAME" -> "csrfToken") + ("CSRF_TOKEN" -> "o'ight mate?"))
@@ -50,10 +49,6 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
   val mockPrepopService = new PrepopService(null, null) {
     override def prepopData(expr: Expr, formTemplateId: FormTemplateId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] =
       Future.successful("")
-  }
-
-  val mockPrepopModule = new PrepopModule(mock[ConfigModule], mock[WSHttpModule]) {
-    override lazy val prepopService = mockPrepopService
   }
 
   val mockRepeatService = new RepeatingComponentService(null, null) {
@@ -74,7 +69,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
     }
   }
 
-  val testService = new SectionRenderingService(mockRepeatService, mockPrepopModule)
+  val testService = new SectionRenderingService(mockRepeatService, mockPrepopService, frontendAppConfig)
 
   "SectionRenderingService" should "generate first page" in {
     val generatedHtml = testService
@@ -292,7 +287,7 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
       }
     }
 
-    val thisTestService = new SectionRenderingService(mock2RepeatService, mockPrepopModule)
+    val thisTestService = new SectionRenderingService(mock2RepeatService, mockPrepopService, frontendAppConfig)
 
     override def `group - type` = Group(
       fields = List(`fieldValue - firstName`),

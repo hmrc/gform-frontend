@@ -1,6 +1,8 @@
-# Add all the application routes to the app.routes file
-->         /submissions            app.Routes
-->         /                       health.Routes
-->         /template               template.Routes
+->         /submissions                  app.Routes
 
-GET        /admin/metrics          @com.kenshoo.play.metrics.MetricsController.metrics
+GET        /template/assets/*file        controllers.template.Template.at(path="/public-assets", file)
+
+GET        /ping/ping                    uk.gov.hmrc.play.health.AdminController.ping
+GET        /admin/details                uk.gov.hmrc.play.health.AdminController.details
+
+GET        /admin/metrics                com.kenshoo.play.metrics.MetricsController.metrics

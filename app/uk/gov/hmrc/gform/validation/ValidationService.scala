@@ -28,8 +28,8 @@ import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import ValidationUtil.{ ValidatedType, _ }
 import play.api.Logger
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -95,7 +95,6 @@ class ValidationService(
           .map(getValidated(_, Map(accountNumber.toFieldId -> Set(errorMessage), sortCode.toFieldId -> Set(errorMessage))))
     }
   }
-
 }
 
 class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {
@@ -138,7 +137,7 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
   }
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date)(data: Map[FormComponentId, Seq[String]]): ValidatedType = {
-    val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) => localDate.plusDays(offset.value)
+    val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) => localDate.plusDays(offset.value.toLong)
     date.constraintType match {
       case AnyDate => validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => ().valid)
       case DateConstraints(dateConstraintList) =>
@@ -464,13 +463,13 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
     }
   }
 
-  def isAfterToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean = date.isAfter(now.apply().plusDays(offset.value))
+  def isAfterToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean = date.isAfter(now.apply().plusDays(offset.value.toLong))
 
-  def isAfterConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean = date.isAfter(concreteDay.plusDays(offset.value))
+  def isAfterConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean = date.isAfter(concreteDay.plusDays(offset.value.toLong))
 
-  def isBeforeToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean = date.isBefore(now.apply().plusDays(offset.value))
+  def isBeforeToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean = date.isBefore(now.apply().plusDays(offset.value.toLong))
 
-  def isBeforeConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean = date.isBefore(concreteDay.plusDays(offset.value))
+  def isBeforeConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean = date.isBefore(concreteDay.plusDays(offset.value.toLong))
 
   def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedLocalDate = {
     Try(LocalDate.of(concreteDate.year, concreteDate.month, concreteDate.day)) match {

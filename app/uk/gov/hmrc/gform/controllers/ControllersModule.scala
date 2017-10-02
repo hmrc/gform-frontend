@@ -16,26 +16,27 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import javax.inject.Inject
-
-import play.api.i18n.{ I18nSupport, MessagesApi }
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, I18nSupport, MessagesApi }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
-class ControllersModule @Inject() (
-    messagesApi: MessagesApi,
+class ControllersModule(
     configModule: ConfigModule,
     authModule: AuthModule,
-    gformBackendModule: GformBackendModule
+    gformBackendModule: GformBackendModule,
+    playBuiltInsModule: PlayBuiltInsModule
 ) {
-  self =>
 
-  //Instead of extending trait inject it and explicitly import it's implicits
-  val i18nSupport: I18nSupport = new I18nSupport {
-    override def messagesApi: MessagesApi = self.messagesApi
-  }
+  val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
+    gformBackendModule.gformConnector,
+    configModule.appConfig,
+    configModule.frontendAppConfig,
+    authModule.authConnector,
+    authModule.eeittAuthorisationDelegate,
+    configModule.whiteListedUsers,
+    playBuiltInsModule.i18nSupport
+  )
 
-  val authenticatedRequestActions = new AuthenticatedRequestActions(gformBackendModule.gformConnector, authModule, configModule, configModule.users, i18nSupport)
 }
-

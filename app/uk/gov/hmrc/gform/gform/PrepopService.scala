@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.prepop
+package uk.gov.hmrc.gform.gform
 
 import play.api.Logger
 import uk.gov.hmrc.auth.core.retrieve.GGCredId

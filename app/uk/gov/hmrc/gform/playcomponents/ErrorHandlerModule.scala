@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.prepop
+package uk.gov.hmrc.gform.playcomponents
 
-import javax.inject.Inject
+import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class PrepopModule @Inject() (
+class ErrorHandlerModule(
     configModule: ConfigModule,
-    wSHttpModule: WSHttpModule
+    auditingModule: AuditingModule,
+    playBuiltInsModule: PlayBuiltInsModule
 ) {
 
-  lazy val prepopService = new PrepopService(eeittConnector, authContextPrepop)
-
-  /********************* private *********************/
-
-  private val authContextPrepop = new AuthContextPrepop
-
-  private lazy val eeittConnector = new EeittConnector(
-    configModule.serviceConfig.baseUrl("eeitt"),
-    wSHttpModule.auditableWSHttp
+  val errorHandler: ErrorHandler = new ErrorHandler(
+    configModule.frontendAppConfig,
+    auditingModule.auditConnector,
+    auditingModule.httpAuditingService,
+    playBuiltInsModule.context.environment,
+    playBuiltInsModule.context.initialConfiguration,
+    playBuiltInsModule.context.sourceMapper,
+    playBuiltInsModule.i18nSupport
   )
+
 }

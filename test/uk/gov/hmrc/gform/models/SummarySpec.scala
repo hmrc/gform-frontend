@@ -21,18 +21,15 @@ import cats.data.Validated.Valid
 import org.jsoup.Jsoup
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.gform.routes
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Extractors._
-import uk.gov.hmrc.gform.models.helpers.Fields.getValidationResult
-import uk.gov.hmrc.gform.service.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.gform.controllers.routes
 
 import scala.collection.immutable.List
 import scala.concurrent.{ ExecutionContext, Future }
@@ -370,7 +367,7 @@ class SummarySpec extends Spec {
     val htmlAheadOfSection2 = htmls(3)
     val doc = Jsoup.parse(htmlAheadOfSection2.toString)
     val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
-    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.controllers.routes.FormController.form(formId, formTemplate._id, SectionNumber(2), 3, None).url
+    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id, SectionNumber(2), 3, None).url
   }
 }
 

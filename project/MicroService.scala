@@ -34,13 +34,24 @@ trait MicroService {
     .settings(
       libraryDependencies ++= appDependencies,
       evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
-      routesGenerator := StaticRoutesGenerator,
       routesImport ++= Seq(
         "uk.gov.hmrc.gform.binders.ValueClassBinder._",
         "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
         "uk.gov.hmrc.gform.sharedmodel.form._",
         "uk.gov.hmrc.gform.models._"
       )
+//TODO enable it and fix errors in code!!!
+//      scalacOptions ++= Seq(
+//        "-Xfatal-warnings",
+//        "-Xlint:-missing-interpolator,_",
+//        "-Yno-adapted-args",
+//        "-Ywarn-numeric-widen",
+//        "-Ywarn-value-discard",
+//        "-Ywarn-dead-code",
+//        "-deprecation",
+//        "-feature",
+//        "-unchecked"
+//      )
     )
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)

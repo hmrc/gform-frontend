@@ -14,42 +14,40 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.controllers
+package uk.gov.hmrc.gform.gform
 
 import java.time.format.DateTimeFormatter
-import javax.inject.{ Inject, Singleton }
 
 import org.jsoup.Jsoup
 import play.api.http.HttpEntity
+import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
-import uk.gov.hmrc.auth.core.authorise.AffinityGroup
-import uk.gov.hmrc.gform.auth.AuthModule
+import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.prepop.AuthContextPrepop
-import uk.gov.hmrc.gform.service.SectionRenderingService
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Signed, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
+import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
-@Singleton
-class AcknowledgementController @Inject() (
-    controllersModule: ControllersModule,
+class AcknowledgementController(
+    i18nSupport: I18nSupport,
+    auth: AuthenticatedRequestActions,
+    pdfService: PdfGeneratorService,
     renderer: SectionRenderingService,
-    summaryController: SummaryController,
-    gformBackendModule: GformBackendModule,
-    authModule: AuthModule,
-    pdfGeneratorModule: PdfGeneratorModule,
+    summaryController: SummaryController, //TODO: does really one controller cannot exist without another one?
+    authService: AuthService,
+    gformConnector: GformConnector,
     nonRepudiationHelpers: NonRepudiationHelpers
 ) extends FrontendController {
 
-  import controllersModule.i18nSupport._
+  import i18nSupport._
 
   def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String) = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
@@ -79,10 +77,6 @@ class AcknowledgementController @Inject() (
       case _ => Future.successful(BadRequest)
     }
   }
-
-  private lazy val auth = controllersModule.authenticatedRequestActions
-  private lazy val pdfService = pdfGeneratorModule.pdfGeneratorService
-  private lazy val gformConnector = gformBackendModule.gformConnector
 
   private def addExtraDataToHTML(
     html: String,
@@ -135,6 +129,4 @@ class AcknowledgementController @Inject() (
     doc.select("article[class*=content__body]").append(extraData)
     doc.html
   }
-
-  private val authService = authModule.authService
 }

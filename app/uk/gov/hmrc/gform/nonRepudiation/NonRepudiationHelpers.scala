@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
-case class NonRepudiationHelpers @Inject() (auditModule: AuditingModule) {
+class NonRepudiationHelpers(auditModule: AuditingModule) {
 
   def formDataToJson(form: Form): String = Json.toJson(form.formData).toString()
 
