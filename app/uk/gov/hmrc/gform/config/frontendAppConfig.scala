@@ -57,7 +57,7 @@ object FrontendAppConfig extends AppConfig with ServicesConfig {
 
   override lazy val betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier"
 
-  override lazy val sessionCacheDomain: String = config.getString("cachable.session-cache.domain").getOrElse("")
+  override lazy val sessionCacheDomain: String = getConfString("cachable.session-cache.domain", throw new RuntimeException("missing cache domain name"))
   override lazy val sessionCacheBaseUri: String = baseUrl("cachable.session-cache")
 
 }
