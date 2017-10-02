@@ -341,7 +341,11 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
           Future.sequence((1 to groupList.size).map { count =>
             Future.sequence(groupList(count - 1).map(fv =>
               htmlFor(fv, formTemplateId4Ga, count, ei, ei.dynamicSections.size, validatedType, lang))).map { lhtml =>
-              html.form.snippets.group_element(fieldValue, groupField, lhtml, orientation, count, count == 1)
+              val showButton = {
+                groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
+                  groupList.size <= groupField.repeatsMin.getOrElse(1)
+              }
+              html.form.snippets.group_element(fieldValue, groupField, lhtml, orientation, count, showButton)
             }
           }.toList).map(a => (a, isLimit))
       }
