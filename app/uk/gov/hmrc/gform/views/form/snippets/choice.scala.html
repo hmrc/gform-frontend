@@ -58,15 +58,25 @@ sectionTitle: String
                     </label>
                 </div>
 
-                @if(optionHelpText.nonEmpty) {
+                @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
                     @if(optionHelpText(index).body.nonEmpty){
-                    <div id="helptext-@{fieldValue.id}@index" class="panel-indent js-hidden panel panel-info" aria-hidden="true">
+                    <div id="helptext-@{fieldValue.id}@index" class="panel panel-indent js-hidden" aria-hidden="true">
                         @Html(optionHelpText(index).body)
                     </div>
                     }
                   }
                 }
             </div>
+
+            @options.toList.zipWithIndex.map{ case (option, index) =>
+                @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("horizontal")) {
+                    @if(optionHelpText(index).body.nonEmpty){
+                    <div id="helptext-@{fieldValue.id}@index" class="panel panel-indent js-hidden" aria-hidden="true">
+                        @Html(optionHelpText(index).body)
+                    </div>
+                    }
+                }
+            }
         </fieldset>
     </div>
 </div>
