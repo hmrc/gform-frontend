@@ -51,14 +51,14 @@ class AcknowledgementController @Inject() (
 
   import controllersModule.i18nSupport._
 
-  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
+  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String) = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case Submitted => renderer.renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang).map(Ok(_))
+      case Submitted => renderer.renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang, eventId).map(Ok(_))
       case _ => Future.successful(BadRequest)
     }
   }
 
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
       case Submitted =>
         // format: OFF
@@ -66,7 +66,7 @@ class AcknowledgementController @Inject() (
           summaryHml  <- summaryController.getSummaryHTML(formId, cache, lang)
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
-          _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue)
+          _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
           submission  <- gformConnector.submissionStatus(formId)
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml)
           htmlForPDF  =  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue)

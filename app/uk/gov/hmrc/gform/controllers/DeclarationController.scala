@@ -72,8 +72,8 @@ class DeclarationController @Inject() (
               _ <- gformConnector.submitForm(formId, customerId)
               _ <- repeatService.clearSession
             } yield {
-              auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
-              Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId, formTemplateId4Ga, lang))
+              val submissionEventId = auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
+              Redirect(uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.showAcknowledgement(formId, formTemplateId4Ga, lang, submissionEventId))
             }
           case validationResult @ Invalid(_) =>
             val errorMap: List[(FormComponent, FormFieldValidationResult)] = getErrorMap(validationResult, data, cache.formTemplate)
