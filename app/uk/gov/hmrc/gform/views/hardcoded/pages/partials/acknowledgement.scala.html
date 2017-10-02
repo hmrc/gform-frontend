@@ -14,7 +14,7 @@
 @import uk.gov.hmrc.gform.models._
 
 @import views.html.helper.CSRF
-@(timeMessage: String, supportContents: SectionRenderingInformation, formCategory: FormCategory, formTemplate: FormTemplate, lang: Option[String])(implicit request: Request[_], messages: Messages)
+@(timeMessage: String, supportContents: SectionRenderingInformation, formCategory: FormCategory, formTemplate: FormTemplate, lang: Option[String], eventId: String)(implicit request: Request[_], messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(title = supportContents.sectionTitle, bodyClasses = None) {
 
@@ -28,7 +28,7 @@
 
 <p>
     <a
-      href="@uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang).url"
+      href="@uk.gov.hmrc.gform.controllers.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang, eventId).url"
       class="print-link print-hidden js-visible">
         Print your @{formCategory.getString}
     </a>

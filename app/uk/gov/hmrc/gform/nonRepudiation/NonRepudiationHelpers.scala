@@ -32,7 +32,7 @@ case class NonRepudiationHelpers @Inject() (auditModule: AuditingModule) {
 
   def computeHash(formJson: String): String = sha256Hash(formJson)
 
-  def sendAuditEvent(hashedValue: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = auditModule.auditService.sendSubmissionEventHashed(hashedValue)
+  def sendAuditEvent(hashedValue: String, formAsString: String, eventId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = auditModule.auditService.sendSubmissionEventHashed(hashedValue, formAsString, eventId)
 
   def sha256Hash(text: String): String = String.format("%064x", new java.math.BigInteger(1, java.security.MessageDigest
     .getInstance("SHA-256")

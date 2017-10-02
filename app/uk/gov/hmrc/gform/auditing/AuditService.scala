@@ -26,11 +26,11 @@ import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, Group, UkSortCode }
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
 import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait AuditService {
 
@@ -72,8 +72,11 @@ trait AuditService {
     sendEvent(form, formToMap(form, sections), retrievals)
   }
 
-  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
-    auditConnector.sendEvent(eventFor(form, detail, retrievals))
+  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
+    val event = eventFor(form, detail, retrievals)
+    auditConnector.sendEvent(event)
+    event.eventId
+  }
 
   private def eventFor(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
     ExtendedDataEvent(
@@ -105,20 +108,22 @@ trait AuditService {
     )
   }
 
-  def sendSubmissionEventHashed(hashedValue: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendHashedValues(hashedValue)
+  def sendSubmissionEventHashed(hashedValue: String, formAsString: String, eventId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    sendHashedValues(hashedValue, formAsString, eventId)
   }
 
-  private def sendHashedValues(hash: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = auditConnector.sendEvent(hashedValueEvent(hash))
+  private def sendHashedValues(hash: String, formAsString: String, eventId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = auditConnector.sendEvent(hashedValueEvent(hash, formAsString, eventId))
 
-  private def hashedValueEvent(hashedValue: String)(implicit hc: HeaderCarrier) = {
+  private def hashedValueEvent(hashedValue: String, formString: String, eventId: String)(implicit hc: HeaderCarrier) = {
     val x = DataEvent(
       auditSource = "GForm",
       auditType = "submission complete auditing",
       tags = hc.headers.toMap,
+      eventId = eventId,
       detail = Map(
         "hashType" -> "sha256",
-        "hashedValue" -> hashedValue
+        "hashedValue" -> hashedValue,
+        "formData" -> formString
 
       )
     )
