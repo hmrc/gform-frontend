@@ -154,10 +154,10 @@ class AuthenticatedRequestActions(
       case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
         for {
           userDetails <- authConnector.getUserDetails(userDetailsUri.get)
-          _ = whiteListing(userDetails, authProviderId)
+          idx = whiteListing(userDetails, authProviderId)
           retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
         } yield {
-          Logger.info(s"Passed successful through white listing: ${log(authProviderId)}")
+          Logger.info(s"Passed successful through white listing: $idx user")
           GGAuthSuccessful(retrievals)
         }
     }.recover(handleErrorCondition(request, authConfig))
@@ -172,9 +172,10 @@ class AuthenticatedRequestActions(
 
   case class WhiteListException(id: LegacyCredentials) extends Exception
 
-  private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials): Unit = {
+  private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials): Int = {
     userDetails.email.fold(throw new WhiteListException(authId)) { email =>
       if (!whiteListUser.contains(email)) throw new WhiteListException(authId)
+      whiteListUser.indexOf(email)
     }
   }
 
@@ -183,13 +184,11 @@ class AuthenticatedRequestActions(
       case _: AuthConfigWithEnrolment => EnrolmentRequired
       case _ => AuthorisationFailed(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
     }
-
     case _: NoActiveSession =>
       val continueUrl = java.net.URLEncoder.encode(configModule.appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
       val ggLoginUrl = configModule.appConfig.`government-gateway-sign-in-url`
       val url = s"${ggLoginUrl}?continue=${continueUrl}"
       AuthenticationFailed(url)
-
     case x: WhiteListException =>
       Logger.warn(s"user failed whitelisting and is denied access : ${log(x.id)}")
       AuthenticationWhiteListFailed

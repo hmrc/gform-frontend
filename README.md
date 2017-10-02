@@ -26,7 +26,9 @@ run dependencies and gform.
 
 To try entering a form locally, with sample data in the gform backend and using the auth-login-stub, browse to:
 
-[(http://localhost:9949/auth-login-stub/gg-sign-in?continue=http://localhost:9195/submissions/new-form/IPT100)](http://localhost:9949/auth-login-stub/gg-sign-in?continue=http://localhost:9195/submissions/new-form/IPT100)
+[(http://localhost:9949/auth-login-stub/gg-sign-in?continue=http://localhost:9195/submissions/new-form/aaa999)](http://localhost:9949/auth-login-stub/gg-sign-in?continue=http://localhost:9195/submissions/new-form/aaa999)
+
+to use this form you will have to upload a template see below. 
 
 ### Uploading sample data
 
