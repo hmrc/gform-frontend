@@ -360,7 +360,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     resultOpt.map(_.list).getOrElse(List(groupField.fields))
   }
 
-  def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Seq[FormComponent]] = {
+  def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[List[List[FormComponent]]] = {
     sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value).map(resultOpt =>
       buildGroupFieldsLabelsForSummary(
         resultOpt.fold[List[List[FormComponent]]](List(groupField.fields))(x => if (x.render) x.list else List(groupField.fields)), topFieldValue
@@ -393,8 +393,8 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     atomicFields(section.fields)
   }
 
-  private def buildGroupFieldsLabelsForSummary(list: List[List[FormComponent]], fieldValue: FormComponent): Seq[FormComponent] = {
-    (0 until list.size).flatMap { i =>
+  private def buildGroupFieldsLabelsForSummary(list: List[List[FormComponent]], fieldValue: FormComponent): List[List[FormComponent]] = {
+    (0 until list.size).map { i =>
       list(i).map { field =>
         field.copy(
           label = LabelHelper.buildRepeatingLabel(Some(field.label), i + 1).getOrElse(""),

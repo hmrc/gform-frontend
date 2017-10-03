@@ -82,15 +82,19 @@ object SummaryRenderingService {
       def valueToHtml(fieldValue: FormComponent): Future[Html] = {
 
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Future[Html] = fieldValue.`type` match {
-          case group: Group if presentationHint contains SummariseGroupAsGrid =>
-            for {
-              groups <- repeatService.getAllFieldsInGroupForSummary(fieldValue, group)
-              value = groups.map(x => validate(x)).toList
-            } yield group_grid(fieldValue, value)
+          case groupField: Group if presentationHint contains SummariseGroupAsGrid =>
+            val htmlList: Future[List[Html]] =
+              repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField).map(y => for {
+                group <- y
+                value = group.map(validate)
+              } yield {
+                group_grid(fieldValue, value)
+              })
+            htmlList.map(y => group(fieldValue, y, groupField.orientation))
           case groupField @ Group(_, orientation, _, _, _, _) =>
             for {
               fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
-              htmlList <- Future.sequence(fvs.map { case (fv: FormComponent) => valueToHtml(fv) }.toList)
+              htmlList <- Future.sequence(fvs.flatMap(_.map { case (fv: FormComponent) => valueToHtml(fv) }.toList))
             } yield group(fieldValue, htmlList, orientation)
           case _ => valueToHtml(fieldValue)
         }
