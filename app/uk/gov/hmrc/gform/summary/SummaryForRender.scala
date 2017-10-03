@@ -83,7 +83,8 @@ object SummaryRenderingService {
 
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
           case group: Group if presentationHint contains SummariseGroupAsGrid =>
-            val value = group.fields.map(validate(_))
+            val groups = repeatService.getAllFieldsInGroupForSummary(fieldValue, group)
+            val value = groups.map(x => validate(x)).toList
             group_grid(fieldValue, value)
           case groupField @ Group(_, orientation, _, _, _, _) => {
             val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
