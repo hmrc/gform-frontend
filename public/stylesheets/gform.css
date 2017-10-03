@@ -159,6 +159,30 @@ button.link-back:visited {
   background: transparent;
 }
 
+.inline .form-group {
+  width: auto;
+  float: none;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+/* Repeating groups with horizointal formatting */
+.repeating-section--remove {
+  display: inline-block;
+  margin-bottom: 30px;
+  vertical-align: bottom;
+}
+
+.inline .repeating-section--remove {
+  margin-left: 10px;
+}
+
+.inline .form-field-group--error .repeating-section--remove {
+  margin-bottom: 1.25em;
+}
+
+
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,

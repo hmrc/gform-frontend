@@ -24,22 +24,18 @@
   </h2>
 
   <div class="@if(groupField.repeatsMax.isDefined && fieldValue.label.nonEmpty) {divider--top}">
-    <div class="field-group @if(orientation==Horizontal) {field-group--inline}">
       @{
          snippets
       }
-    </div>
   </div>
 
   @if(groupField.repeatsMax.isDefined && !disableAddButton) {
-  <div class="form-group">
     <button
       type="submit"
-      class="button button--link soft--left"
+      class="button button--link soft--left repeating-section--remove"
       name="save"
       value="AddGroup-@fieldValue.id">
       @localisation(groupField.repeatAddAnotherText.getOrElse("Add another"))
     </button>
-  </div>
   }
 </div>

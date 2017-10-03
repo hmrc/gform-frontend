@@ -11,31 +11,28 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
-<div class="form-group">
-    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-        @* TODO: What should total style be? *@
-      <label for="@{fieldValue.id}">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</label>
+<div class="form-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+  @* TODO: What should total style be? *@
+  <label for="@{fieldValue.id}">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</label>
 
-      @if(fieldValue.helpText) {
-      <div class="form-field--hint">@{fieldValue.helpText}</div>
-      }
+  @if(fieldValue.helpText) {
+  <div class="form-field--hint">@{fieldValue.helpText}</div>
+  }
 
-        @{
-            val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-            val errors: Set[String] = ValidationUtil.printErrors(map)
+    @{
+        val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+        val errors: Set[String] = ValidationUtil.printErrors(map)
 
-            errors.map(e => errorInline(e, e, Seq("")))
-        }
+        errors.map(e => errorInline(e, e, Seq("")))
+    }
 
-        @UkSortCode.fields(fieldValue.id).map{ fieldId =>
-        <input
-          type="text"
-          name="@fieldId"
-          @if(!fieldValue.editable) { readonly="" }
-          id="@fieldId"
-          value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
-          class="input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
-        }
-
-    </div>
+    @UkSortCode.fields(fieldValue.id).map{ fieldId =>
+    <input
+      type="text"
+      name="@fieldId"
+      @if(!fieldValue.editable) { readonly="" }
+      id="@fieldId"
+      value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
+      class="input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
+    }
 </div>
