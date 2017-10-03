@@ -361,8 +361,8 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     atomicFields(section.fields)
   }
 
-  private def buildGroupFieldsLabelsForSummary(list: List[List[FormComponent]], fieldValue: FormComponent): Seq[FormComponent] = {
-    (0 until list.size).flatMap { i =>
+  private def buildGroupFieldsLabelsForSummary(list: List[List[FormComponent]], fieldValue: FormComponent): List[List[FormComponent]] = {
+    (0 until list.size).map { i =>
       list(i).map { field =>
         field.copy(
           label = LabelHelper.buildRepeatingLabel(Some(field.label), i + 1).getOrElse(""),
