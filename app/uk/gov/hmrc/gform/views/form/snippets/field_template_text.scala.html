@@ -18,48 +18,44 @@
     }
 }
 
-<div class="form-group">
-    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
-        @* TODO: What should total style be? *@
-        @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-          <label @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="form-label-bold @if(fieldValue.derived){js-hidden}"} else {class="form-label @if(fieldValue.derived){js-hidden}"} for="@{fieldValue.id}">
-          @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-          </label>
-        } else {
-          <label for="@{fieldValue.id}" class="visuallyhidden">@sectionTitle</label>
-        }
+<div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
+    @* TODO: What should total style be? *@
+    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
+      <label @if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) {class="form-label-bold @if(fieldValue.derived){js-hidden}"} else {class="form-label @if(fieldValue.derived){js-hidden}"} for="@{fieldValue.id}">
+      @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+      </label>
+    } else {
+      <label for="@{fieldValue.id}" class="visuallyhidden">@sectionTitle</label>
+    }
 
-        @if(fieldValue.helpText) {
-        <div class="form-field--hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</div>
-        }
+    @if(fieldValue.helpText) {
+    <div class="form-field--hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</div>
+    }
 
-        @{
-            val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-            val errors: Set[String] = ValidationUtil.printErrors(map)
+    @{
+        val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+        val errors: Set[String] = ValidationUtil.printErrors(map)
 
-            errors.map(e => errorInline(e, e, Seq("")))
-        }
+        errors.map(e => errorInline(e, e, Seq("")))
+    }
 
-        @if(!isSterling) {
+    @if(!isSterling) {
+    <input
+            type="text"
+            name="@fieldValue.id"
+            @if(!fieldValue.editable) { readonly="" }
+            id="@fieldValue.id"
+            value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
+            class="input--medium @if(fieldValue.derived){js-hidden}">
+    } else {
+    <span class="input-currency">
         <input
                 type="text"
                 name="@fieldValue.id"
                 @if(!fieldValue.editable) { readonly="" }
                 id="@fieldValue.id"
                 value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-                class="input--medium @if(fieldValue.derived){js-hidden}">
-        } else {
-        <span class="input-currency">
-            <input
-                    type="text"
-                    name="@fieldValue.id"
-                    @if(!fieldValue.editable) { readonly="" }
-                    id="@fieldValue.id"
-                    value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-                    class="input--no-spinner input--left-padding input--small">
-        </span>
-        }
-
-
-    </div>
+                class="input--no-spinner input--left-padding input--small">
+    </span>
+    }
 </div>

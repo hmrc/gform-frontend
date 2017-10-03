@@ -20,21 +20,18 @@
   </h2>
 }
 
-<div class="section-repeating @if(groupField.repeatLabel.isDefined) { divider--top}">
+<div class="section-repeating @if(groupField.repeatLabel.isDefined) { divider--top} @if(orientation==Horizontal) { inline}">
   @{
   snippets
   }
-</div>
 
-
-@if(!disableRemoveButton) {
-<div class="form-group">
-  <button
-          type="submit"
-          class="button button--link soft--left"
-          name="save"
-          value="RemoveGroup-@{instance}_@{fieldValue.id}">
-      @localisation("Remove")
-  </button>
+  @if(!disableRemoveButton) {
+    <button
+            type="submit"
+            class="button button--link soft--left repeating-section--remove"
+            name="save"
+            value="RemoveGroup-@{instance}_@{fieldValue.id}">
+        @localisation("Remove")
+    </button>
+  }
 </div>
-}
