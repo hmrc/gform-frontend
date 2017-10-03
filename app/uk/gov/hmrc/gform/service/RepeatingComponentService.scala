@@ -213,15 +213,15 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     } yield cacheMap.getEntry[List[List[FormComponent]]](componentId)
   }
 
-  def removeGroup(formGroupId: String, data: Map[FormComponentId, scala.Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  def removeGroup(idx: Int, formGroupId: String, data: Map[FormComponentId, scala.Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     // on the forms, the RemoveGroup button's name has the following format:
     // RemoveGroup-(groupFieldId)
     // that's the reason why the extraction below is required
-    val groupIdStartPos = formGroupId.indexOf('-') + 1
-    val componentId = formGroupId.substring(groupIdStartPos)
-    val indexEndPos = componentId.indexOf("_")
-    val index = componentId.substring(0, indexEndPos).toInt
-    val groupId = componentId.substring(indexEndPos + 1)
+    //    val groupIdStartPos = formGroupId.indexOf('-') + 1
+    //    val componentId = formGroupId.substring(groupIdStartPos)
+    //    val indexEndPos = componentId.indexOf("_")
+    val index = idx //componentId.substring(0, indexEndPos).toInt
+    val groupId = formGroupId //componentId.substring(indexEndPos + 1)
 
     for {
       dynamicListOpt <- sessionCache.fetchAndGetEntry[List[List[FormComponent]]](groupId)
@@ -298,7 +298,7 @@ class RepeatingComponentService @Inject() (val sessionCache: SessionCacheConnect
     }
   }
 
-  def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(List[List[FormComponent]], Boolean)] = {
     sessionCache.fetchAndGetEntry[List[List[FormComponent]]](topFieldValue.id.value).flatMap {
       case Some(dynamicList) => Future.successful((dynamicList, isRepeatsMaxReached(dynamicList.size, groupField)))
       case None => initialiseDynamicGroupList(topFieldValue, groupField)

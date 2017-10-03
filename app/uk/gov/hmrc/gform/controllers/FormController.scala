@@ -223,21 +223,27 @@ class FormController @Inject() (
           userData = UserData(formData, keystore, InProgress)
           result <- gformConnector.updateUserData(formId, userData).flatMap(response => continue)
         } yield result
-
       }
 
       def processAddGroup(groupId: String): Future[Result] = for {
-        _ <- repeatService.appendNewGroup(groupId)
+        //format OFF
+        optCompList <- repeatService.appendNewGroup(groupId)
         dynamicSections <- sectionsF
         keystore <- repeatService.getData()
         formData <- formDataF
         userData = UserData(formData, keystore, InProgress)
         _ <- gformConnector.updateUserData(formId, userData)
-      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
+        //format ON
+      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang).url + anchor(optCompList))
 
-      def processRemoveGroup(groupId: String): Future[Result] = for {
+      def anchor(optCompList: Option[List[List[FormComponent]]]) =
+        optCompList.map(list => s"#${list.last.head.id}").getOrElse("")
+
+      def processRemoveGroup(idx: Int, groupId: String): Future[Result] = for {
         dynamicSections <- sectionsF
-        updatedData <- repeatService.removeGroup(groupId, data)
+        updatedData <- repeatService.removeGroup(idx, groupId, data)
+        repeatingGroups <- repeatService.getAllRepeatingGroups
+        optCompList = repeatingGroups.getEntry[List[List[FormComponent]]](groupId)
         envelope <- envelopeF
         section = dynamicSections(sectionNumber.value)
         allFields = dynamicSections.flatMap(repeatService.atomicFields)
@@ -248,7 +254,7 @@ class FormController @Inject() (
         keystore <- repeatService.getData()
         userData = UserData(formData, keystore, InProgress)
         _ <- gformConnector.updateUserData(formId, userData)
-      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang))
+      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang).url + anchor(optCompList))
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
       val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
@@ -267,7 +273,7 @@ class FormController @Inject() (
         case SaveAndSummary                 => processSaveAndSummary(userId, cache.form)
         case BackToSummary                  => processSaveAndSummary(userId, cache.form)
         case AddGroup(groupId)              => processAddGroup(groupId)
-        case RemoveGroup(groupId)           => processRemoveGroup(groupId)
+        case RemoveGroup(idx, groupId)      => processRemoveGroup(idx, groupId)
         // format: ON
       }
 

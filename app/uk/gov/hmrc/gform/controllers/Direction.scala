@@ -28,12 +28,13 @@ object SaveAndExit extends Direction
 object SaveAndSummary extends Direction
 object BackToSummary extends Direction
 case class AddGroup(groupId: String) extends Direction
-case class RemoveGroup(groupId: String) extends Direction
+case class RemoveGroup(idx: Int, groupId: String) extends Direction
 
 class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FormComponentId, Seq[String]]) {
   require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
 
+  val RemoveGroupR = "RemoveGroup-(\\d*)_(.*)".r.unanchored
   def navigate: Direction = actionValue match {
     // format: OFF
     case "Save"                               => SaveAndExit
@@ -42,7 +43,7 @@ class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map
     case "Back"                               => Back(previousOrCurrentSectionNumber)
     case "BackToSummary"                      => BackToSummary
     case  x if x.startsWith("AddGroup")       => AddGroup(x)
-    case  x if x.startsWith("RemoveGroup")    => RemoveGroup(x)
+    case  RemoveGroupR(idx, x)                => RemoveGroup(idx.toInt, x)
     case other                                => throw new BadRequestException(s"Invalid action: $other")
     // format: ON
   }
