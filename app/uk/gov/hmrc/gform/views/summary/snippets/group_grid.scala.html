@@ -16,12 +16,13 @@
     </td>
 
     <td>
-        @fields.map{ field =>
+    @fields.map{ field =>
+
             @if(fields) {
-                <div>
+                <div class="inline-block"> <!--TODO need paul to properly format
                     @field.map(_.getCurrentValue).getOrElse("")
                 </div>
             }
-        }
+    }
     </td>
 </tr>
