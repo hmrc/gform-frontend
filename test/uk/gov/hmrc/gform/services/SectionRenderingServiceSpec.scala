@@ -333,5 +333,74 @@ class SectionRenderingServiceSpec extends Spec with GuiceOneAppPerSuite {
     doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 2
   }
 
+  it should "generate declaration page" in {
+    val generatedHtml = testService
+      .renderDeclarationSection(
+        form,
+        formTemplate,
+        retrievals,
+        None,
+        Map.empty,
+        None,
+        None
+      ).futureValue
+
+    val doc = Jsoup.parse(generatedHtml.body)
+
+    val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
+    val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
+    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
+
+    hiddenFieldNames should be(List("csrfToken"))
+    visibleFields should be(List())
+    buttons should be(List(("Accept and submit")))
+  }
+
+  it should "generate declaration page with submit claim button" in {
+    val generatedHtml = testService
+      .renderDeclarationSection(
+        form,
+        formTemplate.copy(formCategory = Some(HMRCClaimForm)),
+        retrievals,
+        None,
+        Map.empty,
+        None,
+        None
+      ).futureValue
+
+    val doc = Jsoup.parse(generatedHtml.body)
+
+    val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
+    val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
+    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
+
+    hiddenFieldNames should be(List("csrfToken"))
+    visibleFields should be(List())
+    buttons should be(List(("Accept and submit claim")))
+  }
+
+  it should "generate declaration page with submit return button" in {
+    val generatedHtml = testService
+      .renderDeclarationSection(
+        form,
+        formTemplate.copy(formCategory = Some(HMRCReturnForm)),
+        retrievals,
+        None,
+        Map.empty,
+        None,
+        None
+      ).futureValue
+
+    val doc = Jsoup.parse(generatedHtml.body)
+
+    val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
+    val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
+    val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
+
+    hiddenFieldNames should be(List("csrfToken"))
+    visibleFields should be(List())
+    buttons should be(List(("Accept and submit return")))
+  }
+
   private def toList(elements: Elements) = JavaConverters.asScalaIteratorConverter(elements.iterator).asScala.toList
 }

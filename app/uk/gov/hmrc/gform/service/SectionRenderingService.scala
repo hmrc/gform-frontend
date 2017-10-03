@@ -157,11 +157,17 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
     val ei = ExtraInfo(form._id, SectionNumber(0), fieldData, formTemplate, Envelope(Nil), List(formTemplate.declarationSection), 0, formTemplate.declarationSection, retrievals)
 
+    val confirm = formTemplate.formCategory match {
+      case Some(HMRCReturnForm) => "Accept and submit return"
+      case Some(HMRCClaimForm) => "Accept and submit claim"
+      case _ => "Accept and submit"
+    }
+
     val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
     for {
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, maybeValidatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
-      renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, "Accept and submit", 0, Nil)
+      renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.controllers.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, confirm, 0, Nil)
     } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form))
   }
 
