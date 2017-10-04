@@ -10,7 +10,7 @@ fieldValue.id.withSuffix(id).toString
 }
 
 <tr>
-  <td>
+  <td class="grid-layout__column--1-3">
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </td>
 
@@ -19,4 +19,6 @@ fieldValue.id.withSuffix(id).toString
         @{renderMonth(validationResult.map(_.getCurrentValue(safeId("day")))).getOrElse("")} @{getMonthValue(validationResult.map(_.getCurrentValue(safeId("month")))).getOrElse("")} @{validationResult.map(_.getCurrentValue(safeId("year"))).getOrElse("")}
     }
   </td>
+
+  <td></td>
 </tr>
