@@ -3,23 +3,25 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.views.html.localisation
 @import views.html.helper.CSRF
-
+@import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import scala.concurrent.Future
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]])
 
+@currentValue(idx: Int) = @{TextFormatter.formatText(fieldValue.`type`, fields(idx))}
 <tr>
     <td>
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+
     </td>
 
     <td>
-        @fields.map{ field =>
-            @if(fields) {
+        @fields.zipWithIndex.map{fieldId =>
+            @if(fieldId._1) {
                 <div>
-                    @field.map(_.getCurrentValue).getOrElse("")
+                    @currentValue(fieldId._2)
                 </div>
             }
         }
