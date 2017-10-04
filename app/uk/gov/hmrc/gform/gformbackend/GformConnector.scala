@@ -108,4 +108,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def fileToByteStr(filename: String): ByteString = ByteString(Source.fromFile(filename).mkString)
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
+
+  /*** White Listing ***/ //TODO remove once internal Users have been through system.
+  def whiteList(currentUserEmail: Option[String]): Future[Option[String]] =
+    ws.POST[Option[String], String](s"$baseUrl/white-list/user", currentUserEmail).map(Some(_))
+      .recover { case e: NotFoundException => None }
+
 }

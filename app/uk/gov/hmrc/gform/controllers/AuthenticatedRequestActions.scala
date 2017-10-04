@@ -61,7 +61,7 @@ class AuthenticatedRequestActions(
     // format: OFF
     for {
       formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-      authResult   <- authenticateAndAuthorise(formTemplate)
+      authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = true)
       newRequest   = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
         case GGAuthSuccessful(retrievals) => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
@@ -77,7 +77,7 @@ class AuthenticatedRequestActions(
     for {
       form         <- gformConnector.getForm(formId)
       formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-      authResult   <- authenticateAndAuthorise(formTemplate)
+      authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = false)
       newRequest    = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
       result       <- authResult match {
         case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate)))
@@ -104,15 +104,15 @@ class AuthenticatedRequestActions(
       Future.successful(Forbidden)
   }
 
-  private def authenticateAndAuthorise(template: FormTemplate)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
+  private def authenticateAndAuthorise(template: FormTemplate, isNewForm: Boolean)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
     template.authConfig match {
-      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig)
-      case authConfig => performHMRCAuth(authConfig)
+      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, isNewForm)
+      case authConfig => performHMRCAuth(authConfig, isNewForm)
     }
   }
 
-  private def performEEITTAuth(authConfig: EEITTAuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
-    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), authConfig).flatMap {
+  private def performEEITTAuth(authConfig: EEITTAuthConfig, isNewForm: Boolean)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
+    ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), authConfig, isNewForm).flatMap {
       case ggSuccessfulAuth @ GGAuthSuccessful(retrievals) =>
         eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails).map {
           case EeittAuthorisationSuccessful => updateEnrolments(ggSuccessfulAuth, request)
@@ -141,25 +141,22 @@ class AuthenticatedRequestActions(
     }
   }
 
-  private def performHMRCAuth(authConfig: AuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
+  private def performHMRCAuth(authConfig: AuthConfig, isNewForm: Boolean)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
     val predicate = authConfig match {
       case config: AuthConfigWithEnrolment => AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(config.serviceId.value)
       case _ => AuthProviders(AuthProvider.GovernmentGateway)
     }
-    ggAuthorised(predicate, authConfig)
+    ggAuthorised(predicate, authConfig, isNewForm)
   }
 
-  private def ggAuthorised(predicate: Predicate, authConfig: AuthConfig)(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
+  private def ggAuthorised(predicate: Predicate, authConfig: AuthConfig, isNewForm: Boolean)(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
     authorised(predicate).retrieve(defaultRetrievals) {
       case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
         for {
           userDetails <- authConnector.getUserDetails(userDetailsUri.get)
-          idx = whiteListing(userDetails, authProviderId)
+          _ <- whiteListing(userDetails, authProviderId, isNewForm)
           retrievals = gform.auth.models.Retrievals(authProviderId, enrolments, affinityGroup, internalId, externalId, userDetails, credentialStrength, agentCode)
-        } yield {
-          Logger.info(s"Passed successful through white listing: $idx user index")
-          GGAuthSuccessful(retrievals)
-        }
+        } yield GGAuthSuccessful(retrievals)
     }.recover(handleErrorCondition(request, authConfig))
   }
 
@@ -172,11 +169,17 @@ class AuthenticatedRequestActions(
 
   case class WhiteListException(id: LegacyCredentials) extends Exception
 
-  private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials): Int = {
-    userDetails.email.fold(throw new WhiteListException(authId)) { email =>
-      if (!whiteListUser.contains(email)) throw new WhiteListException(authId)
-      whiteListUser.indexOf(email)
-    }
+  private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials, isNewForm: Boolean): Future[Unit] = {
+    if (isNewForm) {
+      for {
+        isValid <- gformConnector.whiteList(userDetails.email)
+      } yield isValid match {
+        case Some(idx) =>
+          Logger.info(s"Passed successful through white listing: $idx user index")
+          ()
+        case None => throw WhiteListException(authId)
+      }
+    } else Future.successful(())
   }
 
   private def handleErrorCondition(request: Request[AnyContent], authConfig: AuthConfig): PartialFunction[scala.Throwable, AuthResult] = {
