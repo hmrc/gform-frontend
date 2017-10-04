@@ -110,8 +110,15 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   //TODO move this file to gform and make it's origin there
 
   /*** White Listing ***/ //TODO remove once internal Users have been through system.
-  def whiteList(currentUserEmail: Option[String]): Future[Option[String]] =
-    ws.POST[Option[String], String](s"$baseUrl/white-list/user", currentUserEmail).map(Some(_))
+  def whiteList(currentUserEmail: Option[String]): Future[Option[String]] = {
+    currentUserEmail.fold(
+      Future.successful(Option.empty[String])
+    )(
+      email => ws.POST[String, String](s"$baseUrl/white-list/user", email)
+      .map(Some(_))
       .recover { case e: NotFoundException => None }
+    )
+  }
+
 
 }
