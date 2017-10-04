@@ -16,36 +16,53 @@
 
 package uk.gov.hmrc.gform.views.summary
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Number, PositiveNumber, Sterling, Text, UkBankAccountNumber }
+import java.awt.Component
+import java.io
+
+import play.api.Logger
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ComponentType, Group, Number, PositiveNumber, Sterling, Text, UkBankAccountNumber }
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 object TextFormatter {
 
-  def formatText(component: Text, validationResult: Option[FormFieldValidationResult]) = {
-
+  def formatText(component: ComponentType, validationResult: Option[FormFieldValidationResult]): String = {
     val currentValue = validationResult match {
       case Some(result) => result.getCurrentValue.getOrElse("")
       case None => ""
     }
 
-    component.constraint match {
-      case _: Number | _: PositiveNumber | Sterling =>
+    def componentText(text: Text) = {
+      if (currentValue.isEmpty) {
+        currentValue
+      } else {
+        text.constraint match {
+          case PositiveNumber(_, _, unit) => unit.map(x => currentValue + " " + x) getOrElse ("")
+          case Number(_, _, unit) =>
+            unit.map(x => currentValue + " " + x) getOrElse ("")
+          case Sterling =>
 
-        val poundOrComma = "[£,]".r
-        val valueWithoutPoundsOrCommas = poundOrComma.replaceAllIn(currentValue, "")
-        val sections = valueWithoutPoundsOrCommas.split("""\.""")
+            val poundOrComma = "[£,]".r
+            val valueWithoutPoundsOrCommas = poundOrComma.replaceAllIn(currentValue, "")
+            val sections = valueWithoutPoundsOrCommas.split("""\.""")
 
-        if (sections(0).size >= 5) {
-          val integerPart = sections(0).reverse.grouped(3).mkString(",").reverse
-          if (sections.size == 2) {
-            integerPart + "." + sections(1)
-          } else {
-            integerPart
-          }
-        } else valueWithoutPoundsOrCommas
+            if (sections(0).size >= 5) {
+              val integerPart = sections(0).reverse.grouped(3).mkString(",").reverse
+              if (sections.size == 2) {
+                integerPart + "." + sections(1)
+              } else {
+                integerPart
+              }
+            } else valueWithoutPoundsOrCommas
 
-      case UkBankAccountNumber => currentValue.grouped(4).mkString(" ")
+          case UkBankAccountNumber => currentValue.grouped(4).mkString(" ")
 
+          case _ => currentValue
+        }
+      }
+    }
+    component match {
+      case x: Text => componentText(x)
+      case g: Group => g.fields.find(_.id.value == validationResult.map(x => x.fieldValue.id.value).getOrElse("")).map(x => formatText(x.`type`, validationResult)).mkString
       case _ => currentValue
     }
   }
