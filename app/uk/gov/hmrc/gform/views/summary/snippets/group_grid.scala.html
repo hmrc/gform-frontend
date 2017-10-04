@@ -11,7 +11,7 @@
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]])
 
 <tr>
-    <td>
+    <td class="grid-layout__column--1-3">
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
     </td>
 
@@ -19,10 +19,12 @@
     @fields.map{ field =>
 
             @if(fields) {
-                <div class="inline-block"> <!--TODO need paul to properly format
+                <div class="inline-block">
                     @field.map(_.getCurrentValue).getOrElse("")
                 </div>
             }
     }
     </td>
+
+    <td></td>
 </tr>

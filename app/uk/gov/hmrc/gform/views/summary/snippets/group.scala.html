@@ -9,18 +9,13 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @(fieldValue: FormComponent, snippets: List[Html], orientation: Orientation)
 
-<tr>
-    <td>
-        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-    </td>
 
-    @if(!fieldValue.presentationHint.map(_.filter(_==SummariseGroupAsGrid)).getOrElse(Nil).isEmpty) {
-    <td>
-        @{
-        snippets
-        }
-    </td>
+@if(fieldValue.presentationHint.map(_.filter(_==SummariseGroupAsGrid)).getOrElse(Nil).isEmpty) {
+<tr>
+    <th colspan="3">
+        <span class="h3-heading">@localisation(fieldValue.shortName.getOrElse(fieldValue.label))</span>
+    </th>
 </tr>
-    } else {
-    @{snippets}
-    }
+}
+
+@{snippets}
