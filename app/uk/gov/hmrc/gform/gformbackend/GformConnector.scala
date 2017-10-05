@@ -114,7 +114,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     currentUserEmail.fold(
       Future.successful(Option.empty[String])
     )(
-        email => ws.POST[String, String](s"$baseUrl/white-list/user", email)
+        email => ws.POST[String, String](s"$baseUrl/white-list/users", email)
           .map(Some(_))
           .recover { case e: NotFoundException => None }
       )
