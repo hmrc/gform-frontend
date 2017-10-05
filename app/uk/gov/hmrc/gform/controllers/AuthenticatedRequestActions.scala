@@ -169,7 +169,7 @@ class AuthenticatedRequestActions(
 
   case class WhiteListException(id: LegacyCredentials) extends Exception
 
-  private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials, isNewForm: Boolean): Future[Unit] = {
+  private def whiteListing(userDetails: UserDetails, authId: LegacyCredentials, isNewForm: Boolean)(implicit hc: HeaderCarrier): Future[Unit] = {
     if (isNewForm) {
       for {
         isValid <- gformConnector.whiteList(userDetails.email)
