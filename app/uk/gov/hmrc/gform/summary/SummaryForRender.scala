@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.service.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, RepeatingGroup }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -79,39 +79,36 @@ object SummaryRenderingService {
         Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
       }
 
-      def valueToHtml(fieldValue: FormComponent): Html = {
+      def valueToHtml(fieldValue: FormComponent): Future[Html] = {
 
-        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Html = fieldValue.`type` match {
+        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Future[Html] = fieldValue.`type` match {
           case group: Group if presentationHint contains SummariseGroupAsGrid =>
-            val groups = repeatService.getAllFieldsInGroupForSummary(fieldValue, group)
-            val value = groups.map(x => validate(x)).toList
-            group_grid(fieldValue, value)
-          case groupField @ Group(_, orientation, _, _, _, _) => {
-            val fvs = repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
-            val htmlList = fvs.map {
-              case (fv: FormComponent) => valueToHtml(fv)
-            }.toList
-            group(fieldValue, htmlList, orientation)
-          }
+            for {
+              groups <- repeatService.getAllFieldsInGroupForSummary(fieldValue, group)
+              value = groups.map(x => validate(x)).toList
+            } yield group_grid(fieldValue, value)
+          case groupField @ Group(_, orientation, _, _, _, _) =>
+            for {
+              fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
+              htmlList <- Future.sequence(fvs.map { case (fv: FormComponent) => valueToHtml(fv) }.toList)
+            } yield group(fieldValue, htmlList, orientation)
           case _ => valueToHtml(fieldValue)
         }
 
         fieldValue.`type` match {
-          case UkSortCode(_) => sort_code(fieldValue, validate(fieldValue))
-          case Date(_, _, _) => date(fieldValue, validate(fieldValue))
-          case Address(_) => address(fieldValue, validate(fieldValue))
-          case t @ Text(_, _) => text(fieldValue, t, validate(fieldValue))
+          case UkSortCode(_) => Future.successful(sort_code(fieldValue, validate(fieldValue)))
+          case Date(_, _, _) => Future.successful(date(fieldValue, validate(fieldValue)))
+          case Address(_) => Future.successful(address(fieldValue, validate(fieldValue)))
+          case t @ Text(_, _) => Future.successful(text(fieldValue, t, validate(fieldValue)))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex.map {
               case (option, index) =>
                 validate(fieldValue).flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString)).map(_ => option)
             }.collect { case Some(selection) => selection }
 
-            choice(fieldValue, selections)
-          case FileUpload() => {
-            text(fieldValue, Text(AnyText, Constant("file")), validate(fieldValue))
-          }
-          case InformationMessage(_, _) => Html("")
+            Future.successful(choice(fieldValue, selections))
+          case FileUpload() => Future.successful(text(fieldValue, Text(AnyText, Constant("file")), validate(fieldValue)))
+          case InformationMessage(_, _) => Future.successful(Html(""))
           case Group(_, _, _, _, _, _) => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
         }
       }
@@ -120,30 +117,31 @@ object SummaryRenderingService {
         fieldValue.presentationHint
           .fold(false)(x => x.contains(InvisibleInSummary))
 
-      val snippets: List[Html] = {
+      val snippetsF: Future[List[Html]] = {
         val allSections = sections.zipWithIndex
         val sectionsToRender = allSections.filter {
           case (section, idx) => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data)
         }
-        sectionsToRender.flatMap {
+        Future.sequence(sectionsToRender.map {
           case (section, index) =>
 
-            begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size, lang) ::
+            val x = begin_section(formTemplate._id, formId, section.shortName.getOrElse(section.title), section.description, index, sections.size, lang)
+            Future.sequence(
               section.fields.filterNot(showOnSummary)
-              .map {
-                valueToHtml(_)
-              } ++
-              List(end_section(formTemplate._id, formId, section.title, index))
-        }
+                .map(valueToHtml)
+            )
+              .map(x => x ++ List(end_section(formTemplate._id, formId, section.title, index)))
+              .map(z => x :: z)
+        }).map(x => x.flatten) //TODO ask a better way to do this.
       }
       val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
       val repeatingGroups: Future[List[List[List[FormComponent]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
-        case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FormComponent]]](fieldId.value).getOrElse(Nil))
+        case (fieldId, group: Group) => cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
       })
       fieldJavascript(fields, repeatingGroups)
-        .map(javascript =>
-          SummaryForRender(snippets, Html(javascript), sections.size))
-
+        .flatMap(javascript =>
+          snippetsF.map(snippets =>
+            SummaryForRender(snippets, Html(javascript), sections.size)))
     }
   }
 }

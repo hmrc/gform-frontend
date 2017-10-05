@@ -20,6 +20,7 @@ import play.api.libs.functional._
 import play.api.libs.json._
 import play.api.libs.json.Writes._
 import play.api.libs.json.Reads._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 case class RepeatingGroupStructure(structure: Map[String, JsValue])
 
@@ -44,4 +45,10 @@ object RepeatingGroupStructure {
   }
 
   optionFormat.writes(Some(RepeatingGroupStructure(Map.empty[String, JsValue])))
+}
+
+case class RepeatingGroup(list: List[List[FormComponent]], render: Boolean)
+
+object RepeatingGroup {
+  implicit val format = Json.format[RepeatingGroup]
 }

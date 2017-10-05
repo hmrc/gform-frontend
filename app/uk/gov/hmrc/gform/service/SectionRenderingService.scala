@@ -41,7 +41,7 @@ import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
 import uk.gov.hmrc.gform.prepop.{ PrepopModule, PrepopService }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormId, Summary }
+import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
@@ -212,7 +212,7 @@ class SectionRenderingService @Inject() (repeatService: RepeatingComponentServic
 
     val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
     val repeatingSections: Future[List[List[List[FormComponent]]]] = Future.sequence(fieldList.map(fv => (fv.id, fv.`type`)).collect {
-      case (fieldId, group: Group) => cacheMap.map(_.getEntry[List[List[FormComponent]]](fieldId.value).getOrElse(Nil))
+      case (fieldId, group: Group) => cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
     })
     fieldJavascript(atomicFields, repeatingSections).flatMap { x =>
       Future.sequence(groups.map { case (fieldId, group) => Future.successful(collapsingGroupJavascript(fieldId, group)) }).map(_.mkString("\n")).map(y => y + x)
