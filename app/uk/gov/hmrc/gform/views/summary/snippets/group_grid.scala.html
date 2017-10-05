@@ -20,10 +20,10 @@
     }
 
     @if(fields.length == 3) {
-      @fields.zipWithIndex.map{ field =>
+      @fields.zipWithIndex.map{ case (field, index) =>
           @if(field) {
               <td class="grid-layout__column--1-3">
-                  @currentValue(field._2)
+                  @currentValue(index)
               </td>
           }
       }
@@ -35,7 +35,7 @@
               <td
                 class="grid-layout__column--1-3"
                 @if(index == 0 && localisation(fieldValue.shortName.getOrElse(fieldValue.label)).isEmpty) {colspan="2"}>
-                  @currentValue(field._2)
+                  @currentValue(index)
               </td>
           }
       }
@@ -45,10 +45,10 @@
       <td
         class="grid-layout__column--1-3"
         @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).isEmpty) {colspan="2"}>
-          @fields.zipWithIndex.map{ field =>
-              @if(fields) {
+          @fields.zipWithIndex.map{ case (field, index) =>
+              @if(field) {
                   <div class="inline-block">
-                      @currentValue(field._2)
+                      @currentValue(index)
                   </div>
               }
           }
