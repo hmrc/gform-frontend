@@ -40,6 +40,7 @@ object Javascript {
     def eventListeners(id: String) = {
       s"""document.getElementById("$id").addEventListener("change",$functionName);
          |document.getElementById("$id").addEventListener("keyup",$functionName);
+         |window.addEventListener("load", $functionName);
        """.stripMargin
     }
 
