@@ -33,6 +33,6 @@
       @if(!fieldValue.editable) { readonly="" }
       id="@fieldId"
       value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
-      class="input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
+      class="form-control input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
     }
 </div>
