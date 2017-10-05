@@ -12,18 +12,48 @@
 
 @currentValue(idx: Int) = @{TextFormatter.formatText(fieldValue.`type`, fields(idx))}
 <tr>
-    <td>
+    @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).nonEmpty) {
+    <td class="grid-layout__column--1-3">
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
     </td>
+    }
 
-    <td>
-        @fields.zipWithIndex.map{fieldId =>
-            @if(fieldId._1) {
-                <div>
-                    @currentValue(fieldId._2)
-                </div>
-            }
-        }
-    </td>
+    @if(fields.length == 3) {
+      @fields.zipWithIndex.map{ field =>
+          @if(field) {
+              <td class="grid-layout__column--1-3">
+                  @currentValue(field._2)
+              </td>
+          }
+      }
+    }
+
+    @if(fields.length == 2) {
+      @fields.zipWithIndex.map{ case (field, index) =>
+          @if(field) {
+              <td
+                class="grid-layout__column--1-3"
+                @if(index == 0 && localisation(fieldValue.shortName.getOrElse(fieldValue.label)).isEmpty) {colspan="2"}>
+                  @currentValue(field._2)
+              </td>
+          }
+      }
+    }
+
+    @if(fields.length > 3 || fields.length < 2) {
+      <td
+        class="grid-layout__column--1-3"
+        @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).isEmpty) {colspan="2"}>
+          @fields.zipWithIndex.map{ field =>
+              @if(fields) {
+                  <div class="inline-block">
+                      @currentValue(field._2)
+                  </div>
+              }
+          }
+      </td>
+
+      <td></td>
+    }
 </tr>
