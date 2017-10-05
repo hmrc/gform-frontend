@@ -243,7 +243,7 @@ class FormController @Inject() (
         dynamicSections <- sectionsF
         updatedData <- repeatService.removeGroup(idx, groupId, data)
         repeatingGroups <- repeatService.getAllRepeatingGroups
-        optCompList = repeatingGroups.getEntry[List[List[FormComponent]]](groupId)
+        optCompList = repeatingGroups.getEntry[RepeatingGroup](groupId)
         envelope <- envelopeF
         section = dynamicSections(sectionNumber.value)
         allFields = dynamicSections.flatMap(repeatService.atomicFields)
@@ -254,7 +254,7 @@ class FormController @Inject() (
         keystore <- repeatService.getData()
         userData = UserData(formData, keystore, InProgress)
         _ <- gformConnector.updateUserData(formId, userData)
-      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang).url + anchor(optCompList))
+      } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang).url + anchor(optCompList.map(_.list)))
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
       val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
