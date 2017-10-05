@@ -84,7 +84,7 @@
 
             @safeError("street1")
             <input type="text"
-                   class="input--medium"
+                   class="form-control"
                    name="@safeId("street1")"
                    id="@safeId("street1")"
                    value="@validationResult.map(_.getCurrentValue(safeId("street1"))).getOrElse("")" />
@@ -94,7 +94,7 @@
             <label class="form-label" for="@safeId("street2")">Address 2 (optional)</label>
             @safeError("street2")
             <input type="text"
-                   class="input--medium"
+                   class="form-control"
                    name="@safeId("street2")"
                    id="@safeId("street2")"
                    value="@validationResult.map(_.getCurrentValue(safeId("street2"))).getOrElse("")" />
@@ -105,7 +105,7 @@
 
             @safeError("street3")
             <input type="text"
-                   class="input--medium"
+                   class="form-control"
                    name="@safeId("street3")"
                    id="@safeId("street3")"
                    value="@validationResult.map(_.getCurrentValue(safeId("street3"))).getOrElse("")" />
@@ -116,7 +116,7 @@
 
             @safeError("street4")
             <input type="text"
-                   class="input--medium"
+                   class="form-control"
                    name="@safeId("street4")"
                    id="@safeId("street4")"
                    value="@validationResult.map(_.getCurrentValue(safeId("street4"))).getOrElse("")" />
@@ -129,7 +129,7 @@
 
               @safeError("postcode")
             <input type="text"
-                   class="input--small"
+                   class="form-control input--small"
                    name="@safeId("postcode")"
                    id="@safeId("postcode")"
                    value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
@@ -142,6 +142,7 @@
 
               @safeError("country")
             <input type="text"
+                   class="form-control"
                    name="@safeId("country")"
                    id="@safeId("country")"
                    value="@validationResult.map(_.getCurrentValue(safeId("country"))).getOrElse("")" />
@@ -153,7 +154,7 @@
 
               @safeError("postcode")
             <input type="text"
-                   class="input--small"
+                   class="form-control input--small"
                    name="@safeId("postcode")"
                    id="@safeId("postcode")"
                    value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />

@@ -22,7 +22,7 @@ fieldValue.id.withSuffix(id).toString
             @if(fieldValue.helpText) {
             <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
             }
-            
+
             @{
                val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
                val errors: Set[String] = ValidationUtil.printErrors(map)
@@ -38,8 +38,8 @@ fieldValue.id.withSuffix(id).toString
                            name="@{fieldValue.id}-day"
                            @if(!fieldValue.editable) { readonly="" }
                            id="@{fieldValue.id}-day"
-                           value = "@validationResult.flatMap(_.getOptionalCurrentValue(safeId("day"))).orElse(prepop.map(_.day)).getOrElse("")"
-                           class="input--xxsmall" />
+                           value="@validationResult.flatMap(_.getOptionalCurrentValue(safeId("day"))).orElse(prepop.map(_.day)).getOrElse("")"
+                           class="form-control input--xxsmall" />
                 </div>
 
                 <div class="form-group">
@@ -49,8 +49,8 @@ fieldValue.id.withSuffix(id).toString
                            name="@{fieldValue.id}-month"
                            @if(!fieldValue.editable) { readonly="" }
                            id="@{fieldValue.id}-month"
-                           value = "@validationResult.flatMap(_.getOptionalCurrentValue(safeId("month"))).orElse(prepop.map(_.month)).getOrElse("")"
-                           class= "input--xxsmall" />
+                           value="@validationResult.flatMap(_.getOptionalCurrentValue(safeId("month"))).orElse(prepop.map(_.month)).getOrElse("")"
+                           class="form-control input--xxsmall" />
                 </div>
 
                 <div class="form-group form-group-year">
@@ -60,8 +60,8 @@ fieldValue.id.withSuffix(id).toString
                            name="@{fieldValue.id}-year"
                            @if(!fieldValue.editable) { readonly="" }
                            id="@{fieldValue.id}-year"
-                           value = "@validationResult.flatMap(_.getOptionalCurrentValue(safeId("year"))).orElse(prepop.map(_.year)).getOrElse("")"
-                           class="input--xsmall" />
+                           value="@validationResult.flatMap(_.getOptionalCurrentValue(safeId("year"))).orElse(prepop.map(_.year)).getOrElse("")"
+                           class="form-control input--xsmall" />
                 </div>
             </div>
         </fieldset>
