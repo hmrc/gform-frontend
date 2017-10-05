@@ -36,10 +36,9 @@ object TextFormatter {
         currentValue
       } else {
         text.constraint match {
-          case PositiveNumber(_, _, unit) => unit.map(x => currentValue + " " + x) getOrElse ("")
-          case Number(_, _, unit) =>
-            unit.map(x => currentValue + " " + x) getOrElse ("")
-          case Sterling =>
+          case PositiveNumber(_, _, Some(unit)) => currentValue + " " + unit
+          case Number(_, _, Some(unit)) => currentValue + " " + unit
+          case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
 
             val poundOrComma = "[£,]".r
             val valueWithoutPoundsOrCommas = poundOrComma.replaceAllIn(currentValue, "")
