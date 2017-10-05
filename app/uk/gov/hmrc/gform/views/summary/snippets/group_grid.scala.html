@@ -11,20 +11,47 @@
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]])
 
 <tr>
+    @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).nonEmpty) {
     <td class="grid-layout__column--1-3">
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
     </td>
-
-    <td>
-    @fields.map{ field =>
-
-            @if(fields) {
-                <div class="inline-block">
-                    @field.map(_.getCurrentValue).getOrElse("")
-                </div>
-            }
     }
-    </td>
 
-    <td></td>
+    @if(fields.length == 3) {
+      @fields.map{ field =>
+          @if(field) {
+              <td class="grid-layout__column--1-3">
+                  @field.map(_.getCurrentValue).getOrElse("")
+              </td>
+          }
+      }
+    }
+
+    @if(fields.length == 2) {
+      @fields.zipWithIndex.map{ case (field, index) =>
+          @if(field) {
+              <td
+                class="grid-layout__column--1-3"
+                @if(index == 0 && localisation(fieldValue.shortName.getOrElse(fieldValue.label)).isEmpty) {colspan="2"}>
+                  @field.map(_.getCurrentValue).getOrElse("")
+              </td>
+          }
+      }
+    }
+
+    @if(fields.length > 3 || fields.length < 2) {
+      <td
+        class="grid-layout__column--1-3"
+        @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).isEmpty) {colspan="2"}>
+          @fields.map{ field =>
+              @if(fields) {
+                  <div class="inline-block">
+                      @field.map(_.getCurrentValue).getOrElse("")
+                  </div>
+              }
+          }
+      </td>
+
+      <td></td>
+    }
 </tr>
