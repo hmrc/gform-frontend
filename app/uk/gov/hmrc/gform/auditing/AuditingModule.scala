@@ -47,6 +47,6 @@ class AuditingModule @Inject() (configModule: ConfigModule) { self =>
 }
 
 object loggingHelpers {
-  def cleanHeaders(headers: Headers) = s", headers: '${headers.remove("Authorization", "token")}'"
-  def cleanHeaderCarrierHeader(hc: HeaderCarrier): String = s"headers: ' ${hc.sessionId} ${hc.deviceID} ${hc.requestId} ${hc.requestChain}'"
+  def cleanHeaders(headers: Headers) = s", headers: '${headers.remove("Authorization", "token").toSimpleMap.toString()}'"
+  def cleanHeaderCarrierHeader(hc: HeaderCarrier): String = s"headers, sessionId: '${hc.sessionId.get.value}, deviceId: '${hc.deviceID.get}' requestId: '${hc.requestId.get.value}', request chain: '${hc.requestChain.value}'"
 }
