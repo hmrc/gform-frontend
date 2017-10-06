@@ -184,10 +184,15 @@ class AuthenticatedRequestActions(
 
   private def handleErrorCondition(request: Request[AnyContent], authConfig: AuthConfig): PartialFunction[scala.Throwable, AuthResult] = {
     case _: InsufficientEnrolments => authConfig match {
-      case _: AuthConfigWithEnrolment => EnrolmentRequired
-      case _ => AuthorisationFailed(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+      case _: AuthConfigWithEnrolment =>
+        Logger.debug("Enrolment required")
+        EnrolmentRequired
+      case _ =>
+        Logger.debug("Auth Failed")
+        AuthorisationFailed(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
     }
     case _: NoActiveSession =>
+      Logger.debug("No Active Session")
       val continueUrl = java.net.URLEncoder.encode(configModule.appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
       val ggLoginUrl = configModule.appConfig.`government-gateway-sign-in-url`
       val url = s"${ggLoginUrl}?continue=${continueUrl}"
@@ -195,7 +200,9 @@ class AuthenticatedRequestActions(
     case x: WhiteListException =>
       Logger.warn(s"user failed whitelisting and is denied access : ${log(x.id)}")
       AuthenticationWhiteListFailed
-    case otherException => throw otherException
+    case otherException =>
+      Logger.debug(s"expection thrown on authorization with message : ${otherException.getMessage}")
+      throw otherException
   }
 
   private def removeEeittAuthIdFromSession(
