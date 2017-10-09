@@ -22,14 +22,12 @@ import play.api.Configuration
 import play.api.http.HttpErrorHandler
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.EssentialFilter
-import play.filters.csrf.{CSRFComponents, CSRFFilter}
+import play.filters.csrf.CSRFComponents
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.fileupload.FileUploadModule
-import uk.gov.hmrc.gform.gform.GformModule
+import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
-import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.play.audit.filters.FrontendAuditFilter
 import uk.gov.hmrc.play.filters.RecoveryFilter
 import uk.gov.hmrc.play.filters.frontend.{CSRFExceptionsFilter, SessionTimeoutFilter}
@@ -43,7 +41,7 @@ class FrontendFiltersModule(
     configModule: ConfigModule,
     auditingModule: AuditingModule,
     metricsModule: MetricsModule,
-    errorHandlerModule: ErrorHandlerModule
+    controllersModule: ControllersModule
 ) { self =>
 
   private val frontendAuditFilter = new FrontendAuditFilter {
@@ -97,7 +95,7 @@ class FrontendFiltersModule(
   private val cSRFComponents = new CSRFComponents {
     override def configuration: Configuration = configModule.playConfiguration
     override def csrfTokenSigner: CSRFTokenSigner = playBuiltInsModule.builtInComponents.csrfTokenSigner
-    override def httpErrorHandler: HttpErrorHandler = errorHandlerModule.errorHandler
+    override def httpErrorHandler: HttpErrorHandler = controllersModule.errorHandler
     override implicit def materializer: Materializer = playBuiltInsModule.builtInComponents.materializer
   }
 

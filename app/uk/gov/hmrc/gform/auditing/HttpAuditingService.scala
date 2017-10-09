@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.RequestHeader
+import uk.gov.hmrc.play.audit.EventTypes
 import uk.gov.hmrc.play.audit.EventTypes.{ ResourceNotFound, ServerInternalError, ServerValidationError, TransactionFailureReason }
 import uk.gov.hmrc.play.audit.http.HttpAuditEvent
 import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
@@ -31,19 +32,16 @@ import scala.language.reflectiveCalls
 class HttpAuditingService(appName: String, auditConnector: AuditConnector) { self =>
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def auditError(requestHeader: RequestHeader, ex: Throwable): Future[AuditResult] = {
-    val code = ex match {
-      case e: NotFoundException => ResourceNotFound
-      case jsError: JsValidationException => ServerValidationError
-      case _ => ServerInternalError
-    }
-
-    val dataEvent = httpAuditEvent.dataEvent0(code, unexpectedError, requestHeader).withDetail((TransactionFailureReason, ex.getMessage))
-    auditConnector.sendEvent(dataEvent)
-  }
+  def auditServerError(requestHeader: RequestHeader): Future[AuditResult] = auditConnector.sendEvent(
+    httpAuditEvent.dataEvent0(ServerInternalError, unexpectedError, requestHeader)
+  )
 
   def auditNotFound(requestHeader: RequestHeader): Future[AuditResult] = auditConnector.sendEvent(
     httpAuditEvent.dataEvent0(ResourceNotFound, notFoundError, requestHeader)
+  )
+
+  def auditForbidden(requestHeader: RequestHeader): Future[AuditResult] = auditConnector.sendEvent(
+    httpAuditEvent.dataEvent0(ResourceForbidden, resourceForbiddenError, requestHeader)
   )
 
   def auditBadRequest(requestHeaders: RequestHeader, error: String) = auditConnector.sendEvent(
@@ -59,5 +57,6 @@ class HttpAuditingService(appName: String, auditConnector: AuditConnector) { sel
   private val unexpectedError = "Unexpected error"
   private val notFoundError = "Resource Endpoint Not Found"
   private val badRequestError = "Request bad format exception"
-
+  private val ResourceForbidden: EventTypes.EventType = "ResourceNotFound"
+  private val resourceForbiddenError: String = "Resource Endpoint Forbidden"
 }

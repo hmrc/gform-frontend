@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.keystore.KeystoreModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
-import uk.gov.hmrc.gform.playcomponents.{ ErrorHandlerModule, FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
+import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
@@ -56,7 +56,7 @@ class ApplicationLoader extends play.api.ApplicationLoader {
 class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(context)
     with I18nComponents { self =>
 
-  Logger.info(s"Starting GFORM-FRONTEND")
+  Logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
 
   private val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(context, self)
@@ -78,7 +78,8 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     configModule,
     authModule,
     gformBackendModule,
-    playBuiltInsModule
+    playBuiltInsModule,
+    auditingModule
   )
 
   private val fileUploadModule = new FileUploadModule(
@@ -113,19 +114,13 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     gformBackendModule
   )
 
-  private val errorHandlerModule = new ErrorHandlerModule(
-    configModule,
-    auditingModule,
-    playBuiltInsModule
-  )
-
   private val frontendFiltersModule = new FrontendFiltersModule(
     playBuiltInsModule,
     akkaModule,
     configModule,
     auditingModule,
     metricsModule,
-    errorHandlerModule
+    controllersModule
   )
 
   private val routingModule = new RoutingModule(
@@ -138,10 +133,10 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     fileUploadModule,
     testOnlyModule,
     frontendFiltersModule,
-    errorHandlerModule
+    controllersModule
   )
 
-  override lazy val httpErrorHandler: HttpErrorHandler = errorHandlerModule.errorHandler
+  override lazy val httpErrorHandler: HttpErrorHandler = controllersModule.errorHandler
   override lazy val httpRequestHandler: HttpRequestHandler = routingModule.httpRequestHandler
   override lazy val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
   override def router: Router = routingModule.router

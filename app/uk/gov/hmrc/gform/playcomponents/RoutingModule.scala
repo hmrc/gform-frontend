@@ -23,6 +23,7 @@ import play.api.routing.Router
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
@@ -39,7 +40,7 @@ class RoutingModule(
     fileUploadModule: FileUploadModule,
     testOnlyModule: TestOnlyModule,
     frontendFiltersModule: FrontendFiltersModule,
-    errorHandlerModule: ErrorHandlerModule
+    controllersModule: ControllersModule
 
 ) { self =>
 
@@ -47,28 +48,28 @@ class RoutingModule(
   template.RoutesPrefix.setPrefix("/template")
 
   private val appRoutes: app.Routes = new app.Routes(
-    errorHandlerModule.errorHandler,
+    controllersModule.errorHandler,
     gformModule.formController,
     gformModule.summaryController,
     gformModule.declarationController,
     gformModule.acknowledgementController,
     gformModule.errorController,
     gformModule.enrolmentController,
-    new Assets(errorHandlerModule.errorHandler),
+    new Assets(controllersModule.errorHandler),
     fileUploadModule.fileUploadController
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(
-    errorHandlerModule.errorHandler,
+    controllersModule.errorHandler,
     appRoutes,
-    new controllers.template.Template(errorHandlerModule.errorHandler),
+    new controllers.template.Template(controllersModule.errorHandler),
     new AdminController(configModule.playConfiguration),
     metricsModule.metricsController
   )
 
   //we don't need it always, lets leave it lazy
   private lazy val testOnlyDoNotUseInAppConfRoutes: testOnlyDoNotUseInAppConf.Routes = new testOnlyDoNotUseInAppConf.Routes(
-    errorHandlerModule.errorHandler,
+    controllersModule.errorHandler,
     prodRoutes,
     testOnlyModule.testOnlyController
   )
@@ -91,7 +92,7 @@ class RoutingModule(
 
   val httpRequestHandler: HttpRequestHandler = new CustomHttpRequestHandler(
     router,
-    errorHandlerModule.errorHandler,
+    controllersModule.errorHandler,
     playBuiltInsModule.builtInComponents.httpConfiguration,
     frontendFiltersModule.httpFilters
   )
