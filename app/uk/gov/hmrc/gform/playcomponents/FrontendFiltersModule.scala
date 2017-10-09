@@ -22,7 +22,7 @@ import play.api.Configuration
 import play.api.http.HttpErrorHandler
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.EssentialFilter
-import play.filters.csrf.{ CSRFComponents, CSRFFilter }
+import play.filters.csrf.{CSRFComponents, CSRFFilter}
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -31,9 +31,10 @@ import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.play.audit.filters.FrontendAuditFilter
-import uk.gov.hmrc.play.filters.frontend.{ CSRFExceptionsFilter, SessionTimeoutFilter }
+import uk.gov.hmrc.play.filters.RecoveryFilter
+import uk.gov.hmrc.play.filters.frontend.{CSRFExceptionsFilter, SessionTimeoutFilter}
 import uk.gov.hmrc.play.frontend.bootstrap.FrontendFilters
-import uk.gov.hmrc.play.frontend.filters.{ DeviceIdCookieFilter, SecurityHeadersFilterFactory }
+import uk.gov.hmrc.play.frontend.filters.{DeviceIdCookieFilter, SecurityHeadersFilterFactory}
 import uk.gov.hmrc.play.http.logging.filters.FrontendLoggingFilter
 
 class FrontendFiltersModule(
@@ -122,7 +123,7 @@ class FrontendFiltersModule(
       }
     }
 
-    ff.frontendFilters
+    ff.frontendFilters.filter(_ != RecoveryFilter) //RecoveryFilter unveils internal error messages from connectors
   }
 
 }
