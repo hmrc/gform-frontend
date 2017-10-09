@@ -31,16 +31,6 @@ class ControllersModule(
     auditingModule: AuditingModule
 ) {
 
-  val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
-    gformBackendModule.gformConnector,
-    configModule.appConfig,
-    configModule.frontendAppConfig,
-    authModule.authConnector,
-    authModule.eeittAuthorisationDelegate,
-    configModule.whiteListedUsers,
-    playBuiltInsModule.i18nSupport
-  )
-
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
     auditingModule.httpAuditingService,
@@ -51,6 +41,17 @@ class ControllersModule(
     playBuiltInsModule.context.environment,
     playBuiltInsModule.context.initialConfiguration,
     playBuiltInsModule.context.sourceMapper,
+    errResponder
+  )
+
+  val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
+    gformBackendModule.gformConnector,
+    configModule.appConfig,
+    configModule.frontendAppConfig,
+    authModule.authConnector,
+    authModule.eeittAuthorisationDelegate,
+    configModule.whiteListedUsers,
+    playBuiltInsModule.i18nSupport,
     errResponder
   )
 }

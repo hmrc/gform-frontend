@@ -58,7 +58,6 @@ class ErrResponder(
 
   def forbidden(requestHeader: RequestHeader, message: String): Future[Result] = {
     Logger.logger.info(s"Trying to access forbidden resource: $message")
-    httpAuditingService.auditNotFound(requestHeader)
     httpAuditingService.auditForbidden(requestHeader)
     Future.successful(Forbidden(renderForbidden(requestHeader)))
   }
