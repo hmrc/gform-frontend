@@ -46,7 +46,8 @@ class AuthenticatedRequestActions(
     val authConnector: AuthConnector,
     eeittDelegate: EeittAuthorisationDelegate,
     whiteListedUsers: List[String],
-    i18nSupport: I18nSupport
+    i18nSupport: I18nSupport,
+    errResponder: ErrResponder
 ) extends AuthorisedFunctions {
 
   import i18nSupport._
@@ -107,11 +108,11 @@ class AuthenticatedRequestActions(
     }
   }
 
-  private def checkUser(form: Form, retrievals: Retrievals)(actionResult: Future[Result]): Future[Result] = {
+  private def checkUser(form: Form, retrievals: Retrievals)(actionResult: Future[Result])(implicit request: Request[_]): Future[Result] = {
     if (form.userId.value == retrievals.userDetails.groupIdentifier)
       actionResult
     else
-      Future.successful(Forbidden)
+      errResponder.forbidden(request, "We're sorry, but you can't access this page")
   }
 
   private def authenticateAndAuthorise(template: FormTemplate, isNewForm: Boolean)(implicit request: Request[AnyContent], hc: HeaderCarrier): Future[AuthResult] = {
