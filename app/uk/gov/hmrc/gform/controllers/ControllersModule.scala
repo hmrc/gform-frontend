@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.controllers
 
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, I18nSupport, MessagesApi }
+import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
@@ -26,7 +27,8 @@ class ControllersModule(
     configModule: ConfigModule,
     authModule: AuthModule,
     gformBackendModule: GformBackendModule,
-    playBuiltInsModule: PlayBuiltInsModule
+    playBuiltInsModule: PlayBuiltInsModule,
+    auditingModule: AuditingModule
 ) {
 
   val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
@@ -39,4 +41,16 @@ class ControllersModule(
     playBuiltInsModule.i18nSupport
   )
 
+  val errResponder: ErrResponder = new ErrResponder(
+    configModule.frontendAppConfig,
+    auditingModule.httpAuditingService,
+    playBuiltInsModule.i18nSupport
+  )
+
+  val errorHandler: ErrorHandler = new ErrorHandler(
+    playBuiltInsModule.context.environment,
+    playBuiltInsModule.context.initialConfiguration,
+    playBuiltInsModule.context.sourceMapper,
+    errResponder
+  )
 }
