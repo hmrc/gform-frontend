@@ -44,7 +44,7 @@ object Javascript {
        """.stripMargin
     }
 
-    def values(id: String) = s"""parseInt(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
+    def values(id: String) = s"""parseFloat(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
 
     def ids(expr: Expr): Future[List[String]] = {
       expr match {
@@ -78,7 +78,7 @@ object Javascript {
           s"""function sum$id() {
               var sum = [$values];
               var result = sum.reduce(add, 0);
-              return document.getElementById("${fieldId.value}").value = result;
+              return document.getElementById("${fieldId.value}").value = result.toFixed(2);
             };
 
             function add(a, b) {
