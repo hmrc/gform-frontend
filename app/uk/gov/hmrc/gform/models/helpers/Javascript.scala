@@ -83,7 +83,7 @@ object Javascript {
         }
 
         val groups: Future[String] = Group.getGroup(groupList, FormComponentId(id)).map { listFieldId =>
-          listFieldId.map(_.value).map(values).mkString(",")
+          listFieldId.map(_.value).map(values).mkString(s",")
         }
         for {
           listeners <- eventListeners
