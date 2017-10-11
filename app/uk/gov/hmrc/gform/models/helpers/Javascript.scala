@@ -25,38 +25,52 @@ object Javascript {
 
   def fieldJavascript(fields: List[FormComponent], groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
 
-    val fieldIdWithExpr: List[(FormComponentId, Expr)] =
+    val fieldIdWithExpr: List[(FormComponent, Expr)] =
       fields.collect {
-        case FormComponent(id, Text(_, expr), _, _, _, _, _, _, _, _, _) => (id, expr)
+        case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
     Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n"))
   }
 
-  def toJavascriptFn(fieldId: FormComponentId, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
+  def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
 
-    val functionName = "add" + fieldId.value
+    def roundTo = field.`type` match {
+      case Text(Number(_, digits, _), _) => digits
+      case Text(PositiveNumber(_, digits, _), _) => digits
+      case Text(Sterling, _) => 2
+      case _ => TextConstraint.defaultFactionalDigits
+    }
 
-    def eventListeners(id: String) = {
+    def eventListeners(id: String, functionName: String) = {
       s"""document.getElementById("$id").addEventListener("change",$functionName);
          |document.getElementById("$id").addEventListener("keyup",$functionName);
          |window.addEventListener("load", $functionName);
        """.stripMargin
     }
 
-    def values(id: String) = s"""parseInt(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
+    def values(id: String) = s"""parseFloat(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
 
     def ids(expr: Expr): Future[List[String]] = {
       expr match {
-        case Add(amountA, amountB) => ids(amountA).flatMap(first => ids(amountB).map(_ ::: first))
+        case Add(amountA, amountB) =>
+          for {
+            x <- ids(amountA)
+            y <- ids(amountB)
+          } yield x ::: y
         case FormCtx(amountX) => Future.successful(List(amountX))
+        case Subtraction(field1, field2) =>
+          for {
+            x <- ids(field1)
+            y <- ids(field2)
+          } yield x ::: y
         case Sum(FormCtx(id)) => Group.getGroup(groupList, FormComponentId(id)).map(fieldId => fieldId.map(_.value))
         case otherwise => Future.successful(List(""))
       }
     }
 
     val demValues = ids(expr).map(_.map(values).mkString(", "))
-    val listeners = ids(expr).map(_.map(eventListeners).mkString("\n"))
+    def listeners(functionName: String) = ids(expr).map(_.map(eventListeners(_, functionName)).mkString("\n"))
 
     expr match {
       case Sum(FormCtx(id)) =>
@@ -78,7 +92,7 @@ object Javascript {
           s"""function sum$id() {
               var sum = [$values];
               var result = sum.reduce(add, 0);
-              return document.getElementById("${fieldId.value}").value = result;
+              return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
             };
 
             function add(a, b) {
@@ -88,14 +102,15 @@ object Javascript {
             """
         }
       case Add(b, sn) =>
+        val functionName = "add" + field.id.value
         for {
           values <- demValues
-          listener <- listeners
+          listener <- listeners(functionName)
         } yield {
           s"""|function $functionName() {
         |  var x = [ $values ];
         |  var result = x.reduce(add, 0);
-        |  return document.getElementById("${fieldId.value}").value = result;
+        |  return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
         |};
         |
         |function add(a, b) {
@@ -103,6 +118,24 @@ object Javascript {
         |};
         |$listener
         |""".stripMargin
+        }
+      case Subtraction(field1, field2) =>
+        val functionName = "subtract" + field.id.value
+        for {
+          values <- demValues
+          listener <- listeners(functionName)
+        } yield {
+          s"""|function $functionName() {
+              |  var x = [ $values ];
+              |  var result = x.reduce(subtract, 0);
+              |  return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
+              |};
+              |
+        |function subtract(a, b) {
+              | return a - b;
+              |};
+              |$listener
+              |""".stripMargin
         }
       case otherwise => Future.successful("")
     }
