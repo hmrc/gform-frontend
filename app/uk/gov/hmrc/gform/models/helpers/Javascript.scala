@@ -49,7 +49,7 @@ object Javascript {
        """.stripMargin
     }
 
-    def values(id: String) = s"""parseFloat(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
+    def values(id: String) = s"""getNumber(document.getElementById("$id").value.replace(/[£,]/g,''))"""
 
     def ids(expr: Expr): Future[List[String]] = {
       expr match {
@@ -89,14 +89,25 @@ object Javascript {
           listeners <- eventListeners
           values <- groups
         } yield {
-          s"""function sum$id() {
+          s"""
+
+              function getNumber(value) {
+                if (value == ""){
+                return "0";
+                } else {
+                return value;
+                }
+              };
+
+
+              function sum$id() {
               var sum = [$values];
               var result = sum.reduce(add, 0);
               return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
             };
 
             function add(a, b) {
-             return a + b
+             return new Big(a).add(new Big(b))
             };
             $listeners
             """
@@ -110,7 +121,7 @@ object Javascript {
           s"""|function $functionName() {
         |  var x = [ $values ];
         |  var result = x.reduce(add, 0);
-        |  return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
+        |  return document.getElementById("${field.id.value}").value = result;
         |};
         |
         |function add(a, b) {
