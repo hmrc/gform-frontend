@@ -47,7 +47,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   val retrievals = mock[Retrievals]
 
   val mockPrepopService = new PrepopService(null, null) {
-    override def prepopData(expr: Expr, formTemplateId: FormTemplateId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] =
+    override def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] =
       Future.successful("")
   }
 
