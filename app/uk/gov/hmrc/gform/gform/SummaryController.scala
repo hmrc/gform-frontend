@@ -26,7 +26,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -51,7 +51,8 @@ class SummaryController(
     validationService: ValidationService,
     pdfService: PdfGeneratorService,
     gformConnector: GformConnector,
-    frontendAppConfig: FrontendAppConfig
+    frontendAppConfig: FrontendAppConfig,
+    errResponder: ErrResponder
 ) extends FrontendController {
 
   import i18nSupport._
@@ -59,7 +60,7 @@ class SummaryController(
   def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
       case sharedmodel.form.Summary => getSummaryHTML(formId, cache, lang).map(Ok(_))
-      case _ => Future.successful(Locked)
+      case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
     }
   }
 
