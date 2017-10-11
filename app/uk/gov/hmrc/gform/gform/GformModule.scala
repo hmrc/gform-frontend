@@ -101,7 +101,8 @@ class GformModule(
     validationModule.validationService,
     pdfGeneratorModule.pdfGeneratorService,
     gformBackendModule.gformConnector,
-    configModule.frontendAppConfig
+    configModule.frontendAppConfig,
+    controllersModule.errResponder
   )
 
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
