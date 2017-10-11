@@ -121,6 +121,7 @@ class RepeatingComponentService(
     }
   }
 
+  //This Evaluation is for the repeating sections, this will not become values.
   private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Int] = {
     expr match {
       case Add(expr1, expr2) =>
