@@ -25,17 +25,24 @@ object Javascript {
 
   def fieldJavascript(fields: List[FormComponent], groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
 
-    val fieldIdWithExpr: List[(FormComponentId, Expr)] =
+    val fieldIdWithExpr: List[(FormComponent, Expr)] =
       fields.collect {
-        case FormComponent(id, Text(_, expr), _, _, _, _, _, _, _, _, _) => (id, expr)
+        case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
     Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n"))
   }
 
-  def toJavascriptFn(fieldId: FormComponentId, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
+  def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
 
-    val functionName = "add" + fieldId.value
+    val functionName = "add" + field.id.value
+
+    def roundTo = field.`type` match {
+      case Text(Number(_, digits, _), _) => digits
+      case Text(PositiveNumber(_, digits, _), _) => digits
+      case Text(Sterling, _) => 2
+      case _ => TextConstraint.defaultFactionalDigits
+    }
 
     def eventListeners(id: String) = {
       s"""document.getElementById("$id").addEventListener("change",$functionName);
@@ -44,7 +51,7 @@ object Javascript {
        """.stripMargin
     }
 
-    def values(id: String) = s"""parseInt(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
+    def values(id: String) = s"""parseFloat(document.getElementById("$id").value.replace(/[£,]/g,'')) || 0"""
 
     def ids(expr: Expr): Future[List[String]] = {
       expr match {
@@ -69,7 +76,7 @@ object Javascript {
         }
 
         val groups: Future[String] = Group.getGroup(groupList, FormComponentId(id)).map { listFieldId =>
-          listFieldId.map(_.value).map(values).mkString(",")
+          listFieldId.map(_.value).map(values).mkString(s",")
         }
         for {
           listeners <- eventListeners
@@ -78,7 +85,7 @@ object Javascript {
           s"""function sum$id() {
               var sum = [$values];
               var result = sum.reduce(add, 0);
-              return document.getElementById("${fieldId.value}").value = result;
+              return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
             };
 
             function add(a, b) {
@@ -95,7 +102,7 @@ object Javascript {
           s"""|function $functionName() {
         |  var x = [ $values ];
         |  var result = x.reduce(add, 0);
-        |  return document.getElementById("${fieldId.value}").value = result;
+        |  return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
         |};
         |
         |function add(a, b) {
