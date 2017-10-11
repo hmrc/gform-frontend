@@ -38,7 +38,7 @@ sectionTitle: String
             <div id="@{fieldValue.id}">
                 @options.toList.zipWithIndex.map{ case (option, index) =>
                 <div
-                  class="multiple-choice"
+                  class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
                   @if(optionHelpText(index).body.nonEmpty) {
                   data-target="helptext-@{fieldValue.id}@index"
                   }>

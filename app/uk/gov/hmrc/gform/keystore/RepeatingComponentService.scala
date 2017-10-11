@@ -123,8 +123,21 @@ class RepeatingComponentService(
 
   private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Int] = {
     expr match {
-      case Add(expr1, expr2) => evaluateExpression(expr1, formTemplate, data).flatMap(x => evaluateExpression(expr2, formTemplate, data).map(_ + x))
-      case Multiply(expr1, expr2) => evaluateExpression(expr1, formTemplate, data).flatMap(x => evaluateExpression(expr2, formTemplate, data).map(_ * x))
+      case Add(expr1, expr2) =>
+        for {
+          first <- evaluateExpression(expr1, formTemplate, data)
+          second <- evaluateExpression(expr2, formTemplate, data)
+        } yield first + second
+      case Multiply(expr1, expr2) =>
+        for {
+          first <- evaluateExpression(expr1, formTemplate, data)
+          second <- evaluateExpression(expr2, formTemplate, data)
+        } yield first * second
+      case Subtraction(expr1, expr2) =>
+        for {
+          first <- evaluateExpression(expr1, formTemplate, data)
+          second <- evaluateExpression(expr2, formTemplate, data)
+        } yield first - second
       case Sum(FormCtx(expr1)) => sumFunctionality(expr1, formTemplate, data)
       case formExpr @ FormCtx(_) => Future.successful(getFormFieldIntValue(TextExpression(formExpr), data))
       case Constant(value) => Try(value.toInt) match {

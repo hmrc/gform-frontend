@@ -22,6 +22,7 @@ import play.api.libs.json._
 sealed trait Expr
 final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr
+final case class Subtraction(field1: Expr, field2: Expr) extends Expr
 final case class FormCtx(value: String) extends Expr {
   def toFieldId = FormComponentId(this.value)
 }
