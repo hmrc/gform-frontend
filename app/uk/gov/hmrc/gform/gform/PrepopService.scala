@@ -49,19 +49,23 @@ class PrepopService(
     authContextPrepop: AuthContextPrepop
 ) {
 
-  def prepopData(expr: Expr, formTemplateId: FormTemplateId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] = {
+  def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[String] = {
     expr match {
       case AuthCtx(value) => Future.successful(authContextPrepop.values(value, retrievals))
       case Constant(value) => Future.successful(value)
       case EeittCtx(eeitt) =>
-        val prepop =
+        val prepop = {
+          val regimeId = formTemplate.authConfig match {
+            case EEITTAuthConfig(_, rId) => rId
+            case _ => RegimeId("")
+          }
           for {
             prepopData <- eeitt match {
-              case BusinessUser => eeittConnector.prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), formTemplateId).map(_.registrationNumber)
+              case BusinessUser => eeittConnector.prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), regimeId).map(_.registrationNumber)
               case Agent => eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
             }
           } yield prepopData
-
+        }
         prepop.recover {
           case NonFatal(error) =>
             Logger.error(s"error when getting known facts from eeitt: " + error.getMessage)

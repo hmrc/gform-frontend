@@ -56,7 +56,7 @@ class GformModule(
 
   //TODO: there is another eeittConnector - instantiate them in common module
   private lazy val eeittConnector = new EeittConnector(
-    configModule.serviceConfig.baseUrl("eeitt"),
+    configModule.serviceConfig.baseUrl("eeitt") + "/eeitt",
     wSHttpModule.auditableWSHttp
   )
 
