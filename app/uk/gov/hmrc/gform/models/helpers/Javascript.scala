@@ -30,7 +30,13 @@ object Javascript {
         case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
-    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n"))
+    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x + """function getNumber(value) {
+                        if (value == ""){
+                        return "0";
+                        } else {
+                        return value;
+                        }
+                      };""")
   }
 
   def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
@@ -91,19 +97,11 @@ object Javascript {
         } yield {
           s"""
 
-              function getNumber(value) {
-                if (value == ""){
-                return "0";
-                } else {
-                return value;
-                }
-              };
-
 
               function sum$id() {
               var sum = [$values];
               var result = sum.reduce(add, 0);
-              return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
+              return document.getElementById("${field.id.value}").value = result;
             };
 
             function add(a, b) {
@@ -125,7 +123,7 @@ object Javascript {
         |};
         |
         |function add(a, b) {
-        | return a + b;
+        | return new Big(a).add(new Big(b));
         |};
         |$listener
         |""".stripMargin

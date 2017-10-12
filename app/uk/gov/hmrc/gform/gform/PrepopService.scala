@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.data._
@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 import scala.util.control.NonFatal
 
 class AuthContextPrepop {
@@ -66,7 +66,7 @@ class PrepopService(
     expr match {
       case AuthCtx(value) => Future.successful(authContextPrepop.values(value, retrievals))
       case Constant(value) => Future.successful(value)
-      case EeittCtx(eeitt) => eeittPrepop(eeitt, retrievals, formTemplate._id)
+      case EeittCtx(eeitt) => eeittPrepop(eeitt, retrievals, formTemplate)
       case Add(field1, field2) =>
         val value = for {
           y <- prepopData(field1, formTemplate, retrievals, data, section)
@@ -79,18 +79,18 @@ class PrepopService(
         val repeatingSections: Future[List[List[List[FormComponent]]]] = Future.sequence(atomicFields.map(fv => (fv.id, fv.`type`)).collect {
           case (fieldId, group: Group) => cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
         })
-        val listOfValues = Group.getGroup(repeatingSections, FormComponentId(field)).map( z =>
+        val listOfValues = Group.getGroup(repeatingSections, FormComponentId(field)).map(z =>
           for {
-          id <- z
-          x = data.get(id).map(_.head).getOrElse("")
-        } yield toInt(x))
+            id <- z
+            x = data.get(id).map(_.head).getOrElse("")
+          } yield toInt(x))
         listOfValues.map(_.sum.toString)
       case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
       case _ => Future.successful("")
     }
   }
 
-  private def eeittPrepop(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate) = {
+  private def eeittPrepop(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
     val prepop = {
       val regimeId = formTemplate.authConfig match {
         case EEITTAuthConfig(_, rId) => rId
