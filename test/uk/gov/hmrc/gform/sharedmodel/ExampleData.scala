@@ -19,11 +19,11 @@ package uk.gov.hmrc.gform.sharedmodel
 import uk.gov.hmrc.auth.core.authorise.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.authorise.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{Retrievals, UserDetails}
+import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AnyText, _}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AnyText, _ }
 
 import scala.collection.immutable.List
 
@@ -241,7 +241,7 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
   def `formField - startDateDay` = FormField(`fieldId - startDate-day`, "11")
   def `formField - startDateMonth` = FormField(`fieldId - startDate-month`, "10")
   def `formField - startDateYear` = FormField(`fieldId - startDate-year`, "2008")
-  def `formField - number` = FormField(`fieldId - number`, "£1,234")
+  def `formField - number` = FormField(`fieldId - number`, "1,234")
 
   //actions:
 
