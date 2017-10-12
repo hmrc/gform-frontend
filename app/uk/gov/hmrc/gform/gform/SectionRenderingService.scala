@@ -285,7 +285,7 @@ class SectionRenderingService(
 
   private def htmlForText(fieldValue: FormComponent, t: Text, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
     val prepopValueF = ei.fieldData.get(fieldValue.id) match {
-      case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals)
+      case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
@@ -302,7 +302,7 @@ class SectionRenderingService(
 
   private def htmlForSortCode(fieldValue: FormComponent, sC: UkSortCode, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
     val prepopValueF = ei.fieldData.get(fieldValue.id) match {
-      case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals)
+      case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)

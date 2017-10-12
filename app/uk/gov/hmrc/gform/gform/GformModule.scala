@@ -46,7 +46,7 @@ class GformModule(
 
   private val authContextPrepop = new AuthContextPrepop
 
-  private val prepopService: PrepopService = new PrepopService(eeittConnector, authContextPrepop)
+  private val prepopService: PrepopService = new PrepopService(eeittConnector, authContextPrepop, keystoreModule.repeatingComponentService)
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
     keystoreModule.repeatingComponentService,
