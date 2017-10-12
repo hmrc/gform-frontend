@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import uk.gov.hmrc.auth.core.authorise.AffinityGroup.Organisation
+import uk.gov.hmrc.auth.core.authorise.Enrolments
+import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
+import uk.gov.hmrc.gform.auth.models.{Retrievals, UserDetails}
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AnyText, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{AnyText, _}
 
 import scala.collection.immutable.List
 
@@ -35,6 +39,7 @@ trait ExampleData
   with ExampleForm
   with ExampleAuthConfig
   with ExampleFrontendAppConfig
+  with ExampleAuthContext
 
 trait ExampleAuthConfig {
 
@@ -290,6 +295,51 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     InProgress
   )
 
+}
+
+trait ExampleAuthContext {
+
+  def authContext =
+    Retrievals(
+      authProviderId = authProviderId,
+      enrolments = enrolments,
+      affinityGroup = affinityGroup,
+      internalId = internalId,
+      externalId = externalId,
+      userDetails = userDetails,
+      credentialStrength = credentialStrength,
+      agentCode = agentCode
+    )
+
+  def authProviderId =
+    OneTimeLogin
+
+  def affinityGroup =
+    None
+
+  def internalId =
+    None
+
+  def externalId =
+    None
+
+  def credentialStrength =
+    None
+
+  def agentCode =
+    None
+
+  def enrolments =
+    Enrolments(Set())
+
+  def userDetails =
+    UserDetails(
+      authProviderId = None,
+      authProviderType = None,
+      name = "test details",
+      affinityGroup = Organisation,
+      groupIdentifier = "TestGroupId"
+    )
 }
 
 trait ExampleFrontendAppConfig {
