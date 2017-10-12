@@ -58,7 +58,7 @@ class PrepopService(
 
   def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]], section: BaseSection)(implicit hc: HeaderCarrier): Future[String] = {
     def toInt(str: String): BigDecimal =
-      Try(BigDecimal(str)) match {
+      Try(BigDecimal(str.replace(",", ""))) match {
         case Success(x) => x
         case Failure(_) => BigDecimal(0)
       }
@@ -108,10 +108,6 @@ class PrepopService(
         Logger.error(s"error when getting known facts from eeitt: " + error.getMessage)
         "" // let's return empty string
     }
-  }
-
-  private def addFunctionality() = {
-
   }
 
 }

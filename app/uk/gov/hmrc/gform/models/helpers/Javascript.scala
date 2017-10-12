@@ -34,7 +34,7 @@ object Javascript {
                         if (value == ""){
                         return "0";
                         } else {
-                        return value;
+                        return value.replace(",", "");
                         }
                       };""")
   }
