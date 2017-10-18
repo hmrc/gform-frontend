@@ -35,7 +35,7 @@ class PrepopServiceSpec extends Spec with ExampleData {
   behavior of "Prepop Service"
 
   val mockEeittConnector = new EeittConnector("", null) {
-    override def prepopulationBusinessUser(groupId: GroupId, regimeId: FormTemplateId)(implicit hc: HeaderCarrier): Future[BusinessUser] =
+    override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier): Future[BusinessUser] =
       Future.successful(BusinessUser("TESTREGNUM"))
 
     override def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier): Future[Agent] =
@@ -83,7 +83,7 @@ class PrepopServiceSpec extends Spec with ExampleData {
   }
 
   def call(expr: Expr) =
-    prepopService.prepopData(expr, formTemplateId, authContext, rawDataFromBrowser, `section - about you`)
+    prepopService.prepopData(expr, formTemplate, authContext, rawDataFromBrowser, `section - about you`)
 
   implicit lazy val hc = HeaderCarrier()
 }
