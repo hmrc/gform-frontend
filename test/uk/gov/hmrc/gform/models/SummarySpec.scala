@@ -366,7 +366,7 @@ class SummarySpec extends Spec {
     val htmls = summaryForRender.futureValue.snippets
     val htmlAheadOfSection2 = htmls(3)
     val doc = Jsoup.parse(htmlAheadOfSection2.toString)
-    val urlOfHrefToSection2 = doc.select("a:contains(Change").get(0).attributes().get("href")
+    val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
     urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id, SectionNumber(2), 3, None).url
   }
 }
