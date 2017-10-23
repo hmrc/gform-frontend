@@ -50,6 +50,8 @@ global.GOVUK=GOVUK})(window);
 
 var FORM_ERROR_CLASS = 'form-field-group--error';
 var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
+var gform = $('#gform');
+var gformAction = $('#gform-action');
 
 var gform = window.gform || {};
 var formMaxAttachmentSizeMB = parseInt(window.gform.formMaxAttachmentSizeMB || 1, 10);
@@ -60,7 +62,7 @@ var uploaderDefaults = {
   maxFileSize: formMaxAttachmentSizeMB * 1024 * 1024,
   uploaderLabel: 'Your uploaded file will appear here',
   maxFileSizeError: 'File exceeds max size allowed',
-    contentTypes: window.gform.contentTypes
+  contentTypes: window.gform.contentTypes
 };
 
 var details = $('details');
@@ -182,6 +184,15 @@ details.on('click', function(evt) {
   } else {
     toggleTarget.attr('aria-hidden', true);
   }
+});
+
+// Fix to POST the submit type. In browsers other than Safari, you can post the value
+// of the submit button. This workaround sets the value on a hidden inpuot instead as
+// gforms works by using different submit values
+gform.on('click', '[type="submit"]', function(evt) {
+  var type = $(evt.target).val();
+
+  gformAction.val(type);
 });
 
 showHideContent.init();

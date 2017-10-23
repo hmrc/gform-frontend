@@ -33,7 +33,7 @@
 
     @pageLevelError
 
-    <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate">
+    <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gform">
 
         @{
             CSRF.formField
@@ -47,28 +47,31 @@
       	    page.hiddenFieldsSnippets
       	}
 
+        <input type="hidden" id="gform-action" name="save" value="Continue" />
+
         <div class="form-group divider--top--thick">
-            <button type="submit" class="button" name="save" value="Continue">@page.continueLabel</button>
+            <button type="submit" class="button" value="Continue">@page.continueLabel</button>
         </div>
 
-        @if(page.renderComeBackLater) {
-        <div class="form-group">
-            <button type="submit" class="button--secondary" name="save" value="Save">Save and come back later</button>
-        </div>
-        }
-
-        @if(page.sectionNumber.value != 0){
-        <div class="form-group">
-            <button type="submit" class="link-back" name="save" value="Back">Back</button>
-        </div>
-        }
-
-        @if(shouldDisplayBackToSummary){
+        <div class="js-visible">
+          @if(page.renderComeBackLater) {
           <div class="form-group">
-            <button type="submit" class="link-back" name="save" value="BackToSummary">Back to summary</button>
+              <button type="submit" class="button--secondary" value="Save">Save and come back later</button>
           </div>
-        }
+          }
 
+          @if(page.sectionNumber.value != 0){
+          <div class="form-group">
+              <button type="submit" class="link-back" value="Back">Back</button>
+          </div>
+          }
+
+          @if(shouldDisplayBackToSummary){
+            <div class="form-group">
+              <button type="submit" class="link-back" value="BackToSummary">Back to summary</button>
+            </div>
+          }
+        </div>
     </form>
 
     <script type="text/javascript">
