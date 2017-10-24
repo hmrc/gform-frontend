@@ -81,6 +81,10 @@
   padding: 0;
 }
 
+.file-upload__file-list-item .gf-delete {
+  margin-left: 1em;
+}
+
 .file-upload__file {
   width: 0.1px;
 	height: 0.1px;
