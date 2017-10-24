@@ -32,7 +32,7 @@ lang: Option[String]
 <div class="form-group">
     <div
       class="file-uploader @if(!validationResult.forall(_.isOk)) { form-field-group--error }"
-      data-form-id="@{formId}"
+      data-form-id="@{formId.value}"
       data-file-id="@{fieldValue.id.value}"
       data-upload-text="@{defaultLabel}"
       data-change-text="Change document"

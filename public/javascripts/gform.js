@@ -50,8 +50,9 @@ global.GOVUK=GOVUK})(window);
 
 var FORM_ERROR_CLASS = 'form-field-group--error';
 var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
-var gform = $('#gform');
-var gformAction = $('#gform-action');
+var FILE_DELETE_URL = '/submissions/api/forms/{{formId}}/deleteFile/{{fileId}}';
+var gfForm = $('#gf-form');
+var gfFormAction = $('#gform-action');
 
 var gform = window.gform || {};
 var formMaxAttachmentSizeMB = parseInt(window.gform.formMaxAttachmentSizeMB || 1, 10);
@@ -90,6 +91,7 @@ var uploader = function(el) {
   var uploadErrorsEl = el.find('.file-upload__errors').eq(0);
   var uploaderEl = $('<input id="' + fileId + '" type="file" class="file-upload__file" accept="'+config.contentTypes+'"/>');
   var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label">' + config.initialText + '</label>');
+  var deleteBtnEl = $('<a href="#" class="gf-delete" data-file-id="' + fileId + '">Delete</a>');
 
   var handleError = function(text) {
     var errorEl = '<span class="error-notification" role="alert">' + text + '</span>';
@@ -104,6 +106,43 @@ var uploader = function(el) {
   var isEmptyEl = function(el) {
     return el.html().trim() === '';
   }
+
+  el.on('click', '.gf-delete', function(evt) {
+    evt.preventDefault();
+
+    var deleteFileUrl = FILE_DELETE_URL
+      .replace('{{formId}}', formId)
+      .replace('{{fileId}}', fileId);
+
+    if (!fileId) {
+      handleError('Could not delete file: file id is undefined');
+      return;
+    }
+
+    // Show loading text and disable upload
+    uploaderEl.prop('disabled', true);
+    uploadedFileEl.html('Deleting file...');
+
+    // Perform DELETE request
+    $.ajax({
+      url: deleteFileUrl,
+      type: 'DELETE',
+      success: function(response) {
+        uploaderBtn.html(config.uploadText);
+        uploadErrorsEl.empty();
+        uploadedFileEl.empty();
+        el.removeClass(FORM_ERROR_CLASS);
+        uploaderEl.prop('disabled', false);
+      },
+      error: function(err) {
+        var errorMsg = err.responseJSON && err.responseJSON.message
+          ? err.responseJSON.message
+          : 'An unexpected error occurred';
+
+        handleError(errorMsg);
+      }
+    });
+  });
 
   // Upload the file when a new one is selected
   uploaderEl.on('change', function(evt) {
@@ -140,7 +179,8 @@ var uploader = function(el) {
       success: function(response) {
         uploaderBtn.html(config.changeText);
         uploadErrorsEl.empty();
-        uploadedFileEl.html(file.name);
+        uploadedFileEl.html('<span>' + file.name + '</span>');
+        uploadedFileEl.append(deleteBtnEl);
         el.removeClass(FORM_ERROR_CLASS);
         uploaderEl.prop('disabled', false);
       },
@@ -162,6 +202,8 @@ var uploader = function(el) {
   // so we are going to have to update the label in this situation
   if (uploadedFileEl.text().trim() === config.defaultUploaderLabel) {
     uploadedFileEl.empty().html(config.uploaderLabel);
+  } else {
+    uploadedFileEl.append(deleteBtnEl);
   }
 }
 
@@ -189,10 +231,10 @@ details.on('click', function(evt) {
 // Fix to POST the submit type. In browsers other than Safari, you can post the value
 // of the submit button. This workaround sets the value on a hidden inpuot instead as
 // gforms works by using different submit values
-gform.on('click', '[type="submit"]', function(evt) {
+gfForm.on('click', '[type="submit"]', function(evt) {
   var type = $(evt.target).val();
 
-  gformAction.val(type);
+  gfFormAction.val(type);
 });
 
 showHideContent.init();
