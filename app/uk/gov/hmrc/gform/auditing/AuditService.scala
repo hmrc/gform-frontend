@@ -117,7 +117,7 @@ trait AuditService {
   private def hashedValueEvent(hashedValue: String, formString: String, eventId: String)(implicit hc: HeaderCarrier) = {
     val x = DataEvent(
       auditSource = "GForm",
-      auditType = "submission complete auditing",
+      auditType = "printedReturnNonrepudiation",
       tags = hc.headers.toMap,
       eventId = eventId,
       detail = Map(
