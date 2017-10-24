@@ -94,7 +94,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames should be(List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum"))
+    hiddenFieldNames should be(List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
     visibleFields should be(List("firstName", "surname"))
   }
 
@@ -121,7 +121,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames should be(List("csrfToken", "firstName", "surname", "facePhoto"))
+    hiddenFieldNames should be(List("csrfToken", "firstName", "surname", "facePhoto", "save"))
     visibleFields should be(List("nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum"))
   }
 
@@ -346,7 +346,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
     val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
 
-    hiddenFieldNames should be(List("csrfToken"))
+    hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List())
     buttons should be(List(("Accept and submit")))
   }
@@ -369,7 +369,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
     val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
 
-    hiddenFieldNames should be(List("csrfToken"))
+    hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List())
     buttons should be(List(("Accept and submit claim")))
   }
@@ -392,7 +392,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
     val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
 
-    hiddenFieldNames should be(List("csrfToken"))
+    hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List())
     buttons should be(List(("Accept and submit return")))
   }
