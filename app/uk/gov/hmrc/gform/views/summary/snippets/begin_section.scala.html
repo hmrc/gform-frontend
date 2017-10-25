@@ -5,11 +5,11 @@
 
 @(formTemplateId4Ga: FormTemplateId, formId: FormId, title: String, description: Option[String], idx: Int, totalSections: Int, lang: Option[String])
 
-<table class="table--font-reset @if(idx == 0) { table--top-border }">
+<table class="table--font-reset">
   <thead>
     <tr>
       <th colspan="2">
-        <h2 class="h2-heading">@localisation(title)</h2>
+        <span class="h2-heading">@localisation(title)</span>
       </th>
 
       <th class="text--right">

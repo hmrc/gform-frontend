@@ -11,6 +11,14 @@
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]])
 
 @currentValue(idx: Int) = @{TextFormatter.formatText(fieldValue.`type`, fields(idx))}
+
+@isSterling = @{
+    fieldValue.`type` match {
+        case Text(Sterling, _) => true
+        case _ => false
+    }
+}
+
 <tr>
     @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).nonEmpty) {
     <td class="grid-layout__column--1-3">
