@@ -48,6 +48,9 @@ this.showHideCheckboxToggledContent($container)}
 GOVUK.ShowHideContent=ShowHideContent
 global.GOVUK=GOVUK})(window);
 
+var ERROR_CODES = {
+  FILE_TOO_LARGE: 413
+};
 var FORM_ERROR_CLASS = 'form-field-group--error';
 var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
 var FILE_DELETE_URL = '/submissions/api/forms/{{formId}}/deleteFile/{{fileId}}';
@@ -79,7 +82,6 @@ var uploader = function(el) {
     uploadText: el.data('uploadText'),
     changeText: el.data('changeText'),
     maxFileSize: parseInt(el.data('maxFileSize'), 10),
-    uploaderLabel: el.data('label'),
     fileSizeError: el.data('fileSizeError'),
     initialText: el.data('initialText'),
     defaultUploaderLabel: el.data('default-label')
@@ -97,7 +99,7 @@ var uploader = function(el) {
     var errorEl = '<span class="error-notification" role="alert">' + text + '</span>';
 
     uploaderBtn.html(config.uploadText);
-    uploadedFileEl.empty().html(config.uploaderLabel);
+    uploadedFileEl.empty();
     uploadErrorsEl.empty().append(errorEl);
     el.addClass(FORM_ERROR_CLASS);
     uploaderEl.prop('disabled', false);
@@ -110,12 +112,13 @@ var uploader = function(el) {
   el.on('click', '.gf-delete', function(evt) {
     evt.preventDefault();
 
+    var currentFile = uploadedFileEl.clone();
     var deleteFileUrl = FILE_DELETE_URL
       .replace('{{formId}}', formId)
       .replace('{{fileId}}', fileId);
 
     if (!fileId) {
-      handleError('Could not delete file: file id is undefined');
+      handleError('Could not delete file, file is invalid');
       return;
     }
 
@@ -140,6 +143,9 @@ var uploader = function(el) {
           : 'An unexpected error occurred';
 
         handleError(errorMsg);
+
+        // Revert DOM to display previous file, as it was not deleted
+        uploadedFileEl.html(currentFile);
       }
     });
   });
@@ -185,7 +191,20 @@ var uploader = function(el) {
         uploaderEl.prop('disabled', false);
       },
       error: function(err) {
-        handleError(err.responseJSON.message);
+        if (err.responseJSON && err.responseJSON.message)  {
+          handleError(err.responseJSON.message);
+          return;
+        }
+
+        switch(err.status) {
+          case ERROR_CODES.FILE_TOO_LARGE:
+            handleError(config.fileSizeError);
+            break;
+          default:
+            handleError('An unexpected error occurred, your file could not be uploaded');
+            break;
+        }
+
       }
     });
   });
@@ -201,7 +220,7 @@ var uploader = function(el) {
   // Template changes the label if an error on load (need to keep for non-js version)
   // so we are going to have to update the label in this situation
   if (uploadedFileEl.text().trim() === config.defaultUploaderLabel) {
-    uploadedFileEl.empty().html(config.uploaderLabel);
+    uploadedFileEl.empty();
   } else {
     uploadedFileEl.append(deleteBtnEl);
   }
