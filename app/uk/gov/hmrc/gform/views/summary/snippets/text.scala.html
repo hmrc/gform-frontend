@@ -38,11 +38,8 @@
   </td>
 
   <td>
-      @if(!isSterling) {
-          @currentValue
-      } else {
-          @currentValue
-      }
+      @if(isSterling) {&pound;}
+      @currentValue
   </td>
 </tr>
 } else {
@@ -52,14 +49,8 @@
   </td>
 
     <td>
-        @if(!isSterling) {
-            @currentValue
-        } else {
-           <span class="input-currency input--left-padding">
-            @currentValue
-</span>
-
-        }
+        @if(isSterling) {&pound;}
+        @currentValue
     </td>
 
   <td></td>

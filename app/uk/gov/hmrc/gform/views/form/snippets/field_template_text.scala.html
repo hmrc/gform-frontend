@@ -55,7 +55,7 @@
                 @if(!fieldValue.editable) { readonly="" }
                 id="@fieldValue.id"
                 value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-                class="form-control input--no-spinner input--left-padding input--small">
+                class="form-control input--no-spinner input--left-padding">
     </span>
     }
 </div>

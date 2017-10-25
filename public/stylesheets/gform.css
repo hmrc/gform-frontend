@@ -166,14 +166,29 @@ button.link-back:visited {
   background: transparent;
 }
 
-.inline .form-group {
-  width: 50%;
-  float: none;
-  display: inline-block;
-  vertical-align: bottom;
+/* Render number inputs differently to niormal text boxes */
+@media (min-width: 641px) {
+  .inline .form-group {
+    width: 50%;
+    float: none;
+    display: inline-block;
+    vertical-align: bottom;
+  }
+  .inline .form-group .form-control {
+    width: 100%;
+  }
+  .input-currency .form-control {
+    padding-left: 1em;
+    width: 160px;
+  }
+  .panel-indent .form-control {
+    width: 160px;
+  }
 }
-.inline .form-group .form-control {
-  width: 100%;
+
+/* Fix as my PR to fix this issue still has not been merged into assets frontend */
+.form-date .form-group-year {
+  width: 70px;
 }
 
 /* Repeating groups with horizointal formatting */
@@ -189,14 +204,6 @@ button.link-back:visited {
 
 .inline .form-field-group--error .repeating-section--remove {
   margin-bottom: 1.25em;
-}
-
-/* Fix as my PR to fix this issue still has not been merged into assets frontend */
-.form-date .form-group-year {
-  width: 70px;
-}
-.input-currency .form-control {
-  padding-left: 1em;
 }
 
 /* Print styles, mainly for the summary page */
