@@ -17,16 +17,18 @@ dataEntered: Boolean
 
 @id(groupId: FormComponentId) = @{ "removeOnClick"+groupId.toString + "()"}
 
-<div class="multiple-choice" data-target="helptext-@{groupId}">
-    <input id="@{groupId}"
-           name="@{groupId}"
-           value=""
-           type="checkbox"
-           @if(dataEntered) {checked}
-           onchange="@id(groupId)" />
-    <label for="@{groupId}">@groupLabel</label>
-</div>
+<div class="collapsible-group">
+  <div class="multiple-choice" data-target="helptext-@{groupId}">
+      <input id="@{groupId}"
+             name="@{groupId}"
+             value=""
+             type="checkbox"
+             @if(dataEntered) {checked}
+             onchange="@id(groupId)" />
+      <label for="@{groupId}">@groupLabel</label>
+  </div>
 
-<div id="helptext-@{groupId}" class="panel-indent js-hidden" aria-hidden="true">
-    @optionElements
+  <div id="helptext-@{groupId}" class="panel-indent js-hidden" aria-hidden="true">
+      @optionElements
+  </div>
 </div>

@@ -139,6 +139,9 @@
 .multiple-choice + .panel-indent {
   margin-bottom: 10px;
 }
+.collapsible-group + .form-group {
+  padding-top: 30px;
+}
 
 /* Summary errors */
 .summary--error td:first-child {
