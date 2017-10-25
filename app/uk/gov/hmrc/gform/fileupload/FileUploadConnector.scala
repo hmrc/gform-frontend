@@ -33,7 +33,7 @@ class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
     Logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
-    wSHttp.DELETE[HttpResponse](s"$baseUrl/file-upload/envelopes/${envelopeId.value}/files/${fileId.value}")
+    wSHttp.DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")
       .map(_ => ())
   }
 }
