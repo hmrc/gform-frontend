@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.summary
 
 import cats.data.Validated.{ Invalid, Valid }
+import play.api.Logger
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
@@ -84,22 +85,33 @@ object SummaryRenderingService {
 
       def valueToHtml(fieldValue: FormComponent): Future[Html] = {
 
-        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Future[Html] = fieldValue.`type` match {
-          case groupField: Group if presentationHint contains SummariseGroupAsGrid =>
-            val htmlList: Future[List[Html]] =
-              repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField).map(y => for {
-                group <- y
-                value = group.map(validate)
-              } yield {
-                group_grid(fieldValue, value)
-              })
-            htmlList.map(y => group(fieldValue, y, groupField.orientation))
-          case groupField @ Group(_, orientation, _, _, _, _) =>
-            for {
-              fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
-              htmlList <- Future.sequence(fvs.flatMap(_.map { case (fv: FormComponent) => valueToHtml(fv) }.toList))
-            } yield group(fieldValue, htmlList, orientation)
-          case _ => valueToHtml(fieldValue)
+        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Future[Html] = {
+          val isLabel = fieldValue.shortName.getOrElse(fieldValue.label).nonEmpty
+          fieldValue.`type` match {
+            case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
+              val htmlList: Future[List[Html]] =
+                repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField).map(y => for {
+                  group <- y
+                  value = group.map(validate)
+                } yield {
+                  group_grid(fieldValue, value, isLabel)
+                })
+              htmlList.map(y => group(fieldValue, y, groupField.orientation, isLabel))
+            case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
+              val value = groupField.fields.filter { y =>
+                val x = validate(y)
+                x.isDefined
+              }.map(validate)
+              if (value.nonEmpty) {
+                Future.successful(group_grid(fieldValue, value, isLabel))
+              } else Future.successful(Html(""))
+            case groupField @ Group(_, orientation, _, _, _, _) =>
+              for {
+                fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
+                htmlList <- Future.sequence(fvs.flatMap(_.map { case (fv: FormComponent) => valueToHtml(fv) }.toList))
+              } yield group(fieldValue, htmlList, orientation, isLabel)
+            case _ => valueToHtml(fieldValue)
+          }
         }
 
         fieldValue.`type` match {
@@ -114,7 +126,7 @@ object SummaryRenderingService {
             }.collect { case Some(selection) => selection }
 
             Future.successful(choice(fieldValue, selections))
-          case FileUpload() => Future.successful(text(fieldValue, Text(AnyText, Constant("file")), validate(fieldValue)))
+          case f @ FileUpload() => Future.successful(file_upload(fieldValue, f, validate(fieldValue)))
           case InformationMessage(_, _) => Future.successful(Html(""))
           case Group(_, _, _, _, _, _) => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
         }

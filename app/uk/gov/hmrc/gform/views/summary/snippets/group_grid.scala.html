@@ -8,11 +8,11 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]])
+@(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean)
 
 @currentValue(idx: Int) = @{TextFormatter.formatText(fieldValue.`type`, fields(idx))}
 <tr>
-    @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).nonEmpty) {
+    @if(isLabel) {
     <td class="grid-layout__column--1-3">
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
