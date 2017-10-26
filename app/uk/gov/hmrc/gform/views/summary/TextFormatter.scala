@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 object TextFormatter {
 
-  def formatText(component: ComponentType, validationResult: Option[FormFieldValidationResult]): String = {
+  def formatText(validationResult: Option[FormFieldValidationResult]): String = {
     val currentValue = validationResult match {
       case Some(result) => result.getCurrentValue.getOrElse("")
       case None => ""
@@ -57,15 +57,17 @@ object TextFormatter {
               "£" + number
             else
               number
-          case _ => currentValue
+          case _ =>
+            currentValue
         }
       }
     }
-    component match {
+    def y(componentType: ComponentType): String = componentType match {
       case x: Text => componentText(x)
-      case g: Group => g.fields.find(_.id.value == validationResult.map(x => x.fieldValue.id.value).getOrElse("")).map(x => formatText(x.`type`, validationResult)).mkString
       case _ => currentValue
     }
+
+    validationResult.map(x => y(x.fieldValue.`type`)).getOrElse("")
   }
 
   def appendUnit(text: Text): String = text.constraint match {

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.summary
 
 import cats.data.Validated.{ Invalid, Valid }
-import play.api.Logger
+import cats.implicits._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
@@ -87,6 +87,15 @@ object SummaryRenderingService {
 
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Future[Html] = {
           val isLabel = fieldValue.shortName.getOrElse(fieldValue.label).nonEmpty
+          def groupGrid(formComponents: List[FormComponent]) = {
+            val value = formComponents.filter { y =>
+              val x = validate(y)
+              x.isDefined
+            }.map(validate)
+            if (value.nonEmpty) {
+              group_grid(fieldValue, value, false)
+            } else Html("")
+          }
           fieldValue.`type` match {
             case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
               val htmlList: Future[List[Html]] =
@@ -94,17 +103,12 @@ object SummaryRenderingService {
                   group <- y
                   value = group.map(validate)
                 } yield {
-                  group_grid(fieldValue, value, isLabel)
+                  group_grid(fieldValue, value, false)
                 })
-              htmlList.map(y => group(fieldValue, y, groupField.orientation, isLabel))
+              htmlList.map(y => repeating_group(y))
             case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
-              val value = groupField.fields.filter { y =>
-                val x = validate(y)
-                x.isDefined
-              }.map(validate)
-              if (value.nonEmpty) {
-                Future.successful(group_grid(fieldValue, value, isLabel))
-              } else Future.successful(Html(""))
+              groupGrid(groupField.fields)
+                .pure[Future]
             case groupField @ Group(_, orientation, _, _, _, _) =>
               for {
                 fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
