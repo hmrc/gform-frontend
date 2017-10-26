@@ -68,7 +68,7 @@ object Fields {
       .map(kv => kv._1.value -> kv._2).toMap
 
   def getValidationResult(formFieldMap: Map[FormComponentId, Seq[String]], fieldValues: List[FormComponent], envelope: Envelope, gformErrors: Map[FormComponentId, Set[String]])(fieldValue: FormComponent): Option[FormFieldValidationResult] = {
-    val formFields: Map[FormComponentId, FormField] = toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
+    val formFields: Map[FormComponentId, FormField] = toFormField(formFieldMap, fieldValues).filter(_.value.nonEmpty).map(hf => hf.id -> hf).toMap
 
     val dataGetter: FormComponentId => List[FormField] = fId => formFields.get(fId).toList
 

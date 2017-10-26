@@ -6,7 +6,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
-@import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
@@ -22,7 +21,7 @@
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
     @* TODO: What should total style be? *@
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-      <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
+      <label class="form-label-bold @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
       @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
       </label>
     } else {
@@ -47,7 +46,7 @@
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
             value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-            class="form-control @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text)
+            class="form-control @if(fieldValue.derived){js-hidden}"> @TextFormatter.appendUnit(text)
     } else {
     <span class="input-currency">
         <input
@@ -56,7 +55,7 @@
                 @if(!fieldValue.editable) { readonly="" }
                 id="@fieldValue.id"
                 value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-                class="form-control input--no-spinner input--left-padding">
+                class="form-control input--no-spinner input--left-padding input--small">
     </span>
     }
 </div>

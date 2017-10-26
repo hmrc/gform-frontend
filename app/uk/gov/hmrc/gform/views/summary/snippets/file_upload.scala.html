@@ -1,0 +1,32 @@
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+@import uk.gov.hmrc.gform.views._
+@import uk.gov.hmrc.gform.views.html.localisation
+@import uk.gov.hmrc.gform.views.summary.TextFormatter
+@import uk.gov.hmrc.play.views.html.helpers._
+
+@(fieldValue: FormComponent, fileUpload: FileUpload, validationResult: Option[FormFieldValidationResult])
+
+@hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
+
+@errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
+    errorInline("summary", e, Seq())
+}}
+
+@if(hasErrors) {
+    <tr class="error summary--error">
+        <td colspan="3">
+            @errors
+        </td>
+    </tr>
+}
+
+<tr class="@if(hasErrors) {summary--error}">
+
+    <td>
+            @validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")
+    </td>
+
+  <td></td>
+</tr>

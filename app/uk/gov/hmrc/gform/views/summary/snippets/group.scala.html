@@ -7,17 +7,17 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@(fieldValue: FormComponent, snippets: List[Html], orientation: Orientation)
+@(fieldValue: FormComponent, snippets: List[Html], orientation: Orientation, isLabel: Boolean)
 
+@if(isLabel){
 <tr>
-    <td>
+    <td colspan="3">
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
     </td>
 
-    <td>
-
+</tr>
+}
       @{
          snippets
       }
-    </td>
-</tr>
+

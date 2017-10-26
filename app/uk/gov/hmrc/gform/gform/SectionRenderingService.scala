@@ -284,20 +284,32 @@ class SectionRenderingService(
   }
 
   private def htmlForText(fieldValue: FormComponent, t: Text, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
+    def renderText(fieldValue: FormComponent, t: Text, prepopValue: String, validatedValue: Option[FormFieldValidationResult]): Html = {
+      fieldValue.presentationHint match {
+        case None => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+        case Some(x) if x.contains(TotalValue) => html.form.snippets.field_template_text_total(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+        case Some(x) => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+      }
+    }
+
     val prepopValueF = ei.fieldData.get(fieldValue.id) match {
       case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
 
-    val isStirling = fieldValue.`type` match {
+    val isTotal: Boolean = fieldValue
+      .presentationHint
+      .exists(_.contains(TotalValue))
+
+    val isSterling = fieldValue.`type` match {
       case Text(Sterling, _) => true
       case _ => false
     }
 
     for {
       prepopValue <- prepopValueF
-    } yield html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+    } yield renderText(fieldValue, t, prepopValue, validatedValue)
   }
 
   private def htmlForSortCode(fieldValue: FormComponent, sC: UkSortCode, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {

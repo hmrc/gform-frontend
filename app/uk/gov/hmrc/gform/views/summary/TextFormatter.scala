@@ -20,7 +20,7 @@ import java.awt.Component
 import java.io
 
 import play.api.Logger
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ComponentType, Group, Number, PositiveNumber, Sterling, Text, UkBankAccountNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 object TextFormatter {
@@ -38,13 +38,14 @@ object TextFormatter {
         text.constraint match {
           case PositiveNumber(_, _, Some(unit)) => currentValue + " " + unit
           case Number(_, _, Some(unit)) => currentValue + " " + unit
+          case Sterling => "£" + currentValue
           case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
 
             val poundOrComma = "[£,]".r
             val valueWithoutPoundsOrCommas = poundOrComma.replaceAllIn(currentValue, "")
             val sections = valueWithoutPoundsOrCommas.split("""\.""")
 
-            if (sections(0).size >= 5) {
+            val number = if (sections(0).size >= 5) {
               val integerPart = sections(0).reverse.grouped(3).mkString(",").reverse
               if (sections.size == 2) {
                 integerPart + "." + sections(1)
@@ -53,6 +54,10 @@ object TextFormatter {
               }
             } else valueWithoutPoundsOrCommas
 
+            if (text.constraint == Sterling)
+              "£" + number
+            else
+              number
           case UkBankAccountNumber => currentValue.grouped(4).mkString(" ")
 
           case _ => currentValue
@@ -64,5 +69,21 @@ object TextFormatter {
       case g: Group => g.fields.find(_.id.value == validationResult.map(x => x.fieldValue.id.value).getOrElse("")).map(x => formatText(x.`type`, validationResult)).mkString
       case _ => currentValue
     }
+  }
+
+  def appendUnit(text: Text): String = text.constraint match {
+      case PositiveNumber(_, _, Some(unit)) => unit
+      case Number(_, _, Some(unit)) =>  unit
+      case _ => ""
+    }
+
+  def isSterling(formComponent: FormComponent) = formComponent.`type` match {
+    case Text(Sterling, _) => true
+    case _ => false
+  }
+
+  def isNumber(formComponent: FormComponent) = formComponent.`type` match {
+    case Text(Number(_, _, _), _) | Text(PositiveNumber(_, _, _), _) => true
+    case _ => false
   }
 }
