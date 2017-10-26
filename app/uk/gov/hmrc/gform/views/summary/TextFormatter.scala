@@ -62,12 +62,14 @@ object TextFormatter {
         }
       }
     }
-    def y(componentType: ComponentType): String = componentType match {
+    def getValue(componentType: ComponentType): String = componentType match {
       case x: Text => componentText(x)
       case _ => currentValue
     }
 
-    validationResult.map(x => y(x.fieldValue.`type`)).getOrElse("")
+    validationResult
+      .map(result => getValue(result.fieldValue.`type`))
+      .getOrElse("")
   }
 
   def appendUnit(text: Text): String = text.constraint match {
