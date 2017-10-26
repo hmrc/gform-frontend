@@ -22,7 +22,7 @@
     title = formTemplate.formName,
     frontendAppConfig = frontendAppConfig
 ) {
-<h1>Would you like to continue your claim or start again?</h1>
+<h1>Would you like to continue your @formCategory(formTemplate) or start again?</h1>
 
 <form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, formId, lang) method="POST">
 
