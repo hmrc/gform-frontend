@@ -33,25 +33,33 @@ class TextFormatterSpec extends Spec {
   def testValuesLessThan5Digits(text: Text) = {
     val component = getComponent(text)
 
-    TextFormatter.formatText(text, getValidationResult(component, "1000")) shouldBe "1000"
-    TextFormatter.formatText(text, getValidationResult(component, "1000.00")) shouldBe "1000.00"
+    TextFormatter.formatText(text, getValidationResult(component, "1000")) shouldBe values("1000", text.constraint)
+    TextFormatter.formatText(text, getValidationResult(component, "1000.00")) shouldBe values("1000.00", text.constraint)
+  }
+
+  def values(value: String, constraint: TextConstraint) = {
+    constraint match {
+      case Sterling => s"£$value"
+      case _ => value
+    }
   }
 
   def testValuesGreaterThan5Digits(text: Text) = {
     val component = getComponent(text)
 
-    TextFormatter.formatText(text, getValidationResult(component, "10000")) shouldBe "10,000"
-    TextFormatter.formatText(text, getValidationResult(component, "10000.00")) shouldBe "10,000.00"
-    TextFormatter.formatText(text, getValidationResult(component, "100000")) shouldBe "100,000"
-    TextFormatter.formatText(text, getValidationResult(component, "100000.00")) shouldBe "100,000.00"
+    TextFormatter.formatText(text, getValidationResult(component, "10000")) shouldBe values("10,000", text.constraint)
+    TextFormatter.formatText(text, getValidationResult(component, "10000.00")) shouldBe values("10,000.00", text.constraint)
+    TextFormatter.formatText(text, getValidationResult(component, "100000")) shouldBe values("100,000", text.constraint)
+    TextFormatter.formatText(text, getValidationResult(component, "100000.00")) shouldBe values("100,000.00", text.constraint)
   }
 
   def testValuesWithPoundSignsAndCommas(text: Text) = {
     val component = getComponent(text)
 
-    TextFormatter.formatText(text, getValidationResult(component, "£100,00.00")) shouldBe "10,000.00"
-    TextFormatter.formatText(text, getValidationResult(component, "£10,0.00")) shouldBe "100.00"
-    TextFormatter.formatText(text, getValidationResult(component, "£88666,564.59")) shouldBe "88,666,564.59"
+    println(TextFormatter.formatText(text, getValidationResult(component, "£100,00.00")))
+    TextFormatter.formatText(text, getValidationResult(component, "£100,00.00")) shouldBe values("10,000.00", text.constraint)
+    TextFormatter.formatText(text, getValidationResult(component, "£10,0.00")) shouldBe values("100.00", text.constraint)
+    TextFormatter.formatText(text, getValidationResult(component, "£88666,564.59")) shouldBe values("88,666,564.59", text.constraint)
   }
 
   "formatText" should "not add commas for Text component with Sterling constraint and current value's length less than 5" in {
@@ -88,12 +96,5 @@ class TextFormatterSpec extends Spec {
 
   it should "remove pound signs and commas input for Text component with PositiveNumber constraint " in {
     testValuesWithPoundSignsAndCommas(Text(PositiveNumber(), Constant("")))
-  }
-
-  "formatText" should "add a space to a bank account number" in {
-    val text = Text(UkBankAccountNumber, Constant(""))
-    val component = getComponent(text)
-
-    TextFormatter.formatText(text, getValidationResult(component, "12345678")) shouldBe "1234 5678"
   }
 }

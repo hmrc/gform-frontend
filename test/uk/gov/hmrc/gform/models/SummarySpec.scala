@@ -131,7 +131,8 @@ class SummarySpec extends Spec {
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, formId, formTemplate, mockRepeatService, envelope, None)
 
     val doc = Jsoup.parse(render.futureValue.snippets.head.toString())
-    doc.getElementsByTag("H2").text().equalsIgnoreCase("your details") shouldBe true
+    println(doc.getElementsByTag("SPAN").text())
+    doc.getElementsByTag("SPAN").text().toLowerCase should include("your details")
   }
 
   it should "display the shortName as section title if present" in new Test {
@@ -141,7 +142,7 @@ class SummarySpec extends Spec {
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, formId, formTemplate, mockRepeatService, envelope, None)
 
     val doc = Jsoup.parse(render.futureValue.snippets.head.toString())
-    doc.getElementsByTag("H2").text().equalsIgnoreCase(shortName) shouldBe true
+    doc.getElementsByTag("SPAN").text().toUpperCase should include(shortName)
   }
 
   it should "display shortName instead of label for Address field" in new Test {

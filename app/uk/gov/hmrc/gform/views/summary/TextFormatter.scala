@@ -38,7 +38,6 @@ object TextFormatter {
         text.constraint match {
           case PositiveNumber(_, _, Some(unit)) => currentValue + " " + unit
           case Number(_, _, Some(unit)) => currentValue + " " + unit
-          case Sterling => "£" + currentValue
           case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
 
             val poundOrComma = "[£,]".r
@@ -58,8 +57,6 @@ object TextFormatter {
               "£" + number
             else
               number
-          case UkBankAccountNumber => currentValue.grouped(4).mkString(" ")
-
           case _ => currentValue
         }
       }
@@ -72,10 +69,10 @@ object TextFormatter {
   }
 
   def appendUnit(text: Text): String = text.constraint match {
-      case PositiveNumber(_, _, Some(unit)) => unit
-      case Number(_, _, Some(unit)) =>  unit
-      case _ => ""
-    }
+    case PositiveNumber(_, _, Some(unit)) => unit
+    case Number(_, _, Some(unit)) => unit
+    case _ => ""
+  }
 
   def isSterling(formComponent: FormComponent) = formComponent.`type` match {
     case Text(Sterling, _) => true
