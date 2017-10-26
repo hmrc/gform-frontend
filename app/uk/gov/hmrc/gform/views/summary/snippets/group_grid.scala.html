@@ -10,7 +10,7 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean)
 
-@currentValue(idx: Int) = @{TextFormatter.formatText(fieldValue.`type`, fields(idx))}
+@currentValue(idx: Int) = @{TextFormatter.formatText(fields(idx))}
 
 @isSterling = @{
     fieldValue.`type` match {

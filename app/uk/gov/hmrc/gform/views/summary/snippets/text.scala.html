@@ -15,7 +15,7 @@
     }
 }
 
-@currentValue = @{TextFormatter.formatText(text, validationResult)}
+@currentValue = @{TextFormatter.formatText(validationResult)}
 
 @hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
 
