@@ -5,7 +5,7 @@
 
 
 @(
-        formTemplateId4Ga: FormTemplateId,
+        formTemplate: FormTemplate,
         formId: FormId,
         lang: Option[String],
         frontendAppConfig: FrontendAppConfig
@@ -18,11 +18,11 @@
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = "Confirm delete",
+    title = formTemplate.formName,
     frontendAppConfig = frontendAppConfig
 ) {
 
-<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplateId4Ga, formId, lang)" method="GET">
+<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id, formId, lang)" method="GET">
     <h1>Start your claim again?</h1>
 
     @{CSRF.formField}
@@ -37,7 +37,7 @@
     </div>
 
     <div class="form-group">
-        <a href="@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplateId4Ga, lang)" class="link-back" value="Back">Back</a>
+        <a href="@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplate._id, lang)" class="link-back" value="Back">Back</a>
     </div>
 </form>
 }

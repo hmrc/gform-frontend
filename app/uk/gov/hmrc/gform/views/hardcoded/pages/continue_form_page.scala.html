@@ -4,10 +4,10 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import play.api.i18n.Messages.Implicits._
-
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-        formTemplateId4Ga: FormTemplateId,
+        formTemplate: FormTemplate,
         formId: FormId,
         lang: Option[String],
         frontendAppConfig: FrontendAppConfig
@@ -19,12 +19,12 @@
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = "Confirm save or delete",
+    title = formTemplate.formName,
     frontendAppConfig = frontendAppConfig
 ) {
 <h1>Would you like to continue your claim or start again?</h1>
 
-<form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplateId4Ga, formId, lang) method="POST">
+<form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, formId, lang) method="POST">
 
     @{CSRF.formField}
     <div class="form-group">
@@ -36,13 +36,13 @@
     <div class="form-group">
         <fieldset id="options">
             <legend class="visuallyhidden">
-                Would you like to continue your claim or start again?
+                Would you like to continue your @formCategory(formTemplate) or start again?
             </legend>
 
             <div class="multiple-choice">
                 <input id="continue" type="radio" name="decision" value="continue" />
 
-                <label for="continue">Continue your claim</label>
+                <label for="continue">Continue your @formCategory(formTemplate)</label>
             </div>
 
             <div class="multiple-choice">

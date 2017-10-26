@@ -5,14 +5,14 @@
 
 @(
     formId: FormId,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplate: FormTemplate,
     totalSections: Int,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
 )(implicit messages: Messages)
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = "Save And Come Back Later",
+    title = formTemplate.formName,
     bodyClasses = None,
     frontendAppConfig = frontendAppConfig
 ) {
@@ -35,12 +35,12 @@
 <p>You Can</p>
 
 <li>
-    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, SectionNumber(0), totalSections, lang)">
+    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id, SectionNumber(0), totalSections, lang)">
         Continue the Form
     </a>
 </li>
 <li>Save and delete
-    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplateId4Ga, formId, lang)">
+    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id, formId, lang)">
         Start Fresh
     </a>
 </li>

@@ -78,7 +78,7 @@ class FormController(
       (form, wasFormFound) <- getOrStartForm(formTemplate._id, userId)
     } yield {
       if (wasFormFound) {
-        Ok(continue_form_page(formTemplate._id, form._id, lang, frontendAppConfig))
+        Ok(continue_form_page(formTemplate, form._id, lang, frontendAppConfig))
       } else {
         Redirect(routes.FormController.form(form._id, formTemplate._id, SectionNumber.firstSection, formTemplate.sections.size, lang))
       }
@@ -137,10 +137,10 @@ class FormController(
 
   def decision(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     choice.bindFromRequest.fold(
-      _ => Future.successful(BadRequest(continue_form_page(formTemplateId, formId, lang, frontendAppConfig))),
+      _ => Future.successful(BadRequest(continue_form_page(cache.formTemplate, formId, lang, frontendAppConfig))),
       {
         case "continue" => Future.successful(Redirect(routes.FormController.form(formId, formTemplateId, firstSection, cache.formTemplate.sections.size, lang))) //TODO get dyanmic sections in here ???
-        case "delete" => Future.successful(Ok(confirm_delete(formTemplateId, formId, lang, frontendAppConfig)))
+        case "delete" => Future.successful(Ok(confirm_delete(cache.formTemplate, formId, lang, frontendAppConfig)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
       }
     )
@@ -209,7 +209,7 @@ class FormController(
           formData <- formDataF
           userData = UserData(formData, keystore, InProgress)
 
-          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(views.html.hardcoded.pages.save_acknowledgement(formId, form.formTemplateId, section.size, lang, frontendAppConfig)))
+          result <- gformConnector.updateUserData(formId, userData).map(response => Ok(views.html.hardcoded.pages.save_acknowledgement(formId, cache.formTemplate, section.size, lang, frontendAppConfig)))
         } yield result
       }
 
