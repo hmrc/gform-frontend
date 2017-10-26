@@ -93,7 +93,7 @@ object SummaryRenderingService {
               x.isDefined
             }.map(validate)
             if (value.nonEmpty) {
-              group_grid(fieldValue, value, false)
+              group_grid(fieldValue, value, isLabel)
             } else Html("")
           }
           fieldValue.`type` match {
