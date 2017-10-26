@@ -11,27 +11,7 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
-@isSterling = @{
-    fieldValue.`type` match {
-        case Text(Sterling, _) => true
-        case _ => false
-    }
-}
-
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
-    @* TODO: What should total style be? *@
-    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-      <label class="form-label-bold @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-      @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-      </label>
-    } else {
-      <label for="@{fieldValue.id}" class="visuallyhidden">@sectionTitle</label>
-    }
-
-    @if(fieldValue.helpText) {
-    <div class="form-field--hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</div>
-    }
-
     @{
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
         val errors: Set[String] = ValidationUtil.printErrors(map)
@@ -39,23 +19,22 @@
         errors.map(e => errorInline(e, e, Seq("")))
     }
 
-    @if(!isSterling) {
-    <input
-            type="text"
-            name="@fieldValue.id"
-            @if(!fieldValue.editable) { readonly="" }
-            id="@fieldValue.id"
-            value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-            class="form-control @if(fieldValue.derived){js-hidden}"> @TextFormatter.appendUnit(text)
-    } else {
-    <span class="input-currency">
-        <input
-                type="text"
-                name="@fieldValue.id"
-                @if(!fieldValue.editable) { readonly="" }
-                id="@fieldValue.id"
-                value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-                class="form-control input--no-spinner input--left-padding input--small">
-    </span>
-    }
+    <div class="grid-row">
+        @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
+        <div class="column-half">
+            <span class="heading-small">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</span>
+        </div>
+      } else {
+        <div class="column-half">
+            <span class="heading-small">@sectionTitle</span>
+        </div>
+
+      }
+
+        <div class="column-half text--right">
+            <span class="heading-small">
+                &pound; <span id="@fieldValue.id">@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)</span>
+            </span>
+        </div>
+    </div>
 </div>
