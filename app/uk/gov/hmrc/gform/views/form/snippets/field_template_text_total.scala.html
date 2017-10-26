@@ -20,16 +20,15 @@
     }
 
     <div class="grid-row">
-        @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
         <div class="column-half">
-            <span class="heading-small">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</span>
+            <span class="heading-small">
+              @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
+                  @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+              } else {
+                Total
+              }
+            </span>
         </div>
-      } else {
-        <div class="column-half">
-            <span class="heading-small">@sectionTitle</span>
-        </div>
-
-      }
 
         <div class="column-half text--right">
             <span class="heading-small">
