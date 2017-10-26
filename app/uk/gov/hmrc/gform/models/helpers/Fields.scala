@@ -17,11 +17,13 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, _ }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
+import uk.gov.hmrc.play.http.HeaderCarrier
 
 object Fields {
 
@@ -128,5 +130,19 @@ object Fields {
     }
 
     getFormFields(templateFields)
+  }
+
+  def getFields(currentSection: Section, dynamicSections: List[Section], repeatingComponentService: RepeatingComponentService)(implicit hc: HeaderCarrier): List[FormComponent] = {
+    def isTotalValue(maybe: Option[List[PresentationHint]]): Boolean = {
+      maybe.exists(x => x.contains(TotalValue))
+    }
+    val renderFields = currentSection
+      .fields
+      .filter(y => isTotalValue(y.presentationHint))
+    val renderList: List[Section] = dynamicSections
+      .filterNot(_ == currentSection) :+ currentSection.copy(fields = renderFields)
+
+    renderList
+      .flatMap(repeatingComponentService.atomicFields)
   }
 }
