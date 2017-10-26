@@ -206,6 +206,16 @@ button.link-back:visited {
   margin-bottom: 1.25em;
 }
 
+/* Total values need to be an input to submit their value, but need to look like a text value */
+.form-control--total {
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: auto;
+  display: inline;
+  font-weight: bold;
+}
+
 /* Print styles, mainly for the summary page */
 @media print {
   .js-header-toggle,

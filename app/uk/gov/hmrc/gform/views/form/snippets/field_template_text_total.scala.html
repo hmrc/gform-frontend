@@ -32,8 +32,17 @@
 
         <div class="column-half text--right">
             <span class="heading-small">
-                &pound; <span id="@fieldValue.id">@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)</span>
+                &pound;
+                <span id="@{fieldValue.id}-total">
+                  @validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
+                </span>
             </span>
         </div>
     </div>
+
+    <input
+        type="hidden"
+        id="@fieldValue.id"
+        value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
+        class="form-control form-control--total" />
 </div>
