@@ -94,7 +94,7 @@ class SummaryController(
 
       get(data, FormComponentId("save")) match {
         // format: OFF
-        case "Exit" :: Nil        => Ok(save_acknowledgement(formId, formTemplateId4Ga, totalPage, lang, frontendAppConfig)).pure[Future]
+        case "Exit" :: Nil        => Ok(save_acknowledgement(formId, cache.formTemplate, totalPage, lang, frontendAppConfig)).pure[Future]
         case "Declaration" :: Nil => handleDeclaration
         case _                    => BadRequest("Cannot determine action").pure[Future]
         // format: ON
