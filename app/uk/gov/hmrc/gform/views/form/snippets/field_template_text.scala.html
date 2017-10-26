@@ -20,7 +20,6 @@
 }
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
-    @* TODO: What should total style be? *@
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
       @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
