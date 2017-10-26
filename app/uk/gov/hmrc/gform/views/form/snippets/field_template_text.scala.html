@@ -41,21 +41,21 @@
 
     @if(!isSterling) {
     <input
+        type="text"
+        name="@fieldValue.id"
+        @if(!fieldValue.editable) { readonly="" }
+        id="@fieldValue.id"
+        value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
+        class="form-control @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text)
+    } else {
+    <span class="input-currency">
+        <input
             type="text"
             name="@fieldValue.id"
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
             value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-            class="form-control @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text)
-    } else {
-    <span class="input-currency">
-        <input
-                type="text"
-                name="@fieldValue.id"
-                @if(!fieldValue.editable) { readonly="" }
-                id="@fieldValue.id"
-                value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-                class="form-control input--no-spinner input--left-padding">
+            class="form-control input--no-spinner input--left-padding">
     </span>
     }
 </div>

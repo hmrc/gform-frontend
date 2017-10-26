@@ -119,7 +119,8 @@ object Javascript {
           s"""|function $functionName() {
         |  var x = [ $values ];
         |  var result = x.reduce(add, 0);
-        |  return document.getElementById("${field.id.value}").value = result;
+        |  document.getElementById("${field.id.value}").value = result;
+        |  return document.getElementById("${field.id.value}-total").innerHTML = result;
         |};
         |
         |function add(a, b) {
@@ -137,7 +138,8 @@ object Javascript {
           s"""|function $functionName() {
               |  var x = [ $values ];
               |  var result = x.reduce(subtract, 0);
-              |  return document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
+              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
+              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo);
               |};
               |
         |function subtract(a, b) {
