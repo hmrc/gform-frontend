@@ -18,27 +18,26 @@
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = "Confirm Delete",
+    title = "Confirm delete",
     frontendAppConfig = frontendAppConfig
 ) {
 
 <form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplateId4Ga, formId, lang)" method="GET">
-    <h1>Confirm Delete</h1>
+    <h1>Start your claim again?</h1>
 
-    @{
-    CSRF.formField
-    }
-        <strong>@formTemplateId4Ga.toString</strong>
-        <br>
+    @{CSRF.formField}
+    <div class="form-group">
+      <div class="highlight-message highlight-message--light">
+          If you select 'Start again', any saved details will be deleted and cannot be retrieved
+      </div>
+    </div>
 
-        <br>
-        <br>
-    </p>
+    <div class="form-group">
+      <input type="submit" class="button" value="Delete and start again" />
+    </div>
 
-    <br><br><button class="button">Delete</button><br><br>
-
-    <p class="back-to-previous">
-        <a href="@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplateId4Ga, lang)" >Back</a>
-    </p>
+    <div class="form-group">
+        <a href="@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplateId4Ga, lang)" class="link-back" value="Back">Back</a>
+    </div>
 </form>
 }
