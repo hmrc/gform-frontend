@@ -19,37 +19,42 @@
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = "Continue Where you left Off",
+    title = "Confirm save or delete",
     frontendAppConfig = frontendAppConfig
 ) {
-<h1>Form Started, Continue or Delete and Start again</h1>
+<h1>Would you like to continue your claim or start again?</h1>
 
 <form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplateId4Ga, formId, lang) method="POST">
 
     @{CSRF.formField}
+    <div class="form-group">
+      <div class="highlight-message highlight-message--light">
+          If you select 'Start again', any saved details will be deleted and cannot be retrieved
+      </div>
+    </div>
 
-    <fieldset id="options">
-        <legend class="heading-medium">
-            What would you Like to do
-        </legend>
+    <div class="form-group">
+        <fieldset id="options">
+            <legend class="visuallyhidden">
+                Would you like to continue your claim or start again?
+            </legend>
 
+            <div class="multiple-choice">
+                <input id="continue" type="radio" name="decision" value="continue" />
 
+                <label for="continue">Continue your claim</label>
+            </div>
 
-        <ul>
-        <label for="continue" class="block-label" style="padding-top: 0.25em;">
-            <input id="continue" type="radio" name="decision" value="continue" />
-            <h2 class="heading-medium">Continue Where you Left Off</h2>
-            <p> you have 28 Days left to complete this form</p>
-        </label>
+            <div class="multiple-choice">
+                <input id="delete" type="radio" name="decision" value="delete" />
 
-        </ul>
+                <label for="delete">Start again</label>
+            </div>
+        </fieldset>
+    </div>
 
-        <label for="delete" class="block-label" style="padding-top: 0.25em;">
-            <input id="delete" type="radio" name="decision" value="delete"/>
-            <h2 class="heading-medium">Delete your progress and start again</h2>
-        </label>
-    </fieldset>
-
-    <br><br><button class="button">Continue</button><br><br>
+    <div class="form-group">
+        <input type="submit" class="button" vlaue="Continue" />
+    </div>
 </form>
 }
