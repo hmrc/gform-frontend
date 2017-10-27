@@ -222,10 +222,11 @@ button.link-back:visited {
   table {
     table-layout: fixed;
   }
-  
+
   .js-header-toggle,
   .header__menu .header__menu__proposition-links,
-  .print-hidden {
+  .print-hidden,
+  .beta-banner, .alpha-banner {
     display: none;
   }
 }
