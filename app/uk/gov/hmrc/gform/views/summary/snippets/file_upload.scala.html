@@ -23,10 +23,9 @@
 }
 
 <tr class="@if(hasErrors) {summary--error}">
-
-    <td>
+    <td colspan="2">
             @validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")
     </td>
 
-  <td></td>
+    <td></td>
 </tr>
