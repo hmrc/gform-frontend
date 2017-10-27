@@ -41,6 +41,6 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
   //       updated to reflect the final design. For now, the GovernmentGatewayConnector is used for this operation.
 
   def enrolGGUser(request: TaxEnrolmentRequest, service: ServiceId)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    http.PUT(s"${baseUrl}/tax-enrolments/service/${service.value}/enrolments", request)
+    http.PUT(s"${baseUrl}/tax-enrolments/service/${service.value}/enrolment", request)
 }
 
