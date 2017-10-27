@@ -46,7 +46,7 @@
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
         value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-        class="form-control @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text)
+        class="form-control @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text)
     } else {
     <span class="input-currency">
         <input
