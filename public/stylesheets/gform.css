@@ -219,6 +219,20 @@ button.link-back:visited {
 
 /* Print styles, mainly for the summary page */
 @media print {
+  html, body {
+    overflow: hidden;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #wrapper,
+  #content,
+  table:last-of-type {
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
   table {
     table-layout: fixed;
   }
@@ -226,7 +240,12 @@ button.link-back:visited {
   .js-header-toggle,
   .header__menu .header__menu__proposition-links,
   .print-hidden,
-  .beta-banner, .alpha-banner {
+  .beta-banner, .alpha-banner,
+  .report-error,
+  #footer,
+  #global-app-error,
+  #atlwdg-trigger, #atlwdg-blanket, #atlwdg-container {
     display: none;
+    height: 0;
   }
 }
