@@ -181,6 +181,7 @@ button.link-back:visited {
     padding-left: 1em;
     width: 160px;
   }
+  .panel-indent .form-control--numeric,
   .form-control--numeric {
     width: 160px;
   }
