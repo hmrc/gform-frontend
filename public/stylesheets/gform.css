@@ -219,6 +219,10 @@ button.link-back:visited {
 
 /* Print styles, mainly for the summary page */
 @media print {
+  table {
+    table-layout: fixed;
+  }
+  
   .js-header-toggle,
   .header__menu .header__menu__proposition-links,
   .print-hidden {
