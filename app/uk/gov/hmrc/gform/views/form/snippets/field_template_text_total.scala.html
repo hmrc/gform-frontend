@@ -11,6 +11,13 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
+@isSterling = @{
+    fieldValue.`type` match {
+        case Text(Sterling, _) => true
+        case _ => false
+    }
+}
+
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
     @{
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
@@ -32,10 +39,11 @@
 
         <div class="column-half text--right">
             <span class="heading-small">
-                &pound;
+                @if(isSterling){&pound;}
                 <span id="@{fieldValue.id}-total">
                   @validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
                 </span>
+                @if(!isSterling){@TextFormatter.appendUnit(text)}
             </span>
         </div>
     </div>
