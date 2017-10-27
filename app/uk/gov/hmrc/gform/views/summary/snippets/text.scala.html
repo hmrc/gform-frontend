@@ -8,7 +8,7 @@
 
 @(fieldValue: FormComponent, text: Text, validationResult: Option[FormFieldValidationResult])
 
-@currentValue = @{TextFormatter.formatText(text, validationResult)}
+@currentValue = @{TextFormatter.formatText(validationResult)}
 
 @hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
 
