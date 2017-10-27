@@ -337,13 +337,11 @@ class SectionRenderingService(
   private def htmlForGroup(grp: Group, formTemplateId4Ga: FormTemplateId, fieldValue: FormComponent, index: Int, ei: ExtraInfo, validatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     val fgrpHtml = htmlForGroup0(grp, formTemplateId4Ga, fieldValue, index, ei, validatedType, lang)
 
-    validatedType.map(_.isInvalid)
-    val isChecked = {
-      validatedType.exists(_.isInvalid) || FormDataHelpers.dataEnteredInGroup(grp, ei.fieldData)
-    }
+    val isChecked = FormDataHelpers
+      .dataEnteredInGroup(grp, ei.fieldData)
 
-    fieldValue.presentationHint.map(_.contains(CollapseGroupUnderLabel)) match {
-      case Some(true) => fgrpHtml.map(grpHtml => html.form.snippets.collapsable(fieldValue.id, fieldValue.label, grpHtml, isChecked))
+    fieldValue.presentationHint match {
+      case Some(list) if list.contains(CollapseGroupUnderLabel) => fgrpHtml.map(grpHtml => html.form.snippets.collapsable(fieldValue.id, fieldValue.label, grpHtml, isChecked))
       case _ => fgrpHtml
     }
   }
