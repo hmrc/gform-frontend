@@ -214,7 +214,9 @@ var uploader = function(el) {
 
   // Convert uploaded file links to plain text
   if (fileLinks.length) {
-    fileLinks.contents().unwrap();
+    fileLinks.text(function() {
+      return $.trim($(this).text());
+    }).contents().unwrap().wrap('<span>');
   }
 
   // Template changes the label if an error on load (need to keep for non-js version)
