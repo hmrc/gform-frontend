@@ -14,18 +14,16 @@
     errorInline("summary", e, Seq())
 }}
 
-@if(hasErrors) {
-    <tr class="error summary--error">
-        <td colspan="3">
-            @errors
-        </td>
-    </tr>
-}
-
 <tr class="@if(hasErrors) {summary--error}">
-    <td colspan="2">
-            @validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")
-    </td>
+    @if(hasErrors) {
+      <td colspan="2" class="summary-cell--error">
+          @errors
+      </td>
+    } else {
+      <td colspan="2">
+          @validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")
+      </td>
+    }
 
     <td></td>
 </tr>
