@@ -7,10 +7,9 @@
 @(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult])
 
 @safeId(id: String) = @{
-fieldValue.id.withSuffix(id).value
+    fieldValue.id.withSuffix(id).value
 }
 
-@* TODO: What should total style be? *@
 <tr>
   <td class="grid-layout__column--1-3">
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))

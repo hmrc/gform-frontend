@@ -152,6 +152,10 @@
 .summary--error .error-notification {
   padding-bottom: 0;
 }
+.table--font-reset td.summary-cell--error {
+  color: #b10e1e;
+  font-weight: bold;
+}
 
 /* Make back button look like a ba ck link, CSS specificity means we can't just apply the link class */
 button.link-back {
