@@ -24,28 +24,28 @@
         </td>
 
         @if(validationResult.isNotOk) {
-          <td>
-              @List(
-              "street1",
-              "street2",
-              "street3",
-              "street4",
-              "postcode",
-              "country"
-              ).map { suffix =>
-              @if(validationResultO.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
-              @validationResultO.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
-              <br />
-              }
-              }
-          </td>
+            <td class="summary-cell--error">
+                @{validationResult.globalErrors.map {error => {error}  }}
+                @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
+                    errors.map(e => showError(e))
+                }}
+            </td>
         } else {
-          <td class="summary-cell--error">
-            @{validationResult.globalErrors.map {error => {error}  }}
-            @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
-                errors.map(e => showError(e))
-            }}
-          </td>
+            <td>
+            @List(
+                "street1",
+                "street2",
+                "street3",
+                "street4",
+                "postcode",
+                "country"
+            ).map { suffix =>
+                @if(validationResultO.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
+                    @validationResultO.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
+                    <br />
+                }
+            }
+            </td>
         }
 
         <td></td>
