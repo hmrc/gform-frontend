@@ -60,11 +60,11 @@ class SummarySpec extends Spec {
         Future.successful(List[List[FormComponent]]())
       }
 
-      override def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier): List[List[FormComponent]] = {
+      override def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[List[FormComponent]] = {
         List.empty[List[FormComponent]]
       }
 
-      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FormComponent] = {
+      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
         section.fields
       }
     }

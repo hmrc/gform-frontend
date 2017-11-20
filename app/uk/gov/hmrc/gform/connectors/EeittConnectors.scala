@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 import play.utils.UriEncoding
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.models.eeitt.{Agent, BusinessUser}
+import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
 import uk.gov.hmrc.gform.models.userdetails.GroupId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, RegimeId}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, RegimeId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class Verification(isAllowed: Boolean)

@@ -17,12 +17,10 @@
 package uk.gov.hmrc.gform.auth
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.wshttp.WSHttpModule
-import uk.gov.hmrc.play.http.ws.WSHttp
+import uk.gov.hmrc.gform.wshttp.WSHttp
 
-import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 case class GGEnrolmentRequest(portalId: String, serviceName: String, friendlyName: String, knownFacts: Seq[String])
 

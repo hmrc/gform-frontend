@@ -23,6 +23,6 @@ import uk.gov.hmrc.http.hooks.HttpHook
 class WSHttpModule(auditingModule: AuditingModule, configModule: ConfigModule) {
 
   val auditableWSHttp: WSHttp = new WSHttp {
-    override val hooks: Seq[HttpHook] = Seq(auditingModule.httpAuditingHook)
+    //    override val hooks: Seq[HttpHook] = Seq(auditingModule.httpAuditingHook)
   }
 }
