@@ -36,9 +36,9 @@ class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBui
     override def auditingConfig: AuditingConfig = LoadAuditingConfig(s"auditing")
 
     //WARN! Since core libraries are using deprecated play.api.libs.ws.WS we need to provide our own non-deprecated and manually wired implementation here
-    override def buildRequest(url: String)(implicit hc: HeaderCarrier): WSRequest = {
-      playBuiltInsModule.ahcWSComponents.wsApi.url(url).withHeaders(hc.headers: _*)
-    }
+    //    override def buildRequest(url: String)(implicit hc: HeaderCarrier): WSRequest = {
+    //      playBuiltInsModule.ahcWSComponents.wsApi.url(url).withHeaders(hc.headers: _*)
+    //    }
   }
 
   lazy val httpAuditing: HttpAuditing = new HttpAuditing {

@@ -35,10 +35,10 @@ class PrepopServiceSpec extends Spec with ExampleData {
   behavior of "Prepop Service"
 
   val mockEeittConnector = new EeittConnector("", null) {
-    override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier): Future[BusinessUser] =
+    override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[BusinessUser] =
       Future.successful(BusinessUser("TESTREGNUM"))
 
-    override def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier): Future[Agent] =
+    override def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Agent] =
       Future.successful(Agent("TESTARN"))
   }
 
@@ -48,7 +48,7 @@ class PrepopServiceSpec extends Spec with ExampleData {
   }
 
   val mockRepeatingGroupService = new RepeatingComponentService(null, null) {
-    override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FormComponent] =
+    override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] =
       `section - about you`.fields
 
     override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =

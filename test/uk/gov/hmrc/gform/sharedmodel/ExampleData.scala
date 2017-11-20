@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import uk.gov.hmrc.auth.core.authorise.AffinityGroup.Organisation
-import uk.gov.hmrc.auth.core.authorise.Enrolments
+import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
+import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig

@@ -20,7 +20,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.play.http.ws._
+import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier

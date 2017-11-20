@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.LoggingDetails
+import uk.gov.hmrc.play.HeaderCarrierConverter
 
 class ProxyActions(wsClient: WSClient) {
 
@@ -78,5 +79,5 @@ class ProxyActions(wsClient: WSClient) {
   private def streamedBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser { _ => Accumulator.source[ByteString].map(Right.apply) }
 
   private implicit def mdcExecutionContext(implicit loggingDetails: LoggingDetails): ExecutionContext = MdcLoggingExecutionContext.fromLoggingDetails
-  private implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers, Some(request.session))
+  private implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 }

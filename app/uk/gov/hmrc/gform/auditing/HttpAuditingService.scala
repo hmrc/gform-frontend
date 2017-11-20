@@ -17,12 +17,12 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.audit.model.EventTypes
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.frontend.config.HttpAuditEvent
 
 /**
@@ -49,13 +49,17 @@ class HttpAuditingService(appName: String, auditConnector: AuditConnector) { sel
 
   private val httpAuditEvent = new HttpAuditEvent {
     //function dataEvent is protected, we need to access it this is why it's exposed in such way
-    def dataEvent0(eventType: String, transactionName: String, request: RequestHeader)(implicit hc: HeaderCarrier = HeaderCarrier.fromHeadersAndSession(request.headers)) =
+    def dataEvent0(eventType: String, transactionName: String, request: RequestHeader)(implicit hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)) =
       dataEvent(eventType, transactionName, request)
     override def appName = self.appName
   }
   private val unexpectedError = "Unexpected error"
   private val notFoundError = "Resource Endpoint Not Found"
   private val badRequestError = "Request bad format exception"
-  private val ResourceForbidden: EventTypes.EventType = "ResourceNotFound"
-  private val resourceForbiddenError: String = "Resource Endpoint Forbidden"
+  private val resourceForbiddenError = "Resource Endpoint Forbidden"
+
+  private val ResourceForbidden = "ResourceNotFound"
+  private val ResourceNotFound = "ResourceNotFound"
+  private val ServerInternalError = "ServerInternalError"
+  private val ServerValidationError = "ServerValidationError"
 }
