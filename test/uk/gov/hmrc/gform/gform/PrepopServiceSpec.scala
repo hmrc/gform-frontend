@@ -26,9 +26,9 @@ import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 class PrepopServiceSpec extends Spec with ExampleData {
 

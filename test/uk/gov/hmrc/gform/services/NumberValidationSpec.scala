@@ -29,8 +29,8 @@ import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
-import uk.gov.hmrc.play.http.HeaderCarrier
 import cats.implicits._
+import uk.gov.hmrc.http.HeaderCarrier
 
 class NumberValidationSpec extends Spec {
 

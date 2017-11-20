@@ -28,12 +28,8 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
-import uk.gov.hmrc.play.audit.filters.FrontendAuditFilter
-import uk.gov.hmrc.play.filters.RecoveryFilter
-import uk.gov.hmrc.play.filters.frontend.{ CSRFExceptionsFilter, SessionTimeoutFilter }
 import uk.gov.hmrc.play.frontend.bootstrap.FrontendFilters
-import uk.gov.hmrc.play.frontend.filters.{ DeviceIdCookieFilter, SecurityHeadersFilterFactory }
-import uk.gov.hmrc.play.http.logging.filters.FrontendLoggingFilter
+import uk.gov.hmrc.play.frontend.filters._
 
 class FrontendFiltersModule(
     playBuiltInsModule: PlayBuiltInsModule,

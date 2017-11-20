@@ -28,9 +28,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, Group, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait AuditService {
 
@@ -74,7 +74,7 @@ trait AuditService {
 
   private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
     val event = eventFor(form, detail, retrievals)
-    auditConnector.sendEvent(event)
+    auditConnector.sendExtendedEvent(event)
     event.eventId
   }
 

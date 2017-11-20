@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, FormComponent }
 import uk.gov.hmrc.gform.validation.{ ComponentsValidator, ValidationValues }
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
 

@@ -31,11 +31,11 @@ import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.http.cache.client.CacheMap
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 class SectionRenderingServiceSpec extends SpecWithFakeApp {
 

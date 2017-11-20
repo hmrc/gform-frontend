@@ -23,7 +23,6 @@ import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.data._
 import cats.implicits._
@@ -34,6 +33,7 @@ import uk.gov.hmrc.http.cache.client.CacheMap
 import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 import scala.util.control.NonFatal
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AuthContextPrepop {
   def values(value: AuthInfo, retrievals: Retrievals): String = value match {

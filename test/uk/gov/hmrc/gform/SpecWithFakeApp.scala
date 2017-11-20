@@ -21,7 +21,7 @@ import play.api.ApplicationLoader.Context
 import play.api.{ Application, Configuration, Environment }
 import play.core.DefaultWebCommands
 import uk.gov.hmrc.gform.wshttp.{ StubbedWSHttp, WSHttp, WSHttpModule }
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 trait SpecWithFakeApp extends Spec with BaseOneServerPerTest with FakeApplicationFactory {
 

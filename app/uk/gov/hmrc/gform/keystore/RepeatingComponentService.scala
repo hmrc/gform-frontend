@@ -21,11 +21,11 @@ import uk.gov.hmrc.gform.service.LabelHelper
 import uk.gov.hmrc.gform.sharedmodel.form.{ RepeatingGroup, RepeatingGroupStructure }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.{ Success, Try }
+import uk.gov.hmrc.http.HeaderCarrier
 
 class RepeatingComponentService(
     sessionCache: SessionCacheConnector,
@@ -271,7 +271,7 @@ class RepeatingComponentService(
       _.fold[Option[RepeatingGroupStructure]](None)(x => Some(RepeatingGroupStructure(x.data)))
     )
 
-  def loadData(data: Option[RepeatingGroupStructure])(implicit hc: HeaderCarrier): Future[Unit] = {
+  def loadData(data: Option[RepeatingGroupStructure])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     data.fold(Future.successful(()))(y =>
       Future.successful(
         y.structure.foreach(x =>
@@ -366,7 +366,7 @@ class RepeatingComponentService(
     }
   }
 
-  def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier): List[List[FormComponent]] = {
+  def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[List[FormComponent]] = {
     val resultOpt = Await.result(sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value), configModule.timeOut seconds)
     resultOpt.map(_.list).getOrElse(List(groupField.fields))
   }
@@ -378,9 +378,9 @@ class RepeatingComponentService(
       ))
   }
 
-  def clearSession(implicit hc: HeaderCarrier) = sessionCache.remove()
+  def clearSession(implicit hc: HeaderCarrier, ec: ExecutionContext) = sessionCache.remove()
 
-  def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier): List[FormComponent] = {
+  def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
     def atomicFields(fields: List[FormComponent]): List[FormComponent] = {
       fields.flatMap {
         case (fv: FormComponent) => fv.`type` match {

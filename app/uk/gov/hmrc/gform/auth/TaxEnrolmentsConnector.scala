@@ -19,9 +19,9 @@ package uk.gov.hmrc.gform.auth
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.play.http.ws.WSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 case class TaxEnrolment(key: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])
 
@@ -40,7 +40,7 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
   // TODO: This tax-enrolments endpoint is not ready yet, once it is available, this connector will need to be
   //       updated to reflect the final design. For now, the GovernmentGatewayConnector is used for this operation.
 
-  def enrolGGUser(request: TaxEnrolmentRequest, service: ServiceId)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+  def enrolGGUser(request: TaxEnrolmentRequest, service: ServiceId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     http.PUT(s"${baseUrl}/tax-enrolments/service/${service.value}/enrolment", request)
 }
 

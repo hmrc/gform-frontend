@@ -30,9 +30,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class EnrolmentController(
     i18nSupport: I18nSupport,

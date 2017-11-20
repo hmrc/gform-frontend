@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.wshttp
 
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.play.http.hooks.HttpHook
+import uk.gov.hmrc.http.hooks.HttpHook
 
 class WSHttpModule(auditingModule: AuditingModule, configModule: ConfigModule) {
 

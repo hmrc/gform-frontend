@@ -24,11 +24,10 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
 
 /**
  * This connector originates in GFORM project.
@@ -39,10 +38,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   /******form*******/
 
   //TODO: remove userId since this information will be passed using HeaderCarrier
-  def newForm(formTemplateId: FormTemplateId, userId: UserId)(implicit hc: HeaderCarrier): Future[FormId] =
+  def newForm(formTemplateId: FormTemplateId, userId: UserId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormId] =
     ws.POSTEmpty[FormId](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}")
 
-  def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Form] =
+  def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}")
 
   def maybeForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] =
@@ -55,7 +54,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   }
 
   //TODO: now returns string, but it should return list of validations
-  def validateSection(formId: FormId, sectionNumber: SectionNumber)(implicit hc: HeaderCarrier): Future[String] = {
+  def validateSection(formId: FormId, sectionNumber: SectionNumber)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
     ws.GET[String](s"$baseUrl/forms/${formId.value}/validate-section/${sectionNumber.value}")
   }
 
@@ -64,12 +63,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******submission*******/
 
-  def submitForm(formId: FormId, customerId: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def submitForm(formId: FormId, customerId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     implicit val hcNew = hc.withExtraHeaders("customerId" -> customerId)
-    ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")(implicitly[HttpReads[HttpResponse]], hcNew)
+    ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")(implicitly[HttpReads[HttpResponse]], hcNew, ec)
   }
 
-  def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier): Future[Submission] = {
+  def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
     ws.GET[Submission](s"$baseUrl/forms/${formId.value}/submission")
   }
 

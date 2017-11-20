@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.keystore
 
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.cache.client.SessionCache
-import uk.gov.hmrc.play.http.{ HttpDelete, HttpGet, HttpPut }
+import uk.gov.hmrc.http.{ HttpDelete, HttpGet, HttpPut }
 
 class SessionCacheConnector(
     sourceName: String,

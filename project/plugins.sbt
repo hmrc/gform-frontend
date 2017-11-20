@@ -4,7 +4,7 @@ resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/
 
 //resolvers += "hmrc-releases" at "https://nexus-preview.tax.service.gov.uk" + "/content/repositories/wso2-releases"
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.4.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.7.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-git-versioning" % "0.9.0")
 
@@ -20,3 +20,5 @@ addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.0") //sbt dependencyUpdates
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
+
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.2")

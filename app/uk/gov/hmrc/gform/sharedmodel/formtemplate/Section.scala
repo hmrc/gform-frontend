@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.json._
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.collection.immutable.List
 

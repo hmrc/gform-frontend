@@ -18,7 +18,9 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext
 
 class EnrolmentService(
     useTaxEnrolments: Boolean,
@@ -27,7 +29,7 @@ class EnrolmentService(
     taxEnrolmentConnector: TaxEnrolmentsConnector
 ) {
 
-  def enrolUser(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])(implicit hc: HeaderCarrier) = {
+  def enrolUser(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     if (useTaxEnrolments) {
       val request = buildTaxEnrolmentsRequest(serviceId, identifiers, verifiers)
       taxEnrolmentConnector.enrolGGUser(request, serviceId)

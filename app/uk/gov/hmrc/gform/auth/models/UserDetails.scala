@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.auth.models
 
 import play.api.libs.json._
 import org.joda.time.LocalDate
-import uk.gov.hmrc.auth.core.authorise.AffinityGroup
+import uk.gov.hmrc.auth.core.AffinityGroup
 
 case class UserDetails(
   authProviderId: Option[String],

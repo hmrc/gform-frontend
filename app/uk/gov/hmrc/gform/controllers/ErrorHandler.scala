@@ -23,6 +23,7 @@ import play.core.SourceMapper
 import uk.gov.hmrc.play.http._
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException }
 
 class ErrorHandler(
     environment: Environment,

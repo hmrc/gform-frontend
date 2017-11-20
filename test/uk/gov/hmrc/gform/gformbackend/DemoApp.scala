@@ -23,11 +23,11 @@ import play.api.libs.ws.ahc.AhcWSClient
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import uk.gov.hmrc.http.HeaderCarrier
 
 object DemoApp extends App {
 

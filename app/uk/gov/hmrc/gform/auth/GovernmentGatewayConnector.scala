@@ -20,9 +20,9 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.http.ws.WSHttp
-import uk.gov.hmrc.play.http.{ HeaderCarrier, HttpResponse }
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 case class GGEnrolmentRequest(portalId: String, serviceName: String, friendlyName: String, knownFacts: Seq[String])
 
@@ -32,7 +32,7 @@ object GGEnrolmentRequest {
 
 class GovernmentGatewayConnector(baseUrl: String, http: WSHttp) {
 
-  def enrolGGUser(request: GGEnrolmentRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] =
+  def enrolGGUser(request: GGEnrolmentRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     http.POST(s"${baseUrl}/enrol", request)
 }
 

@@ -25,10 +25,11 @@ import play.api.libs.streams.Accumulator
 import play.api.libs.ws.{ StreamedBody, WSClient, WSRequest }
 import play.api.mvc._
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.logging.{ LoggingDetails, MdcLoggingExecutionContext }
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.logging.LoggingDetails
 
 class ProxyActions(wsClient: WSClient) {
 

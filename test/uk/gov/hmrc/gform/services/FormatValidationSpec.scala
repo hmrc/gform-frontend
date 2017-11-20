@@ -22,8 +22,8 @@ import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ ComponentsValidator, ValidationValues }
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
+import uk.gov.hmrc.http.HeaderCarrier
 
 class FormatValidationSpec extends Spec {
 

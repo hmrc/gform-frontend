@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.play.http.BadRequestException
+import uk.gov.hmrc.http.BadRequestException
 
 sealed trait Direction
 
