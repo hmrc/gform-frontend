@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.gform.connectors
 
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{Json, OFormat}
 import play.utils.UriEncoding
-import uk.gov.hmrc.auth.core.authorise.AffinityGroup
-import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
+import uk.gov.hmrc.auth.core.AffinityGroup
+import uk.gov.hmrc.gform.models.eeitt.{Agent, BusinessUser}
 import uk.gov.hmrc.gform.models.userdetails.GroupId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, RegimeId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, RegimeId}
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HeaderCarrier
 
 case class Verification(isAllowed: Boolean)
 
@@ -38,11 +38,11 @@ class EeittConnector(baseUrl: String, wSHttp: WSHttp) {
   def isAllowed(groupId: String, regimeId: RegimeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] =
     wSHttp.GET[Verification](baseUrl + s"/group-id/${encode(groupId)}/regime/${regimeId.value}/affinityGroup/${encode(affinityGroup.toString)}/verification")
 
-  def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier): Future[BusinessUser] = {
+  def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[BusinessUser] = {
     wSHttp.GET[BusinessUser](baseUrl + s"/group-id/${groupId.value}/regime/${regimeId.value}/prepopulation")
   }
 
-  def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier): Future[Agent] = {
+  def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Agent] = {
     wSHttp.GET[Agent](baseUrl + s"/group-id/${groupId.value}/prepopulation")
   }
 

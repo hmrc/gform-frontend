@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.Headers
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
 
 object loggingHelpers {
   def cleanHeaders(headers: Headers) = s", headers: '${headers.remove("Authorization", "token").toSimpleMap.toString()}'"

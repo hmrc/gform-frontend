@@ -20,10 +20,12 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormComponentId, _}
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
-import uk.gov.hmrc.play.http.HeaderCarrier
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext
 
 object Fields {
 
@@ -132,7 +134,7 @@ object Fields {
     getFormFields(templateFields)
   }
 
-  def getFields(currentSection: Section, dynamicSections: List[Section], repeatingComponentService: RepeatingComponentService)(implicit hc: HeaderCarrier): List[FormComponent] = {
+  def getFields(currentSection: Section, dynamicSections: List[Section], repeatingComponentService: RepeatingComponentService)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
     def isTotalValue(maybe: Option[List[PresentationHint]]): Boolean = {
       maybe.exists(x => x.contains(TotalValue))
     }

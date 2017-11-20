@@ -17,14 +17,13 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.audit.EventTypes
-import uk.gov.hmrc.play.audit.EventTypes.{ ResourceNotFound, ServerInternalError, ServerValidationError, TransactionFailureReason }
-import uk.gov.hmrc.play.audit.http.HttpAuditEvent
-import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
-import uk.gov.hmrc.play.http.{ HeaderCarrier, JsValidationException, NotFoundException }
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.model.EventTypes
+import uk.gov.hmrc.play.frontend.config.HttpAuditEvent
 
 /**
  * This is ErrorAuditingSettings logic ported out of deprecated play GlobalSettings

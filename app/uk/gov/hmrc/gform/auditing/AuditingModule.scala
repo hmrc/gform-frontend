@@ -22,10 +22,11 @@ import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.audit.http.HttpAuditing
-import uk.gov.hmrc.play.audit.http.config.{ AuditingConfig, LoadAuditingConfig }
+import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.hooks.HttpHook
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.hooks.HttpHook
+import uk.gov.hmrc.play.frontend.config.LoadAuditingConfig
 
 class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBuiltInsModule: PlayBuiltInsModule) { self =>
 

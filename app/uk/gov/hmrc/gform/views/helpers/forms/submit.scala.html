@@ -1,17 +1,19 @@
 @*
-    Html Submit Button as per HRMC Component Library
-        http://hmrc.github.io/assets-frontend/section-form.html#kssref-form-submit
-        http://hmrc.github.io/assets-frontend/section-buttons.html
+ * Copyright 2017 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
 
-    @param args Additional arguments to apply style class or add to the button tag
-        '_modifierClass modifier class to add to wrapper of the submit button
-
-        '_buttonClass: Modifier class to pass to the button as per documentation:
-            button--get-started, button-secondary, button--alert, button--small, button--table,
-            button--link, button--spaced, button--padded, button--full-width, button--link-style, button--notification
-        Any additional args with names NOT starting with underscore (_) will be applied as button element arguments
-    @param content The HTML inside the button
-*@
 @import uk.gov.hmrc.gform.views.html.helpers.forms.{button => formsButton }
 @(args: (Symbol, String)*)(content:Html)
 @argsMap = @{ args.toMap }

@@ -24,20 +24,20 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.{ AuthorisedFunctions, InsufficientEnrolments, NoActiveSession }
+import uk.gov.hmrc.auth.core.{AuthConnector => _, _}
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.{AppConfig, FrontendAppConfig}
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.gform.gform.{ routes => gformRoutes }
+import uk.gov.hmrc.gform.gform.{routes => gformRoutes}
 import gform.auth.models.Retrievals
-import uk.gov.hmrc.auth.core.retrieve.{ AuthProvider, AuthProviders, GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid, Retrievals => cRetrievals }
+import uk.gov.hmrc.auth.core.retrieve.{GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid, Retrievals => cRetrievals}
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class AuthenticatedRequestActions(
     gformConnector: GformConnector,

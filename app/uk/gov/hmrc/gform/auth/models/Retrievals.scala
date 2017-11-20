@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import uk.gov.hmrc.auth.core.authorise.{ AffinityGroup, EnrolmentIdentifier, Enrolments }
+import uk.gov.hmrc.auth.core.{AffinityGroup, Enrolments}
 import uk.gov.hmrc.auth.core.retrieve.LegacyCredentials
 
 //TODO why not to use another name here which won't collapse with `uk.gov.hmrc.auth.core.retrieve.Retrievals` ?!

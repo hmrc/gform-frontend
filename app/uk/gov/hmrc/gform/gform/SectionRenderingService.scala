@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import cats.data.NonEmptyList
-import cats.data.Validated.{ Invalid, Valid }
+import cats.data.Validated.{Invalid, Valid}
 import cats.implicits._
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
@@ -29,28 +29,28 @@ import org.jsoup.Jsoup
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
-import uk.gov.hmrc.auth.core.authorise.AffinityGroup.Individual
-import uk.gov.hmrc.auth.core.authorise.Enrolments
+import uk.gov.hmrc.auth.core.AffinityGroup.Individual
+import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{Retrievals, UserDetails}
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
-import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
+import uk.gov.hmrc.gform.models.{DateExpr, SectionRenderingInformation}
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
+import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, _}
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.http.cache.client.CacheMap
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class SectionRenderingService(
     repeatService: RepeatingComponentService,

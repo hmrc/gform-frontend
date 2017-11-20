@@ -17,9 +17,9 @@
 package uk.gov.hmrc.gform.fileupload
 
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class FileUploadService(fileUploadConnector: FileUploadConnector) {
 

@@ -24,8 +24,7 @@ import play.api.mvc.{ Request, RequestHeader, Result }
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import cats.implicits._
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.logging.{ LoggingDetails, MdcLoggingExecutionContext }
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 import scala.concurrent.{ ExecutionContext, Future }
 

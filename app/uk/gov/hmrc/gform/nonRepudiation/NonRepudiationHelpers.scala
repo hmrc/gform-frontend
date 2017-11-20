@@ -22,9 +22,9 @@ import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.http.HeaderCarrier
 
 class NonRepudiationHelpers(auditModule: AuditingModule) {
 

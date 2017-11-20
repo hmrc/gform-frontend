@@ -22,9 +22,9 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Node
 import play.mvc.Http.{ HeaderNames, MimeTypes }
 import play.twirl.api.Html
-import uk.gov.hmrc.play.http.HeaderCarrier
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
 
 class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
 
