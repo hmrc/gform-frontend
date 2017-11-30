@@ -16,21 +16,17 @@
 
 package uk.gov.hmrc.gform.auditing
 
-import java.util.UUID
-
-import org.joda.time.DateTime
-import play.api.Logger
-import play.api.libs.json.{ JsString, JsValue, Json }
+import play.api.libs.json.Json
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, Group, UkSortCode }
-import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
-
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.ExecutionContext
 
 trait AuditService {
 

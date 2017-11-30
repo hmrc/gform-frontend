@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform.auth
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.gform.auth.models.UserDetails
 import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AuthConnector(baseUrl: String, wsHttp: WSHttp) extends PlayAuthConnector with ServicesConfig {
   val serviceUrl = baseUrl

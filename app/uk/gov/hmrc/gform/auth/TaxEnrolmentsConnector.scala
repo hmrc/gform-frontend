@@ -19,9 +19,9 @@ package uk.gov.hmrc.gform.auth
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 case class TaxEnrolment(key: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])
 

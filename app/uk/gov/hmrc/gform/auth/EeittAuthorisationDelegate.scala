@@ -21,9 +21,9 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RegimeId
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: ConfigModule) {
 
