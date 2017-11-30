@@ -16,17 +16,14 @@
 
 package uk.gov.hmrc.gform.auditing
 
-import play.api.libs.ws.WSRequest
-import play.api.mvc.Headers
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.play.frontend.config.LoadAuditingConfig
+import uk.gov.hmrc.http.hooks.HttpHook
 
 class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBuiltInsModule: PlayBuiltInsModule) { self =>
 
@@ -35,10 +32,6 @@ class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBui
     //Thus you can not instantiate this class if play application is not running
     override def auditingConfig: AuditingConfig = LoadAuditingConfig(s"auditing")
 
-    //WARN! Since core libraries are using deprecated play.api.libs.ws.WS we need to provide our own non-deprecated and manually wired implementation here
-    //    override def buildRequest(url: String)(implicit hc: HeaderCarrier): WSRequest = {
-    //      playBuiltInsModule.ahcWSComponents.wsApi.url(url).withHeaders(hc.headers: _*)
-    //    }
   }
 
   lazy val httpAuditing: HttpAuditing = new HttpAuditing {

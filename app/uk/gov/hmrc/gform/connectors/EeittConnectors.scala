@@ -23,9 +23,9 @@ import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, RegimeId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 case class Verification(isAllowed: Boolean)
 
