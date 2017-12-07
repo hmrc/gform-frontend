@@ -24,6 +24,7 @@ case class FrontendAppConfig(
   reportAProblemNonJSUrl: String,
   governmentGatewaySignInUrl: String,
   gformFrontendBaseUrl: String,
-  betaFeedbackUrlNoAuth: String
+  betaFeedbackUrlNoAuth: String,
+  whitelistEnabled: Boolean
 )
 
