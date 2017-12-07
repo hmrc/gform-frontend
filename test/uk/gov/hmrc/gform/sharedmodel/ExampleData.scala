@@ -352,6 +352,7 @@ trait ExampleFrontendAppConfig {
     reportAProblemNonJSUrl = "http://reportProblem.json.url",
     governmentGatewaySignInUrl = "http://gofernment.gateway.signin.url",
     gformFrontendBaseUrl = "gform.frontend.base.url",
-    betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth"
+    betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth",
+    whitelistEnabled = true
   )
 }

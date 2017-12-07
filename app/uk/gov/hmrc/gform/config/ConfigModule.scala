@@ -66,7 +66,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       reportAProblemNonJSUrl = s"/contact/problem_reports_nonjs?service=$contactFormServiceIdentifier",
       governmentGatewaySignInUrl = typesafeConfig.getString("government-gateway-sign-in-url"),
       gformFrontendBaseUrl = typesafeConfig.getString("gform-frontend-base-url"),
-      betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier"
+      betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
+      whitelistEnabled = typesafeConfig.getBoolean("whitelisting-enabled")
     )
   }
 }
