@@ -148,7 +148,7 @@ object Javascript {
               |};
               |
         |function subtract(a, b) {
-              | return a - b;
+              | return new Big(a).sub(new Big(b));
               |};
               |$listener
               |""".stripMargin
@@ -167,7 +167,7 @@ object Javascript {
               |};
               |
         |function multiply(a, b) {
-              | return a * b;
+              | return new Big(a).mul(new Big(b));
               |};
               |$listener
               |""".stripMargin
