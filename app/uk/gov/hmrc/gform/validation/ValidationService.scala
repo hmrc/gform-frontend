@@ -299,7 +299,7 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
   }
 
   def shortTextValidation(fieldValue: FormComponent, value: String) = {
-    val ShortTextValidation = "[0-9a-zA-Z\\s'\\-]{0,1000}".r
+    val ShortTextValidation = """[A-Za-z0-9\'\-\.\s]{0,1000}""".r
     value match {
       case ShortTextValidation() => ().valid
       case _ => getError(fieldValue, "the text is too long for the validation")

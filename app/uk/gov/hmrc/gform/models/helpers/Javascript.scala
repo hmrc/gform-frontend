@@ -70,6 +70,11 @@ object Javascript {
             x <- ids(field1)
             y <- ids(field2)
           } yield x ::: y
+        case Multiply(field1, field2) =>
+          for {
+            x <- ids(field1)
+            y <- ids(field2)
+          } yield x ::: y
         case Sum(FormCtx(id)) => Group.getGroup(groupList, FormComponentId(id)).map(fieldId => fieldId.map(_.value))
         case otherwise => Future.successful(List(""))
       }
@@ -144,6 +149,25 @@ object Javascript {
               |
         |function subtract(a, b) {
               | return a - b;
+              |};
+              |$listener
+              |""".stripMargin
+        }
+      case Multiply(field1, field2) =>
+        val functionName = "multiply" + field.id.value
+        for {
+          values <- demValues
+          listener <- listeners(functionName)
+        } yield {
+          s"""|function $functionName() {
+              |  var x = [ $values ];
+              |  var result = x.reduce(multiply, 0);
+              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
+              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo);
+              |};
+              |
+        |function multiply(a, b) {
+              | return a * b;
               |};
               |$listener
               |""".stripMargin

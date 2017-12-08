@@ -22,9 +22,7 @@ import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, _ }
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import cats.data._
 import cats.implicits._
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
@@ -34,6 +32,8 @@ import scala.concurrent.Future
 import scala.util.{ Failure, Success, Try }
 import scala.util.control.NonFatal
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.math.BigDecimal.RoundingMode
 
 class AuthContextPrepop {
   def values(value: AuthInfo, retrievals: Retrievals): String = value match {
@@ -56,12 +56,16 @@ class PrepopService(
     repeatingComponentService: RepeatingComponentService
 ) {
 
-  def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]], section: BaseSection)(implicit hc: HeaderCarrier): Future[String] = {
-    def toInt(str: String): BigDecimal =
+  def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]], section: BaseSection, scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
+    def toBigDecimal(str: String): BigDecimal =
       Try(BigDecimal(str.replace(",", ""))) match {
         case Success(x) => x
         case Failure(_) => BigDecimal(0)
       }
+
+    def round(x: BigDecimal): BigDecimal = scale match {
+      case Some(s) => x.setScale(s, RoundingMode.FLOOR)
+    }
 
     expr match {
       case AuthCtx(value) => Future.successful(authContextPrepop.values(value, retrievals))
@@ -71,8 +75,20 @@ class PrepopService(
         val value = for {
           y <- prepopData(field1, formTemplate, retrievals, data, section)
           z <- prepopData(field2, formTemplate, retrievals, data, section)
-        } yield toInt(y) + toInt(z)
-        value.map(_.toString)
+        } yield toBigDecimal(y) + toBigDecimal(z)
+        value.map(x => round(x).toString)
+      case Subtraction(field1, field2) =>
+        val value = for {
+          y <- prepopData(field1, formTemplate, retrievals, data, section)
+          z <- prepopData(field2, formTemplate, retrievals, data, section)
+        } yield toBigDecimal(y) - toBigDecimal(z)
+        value.map(x => round(x).toString)
+      case Multiply(field1, field2) =>
+        val value = for {
+          y <- prepopData(field1, formTemplate, retrievals, data, section)
+          z <- prepopData(field2, formTemplate, retrievals, data, section)
+        } yield toBigDecimal(y) * toBigDecimal(z)
+        value.map(x => round(x).toString)
       case Sum(FormCtx(field)) =>
         val atomicFields = repeatingComponentService.atomicFields(section)
         val cacheMap: Future[CacheMap] = repeatingComponentService.getAllRepeatingGroups
@@ -83,8 +99,8 @@ class PrepopService(
           for {
             id <- z
             x = data.get(id).map(_.head).getOrElse("")
-          } yield toInt(x))
-        listOfValues.map(_.sum.toString)
+          } yield toBigDecimal(x))
+        for { vs <- listOfValues } yield round(vs.sum).toString()
       case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
       case _ => Future.successful("")
     }

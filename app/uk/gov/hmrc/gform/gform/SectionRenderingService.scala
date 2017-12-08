@@ -284,6 +284,11 @@ class SectionRenderingService(
   }
 
   private def htmlForText(fieldValue: FormComponent, t: Text, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
+    def scale = t.constraint match {
+      case Number(_, maxFractionalDigits, _) => Some(maxFractionalDigits)
+      case PositiveNumber(_, maxFractionalDigits, _) => Some(maxFractionalDigits)
+      case _ => None
+    }
     def renderText(fieldValue: FormComponent, t: Text, prepopValue: String, validatedValue: Option[FormFieldValidationResult]): Html = {
       fieldValue.presentationHint match {
         case None => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
@@ -293,7 +298,9 @@ class SectionRenderingService(
     }
 
     val prepopValueF = ei.fieldData.get(fieldValue.id) match {
-      case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section)
+      case None | Some(List("")) => {
+        prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section, scale)
+      }
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
