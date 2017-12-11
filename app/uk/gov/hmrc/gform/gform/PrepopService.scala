@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.implicits._
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -65,6 +66,7 @@ class PrepopService(
 
     def round(x: BigDecimal): BigDecimal = scale match {
       case Some(s) => x.setScale(s, RoundingMode.FLOOR)
+      case None => x
     }
 
     expr match {

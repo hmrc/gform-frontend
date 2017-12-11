@@ -106,7 +106,7 @@ object Javascript {
               function sum$id() {
               var sum = [$values];
               var result = sum.reduce(add, 0);
-              return document.getElementById("${field.id.value}").value = result;
+              return document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 1);
             };
 
             function add(a, b) {
@@ -124,12 +124,12 @@ object Javascript {
           s"""|function $functionName() {
         |  var x = [ $values ];
         |  var result = x.reduce(add, 0);
-        |  document.getElementById("${field.id.value}").value = result;
-        |  return document.getElementById("${field.id.value}-total").innerHTML = result;
+        |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
+        |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
         |};
         |
         |function add(a, b) {
-        | return new Big(a).add(new Big(b));
+        | return new Big(a).add(new Big(b)).round($roundTo, 0);
         |};
         |$listener
         |""".stripMargin
@@ -143,12 +143,12 @@ object Javascript {
           s"""|function $functionName() {
               |  var x = [ $values ];
               |  var result = x.reduce(subtract, 0);
-              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
-              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo);
+              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
+              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
               |};
               |
         |function subtract(a, b) {
-              | return new Big(a).sub(new Big(b));
+              | return new Big(a).minus(new Big(b)).round($roundTo, 0);
               |};
               |$listener
               |""".stripMargin
@@ -161,13 +161,13 @@ object Javascript {
         } yield {
           s"""|function $functionName() {
               |  var x = [ $values ];
-              |  var result = x.reduce(multiply, 0);
-              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo);
-              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo);
+              |  var result = x.reduce(multiply, 1);
+              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
+              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
               |};
               |
         |function multiply(a, b) {
-              | return new Big(a).mul(new Big(b));
+              | return new Big(a).times(new Big(b)).round($roundTo, 0);
               |};
               |$listener
               |""".stripMargin
