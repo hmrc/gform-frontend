@@ -46,6 +46,7 @@ final case object Multiplication extends Operation
 sealed trait Eeitt
 final case object BusinessUser extends Eeitt
 final case object Agent extends Eeitt
+final case object UserId extends Eeitt
 
 object Eeitt {
   implicit val format: OFormat[Eeitt] = derived.oformat

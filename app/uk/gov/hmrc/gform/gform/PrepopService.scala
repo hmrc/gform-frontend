@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.implicits._
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 import uk.gov.hmrc.http.cache.client.CacheMap
@@ -115,9 +116,15 @@ class PrepopService(
         case _ => RegimeId("")
       }
       for {
-        prepopData <- eeitt match {
-          case BusinessUser => eeittConnector.prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), regimeId).map(_.registrationNumber)
-          case Agent => eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
+        prepopData <- (eeitt, retrievals.affinityGroup) match {
+          case (Agent, Some(AffinityGroup.Agent)) | (UserId, Some(AffinityGroup.Agent)) =>
+            eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
+          case (BusinessUser, Some(AffinityGroup.Agent)) =>
+            Future.successful("")
+          case (BusinessUser, _) | (UserId, _) =>
+            eeittConnector.prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), regimeId).map(_.registrationNumber)
+          case _ =>
+            Future.successful("")
         }
       } yield prepopData
     }

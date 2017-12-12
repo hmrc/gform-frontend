@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.connectors.EeittConnector
@@ -67,8 +68,22 @@ class PrepopServiceSpec extends Spec with ExampleData {
     result.futureValue should be("TESTREGNUM")
   }
 
-  it should "return a eeitt agent" in {
-    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.Agent))
+  it should "return a eeitt agent" in new ExampleData {
+    override def affinityGroup = Some(AffinityGroup.Agent)
+
+    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.Agent), authContext)
+    result.futureValue should be("TESTARN")
+  }
+
+  it should "return a eeitt user id" in {
+    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserId))
+    result.futureValue should be("TESTREGNUM")
+  }
+
+  it should "return a eeitt user id for agent" in new ExampleData {
+    override def affinityGroup = Some(AffinityGroup.Agent)
+
+    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserId), authContext)
     result.futureValue should be("TESTARN")
   }
 
@@ -82,7 +97,7 @@ class PrepopServiceSpec extends Spec with ExampleData {
     result.futureValue should be("2468")
   }
 
-  def call(expr: Expr) =
+  def call(expr: Expr, authContext: Retrievals = authContext) =
     prepopService.prepopData(expr, formTemplate, authContext, rawDataFromBrowser, `section - about you`)
 
   implicit lazy val hc = HeaderCarrier()
