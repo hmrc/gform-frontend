@@ -21,6 +21,7 @@ import cats.implicits._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -46,6 +47,7 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     validatedType: ValidatedType,
     formFields: Map[FormComponentId, Seq[String]],
+    retrievals: Retrievals,
     formId: FormId,
     repeatService: RepeatingComponentService,
     envelope: Envelope,
@@ -56,13 +58,14 @@ object SummaryRenderingService {
     messages: Messages,
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Html] = {
-    summaryForRender(validatedType, formFields, formId, formTemplate, repeatService, envelope, lang)
+    summaryForRender(validatedType, formFields, retrievals, formId, formTemplate, repeatService, envelope, lang)
       .map(s => summary(formTemplate, s, formId, formTemplate.formCategory.getOrElse(Default), lang, frontendAppConfig))
   }
 
   def summaryForRender(
     validatedType: ValidatedType,
     data: Map[FormComponentId, Seq[String]],
+    retrievals: Retrievals,
     formId: FormId,
     formTemplate: FormTemplate,
     repeatService: RepeatingComponentService,
@@ -143,7 +146,7 @@ object SummaryRenderingService {
       val snippetsF: Future[List[Html]] = {
         val allSections = sections.zipWithIndex
         val sectionsToRender = allSections.filter {
-          case (section, idx) => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data)
+          case (section, idx) => BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data, retrievals)
         }
         Future.sequence(sectionsToRender.map {
           case (section, index) =>

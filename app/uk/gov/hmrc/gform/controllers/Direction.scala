@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
@@ -30,7 +31,7 @@ object BackToSummary extends Direction
 case class AddGroup(groupId: String) extends Direction
 case class RemoveGroup(idx: Int, groupId: String) extends Direction
 
-class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FormComponentId, Seq[String]]) {
+class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FormComponentId, Seq[String]], retrievals: Retrievals) {
   require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
 
@@ -61,7 +62,7 @@ class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map
   private lazy val availableSectionNumbers: List[SectionNumber] = {
     def shouldInclude(s: Section): Boolean = {
       val isIncludedExpression = s.includeIf.map(_.expr).getOrElse(IsTrue)
-      BooleanExpr.isTrue(isIncludedExpression, data)
+      BooleanExpr.isTrue(isIncludedExpression, data, retrievals)
     }
 
     sections

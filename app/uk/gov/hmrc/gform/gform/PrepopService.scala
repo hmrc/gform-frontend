@@ -74,6 +74,7 @@ class PrepopService(
       case AuthCtx(value) => Future.successful(authContextPrepop.values(value, retrievals))
       case Constant(value) => Future.successful(value)
       case EeittCtx(eeitt) => eeittPrepop(eeitt, retrievals, formTemplate)
+      case UserCtx(_) => Future.successful(retrievals.affinityGroupName)
       case Add(field1, field2) =>
         val value = for {
           y <- prepopData(field1, formTemplate, retrievals, data, section)

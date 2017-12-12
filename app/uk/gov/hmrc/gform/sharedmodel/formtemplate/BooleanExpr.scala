@@ -18,10 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json._
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
-import uk.gov.hmrc.gform.sharedmodel.form.FormField
-
-import scala.annotation.tailrec
 
 sealed trait BooleanExpr
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr
@@ -33,14 +31,16 @@ final case object IsFalse extends BooleanExpr
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat
 
-  def isTrue(expr: BooleanExpr, data: Map[FormComponentId, Seq[String]]): Boolean =
+  def isTrue(expr: BooleanExpr, data: Map[FormComponentId, Seq[String]], retrievals: Retrievals): Boolean = {
     expr match {
       case Equals(FormCtx(fieldId), Constant(value)) if FormDataHelpers.get(data, FormComponentId(fieldId)).contains(value) => true
-      case Or(expr1, expr2) => isTrue(expr1, data) | isTrue(expr2, data)
-      case And(expr1, expr2) => isTrue(expr1, data) & isTrue(expr2, data)
+      case Equals(UserCtx(_), Constant(value)) if retrievals.affinityGroupName == value => true
+      case Or(expr1, expr2) => isTrue(expr1, data, retrievals) | isTrue(expr2, data, retrievals)
+      case And(expr1, expr2) => isTrue(expr1, data, retrievals) & isTrue(expr2, data, retrievals)
       case IsTrue => true
       case _ => false
     }
+  }
 }
 
 sealed trait Comparison

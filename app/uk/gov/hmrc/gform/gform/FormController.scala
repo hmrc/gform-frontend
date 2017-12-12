@@ -254,7 +254,7 @@ class FormController(
       } yield Redirect(routes.FormController.form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang).url + anchor(optCompList.map(_.list)))
 
       val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
-      val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data).navigate)
+      val navigationF: Future[Direction] = sectionsF.map(sections => new Navigator(sectionNumber, sections, data, cache.retrievals).navigate)
 
       def redirection(call: Int => Call): Future[Result] = {
         for {

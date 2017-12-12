@@ -23,6 +23,7 @@ import play.api.mvc.{ Action, AnyContent, Request }
 import play.api.http.HttpEntity
 import play.api.mvc._
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -72,7 +73,7 @@ class SummaryController(
 
       val formFieldValidationResultsF = for {
         envelope <- envelopeF
-        errors <- validateForm(cache, envelope)
+        errors <- validateForm(cache, envelope, cache.retrievals)
       } yield errors
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
@@ -119,10 +120,10 @@ class SummaryController(
     }
   }
 
-  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
+  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
-    val filteredSections = sectionsF.map(_.filter(x => BooleanExpr.isTrue(x.includeIf.map(_.expr).getOrElse(IsTrue), data)))
+    val filteredSections = sectionsF.map(_.filter(x => BooleanExpr.isTrue(x.includeIf.map(_.expr).getOrElse(IsTrue), data, retrievals)))
     for {// format: OFF
       sections          <- filteredSections
       allFields         =  sections.flatMap(repeatService.atomicFields)
@@ -143,8 +144,8 @@ class SummaryController(
     // format: OFF
     for {
       envelope          <- envelopeF
-      (v, _)            <- validateForm(cache, envelope)
-      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, formId, repeatService, envelope, lang, frontendAppConfig)
+      (v, _)            <- validateForm(cache, envelope, cache.retrievals)
+      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, cache.retrievals, formId, repeatService, envelope, lang, frontendAppConfig)
     } yield result
   }
 }
