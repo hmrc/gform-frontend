@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.implicits._
-import play.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
@@ -29,7 +28,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, FormTemplateId, SectionNumber }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._

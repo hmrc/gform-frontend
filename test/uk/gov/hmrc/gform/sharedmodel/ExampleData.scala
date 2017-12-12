@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
-import uk.gov.hmrc.auth.core.Enrolments
+import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -314,7 +314,7 @@ trait ExampleAuthContext {
   def authProviderId =
     OneTimeLogin
 
-  def affinityGroup =
+  def affinityGroup: Option[AffinityGroup] =
     None
 
   def internalId =
