@@ -87,6 +87,8 @@ class PrepopServiceSpec extends Spec with ExampleData {
     result.futureValue should be("TESTARN")
   }
 
+  // TODO: need to test user.affinityGroup
+
   it should "return a value" in {
     val result = call(FormCtx(`formField - number`.id.value))
     result.futureValue should be("1,234")
