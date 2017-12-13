@@ -30,13 +30,31 @@ object Javascript {
         case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
-    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x + """function getNumber(value) {
-                        if (value == ""){
-                        return "0";
-                        } else {
-                        return value.replace(",", "");
-                        }
-                      };""")
+    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x +
+      """function getNumber(value) {
+        |  if (value == ""){
+        |    return "0";
+        |  } else {
+        |   return value.replace(",", "");
+        |  }
+        |};
+        |
+        |function add(a, b) {
+        |  return new Big(a).add(new Big(b));
+        |};
+        |
+        |function subtract(a, b) {
+        |  return new Big(a).minus(new Big(b));
+        |};
+        |
+        |function multiply(a, b) {
+        |  return new Big(a).times(new Big(b));
+        |};
+        |""".stripMargin).
+      map(s => {
+        val ss: String = s
+        s
+      })
   }
 
   def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
@@ -101,7 +119,7 @@ object Javascript {
 
     // TODO: These filters are a bit of a hack
     val demValues = ids(expr).map(i => (i.filterNot(_.isEmpty).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", "))
-    def listeners(functionName: String) = ids(expr).map(_.map(eventListeners(_, functionName)).mkString("\n"))
+    def listeners(functionName: String) = ids(expr).map(_.filterNot(_.isEmpty).map(eventListeners(_, functionName)).mkString("\n"))
 
     // TODO: the use of reduce() is simplistic, we need to generate true javascript expressions based on the parsed gform expression
     expr match {
@@ -129,10 +147,6 @@ object Javascript {
               var result = sum.reduce(add, 0);
               return document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 1);
             };
-
-            function add(a, b) {
-             return new Big(a).add(new Big(b))
-            };
             $listeners
             """
         }
@@ -147,10 +161,6 @@ object Javascript {
         |  var result = x.reduce(add, 0);
         |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
         |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
-        |};
-        |
-        |function add(a, b) {
-        | return new Big(a).add(new Big(b)).round($roundTo, 0);
         |};
         |$listener
         |""".stripMargin
@@ -168,9 +178,6 @@ object Javascript {
               |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
               |};
               |
-        |function subtract(a, b) {
-              | return new Big(a).minus(new Big(b)).round($roundTo, 0);
-              |};
               |$listener
               |""".stripMargin
         }
@@ -187,9 +194,6 @@ object Javascript {
               |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
               |};
               |
-        |function multiply(a, b) {
-              | return new Big(a).times(new Big(b)).round($roundTo, 0);
-              |};
               |$listener
               |""".stripMargin
         }
