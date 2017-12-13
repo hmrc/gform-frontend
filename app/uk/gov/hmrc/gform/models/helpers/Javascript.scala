@@ -30,17 +30,13 @@ object Javascript {
         case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
-    val jsF = Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x + """function getNumber(value) {
+    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x + """function getNumber(value) {
                         if (value == ""){
                         return "0";
                         } else {
                         return value.replace(",", "");
                         }
                       };""")
-    jsF.map(s => {
-      val ss: String = s
-      s
-    })
   }
 
   def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
@@ -103,11 +99,9 @@ object Javascript {
       }
     }
 
-
     // TODO: These filters are a bit of a hack
     val demValues = ids(expr).map(i => (i.filterNot(_.isEmpty).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", "))
     def listeners(functionName: String) = ids(expr).map(_.map(eventListeners(_, functionName)).mkString("\n"))
-
 
     // TODO: the use of reduce() is simplistic, we need to generate true javascript expressions based on the parsed gform expression
     expr match {
