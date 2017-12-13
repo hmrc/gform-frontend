@@ -30,13 +30,17 @@ object Javascript {
         case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
-    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x + """function getNumber(value) {
+    val jsF = Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x + """function getNumber(value) {
                         if (value == ""){
                         return "0";
                         } else {
                         return value.replace(",", "");
                         }
                       };""")
+    jsF.map(s => {
+      val ss: String = s
+      s
+    })
   }
 
   def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
@@ -80,9 +84,32 @@ object Javascript {
       }
     }
 
-    val demValues = ids(expr).map(_.map(values).mkString(", "))
+    def consts(expr: Expr): List[String] = {
+      expr match {
+        case Constant(amount) => List(amount)
+        case Add(amountA, amountB) =>
+          val x = consts(amountA)
+          val y = consts(amountB)
+          x ::: y
+        case Subtraction(field1, field2) =>
+          val x = consts(field1)
+          val y = consts(field2)
+          x ::: y
+        case Multiply(field1, field2) =>
+          val x = consts(field1)
+          val y = consts(field2)
+          x ::: y
+        case _ => List("")
+      }
+    }
+
+
+    // TODO: These filters are a bit of a hack
+    val demValues = ids(expr).map(i => (i.filterNot(_.isEmpty).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", "))
     def listeners(functionName: String) = ids(expr).map(_.map(eventListeners(_, functionName)).mkString("\n"))
 
+
+    // TODO: the use of reduce() is simplistic, we need to generate true javascript expressions based on the parsed gform expression
     expr match {
       case Sum(FormCtx(id)) =>
         val eventListeners = Group.getGroup(groupList, FormComponentId(id)).map { listFieldId =>
