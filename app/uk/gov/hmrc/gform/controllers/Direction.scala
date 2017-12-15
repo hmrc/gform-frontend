@@ -41,6 +41,7 @@ trait Navigation {
   lazy val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
 }
 
+// TODO: Origin should not be in controllers, but Navigator probably should!
 case class Origin(sections: List[Section], retrievals: Retrievals) extends Navigation {
   val data: Map[FormComponentId, Seq[String]] = Map.empty
 }

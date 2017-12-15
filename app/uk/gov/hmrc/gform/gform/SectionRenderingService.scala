@@ -34,6 +34,7 @@ import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -91,6 +92,8 @@ class SectionRenderingService(
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(form._id, sectionNumber, lang)
     val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
 
+    val originSection = new Origin(formTemplate.sections, retrievals).minSectionNumber
+
     for {
       snippetsForFields <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, dynamicSections.size, validatedType, lang)))
       javascript <- createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
@@ -98,7 +101,7 @@ class SectionRenderingService(
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => html.form.snippets.hidden_field(formField))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(form._id, sectionNumber, section.title, section.description, hiddenSnippets, snippetsForFields, javascript, envelopeId, actionForm, true, "Save and continue", formMaxAttachmentSizeMB, contentTypes)
-    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form), frontendAppConfig)
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBack = sectionNumber > originSection, shouldDisplayBackToSummary = shouldDisplayBackToSummary(form), frontendAppConfig)
   }
 
   def generatePageLevelErrorHtml(listValidation: List[FormFieldValidationResult]): Html = {
@@ -170,7 +173,7 @@ class SectionRenderingService(
       snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, maybeValidatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(form._id, SectionNumber(0), formTemplate.declarationSection.title, formTemplate.declarationSection.description, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang), false, confirm, 0, Nil)
-    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBackToSummary(form), frontendAppConfig)
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBack = false, shouldDisplayBackToSummary = false, frontendAppConfig)
   }
 
   def renderAcknowledgementSection(form: Form, formTemplate: FormTemplate, retrievals: Retrievals, lang: Option[String], eventId: String)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
@@ -204,7 +207,7 @@ class SectionRenderingService(
       snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, validatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(formId, SectionNumber(0), enrolmentSection.title, None, Nil, snippets, "", EnvelopeId(""), uk.gov.hmrc.gform.gform.routes.EnrolmentController.submitEnrolment(formTemplate._id, lang), false, "Confirm and send", 0, Nil)
-    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, formId, false, frontendAppConfig)
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, formId, false, false, frontendAppConfig)
   }
 
   private def createJavascript(fieldList: List[FormComponent], atomicFields: List[FormComponent])(implicit hc: HeaderCarrier): Future[String] = {
