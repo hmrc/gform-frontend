@@ -53,8 +53,16 @@ class FormController(
   import i18nSupport._
 
   def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) { implicit request => cache =>
-    result(cache.formTemplate, UserId(cache.retrievals.userDetails.groupIdentifier), lang)
-
+    for {
+      (form, wasFormFound) <- getOrStartForm(cache.formTemplate._id, UserId(cache.retrievals.userDetails.groupIdentifier))
+    } yield {
+      if (wasFormFound) {
+        Ok(continue_form_page(cache.formTemplate, form._id, lang, frontendAppConfig))
+      } else {
+        val originSection = new Origin(cache.formTemplate.sections, cache.retrievals).minSectionNumber
+        Redirect(routes.FormController.form(form._id, cache.formTemplate._id, originSection, cache.formTemplate.sections.size, lang))
+      }
+    }
   }
 
   //true - it got the form, false - new form was created
@@ -70,18 +78,6 @@ class FormController(
       maybeForm <- gformConnector.maybeForm(formId)
       form <- maybeForm.map(Future.successful).getOrElse(startForm)
     } yield (form, maybeForm.isDefined)
-  }
-
-  private def result(formTemplate: FormTemplate, userId: UserId, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_]) = {
-    for {
-      (form, wasFormFound) <- getOrStartForm(formTemplate._id, userId)
-    } yield {
-      if (wasFormFound) {
-        Ok(continue_form_page(formTemplate, form._id, lang, frontendAppConfig))
-      } else {
-        Redirect(routes.FormController.form(form._id, formTemplate._id, SectionNumber.firstSection, formTemplate.sections.size, lang))
-      }
-    }
   }
 
   def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
@@ -138,7 +134,10 @@ class FormController(
     choice.bindFromRequest.fold(
       _ => Future.successful(BadRequest(continue_form_page(cache.formTemplate, formId, lang, frontendAppConfig))),
       {
-        case "continue" => Future.successful(Redirect(routes.FormController.form(formId, formTemplateId, firstSection, cache.formTemplate.sections.size, lang))) //TODO get dyanmic sections in here ???
+        case "continue" => {
+          val originSection = new Origin(cache.formTemplate.sections, cache.retrievals).minSectionNumber
+          Future.successful(Redirect(routes.FormController.form(formId, formTemplateId, originSection, cache.formTemplate.sections.size, lang)))
+        } //TODO get dyanamic sections in here ???
         case "delete" => Future.successful(Ok(confirm_delete(cache.formTemplate, formId, lang, frontendAppConfig)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
       }

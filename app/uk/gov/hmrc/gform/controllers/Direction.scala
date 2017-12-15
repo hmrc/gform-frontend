@@ -21,6 +21,30 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
 
+trait Navigation {
+  def sections: List[Section]
+  def data: Map[FormComponentId, Seq[String]]
+  def retrievals: Retrievals
+
+  lazy val availableSectionNumbers: List[SectionNumber] = {
+    def shouldInclude(s: Section): Boolean = {
+      val isIncludedExpression = s.includeIf.map(_.expr).getOrElse(IsTrue)
+      BooleanExpr.isTrue(isIncludedExpression, data, retrievals)
+    }
+
+    sections
+      .zipWithIndex
+      .filter(si => shouldInclude(si._1))
+      .map(si => SectionNumber(si._2))
+  }
+
+  lazy val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
+}
+
+case class Origin(sections: List[Section], retrievals: Retrievals) extends Navigation {
+  val data: Map[FormComponentId, Seq[String]] = Map.empty
+}
+
 sealed trait Direction
 
 case class SaveAndContinue(sectionNumber: SectionNumber) extends Direction
@@ -31,7 +55,7 @@ object BackToSummary extends Direction
 case class AddGroup(groupId: String) extends Direction
 case class RemoveGroup(idx: Int, groupId: String) extends Direction
 
-class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FormComponentId, Seq[String]], retrievals: Retrievals) {
+case class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FormComponentId, Seq[String]], retrievals: Retrievals) extends Navigation {
   require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
 
@@ -59,19 +83,6 @@ class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map
       )
   }
 
-  private lazy val availableSectionNumbers: List[SectionNumber] = {
-    def shouldInclude(s: Section): Boolean = {
-      val isIncludedExpression = s.includeIf.map(_.expr).getOrElse(IsTrue)
-      BooleanExpr.isTrue(isIncludedExpression, data, retrievals)
-    }
-
-    sections
-      .zipWithIndex
-      .filter(si => shouldInclude(si._1))
-      .map(si => SectionNumber(si._2))
-  }
-
-  private lazy val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
   private lazy val isLastSectionNumber: Boolean = sectionNumber == maxSectionNumber
 
