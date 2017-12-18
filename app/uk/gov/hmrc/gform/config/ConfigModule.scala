@@ -67,7 +67,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       governmentGatewaySignInUrl = typesafeConfig.getString("government-gateway-sign-in-url"),
       gformFrontendBaseUrl = typesafeConfig.getString("gform-frontend-base-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
-      whitelistEnabled = typesafeConfig.getBoolean("whitelisting-enabled")
+      whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean
     )
   }
 }
