@@ -45,7 +45,7 @@ trait ExampleAuthConfig {
 
   def authConfigModule = AuthConfigModule("hmrc")
 
-  def dmsSubmission = DmsSubmission(TextExpression(AuthCtx(PayeNino)), "BT-NRU-Environmental", "FinanceOpsCorpT")
+  def dmsSubmission = DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "BT-NRU-Environmental", "FinanceOpsCorpT")
 
   def regimeId = RegimeId("TestRegimeId")
 
