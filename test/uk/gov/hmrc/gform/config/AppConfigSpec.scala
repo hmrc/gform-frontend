@@ -33,3 +33,4 @@ class AppConfigSpec extends Spec {
   }
 
 }
+
