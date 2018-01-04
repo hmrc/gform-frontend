@@ -33,6 +33,7 @@ to use this form you will have to upload a template see below.
 ### Uploading sample data
 
 Upload a form template:
+Note you need to be in the gform project.
 
     curl http://localhost:9196/gform/formtemplates -H "Content-Type: application/json" -d '@sample-data/template-aaa999.json'
 
