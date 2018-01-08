@@ -34,30 +34,28 @@
 ) {
 <br>
 <div style="background-color : #28A197 ; text-align : center ; padding : 10 px ; color : #ffffff ;">
-    <p><span class="h1-heading" style="color : #ffffff ;">SAVED</span></p><br>
-    <p style="font-weight : 800 ;">Confirmation Number</p>
-    <span id="subref" class="h1-heading" style="color : #ffffff ;">
+    <p><span class="h1-heading" style="color : #ffffff ;">Your progress has been saved</span></p>
+    <p><span>This will be held for 30 days from now </span></p>
 
-            XXXXX123456789
-        </span>
 </div>
 <br>
 
-<p>Warning</p>
+<p>If the form you are working on has a submission deadline you will need to return and complete the form before that deadline</p>
 <fieldset class="form-field-group panel-indent panel-indent--gutter">
     <label class="form-element-bold">
-        A warning of how many days the form is stored for.
+        Partially completed forms will not be processed by HMRC
 </fieldset>
-<p>You Can</p>
+<p>You can</p>
 
 <li>
     <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id, SectionNumber(0), totalSections, lang)">
-        Continue the Form
+        Continue
     </a>
+    the form
 </li>
-<li>Save and delete
+<li>delete and
     <a href="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id, formId, lang)">
-        Start Fresh
+        Start again
     </a>
 </li>
 }
