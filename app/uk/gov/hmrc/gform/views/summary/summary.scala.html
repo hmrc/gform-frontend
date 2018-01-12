@@ -47,7 +47,7 @@
       Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
 
-    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gform">
+    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
         @{
             CSRF.formField
@@ -70,14 +70,17 @@
           </p>
         </div>
 
-        <div class="print-hidden">
-          <div class="form-group divider--top--thick">
-              <button type="submit" class="button" value="Declaration">Save and continue</button>
-          </div>
+        <input type="hidden" id="gform-action" name="save" value="Declaration" />
 
-          <div class="form-group">
-              <button type="submit" class="button--secondary" value="Exit">Save and come back later</button>
-          </div>
+        <div class="print-hidden">
+            <div class="form-group divider--top--thick">
+                <button type="submit" class="button" value="Declaration">Save and continue</button>
+            </div>
+            <div class="js-visible">
+                <div class="form-group">
+                    <button type="submit" class="button--secondary" value="Exit">Save and come back later</button>
+                </div>
+            </div>
         </div>
     </form>
 
