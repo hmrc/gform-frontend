@@ -17,17 +17,15 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
-import play.api.libs.json.{ JsValue, Reads }
-import uk.gov.hmrc.gform.sharedmodel.{ Account, UserId, ValAddress }
-import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
+import play.api.libs.json.{JsValue, Writes}
+import uk.gov.hmrc.gform.sharedmodel.config.{ContentType, ExposedConfig}
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{Account, UserId, ValAddress}
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * This connector originates in GFORM project.
@@ -66,6 +64,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def submitForm(formId: FormId, customerId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     implicit val hcNew = hc.withExtraHeaders("customerId" -> customerId)
     ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")(implicitly[HttpReads[HttpResponse]], hcNew, ec)
+  }
+
+  def submitFormWithPdf(formId: FormId, customerId: String, htmlForm: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    implicit val hcNew = hc.withExtraHeaders("customerId" -> customerId)
+    ws.POST[String, HttpResponse](s"$baseUrl/forms/${formId.value}/submission-pdf", htmlForm)(implicitly[Writes[String]], implicitly[HttpReads[HttpResponse]], hcNew, ec)
   }
 
   def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {

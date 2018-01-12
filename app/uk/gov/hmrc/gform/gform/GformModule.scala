@@ -60,17 +60,6 @@ class GformModule(
     wSHttpModule.auditableWSHttp
   )
 
-  val declarationController = new DeclarationController(
-    playBuiltInsModule.i18nSupport,
-    controllersModule.authenticatedRequestActions,
-    gformBackendModule.gformConnector,
-    auditingModule.auditService,
-    keystoreModule.repeatingComponentService,
-    sectionRenderingService,
-    validationModule.validationService,
-    authModule.authService
-  )
-
   val enrolmentController = new EnrolmentController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
@@ -119,5 +108,18 @@ class GformModule(
   val errorController = new ErrorController(
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport
+  )
+
+  val declarationController = new DeclarationController(
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    gformBackendModule.gformConnector,
+    auditingModule.auditService,
+    keystoreModule.repeatingComponentService,
+    summaryController,
+    pdfGeneratorModule.pdfGeneratorService,
+    sectionRenderingService,
+    validationModule.validationService,
+    authModule.authService
   )
 }
