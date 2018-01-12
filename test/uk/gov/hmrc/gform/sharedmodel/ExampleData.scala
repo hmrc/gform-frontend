@@ -353,6 +353,7 @@ trait ExampleFrontendAppConfig {
     governmentGatewaySignInUrl = "http://gofernment.gateway.signin.url",
     gformFrontendBaseUrl = "gform.frontend.base.url",
     betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth",
-    whitelistEnabled = true
+    whitelistEnabled = true,
+    sendPdfWithSubmission = true
   )
 }
