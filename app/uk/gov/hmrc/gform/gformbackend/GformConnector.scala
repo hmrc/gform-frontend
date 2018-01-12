@@ -17,15 +17,17 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
-import play.api.libs.json.{JsValue, Writes}
-import uk.gov.hmrc.gform.sharedmodel.config.{ContentType, ExposedConfig}
+import play.api.libs.json.{ JsValue, Writes }
+import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{Account, UserId, ValAddress}
+import uk.gov.hmrc.gform.sharedmodel.{ Account, UserId, ValAddress }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
 
 /**
  * This connector originates in GFORM project.

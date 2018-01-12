@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import org.jsoup.Jsoup
 import play.api.i18n.I18nSupport
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{get, processResponseDataFromBody}
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -32,13 +33,14 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationService}
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
 class DeclarationController(
     i18nSupport: I18nSupport,
+    config: FrontendAppConfig,
     auth: AuthenticatedRequestActions,
     gformConnector: GformConnector,
     auditService: AuditService,
@@ -108,10 +110,11 @@ class DeclarationController(
             val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
             for {
               _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None, Signed))
+              //todo perhaps not make these calls at all if the feature flag is false?
               summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
               cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml)
               htmlForPDF = addExtraDataToHTML(cleanHtml, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
-              _ <- gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF)
+              _ <- if (config.sendPdfWithSubmission) gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF) else { gformConnector.submitForm(formId, customerId) }
               _ <- repeatService.clearSession
             } yield {
               val submissionEventId = auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
