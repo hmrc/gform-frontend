@@ -68,7 +68,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       gformFrontendBaseUrl = typesafeConfig.getString("gform-frontend-base-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
       whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
-      sendPdfWithSubmission = typesafeConfig.getString("send-pdf-with-subbmission").toBoolean
+      sendPdfWithSubmission = typesafeConfig.getString("send-pdf-with-submission").toBoolean
     )
   }
 }
