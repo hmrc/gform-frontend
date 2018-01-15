@@ -70,7 +70,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def submitFormWithPdf(formId: FormId, customerId: String, htmlForm: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     implicit val hcNew = hc.withExtraHeaders("customerId" -> customerId)
-    ws.POST[String, HttpResponse](s"$baseUrl/forms/${formId.value}/submission-pdf", htmlForm)(implicitly[Writes[String]], implicitly[HttpReads[HttpResponse]], hcNew, ec)
+    ws.POSTString[HttpResponse](s"$baseUrl/forms/${formId.value}/submission-pdf", htmlForm)(implicitly[HttpReads[HttpResponse]], hcNew, ec)
   }
 
   def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
