@@ -25,6 +25,7 @@ case class FrontendAppConfig(
   governmentGatewaySignInUrl: String,
   gformFrontendBaseUrl: String,
   betaFeedbackUrlNoAuth: String,
+  signOutUrl: String,
   whitelistEnabled: Boolean,
   sendPdfWithSubmission: Boolean
 )
