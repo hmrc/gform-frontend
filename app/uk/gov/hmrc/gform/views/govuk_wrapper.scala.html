@@ -49,12 +49,16 @@
     <meta name="format-detection" content="telephone=no" />
 }
 
+@navLinks = {
+<li><a href="@{appConfig.signOutUrl}" id="signOut">Sign out</a></li>
+}
+
 @insideHeader = {
     @uiLayouts.header_nav(
       navTitle = Some(title),
       navTitleLink = None,
       showBetaLink = false,
-      navLinks = None)
+      navLinks = Some(navLinks))
 }
 
 @afterHeader = {}
@@ -72,7 +76,7 @@
 @footerLinks = {}
 
 @betaBanner = {
-    @uiLayouts.betaBanner(false, appConfig.betaFeedbackUrlNoAuth, appConfig.betaFeedbackUrlNoAuth, true, true)
+    @uiLayouts.betaBanner(true, appConfig.betaFeedbackUrlNoAuth, appConfig.betaFeedbackUrlNoAuth, true, true)
 }
 
 @serviceInfo = {
