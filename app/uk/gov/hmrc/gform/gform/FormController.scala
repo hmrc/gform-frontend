@@ -76,12 +76,12 @@ class FormController(
 
     for {
       maybeForm <- gformConnector.maybeForm(formId)
-      form <- maybeForm.map(Future.successful).getOrElse(startForm)
-    } yield (form, maybeForm.isDefined)
+      maybeFormInProgress = maybeForm.filter(_.status == InProgress)
+      form <- maybeFormInProgress.map(Future.successful).getOrElse(startForm)
+    } yield (form, maybeFormInProgress.isDefined)
   }
 
   def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
-    // TODO: Handle cases when the form is no longer marked as InProgress
     val fieldData = FormDataHelpers.formDataMap(cache.form.formData)
 
     for {// format: OFF
