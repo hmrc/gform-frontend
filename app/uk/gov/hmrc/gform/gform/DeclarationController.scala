@@ -101,7 +101,7 @@ class DeclarationController(
   def submitDeclaration(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
 
-      val validationResultF = validationService.validateComponents(getAllDeclarationFields(cache.formTemplate.declarationSection.fields), data, cache.form.envelopeId)
+      val validationResultF = validationService.validateComponents(getAllDeclarationFields(cache.formTemplate.declarationSection.fields), data, cache.form.envelopeId, cache.retrievals)
 
       val customerId = authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals)
       get(data, FormComponentId("save")) match {

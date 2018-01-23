@@ -175,6 +175,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         label = "This is the field label",
         helpText = None,
         shortName = None,
+        validIf = None,
         mandatory = true,
         editable = false,
         submissible = false,

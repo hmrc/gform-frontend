@@ -16,25 +16,12 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.json._
+import play.api.libs.json.{ Json, Reads }
 
-case class FormComponent(
-  id: FormComponentId,
-  `type`: ComponentType,
-  label: String,
-  helpText: Option[String],
-  shortName: Option[String],
-  validIf: Option[ValidIf],
-  mandatory: Boolean,
-  editable: Boolean,
-  submissible: Boolean,
-  derived: Boolean,
-  errorMessage: Option[String],
-  presentationHint: Option[List[PresentationHint]] = None
+case class ValidIf(expr: BooleanExpr)
+object ValidIf {
+  implicit val writes = Json.writes[ValidIf]
 
-)
+  implicit val reads: Reads[ValidIf] = Json.reads[ValidIf]
 
-object FormComponent {
-  implicit val format = Json.format[FormComponent]
 }
-

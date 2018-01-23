@@ -21,21 +21,22 @@ import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponentId, FormComponent }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.validation.{ ComponentsValidator, ValidationValues }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
-
+  val retrievals = mock[Retrievals]
   implicit lazy val hc = HeaderCarrier()
 
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
     val address = Address(international = false)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
@@ -45,7 +46,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-street4") -> Seq("S4"),
       FormComponentId("x-postcode") -> Seq("P1 1P")
     )
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.value should be(())
   }
@@ -53,7 +54,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "non-international" should "accept uk, street1 and postcode only" in {
     val address = Address(international = false)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
@@ -61,7 +62,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-postcode") -> Seq("P1 1P")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.value should be(())
   }
@@ -69,14 +70,14 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "non-international" should "return invalid for postcode, but no street1" in {
     val address = Address(international = false)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
       FormComponentId("x-postcode") -> Seq("P1 1P")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("street1") -> Set("must be entered")))
   }
@@ -84,14 +85,14 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "non-international" should "return invalid for street1 but no postcode" in {
     val address = Address(international = false)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
       FormComponentId("x-street1") -> Seq("S")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("must be entered")))
   }
@@ -99,7 +100,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "international" should "accept not uk, street1, country" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("false"),
@@ -107,7 +108,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.value should be(())
   }
@@ -115,14 +116,14 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "international" should "return invalid for not uk, street1, but no country" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("false"),
       FormComponentId("x-street1") -> Seq("S")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("must be entered")))
   }
@@ -130,7 +131,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "international" should "return invalid for not uk, street1, postcode and country" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("false"),
@@ -139,7 +140,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("must not be entered")))
   }
@@ -147,7 +148,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "international" should "return invalid for uk, street1, country, but no postcode" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
@@ -155,7 +156,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(
       speccedAddress.id.withSuffix("postcode") -> Set("must be entered"),
@@ -166,7 +167,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "Address validation" should "fail when field separator is wrong" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x@uk") -> Seq("true"),
@@ -174,7 +175,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x@country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -187,7 +188,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "Address validation" should "throw back custom validation" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, Some("New Error Message"))
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, Some("New Error Message"))
 
     val data = Map(
       FormComponentId("x@uk") -> Seq("true"),
@@ -195,7 +196,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x@country") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -208,7 +209,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "Address validation" should "pass with valid data" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
@@ -219,7 +220,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-postcode") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beRight(())
   }
@@ -227,7 +228,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "Address validation" should "pass with valid required data omitting the optional" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
@@ -235,7 +236,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-postcode") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beRight(())
   }
@@ -243,7 +244,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   "Address validation" should "fail when the field is fails validation" in {
     val address = Address(international = true)
 
-    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, true, true, false, true, None)
+    val speccedAddress = FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, None)
 
     val data = Map(
       FormComponentId("x-uk") -> Seq("true"),
@@ -254,7 +255,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       FormComponentId("x-postcode") -> Seq("C")
     )
 
-    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(speccedAddress).futureValue
+    val result: ValidatedType = new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(
       Map(

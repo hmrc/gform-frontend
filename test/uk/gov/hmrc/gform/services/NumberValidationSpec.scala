@@ -30,10 +30,11 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import cats.implicits._
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.http.HeaderCarrier
 
 class NumberValidationSpec extends Spec {
-
+  val retrievals: Retrievals = mock[Retrievals]
   "Number format" should "accepts whole numbers" in new Test {
     override val value = "123"
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
@@ -130,7 +131,7 @@ class NumberValidationSpec extends Spec {
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Constant("")),
-      "sample label", None, None, true, false, false, false, None
+      "sample label", None, None, None, true, false, false, false, None
     )
 
     override def data = Map(
@@ -138,7 +139,7 @@ class NumberValidationSpec extends Spec {
     )
 
     def validate(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) =
-      new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue)
+      new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(fieldValue)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }

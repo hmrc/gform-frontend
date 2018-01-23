@@ -27,7 +27,7 @@ object Javascript {
 
     val fieldIdWithExpr: List[(FormComponent, Expr)] =
       fields.collect {
-        case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _) => (formComponent, expr)
+        case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
     Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x +

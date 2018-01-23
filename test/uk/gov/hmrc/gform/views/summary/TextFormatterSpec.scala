@@ -24,7 +24,7 @@ class TextFormatterSpec extends Spec {
 
   def getComponent(text: Text) = FormComponent(
     `fieldId - firstName`,
-    text, "First Name", None, None, mandatory = true, editable = true, submissible = true, derived = true,
+    text, "First Name", None, None, None, mandatory = true, editable = true, submissible = true, derived = true,
     None, None
   )
 

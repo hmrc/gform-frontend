@@ -67,7 +67,6 @@ trait ExampleFieldId {
   def `fieldId - startDate-day` = FormComponentId("startDate-day")
   def `fieldId - startDate-month` = FormComponentId("startDate-month")
   def `fieldId - number` = FormComponentId("number")
-
   def default = FormComponentId("test")
 
   //fieldId when submitting form
@@ -79,37 +78,37 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - facePhoto` = FormComponent(
     `fieldId - facePhoto`,
-    FileUpload(), label = "Attach evidence of your smile", helpText = None, None, mandatory = true, editable = true, submissible = true, derived = true,
+    FileUpload(), label = "Attach evidence of your smile", helpText = None, None, None, mandatory = true, editable = true, submissible = true, derived = true,
     None, None
   )
 
   def `fieldValue - firstName` = FormComponent(
     `fieldId - firstName`,
-    Text(AnyText, Constant("any text")), "First Name", None, None, mandatory = true, editable = true, submissible = true, derived = true,
+    Text(AnyText, Constant("any text")), "First Name", None, None, None, mandatory = true, editable = true, submissible = true, derived = true,
     None, None
   )
 
   def `fieldValue - surname` = FormComponent(
     `fieldId - surname`,
-    Text(AnyText, Constant("any text")), "Last Name", None, None, mandatory = true, editable = true, submissible = true, derived = true,
+    Text(AnyText, Constant("any text")), "Last Name", None, None, None, mandatory = true, editable = true, submissible = true, derived = true,
     None, None
   )
 
   def `fieldValue - iptRegNum` = FormComponent(
     `fieldId - iptRegNum`,
-    Text(AnyText, Constant("any text")), "Insurance Premium Tax (IPT) number", None, None, mandatory = true, editable = true, submissible = true, derived = true,
+    Text(AnyText, Constant("any text")), "Insurance Premium Tax (IPT) number", None, None, None, mandatory = true, editable = true, submissible = true, derived = true,
     None, None
   )
 
   def `fieldValue - businessName` = FormComponent(
     `fieldId - businessName`,
-    Text(AnyText, Constant("any text")), "Name of business", None, None, mandatory = true, editable = true, submissible = true, derived = true,
+    Text(AnyText, Constant("any text")), "Name of business", None, None, None, mandatory = true, editable = true, submissible = true, derived = true,
     None, None
   )
 
   def `fieldValue - startDate` = FormComponent(
     `fieldId - startDate`,
-    Date(AnyDate, Offset(0), None), "Your Start Date", None, None, true, true, true, true,
+    Date(AnyDate, Offset(0), None), "Your Start Date", None, None, None, true, true, true, true,
     None, None
   )
 
@@ -117,7 +116,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     `fieldId - businessName`,
     InformationMessage(NoFormat, "some text"),
     "someLabel",
-    None, None, false, false, false, true, None
+    None, None, None, false, false, false, true, None
   )
 
   def `group - type` = Group(
@@ -135,6 +134,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     label = "group FieldValue label",
     helpText = None,
     shortName = None,
+    validIf = None,
     mandatory = true,
     editable = false,
     submissible = true,
@@ -145,13 +145,19 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - number` = FormComponent(
     `fieldId - number`,
     Text(Number(), Constant("")),
-    "sample label", None, None, true, false, false, false, None
+    "sample label", None, None, None, true, false, false, false, None
+  )
+
+  def `fieldValue - number - validIf` = FormComponent(
+    `fieldId - number`,
+    Text(Number(), Constant("")),
+    "sample label", None, None, None, true, false, false, false, None
   )
 
   def fieldValue(text: Text) = FormComponent(
     default,
     text,
-    "sample label", None, None, true, false, false, true, None
+    "sample label", None, None, None, true, false, false, true, None
   )
 
   def listFieldValue = List()
