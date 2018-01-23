@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class IncludeIf(expr: BooleanExpr)

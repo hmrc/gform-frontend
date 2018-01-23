@@ -106,7 +106,7 @@ class FormController(
       section           = sections(sectionNumber.value)
       sectionFields     = repeatService.atomicFields(section)
       allFields         =  sections.flatMap(repeatService.atomicFields)
-      v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(data)
+      v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId, cache.retrievals)(data)
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       html              <- renderer.renderSection(cache.form, sectionNumber, data, cache.formTemplate, Some(errors), envelope, cache.form.envelopeId, Some(v), sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
       // format: ON
@@ -164,7 +164,7 @@ class FormController(
         section           = sections(sectionNumber.value)
         sectionFields     = repeatService.atomicFields(section)
         allFields         = sections.flatMap(repeatService.atomicFields)
-        v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(data)
+        v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId,  cache.retrievals)(data)
         errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       // format: OFF
       } yield errors.toMap
@@ -244,7 +244,7 @@ class FormController(
         section = dynamicSections(sectionNumber.value)
         allFields = dynamicSections.flatMap(repeatService.atomicFields)
         sectionFields = repeatService.atomicFields(section)
-        v <- validationService.validateForm(sectionFields, section, cache.form.envelopeId)(updatedData)
+        v <- validationService.validateForm(sectionFields, section, cache.form.envelopeId, cache.retrievals)(updatedData)
         errors = validationService.evaluateValidation(v, allFields, updatedData, envelope).toMap
         formData = FormData(errors.values.toSeq.flatMap(_.toFormField))
         keystore <- repeatService.getData()

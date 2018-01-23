@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -38,7 +39,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("12"),
@@ -55,7 +56,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("12"),
@@ -72,7 +73,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq(""),
@@ -89,7 +90,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("-1"),
@@ -106,7 +107,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("1.2"),
@@ -155,11 +156,11 @@ class FormatValidationSpec extends Spec {
     validator(fieldValueFunction(constrait), getData(data)).toEither should beLeft(Map(default -> Set(errorMessage)))
 
   private val getData: String => Map[FormComponentId, Seq[String]] = str => Map(default -> Seq(str))
-
+  val retrievals: Retrievals = mock[Retrievals]
   implicit lazy val hc = HeaderCarrier()
 
   private def validator(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) = {
-    new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever")).validate(fieldValue).futureValue
+    new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(fieldValue).futureValue
   }
 
   private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Constant("")))

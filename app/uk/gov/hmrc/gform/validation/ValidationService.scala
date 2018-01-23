@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import ValidationUtil.{ ValidatedType, _ }
 import play.api.Logger
+import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
@@ -49,12 +50,12 @@ class ValidationService(
     repeatService: RepeatingComponentService
 ) {
 
-  private def validateFieldValue(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
-    new ComponentsValidator(data, fileUploadService, envelopeId).validate(fieldValue)
+  private def validateFieldValue(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]], envelopeId: EnvelopeId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    new ComponentsValidator(data, fileUploadService, envelopeId, retrievals).validate(fieldValue)
 
-  def validateComponents(fieldValues: List[FormComponent], data: Map[FormComponentId, Seq[String]], envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+  def validateComponents(fieldValues: List[FormComponent], data: Map[FormComponentId, Seq[String]], envelopeId: EnvelopeId, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     fieldValues
-      .map(fv => validateFieldValue(fv, data, envelopeId))
+      .map(fv => validateFieldValue(fv, data, envelopeId, retrievals))
       .sequenceU
       .map(Monoid[ValidatedType].combineAll)
 
@@ -64,9 +65,9 @@ class ValidationService(
       .map(validateUsingSectionValidators(_, data))
       .getOrElse(().valid.pure[Future])
 
-  def validateForm(sectionFields: List[FormComponent], section: Section, envelopeId: EnvelopeId)(data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
+  def validateForm(sectionFields: List[FormComponent], section: Section, envelopeId: EnvelopeId, retrievals: Retrievals)(data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[ValidatedType] = {
     val eT = for {
-      _ <- EitherT(validateComponents(sectionFields, data, envelopeId).map(_.toEither))
+      _ <- EitherT(validateComponents(sectionFields, data, envelopeId, retrievals).map(_.toEither))
       _ <- EitherT(validateUsingValidators(section, data).map(_.toEither))
     } yield ()
     eT.value.map(Validated.fromEither)
@@ -97,12 +98,13 @@ class ValidationService(
   }
 }
 
-class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadService: FileUploadService, envelopeId: EnvelopeId) {
+class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadService: FileUploadService,
+    envelopeId: EnvelopeId, retrievals: Retrievals) {
 
   def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
     case sortCode @ UkSortCode(_) => validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data)
     case date @ Date(_, _, _) => validateDate(fieldValue, date)
-    case text @ Text(_, _) => validateText(fieldValue, text)(data)
+    case text @ Text(_, _) => validateText(fieldValue, text, retrievals)(data)
     case address @ Address(_) => validateAddress(fieldValue, address)(data)
     case c @ Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
     case Group(_, _, _, _, _, _) => validF //a group is read-only
@@ -234,9 +236,9 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
       }
     }
 
-  private def validateText(fieldValue: FormComponent, text: Text)(data: Map[FormComponentId, Seq[String]]): Future[ValidatedType] = Future.successful {
+  private def validateText(fieldValue: FormComponent, text: Text, retrievals: Retrievals)(data: Map[FormComponentId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val textData = data.get(fieldValue.id).toList.flatten
-    (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
+    val validationResult: ValidatedType = (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
       case (true, Nil, _) => getError(fieldValue, "Please enter required data")
       case (_, _, AnyText) => ().valid
       case (_, value :: Nil, ShortText) => shortTextValidation(fieldValue, value)
@@ -256,6 +258,10 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
       case (false, Nil, _) => ().valid
       case (_, value :: rest, _) => ().valid // we don't support multiple values yet
     }
+    fieldValue.validIf match {
+      case Some(valid) if validationResult.isValid => checkValidIf(fieldValue, data, valid.expr)
+      case _ => validationResult
+    }
   }
 
   private def checkVrn(fieldValue: FormComponent, value: String) = {
@@ -270,6 +276,13 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
       case Government() => ().valid
       case Health() => ().valid
       case _ => getError(fieldValue, "Not a valid VRN")
+    }
+  }
+
+  private def checkValidIf(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]], expr: BooleanExpr) = {
+    BooleanExpr.isTrue(expr, data, retrievals) match {
+      case true => ().valid
+      case false => getError(fieldValue, "Please enter required data")
     }
   }
 

@@ -60,7 +60,7 @@ class EnrolmentController(
     }
   }
 
-  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = Action.async { implicit request =>
+  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) { implicit request => cache =>
 
     processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
       gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
@@ -69,7 +69,7 @@ class EnrolmentController(
           case authConfig: AuthConfigWithEnrolment =>
 
             val allFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
-            val validationResultF = validationService.validateComponents(allFields, data, EnvelopeId(""))
+            val validationResultF = validationService.validateComponents(allFields, data, EnvelopeId(""), cache.retrievals)
 
             get(data, FormComponentId("save")) match {
               case "Continue" :: Nil =>
