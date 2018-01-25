@@ -22,7 +22,6 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 
-
 @(
         formTemplate: FormTemplate,
         pageLevelError: Html,
@@ -40,6 +39,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = localisation(formTemplate.formName),
+    formTemplate.developmentPhase,
     frontendAppConfig = frontendAppConfig
 ) {
 

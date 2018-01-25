@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 
 @(title: String,
+  developmentPhase:Option[String] = None,
   sidebarLinks: Option[Html] = None,
   contentHeader: Option[Html] = None,
   bodyClasses: Option[String] = None,
@@ -38,6 +39,7 @@
 
 @govuk_wrapper(appConfig = frontendAppConfig,
                title = title,
+               developmentPhase = developmentPhase,
                mainClass = mainClass,
                bodyClasses = bodyClasses,
                sidebar = sidebar,
