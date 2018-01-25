@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.services
 
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.libs.json.JsValue
@@ -96,6 +97,30 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
     hiddenFieldNames should be(List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
     visibleFields should be(List("firstName", "surname"))
+  }
+
+  "SectionRenderingService" should "add in progress indicator if it is defined" in {
+    val generatedHtml = testService
+      .renderSection(
+        form,
+        SectionNumber.firstSection,
+        Map.empty,
+        formTemplate,
+        None,
+        Envelope(Nil),
+        envelopeId,
+        None,
+        List(allSections.head.copy(progressIndicator = Some("Progress Indicator"))),
+        0,
+        Nil,
+        retrievals,
+        None
+      ).futureValue
+
+    val doc = Jsoup.parse(generatedHtml.body)
+    val progressIndicator = doc.getElementById("progress-indicator")
+    println("\n\nvisibleFields \n\n" + visibleFields)
+    progressIndicator.toString should be("<span id=\"progress-indicator\" class=\"form-hint\">Progress Indicator</span>")
   }
 
   it should "generate second page" in {

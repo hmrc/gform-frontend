@@ -32,6 +32,7 @@ case class Section(
   title: String,
   description: Option[String],
   shortName: Option[String],
+  progressIndicator: Option[String] = None,
   includeIf: Option[IncludeIf],
   repeatsMax: Option[TextExpression],
   repeatsMin: Option[TextExpression],

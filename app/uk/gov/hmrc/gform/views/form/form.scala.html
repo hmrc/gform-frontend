@@ -42,7 +42,9 @@
     title = localisation(formTemplate.formName),
     frontendAppConfig = frontendAppConfig
 ) {
-
+    @if(page.progressIndicator.isDefined){
+    <span id ="progress-indicator" class="form-hint">@localisation(page.progressIndicator.get)</span>
+    }
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
     @if(page.sectionDescription.isDefined){
     <p class="page-description">@localisation(page.sectionDescription.get)</p>
