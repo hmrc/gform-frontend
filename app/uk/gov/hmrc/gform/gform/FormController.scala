@@ -76,9 +76,9 @@ class FormController(
 
     for {
       maybeForm <- gformConnector.maybeForm(formId)
-      maybeFormInProgress = maybeForm.filter(_.status == InProgress)
-      form <- maybeFormInProgress.map(Future.successful).getOrElse(startForm)
-    } yield (form, maybeFormInProgress.isDefined)
+      maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
+      form <- maybeFormExceptSubmitted.map(Future.successful).getOrElse(startForm)
+    } yield (form, maybeFormExceptSubmitted.isDefined)
   }
 
   def form(formId: FormId, formTemplateId4Ga: FormTemplateId, sectionNumber: SectionNumber, totalSections: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
