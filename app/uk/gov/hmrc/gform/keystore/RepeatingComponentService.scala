@@ -385,7 +385,7 @@ class RepeatingComponentService(
       fields.flatMap {
         case (fv: FormComponent) => fv.`type` match {
           case groupField @ Group(_, _, _, _, _, _) => section match {
-            case Section(_, _, _, _, _, _, _, _) => atomicFields {
+            case Section(_, _, _, _, _, _, _, _, _) => atomicFields {
               val fields = getAllFieldsInGroup(fv, groupField)
               val first = fields.head.map { nv =>
                 nv.copy(

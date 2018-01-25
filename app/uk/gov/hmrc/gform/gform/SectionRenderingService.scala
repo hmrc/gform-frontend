@@ -100,8 +100,11 @@ class SectionRenderingService(
       hiddenTemplateFields = Fields.getFields(section, dynamicSections, repeatService)
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => html.form.snippets.hidden_field(formField))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
-      renderingInfo = SectionRenderingInformation(form._id, sectionNumber, section.title, section.description, hiddenSnippets, snippetsForFields, javascript, envelopeId, actionForm, true, "Save and continue", formMaxAttachmentSizeMB, contentTypes)
-    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id, shouldDisplayBack = sectionNumber > originSection, shouldDisplayBackToSummary = shouldDisplayBackToSummary(form), frontendAppConfig)
+      renderingInfo = SectionRenderingInformation(form._id, sectionNumber, section.title, section.description,
+        hiddenSnippets, snippetsForFields, javascript, envelopeId, actionForm, true, "Save and continue",
+        formMaxAttachmentSizeMB, contentTypes, section.progressIndicator)
+    } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, form._id,
+      shouldDisplayBack = sectionNumber > originSection, shouldDisplayBackToSummary = shouldDisplayBackToSummary(form), frontendAppConfig)
   }
 
   def generatePageLevelErrorHtml(listValidation: List[FormFieldValidationResult]): Html = {

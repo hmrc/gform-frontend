@@ -173,13 +173,13 @@ trait ExampleSectionNumber {
 }
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
-  def `section - about you` = Section("About you", None, None, None, None, None, None, List(
+  def `section - about you` = Section("About you", None, None, None, None, None, None, None, List(
     `fieldValue - firstName`,
     `fieldValue - surname`,
     `fieldValue - facePhoto`
   ))
 
-  def `section - businessDetails` = Section("Business details", None, None, None, None, None, None, List(
+  def `section - businessDetails` = Section("Business details", None, None, None, None, None, None, None, List(
     `fieldValue - businessName`,
     `fieldValue - startDate`,
     `fieldValue - iptRegNum`
@@ -187,7 +187,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
   def `repeating section` = Section(
     "Repeating section",
-    None, None, None,
+    None, None, None, None,
     repeatsMax = Some(TextExpression(FormCtx(`fieldId - firstName`.value))),
     repeatsMin = Some(TextExpression(FormCtx(`fieldId - firstName`.value))),
     None,
