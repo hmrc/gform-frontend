@@ -83,6 +83,16 @@ case Some(x) =>{
 <div class="beta-banner {beta-banner--borderless}">
     <p>
         <strong class="phase-tag">@x</strong>
+        @if(x.equals("beta")){
+        <span>
+            @Messages("label.beta.newservice")
+            @Messages("label.beta.yours") @defining(appConfig.betaFeedbackUrlNoAuth) { linkUrl =>
+        <a id="feedback-link"
+           href="@linkUrl"
+           data-sso="false"
+           data-journey-click="other-global:Click:Feedback">@Messages("label.beta.feedback")</a> @Messages("label.beta.improve")}
+        </span>
+        }
     </p>
 </div>
 }
