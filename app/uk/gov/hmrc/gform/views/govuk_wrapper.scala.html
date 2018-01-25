@@ -22,6 +22,7 @@
 
 @(appConfig: FrontendAppConfig,
   title: String,
+  developmentPhase: Option[String] = None,
   mainClass: Option[String] = None,
   mainDataAttributes: Option[Html] = None,
   bodyClasses: Option[String] = None,
@@ -76,8 +77,19 @@
 @footerLinks = {}
 
 @betaBanner = {
-    @uiLayouts.betaBanner(true, appConfig.betaFeedbackUrlNoAuth, appConfig.betaFeedbackUrlNoAuth, true, true)
+@developmentPhase match {
+case Some("live") =>{}
+case Some(x) =>{
+<div class="beta-banner {beta-banner--borderless}">
+    <p>
+        <strong class="phase-tag">@x</strong>
+    </p>
+</div>
 }
+case _ => {}
+}
+}
+
 
 @serviceInfo = {
     @uiLayouts.serviceInfo(
