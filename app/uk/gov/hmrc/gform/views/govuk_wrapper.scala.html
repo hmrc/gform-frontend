@@ -18,11 +18,11 @@
 @import layouts.{govuk_template => hmrcGovUkTemplate}
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
-
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase, LiveBanner, ResearchBanner, BetaBanner}
 
 @(appConfig: FrontendAppConfig,
   title: String,
-  developmentPhase: Option[String] = None,
+  developmentPhase: DevelopmentPhase = ResearchBanner,
   mainClass: Option[String] = None,
   mainDataAttributes: Option[Html] = None,
   bodyClasses: Option[String] = None,
@@ -78,12 +78,12 @@
 
 @betaBanner = {
 @developmentPhase match {
-case Some("live") =>{}
-case Some(x) =>{
+case LiveBanner =>{}
+case x if(x == BetaBanner || x == ResearchBanner) =>{
 <div class="beta-banner {beta-banner--borderless}">
     <p>
-        <strong class="phase-tag">@x</strong>
-        @if(x.equals("beta")){
+        <strong class="phase-tag">@x.banner</strong>
+        @if(x.equals(BetaBanner)){
         <span>
             @Messages("label.beta.newservice")
             @Messages("label.beta.yours") @defining(appConfig.betaFeedbackUrlNoAuth) { linkUrl =>

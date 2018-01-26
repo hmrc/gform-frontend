@@ -39,7 +39,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = localisation(formTemplate.formName),
-    formTemplate.developmentPhase,
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
 

@@ -36,6 +36,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = formTemplate.formName,
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
 <h1>Would you like to continue your @formCategory(formTemplate) or start again?</h1>
