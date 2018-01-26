@@ -39,7 +39,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, false, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("12"),
@@ -56,7 +56,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, false, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("12"),
@@ -73,7 +73,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, false, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq(""),
@@ -90,7 +90,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, false, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("-1"),
@@ -107,7 +107,7 @@ class FormatValidationSpec extends Spec {
     val text = UkSortCode(Constant(""))
 
     val fieldValue = FormComponent(FormComponentId("n"), text,
-      "sample label", None, None, None, true, false, false, true, None)
+      "sample label", None, None, None, true, false, false, true, false, None)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("1.2"),

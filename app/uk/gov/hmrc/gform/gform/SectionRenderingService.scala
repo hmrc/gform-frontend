@@ -53,6 +53,8 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
+case class FormRender(id: String, name: String, value: String)
+
 class SectionRenderingService(
     repeatService: RepeatingComponentService,
     prepopService: PrepopService,
@@ -95,7 +97,8 @@ class SectionRenderingService(
     val originSection = new Origin(formTemplate.sections, retrievals).minSectionNumber
 
     for {
-      snippetsForFields <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, dynamicSections.size, validatedType, lang)))
+      snippetsForFields <- Future.sequence(section.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id, 0, ei, dynamicSections.size, validatedType, lang,
+        fieldValue.onlyShowOnSummary)))
       javascript <- createJavascript(dynamicSections.flatMap(_.fields), dynamicSections.flatMap(repeatService.atomicFields))
       hiddenTemplateFields = Fields.getFields(section, dynamicSections, repeatService)
       hiddenSnippets = Fields.toFormField(fieldData, hiddenTemplateFields).map(formField => html.form.snippets.hidden_field(formField))
@@ -227,11 +230,14 @@ class SectionRenderingService(
     }
   }
 
-  private def htmlFor(fieldValue: FormComponent, formTemplateId4Ga: FormTemplateId, index: Int, ei: ExtraInfo, totalSections: Int, maybeValidated: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+  private def htmlFor(fieldValue: FormComponent, formTemplateId4Ga: FormTemplateId,
+    index: Int, ei: ExtraInfo, totalSections: Int,
+    maybeValidated: Option[ValidatedType], lang: Option[String],
+    isHidden: Boolean = false)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index, maybeValidated, ei)
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, formTemplateId4Ga, fieldValue, index, ei, maybeValidated, lang)
-      case Date(_, offset, dateValue) => Future.successful(htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei))
+      case Date(_, offset, dateValue) => Future.successful(htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, isHidden))
       case Address(international) => Future.successful(htmlForAddress(fieldValue, international, index, maybeValidated, ei))
       case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, maybeValidated, ei)
       case Choice(choice, options, orientation, selections, optionalHelpText) => htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei).pure[Future]
@@ -342,9 +348,19 @@ class SectionRenderingService(
     html.form.snippets.field_template_address(international, fieldValue, buildFormFieldValidationResult(fieldValue, ei, validatedType), index, ei.section.title)
   }
 
-  private def htmlForDate(fieldValue: FormComponent, offset: Offset, dateValue: Option[DateValue], index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
-    val prepopValues = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
-    html.form.snippets.field_template_date(fieldValue, buildFormFieldValidationResult(fieldValue, ei, validatedType), prepopValues, index)
+  private def htmlForDate(fieldValue: FormComponent, offset: Offset, dateValue: Option[DateValue], index: Int, validatedType: Option[ValidatedType],
+    ei: ExtraInfo, isHidden: Boolean = false)(implicit hc: HeaderCarrier) = {
+    val prepopValues: Option[DateExpr] = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
+
+    if (isHidden) {
+      html.form.snippets.hidden_field_populated(
+        List(
+          FormRender(fieldValue.id.value + "-day", fieldValue.id.value + "-day", prepopValues.map(_.day.toString).getOrElse("")),
+          FormRender(fieldValue.id.value + "-month", fieldValue.id.value + "-month", prepopValues.map(_.month.toString).getOrElse("")),
+          FormRender(fieldValue.id.value + "-year", fieldValue.id.value + "-year", prepopValues.map(_.year.toString).getOrElse(""))
+        )
+      )
+    } else html.form.snippets.field_template_date(fieldValue, buildFormFieldValidationResult(fieldValue, ei, validatedType), prepopValues, index)
   }
 
   private def htmlForGroup(grp: Group, formTemplateId4Ga: FormTemplateId, fieldValue: FormComponent, index: Int, ei: ExtraInfo, validatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {

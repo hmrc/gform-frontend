@@ -131,7 +131,7 @@ class NumberValidationSpec extends Spec {
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Constant("")),
-      "sample label", None, None, None, true, false, false, false, None
+      "sample label", None, None, None, true, false, false, false, false, None
     )
 
     override def data = Map(
