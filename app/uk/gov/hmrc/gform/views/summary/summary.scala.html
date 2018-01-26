@@ -22,6 +22,7 @@
 @import views.html.helper.CSRF
 @import scala.concurrent.ExecutionContext
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 
 @(
     formTemplate: FormTemplate,
@@ -37,6 +38,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = localisation(formTemplate.formName),
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     bodyClasses = None,
     mainClass = Some("full-width"),
     frontendAppConfig = frontendAppConfig

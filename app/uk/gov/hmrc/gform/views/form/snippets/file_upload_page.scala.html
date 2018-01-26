@@ -21,7 +21,7 @@
 @import uk.gov.hmrc.gform.gform.routes
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 
 @(
         formId: FormId,
@@ -39,6 +39,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = localisation(formTemplate.formName),
+    developmentPhase = ResearchBanner,
     frontendAppConfig = frontendAppConfig
 ) {
     <h1 class="h1-heading">Upload document</h1>
