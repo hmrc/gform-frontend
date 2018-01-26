@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.services
 
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
+import org.jsoup.nodes.{ Document, Element }
 import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.libs.json.JsValue
@@ -117,9 +117,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         None
       ).futureValue
 
-    val doc = Jsoup.parse(generatedHtml.body)
+    val doc: Document = Jsoup.parse(generatedHtml.body)
     val progressIndicator = doc.getElementById("progress-indicator")
-    println("\n\nvisibleFields \n\n" + visibleFields)
     progressIndicator.toString should be("<span id=\"progress-indicator\" class=\"form-hint\">Progress Indicator</span>")
   }
 
