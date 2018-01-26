@@ -187,7 +187,7 @@ object ValidationUtil {
 
   def validateFileUploadHasScannedFiles(fieldValues: List[FormComponent], e: Envelope): Validated[GformError, Unit] = {
     val fileUploads: Map[FormComponentId, FormComponent] = fieldValues.collect {
-      case fv @ FormComponent(id, _: FileUpload, _, _, _, _, _, _, _, _, _, _) => id -> fv
+      case fv @ FormComponent(id, _: FileUpload, _, _, _, _, _, _, _, _, _, _, _) => id -> fv
     }.toMap
 
     //TODO: below code was borrowed from components validator. make it reusable in ValidationUtil

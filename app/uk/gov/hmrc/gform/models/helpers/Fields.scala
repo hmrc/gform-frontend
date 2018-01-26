@@ -138,9 +138,11 @@ object Fields {
     def isTotalValue(maybe: Option[List[PresentationHint]]): Boolean = {
       maybe.exists(x => x.contains(TotalValue))
     }
+
     val renderFields = currentSection
       .fields
       .filter(y => isTotalValue(y.presentationHint))
+
     val renderList: List[Section] = dynamicSections
       .filterNot(_ == currentSection) :+ currentSection.copy(fields = renderFields)
 
