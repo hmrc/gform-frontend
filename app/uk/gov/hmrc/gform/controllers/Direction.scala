@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import play.api.Logger
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -61,6 +62,7 @@ case class Navigator(sectionNumber: SectionNumber, sections: List[Section], data
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
 
   val RemoveGroupR = "RemoveGroup-(\\d*)_(.*)".r.unanchored
+
   def navigate: Direction = actionValue match {
     // format: OFF
     case "Save"                               => SaveAndExit
@@ -76,9 +78,7 @@ case class Navigator(sectionNumber: SectionNumber, sections: List[Section], data
 
   private def actionValue: String = {
     val fieldId = FormComponentId("save")
-    FormDataHelpers
-      .get(data, fieldId)
-      .headOption
+    FormDataHelpers.get(data, fieldId).headOption
       .getOrElse(
         throw new BadRequestException(s"Missing '${fieldId.value}' form field")
       )

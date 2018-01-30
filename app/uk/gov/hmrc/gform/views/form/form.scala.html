@@ -45,15 +45,18 @@
     @if(page.progressIndicator.isDefined){
     <span id ="progress-indicator" class="form-hint">@localisation(page.progressIndicator.get)</span>
     }
+    @if(shouldDisplayBack){
+     <div class="form-group js-visible">
+      <button type="submit" form="gf-form"  id="backButton"  class="link-back" value="Back">Back</button>
+    </div>
+    }
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
     @if(page.sectionDescription.isDefined){
     <p class="page-description">@localisation(page.sectionDescription.get)</p>
     }
 
     @pageLevelError
-
     <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
-
         @{
             CSRF.formField
         }
@@ -68,28 +71,23 @@
 
         <input type="hidden" id="gform-action" name="save" value="Continue" />
 
-        <div class="form-group divider--top--thick">
-            <button type="submit" class="button" value="Continue">@page.continueLabel</button>
-        </div>
+        <div class="form-group divider--top--thick"></div>
+
+        <button type="submit" class="button" value="Continue">@page.continueLabel</button>
 
         <div class="js-visible">
           @if(page.renderComeBackLater) {
           <div class="form-group">
-              <button type="submit" class="button--secondary" value="Save">Save and come back later</button>
-          </div>
-          }
-
-          @if(shouldDisplayBack){
-          <div class="form-group">
-              <button type="submit" class="link-back" value="Back">Back</button>
+              <button type="submit" class="button--secondary" name="save" value="Save">Save and come back later</button>
           </div>
           }
 
           @if(shouldDisplayBackToSummary){
             <div class="form-group">
-              <button type="submit" class="link-back" value="BackToSummary">Back to summary</button>
+              <button type="submit" class="link-back"  value="BackToSummary">Back to summary</button>
             </div>
           }
+
         </div>
     </form>
 

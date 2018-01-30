@@ -250,12 +250,14 @@ details.on('click', function(evt) {
 });
 
 // Fix to POST the submit type. In browsers other than Safari, you can post the value
-// of the submit button. This workaround sets the value on a hidden inpuot instead as
+// of the submit button. This workaround sets the value on a hidden input instead as
 // gforms works by using different submit values
 gfForm.on('click', '[type="submit"]', function(evt) {
   var type = $(evt.target).val();
-
   gfFormAction.val(type);
 });
+$('#backButton').click(function(){
+    $('#gform-action').attr('value', 'Back')
+})
 
 showHideContent.init();
