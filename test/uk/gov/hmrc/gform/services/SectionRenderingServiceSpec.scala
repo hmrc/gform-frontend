@@ -98,7 +98,32 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     hiddenFieldNames should be(List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
     visibleFields should be(List("firstName", "surname"))
   }
+  "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
+    val generatedHtml = testService
+      .renderSection(
+        form,
+        SectionNumber.firstSection,
+        Map.empty,
+        formTemplate,
+        None,
+        Envelope(Nil),
+        envelopeId,
+        None,
+        allSections.map(sc => sc.copy(fields = sc.fields.map(f => f.copy(onlyShowOnSummary = true)))),
+        0,
+        Nil,
+        retrievals,
+        None
+      ).futureValue
 
+    val doc = Jsoup.parse(generatedHtml.body)
+
+    val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
+    val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
+
+    hiddenFieldNames should be(List("csrfToken", "firstName", "surname", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
+    visibleFields should be(List())
+  }
   "SectionRenderingService" should "add in progress indicator if it is defined" in {
     val generatedHtml = testService
       .renderSection(
