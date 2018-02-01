@@ -235,11 +235,11 @@ class SectionRenderingService(
     maybeValidated: Option[ValidatedType], lang: Option[String],
     isHidden: Boolean = false)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
     fieldValue.`type` match {
-      case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index, maybeValidated, ei)
+      case sortCode @ UkSortCode(expr) => htmlForSortCode(fieldValue, sortCode, expr, index, maybeValidated, ei, isHidden)
       case g @ Group(_, _, _, _, _, _) => htmlForGroup(g, formTemplateId4Ga, fieldValue, index, ei, maybeValidated, lang)
       case Date(_, offset, dateValue) => Future.successful(htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, isHidden))
       case Address(international) => Future.successful(htmlForAddress(fieldValue, international, index, maybeValidated, ei))
-      case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, maybeValidated, ei)
+      case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, maybeValidated, ei, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) => htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei).pure[Future]
       case FileUpload() => Future.successful(htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, totalSections, maybeValidated, lang))
       case InformationMessage(infoType, infoText) => htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
@@ -295,18 +295,21 @@ class SectionRenderingService(
     }
   }
 
-  private def htmlForText(fieldValue: FormComponent, t: Text, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
+  private def htmlForText(fieldValue: FormComponent, t: Text, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo, isHidden: Boolean)(implicit hc: HeaderCarrier) = {
     def scale = t.constraint match {
       case Number(_, maxFractionalDigits, _) => Some(maxFractionalDigits)
       case PositiveNumber(_, maxFractionalDigits, _) => Some(maxFractionalDigits)
       case _ => None
     }
-    def renderText(fieldValue: FormComponent, t: Text, prepopValue: String, validatedValue: Option[FormFieldValidationResult]): Html = {
-      fieldValue.presentationHint match {
+    def renderText(fieldValue: FormComponent, t: Text, prepopValue: String, validatedValue: Option[FormFieldValidationResult], isHidden: Boolean): Html = {
+      val htmlWithValues = fieldValue.presentationHint match {
         case None => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
         case Some(x) if x.contains(TotalValue) => html.form.snippets.field_template_text_total(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
         case Some(x) => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
       }
+      if (isHidden)
+        html.form.snippets.hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
+      else htmlWithValues
     }
 
     val prepopValueF = ei.fieldData.get(fieldValue.id) match {
@@ -328,11 +331,11 @@ class SectionRenderingService(
 
     for {
       prepopValue <- prepopValueF
-    } yield renderText(fieldValue, t, prepopValue, validatedValue)
+    } yield renderText(fieldValue, t, prepopValue, validatedValue, isHidden)
   }
 
-  private def htmlForSortCode(fieldValue: FormComponent, sC: UkSortCode, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
-    val prepopValueF = ei.fieldData.get(fieldValue.id) match {
+  private def htmlForSortCode(fieldValue: FormComponent, sC: UkSortCode, expr: Expr, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo, isHidden: Boolean)(implicit hc: HeaderCarrier) = {
+    val prepopValueF: Future[String] = ei.fieldData.get(fieldValue.id) match {
       case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section)
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
@@ -340,11 +343,14 @@ class SectionRenderingService(
 
     for {
       prepopValue <- prepopValueF
-    } yield html.form.snippets.field_template_sort_code(fieldValue, sC, prepopValue, validatedValue, index)
-
+    } yield {
+      if (isHidden) html.form.snippets.hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
+      else html.form.snippets.field_template_sort_code(fieldValue, sC, prepopValue, validatedValue, index)
+    }
   }
 
   private def htmlForAddress(fieldValue: FormComponent, international: Boolean, index: Int, validatedType: Option[ValidatedType], ei: ExtraInfo)(implicit hc: HeaderCarrier) = {
+
     html.form.snippets.field_template_address(international, fieldValue, buildFormFieldValidationResult(fieldValue, ei, validatedType), index, ei.section.title)
   }
 
