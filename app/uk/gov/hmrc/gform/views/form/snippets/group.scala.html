@@ -41,6 +41,10 @@
     }
   </h2>
 
+    @if(fieldValue.helpText.isDefined) {
+        <div class="form-field--hint">@{fieldValue.helpText}</div>
+    }
+
   <div class="@if(groupField.repeatsMax.isDefined && repeatCount > 0 && fieldValue.label.nonEmpty) {divider--top}">
       @{
          snippets
