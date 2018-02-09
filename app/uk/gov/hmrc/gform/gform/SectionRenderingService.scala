@@ -382,9 +382,10 @@ class SectionRenderingService(
   }
 
   private def htmlForGroup0(groupField: Group, formTemplateId4Ga: FormTemplateId, fieldValue: FormComponent, index: Int, ei: ExtraInfo, validatedType: Option[ValidatedType], lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messages: Messages) = {
+    val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
     for {
       (lhtml, limitReached) <- getGroupForRendering(fieldValue, formTemplateId4Ga, groupField, groupField.orientation, validatedType, ei, lang)
-    } yield html.form.snippets.group(fieldValue, groupField, lhtml, groupField.orientation, limitReached, index)
+    } yield html.form.snippets.group(fieldValue, maybeHint, groupField, lhtml, groupField.orientation, limitReached, index)
   }
 
   private def getGroupForRendering(fieldValue: FormComponent, formTemplateId4Ga: FormTemplateId, groupField: Group, orientation: Orientation, validatedType: Option[ValidatedType], ei: ExtraInfo, lang: Option[String])(implicit hc: HeaderCarrier, request: Request[_], messsages: Messages): Future[(List[Html], Boolean)] = {
