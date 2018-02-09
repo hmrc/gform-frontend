@@ -28,7 +28,8 @@
 @import uk.gov.hmrc.gform.views.html._
 
 
-@(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, disableAddButton: Boolean, index: Int)
+@(fieldValue: FormComponent, maybeHelpText: Option[Html],
+        groupField: Group, snippets: List[Html], orientation: Orientation, disableAddButton: Boolean, index: Int)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
 
@@ -41,8 +42,8 @@
     }
   </h2>
 
-    @if(fieldValue.helpText.isDefined) {
-        <div class="form-field--hint">@{fieldValue.helpText}</div>
+    @if(maybeHelpText.isDefined) {
+         <div class="form-field--hint"> maybeHelpText.get </div>
     }
 
   <div class="@if(groupField.repeatsMax.isDefined && repeatCount > 0 && fieldValue.label.nonEmpty) {divider--top}">
