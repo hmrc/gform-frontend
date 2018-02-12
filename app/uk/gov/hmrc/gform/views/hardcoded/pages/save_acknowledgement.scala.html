@@ -30,6 +30,7 @@
 @uk.gov.hmrc.gform.views.html.main_template(
     title = formTemplate.formName,
     bodyClasses = None,
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
 <br>
