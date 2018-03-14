@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
@@ -67,7 +68,8 @@ class AcknowledgementController(
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
           submission  <- gformConnector.submissionStatus(formId)
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml)
-          htmlForPDF  =  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue)
+          data = FormDataHelpers.formDataMap(cache.form.formData)
+          htmlForPDF  =  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, data)
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
@@ -84,7 +86,8 @@ class AcknowledgementController(
     authConfig: AuthConfig,
     submissionReference: Option[TextExpression],
     retrievals: Retrievals,
-    hashedValue: String
+    hashedValue: String,
+    data: Map[FormComponentId, Seq[String]]
   ): String = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -92,7 +95,7 @@ class AcknowledgementController(
 
     // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals)
+      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, data)
       case (_: EEITTAuthConfig, None)                 => authService.eeitReferenceNumber(retrievals)
       case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
     }

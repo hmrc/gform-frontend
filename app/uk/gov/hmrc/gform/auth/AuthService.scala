@@ -32,7 +32,7 @@ class AuthService {
       .fold("")(_.getIdentifier(EEITTAuthConfig.nonAgentIdName).fold("")(_.value))
   }
 
-  def evaluateSubmissionReference(expression: TextExpression, retrievals: Retrievals): String = {
+  def evaluateSubmissionReference(expression: TextExpression, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]]): String = {
 
     expression.expr match {
       case AuthCtx(value) =>
@@ -40,6 +40,8 @@ class AuthService {
         authContextPrepop.values(value, retrievals)
 
       case EeittCtx(eeitt) => eeitReferenceNumber(retrievals)
+      case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("")
+
       case _ => "" //TODO change this to AuthExpr.
     }
   }
