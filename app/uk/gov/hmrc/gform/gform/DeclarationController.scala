@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -104,11 +104,11 @@ class DeclarationController(
 
       val validationResultF = validationService.validateComponents(getAllDeclarationFields(cache.formTemplate.declarationSection.fields), data, cache.form.envelopeId, cache.retrievals)
 
-      val customerId = authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals, data)
       get(data, FormComponentId("save")) match {
         case "Continue" :: Nil => validationResultF.flatMap {
           case Valid(()) =>
             val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
+            val customerId = authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals, formDataMap(updatedForm.formData))
             for {
               _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None, Signed))
               //todo perhaps not make these calls at all if the feature flag is false?
