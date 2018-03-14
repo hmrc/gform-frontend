@@ -65,11 +65,12 @@ class DeclarationController(
     html: String,
     authConfig: AuthConfig,
     submissionReference: Option[TextExpression],
-    retrievals: Retrievals
+    retrievals: Retrievals,
+    data: Map[FormComponentId, Seq[String]]
   ): String = {
     // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals)
+      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, data)
       case (_: EEITTAuthConfig, None)                 => authService.eeitReferenceNumber(retrievals)
       case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
     }
@@ -103,7 +104,7 @@ class DeclarationController(
 
       val validationResultF = validationService.validateComponents(getAllDeclarationFields(cache.formTemplate.declarationSection.fields), data, cache.form.envelopeId, cache.retrievals)
 
-      val customerId = authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals)
+      val customerId = authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals, data)
       get(data, FormComponentId("save")) match {
         case "Continue" :: Nil => validationResultF.flatMap {
           case Valid(()) =>
@@ -113,7 +114,7 @@ class DeclarationController(
               //todo perhaps not make these calls at all if the feature flag is false?
               summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
               cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml)
-              htmlForPDF = addExtraDataToHTML(cleanHtml, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals)
+              htmlForPDF = addExtraDataToHTML(cleanHtml, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, data)
               _ <- if (config.sendPdfWithSubmission) gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF) else { gformConnector.submitForm(formId, customerId) }
               _ <- repeatService.clearSession
             } yield {

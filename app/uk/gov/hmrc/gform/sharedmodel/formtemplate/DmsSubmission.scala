@@ -22,7 +22,9 @@ case class DmsSubmission(
   dmsFormId: String,
   customerId: TextExpression,
   classificationType: String,
-  businessArea: String
+  businessArea: String,
+  // TODO dataXml should be a gform boolean expression
+  dataXml: Option[Boolean] = None
 )
 
 object DmsSubmission {
