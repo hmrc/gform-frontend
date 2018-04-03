@@ -173,7 +173,7 @@ var uploader = function(el) {
     }
 
     // Create a form data object with the file to upload
-    formData.append(fileId, file);
+    formData.append(fileId, file, file.name.replace(/\\/g,'/').replace(/.*\//, ''));
 
     // Perform POST request
     $.ajax({
