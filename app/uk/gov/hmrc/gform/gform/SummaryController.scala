@@ -60,7 +60,7 @@ class SummaryController(
 
   def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case sharedmodel.form.Summary => getSummaryHTML(formId, cache, lang).map(Ok(_))
+      case Summary | Validated | Signed => getSummaryHTML(formId, cache, lang).map(Ok(_))
       case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
     }
   }
