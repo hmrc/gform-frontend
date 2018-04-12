@@ -244,7 +244,7 @@ class ComponentsValidator(data: Map[FormComponentId, Seq[String]], fileUploadSer
       case (_, value :: Nil, ShortText) => shortTextValidation(fieldValue, value)
       case (_, value :: Nil, BasicText) => textValidation(fieldValue, value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(fieldValue, value, min, max)
-      case (_, value :: Nil, Sterling) => validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, true)
+      case (_, value :: Nil, Sterling) => validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
       case (_, value :: Nil, UkBankAccountNumber) => checkLength(fieldValue, value, ValidationValues.bankAccountLength)
       case (_, value :: Nil, UTR) => checkId(fieldValue, value)
       case (_, value :: Nil, NINO) => checkId(fieldValue, value)
