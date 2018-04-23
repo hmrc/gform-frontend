@@ -161,13 +161,18 @@
 button.link-back {
   background: transparent;
   box-shadow: none;
+  border-top: 1px solid transparent;
+  border-bottom-color: black;
+
 }
 
 button.link-back:hover,
 button.link-back:focus,
-button.link-back:visited {
+button.link-back:visited,
+button.link-back:active{
   color: #0B0C09;
-  background: transparent;
+  border: 1px dotted black;
+    background: #FFBF47;
 }
 
 /* Render number inputs differently to niormal text boxes */
