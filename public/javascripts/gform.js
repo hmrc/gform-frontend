@@ -235,7 +235,7 @@ if (window.File && window.FileList && window.FormData) {
   });
 }
 
-// Add `aria-hidden` attriobute to hidden content to ensure screen readers can 'see' the content
+// Add `aria-hidden` attribute to hidden content to ensure screen readers can 'see' the content
 details.on('click', function(evt) {
   var summaryEl = $(evt.currentTarget).find('summary');
   var isExpanded = summaryEl.attr('aria-expanded') === "true";
