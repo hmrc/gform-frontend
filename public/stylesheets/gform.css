@@ -163,7 +163,6 @@ button.link-back {
   box-shadow: none;
   border-top: 1px solid transparent;
   border-bottom-color: black;
-
 }
 
 button.link-back:hover,
@@ -173,6 +172,14 @@ button.link-back:active{
   color: #0B0C09;
   border: 1px dotted black;
     background: #FFBF47;
+}
+
+button.button--secondary{
+    border: 3px solid transparent;
+}
+
+button.button--secondary:active{
+  border: 3px solid #FFBF47;
 }
 
 /* Render number inputs differently to niormal text boxes */
