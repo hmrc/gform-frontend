@@ -256,8 +256,19 @@ gfForm.on('click', '[type="submit"]', function(evt) {
   var type = $(evt.target).val();
   gfFormAction.val(type);
 });
-$('#backButton').click(function(){
-    $('#gform-action').attr('value', 'Back')
-})
+
+// Avoid the browser choosing the 'Back' button when the user presses Enter unless the button
+// is in focus.
+$('#backButton').focus(function(){
+  $(this).attr('type', 'submit');
+});
+
+$('#backButton').blur(function(){
+  $(this).attr('type', 'button');
+});
+
+$('#backButton').on("click",function(){
+    $('#gform-action').attr('value', 'Back');
+});
 
 showHideContent.init();
