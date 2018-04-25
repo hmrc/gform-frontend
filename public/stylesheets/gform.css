@@ -178,6 +178,9 @@ button.button--secondary{
     border: 3px solid transparent;
 }
 
+button.button--secondary:hover,
+button.button--secondary:focus,
+button.button--secondary:visited,
 button.button--secondary:active{
   border: 3px solid #FFBF47;
 }
