@@ -51,7 +51,7 @@ sectionTitle: String
 
             @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq(""))
 
-            <div id="@{fieldValue.id}">
+            <div id="@{fieldValue.id}" role="@{inputType}group">
                 @options.toList.zipWithIndex.map{ case (option, index) =>
                 <div
                   class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
@@ -67,7 +67,9 @@ sectionTitle: String
                            aria-expanded="false"
                            }
                            @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
-                           index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("") />
+                           index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
+                           role="@inputType"
+                    />
 
                     <label for="@{fieldValue.id}@index">
                       @option
