@@ -257,9 +257,9 @@ gfForm.on('click', '[type="submit"]', function(evt) {
   gfFormAction.val(type);
 });
 
-// Avoid the browser choosing the 'Back' button when the user presses Enter unless the button
+// Avoid the browser choosing the 'Back' button when the user presses Enter, unless the button
 // is in focus.
-$('#backButton').focus(function(){
+$("#backButton").focus(function(){
   $(this).attr('type', 'submit');
 });
 
