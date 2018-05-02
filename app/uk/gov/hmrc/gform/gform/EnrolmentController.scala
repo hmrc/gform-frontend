@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
@@ -39,6 +40,7 @@ class EnrolmentController(
     auth: AuthenticatedRequestActions,
     renderer: SectionRenderingService,
     validationService: ValidationService,
+    repeatService: RepeatingComponentService,
     gformConnector: GformConnector,
     enrolmentService: EnrolmentService,
     appConfig: AppConfig
@@ -51,7 +53,7 @@ class EnrolmentController(
     gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
       formTemplate.authConfig match {
         case authConfig: AuthConfigWithEnrolment =>
-          renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Map.empty, Nil, None, lang).map(Ok(_))
+          renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Map.empty, Nil, None, repeatService.getCache, lang).map(Ok(_))
         case _ => Future.successful(
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
             .flashing("formTitle" -> formTemplate.formName)
@@ -162,7 +164,7 @@ class EnrolmentController(
 
     val errorMap = getErrorMap(validationResult, data, authConfig)
     for {
-      html <- renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, data, errorMap, Some(validationResult), lang)
+      html <- renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, data, errorMap, Some(validationResult), repeatService.getCache, lang)
     } yield Ok(html)
   }
 

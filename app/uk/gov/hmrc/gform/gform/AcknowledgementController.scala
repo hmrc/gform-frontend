@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -42,6 +43,7 @@ class AcknowledgementController(
     auth: AuthenticatedRequestActions,
     pdfService: PdfGeneratorService,
     renderer: SectionRenderingService,
+    repeatService: RepeatingComponentService,
     summaryController: SummaryController, //TODO: does really one controller cannot exist without another one?
     authService: AuthService,
     gformConnector: GformConnector,
@@ -52,7 +54,7 @@ class AcknowledgementController(
 
   def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String) = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case Submitted => renderer.renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang, eventId).map(Ok(_))
+      case Submitted => renderer.renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, repeatService.getCache, lang, eventId).map(Ok(_))
       case _ => Future.successful(BadRequest)
     }
   }
@@ -62,7 +64,7 @@ class AcknowledgementController(
       case Submitted =>
         // format: OFF
         for {
-          summaryHml  <- summaryController.getSummaryHTML(formId, cache, lang)
+          summaryHml  <- summaryController.getSummaryHTML(formId, cache, repeatService.getCache, lang)
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)

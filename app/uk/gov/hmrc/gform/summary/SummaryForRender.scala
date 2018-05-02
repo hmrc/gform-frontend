@@ -50,6 +50,7 @@ object SummaryRenderingService {
     retrievals: Retrievals,
     formId: FormId,
     repeatService: RepeatingComponentService,
+    repeatCache: Future[Option[CacheMap]],
     envelope: Envelope,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
@@ -58,7 +59,7 @@ object SummaryRenderingService {
     messages: Messages,
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Html] = {
-    summaryForRender(validatedType, formFields, retrievals, formId, formTemplate, repeatService, envelope, lang)
+    summaryForRender(validatedType, formFields, retrievals, formId, formTemplate, repeatService, repeatCache, envelope, lang)
       .map(s => summary(formTemplate, s, formId, formTemplate.formCategory.getOrElse(Default), lang, frontendAppConfig))
   }
 
@@ -69,14 +70,15 @@ object SummaryRenderingService {
     formId: FormId,
     formTemplate: FormTemplate,
     repeatService: RepeatingComponentService,
+    repeatCache: Future[Option[CacheMap]],
     envelope: Envelope,
     lang: Option[String]
   )(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[SummaryForRender] = {
 
-    repeatService.getAllSections(formTemplate, data).flatMap { sections =>
-      val fields: List[FormComponent] = sections.flatMap(repeatService.atomicFields)
+    repeatService.getAllSections(formTemplate, data, repeatCache).flatMap { sections =>
+      val fields: List[FormComponent] = sections.flatMap(repeatService.atomicFields(repeatCache))
 
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
         val gformErrors = validatedType match {
@@ -99,22 +101,24 @@ object SummaryRenderingService {
               group_grid(fieldValue, value, isLabel)
             } else Html("")
           }
+
           fieldValue.`type` match {
             case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
               val htmlList: Future[List[Html]] =
-                repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField).map(y => for {
-                  group <- y
-                  value = group.map(validate)
-                } yield {
-                  group_grid(fieldValue, value, false)
-                })
+                repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField, repeatCache).map(y =>
+                  for {
+                    group <- y
+                    value = group.map(validate)
+                  } yield {
+                    group_grid(fieldValue, value, false)
+                  })
               htmlList.map(y => repeating_group(y))
             case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
               groupGrid(groupField.fields)
                 .pure[Future]
             case groupField @ Group(_, orientation, _, _, _, _) =>
               for {
-                fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
+                fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField, repeatCache)
                 htmlList <- Future.sequence(fvs.flatMap(_.map { case (fv: FormComponent) => valueToHtml(fv) }.toList))
               } yield group(fieldValue, htmlList, orientation, isLabel)
             case _ => valueToHtml(fieldValue)
@@ -160,7 +164,7 @@ object SummaryRenderingService {
               .map(z => x :: z)
         }).map(x => x.flatten) //TODO ask a better way to do this.
       }
-      val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
+      val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups(repeatCache)
       val repeatingGroups: Future[List[List[List[FormComponent]]]] = Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
         case (fieldId, group: Group) => cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
       })

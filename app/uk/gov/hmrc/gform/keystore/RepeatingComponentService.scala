@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.keystore
 
+import play.api.libs.json.Reads
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.service.LabelHelper
 import uk.gov.hmrc.gform.sharedmodel.form.{ RepeatingGroup, RepeatingGroupStructure }
@@ -32,12 +33,16 @@ class RepeatingComponentService(
     configModule: ConfigModule
 ) {
 
-  def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
-    sessionCache.fetch().flatMap { maybeCacheMap =>
-      val cacheMap = maybeCacheMap.getOrElse(CacheMap("Empty", Map.empty))
+  def getCache(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CacheMap]] = {
+    sessionCache.fetch()
+  }
+
+  def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]], cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
+    cache.flatMap { maybeCacheMap =>
+      val groupCache = maybeCacheMap.getOrElse(CacheMap("Empty", Map.empty))
       Future.sequence(formTemplate.sections.map { section =>
         if (isRepeatingSection(section)) {
-          generateDynamicSections(section, formTemplate, data, cacheMap)
+          generateDynamicSections(section, formTemplate, data, groupCache, cache)
         } else {
           Future.successful(List(section))
         }
@@ -45,8 +50,8 @@ class RepeatingComponentService(
     }
   }
 
-  def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] = {
-    sessionCache.fetch().map {
+  def getAllRepeatingGroups(cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] = {
+    cache.map {
       case Some(cacheMap) => cacheMap
       case None => CacheMap("empty", Map.empty)
     }
@@ -54,15 +59,15 @@ class RepeatingComponentService(
   private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.repeatsMin.isDefined
 
   private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]],
-    cacheMap: CacheMap)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
+    groupCache: CacheMap, cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
 
-    val countF = getRequestedCount(section.repeatsMax.get, formTemplate, data, cacheMap)
+    val countF = getRequestedCount(section.repeatsMax.get, formTemplate, data, groupCache, cache)
 
     for {
       count <- countF
     } yield {
       (1 to count).map { i =>
-        copySection(section, i, data, cacheMap)
+        copySection(section, i, data, groupCache)
       }.toList
     }
   }
@@ -122,24 +127,25 @@ class RepeatingComponentService(
   }
 
   //This Evaluation is for the repeating sections, this will not become values.
-  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Int] = {
+  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]],
+    repeatCache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[Int] = {
     expr match {
       case Add(expr1, expr2) =>
         for {
-          first <- evaluateExpression(expr1, formTemplate, data)
-          second <- evaluateExpression(expr2, formTemplate, data)
+          first <- evaluateExpression(expr1, formTemplate, data, repeatCache)
+          second <- evaluateExpression(expr2, formTemplate, data, repeatCache)
         } yield first + second
       case Multiply(expr1, expr2) =>
         for {
-          first <- evaluateExpression(expr1, formTemplate, data)
-          second <- evaluateExpression(expr2, formTemplate, data)
+          first <- evaluateExpression(expr1, formTemplate, data, repeatCache)
+          second <- evaluateExpression(expr2, formTemplate, data, repeatCache)
         } yield first * second
       case Subtraction(expr1, expr2) =>
         for {
-          first <- evaluateExpression(expr1, formTemplate, data)
-          second <- evaluateExpression(expr2, formTemplate, data)
+          first <- evaluateExpression(expr1, formTemplate, data, repeatCache)
+          second <- evaluateExpression(expr2, formTemplate, data, repeatCache)
         } yield first - second
-      case Sum(FormCtx(expr1)) => sumFunctionality(expr1, formTemplate, data)
+      case Sum(FormCtx(expr1)) => sumFunctionality(expr1, formTemplate, data, repeatCache)
       case formExpr @ FormCtx(_) => Future.successful(getFormFieldIntValue(TextExpression(formExpr), data))
       case Constant(value) => Try(value.toInt) match {
         case Success(intValue) => Future.successful(intValue)
@@ -151,24 +157,26 @@ class RepeatingComponentService(
     }
   }
 
-  private def sumFunctionality(expr1: String, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ex: ExecutionContext) = {
+  private def sumFunctionality(expr1: String, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]],
+    repeatCache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ex: ExecutionContext) = {
     val dataGetter: FormComponentId => Int = fieldId => Try(data.get(fieldId).toList.flatten.headOption.getOrElse("0").toInt).getOrElse(0)
-    val cacheMap: Future[CacheMap] = getAllRepeatingGroups
+    val cacheMap: Future[CacheMap] = getAllRepeatingGroups(repeatCache)
     val repeatingSections: Future[List[List[List[FormComponent]]]] = Future.sequence(formTemplate.sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
       case (fieldId, group: Group) => cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
     })
     Group.getGroup(repeatingSections, FormComponentId(expr1)).flatMap(x => Future.successful(x.map(dataGetter).sum))
   }
 
-  private def getRequestedCount(expr: TextExpression, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]], cacheMap: CacheMap)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] = {
+  private def getRequestedCount(expr: TextExpression, formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]],
+    groupCache: CacheMap, cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Int] = {
 
     val repeatingGroupsFound = findRepeatingGroupsContainingField(expr, formTemplate)
 
     if (repeatingGroupsFound.isEmpty) {
-      evaluateExpression(expr.expr, formTemplate, data)
+      evaluateExpression(expr.expr, formTemplate, data, cache)
     } else {
       val groupFieldValue = repeatingGroupsFound.head
-      val fieldsInGroup = cacheMap.getEntry[RepeatingGroup](groupFieldValue.id.value).map(_.list).getOrElse(Nil).flatten
+      val fieldsInGroup = groupCache.getEntry[RepeatingGroup](groupFieldValue.id.value).map(_.list).getOrElse(Nil).flatten
       Future.successful(fieldsInGroup.size)
     }
   }
@@ -210,7 +218,11 @@ class RepeatingComponentService(
     formTemplate.sections.flatMap(section => findRepeatingGroups(None, section.fields)).toSet
   }
 
-  def appendNewGroup(formGroupId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[List[FormComponent]]]] = {
+  private def getEntry[T](key: String, cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, rds: Reads[T], executionContext: ExecutionContext): Future[Option[T]] = {
+    cache.map { _.flatMap { _.getEntry(key) } }
+  }
+
+  def appendNewGroup(formGroupId: String, cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[List[List[FormComponent]]]] = {
     // on the forms, the AddGroup button's name has the following format:
     // AddGroup-(groupFieldId)
     // that's the reason why the extraction below is required
@@ -226,13 +238,13 @@ class RepeatingComponentService(
       RepeatingGroup(x, render = true)
     }
     for {
-      (dynamicListOpt) <- sessionCache.fetchAndGetEntry[RepeatingGroup](componentId)
+      (dynamicListOpt) <- getEntry[RepeatingGroup](componentId, cache)
       dynamicList = dynamicListOpt.map(_.list).getOrElse(Nil) // Nil should never happen
       cacheMap <- sessionCache.cache[RepeatingGroup](componentId, buildRepeatingGroup(dynamicList, dynamicListOpt.map(_.render).getOrElse(true)))
     } yield cacheMap.getEntry[RepeatingGroup](componentId).map(_.list)
   }
 
-  def removeGroup(idx: Int, formGroupId: String, data: Map[FormComponentId, scala.Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  def removeGroup(idx: Int, formGroupId: String, data: Map[FormComponentId, scala.Seq[String]], cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     // on the forms, the RemoveGroup button's name has the following format:
     // RemoveGroup-(groupFieldId)
     // that's the reason why the extraction below is required
@@ -249,25 +261,27 @@ class RepeatingComponentService(
         RepeatingGroup(list, true)
     }
 
-    def emptyCase(dynamicList: List[List[FormComponent]]): Map[FormComponentId, Seq[String]] = dynamicList match {
+    def emptyCase(dynamicList: List[List[FormComponent]]): Future[Map[FormComponentId, Seq[String]]] = dynamicList match {
       case h :: Nil =>
-
-        sessionCache.cache(groupId, newListM(Nil, dynamicList))
-        data
+        for {
+          _ <- sessionCache.cache(groupId, newListM(Nil, dynamicList))
+        } yield data
       case list =>
         val (newList, newData) = renameFieldIdsAndData(list diff List(list(index)), data)
-        sessionCache.cache[RepeatingGroup](groupId, newListM(newList, dynamicList))
-        newData
+        for {
+          _ <- sessionCache.cache[RepeatingGroup](groupId, newListM(newList, dynamicList))
+        } yield newData
     }
+
     for {
-      dynamicListOpt <- sessionCache.fetchAndGetEntry[RepeatingGroup](groupId)
+      dynamicListOpt <- getEntry[RepeatingGroup](groupId, cache)
       dynamicList = dynamicListOpt.map(_.list).getOrElse(Nil)
-      newData = emptyCase(dynamicList)
+      newData <- emptyCase(dynamicList)
     } yield newData
   }
 
-  def getData()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RepeatingGroupStructure]] =
-    sessionCache.fetch().map(
+  def getData(cache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RepeatingGroupStructure]] =
+    cache.map(
       _.fold[Option[RepeatingGroupStructure]](None)(x => Some(RepeatingGroupStructure(x.data)))
     )
 
@@ -277,11 +291,12 @@ class RepeatingComponentService(
         y.structure.foreach(x =>
           x._2.asOpt[RepeatingGroup] match {
             case Some(z) => sessionCache.cache[RepeatingGroup](x._1, z)
+            case None =>
           })
       ))
   }
 
-  private def renameFieldIdsAndData(list: List[List[FormComponent]], data: Map[FormComponentId, scala.Seq[String]]): (List[List[FormComponent]], Map[FormComponentId, scala.Seq[String]]) = {
+  private def renameFieldIdsAndData(list: List[List[FormComponent]], data: Map[FormComponentId, Seq[String]]): (List[List[FormComponent]], Map[FormComponentId, Seq[String]]) = {
 
     var newData = data
     val result = (1 until list.size).map { i =>
@@ -295,7 +310,7 @@ class RepeatingComponentService(
     (result, newData)
   }
 
-  private def renameFieldInData(src: FormComponentId, dst: FormComponentId, data: Map[FormComponentId, scala.Seq[String]]) = {
+  private def renameFieldInData(src: FormComponentId, dst: FormComponentId, data: Map[FormComponentId, Seq[String]]) = {
     if (data.contains(src)) {
       val value = data(src)
       (data - src) + (dst -> value)
@@ -333,12 +348,20 @@ class RepeatingComponentService(
     }
   }
 
-  def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(List[List[FormComponent]], Boolean)] = {
-    sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value).flatMap {
-      case Some(dynamicList) if dynamicList.render =>
-        Future.successful((dynamicList.list, isRepeatsMaxReached(dynamicList.list.size, groupField)))
-      case Some(dynamicList) => Future.successful(Nil, false)
-      case None => initialiseDynamicGroupList(topFieldValue, groupField)
+  def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group,
+    repeatCache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(List[List[FormComponent]], Boolean)] = {
+    repeatCache.flatMap {
+      case Some(cacheMap) =>
+        cacheMap.getEntry[RepeatingGroup](topFieldValue.id.value) match {
+          case Some(dynamicList) if dynamicList.render =>
+            Future.successful((dynamicList.list, isRepeatsMaxReached(dynamicList.list.size, groupField)))
+          case Some(dynamicList) =>
+            Future.successful((Nil, false))
+          case None =>
+            initialiseDynamicGroupList(topFieldValue, groupField)
+        }
+      case None =>
+        initialiseDynamicGroupList(topFieldValue, groupField)
     }
   }
 
@@ -366,27 +389,39 @@ class RepeatingComponentService(
     }
   }
 
-  def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[List[FormComponent]] = {
-    val resultOpt = Await.result(sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value), configModule.timeOut seconds)
+  def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group, repeatCache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): List[List[FormComponent]] = {
+    val eventualMaybeGroup = repeatCache.flatMap {
+      case Some(cacheMap) =>
+        Future.successful(cacheMap.getEntry[RepeatingGroup](topFieldValue.id.value))
+      case _ => Future.successful(None)
+    }
+    // TODO Await() must be eliminated
+    val resultOpt = Await.result(eventualMaybeGroup, configModule.timeOut seconds)
     resultOpt.map(_.list).getOrElse(List(groupField.fields))
   }
 
-  def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[List[List[FormComponent]]] = {
-    sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value).map(resultOpt =>
-      buildGroupFieldsLabelsForSummary(
-        resultOpt.fold[List[List[FormComponent]]](List(groupField.fields))(x => if (x.render) x.list else List(groupField.fields)), topFieldValue
-      ))
+  def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group, repeatCache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[List[List[FormComponent]]] = {
+    repeatCache.flatMap {
+      case Some(cacheMap) =>
+        val list: List[List[FormComponent]] = buildGroupFieldsLabelsForSummary(
+          cacheMap.getEntry[RepeatingGroup](topFieldValue.id.value).fold[List[List[FormComponent]]](List(groupField.fields))(x => if (x.render) x.list else List(groupField.fields)), topFieldValue
+        )
+        Future.successful(list)
+      case None =>
+        Future.successful(Nil)
+    }
   }
 
   def clearSession(implicit hc: HeaderCarrier, ec: ExecutionContext) = sessionCache.remove()
 
-  def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
+  def atomicFields(repeatCache: Future[Option[CacheMap]])(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
     def atomicFields(fields: List[FormComponent]): List[FormComponent] = {
       fields.flatMap {
         case (fv: FormComponent) => fv.`type` match {
+
           case groupField @ Group(_, _, _, _, _, _) => section match {
             case Section(_, _, _, _, _, _, _, _, _) => atomicFields {
-              val fields = getAllFieldsInGroup(fv, groupField)
+              val fields = getAllFieldsInGroup(fv, groupField, repeatCache)
               val first = fields.head.map { nv =>
                 nv.copy(
                   shortName = LabelHelper.buildRepeatingLabel(nv.shortName, 1),
@@ -396,6 +431,8 @@ class RepeatingComponentService(
               (first +: fields.tail).flatten
             }
             case DeclarationSection(_, _, _, _) => atomicFields(groupField.fields)
+            case AcknowledgementSection(_, _, _, _) => Nil
+            case EnrolmentSection(_, _, _) => Nil
           }
           case _ => List(fv)
         }

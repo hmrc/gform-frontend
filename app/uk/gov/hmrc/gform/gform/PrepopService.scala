@@ -58,7 +58,8 @@ class PrepopService(
     repeatingComponentService: RepeatingComponentService
 ) {
 
-  def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]], section: BaseSection, scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
+  def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]],
+    repeatCache: Future[Option[CacheMap]], section: BaseSection, scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
     def toBigDecimal(str: String): BigDecimal =
       Try(BigDecimal(str.replace(",", ""))) match {
         case Success(x) => x
@@ -77,25 +78,25 @@ class PrepopService(
       case UserCtx(_) => Future.successful(retrievals.affinityGroupName)
       case Add(field1, field2) =>
         val value = for {
-          y <- prepopData(field1, formTemplate, retrievals, data, section)
-          z <- prepopData(field2, formTemplate, retrievals, data, section)
+          y <- prepopData(field1, formTemplate, retrievals, data, repeatCache, section)
+          z <- prepopData(field2, formTemplate, retrievals, data, repeatCache, section)
         } yield toBigDecimal(y) + toBigDecimal(z)
         value.map(x => round(x).toString)
       case Subtraction(field1, field2) =>
         val value = for {
-          y <- prepopData(field1, formTemplate, retrievals, data, section)
-          z <- prepopData(field2, formTemplate, retrievals, data, section)
+          y <- prepopData(field1, formTemplate, retrievals, data, repeatCache, section)
+          z <- prepopData(field2, formTemplate, retrievals, data, repeatCache, section)
         } yield toBigDecimal(y) - toBigDecimal(z)
         value.map(x => round(x).toString)
       case Multiply(field1, field2) =>
         val value = for {
-          y <- prepopData(field1, formTemplate, retrievals, data, section)
-          z <- prepopData(field2, formTemplate, retrievals, data, section)
+          y <- prepopData(field1, formTemplate, retrievals, data, repeatCache, section)
+          z <- prepopData(field2, formTemplate, retrievals, data, repeatCache, section)
         } yield toBigDecimal(y) * toBigDecimal(z)
         value.map(x => round(x).toString)
       case Sum(FormCtx(field)) =>
-        val atomicFields = repeatingComponentService.atomicFields(section)
-        val cacheMap: Future[CacheMap] = repeatingComponentService.getAllRepeatingGroups
+        val atomicFields = repeatingComponentService.atomicFields(repeatCache)(section)
+        val cacheMap: Future[CacheMap] = repeatingComponentService.getAllRepeatingGroups(repeatCache)
         val repeatingSections: Future[List[List[List[FormComponent]]]] = Future.sequence(atomicFields.map(fv => (fv.id, fv.`type`)).collect {
           case (fieldId, group: Group) => cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
         })
