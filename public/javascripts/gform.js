@@ -280,5 +280,15 @@ $('.file-upload__file').blur(function(){
     $(this).siblings('.file-upload__file-label').removeClass('focus');
 });
 
+// Avoid the add/remove repeating group from bering triggered on submit, unless in focus
+$('.removeRepeatingSection, #addRepeatingGroup').attr('type', 'button');
+
+$('.removeRepeatingSection, #addRepeatingGroup').focus(function(){
+  $(this).attr('type', 'submit');
+});
+
+$('.removeRepeatingSection, #addRepeatingGroup').blur(function(){
+  $(this).attr('type', 'button');
+});
 
 showHideContent.init();
