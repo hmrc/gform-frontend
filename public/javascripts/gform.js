@@ -271,4 +271,14 @@ $('#backButton').on("click",function(){
     $('#gform-action').attr('value', 'Back');
 });
 
+// Add focus class to file upload label on input focus for outline in firefox
+$('.file-upload__file').focus(function(){
+    $(this).siblings('.file-upload__file-label').addClass('focus');
+})
+
+$('.file-upload__file').blur(function(){
+    $(this).siblings('.file-upload__file-label').removeClass('focus');
+});
+
+
 showHideContent.init();

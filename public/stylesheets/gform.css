@@ -116,7 +116,7 @@
   margin: 10px 0 0 0;
 }
 
-.file-upload__file:focus + .file-upload__file-label {
+.file-upload__file:focus + .file-upload__file-label, .file-upload__file-label.focus {
   outline: 3px solid #ffbf47;
 }
 
