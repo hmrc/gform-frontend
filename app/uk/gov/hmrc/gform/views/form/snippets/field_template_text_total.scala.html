@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.ops.FormComponentOps
 @import uk.gov.hmrc.gform.service.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
@@ -26,13 +27,6 @@
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
-
-@isSterling = @{
-    fieldValue.`type` match {
-        case Text(Sterling, _) => true
-        case _ => false
-    }
-}
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
     @{
@@ -55,11 +49,11 @@
 
         <div class="column-half text--right">
             <span class="heading-small">
-                @if(isSterling){&pound;}
+                @if(fieldValue.isSterling){&pound;}
                 <span id="@{fieldValue.id}-total">
                   @validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
                 </span>
-                @if(!isSterling){@TextFormatter.appendUnit(text)}
+                @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text)}
             </span>
         </div>
     </div>

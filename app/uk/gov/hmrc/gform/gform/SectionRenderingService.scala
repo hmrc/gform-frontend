@@ -303,9 +303,8 @@ class SectionRenderingService(
     }
     def renderText(fieldValue: FormComponent, t: Text, prepopValue: String, validatedValue: Option[FormFieldValidationResult], isHidden: Boolean): Html = {
       val htmlWithValues = fieldValue.presentationHint match {
-        case None => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
-        case Some(x) if x.contains(TotalValue) => html.form.snippets.field_template_text_total(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
-        case Some(x) => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+        case Some(xs) if xs.contains(TotalValue) => html.form.snippets.field_template_text_total(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+        case _ => html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
       }
       if (isHidden)
         html.form.snippets.hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
@@ -319,15 +318,6 @@ class SectionRenderingService(
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
-
-    val isTotal: Boolean = fieldValue
-      .presentationHint
-      .exists(_.contains(TotalValue))
-
-    val isSterling = fieldValue.`type` match {
-      case Text(Sterling, _) => true
-      case _ => false
-    }
 
     for {
       prepopValue <- prepopValueF

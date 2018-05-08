@@ -28,13 +28,6 @@
 
 @currentValue(idx: Int) = @{TextFormatter.formatText(fields(idx))}
 
-@isSterling = @{
-    fieldValue.`type` match {
-        case Text(Sterling, _) => true
-        case _ => false
-    }
-}
-
 <tr>
     @if(isLabel) {
     <td class="grid-layout__column--1-3">

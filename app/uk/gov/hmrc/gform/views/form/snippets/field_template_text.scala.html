@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.ops.FormComponentOps
 @import uk.gov.hmrc.gform.service.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
@@ -24,16 +25,8 @@
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
-
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
-
-@isSterling = @{
-    fieldValue.`type` match {
-        case Text(Sterling, _) => true
-        case _ => false
-    }
-}
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
@@ -55,7 +48,7 @@
         errors.map(e => errorInline(e, e, Seq("")))
     }
 
-    @if(!isSterling) {
+    @if(!fieldValue.isSterling) {
     <input
         type="text"
         name="@fieldValue.id"
