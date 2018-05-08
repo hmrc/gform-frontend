@@ -78,11 +78,6 @@ object TextFormatter {
     case _ => ""
   }
 
-  def isSterling(formComponent: FormComponent) = formComponent.`type` match {
-    case Text(Sterling, _) => true
-    case _ => false
-  }
-
   def isNumber(formComponent: FormComponent) = formComponent.`type` match {
     case Text(Number(_, _, _), _) | Text(PositiveNumber(_, _, _), _) => true
     case _ => false
