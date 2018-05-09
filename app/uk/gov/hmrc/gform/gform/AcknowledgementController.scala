@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -69,7 +70,7 @@ class AcknowledgementController(
           submission  <- gformConnector.submissionStatus(formId)
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml)
           data = FormDataHelpers.formDataMap(cache.form.formData)
-          htmlForPDF  =  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, data)
+          htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
@@ -87,49 +88,52 @@ class AcknowledgementController(
     submissionReference: Option[TextExpression],
     retrievals: Retrievals,
     hashedValue: String,
+    formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]]
-  ): String = {
+  )(implicit hc: HeaderCarrier): Future[String] = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime = s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
 
     // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, data)
-      case (_: EEITTAuthConfig, None)                 => authService.eeitReferenceNumber(retrievals)
-      case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
+      case (_, Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
+      case (_: EEITTAuthConfig, None) => Future.successful(authService.eeitReferenceNumber(retrievals))
+      case (_, None) => Future.successful(getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals))
     }
     // format: ON
 
-    // TODO: Add Submission mark when it's implemented for the submission auditing event
-    val extraData =
-      s"""
-        |<table class="table--font-reset ">
-        |  <thead>
-        |    <tr>
-        |      <th class="grid-layout__column--1-2"> <h2 class="h2-heading">Submission details</h2> </th>
-        |      <th class="text--right"> </th>
-        |    </tr>
-        |  </thead>
-        |  <tbody>
-        |    <tr>
-        |      <td>Submission date</td>
-        |      <td>${formattedTime}</td>
-        |    </tr>
-        |    <tr>
-        |      <td>Submission reference</td>
-        |      <td>${referenceNumber}</td>
-        |    </tr>
-        |    <tr>
-        |      <td>Submission mark</td>
-        |      <td>${hashedValue}</td>
-        |    </tr>
-        |  </tbody>
-        |</table>
+    referenceNumber.map { ref =>
+      // TODO: Add Submission mark when it's implemented for the submission auditing event
+      val extraData =
+        s"""
+           |<table class="table--font-reset ">
+           |  <thead>
+           |    <tr>
+           |      <th class="grid-layout__column--1-2"> <h2 class="h2-heading">Submission details</h2> </th>
+           |      <th class="text--right"> </th>
+           |    </tr>
+           |  </thead>
+           |  <tbody>
+           |    <tr>
+           |      <td>Submission date</td>
+           |      <td>${formattedTime}</td>
+           |    </tr>
+           |    <tr>
+           |      <td>Submission reference</td>
+           |      <td>${ref}</td>
+           |    </tr>
+           |    <tr>
+           |      <td>Submission mark</td>
+           |      <td>${hashedValue}</td>
+           |    </tr>
+           |  </tbody>
+           |</table>
       """.stripMargin
 
-    val doc = Jsoup.parse(html)
-    doc.select("article[class*=content__body]").append(extraData)
-    doc.html
+      val doc = Jsoup.parse(html)
+      doc.select("article[class*=content__body]").append(extraData)
+      doc.html
+    }
   }
 }

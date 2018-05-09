@@ -18,10 +18,13 @@ package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.gform.AuthContextPrepop
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.http.HeaderCarrier
 
-class AuthService {
+import scala.concurrent.Future
+
+class AuthService(eeittService: EeittService) {
 
   def eeitReferenceNumber(retrievals: Retrievals): String = retrievals.userDetails.affinityGroup match {
     case AffinityGroup.Agent => retrievals.enrolments
@@ -32,17 +35,19 @@ class AuthService {
       .fold("")(_.getIdentifier(EEITTAuthConfig.nonAgentIdName).fold("")(_.value))
   }
 
-  def evaluateSubmissionReference(expression: TextExpression, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]]): String = {
+  def evaluateSubmissionReference(expression: TextExpression, retrievals: Retrievals, formTemplate: FormTemplate,
+    data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] = {
 
     expression.expr match {
       case AuthCtx(value) =>
         val authContextPrepop = new AuthContextPrepop()
-        authContextPrepop.values(value, retrievals)
+        Future.successful(authContextPrepop.values(value, retrievals))
 
-      case EeittCtx(eeitt) => eeitReferenceNumber(retrievals)
-      case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("")
+      case EeittCtx(value) => eeittService.getValue(value, retrievals, formTemplate)
 
-      case _ => "" //TODO change this to AuthExpr.
+      case id: FormCtx => Future.successful(data.get(id.toFieldId).map(_.head).getOrElse(""))
+
+      case _ => Future.successful("") //TODO change this to AuthExpr.
     }
   }
 }

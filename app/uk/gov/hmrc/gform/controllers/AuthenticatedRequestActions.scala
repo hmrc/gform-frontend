@@ -26,14 +26,12 @@ import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
-import uk.gov.hmrc.gform.auth.models._
+import gform.auth.models.{ AuthenticationWhiteListFailed, Retrievals, _ }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.gform.gform.{ routes => gformRoutes }
-import gform.auth.models.Retrievals
 import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid, Retrievals => cRetrievals }
 
 import scala.concurrent.Future
@@ -103,6 +101,7 @@ class AuthenticatedRequestActions(
   private def handleCommonAuthResults(result: AuthResult, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
     result match {
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
+      case AuthenticationWhiteListFailed => Future.failed(new RuntimeException("Invalid state: AuthenticationWhiteListFailed case should not be handled here"))
       case AuthorisationFailed(errorUrl) => Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
       case EnrolmentRequired => Future.successful(Redirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
       case GGAuthSuccessful(_) => Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))

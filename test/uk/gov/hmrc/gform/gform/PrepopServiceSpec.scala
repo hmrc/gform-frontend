@@ -17,13 +17,10 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
-import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
@@ -34,14 +31,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 class PrepopServiceSpec extends Spec with ExampleData {
 
   behavior of "Prepop Service"
-
-  val mockEeittConnector = new EeittConnector("", null) {
-    override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[BusinessUser] =
-      Future.successful(BusinessUser("TESTREGNUM"))
-
-    override def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Agent] =
-      Future.successful(Agent("TESTARN"))
-  }
 
   val mockAuthPrepop = new AuthContextPrepop {
     override def values(value: AuthInfo, retrievals: Retrievals): String =
@@ -56,35 +45,11 @@ class PrepopServiceSpec extends Spec with ExampleData {
       Future.successful(CacheMap("SOMESESSIONID", Map("Hello" -> Json.toJson(List(`section - about you`.fields)))))
   }
 
-  val prepopService = new PrepopService(mockEeittConnector, mockAuthPrepop, mockRepeatingGroupService)
+  val prepopService = new PrepopService(mockAuthPrepop, mockRepeatingGroupService, new EeittService(new EeittConnector("", null)))
 
   it should "return a auth number in the pattern matching" in {
     val result = call(AuthCtx(GG))
     result.futureValue should be("TESTSTRING")
-  }
-
-  it should "return a eeitt business user" in {
-    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.BusinessUser))
-    result.futureValue should be("TESTREGNUM")
-  }
-
-  it should "return a eeitt agent" in new ExampleData {
-    override def affinityGroup = Some(AffinityGroup.Agent)
-
-    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.Agent), authContext)
-    result.futureValue should be("TESTARN")
-  }
-
-  it should "return a eeitt user id" in {
-    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserId))
-    result.futureValue should be("TESTREGNUM")
-  }
-
-  it should "return a eeitt user id for agent" in new ExampleData {
-    override def affinityGroup = Some(AffinityGroup.Agent)
-
-    val result = call(EeittCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserId), authContext)
-    result.futureValue should be("TESTARN")
   }
 
   // TODO: need to test user.affinityGroup

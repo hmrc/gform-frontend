@@ -17,15 +17,14 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.auth.{ AuthModule, EnrolmentService, ErrorController }
+import uk.gov.hmrc.gform.auth.{ AuthModule, ErrorController }
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.keystore.{ KeystoreModule, RepeatingComponentService }
+import uk.gov.hmrc.gform.keystore.KeystoreModule
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.playcomponents.{ PlayBuiltInsModule, RoutingModule }
+import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
@@ -46,18 +45,12 @@ class GformModule(
 
   private val authContextPrepop = new AuthContextPrepop
 
-  private val prepopService: PrepopService = new PrepopService(eeittConnector, authContextPrepop, keystoreModule.repeatingComponentService)
+  private val prepopService: PrepopService = new PrepopService(authContextPrepop, keystoreModule.repeatingComponentService, authModule.eeittService)
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
     keystoreModule.repeatingComponentService,
     prepopService,
     configModule.frontendAppConfig
-  )
-
-  //TODO: there is another eeittConnector - instantiate them in common module
-  private lazy val eeittConnector = new EeittConnector(
-    configModule.serviceConfig.baseUrl("eeitt") + "/eeitt",
-    wSHttpModule.auditableWSHttp
   )
 
   val enrolmentController = new EnrolmentController(
