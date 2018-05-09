@@ -51,40 +51,38 @@ sectionTitle: String
 
             @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq(""))
 
-            <div id="@{fieldValue.id}" role="@{inputType}group">
-                @options.toList.zipWithIndex.map{ case (option, index) =>
-                <div
-                  class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
-                  @if(optionHelpText(index).body.nonEmpty) {
-                  data-target="helptext-@{fieldValue.id}@index"
-                  }>
-                    <input id="@{fieldValue.id}@index"
-                           name="@{fieldValue.id}"
-                           value="@index"
-                           type="@inputType"
-                           @if(optionHelpText(index).body.nonEmpty) {
-                           aria-controls="helptext-@{fieldValue.id}@index"
-                           aria-expanded="false"
-                           }
-                           @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
-                           index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
-                           role="@inputType"
-                    />
+            @options.toList.zipWithIndex.map{ case (option, index) =>
+            <div
+              class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
+              @if(optionHelpText(index).body.nonEmpty) {
+              data-target="helptext-@{fieldValue.id}@index"
+              }>
+                <input id="@{fieldValue.id}@index"
+                       name="@{fieldValue.id}"
+                       value="@index"
+                       type="@inputType"
+                       @if(optionHelpText(index).body.nonEmpty) {
+                       aria-controls="helptext-@{fieldValue.id}@index"
+                       aria-expanded="false"
+                       }
+                       @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
+                       index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
+                       role="@inputType"
+                />
 
-                    <label for="@{fieldValue.id}@index">
-                      @option
-                    </label>
-                </div>
-
-                @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
-                    @if(optionHelpText(index).body.nonEmpty){
-                    <div id="helptext-@{fieldValue.id}@index" class="panel panel-indent js-hidden" aria-hidden="true">
-                        @Html(optionHelpText(index).body)
-                    </div>
-                    }
-                  }
-                }
+                <label for="@{fieldValue.id}@index">
+                  @option
+                </label>
             </div>
+
+            @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
+                @if(optionHelpText(index).body.nonEmpty){
+                <div id="helptext-@{fieldValue.id}@index" class="panel panel-indent js-hidden" aria-hidden="true">
+                    @Html(optionHelpText(index).body)
+                </div>
+                }
+              }
+            }
 
             @options.toList.zipWithIndex.map{ case (option, index) =>
                 @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("horizontal")) {
