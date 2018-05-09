@@ -20,12 +20,9 @@ import play.api.Logger
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals._
-import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.implicits._
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 import uk.gov.hmrc.http.cache.client.CacheMap
@@ -53,9 +50,9 @@ class AuthContextPrepop {
 }
 
 class PrepopService(
-    eeittConnector: EeittConnector,
     authContextPrepop: AuthContextPrepop,
-    repeatingComponentService: RepeatingComponentService
+    repeatingComponentService: RepeatingComponentService,
+    eeittService: EeittService
 ) {
 
   def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]], section: BaseSection, scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
@@ -111,25 +108,7 @@ class PrepopService(
   }
 
   private def eeittPrepop(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
-    val prepop = {
-      val regimeId = formTemplate.authConfig match {
-        case EEITTAuthConfig(_, rId) => rId
-        case _ => RegimeId("")
-      }
-      for {
-        prepopData <- (eeitt, retrievals.affinityGroup) match {
-          case (Agent, Some(AffinityGroup.Agent)) | (UserId, Some(AffinityGroup.Agent)) =>
-            eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
-          case (BusinessUser, Some(AffinityGroup.Agent)) =>
-            Future.successful("")
-          case (BusinessUser, _) | (UserId, _) =>
-            eeittConnector.prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), regimeId).map(_.registrationNumber)
-          case _ =>
-            Future.successful("")
-        }
-      } yield prepopData
-    }
-    prepop.recover {
+    eeittService.getValue(eeitt, retrievals, formTemplate).recover {
       case NonFatal(error) =>
         Logger.error(s"error when getting known facts from eeitt: " + error.getMessage)
         "" // let's return empty string

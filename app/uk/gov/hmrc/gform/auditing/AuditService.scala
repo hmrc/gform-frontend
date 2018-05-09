@@ -64,26 +64,26 @@ trait AuditService {
     processedData.map(x => x.id.value -> x.value).toMap
   }
 
-  def sendSubmissionEvent(form: Form, sections: List[BaseSection], retrievals: Retrievals)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) = {
-    sendEvent(form, formToMap(form, sections), retrievals)
+  def sendSubmissionEvent(form: Form, sections: List[BaseSection], retrievals: Retrievals, customerId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) = {
+    sendEvent(form, formToMap(form, sections), retrievals, customerId)
   }
 
-  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
-    val event = eventFor(form, detail, retrievals)
+  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals, customerId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
+    val event = eventFor(form, detail, retrievals, customerId)
     auditConnector.sendExtendedEvent(event)
     event.eventId
   }
 
-  private def eventFor(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier, request: Request[_]) = {
+  private def eventFor(form: Form, detail: Map[String, String], retrievals: Retrievals, customerId: String)(implicit hc: HeaderCarrier, request: Request[_]) = {
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
       tags = hc.headers.toMap,
-      detail = details(form, detail, retrievals)
+      detail = details(form, detail, retrievals, customerId)
     )
   }
 
-  private def details(form: Form, detail: Map[String, String], retrievals: Retrievals)(implicit hc: HeaderCarrier) = {
+  private def details(form: Form, detail: Map[String, String], retrievals: Retrievals, customerId: String)(implicit hc: HeaderCarrier) = {
 
     val userInfo = Json.toJson(Map(
       "nino" -> getTaxIdValue(None, "NINO", retrievals),
@@ -99,6 +99,7 @@ trait AuditService {
       "EnvelopeId" -> form.envelopeId.value,
       "FormTemplateId" -> form.formTemplateId.value,
       "UserId" -> form.userId.value,
+      "CustomerId" -> customerId,
       "UserValues" -> userValues,
       "UserInfo" -> userInfo
     )
@@ -111,7 +112,7 @@ trait AuditService {
   private def sendHashedValues(hash: String, formAsString: String, eventId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) = auditConnector.sendEvent(hashedValueEvent(hash, formAsString, eventId))
 
   private def hashedValueEvent(hashedValue: String, formString: String, eventId: String)(implicit hc: HeaderCarrier) = {
-    val x = DataEvent(
+    DataEvent(
       auditSource = "GForm",
       auditType = "printedReturnNonrepudiation",
       tags = hc.headers.toMap,
@@ -123,6 +124,5 @@ trait AuditService {
 
       )
     )
-    x
   }
 }

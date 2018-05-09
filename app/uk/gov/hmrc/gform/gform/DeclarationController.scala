@@ -18,8 +18,9 @@ package uk.gov.hmrc.gform.gform
 
 import cats.data.Validated.{ Invalid, Valid }
 import org.jsoup.Jsoup
+import play.api.Logger
 import play.api.i18n.I18nSupport
-import uk.gov.hmrc.gform.auditing.AuditService
+import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
@@ -34,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -66,11 +68,12 @@ class DeclarationController(
     authConfig: AuthConfig,
     submissionReference: Option[TextExpression],
     retrievals: Retrievals,
+    formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]]
-  ): String = {
+  )(implicit hc: HeaderCarrier): String = {
     // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, data)
+      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
       case (_: EEITTAuthConfig, None)                 => authService.eeitReferenceNumber(retrievals)
       case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
     }
@@ -108,17 +111,18 @@ class DeclarationController(
         case "Continue" :: Nil => validationResultF.flatMap {
           case Valid(()) =>
             val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
-            val customerId = authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals, formDataMap(updatedForm.formData))
             for {
+              customerId <- authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals, cache.formTemplate, formDataMap(updatedForm.formData))
               _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None, Signed))
               //todo perhaps not make these calls at all if the feature flag is false?
               summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
               cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml)
-              htmlForPDF = addExtraDataToHTML(cleanHtml, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, data)
+              htmlForPDF = addExtraDataToHTML(cleanHtml, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, cache.formTemplate, data)
               _ <- if (config.sendPdfWithSubmission) gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF) else { gformConnector.submitForm(formId, customerId) }
               _ <- repeatService.clearSession
             } yield {
-              val submissionEventId = auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals)
+              if (customerId.isEmpty) Logger.error(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+              val submissionEventId = auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals, customerId)
               Redirect(uk.gov.hmrc.gform.gform.routes.AcknowledgementController.showAcknowledgement(formId, formTemplateId4Ga, lang, submissionEventId))
             }
           case validationResult @ Invalid(_) =>
