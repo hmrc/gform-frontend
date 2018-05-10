@@ -24,8 +24,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, _ }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.cache.client.CacheMap
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 object Fields {
 
@@ -134,7 +135,8 @@ object Fields {
     getFormFields(templateFields)
   }
 
-  def getFields(currentSection: Section, dynamicSections: List[Section], repeatingComponentService: RepeatingComponentService)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
+  def getFields(currentSection: Section, dynamicSections: List[Section], repeatingComponentService: RepeatingComponentService,
+    repeatCache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
     def isTotalValue(maybe: Option[List[PresentationHint]]): Boolean = {
       maybe.exists(x => x.contains(TotalValue))
     }
@@ -147,6 +149,6 @@ object Fields {
       .filterNot(_ == currentSection) :+ currentSection.copy(fields = renderFields)
 
     renderList
-      .flatMap(repeatingComponentService.atomicFields)
+      .flatMap(repeatingComponentService.atomicFields(repeatCache))
   }
 }

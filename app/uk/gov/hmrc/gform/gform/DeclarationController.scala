@@ -58,7 +58,7 @@ class DeclarationController(
 
   def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case Validated => renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, None, Map.empty, None, lang).map(Ok(_))
+      case Validated => renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, None, Map.empty, None, repeatService.getCache, lang).map(Ok(_))
       case _ => Future.successful(BadRequest)
     }
   }
@@ -115,11 +115,10 @@ class DeclarationController(
               customerId <- authService.evaluateSubmissionReference(cache.formTemplate.dmsSubmission.customerId, cache.retrievals, cache.formTemplate, formDataMap(updatedForm.formData))
               _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None, Signed))
               //todo perhaps not make these calls at all if the feature flag is false?
-              summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
+              summaryHml <- summaryController.getSummaryHTML(formId, cache, repeatService.getCache, lang)
               cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml)
               htmlForPDF = addExtraDataToHTML(cleanHtml, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, cache.formTemplate, data)
               _ <- if (config.sendPdfWithSubmission) gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF) else { gformConnector.submitForm(formId, customerId) }
-              _ <- repeatService.clearSession
             } yield {
               if (customerId.isEmpty) Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
               val submissionEventId = auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections :+ cache.formTemplate.declarationSection, cache.retrievals, customerId)
@@ -128,7 +127,7 @@ class DeclarationController(
           case validationResult @ Invalid(_) =>
             val errorMap: List[(FormComponent, FormFieldValidationResult)] = getErrorMap(validationResult, data, cache.formTemplate)
             for {
-              html <- renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, Some(validationResult), data, Some(errorMap), lang)
+              html <- renderer.renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, Some(validationResult), data, Some(errorMap), repeatService.getCache, lang)
             } yield Ok(html)
         }
         case _ =>

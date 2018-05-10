@@ -43,6 +43,7 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.cache.client.CacheMap
 
 class SummaryController(
     i18nSupport: I18nSupport,
@@ -60,7 +61,7 @@ class SummaryController(
 
   def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
-      case Summary | Validated | Signed => getSummaryHTML(formId, cache, lang).map(Ok(_))
+      case Summary | Validated | Signed => getSummaryHTML(formId, cache, repeatService.getCache, lang).map(Ok(_))
       case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
     }
   }
@@ -73,7 +74,7 @@ class SummaryController(
 
       val formFieldValidationResultsF = for {
         envelope <- envelopeF
-        errors <- validateForm(cache, envelope, cache.retrievals)
+        errors <- validateForm(cache, envelope, cache.retrievals, repeatService.getCache)
       } yield errors
 
       val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
@@ -108,7 +109,7 @@ class SummaryController(
       case InProgress | Summary =>
         // format: OFF
         for {
-          summaryHml <- getSummaryHTML(formId, cache, lang)
+          summaryHml <- getSummaryHTML(formId, cache, repeatService.getCache, lang)
           htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
@@ -120,13 +121,14 @@ class SummaryController(
     }
   }
 
-  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
+  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: Retrievals,
+    repeatCache: Future[Option[CacheMap]])(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
-    val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
+    val sectionsF = repeatService.getAllSections(cache.formTemplate, data, repeatCache)
     val filteredSections = sectionsF.map(_.filter(x => BooleanExpr.isTrue(x.includeIf.map(_.expr).getOrElse(IsTrue), data, retrievals)))
     for {// format: OFF
       sections          <- filteredSections
-      allFields         =  sections.flatMap(repeatService.atomicFields)
+      allFields         =  sections.flatMap(repeatService.atomicFields(repeatCache))
       v1                <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId, retrievals)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
       v                 =  Monoid.combine(
                              v1,
@@ -137,15 +139,16 @@ class SummaryController(
     } yield (v, errors)
   }
 
-  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(implicit request: Request[_]): Future[Html] = {
+  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, repeatCache: Future[Option[CacheMap]],
+    lang: Option[String])(implicit request: Request[_]): Future[Html] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
     // format: OFF
     for {
       envelope          <- envelopeF
-      (v, _)            <- validateForm(cache, envelope, cache.retrievals)
-      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, cache.retrievals, formId, repeatService, envelope, lang, frontendAppConfig)
+      (v, _)            <- validateForm(cache, envelope, cache.retrievals, repeatCache)
+      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, cache.retrievals, formId, repeatService, repeatCache, envelope, lang, frontendAppConfig)
     } yield result
   }
 }
