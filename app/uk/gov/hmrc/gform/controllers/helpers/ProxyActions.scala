@@ -35,22 +35,22 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 class ProxyActions(wsClient: WSClient) {
 
   /**
-   * This creates actions which proxies incoming request to remote service.
-   */
-
+    * This creates actions which proxies incoming request to remote service.
+    */
   def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] = {
     val ec = play.api.libs.concurrent.Execution.defaultContext
     Action.async(streamedBodyParser(ec)) { implicit inboundRequest: Request[Source[ByteString, _]] =>
-
       for {
-        outboundRequest <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
+        outboundRequest  <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
         streamedResponse <- outboundRequest.stream
       } yield {
         val headersMap = streamedResponse.headers.headers
         val contentLength = headersMap.get(contentLengthHeaderKey).flatMap(_.headOption.map(_.toLong))
         val contentType = headersMap.get(contentTypeHeaderKey).map(_.mkString(", "))
         Result(
-          ResponseHeader(streamedResponse.headers.status, streamedResponse.headers.headers.mapValues(_.head).filter(filterOutContentHeaders)),
+          ResponseHeader(
+            streamedResponse.headers.status,
+            streamedResponse.headers.headers.mapValues(_.head).filter(filterOutContentHeaders)),
           Streamed(streamedResponse.body, contentLength, contentType)
         )
       }
@@ -63,8 +63,10 @@ class ProxyActions(wsClient: WSClient) {
     case (key, _) => !key.equalsIgnoreCase(contentTypeHeaderKey) && !key.equalsIgnoreCase(contentLengthHeaderKey)
   }
 
-  private def proxyRequest(path: String, inboundRequest: Request[Source[ByteString, _]])(implicit ec: ExecutionContext): Future[WSRequest] = Future(
-    wsClient.url(s"$path")
+  private def proxyRequest(path: String, inboundRequest: Request[Source[ByteString, _]])(
+    implicit ec: ExecutionContext): Future[WSRequest] = Future(
+    wsClient
+      .url(s"$path")
       .withFollowRedirects(false)
       .withMethod(inboundRequest.method)
       .withHeaders(processHeaders(inboundRequest.headers, extraHeaders = Nil): _*)
@@ -72,12 +74,15 @@ class ProxyActions(wsClient: WSClient) {
       .withBody(StreamedBody(inboundRequest.body))
   )
 
-  private def processHeaders(inboundHeaders: Headers, extraHeaders: Seq[(String, String)]): Seq[(String, String)] = {
+  private def processHeaders(inboundHeaders: Headers, extraHeaders: Seq[(String, String)]): Seq[(String, String)] =
     (inboundHeaders.toSimpleMap.filter(headerKeyValue => !headerKeyValue._1.equals("Host")) ++ extraHeaders.toMap).toSeq
+
+  private def streamedBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser { _ =>
+    Accumulator.source[ByteString].map(Right.apply)
   }
 
-  private def streamedBodyParser(implicit ec: ExecutionContext): BodyParser[Source[ByteString, _]] = BodyParser { _ => Accumulator.source[ByteString].map(Right.apply) }
-
-  private implicit def mdcExecutionContext(implicit loggingDetails: LoggingDetails): ExecutionContext = MdcLoggingExecutionContext.fromLoggingDetails
-  private implicit def hc(implicit request: Request[_]): HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+  private implicit def mdcExecutionContext(implicit loggingDetails: LoggingDetails): ExecutionContext =
+    MdcLoggingExecutionContext.fromLoggingDetails
+  private implicit def hc(implicit request: Request[_]): HeaderCarrier =
+    HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 }

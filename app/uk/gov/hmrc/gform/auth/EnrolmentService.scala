@@ -23,13 +23,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext
 
 class EnrolmentService(
-    useTaxEnrolments: Boolean,
-    portalId: String,
-    ggConnector: GovernmentGatewayConnector,
-    taxEnrolmentConnector: TaxEnrolmentsConnector
+  useTaxEnrolments: Boolean,
+  portalId: String,
+  ggConnector: GovernmentGatewayConnector,
+  taxEnrolmentConnector: TaxEnrolmentsConnector
 ) {
 
-  def enrolUser(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  def enrolUser(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext) =
     if (useTaxEnrolments) {
       val request = buildTaxEnrolmentsRequest(serviceId, identifiers, verifiers)
       taxEnrolmentConnector.enrolGGUser(request, serviceId)
@@ -37,18 +39,23 @@ class EnrolmentService(
       val request = buildGGEnrolmentRequest(serviceId, serviceId.value, identifiers, verifiers)
       ggConnector.enrolGGUser(request)
     }
-  }
 
-  private def buildGGEnrolmentRequest(serviceId: ServiceId, friendlyName: String, identifiers: List[Identifier], knownFacts: List[Verifier]) = {
+  private def buildGGEnrolmentRequest(
+    serviceId: ServiceId,
+    friendlyName: String,
+    identifiers: List[Identifier],
+    knownFacts: List[Verifier]) =
     GGEnrolmentRequest(
       portalId = this.portalId,
       serviceName = serviceId.value,
       friendlyName = friendlyName,
       knownFacts = identifiers.map(_.value) ++ knownFacts.map(_.value)
     )
-  }
 
-  private def buildTaxEnrolmentsRequest(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier]) = {
+  private def buildTaxEnrolmentsRequest(
+    serviceId: ServiceId,
+    identifiers: List[Identifier],
+    verifiers: List[Verifier]) = {
     val taxEnrolment = TaxEnrolment(
       key = serviceId,
       identifiers = identifiers,

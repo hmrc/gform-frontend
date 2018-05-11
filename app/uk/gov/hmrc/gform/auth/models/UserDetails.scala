@@ -49,16 +49,16 @@ final case object PrivilegedApplication extends AuthProviderType
 object AuthProviderType {
   implicit lazy val format: OFormat[AuthProviderType] = {
     val writes: OWrites[AuthProviderType] = OWrites {
-      case GovernmentGateway => JsObject(Seq("authProviderType" -> JsString("GovernmentGateway")))
-      case Verify => JsObject(Seq("authProviderType" -> JsString("Verify")))
+      case GovernmentGateway     => JsObject(Seq("authProviderType" -> JsString("GovernmentGateway")))
+      case Verify                => JsObject(Seq("authProviderType" -> JsString("Verify")))
       case PrivilegedApplication => JsObject(Seq("authProviderType" -> JsString("PrivilegedApplication")))
     }
 
     val reads: Reads[AuthProviderType] = Reads {
-      case JsString("GovernmentGateway") => JsSuccess(GovernmentGateway)
-      case JsString("Verify") => JsSuccess(Verify)
+      case JsString("GovernmentGateway")     => JsSuccess(GovernmentGateway)
+      case JsString("Verify")                => JsSuccess(Verify)
       case JsString("PrivilegedApplication") => JsSuccess(PrivilegedApplication)
-      case others => JsError(s"Unrecognised value in authProviderType: $others")
+      case others                            => JsError(s"Unrecognised value in authProviderType: $others")
     }
 
     OFormat(reads, writes)

@@ -70,4 +70,3 @@ final case object EtmpRegistrationNumber extends AuthInfo
 object AuthInfo {
   implicit val format: OFormat[AuthInfo] = derived.oformat
 }
-

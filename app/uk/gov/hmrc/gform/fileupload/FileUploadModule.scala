@@ -21,7 +21,11 @@ import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class FileUploadModule(wSHttpModule: WSHttpModule, configModule: ConfigModule, controllersModule: ControllersModule, gformBackendModule: GformBackendModule) {
+class FileUploadModule(
+  wSHttpModule: WSHttpModule,
+  configModule: ConfigModule,
+  controllersModule: ControllersModule,
+  gformBackendModule: GformBackendModule) {
 
   val fileUploadService = new FileUploadService(fileUploadConnector)
 

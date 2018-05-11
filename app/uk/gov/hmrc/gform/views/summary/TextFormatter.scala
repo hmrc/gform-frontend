@@ -28,18 +28,17 @@ object TextFormatter {
   def formatText(validationResult: Option[FormFieldValidationResult]): String = {
     val currentValue = validationResult match {
       case Some(result) => result.getCurrentValue.getOrElse("")
-      case None => ""
+      case None         => ""
     }
 
-    def componentText(text: Text) = {
+    def componentText(text: Text) =
       if (currentValue.isEmpty) {
         currentValue
       } else {
         text.constraint match {
           case PositiveNumber(_, _, Some(unit)) => currentValue + " " + unit
-          case Number(_, _, Some(unit)) => currentValue + " " + unit
+          case Number(_, _, Some(unit))         => currentValue + " " + unit
           case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
-
             val poundOrComma = "[£,]".r
             val valueWithoutPoundsOrCommas = poundOrComma.replaceAllIn(currentValue, "")
             val sections = valueWithoutPoundsOrCommas.split("""\.""")
@@ -61,10 +60,9 @@ object TextFormatter {
             currentValue
         }
       }
-    }
     def getValue(componentType: ComponentType): String = componentType match {
       case x: Text => componentText(x)
-      case _ => currentValue
+      case _       => currentValue
     }
 
     validationResult
@@ -74,12 +72,12 @@ object TextFormatter {
 
   def appendUnit(text: Text): String = text.constraint match {
     case PositiveNumber(_, _, Some(unit)) => unit
-    case Number(_, _, Some(unit)) => unit
-    case _ => ""
+    case Number(_, _, Some(unit))         => unit
+    case _                                => ""
   }
 
   def isNumber(formComponent: FormComponent) = formComponent.`type` match {
     case Text(Number(_, _, _), _) | Text(PositiveNumber(_, _, _), _) => true
-    case _ => false
+    case _                                                           => false
   }
 }

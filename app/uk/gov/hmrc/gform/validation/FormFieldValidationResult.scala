@@ -20,21 +20,24 @@ import uk.gov.hmrc.gform.models._
 import cats.implicits._
 
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponentId, FormComponent }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId }
 
 case class FieldOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
 case class FieldGlobalOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
-case class FieldError(fieldValue: FormComponent, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
-case class FieldGlobalError(fieldValue: FormComponent, currentValue: String, errors: Set[String]) extends FormFieldValidationResult
-case class ComponentField(fieldValue: FormComponent, data: Map[String, FormFieldValidationResult]) extends FormFieldValidationResult
+case class FieldError(fieldValue: FormComponent, currentValue: String, errors: Set[String])
+    extends FormFieldValidationResult
+case class FieldGlobalError(fieldValue: FormComponent, currentValue: String, errors: Set[String])
+    extends FormFieldValidationResult
+case class ComponentField(fieldValue: FormComponent, data: Map[String, FormFieldValidationResult])
+    extends FormFieldValidationResult
 
 trait FormFieldValidationResult {
 
   lazy val fieldErrors: Set[String] = this match {
-    case e: FieldError => e.errors
+    case e: FieldError                 => e.errors
     case globalError: FieldGlobalError => globalError.errors
-    case cf: ComponentField => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.fieldErrors)
-    case _ => Set()
+    case cf: ComponentField            => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.fieldErrors)
+    case _                             => Set()
   }
 
   lazy val fieldErrorsByFieldValue: Map[FormComponent, Set[String]] = this match {
@@ -45,58 +48,58 @@ trait FormFieldValidationResult {
   }
 
   def fieldErrorsWithSuffix(suffix: String): Set[String] = this match {
-    case e: FieldError => e.errors
+    case e: FieldError      => e.errors
     case cf: ComponentField => cf.data.get(fieldValue.id.withSuffix(suffix).value).map(_.fieldErrors).getOrElse(Set())
-    case _ => Set()
+    case _                  => Set()
   }
 
   lazy val globalErrors: Set[String] = this match {
     case e: FieldGlobalError => e.errors
-    case cf: ComponentField => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.globalErrors)
-    case _ => Set()
+    case cf: ComponentField  => cf.data.values.foldLeft[Set[String]](Set())(_ ++ _.globalErrors)
+    case _                   => Set()
   }
 
   def fieldValue: FormComponent
 
   def isOk: Boolean = this match {
-    case FieldOk(_, _) => true
-    case FieldGlobalOk(_, _) => true
+    case FieldOk(_, _)           => true
+    case FieldGlobalOk(_, _)     => true
     case ComponentField(_, data) => data.values.forall(_.isOk)
-    case _ => false
+    case _                       => false
   }
 
   def isNotOk: Boolean = !isOk
 
   def getCurrentValue: Option[String] = this match {
-    case FieldOk(_, "") => None
-    case FieldOk(_, cv) => Some(cv)
+    case FieldOk(_, "")       => None
+    case FieldOk(_, cv)       => Some(cv)
     case FieldError(_, cv, _) => Some(cv)
-    case _ => None
+    case _                    => None
   }
 
   def getOptionalCurrentValue(key: String): Option[String] = this match {
     case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue)
-    case _ => None
+    case _                       => None
   }
 
   def getCurrentValue(key: String): String = this match {
     case ComponentField(_, data) => data.get(key).flatMap(_.getCurrentValue).getOrElse("")
-    case _ => ""
+    case _                       => ""
   }
 
   private def withId(f: FormField, id: String) = f.copy(FormComponentId(id))
 
   def toFormField: List[FormField] = this match {
-    case FieldOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
-    case FieldError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
+    case FieldOk(fieldValue, cv)             => List(FormField(fieldValue.id, cv))
+    case FieldError(fieldValue, cv, _)       => List(FormField(fieldValue.id, cv))
     case FieldGlobalError(fieldValue, cv, _) => List(FormField(fieldValue.id, cv))
-    case FieldGlobalOk(fieldValue, cv) => List(FormField(fieldValue.id, cv))
+    case FieldGlobalOk(fieldValue, cv)       => List(FormField(fieldValue.id, cv))
     case ComponentField(fieldValue, data) =>
       fieldValue.`type` match {
-        case c: Choice => List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
+        case c: Choice =>
+          List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
         case _ => data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
       }
   }
 
 }
-

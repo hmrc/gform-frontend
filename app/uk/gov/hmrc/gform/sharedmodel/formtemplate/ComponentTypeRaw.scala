@@ -39,13 +39,13 @@ object ComponentTypeRaw {
 
   val componentMap: Map[String, ComponentTypeRaw] =
     Map(
-      "text" -> TextRaw,
-      "date" -> DateRaw,
+      "text"    -> TextRaw,
+      "date"    -> DateRaw,
       "address" -> AddressRaw,
-      "choice" -> ChoiceRaw,
-      "group" -> GroupRaw,
-      "file" -> FileUploadRaw,
-      "info" -> InfoRaw
+      "choice"  -> ChoiceRaw,
+      "group"   -> GroupRaw,
+      "file"    -> FileUploadRaw,
+      "info"    -> InfoRaw
     )
 
   implicit val format: OFormat[ComponentTypeRaw] = {
@@ -55,10 +55,10 @@ object ComponentTypeRaw {
     val reads: Reads[ComponentTypeRaw] = Reads {
 
       case JsString(compTypeAsString) =>
-
         componentMap.get(compTypeAsString) match {
           case Some(componentType) => JsSuccess(componentType)
-          case None => JsError(s"Expected one of the following types: ${componentMap.values}, you entered: $compTypeAsString")
+          case None =>
+            JsError(s"Expected one of the following types: ${componentMap.values}, you entered: $compTypeAsString")
         }
 
       case otherwise => JsError(s"Expected String as JsValue, got: $otherwise")

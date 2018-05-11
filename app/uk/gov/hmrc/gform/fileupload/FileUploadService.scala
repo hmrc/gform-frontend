@@ -23,12 +23,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class FileUploadService(fileUploadConnector: FileUploadConnector) {
 
-  def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] = {
+  def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] =
     fileUploadConnector.getEnvelope(envelopeId)
-  }
 
-  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier) = {
+  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier) =
     fileUploadConnector.deleteFile(envelopeId, fileId)
-  }
 
 }

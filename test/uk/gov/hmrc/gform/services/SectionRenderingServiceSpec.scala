@@ -42,32 +42,41 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
   implicit val request = {
     val fakeRequest = FakeRequest()
-    fakeRequest.copyFakeRequest(tags = fakeRequest.tags + ("CSRF_TOKEN_NAME" -> "csrfToken") + ("CSRF_TOKEN" -> "o'ight mate?"))
+    fakeRequest.copyFakeRequest(
+      tags = fakeRequest.tags + ("CSRF_TOKEN_NAME" -> "csrfToken") + ("CSRF_TOKEN" -> "o'ight mate?"))
   }
   implicit val messages = mock[play.api.i18n.Messages]
   val retrievals = mock[Retrievals]
 
   val mockPrepopService = new PrepopService(null, null, null) {
-    override def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]], section: BaseSection, scale: Option[Int])(implicit hc: HeaderCarrier): Future[String] =
+    override def prepopData(
+      expr: Expr,
+      formTemplate: FormTemplate,
+      retrievals: Retrievals,
+      data: Map[FormComponentId, Seq[String]],
+      section: BaseSection,
+      scale: Option[Int])(implicit hc: HeaderCarrier): Future[String] =
       Future.successful("")
   }
 
   val mockRepeatService = new RepeatingComponentService(null, null) {
 
-    override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
+    override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[List[Section]] =
       Future.successful(allSections)
-    }
 
     override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
       Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
 
-    override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
+    override def atomicFields(
+      section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] =
       section.fields
-    }
 
-    override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext) =
       Future.successful((List(groupField.fields), false))
-    }
   }
 
   val testService = new SectionRenderingService(mockRepeatService, mockPrepopService, frontendAppConfig)
@@ -88,14 +97,16 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         retrievals,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames should be(List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
+    hiddenFieldNames should be(
+      List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
     visibleFields should be(List("firstName", "surname"))
   }
   "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
@@ -114,14 +125,25 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         retrievals,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames should be(List("csrfToken", "firstName", "surname", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
+    hiddenFieldNames should be(
+      List(
+        "csrfToken",
+        "firstName",
+        "surname",
+        "nameOfBusiness",
+        "startDate-day",
+        "startDate-month",
+        "startDate-year",
+        "iptRegNum",
+        "save"))
     visibleFields should be(List())
   }
   "SectionRenderingService" should "add in progress indicator if it is defined" in {
@@ -140,11 +162,13 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         retrievals,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc: Document = Jsoup.parse(generatedHtml.body)
     val progressIndicator = doc.getElementById("progress-indicator")
-    progressIndicator.toString should be("<span id=\"progress-indicator\" class=\"form-hint\">Progress Indicator</span>")
+    progressIndicator.toString should be(
+      "<span id=\"progress-indicator\" class=\"form-hint\">Progress Indicator</span>")
   }
 
   it should "generate second page" in {
@@ -163,7 +187,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         retrievals,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -254,7 +279,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         retrievals,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -306,13 +332,16 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         retrievals,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
     val addButtonValue = "AddGroup-" + `fieldValue - group`.id.value
     val fieldName = `fieldValue - firstName`.id.value
-    doc.getElementsByAttributeValue("value", addButtonValue).size shouldBe 1 withClue "no limit reached, add button shown"
+    doc
+      .getElementsByAttributeValue("value", addButtonValue)
+      .size shouldBe 1 withClue "no limit reached, add button shown"
     doc.getElementsByAttributeValue("name", fieldName).size shouldBe 1 withClue "One repeat element"
     doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 1
   }
@@ -321,20 +350,22 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
     val mock2RepeatService = new RepeatingComponentService(null, null) {
 
-      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
+      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext): Future[List[Section]] =
         Future.successful(allSections)
-      }
 
       override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
         Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
 
-      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
+      override def atomicFields(
+        section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] =
         section.fields
-      }
 
-      override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+      override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(
+        implicit hc: HeaderCarrier,
+        ec: ExecutionContext) =
         Future.successful((List(groupField.fields, groupField.fields), true))
-      }
     }
 
     val thisTestService = new SectionRenderingService(mock2RepeatService, mockPrepopService, frontendAppConfig)
@@ -367,7 +398,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         retrievals,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -388,7 +420,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Map.empty,
         None,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -411,7 +444,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Map.empty,
         None,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -434,7 +468,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Map.empty,
         None,
         None
-      ).futureValue
+      )
+      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 

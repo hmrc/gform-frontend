@@ -21,8 +21,8 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class TestOnlyModule(
-    playBuiltInsModule: PlayBuiltInsModule,
-    gformBackendModule: GformBackendModule
+  playBuiltInsModule: PlayBuiltInsModule,
+  gformBackendModule: GformBackendModule
 ) {
 
   private val proxyActions = new ProxyActions(playBuiltInsModule.ahcWSComponents.wsClient)

@@ -31,6 +31,5 @@ object GGEnrolmentRequest {
 class GovernmentGatewayConnector(baseUrl: String, http: WSHttp) {
 
   def enrolGGUser(request: GGEnrolmentRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    http.POST(s"${baseUrl}/enrol", request)
+    http.POST(s"$baseUrl/enrol", request)
 }
-

@@ -21,10 +21,10 @@ import uk.gov.hmrc.http.cache.client.SessionCache
 import uk.gov.hmrc.http.{ HttpDelete, HttpGet, HttpPut }
 
 class SessionCacheConnector(
-    sourceName: String,
-    baseUrl: String,
-    val domain: String,
-    wSHttp: WSHttp
+  sourceName: String,
+  baseUrl: String,
+  val domain: String,
+  wSHttp: WSHttp
 ) extends SessionCache {
 
   override def defaultSource: String = sourceName

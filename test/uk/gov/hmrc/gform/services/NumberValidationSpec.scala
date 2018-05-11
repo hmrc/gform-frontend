@@ -89,7 +89,9 @@ class NumberValidationSpec extends Spec {
 
   "Number format" should "return invalid for too many digits" in new Test {
     override val value = "1234567890123456789.87654321"
-    val expected = Map(`fieldValue - number`.id -> Set("number must be at most 11 whole digits and decimal fraction must be at most 2 digits")).invalid[Unit]
+    val expected = Map(
+      `fieldValue - number`.id -> Set(
+        "number must be at most 11 whole digits and decimal fraction must be at most 2 digits")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 
@@ -119,7 +121,9 @@ class NumberValidationSpec extends Spec {
     val textConstraint = Number(2, 1)
     val number = Text(textConstraint, Constant(""))
     override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
-    val expected = Map(`fieldValue - number`.id -> Set("number must be at most 2 whole digits and decimal fraction must be at most 1 digits")).invalid[Unit]
+    val expected = Map(
+      `fieldValue - number`.id -> Set(
+        "number must be at most 2 whole digits and decimal fraction must be at most 1 digits")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 
@@ -131,7 +135,16 @@ class NumberValidationSpec extends Spec {
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Constant("")),
-      "sample label", None, None, None, true, false, false, false, false, None
+      "sample label",
+      None,
+      None,
+      None,
+      true,
+      false,
+      false,
+      false,
+      false,
+      None
     )
 
     override def data = Map(

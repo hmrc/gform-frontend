@@ -285,4 +285,4 @@ class SectionRenderingInformationSpec extends Spec {
   }
 
 }
-*/ 
+ */

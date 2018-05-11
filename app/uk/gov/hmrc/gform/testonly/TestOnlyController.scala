@@ -27,8 +27,8 @@ import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 class TestOnlyController(
-    proxy: ProxyActions,
-    gformConnector: GformConnector
+  proxy: ProxyActions,
+  gformConnector: GformConnector
 ) extends FrontendController with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)

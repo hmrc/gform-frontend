@@ -27,10 +27,10 @@ final case class DateExpr(year: Int, month: Int, day: Int)
 object DateExpr {
 
   def fromDateValue(dv: DateValue): DateExpr = dv match {
-    case TodayDateValue => todayDateExpr
+    case TodayDateValue                   => todayDateExpr
     case ExactDateValue(year, month, day) => DateExpr(year, month, day)
-    case n @ NextDateValue(_, _) => nextDateExpr(n)
-    case p @ PreviousDateValue(_, _) => previousDateExpr(p)
+    case n @ NextDateValue(_, _)          => nextDateExpr(n)
+    case p @ PreviousDateValue(_, _)      => previousDateExpr(p)
   }
 
   private def nextDateExpr(nextDate: NextDateValue)(implicit now: Now[LocalDate]): DateExpr = {
@@ -41,7 +41,7 @@ object DateExpr {
 
     val nextDateYear =
       LocalDate.of(year, month, day).isAfter(now.apply()) match {
-        case true => year
+        case true  => year
         case false => year + 1
       }
 
@@ -61,7 +61,8 @@ object DateExpr {
     case 0 => dateExpr // merge cases
     case nonZero =>
       val zeroPadding = (x: Int) => "%02d".format(x)
-      val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)
+      val dateExprToString = (dateExpr: DateExpr) =>
+        dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)
 
       val dateWithOffset = LocalDate
         .parse(dateExprToString(dateExpr), dateFormatter)
@@ -78,7 +79,7 @@ object DateExpr {
 
     val previousDateYear =
       LocalDate.of(year, month, day).isAfter(now.apply()) match {
-        case true => year - 1
+        case true  => year - 1
         case false => year
       }
 

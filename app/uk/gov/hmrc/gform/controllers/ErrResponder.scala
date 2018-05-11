@@ -29,16 +29,16 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
- * This object suppose to render responses if something unexpected happened.
- * It as well does a bunch of side effects:
- *  - sends audit events
- *  - does logging so please use it just before returning
- *  - (TODO occurrenceId)
- */
+  * This object suppose to render responses if something unexpected happened.
+  * It as well does a bunch of side effects:
+  *  - sends audit events
+  *  - does logging so please use it just before returning
+  *  - (TODO occurrenceId)
+  */
 class ErrResponder(
-    frontendAppConfig: FrontendAppConfig,
-    httpAuditingService: HttpAuditingService,
-    i18nSupport: I18nSupport
+  frontendAppConfig: FrontendAppConfig,
+  httpAuditingService: HttpAuditingService,
+  i18nSupport: I18nSupport
 ) {
 
   import i18nSupport._

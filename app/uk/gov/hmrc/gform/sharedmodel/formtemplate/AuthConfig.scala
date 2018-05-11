@@ -146,5 +146,6 @@ case class AuthConfigModule(value: String) {
 }
 
 object AuthConfigModule {
-  implicit val format: Format[AuthConfigModule] = ValueClassFormat.oformat("authModule", AuthConfigModule.apply, _.value)
+  implicit val format: Format[AuthConfigModule] =
+    ValueClassFormat.oformat("authModule", AuthConfigModule.apply, _.value)
 }

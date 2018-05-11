@@ -23,8 +23,8 @@ import play.api.inject.ApplicationLifecycle
 import play.api.libs.ws.ahc.AhcWSComponents
 
 class PlayBuiltInsModule(
-    val context: ApplicationLoader.Context,
-    val builtInComponents: BuiltInComponents
+  val context: ApplicationLoader.Context,
+  val builtInComponents: BuiltInComponents
 ) { self =>
 
   val ahcWSComponents: AhcWSComponents = new AhcWSComponents {

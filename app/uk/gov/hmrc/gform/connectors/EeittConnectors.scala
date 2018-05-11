@@ -35,16 +35,19 @@ object Verification {
 
 class EeittConnector(baseUrl: String, wSHttp: WSHttp) {
 
-  def isAllowed(groupId: String, regimeId: RegimeId, affinityGroup: AffinityGroup)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Verification] =
-    wSHttp.GET[Verification](baseUrl + s"/group-id/${encode(groupId)}/regime/${regimeId.value}/affinityGroup/${encode(affinityGroup.toString)}/verification")
+  def isAllowed(groupId: String, regimeId: RegimeId, affinityGroup: AffinityGroup)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Verification] =
+    wSHttp.GET[Verification](
+      baseUrl + s"/group-id/${encode(groupId)}/regime/${regimeId.value}/affinityGroup/${encode(affinityGroup.toString)}/verification")
 
-  def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[BusinessUser] = {
+  def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[BusinessUser] =
     wSHttp.GET[BusinessUser](baseUrl + s"/group-id/${groupId.value}/regime/${regimeId.value}/prepopulation")
-  }
 
-  def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Agent] = {
+  def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Agent] =
     wSHttp.GET[Agent](baseUrl + s"/group-id/${groupId.value}/prepopulation")
-  }
 
   private def encode(p: String) = UriEncoding.encodePathSegment(p, "UTF-8")
 }

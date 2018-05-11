@@ -25,7 +25,8 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.frontend.config.LoadAuditingConfig
 import uk.gov.hmrc.http.hooks.HttpHook
 
-class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBuiltInsModule: PlayBuiltInsModule) { self =>
+class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBuiltInsModule: PlayBuiltInsModule) {
+  self =>
 
   lazy val auditConnector: AuditConnector = new AuditConnector {
     //WARN: LoadAuditingConfig uses play deprecations.
@@ -47,4 +48,3 @@ class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBui
 
   val httpAuditingService: HttpAuditingService = new HttpAuditingService(configModule.appConfig.appName, auditConnector)
 }
-

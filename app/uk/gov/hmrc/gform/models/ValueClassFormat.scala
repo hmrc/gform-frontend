@@ -19,13 +19,12 @@ package uk.gov.hmrc.gform.models
 import play.api.libs.json._
 
 object ValueClassFormat {
-  def format[A: Format](fromStringToA: String => A)(fromAToString: A => String) = {
+  def format[A: Format](fromStringToA: String => A)(fromAToString: A => String) =
     Format[A](
       Reads[A] {
         case JsString(str) => JsSuccess(fromStringToA(str))
-        case unknown => JsError(s"JsString value expected, got: $unknown")
+        case unknown       => JsError(s"JsString value expected, got: $unknown")
       },
       Writes[A](a => JsString(fromAToString(a)))
     )
-  }
 }

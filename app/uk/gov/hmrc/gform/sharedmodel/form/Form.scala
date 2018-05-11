@@ -36,22 +36,23 @@ object Form {
 
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
-    EnvelopeId.format and
-    UserId.oformat and
-    FormTemplateId.vformat and
-    RepeatingGroupStructure.optionFormat and
-    FormData.format and
-    FormStatus.format
+      EnvelopeId.format and
+      UserId.oformat and
+      FormTemplateId.vformat and
+      RepeatingGroupStructure.optionFormat and
+      FormData.format and
+      FormStatus.format
   )(Form.apply _)
 
-  private val writes: OWrites[Form] = OWrites[Form](form =>
-    FormId.format.writes(form._id) ++
-      EnvelopeId.format.writes(form.envelopeId) ++
-      UserId.oformat.writes(form.userId) ++
-      FormTemplateId.oformat.writes(form.formTemplateId) ++
-      RepeatingGroupStructure.optionFormat.writes(form.repeatingGroupStructure) ++
-      FormData.format.writes(form.formData) ++
-      FormStatus.format.writes(form.status))
+  private val writes: OWrites[Form] = OWrites[Form](
+    form =>
+      FormId.format.writes(form._id) ++
+        EnvelopeId.format.writes(form.envelopeId) ++
+        UserId.oformat.writes(form.userId) ++
+        FormTemplateId.oformat.writes(form.formTemplateId) ++
+        RepeatingGroupStructure.optionFormat.writes(form.repeatingGroupStructure) ++
+        FormData.format.writes(form.formData) ++
+        FormStatus.format.writes(form.status))
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
 

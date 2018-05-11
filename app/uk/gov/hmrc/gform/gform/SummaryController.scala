@@ -45,68 +45,69 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class SummaryController(
-    i18nSupport: I18nSupport,
-    auth: AuthenticatedRequestActions,
-    repeatService: RepeatingComponentService,
-    fileUploadService: FileUploadService,
-    validationService: ValidationService,
-    pdfService: PdfGeneratorService,
-    gformConnector: GformConnector,
-    frontendAppConfig: FrontendAppConfig,
-    errResponder: ErrResponder
+  i18nSupport: I18nSupport,
+  auth: AuthenticatedRequestActions,
+  repeatService: RepeatingComponentService,
+  fileUploadService: FileUploadService,
+  validationService: ValidationService,
+  pdfService: PdfGeneratorService,
+  gformConnector: GformConnector,
+  frontendAppConfig: FrontendAppConfig,
+  errResponder: ErrResponder
 ) extends FrontendController {
 
   import i18nSupport._
 
-  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-    cache.form.status match {
-      case Summary | Validated | Signed => getSummaryHTML(formId, cache, lang).map(Ok(_))
-      case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
+  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] =
+    auth.async(formId) { implicit request => cache =>
+      cache.form.status match {
+        case Summary | Validated | Signed => getSummaryHTML(formId, cache, lang).map(Ok(_))
+        case _                            => errResponder.notFound(request, "Summary was hit before status was changed.")
+      }
     }
-  }
 
-  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]) = auth.async(formId) { implicit request => cache =>
+  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]) =
+    auth.async(formId) { implicit request => cache =>
+      processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
+        val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
-    processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
+        val formFieldValidationResultsF = for {
+          envelope <- envelopeF
+          errors   <- validateForm(cache, envelope, cache.retrievals)
+        } yield errors
 
-      val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+        val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
-      val formFieldValidationResultsF = for {
-        envelope <- envelopeF
-        errors <- validateForm(cache, envelope, cache.retrievals)
-      } yield errors
-
-      val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
-
-      lazy val redirectToDeclaration = gformConnector
-        .updateUserData(formId, UserData(cache.form.formData, cache.form.repeatingGroupStructure, Validated))
-        .map { _ =>
-          Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang))
-        }
-      lazy val redirectToSummary = Redirect(routes.SummaryController.summaryById(formId, formTemplateId4Ga, lang))
-      lazy val handleDeclaration = for {
-        // format: OFF
+        lazy val redirectToDeclaration = gformConnector
+          .updateUserData(formId, UserData(cache.form.formData, cache.form.repeatingGroupStructure, Validated))
+          .map { _ =>
+            Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang))
+          }
+        lazy val redirectToSummary = Redirect(routes.SummaryController.summaryById(formId, formTemplateId4Ga, lang))
+        lazy val handleDeclaration = for {
+          // format: OFF
         result <- isFormValidF.ifM(
           redirectToDeclaration,
           redirectToSummary.pure[Future]
         )
         // format: ON
-      } yield result
+        } yield result
 
-      get(data, FormComponentId("save")) match {
-        // format: OFF
+        get(data, FormComponentId("save")) match {
+          // format: OFF
         case "Exit" :: Nil        => Ok(save_acknowledgement(formId, cache.formTemplate, totalPage, lang, frontendAppConfig)).pure[Future]
         case "Declaration" :: Nil => handleDeclaration
         case _                    => BadRequest("Cannot determine action").pure[Future]
         // format: ON
+        }
       }
     }
-  }
 
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-    cache.form.status match {
-      case InProgress | Summary =>
-        // format: OFF
+  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] =
+    auth.async(formId) { implicit request => cache =>
+      cache.form.status match {
+        case InProgress | Summary =>
+          // format: OFF
         for {
           summaryHml <- getSummaryHTML(formId, cache, lang)
           htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
@@ -116,15 +117,17 @@ class SummaryController(
           body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
         )
       // format: ON
-      case _ => Future.successful(BadRequest)
+        case _ => Future.successful(BadRequest)
+      }
     }
-  }
 
-  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
+  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: Retrievals)(
+    implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
-    val filteredSections = sectionsF.map(_.filter(x => BooleanExpr.isTrue(x.includeIf.map(_.expr).getOrElse(IsTrue), data, retrievals)))
-    for {// format: OFF
+    val filteredSections =
+      sectionsF.map(_.filter(x => BooleanExpr.isTrue(x.includeIf.map(_.expr).getOrElse(IsTrue), data, retrievals)))
+    for { // format: OFF
       sections          <- filteredSections
       allFields         =  sections.flatMap(repeatService.atomicFields)
       v1                <- sections.map(x => validationService.validateForm(allFields, x, cache.form.envelopeId, retrievals)(data)).sequenceU.map(Monoid[ValidatedType].combineAll)
@@ -137,7 +140,8 @@ class SummaryController(
     } yield (v, errors)
   }
 
-  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(implicit request: Request[_]): Future[Html] = {
+  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(
+    implicit request: Request[_]): Future[Html] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 

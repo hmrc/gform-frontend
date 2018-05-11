@@ -20,11 +20,10 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 package object pages {
 
-  def formCategory(formTemplate: FormTemplate): String = {
+  def formCategory(formTemplate: FormTemplate): String =
     formTemplate.formCategory match {
-      case Some(HMRCClaimForm) => "claim"
+      case Some(HMRCClaimForm)  => "claim"
       case Some(HMRCReturnForm) => "return"
-      case _ => "form"
+      case _                    => "form"
     }
-  }
 }

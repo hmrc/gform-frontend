@@ -53,8 +53,7 @@ class ApplicationLoader extends play.api.ApplicationLoader {
   }
 }
 
-class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(context)
-    with I18nComponents { self =>
+class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(context) with I18nComponents { self =>
 
   Logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
 
@@ -143,7 +142,14 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
 
   lazy val customInjector: Injector = new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi
   override lazy val application = new DefaultApplication(
-    environment, applicationLifecycle, customInjector, configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer
+    environment,
+    applicationLifecycle,
+    customInjector,
+    configuration,
+    httpRequestHandler,
+    httpErrorHandler,
+    actorSystem,
+    materializer
   )
 
   def initialize() = {
@@ -156,6 +162,7 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     val loggerDateFormat: Option[String] = configuration.getString("logger.json.dateformat")
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
     metricsModule.graphiteService.startReporter()
-    Logger.info(s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getString("http.port")}")
+    Logger.info(
+      s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getString("http.port")}")
   }
 }

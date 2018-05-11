@@ -23,9 +23,9 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.keystore.KeystoreModule
 
 class ValidationModule(
-    fileUploadModule: FileUploadModule,
-    gformBackendModule: GformBackendModule,
-    keystoreModule: KeystoreModule
+  fileUploadModule: FileUploadModule,
+  gformBackendModule: GformBackendModule,
+  keystoreModule: KeystoreModule
 ) {
 
   val validationService = new ValidationService(

@@ -32,12 +32,13 @@ object FormDataHelpers {
   def formDataMap(formData: FormData): Map[FormComponentId, Seq[String]] =
     formData.fields.map(formField => formField.id -> List(formField.value)).toMap
 
-  def processResponseDataFromBody(request: Request[AnyContent])(continuation: Map[FormComponentId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+  def processResponseDataFromBody(request: Request[AnyContent])(
+    continuation: Map[FormComponentId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] =
     request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FormComponentId(a), b) }) match {
       case Some(data) => continuation(data)
-      case None => Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check
+      case None =>
+        Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check
     }
-  }
 
   def get(data: Map[FormComponentId, Seq[String]], id: FormComponentId): List[String] =
     data.get(id).toList.flatten
@@ -45,11 +46,12 @@ object FormDataHelpers {
   def anyFormId(data: Map[FormComponentId, Seq[String]]): Option[FormId] =
     data.get(FormComponentId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
 
-  def dataEnteredInGroup(group: Group, fieldData: Map[FormComponentId, Seq[String]]): Boolean = {
-
-    group.fields.map(_.id).find(id => {
-      fieldData.get(id).isDefined && fieldData.get(id).get.find(!_.isEmpty).isDefined
-    }).isDefined
-  }
+  def dataEnteredInGroup(group: Group, fieldData: Map[FormComponentId, Seq[String]]): Boolean =
+    group.fields
+      .map(_.id)
+      .find(id => {
+        fieldData.get(id).isDefined && fieldData.get(id).get.find(!_.isEmpty).isDefined
+      })
+      .isDefined
 
 }

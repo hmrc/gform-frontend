@@ -25,8 +25,8 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.Future
 
 class ErrorController(
-    frontendAppConfig: FrontendAppConfig,
-    i18nSupport: I18nSupport
+  frontendAppConfig: FrontendAppConfig,
+  i18nSupport: I18nSupport
 ) extends FrontendController {
 
   import i18nSupport._

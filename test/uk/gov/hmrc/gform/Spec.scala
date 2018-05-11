@@ -27,22 +27,12 @@ import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext
 
 trait Spec
-    extends FlatSpecLike
-    with Matchers
-    with EitherMatchers
-    with DiagrammedAssertions
-    with TryValues
-    with EitherValues
-    with OptionValues
-    with AppendedClues
-    with ScalaFutures
-    with StreamlinedXml
-    with Inside
-    with Eventually
-    with PropertyChecks
-    with ExampleData {
+    extends FlatSpecLike with Matchers with EitherMatchers with DiagrammedAssertions with TryValues with EitherValues
+    with OptionValues with AppendedClues with ScalaFutures with StreamlinedXml with Inside with Eventually
+    with PropertyChecks with ExampleData {
 
-  override implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
+  override implicit val patienceConfig =
+    PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 }

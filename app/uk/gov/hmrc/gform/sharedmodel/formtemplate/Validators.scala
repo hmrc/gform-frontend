@@ -28,7 +28,7 @@ case object SectionValidator {
 
   val reads: Reads[SectionValidator] = Reads { json =>
     (json \ "validatorName").as[String] match {
-      case "hmrcUTRPostcodeCheck" => json.validate[HMRCUTRPostcodeCheckValidator]
+      case "hmrcUTRPostcodeCheck"    => json.validate[HMRCUTRPostcodeCheckValidator]
       case "bankAccountModulusCheck" => json.validate[BankAccoutnModulusCheck]
     }
   }
@@ -42,7 +42,8 @@ case object SectionValidator {
 
 }
 
-case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, postcode: FormCtx) extends SectionValidator {
+case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, postcode: FormCtx)
+    extends SectionValidator {
 
   val utrFieldId = FormComponentId(utr.value)
   val postcodeFieldId = FormComponentId(postcode.value)
@@ -63,7 +64,8 @@ object HMRCUTRPostcodeCheckValidator {
   implicit val format: OFormat[HMRCUTRPostcodeCheckValidator] = OFormat(reads, writes)
 }
 
-case class BankAccoutnModulusCheck(errorMessage: String, accountNumber: FormCtx, sortCode: FormCtx) extends SectionValidator {
+case class BankAccoutnModulusCheck(errorMessage: String, accountNumber: FormCtx, sortCode: FormCtx)
+    extends SectionValidator {
 
   val accountNumberId = accountNumber.toFieldId
   val sortCodeId = sortCode.toFieldId

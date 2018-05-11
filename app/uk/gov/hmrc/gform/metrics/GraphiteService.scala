@@ -24,12 +24,12 @@ import com.codahale.metrics.graphite.{ Graphite, GraphiteReporter }
 import play.api.Logger
 
 class GraphiteService(
-    enabled: Boolean = false,
-    graphiteInterval: Long,
-    host: String, //    val host = config.getString("graphite.host").getOrElse("graphite")
-    port: Int, //  val port = config.getInt("graphite.port").getOrElse(2003)
-    prefix: String, // = config.getString("graphite.prefix").getOrElse(s"tax.${configModule.appConfig.appName}")
-    registryName: String //config.getString("metrics.name").getOrElse("default")
+  enabled: Boolean = false,
+  graphiteInterval: Long,
+  host: String, //    val host = config.getString("graphite.host").getOrElse("graphite")
+  port: Int, //  val port = config.getInt("graphite.port").getOrElse(2003)
+  prefix: String, // = config.getString("graphite.prefix").getOrElse(s"tax.${configModule.appConfig.appName}")
+  registryName: String //config.getString("metrics.name").getOrElse("default")
 ) {
 
   def startReporter(): Unit = if (enabled) {
@@ -39,7 +39,8 @@ class GraphiteService(
 
   private val graphite = new Graphite(new InetSocketAddress(host, port))
 
-  private val reporter: GraphiteReporter = GraphiteReporter.forRegistry(SharedMetricRegistries.getOrCreate(registryName))
+  private val reporter: GraphiteReporter = GraphiteReporter
+    .forRegistry(SharedMetricRegistries.getOrCreate(registryName))
     .prefixedWith(s"$prefix.${java.net.InetAddress.getLocalHost.getHostName}")
     .convertRatesTo(SECONDS)
     .convertDurationsTo(MILLISECONDS)

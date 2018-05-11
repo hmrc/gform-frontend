@@ -32,8 +32,7 @@ trait Navigation {
       BooleanExpr.isTrue(isIncludedExpression, data, retrievals)
     }
 
-    sections
-      .zipWithIndex
+    sections.zipWithIndex
       .filter(si => shouldInclude(si._1))
       .map(si => SectionNumber(si._2))
   }
@@ -56,7 +55,12 @@ object BackToSummary extends Direction
 case class AddGroup(groupId: String) extends Direction
 case class RemoveGroup(idx: Int, groupId: String) extends Direction
 
-case class Navigator(sectionNumber: SectionNumber, sections: List[Section], data: Map[FormComponentId, Seq[String]], retrievals: Retrievals) extends Navigation {
+case class Navigator(
+  sectionNumber: SectionNumber,
+  sections: List[Section],
+  data: Map[FormComponentId, Seq[String]],
+  retrievals: Retrievals)
+    extends Navigation {
   require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
 
@@ -77,7 +81,8 @@ case class Navigator(sectionNumber: SectionNumber, sections: List[Section], data
 
   private def actionValue: String = {
     val fieldId = FormComponentId("save")
-    FormDataHelpers.get(data, fieldId)
+    FormDataHelpers
+      .get(data, fieldId)
       .headOption
       .getOrElse(
         throw new BadRequestException(s"Missing '${fieldId.value}' form field")
@@ -93,8 +98,7 @@ case class Navigator(sectionNumber: SectionNumber, sections: List[Section], data
       .get //This supposed to be called only if the section is findable
 
   private val previousOrCurrentSectionNumber: SectionNumber =
-    availableSectionNumbers
-      .reverse
+    availableSectionNumbers.reverse
       .find(_ < sectionNumber)
       .getOrElse(sectionNumber)
 

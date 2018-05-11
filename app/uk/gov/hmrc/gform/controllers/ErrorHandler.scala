@@ -26,27 +26,32 @@ import scala.concurrent.Future
 import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException }
 
 class ErrorHandler(
-    environment: Environment,
-    configuration: Configuration,
-    sourceMapper: Option[SourceMapper],
-    errResponder: ErrResponder
+  environment: Environment,
+  configuration: Configuration,
+  sourceMapper: Option[SourceMapper],
+  errResponder: ErrResponder
 ) extends DefaultHttpErrorHandler(environment, configuration, sourceMapper, None) {
 
-  override protected def onBadRequest(requestHeader: RequestHeader, message: String): Future[Result] = errResponder.badRequest(requestHeader, message)
+  override protected def onBadRequest(requestHeader: RequestHeader, message: String): Future[Result] =
+    errResponder.badRequest(requestHeader, message)
 
-  override protected def onForbidden(requestHeader: RequestHeader, message: String): Future[Result] = errResponder.forbidden(requestHeader, message)
+  override protected def onForbidden(requestHeader: RequestHeader, message: String): Future[Result] =
+    errResponder.forbidden(requestHeader, message)
 
-  override protected def onNotFound(requestHeader: RequestHeader, message: String): Future[Result] = errResponder.notFound(requestHeader, message)
+  override protected def onNotFound(requestHeader: RequestHeader, message: String): Future[Result] =
+    errResponder.notFound(requestHeader, message)
 
-  override protected def onOtherClientError(requestHeader: RequestHeader, statusCode: Int, message: String): Future[Result] = errResponder.onOtherClientError(requestHeader, statusCode, message)
+  override protected def onOtherClientError(
+    requestHeader: RequestHeader,
+    statusCode: Int,
+    message: String): Future[Result] = errResponder.onOtherClientError(requestHeader, statusCode, message)
 
   override def onServerError(requestHeader: RequestHeader, exception: Throwable): Future[Result] = exception match {
     case e: BadRequestException => onBadRequest(requestHeader, e.message)
     //    case e: UnauthorizedException => TODO redirect to login page
     case e: ForbiddenException => errResponder.forbidden(requestHeader, e.message)
-    case e: NotFoundException => errResponder.notFound(requestHeader, e.message)
-    case e => errResponder.internalServerError(requestHeader, e)
+    case e: NotFoundException  => errResponder.notFound(requestHeader, e.message)
+    case e                     => errResponder.internalServerError(requestHeader, e)
   }
 
 }
-

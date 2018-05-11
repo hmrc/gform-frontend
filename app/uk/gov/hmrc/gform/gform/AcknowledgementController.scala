@@ -39,26 +39,34 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.Future
 
 class AcknowledgementController(
-    i18nSupport: I18nSupport,
-    auth: AuthenticatedRequestActions,
-    pdfService: PdfGeneratorService,
-    renderer: SectionRenderingService,
-    summaryController: SummaryController, //TODO: does really one controller cannot exist without another one?
-    authService: AuthService,
-    gformConnector: GformConnector,
-    nonRepudiationHelpers: NonRepudiationHelpers
+  i18nSupport: I18nSupport,
+  auth: AuthenticatedRequestActions,
+  pdfService: PdfGeneratorService,
+  renderer: SectionRenderingService,
+  summaryController: SummaryController, //TODO: does really one controller cannot exist without another one?
+  authService: AuthService,
+  gformConnector: GformConnector,
+  nonRepudiationHelpers: NonRepudiationHelpers
 ) extends FrontendController {
 
   import i18nSupport._
 
-  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String) = auth.async(formId) { implicit request => cache =>
-    cache.form.status match {
-      case Submitted => renderer.renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang, eventId).map(Ok(_))
-      case _ => Future.successful(BadRequest)
+  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String) =
+    auth.async(formId) { implicit request => cache =>
+      cache.form.status match {
+        case Submitted =>
+          renderer
+            .renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang, eventId)
+            .map(Ok(_))
+        case _ => Future.successful(BadRequest)
+      }
     }
-  }
 
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+  def downloadPDF(
+    formId: FormId,
+    formTemplateId4Ga: FormTemplateId,
+    lang: Option[String],
+    eventId: String): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {
       case Submitted =>
         // format: OFF
@@ -93,7 +101,8 @@ class AcknowledgementController(
   )(implicit hc: HeaderCarrier): Future[String] = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
-    val formattedTime = s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
+    val formattedTime =
+      s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
 
     // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
@@ -117,15 +126,15 @@ class AcknowledgementController(
            |  <tbody>
            |    <tr>
            |      <td>Submission date</td>
-           |      <td>${formattedTime}</td>
+           |      <td>$formattedTime</td>
            |    </tr>
            |    <tr>
            |      <td>Submission reference</td>
-           |      <td>${ref}</td>
+           |      <td>$ref</td>
            |    </tr>
            |    <tr>
            |      <td>Submission mark</td>
-           |      <td>${hashedValue}</td>
+           |      <td>$hashedValue</td>
            |    </tr>
            |  </tbody>
            |</table>

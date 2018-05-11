@@ -30,22 +30,23 @@ import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class GformModule(
-    configModule: ConfigModule,
-    wSHttpModule: WSHttpModule,
-    keystoreModule: KeystoreModule,
-    controllersModule: ControllersModule,
-    pdfGeneratorModule: PdfGeneratorModule,
-    authModule: AuthModule,
-    gformBackendModule: GformBackendModule,
-    fileUploadModule: FileUploadModule,
-    validationModule: ValidationModule,
-    auditingModule: AuditingModule,
-    playBuiltInsModule: PlayBuiltInsModule
+  configModule: ConfigModule,
+  wSHttpModule: WSHttpModule,
+  keystoreModule: KeystoreModule,
+  controllersModule: ControllersModule,
+  pdfGeneratorModule: PdfGeneratorModule,
+  authModule: AuthModule,
+  gformBackendModule: GformBackendModule,
+  fileUploadModule: FileUploadModule,
+  validationModule: ValidationModule,
+  auditingModule: AuditingModule,
+  playBuiltInsModule: PlayBuiltInsModule
 ) {
 
   private val authContextPrepop = new AuthContextPrepop
 
-  private val prepopService: PrepopService = new PrepopService(authContextPrepop, keystoreModule.repeatingComponentService, authModule.eeittService)
+  private val prepopService: PrepopService =
+    new PrepopService(authContextPrepop, keystoreModule.repeatingComponentService, authModule.eeittService)
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
     keystoreModule.repeatingComponentService,

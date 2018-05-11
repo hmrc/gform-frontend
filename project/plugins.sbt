@@ -13,7 +13,7 @@ addSbtPlugin("uk.gov.hmrc" % "sbt-distributables" % "1.0.0")
 // Added link regarding latest version of Play
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.5.12")
 
-addSbtPlugin("org.scalariform"  % "sbt-scalariform" % "1.6.0")
+addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.15")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.2")
 

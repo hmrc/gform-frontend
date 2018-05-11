@@ -19,16 +19,15 @@ package uk.gov.hmrc.gform.service
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object LabelHelper {
-  def buildRepeatingLabel(field: FormComponent, index: Int) = {
+  def buildRepeatingLabel(field: FormComponent, index: Int) =
     if (field.label.contains("$n")) {
       field.label.replace("$n", index.toString)
     } else {
       field.presentationHint.map(ph => "").orElse(Some(field.label)).get
     }
-  }
 
   def buildRepeatingLabel(text: Option[String], index: Int) = text match {
     case Some(txt) if text.get.contains("$n") => Some(txt.replace("$n", index.toString))
-    case _ => text
+    case _                                    => text
   }
 }

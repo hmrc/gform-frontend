@@ -4,6 +4,7 @@ import sbt._
 import play.routes.compiler.StaticRoutesGenerator
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import play.sbt.PlayImport.PlayKeys
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 
 trait MicroService {
 
@@ -32,6 +33,8 @@ trait MicroService {
     .settings(publishingSettings: _*)
     .settings(defaultSettings(): _*)
     .settings(
+      scalafmtOnCompile := true,
+      scalaVersion := "2.11.12",
       libraryDependencies ++= appDependencies,
       evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
       routesImport ++= Seq(

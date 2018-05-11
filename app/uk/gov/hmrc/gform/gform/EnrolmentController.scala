@@ -35,56 +35,57 @@ import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 class EnrolmentController(
-    i18nSupport: I18nSupport,
-    auth: AuthenticatedRequestActions,
-    renderer: SectionRenderingService,
-    validationService: ValidationService,
-    gformConnector: GformConnector,
-    enrolmentService: EnrolmentService,
-    appConfig: AppConfig
+  i18nSupport: I18nSupport,
+  auth: AuthenticatedRequestActions,
+  renderer: SectionRenderingService,
+  validationService: ValidationService,
+  gformConnector: GformConnector,
+  enrolmentService: EnrolmentService,
+  appConfig: AppConfig
 ) extends FrontendController {
 
   import i18nSupport._
 
   def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = Action.async { implicit request =>
-
     gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
       formTemplate.authConfig match {
         case authConfig: AuthConfigWithEnrolment =>
-          renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Map.empty, Nil, None, lang).map(Ok(_))
-        case _ => Future.successful(
-          Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
-            .flashing("formTitle" -> formTemplate.formName)
-        )
+          renderer
+            .renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Map.empty, Nil, None, lang)
+            .map(Ok(_))
+        case _ =>
+          Future.successful(
+            Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
+              .flashing("formTitle" -> formTemplate.formName)
+          )
       }
     }
   }
 
-  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) { implicit request => cache =>
+  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+    implicit request => cache =>
+      processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
+        gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
+          formTemplate.authConfig match {
+            case authConfig: AuthConfigWithEnrolment =>
+              val allFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
+              val validationResultF =
+                validationService.validateComponents(allFields, data, EnvelopeId(""), cache.retrievals)
 
-    processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
-      gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
-
-        formTemplate.authConfig match {
-          case authConfig: AuthConfigWithEnrolment =>
-
-            val allFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
-            val validationResultF = validationService.validateComponents(allFields, data, EnvelopeId(""), cache.retrievals)
-
-            get(data, FormComponentId("save")) match {
-              case "Continue" :: Nil =>
-                validationResultF.flatMap(processValidation(formTemplate, authConfig, data, lang))
-              case _ =>
-                Future.successful(BadRequest("Cannot determine action"))
-            }
-          case _ =>
-            Future.successful(
-              Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
-                .flashing("formTitle" -> formTemplate.formName)
-            )
+              get(data, FormComponentId("save")) match {
+                case "Continue" :: Nil =>
+                  validationResultF.flatMap(processValidation(formTemplate, authConfig, data, lang))
+                case _ =>
+                  Future.successful(BadRequest("Cannot determine action"))
+              }
+            case _ =>
+              Future.successful(
+                Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
+                  .flashing("formTitle" -> formTemplate.formName)
+              )
+          }
         }
       }
-    }
   }
 
   private def processValidation(
@@ -92,24 +93,25 @@ class EnrolmentController(
     authConfig: AuthConfigWithEnrolment,
     data: Map[FormComponentId, Seq[String]],
     lang: Option[String]
-  )(validationResult: ValidatedType)(implicit hc: HeaderCarrier, request: Request[_]): Future[Result] = {
-
+  )(validationResult: ValidatedType)(implicit hc: HeaderCarrier, request: Request[_]): Future[Result] =
     validationResult match {
       case Valid(()) =>
         val (identifiers, verifiers) = extractIdentifiersAndVerifiers(authConfig, data)
 
-        enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers).map { _ =>
-          val newPageUrl = routes.FormController.newForm(formTemplate._id, lang).url
-          val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
-          val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-          val redirectUrl = s"${ggLoginUrl}?continue=${continueUrl}"
-          Redirect(redirectUrl)
-        }.recoverWith(handleEnrolmentException(authConfig, data, formTemplate, lang))
+        enrolmentService
+          .enrolUser(authConfig.serviceId, identifiers, verifiers)
+          .map { _ =>
+            val newPageUrl = routes.FormController.newForm(formTemplate._id, lang).url
+            val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
+            val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+            val redirectUrl = s"$ggLoginUrl?continue=$continueUrl"
+            Redirect(redirectUrl)
+          }
+          .recoverWith(handleEnrolmentException(authConfig, data, formTemplate, lang))
 
       case validationResult @ Invalid(_) =>
         displayEnrolmentSectionWithErrors(validationResult, data, authConfig, formTemplate, lang)
     }
-  }
 
   private def getErrorMap(
     validationResult: ValidatedType,
@@ -120,23 +122,21 @@ class EnrolmentController(
     validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
   }
 
-  private def getAllEnrolmentFields(fields: List[FormComponent]): List[FormComponent] = {
+  private def getAllEnrolmentFields(fields: List[FormComponent]): List[FormComponent] =
     fields.flatMap { fieldValue =>
       fieldValue.`type` match {
         case grp: Group => getAllEnrolmentFields(grp.fields)
-        case _ => List(fieldValue)
+        case _          => List(fieldValue)
       }
     }
-  }
 
   private def extractIdentifiersAndVerifiers(
     authConfig: AuthConfigWithEnrolment,
     data: Map[FormComponentId, Seq[String]]
   ): (List[Identifier], List[Verifier]) = {
 
-    def getValue(fieldValue: FormComponent) = {
+    def getValue(fieldValue: FormComponent) =
       data.getOrElse(fieldValue.id, Seq("")).head.replaceAll("""\s""", "") // spaces need to be deleted to send to GG
-    }
 
     val identifierPattern = "identifier_(.*)".r
     val verifierPattern = "verifier_(.*)".r
@@ -145,8 +145,8 @@ class EnrolmentController(
       .foldLeft((List.empty[Identifier], List.empty[Verifier])) { (result, fieldValue) =>
         fieldValue.id.value match {
           case identifierPattern(identifier) => (result._1 :+ Identifier(identifier, getValue(fieldValue)), result._2)
-          case verifierPattern(verifier) => (result._1, result._2 :+ Verifier(verifier, getValue(fieldValue)))
-          case _ => result
+          case verifierPattern(verifier)     => (result._1, result._2 :+ Verifier(verifier, getValue(fieldValue)))
+          case _                             => result
         }
       }
     (allIdentifiers.filterNot(_.value.equals("")), allVerifiers.filterNot(_.value.equals("")))
@@ -162,7 +162,13 @@ class EnrolmentController(
 
     val errorMap = getErrorMap(validationResult, data, authConfig)
     for {
-      html <- renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, data, errorMap, Some(validationResult), lang)
+      html <- renderer.renderEnrolmentSection(
+               formTemplate,
+               authConfig.enrolmentSection,
+               data,
+               errorMap,
+               Some(validationResult),
+               lang)
     } yield Ok(html)
   }
 
@@ -174,8 +180,7 @@ class EnrolmentController(
   )(implicit hc: HeaderCarrier, request: Request[_]): PartialFunction[Throwable, Future[Result]] = {
     case _ =>
       Future.successful(
-        Redirect(routes.FormController.newForm(formTemplate._id, lang))
-        .withNewSession
+        Redirect(routes.FormController.newForm(formTemplate._id, lang)).withNewSession
       )
   }
 }

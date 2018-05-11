@@ -16,6 +16,4 @@
 
 package uk.gov.hmrc
 
-package object gform {
-
-}
+package object gform {}

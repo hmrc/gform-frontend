@@ -44,8 +44,10 @@ class SaveSpec extends Spec {
 
   it should "all sections are included" in new Fixture {
     override def data = super.data + (`fieldId - save` -> `formField - Continue`)
-    new Navigator(sectionNumber0, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(sectionNumber1)
-    new Navigator(sectionNumber1, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(sectionNumber2)
+    new Navigator(sectionNumber0, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(
+      sectionNumber1)
+    new Navigator(sectionNumber1, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(
+      sectionNumber2)
     new Navigator(sectionNumber2, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndSummary
 
   }
@@ -53,8 +55,10 @@ class SaveSpec extends Spec {
   it should "mid section is excluded" in new FixtureExcludedMidSection {
     override def data = super.data + (`fieldId - save` -> `formField - Continue`)
 
-    new Navigator(sectionNumber0, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(sectionNumber2)
-    new Navigator(sectionNumber1, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(sectionNumber2)
+    new Navigator(sectionNumber0, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(
+      sectionNumber2)
+    new Navigator(sectionNumber1, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndContinue(
+      sectionNumber2)
     new Navigator(sectionNumber2, allSections, rawDataFromBrowser, retrievals).navigate shouldBe SaveAndSummary
   }
 
@@ -78,8 +82,10 @@ class SaveSpec extends Spec {
   behavior of "new Navigator"
 
   it should "throw exception if section numbers are out of bounds" in new Fixture {
-    an[IllegalArgumentException] shouldBe thrownBy(new Navigator(`sectionNumber-1`, allSections, rawDataFromBrowser, retrievals))
-    an[IllegalArgumentException] shouldBe thrownBy(new Navigator(sectionNumber3, allSections, rawDataFromBrowser, retrievals))
+    an[IllegalArgumentException] shouldBe thrownBy(
+      new Navigator(`sectionNumber-1`, allSections, rawDataFromBrowser, retrievals))
+    an[IllegalArgumentException] shouldBe thrownBy(
+      new Navigator(sectionNumber3, allSections, rawDataFromBrowser, retrievals))
   }
 
   trait Fixture extends ExampleData {
@@ -94,7 +100,8 @@ class SaveSpec extends Spec {
   }
 
   trait FixtureExcludedMidSection extends Fixture {
-    override def `section - businessDetails` = super.`section - businessDetails`.copy(includeIf = Some(IncludeIf(IsFalse)))
+    override def `section - businessDetails` =
+      super.`section - businessDetails`.copy(includeIf = Some(IncludeIf(IsFalse)))
   }
 
 }

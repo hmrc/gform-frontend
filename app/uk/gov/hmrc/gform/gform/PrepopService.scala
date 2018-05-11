@@ -36,26 +36,32 @@ import scala.math.BigDecimal.RoundingMode
 
 class AuthContextPrepop {
   def values(value: AuthInfo, retrievals: Retrievals): String = value match {
-    case GG => getGGCredId(retrievals)
-    case PayeNino => getTaxIdValue(None, "NINO", retrievals)
-    case SaUtr => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
-    case CtUtr => getTaxIdValue(Some("IR-CT"), "UTR", retrievals)
+    case GG                     => getGGCredId(retrievals)
+    case PayeNino               => getTaxIdValue(None, "NINO", retrievals)
+    case SaUtr                  => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
+    case CtUtr                  => getTaxIdValue(Some("IR-CT"), "UTR", retrievals)
     case EtmpRegistrationNumber => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
   }
 
   private def getGGCredId(retrievals: Retrievals) = retrievals.authProviderId match {
     case GGCredId(credId) => credId
-    case _ => ""
+    case _                => ""
   }
 }
 
 class PrepopService(
-    authContextPrepop: AuthContextPrepop,
-    repeatingComponentService: RepeatingComponentService,
-    eeittService: EeittService
+  authContextPrepop: AuthContextPrepop,
+  repeatingComponentService: RepeatingComponentService,
+  eeittService: EeittService
 ) {
 
-  def prepopData(expr: Expr, formTemplate: FormTemplate, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]], section: BaseSection, scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
+  def prepopData(
+    expr: Expr,
+    formTemplate: FormTemplate,
+    retrievals: Retrievals,
+    data: Map[FormComponentId, Seq[String]],
+    section: BaseSection,
+    scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
     def toBigDecimal(str: String): BigDecimal =
       Try(BigDecimal(str.replace(",", ""))) match {
         case Success(x) => x
@@ -64,14 +70,14 @@ class PrepopService(
 
     def round(x: BigDecimal): BigDecimal = scale match {
       case Some(s) => x.setScale(s, RoundingMode.FLOOR)
-      case None => x
+      case None    => x
     }
 
     expr match {
-      case AuthCtx(value) => Future.successful(authContextPrepop.values(value, retrievals))
+      case AuthCtx(value)  => Future.successful(authContextPrepop.values(value, retrievals))
       case Constant(value) => Future.successful(value)
       case EeittCtx(eeitt) => eeittPrepop(eeitt, retrievals, formTemplate)
-      case UserCtx(_) => Future.successful(retrievals.affinityGroupName)
+      case UserCtx(_)      => Future.successful(retrievals.affinityGroupName)
       case Add(field1, field2) =>
         val value = for {
           y <- prepopData(field1, formTemplate, retrievals, data, section)
@@ -93,26 +99,30 @@ class PrepopService(
       case Sum(FormCtx(field)) =>
         val atomicFields = repeatingComponentService.atomicFields(section)
         val cacheMap: Future[CacheMap] = repeatingComponentService.getAllRepeatingGroups
-        val repeatingSections: Future[List[List[List[FormComponent]]]] = Future.sequence(atomicFields.map(fv => (fv.id, fv.`type`)).collect {
-          case (fieldId, group: Group) => cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
-        })
-        val listOfValues = Group.getGroup(repeatingSections, FormComponentId(field)).map(z =>
-          for {
-            id <- z
-            x = data.get(id).map(_.head).getOrElse("")
-          } yield toBigDecimal(x))
+        val repeatingSections: Future[List[List[List[FormComponent]]]] =
+          Future.sequence(atomicFields.map(fv => (fv.id, fv.`type`)).collect {
+            case (fieldId, group: Group) =>
+              cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
+          })
+        val listOfValues = Group
+          .getGroup(repeatingSections, FormComponentId(field))
+          .map(z =>
+            for {
+              id <- z
+              x = data.get(id).map(_.head).getOrElse("")
+            } yield toBigDecimal(x))
         for { vs <- listOfValues } yield round(vs.sum).toString()
       case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
-      case _ => Future.successful("")
+      case _           => Future.successful("")
     }
   }
 
-  private def eeittPrepop(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
+  private def eeittPrepop(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate)(
+    implicit hc: HeaderCarrier) =
     eeittService.getValue(eeitt, retrievals, formTemplate).recover {
       case NonFatal(error) =>
         Logger.error(s"error when getting known facts from eeitt: " + error.getMessage)
         "" // let's return empty string
     }
-  }
 
 }

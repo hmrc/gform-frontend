@@ -74,9 +74,17 @@ sealed trait TextConstraint
 
 final case object AnyText extends TextConstraint
 
-final case class Number(maxWholeDigits: Int = TextConstraint.defaultWholeDigits, maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits, unit: Option[String] = None) extends TextConstraint
+final case class Number(
+  maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
+  maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
+  unit: Option[String] = None)
+    extends TextConstraint
 
-final case class PositiveNumber(maxWholeDigits: Int = TextConstraint.defaultWholeDigits, maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits, unit: Option[String] = None) extends TextConstraint
+final case class PositiveNumber(
+  maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
+  maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
+  unit: Option[String] = None)
+    extends TextConstraint
 
 case object BasicText extends TextConstraint
 case object ShortText extends TextConstraint
@@ -106,4 +114,3 @@ object TextExpression {
   //TODO: this is not the same as in origin
   implicit val format: OFormat[TextExpression] = Json.format[TextExpression]
 }
-

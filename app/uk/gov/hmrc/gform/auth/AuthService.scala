@@ -27,17 +27,21 @@ import scala.concurrent.Future
 class AuthService(eeittService: EeittService) {
 
   def eeitReferenceNumber(retrievals: Retrievals): String = retrievals.userDetails.affinityGroup match {
-    case AffinityGroup.Agent => retrievals.enrolments
-      .getEnrolment(AuthConfig.eeittAuth)
-      .fold("")(_.getIdentifier(EEITTAuthConfig.agentIdName).fold("")(_.value))
-    case _ => retrievals.enrolments
-      .getEnrolment(AuthConfig.eeittAuth)
-      .fold("")(_.getIdentifier(EEITTAuthConfig.nonAgentIdName).fold("")(_.value))
+    case AffinityGroup.Agent =>
+      retrievals.enrolments
+        .getEnrolment(AuthConfig.eeittAuth)
+        .fold("")(_.getIdentifier(EEITTAuthConfig.agentIdName).fold("")(_.value))
+    case _ =>
+      retrievals.enrolments
+        .getEnrolment(AuthConfig.eeittAuth)
+        .fold("")(_.getIdentifier(EEITTAuthConfig.nonAgentIdName).fold("")(_.value))
   }
 
-  def evaluateSubmissionReference(expression: TextExpression, retrievals: Retrievals, formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] = {
-
+  def evaluateSubmissionReference(
+    expression: TextExpression,
+    retrievals: Retrievals,
+    formTemplate: FormTemplate,
+    data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] =
     expression.expr match {
       case AuthCtx(value) =>
         val authContextPrepop = new AuthContextPrepop()
@@ -49,5 +53,4 @@ class AuthService(eeittService: EeittService) {
 
       case _ => Future.successful("") //TODO change this to AuthExpr.
     }
-  }
 }

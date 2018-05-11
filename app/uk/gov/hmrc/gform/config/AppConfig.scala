@@ -21,14 +21,14 @@ import pureconfig._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
 case class AppConfig(
-    appName: String,
-    `google-analytics`: GoogleAnalytics,
-    `government-gateway-sign-in-url`: String,
-    `gform-frontend-base-url`: String,
-    feature: FeatureToggle,
-    formMaxAttachmentSizeMB: Int,
-    /*we can't override list in app-config-base:*/
-    contentTypesSeparatedByPipe: String
+  appName: String,
+  `google-analytics`: GoogleAnalytics,
+  `government-gateway-sign-in-url`: String,
+  `gform-frontend-base-url`: String,
+  feature: FeatureToggle,
+  formMaxAttachmentSizeMB: Int,
+  /*we can't override list in app-config-base:*/
+  contentTypesSeparatedByPipe: String
 ) {
   def contentTypes: List[ContentType] = contentTypesSeparatedByPipe.split('|').toList.map(ContentType.apply)
 }
@@ -43,7 +43,8 @@ object AppConfig {
   }
 
   private implicit class VerifyThat[T](t: T) {
-    def verifyThat(assertion: T => Boolean, message: String = "") = if (!assertion(t)) throw new AppConfigException(message)
+    def verifyThat(assertion: T => Boolean, message: String = "") =
+      if (!assertion(t)) throw new AppConfigException(message)
   }
 
   class AppConfigException(message: String) extends IllegalArgumentException(message)

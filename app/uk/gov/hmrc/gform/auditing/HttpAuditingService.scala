@@ -26,8 +26,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 /**
- * This is ErrorAuditingSettings logic ported out of deprecated play GlobalSettings
- */
+  * This is ErrorAuditingSettings logic ported out of deprecated play GlobalSettings
+  */
 class HttpAuditingService(appName: String, auditConnector: AuditConnector) { self =>
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -49,7 +49,8 @@ class HttpAuditingService(appName: String, auditConnector: AuditConnector) { sel
 
   private val httpAuditEvent = new HttpAuditEvent {
     //function dataEvent is protected, we need to access it this is why it's exposed in such way
-    def dataEvent0(eventType: String, transactionName: String, request: RequestHeader)(implicit hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)) =
+    def dataEvent0(eventType: String, transactionName: String, request: RequestHeader)(
+      implicit hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)) =
       dataEvent(eventType, transactionName, request)
     override def appName = self.appName
   }

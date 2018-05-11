@@ -31,16 +31,17 @@ final case object IsFalse extends BooleanExpr
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat
 
-  def isTrue(expr: BooleanExpr, data: Map[FormComponentId, Seq[String]], retrievals: Retrievals): Boolean = {
+  def isTrue(expr: BooleanExpr, data: Map[FormComponentId, Seq[String]], retrievals: Retrievals): Boolean =
     expr match {
-      case Equals(FormCtx(fieldId), Constant(value)) if FormDataHelpers.get(data, FormComponentId(fieldId)).contains(value) => true
+      case Equals(FormCtx(fieldId), Constant(value))
+          if FormDataHelpers.get(data, FormComponentId(fieldId)).contains(value) =>
+        true
       case Equals(UserCtx(_), Constant(value)) if retrievals.affinityGroupName == value => true
-      case Or(expr1, expr2) => isTrue(expr1, data, retrievals) | isTrue(expr2, data, retrievals)
-      case And(expr1, expr2) => isTrue(expr1, data, retrievals) & isTrue(expr2, data, retrievals)
-      case IsTrue => true
-      case _ => false
+      case Or(expr1, expr2)                                                             => isTrue(expr1, data, retrievals) | isTrue(expr2, data, retrievals)
+      case And(expr1, expr2)                                                            => isTrue(expr1, data, retrievals) & isTrue(expr2, data, retrievals)
+      case IsTrue                                                                       => true
+      case _                                                                            => false
     }
-  }
 }
 
 sealed trait Comparison
@@ -49,4 +50,3 @@ final case object Equality extends Comparison
 sealed trait BooleanOperation
 final case object OrOperation extends BooleanOperation
 final case object AndOperation extends BooleanOperation
-

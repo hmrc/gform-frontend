@@ -31,17 +31,16 @@ import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.play.health.AdminController
 
 class RoutingModule(
-    playBuiltInsModule: PlayBuiltInsModule,
-    akkaModule: AkkaModule,
-    configModule: ConfigModule,
-    auditingModule: AuditingModule,
-    metricsModule: MetricsModule,
-    gformModule: GformModule,
-    fileUploadModule: FileUploadModule,
-    testOnlyModule: TestOnlyModule,
-    frontendFiltersModule: FrontendFiltersModule,
-    controllersModule: ControllersModule
-
+  playBuiltInsModule: PlayBuiltInsModule,
+  akkaModule: AkkaModule,
+  configModule: ConfigModule,
+  auditingModule: AuditingModule,
+  metricsModule: MetricsModule,
+  gformModule: GformModule,
+  fileUploadModule: FileUploadModule,
+  testOnlyModule: TestOnlyModule,
+  frontendFiltersModule: FrontendFiltersModule,
+  controllersModule: ControllersModule
 ) { self =>
 
   //This must be called before `controllers.template.routes` gets read be classloader ...
@@ -68,11 +67,12 @@ class RoutingModule(
   )
 
   //we don't need it always, lets leave it lazy
-  private lazy val testOnlyDoNotUseInAppConfRoutes: testOnlyDoNotUseInAppConf.Routes = new testOnlyDoNotUseInAppConf.Routes(
-    controllersModule.errorHandler,
-    prodRoutes,
-    testOnlyModule.testOnlyController
-  )
+  private lazy val testOnlyDoNotUseInAppConfRoutes: testOnlyDoNotUseInAppConf.Routes =
+    new testOnlyDoNotUseInAppConf.Routes(
+      controllersModule.errorHandler,
+      prodRoutes,
+      testOnlyModule.testOnlyController
+    )
 
   val router: Router = {
     val applicationRouterKey = "application.router"
@@ -85,7 +85,8 @@ class RoutingModule(
       Logger.info("Using router with testOnlyDoNotUseInAppConf.routes")
       testOnlyDoNotUseInAppConfRoutes
     } else {
-      Logger.error(s"The option $applicationRouterKey has unsupported value: $applicationRouterProp. We support only 'testOnlyDoNotUseInAppConf.Routes'. Using 'prodRoutes'.")
+      Logger.error(
+        s"The option $applicationRouterKey has unsupported value: $applicationRouterProp. We support only 'testOnlyDoNotUseInAppConf.Routes'. Using 'prodRoutes'.")
       prodRoutes
     }
   }

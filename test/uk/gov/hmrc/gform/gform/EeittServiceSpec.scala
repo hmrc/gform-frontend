@@ -33,7 +33,9 @@ class EeittServiceSpec extends Spec with ExampleData {
   behavior of "Eeitt Service"
 
   val mockEeittConnector = new EeittConnector("", null) {
-    override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[BusinessUser] =
+    override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext): Future[BusinessUser] =
       Future.successful(BusinessUser("TESTREGNUM"))
 
     override def prepopulationAgent(groupId: GroupId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Agent] =

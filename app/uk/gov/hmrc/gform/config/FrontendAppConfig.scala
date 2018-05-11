@@ -29,4 +29,3 @@ case class FrontendAppConfig(
   whitelistEnabled: Boolean,
   sendPdfWithSubmission: Boolean
 )
-

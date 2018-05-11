@@ -32,30 +32,33 @@ import uk.gov.hmrc.play.frontend.bootstrap.FrontendFilters
 import uk.gov.hmrc.play.frontend.filters._
 
 class FrontendFiltersModule(
-    playBuiltInsModule: PlayBuiltInsModule,
-    akkaModule: AkkaModule,
-    configModule: ConfigModule,
-    auditingModule: AuditingModule,
-    metricsModule: MetricsModule,
-    controllersModule: ControllersModule
+  playBuiltInsModule: PlayBuiltInsModule,
+  akkaModule: AkkaModule,
+  configModule: ConfigModule,
+  auditingModule: AuditingModule,
+  metricsModule: MetricsModule,
+  controllersModule: ControllersModule
 ) { self =>
 
   private val frontendAuditFilter = new FrontendAuditFilter {
     override val maskedFormFields = Seq("password")
     override val applicationPort = None
     override val auditConnector = auditingModule.auditConnector
-    override def controllerNeedsAuditing(controllerName: String) = configModule.controllerConfig.paramsForController(controllerName).needsAuditing
+    override def controllerNeedsAuditing(controllerName: String) =
+      configModule.controllerConfig.paramsForController(controllerName).needsAuditing
     override implicit val mat: Materializer = akkaModule.materializer
     override val appName: String = configModule.appConfig.appName
   }
 
   private val loggingFilter = new FrontendLoggingFilter {
-    override def controllerNeedsLogging(controllerName: String) = configModule.controllerConfig.paramsForController(controllerName).needsLogging
+    override def controllerNeedsLogging(controllerName: String) =
+      configModule.controllerConfig.paramsForController(controllerName).needsLogging
     override implicit def mat: Materializer = akkaModule.materializer
   }
 
   private val csrfExceptionsFilter: CSRFExceptionsFilter = {
-    val uriWhiteList = configModule.playConfiguration.getStringSeq("csrfexceptions.whitelist").getOrElse(Seq.empty).toSet
+    val uriWhiteList =
+      configModule.playConfiguration.getStringSeq("csrfexceptions.whitelist").getOrElse(Seq.empty).toSet
     new CSRFExceptionsFilter(uriWhiteList)
   }
 
@@ -79,7 +82,8 @@ class FrontendFiltersModule(
 
     val additionalSessionKeysToKeep = configModule.playConfiguration
       .getStringSeq("session.additionalSessionKeysToKeep")
-      .getOrElse(Seq.empty).toSet
+      .getOrElse(Seq.empty)
+      .toSet
 
     new SessionTimeoutFilter(
       timeoutDuration = timeoutDuration,
@@ -107,12 +111,14 @@ class FrontendFiltersModule(
       override def frontendAuditFilter = self.frontendAuditFilter
       override def metricsFilter = metricsModule.metricsFilter
       override def deviceIdFilter = self.deviceIdCookieFilter
-      override def csrfFilter = cSRFComponents.csrfFilter // was: CSRFFilter()(akkaModule.materializer) //It's deprecated however this is how platform ops instantiated it.
+      override def csrfFilter =
+        cSRFComponents.csrfFilter // was: CSRFFilter()(akkaModule.materializer) //It's deprecated however this is how platform ops instantiated it.
       override def sessionTimeoutFilter = self.sessionTimeoutFilter
       override def csrfExceptionsFilter = self.csrfExceptionsFilter
 
       override def frontendFilters: Seq[EssentialFilter] = {
-        val enableSecurityHeaderFilter = configModule.playConfiguration.getBoolean("security.headers.filter.enabled").getOrElse(true)
+        val enableSecurityHeaderFilter =
+          configModule.playConfiguration.getBoolean("security.headers.filter.enabled").getOrElse(true)
         if (enableSecurityHeaderFilter) Seq(securityFilter) ++ defaultFrontendFilters else defaultFrontendFilters
       }
     }

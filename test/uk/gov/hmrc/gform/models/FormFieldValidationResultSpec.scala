@@ -41,9 +41,52 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     val testFieldComponent = ComponentField(
       fieldValue = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(FormComponent(FormComponentId("day"), Text(AnyText, Constant("")), "label", None, None, None, false, true, true, true, false, None), "1"),
-        "month" -> FieldOk(FormComponent(FormComponentId("month"), Text(AnyText, Constant("")), "label", None, None, None, false, true, true, true, false, None), "1"),
-        "year" -> FieldError(FormComponent(FormComponentId("year"), Text(AnyText, Constant("")), "label", None, None, None, false, true, true, true, false, None), "NOT_RIGHT", Set("NAN"))
+        "day" -> FieldOk(
+          FormComponent(
+            FormComponentId("day"),
+            Text(AnyText, Constant("")),
+            "label",
+            None,
+            None,
+            None,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None),
+          "1"),
+        "month" -> FieldOk(
+          FormComponent(
+            FormComponentId("month"),
+            Text(AnyText, Constant("")),
+            "label",
+            None,
+            None,
+            None,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None),
+          "1"),
+        "year" -> FieldError(
+          FormComponent(
+            FormComponentId("year"),
+            Text(AnyText, Constant("")),
+            "label",
+            None,
+            None,
+            None,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None),
+          "NOT_RIGHT",
+          Set("NAN"))
       )
     )
 
@@ -55,9 +98,51 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
     val testFieldComponent = ComponentField(
       fieldValue = mockDateFieldValue,
       data = Map(
-        "day" -> FieldOk(FormComponent(FormComponentId("day"), Text(AnyText, Constant("")), "day", None, None, None, false, true, true, true, false, None), "1"),
-        "month" -> FieldOk(FormComponent(FormComponentId("month"), Text(AnyText, Constant("")), "month", None, None, None, false, true, true, true, false, None), "1"),
-        "year" -> FieldOk(FormComponent(FormComponentId("year"), Text(AnyText, Constant("")), "year", None, None, None, false, true, true, true, false, None), "2017")
+        "day" -> FieldOk(
+          FormComponent(
+            FormComponentId("day"),
+            Text(AnyText, Constant("")),
+            "day",
+            None,
+            None,
+            None,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None),
+          "1"),
+        "month" -> FieldOk(
+          FormComponent(
+            FormComponentId("month"),
+            Text(AnyText, Constant("")),
+            "month",
+            None,
+            None,
+            None,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None),
+          "1"),
+        "year" -> FieldOk(
+          FormComponent(
+            FormComponentId("year"),
+            Text(AnyText, Constant("")),
+            "year",
+            None,
+            None,
+            None,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None),
+          "2017")
       )
     )
 

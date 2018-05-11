@@ -38,7 +38,7 @@ object DemoApp extends App {
 
   val result = for {
     formId <- gformConnector.newForm(formTemplateId, userId)
-    form <- gformConnector.getForm(formId)
+    form   <- gformConnector.getForm(formId)
     _ = println(s"formId = $formId")
     _ = println(s"form = $form")
   } yield ()

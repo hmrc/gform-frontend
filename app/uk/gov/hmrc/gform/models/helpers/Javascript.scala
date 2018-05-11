@@ -17,65 +17,70 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormComponent }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, FormComponentId }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 object Javascript {
 
-  def fieldJavascript(fields: List[FormComponent], groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
+  def fieldJavascript(fields: List[FormComponent], groupList: Future[List[List[List[FormComponent]]]])(
+    implicit ex: ExecutionContext): Future[String] = {
 
     val fieldIdWithExpr: List[(FormComponent, Expr)] =
       fields.collect {
         case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _, _, _) => (formComponent, expr)
       }
 
-    Future.sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList))).map(_.mkString("\n")).map(x => x +
-      """function getNumber(value) {
-        |  if (value == ""){
-        |    return "0";
-        |  } else {
-        |   return value.replace(",", "");
-        |  }
-        |};
-        |
-        |function add(a, b) {
-        |  return new Big(a).add(new Big(b));
-        |};
-        |
-        |function subtract(a, b) {
-        |  return new Big(a).minus(new Big(b));
-        |};
-        |
-        |function multiply(a, b) {
-        |  return new Big(a).times(new Big(b));
-        |};
-        |""".stripMargin).
-      map(s => {
+    Future
+      .sequence(fieldIdWithExpr.map(x => toJavascriptFn(x._1, x._2, groupList)))
+      .map(_.mkString("\n"))
+      .map(x =>
+        x +
+          """function getNumber(value) {
+            |  if (value == ""){
+            |    return "0";
+            |  } else {
+            |   return value.replace(",", "");
+            |  }
+            |};
+            |
+            |function add(a, b) {
+            |  return new Big(a).add(new Big(b));
+            |};
+            |
+            |function subtract(a, b) {
+            |  return new Big(a).minus(new Big(b));
+            |};
+            |
+            |function multiply(a, b) {
+            |  return new Big(a).times(new Big(b));
+            |};
+            |""".stripMargin)
+      .map(s => {
         val ss: String = s
         s
       })
   }
 
-  def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
+  def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(
+    implicit ex: ExecutionContext): Future[String] = {
 
     def roundTo = field.`type` match {
-      case Text(Number(_, digits, _), _) => digits
+      case Text(Number(_, digits, _), _)         => digits
       case Text(PositiveNumber(_, digits, _), _) => digits
-      case Text(Sterling, _) => 2
-      case _ => TextConstraint.defaultFactionalDigits
+      case Text(Sterling, _)                     => 2
+      case _                                     => TextConstraint.defaultFactionalDigits
     }
 
-    def eventListeners(id: String, functionName: String) = {
+    def eventListeners(id: String, functionName: String) =
       s"""document.getElementById("$id").addEventListener("change",$functionName);
          |document.getElementById("$id").addEventListener("keyup",$functionName);
          |window.addEventListener("load", $functionName);
        """.stripMargin
-    }
 
     def values(id: String) = s"""getNumber(document.getElementById("$id").value.replace(/[£,]/g,''))"""
 
-    def ids(expr: Expr): Future[List[String]] = {
+    def ids(expr: Expr): Future[List[String]] =
       expr match {
         case Add(amountA, amountB) =>
           for {
@@ -94,11 +99,10 @@ object Javascript {
             y <- ids(field2)
           } yield x ::: y
         case Sum(FormCtx(id)) => Group.getGroup(groupList, FormComponentId(id)).map(fieldId => fieldId.map(_.value))
-        case otherwise => Future.successful(List(""))
+        case otherwise        => Future.successful(List(""))
       }
-    }
 
-    def consts(expr: Expr): List[String] = {
+    def consts(expr: Expr): List[String] =
       expr match {
         case Constant(amount) => List(amount)
         case Add(amountA, amountB) =>
@@ -115,21 +119,23 @@ object Javascript {
           x ::: y
         case _ => List("")
       }
-    }
 
     // TODO: These filters are a bit of a hack
-    val demValues = ids(expr).map(i => (i.filterNot(_.isEmpty).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", "))
-    def listeners(functionName: String) = ids(expr).map(_.filterNot(_.isEmpty).map(eventListeners(_, functionName)).mkString("\n"))
+    val demValues =
+      ids(expr).map(i => (i.filterNot(_.isEmpty).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", "))
+    def listeners(functionName: String) =
+      ids(expr).map(_.filterNot(_.isEmpty).map(eventListeners(_, functionName)).mkString("\n"))
 
     // TODO: the use of reduce() is simplistic, we need to generate true javascript expressions based on the parsed gform expression
     expr match {
       case Sum(FormCtx(id)) =>
         val eventListeners = Group.getGroup(groupList, FormComponentId(id)).map { listFieldId =>
-          listFieldId.map(groupFieldId =>
-            s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
+          listFieldId
+            .map(groupFieldId => s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
               document.getElementById("${groupFieldId.value}").addEventListener("keyup",sum$id);
               window.addEventListener("load",sum$id);
-           """).mkString("\n")
+           """)
+            .mkString("\n")
         }
 
         val groups: Future[String] = Group.getGroup(groupList, FormComponentId(id)).map { listFieldId =>
@@ -137,7 +143,7 @@ object Javascript {
         }
         for {
           listeners <- eventListeners
-          values <- groups
+          values    <- groups
         } yield {
           s"""
 
@@ -153,22 +159,22 @@ object Javascript {
       case Add(b, sn) =>
         val functionName = "add" + field.id.value
         for {
-          values <- demValues
+          values   <- demValues
           listener <- listeners(functionName)
         } yield {
           s"""|function $functionName() {
-        |  var x = [ $values ];
-        |  var result = x.reduce(add, 0);
-        |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
-        |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
-        |};
-        |$listener
-        |""".stripMargin
+              |  var x = [ $values ];
+              |  var result = x.reduce(add, 0);
+              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
+              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
+              |};
+              |$listener
+              |""".stripMargin
         }
       case Subtraction(field1, field2) =>
         val functionName = "subtract" + field.id.value
         for {
-          values <- demValues
+          values   <- demValues
           listener <- listeners(functionName)
         } yield {
           s"""|function $functionName() {
@@ -184,7 +190,7 @@ object Javascript {
       case Multiply(field1, field2) =>
         val functionName = "multiply" + field.id.value
         for {
-          values <- demValues
+          values   <- demValues
           listener <- listeners(functionName)
         } yield {
           s"""|function $functionName() {
@@ -201,11 +207,10 @@ object Javascript {
     }
   }
 
-  def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) = {
+  def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) =
     s"""
        |function removeOnClick$fieldId() {
        |${group.fields.map(fv => s"""document.getElementById("${fv.id}").value = '' """).mkString(";\n")}
        |}
      """.stripMargin
-  }
 }

@@ -28,7 +28,6 @@ class AuthConnector(baseUrl: String, wsHttp: WSHttp) extends PlayAuthConnector w
   val serviceUrl = baseUrl
   lazy val http = wsHttp
 
-  def getUserDetails(uri: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UserDetails] = {
+  def getUserDetails(uri: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UserDetails] =
     http.GET[UserDetails](uri)
-  }
 }

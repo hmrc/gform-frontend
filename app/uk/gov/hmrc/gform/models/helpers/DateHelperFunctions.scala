@@ -46,7 +46,8 @@ object DateHelperFunctions {
     case 0 => dateExpr // merge cases
     case nonZero =>
       val zeroPadding = (x: Int) => "%02d".format(x)
-      val dateExprToString = (dateExpr: DateExpr) => dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)
+      val dateExprToString = (dateExpr: DateExpr) =>
+        dateExpr.year + "-" + zeroPadding(dateExpr.month) + "-" + zeroPadding(dateExpr.day)
 
       val dateWithOffset = LocalDate
         .parse(dateExprToString(dateExpr), dateFormatter)
@@ -62,14 +63,16 @@ object DateHelperFunctions {
     m.charAt(0) + "" + restValue.toLowerCase
   }
 
-  val renderMonth: (Option[String]) => Option[String] = (str: Option[String]) => Try(str.getOrElse("").toInt) match {
-    case Success(month) => Some(month.toString)
-    case Failure(_) => None
+  val renderMonth: (Option[String]) => Option[String] = (str: Option[String]) =>
+    Try(str.getOrElse("").toInt) match {
+      case Success(month) => Some(month.toString)
+      case Failure(_)     => None
   }
 
-  val getMonthValue: Option[String] => Option[String] = (str: Option[String]) => Try(str.getOrElse("").toInt) match {
-    case Success(month) =>
-      Some(toCamelCase(Month.values().apply(month - 1).toString))
-    case Failure(_) => None
+  val getMonthValue: Option[String] => Option[String] = (str: Option[String]) =>
+    Try(str.getOrElse("").toInt) match {
+      case Success(month) =>
+        Some(toCamelCase(Month.values().apply(month - 1).toString))
+      case Failure(_) => None
   }
 }

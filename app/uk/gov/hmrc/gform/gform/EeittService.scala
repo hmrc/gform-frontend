@@ -31,19 +31,21 @@ class EeittService(eeittConnector: EeittConnector) {
   def getValue(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
     val regimeId = formTemplate.authConfig match {
       case EEITTAuthConfig(_, rId) => rId
-      case _ => RegimeId("")
+      case _                       => RegimeId("")
     }
     for {
       prepopData <- (eeitt, retrievals.affinityGroup) match {
-        case (Agent, Some(AffinityGroup.Agent)) | (UserId, Some(AffinityGroup.Agent)) =>
-          eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
-        case (BusinessUser, Some(AffinityGroup.Agent)) =>
-          Future.successful("")
-        case (BusinessUser, _) | (UserId, _) =>
-          eeittConnector.prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), regimeId).map(_.registrationNumber)
-        case _ =>
-          Future.successful("")
-      }
+                     case (Agent, Some(AffinityGroup.Agent)) | (UserId, Some(AffinityGroup.Agent)) =>
+                       eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
+                     case (BusinessUser, Some(AffinityGroup.Agent)) =>
+                       Future.successful("")
+                     case (BusinessUser, _) | (UserId, _) =>
+                       eeittConnector
+                         .prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), regimeId)
+                         .map(_.registrationNumber)
+                     case _ =>
+                       Future.successful("")
+                   }
     } yield prepopData
   }
 }

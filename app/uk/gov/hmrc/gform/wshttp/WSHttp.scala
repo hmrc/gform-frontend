@@ -44,7 +44,9 @@ trait Hooks extends HttpHooks with HttpAuditing {
   override lazy val auditConnector: AuditConnector = MicroserviceAuditConnector
 }
 
-trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete with Hooks with AppName
+trait WSHttp
+    extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete
+    with Hooks with AppName
 object WSHttp extends WSHttp
 
 object MicroserviceAuthConnector extends AuthConnector with ServicesConfig with WSHttp {

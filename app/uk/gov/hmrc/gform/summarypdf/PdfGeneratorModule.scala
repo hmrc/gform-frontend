@@ -23,10 +23,11 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class PdfGeneratorModule(
-    configModule: ConfigModule,
-    wSHttpModule: WSHttpModule
+  configModule: ConfigModule,
+  wSHttpModule: WSHttpModule
 ) {
 
-  private val pdfGeneratorConnector = new PdfGeneratorConnector(configModule.serviceConfig, wSHttpModule.auditableWSHttp)
+  private val pdfGeneratorConnector =
+    new PdfGeneratorConnector(configModule.serviceConfig, wSHttpModule.auditableWSHttp)
   val pdfGeneratorService: PdfGeneratorService = new PdfGeneratorService(pdfGeneratorConnector)
 }

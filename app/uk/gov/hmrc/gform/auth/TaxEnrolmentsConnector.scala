@@ -40,7 +40,8 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
   // TODO: This tax-enrolments endpoint is not ready yet, once it is available, this connector will need to be
   //       updated to reflect the final design. For now, the GovernmentGatewayConnector is used for this operation.
 
-  def enrolGGUser(request: TaxEnrolmentRequest, service: ServiceId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    http.PUT(s"${baseUrl}/tax-enrolments/service/${service.value}/enrolment", request)
+  def enrolGGUser(request: TaxEnrolmentRequest, service: ServiceId)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[HttpResponse] =
+    http.PUT(s"$baseUrl/tax-enrolments/service/${service.value}/enrolment", request)
 }
-

@@ -32,10 +32,8 @@ case class FormComponent(
   onlyShowOnSummary: Boolean = false,
   errorMessage: Option[String],
   presentationHint: Option[List[PresentationHint]] = None
-
 )
 
 object FormComponent {
   implicit val format = Json.format[FormComponent]
 }
-

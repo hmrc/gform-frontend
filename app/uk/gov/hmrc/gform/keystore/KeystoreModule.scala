@@ -28,5 +28,6 @@ class KeystoreModule(configModule: ConfigModule, wSHttpModule: WSHttpModule) {
     wSHttpModule.auditableWSHttp
   )
 
-  val repeatingComponentService: RepeatingComponentService = new RepeatingComponentService(sessionCacheConnector, configModule)
+  val repeatingComponentService: RepeatingComponentService =
+    new RepeatingComponentService(sessionCacheConnector, configModule)
 }

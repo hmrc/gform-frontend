@@ -24,9 +24,18 @@ class TextFormatterSpec extends Spec {
 
   def getComponent(text: Text) = FormComponent(
     `fieldId - firstName`,
-    text, "First Name", None, None, None, mandatory = true, editable = true, submissible = true, derived = true,
+    text,
+    "First Name",
+    None,
+    None,
+    None,
+    mandatory = true,
+    editable = true,
+    submissible = true,
+    derived = true,
     onlyShowOnSummary = false,
-    None, None
+    None,
+    None
   )
 
   def getValidationResult(component: FormComponent, value: String) = Some(FieldOk(component, value))
@@ -38,12 +47,11 @@ class TextFormatterSpec extends Spec {
     TextFormatter.formatText(getValidationResult(component, "1000.00")) shouldBe values("1000.00", text.constraint)
   }
 
-  def values(value: String, constraint: TextConstraint) = {
+  def values(value: String, constraint: TextConstraint) =
     constraint match {
       case Sterling => s"£$value"
-      case _ => value
+      case _        => value
     }
-  }
 
   def testValuesGreaterThan5Digits(text: Text) = {
     val component = getComponent(text)
@@ -59,7 +67,9 @@ class TextFormatterSpec extends Spec {
 
     TextFormatter.formatText(getValidationResult(component, "£100,00.00")) shouldBe values("10,000.00", text.constraint)
     TextFormatter.formatText(getValidationResult(component, "£10,0.00")) shouldBe values("100.00", text.constraint)
-    TextFormatter.formatText(getValidationResult(component, "£88666,564.59")) shouldBe values("88,666,564.59", text.constraint)
+    TextFormatter.formatText(getValidationResult(component, "£88666,564.59")) shouldBe values(
+      "88,666,564.59",
+      text.constraint)
   }
 
   "formatText" should "not add commas for Text component with Sterling constraint and current value's length less than 5" in {

@@ -24,11 +24,11 @@ import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class ControllersModule(
-    configModule: ConfigModule,
-    authModule: AuthModule,
-    gformBackendModule: GformBackendModule,
-    playBuiltInsModule: PlayBuiltInsModule,
-    auditingModule: AuditingModule
+  configModule: ConfigModule,
+  authModule: AuthModule,
+  gformBackendModule: GformBackendModule,
+  playBuiltInsModule: PlayBuiltInsModule,
+  auditingModule: AuditingModule
 ) {
 
   val errResponder: ErrResponder = new ErrResponder(

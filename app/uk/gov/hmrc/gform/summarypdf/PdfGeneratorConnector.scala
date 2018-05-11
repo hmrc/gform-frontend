@@ -27,16 +27,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp) {
 
-  def generatePDF(payload: Map[String, Seq[String]], headers: Seq[(String, String)])(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
-
-    wSHttp.buildRequest(s"$baseURL/pdf-generator-service/generate")
+  def generatePDF(payload: Map[String, Seq[String]], headers: Seq[(String, String)])(
+    implicit hc: HeaderCarrier): Future[Source[ByteString, _]] =
+    wSHttp
+      .buildRequest(s"$baseURL/pdf-generator-service/generate")
       .withMethod("POST")
       .withHeaders(headers: _*)
       .withBody(payload)
       .stream()
       .map(_.body)
-  }
 
   lazy val baseURL = servicesConfig.baseUrl("pdf-generator")
 }
-

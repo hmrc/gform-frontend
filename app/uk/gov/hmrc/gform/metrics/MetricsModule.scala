@@ -43,7 +43,7 @@ class MetricsModule(playBuiltInsModule: PlayBuiltInsModule, akkaModule: AkkaModu
     playBuiltInsModule.context.initialConfiguration
   )
   private lazy val metricsPluginEnabled: Boolean = configModule.typesafeConfig.getBoolean("metrics.enabled")
-  private lazy val graphitePublisherEnabled: Boolean = configModule.typesafeConfig.getBoolean("microservice.metrics.graphite.enabled")
+  private lazy val graphitePublisherEnabled: Boolean =
+    configModule.typesafeConfig.getBoolean("microservice.metrics.graphite.enabled")
 
 }
-
