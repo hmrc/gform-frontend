@@ -38,4 +38,12 @@ class ViewsHelperSpec extends FlatSpec with Matchers {
   it should "handle string with more delimiters" in {
     localisation("a|b|c|d") should be("a")
   }
+
+  "summaryTextArea method" should "handle escape html entities and replace new lines with <br/>" in {
+    summaryTextArea("hello\r\nworld").body should be("hello<br/>world")
+    summaryTextArea("\rhello\r\nworld\n").body should be("<br/>hello<br/>world<br/>")
+    summaryTextArea("hello\rworld").body should be("hello<br/>world")
+    summaryTextArea("hello\nworld").body should be("hello<br/>world")
+    summaryTextArea("<b>hello\nworld</b>").body should be("&lt;b&gt;hello<br/>world&lt;/b&gt;")
+  }
 }

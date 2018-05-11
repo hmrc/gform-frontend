@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.views
 
+import play.twirl.api.{ Html, HtmlFormat }
+
 package object html {
 
   // No lang support yet
@@ -24,4 +26,16 @@ package object html {
       case Array()      => ""
       case Array(s, _*) => s.trim
     }
+
+  def summaryTextArea(str: String): Html = {
+    val replaceBy = "<br/>"
+    val escaped = HtmlFormat.escape(str).body
+
+    // https://stackoverflow.com/a/14217315/2522894
+    val replaced = List("\r\n", "\r", "\n").foldLeft(escaped) {
+      case (acc, seq) => acc.replaceAll(seq, replaceBy)
+    }
+
+    Html(replaced)
+  }
 }

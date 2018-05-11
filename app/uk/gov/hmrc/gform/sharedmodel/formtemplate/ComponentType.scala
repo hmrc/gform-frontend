@@ -31,6 +31,8 @@ case class Text(
   value: Expr
 ) extends ComponentType
 
+case object TextArea extends ComponentType
+
 case class UkSortCode(value: Expr) extends ComponentType
 
 object UkSortCode {
