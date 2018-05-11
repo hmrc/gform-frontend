@@ -20,7 +20,7 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
 import play.api.i18n.Messages
 import play.api.mvc.Request
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.auth.models.Retrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
+import uk.gov.hmrc.gform.views.html.summaryTextArea
 import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -131,7 +132,8 @@ object SummaryRenderingService {
           case UkSortCode(_)  => Future.successful(sort_code(fieldValue, validate(fieldValue)))
           case Date(_, _, _)  => Future.successful(date(fieldValue, validate(fieldValue)))
           case Address(_)     => Future.successful(address(fieldValue, validate(fieldValue)))
-          case t @ Text(_, _) => Future.successful(text(fieldValue, t, validate(fieldValue)))
+          case t @ Text(_, _) => Future.successful(text(fieldValue, validate(fieldValue), HtmlFormat.escape))
+          case TextArea       => Future.successful(text(fieldValue, validate(fieldValue), summaryTextArea))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex
               .map {

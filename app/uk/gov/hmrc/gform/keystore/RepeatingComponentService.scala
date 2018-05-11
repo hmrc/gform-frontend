@@ -374,7 +374,7 @@ class RepeatingComponentService(
     sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value).flatMap {
       case Some(dynamicList) if dynamicList.render =>
         Future.successful((dynamicList.list, isRepeatsMaxReached(dynamicList.list.size, groupField)))
-      case Some(dynamicList) => Future.successful(Nil, false)
+      case Some(dynamicList) => Future.successful((Nil, false))
       case None              => initialiseDynamicGroupList(topFieldValue, groupField)
     }
 

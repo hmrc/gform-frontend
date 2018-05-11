@@ -390,6 +390,7 @@ class SectionRenderingService(
       case Address(international) =>
         Future.successful(htmlForAddress(fieldValue, international, index, maybeValidated, ei))
       case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, maybeValidated, ei, isHidden)
+      case TextArea          => Future.successful(htmlForTextArea(fieldValue, index, maybeValidated, ei, isHidden))
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei)
           .pure[Future]
@@ -552,6 +553,30 @@ class SectionRenderingService(
     for {
       prepopValue <- prepopValueF
     } yield renderText(fieldValue, t, prepopValue, validatedValue, isHidden)
+  }
+
+  private def htmlForTextArea(
+    fieldValue: FormComponent,
+    index: Int,
+    validatedType: Option[ValidatedType],
+    ei: ExtraInfo,
+    isHidden: Boolean)(implicit hc: HeaderCarrier) = {
+    def renderTextArea(
+      fieldValue: FormComponent,
+      validatedValue: Option[FormFieldValidationResult],
+      isHidden: Boolean): Html = {
+      val prepopValue = "" // TODO we don't support prepopulation for multiline input yet
+      val htmlWithValues =
+        html.form.snippets.field_template_textarea(fieldValue, prepopValue, validatedValue, index, ei.section.title)
+      if (isHidden)
+        html.form.snippets
+          .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
+      else htmlWithValues
+    }
+
+    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
+
+    renderTextArea(fieldValue, validatedValue, isHidden)
   }
 
   private def htmlForSortCode(

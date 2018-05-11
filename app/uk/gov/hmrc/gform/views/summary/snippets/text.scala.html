@@ -22,9 +22,9 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FormComponent, text: Text, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], toHtml: String => Html)
 
-@currentValue = @{TextFormatter.formatText(validationResult)}
+@currentValue = @{toHtml(TextFormatter.formatText(validationResult))}
 
 @hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
 

@@ -83,7 +83,8 @@ object ValidationUtil {
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
           }
         }
-      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _) =>
+      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _) |
+          TextArea =>
         List[(FormComponentId, FormFieldValidationResult)]()
     }
 
@@ -157,10 +158,10 @@ object ValidationUtil {
             .fold[FormFieldValidationResult](
               FieldOk(fieldValue, data)
             )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
+        case TextArea =>
+          FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
         case Group(_, _, _, _, _, _) => {
-
           FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
-
         }
 
         case Choice(_, _, _, _, _) =>

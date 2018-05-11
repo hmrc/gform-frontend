@@ -132,6 +132,7 @@ class ComponentsValidator(
     case sortCode @ UkSortCode(_)  => validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data)
     case date @ Date(_, _, _)      => validateDate(fieldValue, date)
     case text @ Text(_, _)         => validateText(fieldValue, text, retrievals)(data)
+    case TextArea                  => validF
     case address @ Address(_)      => validateAddress(fieldValue, address)(data)
     case c @ Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
     case Group(_, _, _, _, _, _)   => validF //a group is read-only
@@ -426,7 +427,6 @@ class ComponentsValidator(
             case (Nil, true)       => getError(fieldValue, "must be a two digit number")
             case (Nil, false)      => ().valid
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
-            case (value :: Nil, _) => ().valid //Does not support multiple values
           }
         }
     )
