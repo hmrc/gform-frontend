@@ -179,7 +179,7 @@ object Javascript {
         } yield {
           s"""|function $functionName() {
               |  var x = [ $values ];
-              |  var result = x.reduce(subtract, 0);
+              |  var result = subtract(x[0], x[1]);
               |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
               |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
               |};
