@@ -163,15 +163,25 @@ button.link-back {
   box-shadow: none;
   border-top: 1px solid transparent;
   border-bottom-color: black;
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
 }
 
-button.link-back:hover,
-button.link-back:focus,
-button.link-back:visited,
-button.link-back:active{
+button.link-back:focus {
   color: #0B0C09;
-  border: 1px dotted black;
-    background: #FFBF47;
+  background: #FFBF47;
+  outline: 3px solid #ffbf47;
+  outline-offset: 0; /* overwrite styles from button pattern */
+}
+
+/* Overwrite button styling attributes interfering with link-back arrow setup */
+button.link-back:before {
+  top: 50%;
+  height: 0;
+}
+button.link-back:active {
+  top: 0;
 }
 
 button.button--secondary{
