@@ -257,19 +257,19 @@ gfForm.on('click', '[type="submit"]', function(evt) {
   gfFormAction.val(type);
 });
 
-// Avoid the browser choosing the 'Back' button when the user presses Enter, unless the button
-// is in focus.
-$("#backButton").focus(function(){
-  $(this).attr('type', 'submit');
+// Manually submit the form with the action saving the form and taking the user back one screen
+$('#backButton').on("click",function(e){
+    e.preventDefault();
+    gfFormAction.attr('value', 'Back');
+    gfForm.submit();
 });
 
-$('#backButton').blur(function(){
-  $(this).attr('type', 'button');
-});
-
-$('#backButton').on("click",function(){
-    $('#gform-action').attr('value', 'Back');
-});
+// Manually submit the form with the action taking the user back to the summary page
+$('#BackToSummary').on('click', function(e) {
+    e.preventDefault();
+    gfFormAction.attr('value', 'BackToSummary');
+    gfForm.submit();
+})
 
 // Add focus class to file upload label on input focus for outline in firefox
 $('.file-upload__file').focus(function(){
