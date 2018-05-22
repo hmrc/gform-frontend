@@ -157,33 +157,6 @@
   font-weight: bold;
 }
 
-/* Make back button look like a ba ck link, CSS specificity means we can't just apply the link class */
-button.link-back {
-  background: transparent;
-  box-shadow: none;
-  border-top: 1px solid transparent;
-  border-bottom-color: black;
-  padding-top: 0;
-  padding-right: 0;
-  padding-bottom: 0;
-}
-
-button.link-back:focus {
-  color: #0B0C09;
-  background: #FFBF47;
-  outline: 3px solid #ffbf47;
-  outline-offset: 0; /* overwrite styles from button pattern */
-}
-
-/* Overwrite button styling attributes interfering with link-back arrow setup */
-button.link-back:before {
-  top: 50%;
-  height: 0;
-}
-button.link-back:active {
-  top: 0;
-}
-
 button.button--secondary{
     border: 3px solid transparent;
 }
