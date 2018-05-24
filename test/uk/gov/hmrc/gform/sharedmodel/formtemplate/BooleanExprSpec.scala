@@ -25,183 +25,118 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormField
 class BooleanExprSpec extends Spec {
   val retrievals: Retrievals = mock[Retrievals]
 
-  "0 equals 0" should "return true" in new TestZero {
-    BooleanExpr.isTrue(Equals(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe true
+  val equalsCombinations = Table(
+    ("Ctx value", "left argument", "right argument", "expected result"),
+    ("0", "number", "0", true),
+    ("0", "number", "1", false),
+    ("00", "number", "0", true),
+    ("0", "number", "00", true),
+    ("1,000", "number", "1000", true),
+    ("Fred", "firstName", "Fred", true),
+    ("Fred", "firstName", "Dave", false),
+    ("0", "number", "Fred", false),
+    ("Fred", "firstName", "0", false)
+  )
+
+  forAll(equalsCombinations) { (ctxValue, left, right, result) =>
+    new Test {
+      override val value = ctxValue
+      BooleanExpr.isTrue(Equals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+    }
   }
 
-  "0 equals 1" should "return false" in new TestZero {
-    BooleanExpr.isTrue(Equals(FormCtx("number"), Constant("1")), rawDataFromBrowser, authContext) shouldBe false
+  val notEqualsCombinations = Table(
+    ("Ctx value", "left argument", "right argument", "expected result"),
+    ("0", "number", "0", false),
+    ("0", "number", "1", true),
+    ("00", "number", "0", false),
+    ("0", "number", "00", false),
+    ("1,000", "number", "1000", false),
+    ("Fred", "firstName", "Fred", false),
+    ("Fred", "firstName", "Dave", true),
+    ("0", "number", "Fred", true),
+    ("Fred", "firstName", "0", true)
+  )
+
+  forAll(notEqualsCombinations) { (ctxValue, left, right, result) =>
+    new Test {
+      override val value = ctxValue
+      BooleanExpr.isTrue(NotEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+    }
   }
 
-  "00 equals 0" should "return true" in new Test {
-    override val value = "00"
-    BooleanExpr.isTrue(Equals(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe true
+  val greaterThanCombinations = Table(
+    ("Ctx value", "left argument", "right argument", "expected result"),
+    ("1", "number", "0", true),
+    ("0", "number", "-1", true),
+    ("0", "number", "1", false),
+    ("0", "number", "0", false),
+    ("Fred", "firstName", "Dave", true),
+    ("Dave", "firstName", "Fred", false),
+    ("Fred", "firstName", "Fred", false)
+  )
+
+  forAll(greaterThanCombinations) { (ctxValue, left, right, result) =>
+    new Test {
+      override val value = ctxValue
+      BooleanExpr.isTrue(GreaterThan(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+    }
   }
 
-  "0 equals 00" should "return true" in new TestZero {
-    BooleanExpr.isTrue(Equals(FormCtx("number"), Constant("00")), rawDataFromBrowser, authContext) shouldBe true
+  val greaterThanOrEqualsCombinations = Table(
+    ("Ctx value", "left argument", "right argument", "expected result"),
+    ("1", "number", "0", true),
+    ("0", "number", "-1", true),
+    ("0", "number", "1", false),
+    ("0", "number", "0", true),
+    ("Fred", "firstName", "Dave", true),
+    ("Dave", "firstName", "Fred", false),
+    ("Fred", "firstName", "Fred", true)
+  )
+
+  forAll(greaterThanOrEqualsCombinations) { (ctxValue, left, right, result) =>
+    new Test {
+      override val value = ctxValue
+      BooleanExpr
+        .isTrue(GreaterThanOrEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+    }
   }
 
-  "1,000 equals 1000" should "return true" in new Test {
-    override val value = "1,000"
-    BooleanExpr.isTrue(Equals(FormCtx("number"), Constant("1000")), rawDataFromBrowser, authContext) shouldBe true
+  val lessThanCombinations = Table(
+    ("Ctx value", "left argument", "right argument", "expected result"),
+    ("1", "number", "0", false),
+    ("0", "number", "-1", false),
+    ("0", "number", "1", true),
+    ("0", "number", "0", false),
+    ("Fred", "firstName", "Dave", false),
+    ("Dave", "firstName", "Fred", true),
+    ("Fred", "firstName", "Fred", false)
+  )
+
+  forAll(lessThanCombinations) { (ctxValue, left, right, result) =>
+    new Test {
+      override val value = ctxValue
+      BooleanExpr.isTrue(LessThan(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+    }
   }
 
-  "Fred equals Fred" should "return true" in new TestFred {
-    BooleanExpr.isTrue(Equals(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe true
-  }
+  val lessThanOrEqualsCombinations = Table(
+    ("Ctx value", "left argument", "right argument", "expected result"),
+    ("1", "number", "0", false),
+    ("0", "number", "-1", false),
+    ("0", "number", "1", true),
+    ("0", "number", "0", true),
+    ("Fred", "firstName", "Dave", false),
+    ("Dave", "firstName", "Fred", true),
+    ("Fred", "firstName", "Fred", true)
+  )
 
-  "Fred equals Dave" should "return false" in new TestFred {
-    BooleanExpr.isTrue(Equals(FormCtx("firstName"), Constant("Dave")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "0 equals Fred" should "return false" in new TestZero {
-    BooleanExpr.isTrue(Equals(FormCtx("number"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "Fred equals 0" should "return false" in new TestFred {
-    BooleanExpr.isTrue(Equals(FormCtx("firstName"), Constant("0")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "1 greater than 0" should "return true" in new Test {
-    override val value = "1"
-    BooleanExpr.isTrue(GreaterThan(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "0 greater than -1" should "return true" in new TestZero {
-    BooleanExpr.isTrue(GreaterThan(FormCtx("number"), Constant("-1")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "0 greater than 1" should "return false" in new TestZero {
-    BooleanExpr.isTrue(GreaterThan(FormCtx("number"), Constant("1")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "0 greater than 0" should "return false" in new TestZero {
-    BooleanExpr.isTrue(GreaterThan(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "Fred greater than Dave" should "return true" in new TestFred {
-    BooleanExpr
-      .isTrue(GreaterThan(FormCtx("firstName"), Constant("Dave")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "Dave greater than Fred" should "return false" in new Test {
-    override val value = "Dave"
-    BooleanExpr
-      .isTrue(GreaterThan(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "Fred greater than Fred" should "return false" in new TestFred {
-    BooleanExpr
-      .isTrue(GreaterThan(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "1 greater than or equal to 0" should "return true" in new Test {
-    override val value = "1"
-    BooleanExpr
-      .isTrue(GreaterThanOrEquals(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "0 greater than or equal to -1" should "return true" in new TestZero {
-    BooleanExpr
-      .isTrue(GreaterThanOrEquals(FormCtx("number"), Constant("-1")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "0 greater than or equal to 1" should "return false" in new TestZero {
-    BooleanExpr
-      .isTrue(GreaterThanOrEquals(FormCtx("number"), Constant("1")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "0 greater than or equal to 0" should "return true" in new TestZero {
-    BooleanExpr
-      .isTrue(GreaterThanOrEquals(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "Fred greater than or equal to Dave" should "return true" in new TestFred {
-    BooleanExpr
-      .isTrue(GreaterThanOrEquals(FormCtx("firstName"), Constant("Dave")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "Dave greater than or equal to Fred" should "return false" in new Test {
-    override val value = "Dave"
-    BooleanExpr
-      .isTrue(GreaterThanOrEquals(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "Fred greater than or equal to Fred" should "return true" in new TestFred {
-    BooleanExpr
-      .isTrue(GreaterThanOrEquals(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "1 less than 0" should "return false" in new Test {
-    override val value = "1"
-    BooleanExpr.isTrue(LessThan(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "0 less than -1" should "return false" in new TestZero {
-    BooleanExpr.isTrue(LessThan(FormCtx("number"), Constant("-1")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "0 less than 1" should "return true" in new TestZero {
-    BooleanExpr.isTrue(LessThan(FormCtx("number"), Constant("1")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "0 less than 0" should "return false" in new TestZero {
-    BooleanExpr.isTrue(LessThan(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "Fred less than Dave" should "return false" in new Test {
-    override val value = "Fred"
-    BooleanExpr.isTrue(LessThan(FormCtx("firstName"), Constant("Dave")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "Dave less than Fred" should "return true" in new Test {
-    override val value = "Dave"
-    BooleanExpr.isTrue(LessThan(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "Fred less than Fred" should "return false" in new Test {
-    override val value = "Fred"
-    BooleanExpr.isTrue(LessThan(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "1 less than or equal to 0" should "return false" in new Test {
-    override val value = "1"
-    BooleanExpr
-      .isTrue(LessThanOrEquals(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "0 less than or equal to -1" should "return false" in new TestZero {
-    BooleanExpr
-      .isTrue(LessThanOrEquals(FormCtx("number"), Constant("-1")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "0 less than or equal to 1" should "return true" in new TestZero {
-    BooleanExpr
-      .isTrue(LessThanOrEquals(FormCtx("number"), Constant("1")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "0 less than or equal to 0" should "return true" in new TestZero {
-    BooleanExpr
-      .isTrue(LessThanOrEquals(FormCtx("number"), Constant("0")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "Fred less than or equal to Dave" should "return false" in new Test {
-    override val value = "Fred"
-    BooleanExpr
-      .isTrue(LessThanOrEquals(FormCtx("firstName"), Constant("Dave")), rawDataFromBrowser, authContext) shouldBe false
-  }
-
-  "Dave less than or equal to Fred" should "return true" in new Test {
-    override val value = "Dave"
-    BooleanExpr
-      .isTrue(LessThanOrEquals(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe true
-  }
-
-  "Fred less than or equal to Fred" should "return true" in new Test {
-    override val value = "Fred"
-    BooleanExpr
-      .isTrue(LessThanOrEquals(FormCtx("firstName"), Constant("Fred")), rawDataFromBrowser, authContext) shouldBe true
+  forAll(lessThanOrEqualsCombinations) { (ctxValue, left, right, result) =>
+    new Test {
+      override val value = ctxValue
+      BooleanExpr
+        .isTrue(LessThanOrEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+    }
   }
 
   trait Test extends ExampleData {

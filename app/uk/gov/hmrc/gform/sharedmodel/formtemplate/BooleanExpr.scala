@@ -25,6 +25,7 @@ import scala.util.{ Failure, Success, Try }
 
 sealed trait BooleanExpr
 final case class Equals(left: Expr, right: Expr) extends BooleanExpr
+final case class NotEquals(left: Expr, right: Expr) extends BooleanExpr
 final case class GreaterThan(left: Expr, right: Expr) extends BooleanExpr
 final case class GreaterThanOrEquals(left: Expr, right: Expr) extends BooleanExpr
 final case class LessThan(left: Expr, right: Expr) extends BooleanExpr
@@ -39,93 +40,56 @@ object BooleanExpr {
 
   def isTrue(expr: BooleanExpr, data: Map[FormComponentId, Seq[String]], retrievals: Retrievals): Boolean = {
 
-    def getField(id: String): String = FormDataHelpers.get(data, FormComponentId(id)).headOption.getOrElse("")
+    def isTrue0(expr: BooleanExpr): Boolean = isTrue(expr, data, retrievals)
 
-    expr match {
-      case Equals(field1, field2) => equals(prepopData(field1, retrievals, data), prepopData(field2, retrievals, data))
-      case GreaterThan(field1, field2) =>
-        greaterThan(prepopData(field1, retrievals, data), prepopData(field2, retrievals, data))
-      case GreaterThanOrEquals(field1, field2) =>
-        greaterThanOrEquals(prepopData(field1, retrievals, data), prepopData(field2, retrievals, data))
-      case LessThan(field1, field2) =>
-        lessThan(prepopData(field1, retrievals, data), prepopData(field2, retrievals, data))
-      case LessThanOrEquals(field1, field2) =>
-        lessThanOrEquals(prepopData(field1, retrievals, data), prepopData(field2, retrievals, data))
-      case Or(expr1, expr2)  => isTrue(expr1, data, retrievals) | isTrue(expr2, data, retrievals)
-      case And(expr1, expr2) => isTrue(expr1, data, retrievals) & isTrue(expr2, data, retrievals)
-      case IsTrue            => true
-      case _                 => false
-    }
-  }
-
-  private def equals(left: String, right: String): Boolean =
-    (toMaybeBigDecimal(left), toMaybeBigDecimal(right), left, right) match {
-      case (Some(l), Some(r), _, _) => (l == r)
-      case (_, _, l, r)             => (l == r)
+    def decimalValue(field: Expr): BigDecimal = {
+      val str = stringValue(field).replace(",", "")
+      Try(BigDecimal(str)).getOrElse(0)
     }
 
-  private def greaterThan(left: String, right: String): Boolean =
-    (toMaybeBigDecimal(left), toMaybeBigDecimal(right), left, right) match {
-      case (Some(l), Some(r), _, _) => (l > r)
-      case (_, _, l, r)             => (l > r)
-    }
+    def operate(field1: Expr, operator: (BigDecimal, BigDecimal) => BigDecimal, field2: Expr): String =
+      operator(decimalValue(field1), decimalValue(field2)).toString()
 
-  private def greaterThanOrEquals(left: String, right: String): Boolean =
-    (toMaybeBigDecimal(left), toMaybeBigDecimal(right), left, right) match {
-      case (Some(l), Some(r), _, _) => (l >= r)
-      case (_, _, l, r)             => (l >= r)
-    }
-
-  private def lessThan(left: String, right: String): Boolean =
-    (toMaybeBigDecimal(left), toMaybeBigDecimal(right), left, right) match {
-      case (Some(l), Some(r), _, _) => (l < r)
-      case (_, _, l, r)             => (l < r)
-    }
-
-  private def lessThanOrEquals(left: String, right: String): Boolean =
-    (toMaybeBigDecimal(left), toMaybeBigDecimal(right), left, right) match {
-      case (Some(l), Some(r), _, _) => (l <= r)
-      case (_, _, l, r)             => (l <= r)
-    }
-
-  def prepopData(expr: Expr, retrievals: Retrievals, data: Map[FormComponentId, Seq[String]]): String = {
-
-    def toBigDecimal(str: String): BigDecimal =
-      Try(BigDecimal(str.replace(",", ""))) match {
-        case Success(x) => x
-        case Failure(_) => BigDecimal(0)
+    def stringValue(expr: Expr): String =
+      expr match {
+        case Constant(value)             => value
+        case UserCtx(_)                  => retrievals.affinityGroupName
+        case Add(field1, field2)         => operate(field1, _ + _, field2)
+        case Subtraction(field1, field2) => operate(field1, _ - _, field2)
+        case Multiply(field1, field2)    => operate(field1, _ * _, field2)
+        case id: FormCtx                 => data.get(id.toFieldId).map(_.head).getOrElse("")
+        case _                           => ""
       }
 
-    expr match {
-      case Constant(value) => value
-      case UserCtx(_)      => retrievals.affinityGroupName
+    def toMaybeBigDecimal(str: String): Option[BigDecimal] =
+      Try(BigDecimal(str.replace(",", ""))).toOption
 
-      case Add(field1, field2) => {
-        val y = prepopData(field1, retrievals, data)
-        val z = prepopData(field2, retrievals, data)
-        (toBigDecimal(y) + toBigDecimal(z)).toString()
+    def compare(
+      leftField: Expr,
+      bigDecimalRelation: (BigDecimal, BigDecimal) => Boolean,
+      stringRelation: (String, String) => Boolean,
+      rightField: Expr): Boolean = {
+      val left = stringValue(leftField)
+      val right = stringValue(rightField)
+      (toMaybeBigDecimal(left), toMaybeBigDecimal(right)) match {
+        case (Some(l), Some(r)) => bigDecimalRelation(l, r)
+        case _                  => stringRelation(left, right)
       }
+    }
 
-      case Subtraction(field1, field2) =>
-        val y = prepopData(field1, retrievals, data)
-        val z = prepopData(field2, retrievals, data)
-        (toBigDecimal(y) - toBigDecimal(z)).toString()
-
-      case Multiply(field1, field2) =>
-        val y = prepopData(field1, retrievals, data)
-        val z = prepopData(field2, retrievals, data)
-        (toBigDecimal(y) * toBigDecimal(z)).toString()
-
-      case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("")
-      case _           => ""
+    expr match {
+      case Equals(field1, field2)              => compare(field1, _ == _, _ == _, field2)
+      case NotEquals(field1, field2)           => compare(field1, _ != _, _ != _, field2)
+      case GreaterThan(field1, field2)         => compare(field1, _ > _, _ > _, field2)
+      case GreaterThanOrEquals(field1, field2) => compare(field1, _ >= _, _ >= _, field2)
+      case LessThan(field1, field2)            => compare(field1, _ < _, _ < _, field2)
+      case LessThanOrEquals(field1, field2)    => compare(field1, _ <= _, _ <= _, field2)
+      case Or(expr1, expr2)                    => isTrue0(expr1) | isTrue0(expr2)
+      case And(expr1, expr2)                   => isTrue0(expr1) & isTrue0(expr2)
+      case IsTrue                              => true
+      case _                                   => false
     }
   }
-
-  private def toMaybeBigDecimal(str: String): Option[BigDecimal] =
-    Try(BigDecimal(str.replace(",", ""))) match {
-      case Success(x) => Some(x)
-      case Failure(_) => None
-    }
 
 }
 
