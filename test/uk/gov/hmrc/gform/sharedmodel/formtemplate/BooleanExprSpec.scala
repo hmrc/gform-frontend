@@ -162,12 +162,4 @@ class BooleanExprSpec extends Spec {
       None
     )
   }
-
-  trait TestZero extends Test {
-    def value = "0"
-  }
-
-  trait TestFred extends Test {
-    def value = "Fred"
-  }
 }
