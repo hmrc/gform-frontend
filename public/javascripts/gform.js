@@ -91,8 +91,8 @@ var uploader = function(el) {
   var uploadedFileEl = el.find('.file-upload__file-list-item').eq(0);
   var fileLinks = uploadedFileEl.find('.file-upload__file-list-item-link');
   var uploadErrorsEl = el.find('.file-upload__errors').eq(0);
+  var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label form-label">' + config.initialText + '</label>');
   var uploaderEl = $('<input id="' + fileId + '" type="file" class="file-upload__file" accept="'+config.contentTypes+'"/>');
-  var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label">' + config.initialText + '</label>');
   var deleteBtnEl = $('<a href="#" class="gf-delete" data-file-id="' + fileId + '">Delete</a>');
 
   var handleError = function(text) {
@@ -210,7 +210,7 @@ var uploader = function(el) {
   });
 
   // Append the upload input and button to the DOM
-  el.append(uploaderEl).append(uploaderBtn);
+  el.append(uploaderBtn).append(uploaderEl);
 
   // Convert uploaded file links to plain text
   if (fileLinks.length) {
