@@ -95,20 +95,20 @@ object Javascript {
 
     def ids(expr: Expr): Future[List[String]] =
       expr match {
-        case Add(field1, Multiply(field2, field3)) =>
-          ids3(field1, field2, field3)
-        case Add(field1, field2) =>
-          ids2(field1, field2)
+        case Add(e1, Multiply(e2, e3)) =>
+          ids3(e1, e2, e3)
+        case Add(e1, e2) =>
+          ids2(e1, e2)
         case FormCtx(amountX) =>
           Future.successful(List(amountX))
-        case Subtraction(field1, Multiply(field2, field3)) =>
-          ids3(field1, field2, field3)
-        case Subtraction(field1, field2) =>
-          ids2(field1, field2)
-        case Multiply(field1, field2) =>
-          ids2(field1, field2)
+        case Subtraction(e1, Multiply(e2, e3)) =>
+          ids3(e1, e2, e3)
+        case Subtraction(e1, e2) =>
+          ids2(e1, e2)
+        case Multiply(e1, e2) =>
+          ids2(e1, e2)
         case Sum(FormCtx(id)) =>
-          Group.getGroup(groupList, FormComponentId(id)).map(fieldId => fieldId.map(_.value))
+          Group.getGroup(groupList, FormComponentId(id)).map(eId => eId.map(_.value))
         case otherwise =>
           Future.successful(List(""))
       }
