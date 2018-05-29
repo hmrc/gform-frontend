@@ -64,57 +64,61 @@ class AuthenticatedRequestActions(
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
-      // format: OFF
-    for {
-      formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-      authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = true)
-      newRequest   = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
-      result       <- authResult match {
-        case GGAuthSuccessful(retrievals) => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
-        case AuthenticationWhiteListFailed => Future.successful(Ok(
-          views.html.error_template(
-            pageTitle = "Non WhiteListed User",
-            heading = "Non WhiteListed User",
-            message = "You are not authorised to access this form, if you believe you need access talk too: barry.johnson@hmrc.gsi.gov.uk or rob.lees@hmrc.gsi.gov.uk",
-            frontendAppConfig = frontendAppConfig
-          )
-        ))
-        case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
-      }
-    } yield result
-    // format: ON
+      for {
+        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+        authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = true)
+        newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
+        result <- handleAuthResults(
+                   authResult,
+                   formTemplate,
+                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate)),
+                   whiteListedMessage =
+                     "You are not authorised to access this form, if you believe you need access talk too: barry.johnson@hmrc.gsi.gov.uk or rob.lees@hmrc.gsi.gov.uk"
+                 )
+      } yield result
   }
 
   def async(formId: FormId)(f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
-      // format: OFF
-    for {
-      form         <- gformConnector.getForm(formId)
-      formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-      authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = false)
-      newRequest    = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
-      result       <- authResult match {
-        case GGAuthSuccessful(retrievals) => checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate)))
-        case AuthenticationWhiteListFailed => Future.successful(Ok(uk.gov.hmrc.gform.views.html.error_template("Non WhiteListed User", "Non WhiteListed User", "Non WhiteListed User", frontendAppConfig)))
-        case otherStatus => handleCommonAuthResults(otherStatus, formTemplate)
-      }
-    } yield result
-    // format: ON
+      for {
+        form         <- gformConnector.getForm(formId)
+        formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
+        authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = false)
+        newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
+        result <- handleAuthResults(
+                   authResult,
+                   formTemplate,
+                   onSuccess = retrievals =>
+                     checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate))),
+                   whiteListedMessage = "Non WhiteListed User"
+                 )
+      } yield result
     }
 
-  private def handleCommonAuthResults(result: AuthResult, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) =
+  private def handleAuthResults(
+    result: AuthResult,
+    formTemplate: FormTemplate,
+    onSuccess: MaterialisedRetrievals => Future[Result],
+    whiteListedMessage: String
+  )(
+    implicit
+    hc: HeaderCarrier) =
     result match {
+      case GGAuthSuccessful(retrivals)    => onSuccess(retrivals)
       case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
       case AuthenticationWhiteListFailed =>
-        Future.failed(
-          new RuntimeException("Invalid state: AuthenticationWhiteListFailed case should not be handled here"))
+        Future.successful(
+          Ok(
+            views.html.error_template(
+              pageTitle = "Non WhiteListed User",
+              heading = "Non WhiteListed User",
+              message = whiteListedMessage,
+              frontendAppConfig = frontendAppConfig)))
       case AuthorisationFailed(errorUrl) =>
         Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
       case EnrolmentRequired =>
         Future.successful(
           Redirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
-      case GGAuthSuccessful(_) =>
-        Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
 
   private def checkUser(form: Form, retrievals: MaterialisedRetrievals)(actionResult: => Future[Result])(
