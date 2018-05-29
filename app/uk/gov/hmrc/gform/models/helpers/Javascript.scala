@@ -80,38 +80,37 @@ object Javascript {
 
     def values(id: String) = s"""getNumber(document.getElementById("$id").value.replace(/[£,]/g,''))"""
 
+    def ids2(field1: Expr, field2: Expr) =
+      for {
+        x <- ids(field1)
+        y <- ids(field2)
+      } yield x ::: y
+
+    def ids3(field1: Expr, field2: Expr, field3: Expr) =
+      for {
+        x <- ids(field1)
+        y <- ids(field2)
+        z <- ids(field3)
+      } yield x ::: y ::: z
+
     def ids(expr: Expr): Future[List[String]] =
       expr match {
         case Add(field1, Multiply(field2, field3)) =>
-          for {
-            x <- ids(field1)
-            y <- ids(field2)
-            z <- ids(field3)
-          } yield x ::: y ::: z
-        case Add(amountA, amountB) =>
-          for {
-            x <- ids(amountA)
-            y <- ids(amountB)
-          } yield x ::: y
-        case FormCtx(amountX) => Future.successful(List(amountX))
+          ids3(field1, field2, field3)
+        case Add(field1, field2) =>
+          ids2(field1, field2)
+        case FormCtx(amountX) =>
+          Future.successful(List(amountX))
         case Subtraction(field1, Multiply(field2, field3)) =>
-          for {
-            x <- ids(field1)
-            y <- ids(field2)
-            z <- ids(field3)
-          } yield x ::: y ::: z
+          ids3(field1, field2, field3)
         case Subtraction(field1, field2) =>
-          for {
-            x <- ids(field1)
-            y <- ids(field2)
-          } yield x ::: y
+          ids2(field1, field2)
         case Multiply(field1, field2) =>
-          for {
-            x <- ids(field1)
-            y <- ids(field2)
-          } yield x ::: y
-        case Sum(FormCtx(id)) => Group.getGroup(groupList, FormComponentId(id)).map(fieldId => fieldId.map(_.value))
-        case otherwise        => Future.successful(List(""))
+          ids2(field1, field2)
+        case Sum(FormCtx(id)) =>
+          Group.getGroup(groupList, FormComponentId(id)).map(fieldId => fieldId.map(_.value))
+        case otherwise =>
+          Future.successful(List(""))
       }
 
     def consts(expr: Expr): List[String] =
