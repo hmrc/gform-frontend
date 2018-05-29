@@ -117,7 +117,7 @@ class AuthenticatedRequestActions(
         Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
 
-  private def checkUser(form: Form, retrievals: MaterialisedRetrievals)(actionResult: Future[Result])(
+  private def checkUser(form: Form, retrievals: MaterialisedRetrievals)(actionResult: => Future[Result])(
     implicit request: Request[_]): Future[Result] =
     if (form.userId.value == retrievals.userDetails.groupIdentifier)
       actionResult
