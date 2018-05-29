@@ -80,17 +80,17 @@ object Javascript {
 
     def values(id: String) = s"""getNumber(document.getElementById("$id").value.replace(/[£,]/g,''))"""
 
-    def ids2(field1: Expr, field2: Expr) =
+    def ids2(e1: Expr, e2: Expr) =
       for {
-        x <- ids(field1)
-        y <- ids(field2)
+        x <- ids(e1)
+        y <- ids(e2)
       } yield x ::: y
 
-    def ids3(field1: Expr, field2: Expr, field3: Expr) =
+    def ids3(e1: Expr, e2: Expr, e3: Expr) =
       for {
-        x <- ids(field1)
-        y <- ids(field2)
-        z <- ids(field3)
+        x <- ids(e1)
+        y <- ids(e2)
+        z <- ids(e3)
       } yield x ::: y ::: z
 
     def ids(expr: Expr): Future[List[String]] =
