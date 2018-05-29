@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -26,7 +26,7 @@ import scala.concurrent.Future
 
 class AuthService(eeittService: EeittService) {
 
-  def eeitReferenceNumber(retrievals: Retrievals): String = retrievals.userDetails.affinityGroup match {
+  def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String = retrievals.userDetails.affinityGroup match {
     case AffinityGroup.Agent =>
       retrievals.enrolments
         .getEnrolment(AuthConfig.eeittAuth)
@@ -39,7 +39,7 @@ class AuthService(eeittService: EeittService) {
 
   def evaluateSubmissionReference(
     expression: TextExpression,
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] =
     expression.expr match {

@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
 import uk.gov.hmrc.gform.models.userdetails.GroupId
@@ -68,7 +68,7 @@ class EeittServiceSpec extends Spec with ExampleData {
     result.futureValue should be("TESTARN")
   }
 
-  def call(eeitt: Eeitt, authContext: Retrievals = authContext) =
+  def call(eeitt: Eeitt, authContext: MaterialisedRetrievals = authContext) =
     eeittService.getValue(eeitt, authContext, formTemplate)
 
   implicit lazy val hc = HeaderCarrier()

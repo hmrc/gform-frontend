@@ -23,8 +23,8 @@ import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auth.AuthService
-import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals.getTaxIdValue
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -94,7 +94,7 @@ class AcknowledgementController(
     submissionDetails: Submission,
     authConfig: AuthConfig,
     submissionReference: Option[TextExpression],
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     hashedValue: String,
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]]

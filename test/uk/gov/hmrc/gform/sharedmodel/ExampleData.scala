@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -426,7 +426,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 trait ExampleAuthContext {
 
   def authContext =
-    Retrievals(
+    MaterialisedRetrievals(
       authProviderId = authProviderId,
       enrolments = enrolments,
       affinityGroup = affinityGroup,

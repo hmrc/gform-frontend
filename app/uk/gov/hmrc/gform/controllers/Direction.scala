@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
@@ -24,7 +24,7 @@ import uk.gov.hmrc.http.BadRequestException
 trait Navigation {
   def sections: List[Section]
   def data: Map[FormComponentId, Seq[String]]
-  def retrievals: Retrievals
+  def retrievals: MaterialisedRetrievals
 
   lazy val availableSectionNumbers: List[SectionNumber] = {
     def shouldInclude(s: Section): Boolean = {
@@ -41,7 +41,7 @@ trait Navigation {
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
-case class Origin(sections: List[Section], retrievals: Retrievals) extends Navigation {
+case class Origin(sections: List[Section], retrievals: MaterialisedRetrievals) extends Navigation {
   val data: Map[FormComponentId, Seq[String]] = Map.empty
 }
 
@@ -59,7 +59,7 @@ case class Navigator(
   sectionNumber: SectionNumber,
   sections: List[Section],
   data: Map[FormComponentId, Seq[String]],
-  retrievals: Retrievals)
+  retrievals: MaterialisedRetrievals)
     extends Navigation {
   require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")

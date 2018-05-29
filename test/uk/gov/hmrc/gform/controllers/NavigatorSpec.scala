@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IncludeIf, IsFalse }
 
@@ -95,7 +95,7 @@ class SaveSpec extends Spec {
       `section - group`
     )
 
-    val retrievals = mock[Retrievals]
+    val retrievals = mock[MaterialisedRetrievals]
 
   }
 

@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
@@ -33,7 +33,7 @@ class PrepopServiceSpec extends Spec with ExampleData {
   behavior of "Prepop Service"
 
   val mockAuthPrepop = new AuthContextPrepop {
-    override def values(value: AuthInfo, retrievals: Retrievals): String =
+    override def values(value: AuthInfo, retrievals: MaterialisedRetrievals): String =
       "TESTSTRING"
   }
 
@@ -66,7 +66,7 @@ class PrepopServiceSpec extends Spec with ExampleData {
     result.futureValue should be("2468")
   }
 
-  def call(expr: Expr, authContext: Retrievals = authContext) =
+  def call(expr: Expr, authContext: MaterialisedRetrievals = authContext) =
     prepopService.prepopData(expr, formTemplate, authContext, rawDataFromBrowser, `section - about you`)
 
   implicit lazy val hc = HeaderCarrier()

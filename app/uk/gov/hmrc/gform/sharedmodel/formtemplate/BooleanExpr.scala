@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 
 import scala.util.{ Failure, Success, Try }
@@ -38,7 +38,10 @@ final case object IsFalse extends BooleanExpr
 object BooleanExpr {
   implicit val format: OFormat[BooleanExpr] = derived.oformat
 
-  def isTrue(expr: BooleanExpr, data: Map[FormComponentId, Seq[String]], retrievals: Retrievals): Boolean = {
+  def isTrue(
+    expr: BooleanExpr,
+    data: Map[FormComponentId, Seq[String]],
+    retrievals: MaterialisedRetrievals): Boolean = {
 
     def isTrue0(expr: BooleanExpr): Boolean = isTrue(expr, data, retrievals)
 

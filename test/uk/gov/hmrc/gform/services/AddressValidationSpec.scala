@@ -21,7 +21,7 @@ import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.validation.{ ComponentsValidator, ValidationValues }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures {
-  val retrievals = mock[Retrievals]
+  val retrievals = mock[MaterialisedRetrievals]
   implicit lazy val hc = HeaderCarrier()
 
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {

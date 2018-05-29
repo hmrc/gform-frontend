@@ -18,12 +18,12 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
 class BooleanExprSpec extends Spec {
-  val retrievals: Retrievals = mock[Retrievals]
+  val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
 
   val equalsCombinations = Table(
     ("Ctx value", "left argument", "right argument", "expected result"),

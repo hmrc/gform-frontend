@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import cats.data.Validated
 import cats.data.Validated.Valid
 import cats.scalatest.EitherMatchers
@@ -33,11 +33,11 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import cats.implicits._
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.http.HeaderCarrier
 
 class ValidIfValidationSpec extends Spec {
-  val retrievals: Retrievals = mock[Retrievals]
+  val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   "Valid if " should "return no errors" in new Test {
     override val value = "15"
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid

@@ -30,11 +30,11 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import cats.implicits._
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.http.HeaderCarrier
 
 class NumberValidationSpec extends Spec {
-  val retrievals: Retrievals = mock[Retrievals]
+  val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   "Number format" should "accepts whole numbers" in new Test {
     override val value = "123"
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
