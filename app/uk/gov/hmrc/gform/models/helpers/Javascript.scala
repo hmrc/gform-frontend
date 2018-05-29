@@ -82,12 +82,24 @@ object Javascript {
 
     def ids(expr: Expr): Future[List[String]] =
       expr match {
+        case Add(field1, Multiply(field2, field3)) =>
+          for {
+            x <- ids(field1)
+            y <- ids(field2)
+            z <- ids(field3)
+          } yield x ::: y ::: z
         case Add(amountA, amountB) =>
           for {
             x <- ids(amountA)
             y <- ids(amountB)
           } yield x ::: y
         case FormCtx(amountX) => Future.successful(List(amountX))
+        case Subtraction(field1, Multiply(field2, field3)) =>
+          for {
+            x <- ids(field1)
+            y <- ids(field2)
+            z <- ids(field3)
+          } yield x ::: y ::: z
         case Subtraction(field1, field2) =>
           for {
             x <- ids(field1)
@@ -126,6 +138,16 @@ object Javascript {
     def listeners(functionName: String) =
       ids(expr).map(_.filterNot(_.isEmpty).map(eventListeners(_, functionName)).mkString("\n"))
 
+    def function(name: String, values: String, calculation: String, listener: String) =
+      s"""|function $name() {
+          |  var x = [ $values ];
+          |  var result = $calculation;
+          |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
+          |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
+          |};
+          |$listener
+          |""".stripMargin
+
     // TODO: the use of reduce() is simplistic, we need to generate true javascript expressions based on the parsed gform expression
     expr match {
       case Sum(FormCtx(id)) =>
@@ -146,8 +168,6 @@ object Javascript {
           values    <- groups
         } yield {
           s"""
-
-
               function sum$id() {
               var sum = [$values];
               var result = sum.reduce(add, 0);
@@ -156,53 +176,36 @@ object Javascript {
             $listeners
             """
         }
+      case Add(field1, Multiply(field2, field3)) =>
+        val functionName = "addMultiply" + field.id.value
+        for {
+          values   <- demValues
+          listener <- listeners(functionName)
+        } yield function(functionName, values, "add(x[0], multiply(x[1],x[2]))", listener)
       case Add(b, sn) =>
         val functionName = "add" + field.id.value
         for {
           values   <- demValues
           listener <- listeners(functionName)
-        } yield {
-          s"""|function $functionName() {
-              |  var x = [ $values ];
-              |  var result = x.reduce(add, 0);
-              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
-              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
-              |};
-              |$listener
-              |""".stripMargin
-        }
+        } yield function(functionName, values, "x.reduce(add, 0)", listener)
+      case Subtraction(field1, Multiply(field2, field3)) =>
+        val functionName = "subtractMultiply" + field.id.value
+        for {
+          values   <- demValues
+          listener <- listeners(functionName)
+        } yield function(functionName, values, "subtract(x[0], multiply(x[1],x[2]))", listener)
       case Subtraction(field1, field2) =>
         val functionName = "subtract" + field.id.value
         for {
           values   <- demValues
           listener <- listeners(functionName)
-        } yield {
-          s"""|function $functionName() {
-              |  var x = [ $values ];
-              |  var result = subtract(x[0], x[1]);
-              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
-              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
-              |};
-              |
-              |$listener
-              |""".stripMargin
-        }
+        } yield function(functionName, values, "subtract(x[0], x[1])", listener)
       case Multiply(field1, field2) =>
         val functionName = "multiply" + field.id.value
         for {
           values   <- demValues
           listener <- listeners(functionName)
-        } yield {
-          s"""|function $functionName() {
-              |  var x = [ $values ];
-              |  var result = x.reduce(multiply, 1);
-              |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
-              |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
-              |};
-              |
-              |$listener
-              |""".stripMargin
-        }
+        } yield function(functionName, values, "x.reduce(multiply, 1)", listener)
       case otherwise => Future.successful("")
     }
   }
