@@ -35,8 +35,8 @@ case class EEITTAuthConfig(
 
 object EEITTAuthConfig {
 
-  lazy val nonAgentIdName = "registrationNumber"
-  lazy val agentIdName = "arn"
+  val nonAgentIdName = "registrationNumber"
+  val agentIdName = "arn"
 
   implicit val format = Json.format[EEITTAuthConfig]
 }

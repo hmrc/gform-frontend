@@ -26,7 +26,7 @@ import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
-import gform.auth.models.{ AuthenticationWhiteListFailed, MaterialisedRetrievals, _ }
+import gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
@@ -155,21 +155,16 @@ class AuthenticatedRequestActions(
 
   private def updateEnrolments(authSuccessful: GGAuthSuccessful, request: Request[_]): GGAuthSuccessful = {
     // the registrationNumber will be stored in the session by eeittAuth
-    val nonAgentUpdate = request.session.get(EEITTAuthConfig.nonAgentIdName) match {
-      case Some(regNum) =>
-        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(EEITTAuthConfig.nonAgentIdName, regNum)
+    def updateFor(authBy: String): Option[GGAuthSuccessful] =
+      request.session.get(authBy).map { regNum =>
+        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(authBy, regNum)
         val newEnrolments = Enrolments(authSuccessful.retrievals.enrolments.enrolments + newEnrolment)
         authSuccessful.copy(retrievals = authSuccessful.retrievals.copy(enrolments = newEnrolments))
-      case None => authSuccessful
-    }
+      }
 
-    request.session.get(EEITTAuthConfig.agentIdName) match {
-      case Some(regNum) =>
-        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(EEITTAuthConfig.agentIdName, regNum)
-        val newEnrolments = Enrolments(authSuccessful.retrievals.enrolments.enrolments + newEnrolment)
-        nonAgentUpdate.copy(retrievals = nonAgentUpdate.retrievals.copy(enrolments = newEnrolments))
-      case None => nonAgentUpdate
-    }
+    updateFor(EEITTAuthConfig.nonAgentIdName)
+      .orElse(updateFor(EEITTAuthConfig.agentIdName))
+      .getOrElse(authSuccessful)
   }
 
   private def performHMRCAuth(authConfig: AuthConfig, isNewForm: Boolean)(
