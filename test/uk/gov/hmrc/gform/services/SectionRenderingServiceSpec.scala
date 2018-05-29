@@ -23,7 +23,7 @@ import org.scalatest.mockito.MockitoSugar.mock
 import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.SpecWithFakeApp
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ PrepopService, SectionRenderingService }
@@ -46,13 +46,13 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       tags = fakeRequest.tags + ("CSRF_TOKEN_NAME" -> "csrfToken") + ("CSRF_TOKEN" -> "o'ight mate?"))
   }
   implicit val messages = mock[play.api.i18n.Messages]
-  val retrievals = mock[Retrievals]
+  val retrievals = mock[MaterialisedRetrievals]
 
   val mockPrepopService = new PrepopService(null, null, null) {
     override def prepopData(
       expr: Expr,
       formTemplate: FormTemplate,
-      retrievals: Retrievals,
+      retrievals: MaterialisedRetrievals,
       data: Map[FormComponentId, Seq[String]],
       section: BaseSection,
       scale: Option[Int])(implicit hc: HeaderCarrier): Future[String] =

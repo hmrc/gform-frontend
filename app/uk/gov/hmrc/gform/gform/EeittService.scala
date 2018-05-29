@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -28,7 +28,8 @@ import scala.concurrent.Future
 
 class EeittService(eeittConnector: EeittConnector) {
 
-  def getValue(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate)(implicit hc: HeaderCarrier) = {
+  def getValue(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate)(
+    implicit hc: HeaderCarrier) = {
     val regimeId = formTemplate.authConfig match {
       case EEITTAuthConfig(_, rId) => rId
       case _                       => RegimeId("")

@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.auditing
 
 import play.api.libs.json.Json
 import play.api.mvc.Request
-import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.auth.models.Retrievals._
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, Group, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -68,22 +68,24 @@ trait AuditService {
     processedData.map(x => x.id.value -> x.value).toMap
   }
 
-  def sendSubmissionEvent(form: Form, sections: List[BaseSection], retrievals: Retrievals, customerId: String)(
-    implicit ec: ExecutionContext,
-    hc: HeaderCarrier,
-    request: Request[_]) =
+  def sendSubmissionEvent(
+    form: Form,
+    sections: List[BaseSection],
+    retrievals: MaterialisedRetrievals,
+    customerId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
     sendEvent(form, formToMap(form, sections), retrievals, customerId)
 
-  private def sendEvent(form: Form, detail: Map[String, String], retrievals: Retrievals, customerId: String)(
-    implicit ec: ExecutionContext,
-    hc: HeaderCarrier,
-    request: Request[_]): String = {
+  private def sendEvent(
+    form: Form,
+    detail: Map[String, String],
+    retrievals: MaterialisedRetrievals,
+    customerId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
     val event = eventFor(form, detail, retrievals, customerId)
     auditConnector.sendExtendedEvent(event)
     event.eventId
   }
 
-  private def eventFor(form: Form, detail: Map[String, String], retrievals: Retrievals, customerId: String)(
+  private def eventFor(form: Form, detail: Map[String, String], retrievals: MaterialisedRetrievals, customerId: String)(
     implicit hc: HeaderCarrier,
     request: Request[_]) =
     ExtendedDataEvent(
@@ -93,7 +95,7 @@ trait AuditService {
       detail = details(form, detail, retrievals, customerId)
     )
 
-  private def details(form: Form, detail: Map[String, String], retrievals: Retrievals, customerId: String)(
+  private def details(form: Form, detail: Map[String, String], retrievals: MaterialisedRetrievals, customerId: String)(
     implicit hc: HeaderCarrier) = {
 
     val userInfo = Json.toJson(

@@ -26,13 +26,13 @@ import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
-import gform.auth.models.{ AuthenticationWhiteListFailed, Retrievals, _ }
+import gform.auth.models.{ AuthenticationWhiteListFailed, MaterialisedRetrievals, _ }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid, Retrievals => cRetrievals }
+import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, Retrievals, VerifyPid }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -52,10 +52,10 @@ class AuthenticatedRequestActions(
   import i18nSupport._
 
   // format: OFF
-  val defaultRetrievals = cRetrievals.authProviderId     and cRetrievals.allEnrolments  and
-                          cRetrievals.affinityGroup      and cRetrievals.internalId     and
-                          cRetrievals.externalId         and cRetrievals.userDetailsUri and
-                          cRetrievals.credentialStrength and cRetrievals.agentCode
+  val defaultRetrievals = Retrievals.authProviderId     and Retrievals.allEnrolments  and
+                          Retrievals.affinityGroup      and Retrievals.internalId     and
+                          Retrievals.externalId         and Retrievals.userDetailsUri and
+                          Retrievals.credentialStrength and Retrievals.agentCode
   // format: ON
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
@@ -117,7 +117,7 @@ class AuthenticatedRequestActions(
         Future.failed(new RuntimeException("Invalid state: GGAuthSuccessful case should not be handled here"))
     }
 
-  private def checkUser(form: Form, retrievals: Retrievals)(actionResult: Future[Result])(
+  private def checkUser(form: Form, retrievals: MaterialisedRetrievals)(actionResult: Future[Result])(
     implicit request: Request[_]): Future[Result] =
     if (form.userId.value == retrievals.userDetails.groupIdentifier)
       actionResult
@@ -132,9 +132,14 @@ class AuthenticatedRequestActions(
       case authConfig                  => performHMRCAuth(authConfig, isNewForm)
     }
 
-  private def performEEITTAuth(authConfig: EEITTAuthConfig, isNewForm: Boolean)(
-    implicit request: Request[AnyContent],
-    hc: HeaderCarrier): Future[AuthResult] =
+  private def performEEITTAuth(
+    authConfig: EEITTAuthConfig,
+    isNewForm: Boolean
+  )(
+    implicit
+    request: Request[AnyContent],
+    hc: HeaderCarrier
+  ): Future[AuthResult] =
     ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), authConfig, isNewForm).flatMap {
       case ggSuccessfulAuth @ GGAuthSuccessful(retrievals) =>
         eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails).map {
@@ -177,7 +182,7 @@ class AuthenticatedRequestActions(
   private def ggAuthorised(predicate: Predicate, authConfig: AuthConfig, isNewForm: Boolean)(
     implicit request: Request[AnyContent],
     hc: HeaderCarrier) = {
-    import uk.gov.hmrc.auth.core.retrieve._
+    import uk.gov.hmrc.auth.core.retrieve.~
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
@@ -185,7 +190,7 @@ class AuthenticatedRequestActions(
           for {
             userDetails <- authConnector.getUserDetails(userDetailsUri.get)
             _           <- whiteListing(userDetails, authProviderId, isNewForm)
-            retrievals = gform.auth.models.Retrievals(
+            retrievals = MaterialisedRetrievals(
               authProviderId,
               enrolments,
               affinityGroup,
@@ -269,17 +274,17 @@ class AuthenticatedRequestActions(
 }
 
 sealed trait AuthCache {
-  def retrievals: gform.auth.models.Retrievals
+  def retrievals: MaterialisedRetrievals
   def formTemplate: FormTemplate
 }
 
 case class AuthCacheWithForm(
-  retrievals: gform.auth.models.Retrievals,
+  retrievals: MaterialisedRetrievals,
   form: Form,
   formTemplate: FormTemplate
 ) extends AuthCache
 
 case class AuthCacheWithoutForm(
-  retrievals: gform.auth.models.Retrievals,
+  retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate
 ) extends AuthCache

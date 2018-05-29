@@ -21,7 +21,7 @@ import cats.implicits._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.{ Html, HtmlFormat }
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -48,7 +48,7 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     validatedType: ValidatedType,
     formFields: Map[FormComponentId, Seq[String]],
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     formId: FormId,
     repeatService: RepeatingComponentService,
     envelope: Envelope,
@@ -66,7 +66,7 @@ object SummaryRenderingService {
   def summaryForRender(
     validatedType: ValidatedType,
     data: Map[FormComponentId, Seq[String]],
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     formId: FormId,
     formTemplate: FormTemplate,
     repeatService: RepeatingComponentService,

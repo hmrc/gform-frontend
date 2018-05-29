@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import ValidationUtil.{ ValidatedType, _ }
 import play.api.Logger
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
@@ -54,14 +54,14 @@ class ValidationService(
     fieldValue: FormComponent,
     data: Map[FormComponentId, Seq[String]],
     envelopeId: EnvelopeId,
-    retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(data, fileUploadService, envelopeId, retrievals).validate(fieldValue)
 
   def validateComponents(
     fieldValues: List[FormComponent],
     data: Map[FormComponentId, Seq[String]],
     envelopeId: EnvelopeId,
-    retrievals: Retrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     fieldValues
       .map(fv => validateFieldValue(fv, data, envelopeId, retrievals))
       .sequenceU
@@ -77,7 +77,7 @@ class ValidationService(
     sectionFields: List[FormComponent],
     section: Section,
     envelopeId: EnvelopeId,
-    retrievals: Retrievals)(data: Map[FormComponentId, Seq[String]])(
+    retrievals: MaterialisedRetrievals)(data: Map[FormComponentId, Seq[String]])(
     implicit hc: HeaderCarrier): Future[ValidatedType] = {
     val eT = for {
       _ <- EitherT(validateComponents(sectionFields, data, envelopeId, retrievals).map(_.toEither))
@@ -126,7 +126,7 @@ class ComponentsValidator(
   data: Map[FormComponentId, Seq[String]],
   fileUploadService: FileUploadService,
   envelopeId: EnvelopeId,
-  retrievals: Retrievals) {
+  retrievals: MaterialisedRetrievals) {
 
   def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
     case sortCode @ UkSortCode(_)  => validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data)
@@ -290,7 +290,7 @@ class ComponentsValidator(
         }
       }
 
-  private def validateText(fieldValue: FormComponent, text: Text, retrievals: Retrievals)(
+  private def validateText(fieldValue: FormComponent, text: Text, retrievals: MaterialisedRetrievals)(
     data: Map[FormComponentId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val textData = data.get(fieldValue.id).toList.flatten
     val validationResult: ValidatedType =

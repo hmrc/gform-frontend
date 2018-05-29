@@ -32,7 +32,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ Retrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -70,7 +70,7 @@ class SectionRenderingService(
     dynamicSections: List[BaseSection],
     formMaxAttachmentSizeMB: Int,
     section: BaseSection,
-    retrievals: Retrievals
+    retrievals: MaterialisedRetrievals
   )
 
   def renderSection(
@@ -85,7 +85,7 @@ class SectionRenderingService(
     dynamicSections: List[Section],
     formMaxAttachmentSizeMB: Int,
     contentTypes: List[ContentType],
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
@@ -204,7 +204,7 @@ class SectionRenderingService(
   def renderDeclarationSection(
     form: Form,
     formTemplate: FormTemplate,
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     maybeValidatedType: Option[ValidatedType],
     fieldData: Map[FormComponentId, Seq[String]],
     errors: Option[List[(FormComponent, FormFieldValidationResult)]],
@@ -262,7 +262,7 @@ class SectionRenderingService(
   def renderAcknowledgementSection(
     form: Form,
     formTemplate: FormTemplate,
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     lang: Option[String],
     eventId: String)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
@@ -745,7 +745,7 @@ class SectionRenderingService(
     okF(fieldValue)
   }
 
-  private def emptyRetrievals = Retrievals(
+  private def emptyRetrievals = MaterialisedRetrievals(
     authProviderId = OneTimeLogin,
     enrolments = Enrolments(Set.empty),
     affinityGroup = None,

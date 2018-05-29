@@ -23,7 +23,7 @@ import play.api.mvc.{ Action, AnyContent, Request }
 import play.api.http.HttpEntity
 import play.api.mvc._
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -121,7 +121,7 @@ class SummaryController(
       }
     }
 
-  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: Retrievals)(
+  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)

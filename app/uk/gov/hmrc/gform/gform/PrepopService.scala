@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.Logger
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
-import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.auth.models.Retrievals._
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.implicits._
@@ -35,7 +35,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.math.BigDecimal.RoundingMode
 
 class AuthContextPrepop {
-  def values(value: AuthInfo, retrievals: Retrievals): String = value match {
+  def values(value: AuthInfo, retrievals: MaterialisedRetrievals): String = value match {
     case GG                     => getGGCredId(retrievals)
     case PayeNino               => getTaxIdValue(None, "NINO", retrievals)
     case SaUtr                  => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
@@ -43,7 +43,7 @@ class AuthContextPrepop {
     case EtmpRegistrationNumber => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
   }
 
-  private def getGGCredId(retrievals: Retrievals) = retrievals.authProviderId match {
+  private def getGGCredId(retrievals: MaterialisedRetrievals) = retrievals.authProviderId match {
     case GGCredId(credId) => credId
     case _                => ""
   }
@@ -58,7 +58,7 @@ class PrepopService(
   def prepopData(
     expr: Expr,
     formTemplate: FormTemplate,
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     data: Map[FormComponentId, Seq[String]],
     section: BaseSection,
     scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
@@ -117,7 +117,7 @@ class PrepopService(
     }
   }
 
-  private def eeittPrepop(eeitt: Eeitt, retrievals: Retrievals, formTemplate: FormTemplate)(
+  private def eeittPrepop(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate)(
     implicit hc: HeaderCarrier) =
     eeittService.getValue(eeitt, retrievals, formTemplate).recover {
       case NonFatal(error) =>

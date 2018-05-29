@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.auth.models
 
 sealed trait AuthResult
-final case class GGAuthSuccessful(retrievals: Retrievals) extends AuthResult
+final case class GGAuthSuccessful(retrievals: MaterialisedRetrievals) extends AuthResult
 final case class AuthenticationFailed(loginUrl: String) extends AuthResult
 final object AuthenticationWhiteListFailed extends AuthResult
 final case class AuthorisationFailed(errorUrl: String) extends AuthResult

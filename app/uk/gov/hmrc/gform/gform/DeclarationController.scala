@@ -22,8 +22,8 @@ import play.api.Logger
 import play.api.i18n.I18nSupport
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
-import uk.gov.hmrc.gform.auth.models.Retrievals
-import uk.gov.hmrc.gform.auth.models.Retrievals.getTaxIdValue
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals.getTaxIdValue
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
@@ -71,7 +71,7 @@ class DeclarationController(
     html: String,
     authConfig: AuthConfig,
     submissionReference: Option[TextExpression],
-    retrievals: Retrievals,
+    retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]]
   )(implicit hc: HeaderCarrier): String = {

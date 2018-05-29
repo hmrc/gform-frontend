@@ -22,7 +22,7 @@ import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.Retrievals
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Extractors._
@@ -71,7 +71,7 @@ class SummarySpec extends Spec {
       }
     }
 
-    val retrievals: Retrievals = mock[Retrievals]
+    val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
 
     def fieldValues = formTemplate.sections.flatMap(_.fields)
     def f: ValidatedType = Valid(()) //valuesValidate(rawDataFromBrowser, fieldValues, envelope, Map.empty[FieldId, Set[String]])
@@ -383,4 +383,3 @@ class SummarySpec extends Spec {
     urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id, SectionNumber(2), 3, None).url
   }
 }
-
