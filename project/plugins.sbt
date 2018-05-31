@@ -4,7 +4,7 @@ resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/
 
 //resolvers += "hmrc-releases" at "https://nexus-preview.tax.service.gov.uk" + "/content/repositories/wso2-releases"
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.7.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "1.8.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-git-versioning" % "0.9.0")
 
