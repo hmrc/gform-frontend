@@ -51,7 +51,7 @@ class AcknowledgementController(
 
   import i18nSupport._
 
-  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String], eventId: String) =
+  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String], eventId: String) =
     auth.async(formId) { implicit request => cache =>
       cache.form.status match {
         case Submitted =>
@@ -64,7 +64,7 @@ class AcknowledgementController(
 
   def downloadPDF(
     formId: FormId,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     lang: Option[String],
     eventId: String): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
     cache.form.status match {

@@ -15,6 +15,7 @@
  *@
 
 @import play.api.i18n.Messages.Implicits._
+@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -51,13 +52,13 @@
 <p>You can</p>
 
 <li>
-    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id, SectionNumber(0), totalSections, lang)">
+    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), totalSections, lang)">
         Continue
     </a>
     the form
 </li>
 <li>delete and
-    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id, formId, lang)">
+    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id.to4Ga, formId, lang)">
         Start again
     </a>
 </li>

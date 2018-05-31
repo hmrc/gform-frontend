@@ -22,13 +22,14 @@ import play.api.libs.json._
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, SectionNumber }
 
 import scala.util.Try
 object ValueClassBinder {
 
   //You need to name it somethingBinder, or else play can't find them
   implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
+  implicit val formTemplateId4GaBinder: PathBindable[FormTemplateId4Ga] = valueClassBinder(_.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
