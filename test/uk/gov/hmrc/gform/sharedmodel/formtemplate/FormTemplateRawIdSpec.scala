@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.json.Format
-import uk.gov.hmrc.gform.models.ValueClassFormat
+import org.scalatest.{ FlatSpec, Matchers }
+import play.api.libs.json.{ JsString, JsSuccess, Json }
 
-object FormTemplateRawId {
-
-  implicit val format: Format[FormTemplateRawId] = ValueClassFormat.format(FormTemplateRawId.apply)(_.value)
-
+class FormTemplateRawIdSpec extends FlatSpec with Matchers {
+  "FormTemplateRawId" should "serialise to and from json" in {
+    Json.toJson(FormTemplateRawId("12")) shouldBe JsString("12")
+    Json.fromJson[FormTemplateRawId](JsString("12")) shouldBe JsSuccess(FormTemplateRawId("12"))
+  }
 }
-
-case class FormTemplateRawId(value: String)
