@@ -26,9 +26,10 @@ import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, FormTemplateId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, FormTemplate, FormTemplateId, FormTemplateId4Ga, SectionNumber }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -65,7 +66,7 @@ class FormController(
           val originSection = new Origin(cache.formTemplate.sections, cache.retrievals).minSectionNumber
           Redirect(
             routes.FormController
-              .form(form._id, cache.formTemplate._id, originSection, cache.formTemplate.sections.size, lang))
+              .form(form._id, cache.formTemplate._id.to4Ga, originSection, cache.formTemplate.sections.size, lang))
         }
       }
   }
@@ -90,7 +91,7 @@ class FormController(
 
   def form(
     formId: FormId,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     sectionNumber: SectionNumber,
     totalSections: Int,
     lang: Option[String]) = auth.async(formId) { implicit request => cache =>
@@ -108,7 +109,7 @@ class FormController(
 
   def formError(
     formId: FormId,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     sectionNumber: SectionNumber,
     totalPage: Int,
     lang: Option[String]) = auth.async(formId) { implicit request => cache =>
@@ -131,7 +132,7 @@ class FormController(
 
   def fileUploadPage(
     formId: FormId,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     sectionNumber: SectionNumber,
     fId: String,
     totalSection: Int,
@@ -172,7 +173,7 @@ class FormController(
             val originSection = new Origin(cache.formTemplate.sections, cache.retrievals).minSectionNumber
             Future.successful(
               Redirect(routes.FormController
-                .form(formId, formTemplateId, originSection, cache.formTemplate.sections.size, lang)))
+                .form(formId, formTemplateId.to4Ga, originSection, cache.formTemplate.sections.size, lang)))
           } //TODO get dyanamic sections in here ???
           case "delete" => Future.successful(Ok(confirm_delete(cache.formTemplate, formId, lang, frontendAppConfig)))
           case _        => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
@@ -180,9 +181,9 @@ class FormController(
       )
     }
 
-  def delete(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String]): Action[AnyContent] =
+  def delete(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, lang: Option[String]): Action[AnyContent] =
     auth.async(formId) { implicit request => cache =>
-      gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
+      gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(cache.formTemplate._id, lang)))
     }
 
   def updateFormData(formId: FormId, sectionNumber: SectionNumber, lang: Option[String]) = auth.async(formId) {
@@ -223,7 +224,8 @@ class FormController(
             if (isFormValid) nextPage
             else
               Redirect(
-                routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, lang))
+                routes.FormController
+                  .formError(formId, cache.formTemplate._id.to4Ga, sectionNumber, section.size, lang))
 
         def processSaveAndSummary(userId: UserId, form: Form)(implicit hc: HeaderCarrier): Future[Result] =
           for {
@@ -234,8 +236,8 @@ class FormController(
             userData      = UserData(formData, keystore, Summary)
             _             <- gformConnector.updateUserData(formId, userData)
             isFormValid   <- isFormValidF
-            gotoSummary   = Redirect(routes.SummaryController.summaryById(formId, cache.formTemplate._id, lang))
-            gotoFormError = Redirect(routes.FormController.formError(formId, cache.formTemplate._id, sectionNumber, section.size, lang))
+            gotoSummary   = Redirect(routes.SummaryController.summaryById(formId, cache.formTemplate._id.to4Ga, lang))
+            gotoFormError = Redirect(routes.FormController.formError(formId, cache.formTemplate._id.to4Ga, sectionNumber, section.size, lang))
           // format: ON
           } yield if (isFormValid) gotoSummary else gotoFormError
 
@@ -274,7 +276,7 @@ class FormController(
           } yield
             Redirect(
               routes.FormController
-                .form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang)
+                .form(formId, cache.formTemplate._id.to4Ga, sectionNumber, dynamicSections.size, lang)
                 .url + anchor(optCompList))
 
         def anchor(optCompList: Option[List[List[FormComponent]]]) =
@@ -300,7 +302,7 @@ class FormController(
           } yield
             Redirect(
               routes.FormController
-                .form(formId, cache.formTemplate._id, sectionNumber, dynamicSections.size, lang)
+                .form(formId, cache.formTemplate._id.to4Ga, sectionNumber, dynamicSections.size, lang)
                 .url + anchor(optCompList.map(_.list)))
 
         val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
@@ -314,12 +316,12 @@ class FormController(
 
         navigationF.flatMap {
           case SaveAndContinue(sn) =>
-            redirection(routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)).flatMap(x =>
+            redirection(routes.FormController.form(formId, cache.formTemplate._id.to4Ga, sn, _, lang)).flatMap(x =>
               processSaveAndContinue(userId, cache.form, x))
           case SaveAndExit => processSaveAndExit(userId, cache.form, cache.form.envelopeId)
           case Back(sn) =>
             processBack(userId, cache.form)(
-              redirection(routes.FormController.form(formId, cache.formTemplate._id, sn, _, lang)))
+              redirection(routes.FormController.form(formId, cache.formTemplate._id.to4Ga, sn, _, lang)))
           case SaveAndSummary            => processSaveAndSummary(userId, cache.form)
           case BackToSummary             => processSaveAndSummary(userId, cache.form)
           case AddGroup(groupId)         => processAddGroup(groupId)

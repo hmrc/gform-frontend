@@ -22,6 +22,7 @@
 @import views.html.helper.CSRF
 @import scala.concurrent.ExecutionContext
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 
 @(
@@ -49,7 +50,7 @@
       Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
 
-    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
+    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id.to4Ga, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
         @{
             CSRF.formField
@@ -68,7 +69,7 @@
           <p>You can print this summary page then come back later to complete your submission.</p>
 
           <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formId, formTemplate._id, lang).url" class="print-link print-hidden js-visible">Print this summary page</a>
+            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formId, formTemplate._id.to4Ga, lang).url" class="print-link print-hidden js-visible">Print this summary page</a>
           </p>
         </div>
 

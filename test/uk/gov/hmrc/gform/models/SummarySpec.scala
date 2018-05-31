@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Extractors._
+import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
@@ -92,8 +93,8 @@ class SummarySpec extends Spec {
 
     val testStringValues = extractAllHrefs(render.futureValue.snippets)
     val expectedResult = List(
-      routes.FormController.form(formId, formTemplate._id, SectionNumber(0), 2, None).url,
-      routes.FormController.form(formId, formTemplate._id, SectionNumber(1), 2, None).url
+      routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), 2, None).url,
+      routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(1), 2, None).url
     )
 
     testStringValues should be(expectedResult)
@@ -380,6 +381,6 @@ class SummarySpec extends Spec {
     val htmlAheadOfSection2 = htmls(3)
     val doc = Jsoup.parse(htmlAheadOfSection2.toString)
     val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
-    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id, SectionNumber(2), 3, None).url
+    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(2), 3, None).url
   }
 }

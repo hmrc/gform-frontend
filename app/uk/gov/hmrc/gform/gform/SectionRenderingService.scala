@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
+import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -111,7 +112,7 @@ class SectionRenderingService(
                               fieldValue =>
                                 htmlFor(
                                   fieldValue,
-                                  formTemplate._id,
+                                  formTemplate._id.to4Ga,
                                   0,
                                   ei,
                                   dynamicSections.size,
@@ -230,8 +231,17 @@ class SectionRenderingService(
 
     val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
     for {
-      snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, maybeValidatedType, lang)))
+      snippets <- Future.sequence(
+                   formTemplate.declarationSection.fields.map(
+                     fieldValue =>
+                       htmlFor(
+                         fieldValue,
+                         formTemplate._id.to4Ga,
+                         0,
+                         ei,
+                         formTemplate.sections.size,
+                         maybeValidatedType,
+                         lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(
         form._id,
@@ -242,7 +252,7 @@ class SectionRenderingService(
         snippets,
         "",
         EnvelopeId(""),
-        uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang),
+        uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id.to4Ga, form._id, lang),
         false,
         confirm,
         0,
@@ -284,7 +294,7 @@ class SectionRenderingService(
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
       snippets <- Future.sequence(formTemplate.acknowledgementSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, None, lang)))
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, formTemplate.sections.size, None, lang)))
       renderingInfo = SectionRenderingInformation(
         form._id,
         SectionNumber(0),
@@ -294,7 +304,7 @@ class SectionRenderingService(
         snippets,
         "",
         EnvelopeId(""),
-        uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id, form._id, lang),
+        uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id.to4Ga, form._id, lang),
         false,
         "Confirm and send",
         0,
@@ -328,7 +338,7 @@ class SectionRenderingService(
     val listResult = errors.map { case (_, validationResult) => validationResult }
     for {
       snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id, 0, ei, formTemplate.sections.size, validatedType, lang)))
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, formTemplate.sections.size, validatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(
         formId,
@@ -373,7 +383,7 @@ class SectionRenderingService(
 
   private def htmlFor(
     fieldValue: FormComponent,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     index: Int,
     ei: ExtraInfo,
     totalSections: Int,
@@ -413,7 +423,7 @@ class SectionRenderingService(
 
   private def htmlForFileUpload(
     fieldValue: FormComponent,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     index: Int,
     ei: ExtraInfo,
     totalSections: Int,
@@ -653,7 +663,7 @@ class SectionRenderingService(
 
   private def htmlForGroup(
     grp: Group,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     fieldValue: FormComponent,
     index: Int,
     ei: ExtraInfo,
@@ -673,7 +683,7 @@ class SectionRenderingService(
 
   private def htmlForGroup0(
     groupField: Group,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     fieldValue: FormComponent,
     index: Int,
     ei: ExtraInfo,
@@ -695,7 +705,7 @@ class SectionRenderingService(
 
   private def getGroupForRendering(
     fieldValue: FormComponent,
-    formTemplateId4Ga: FormTemplateId,
+    formTemplateId4Ga: FormTemplateId4Ga,
     groupField: Group,
     orientation: Orientation,
     validatedType: Option[ValidatedType],

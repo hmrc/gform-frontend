@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, Sterling, Text }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import org.scalatest.{ FlatSpec, Matchers }
+import play.api.libs.json.{ JsString, JsSuccess, Json }
 
-package object ops {
-
-  implicit class FormTemplateIdSyntax(formTemplateId: FormTemplateId) {
-    def to4Ga: FormTemplateId4Ga = FormTemplateId4Ga(formTemplateId.value)
+class FormTemplateId4GaSpec extends FlatSpec with Matchers {
+  "FormTemplateId4Ga" should "serialise to and from json" in {
+    Json.toJson(FormTemplateId4Ga("12")) shouldBe JsString("12")
+    Json.fromJson[FormTemplateId4Ga](JsString("12")) shouldBe JsSuccess(FormTemplateId4Ga("12"))
   }
-
-  implicit class FormComponentOps(formComponent: FormComponent) {
-    def isSterling = formComponent.`type` match {
-      case Text(Sterling, _) => true
-      case _                 => false
-    }
-  }
-
 }

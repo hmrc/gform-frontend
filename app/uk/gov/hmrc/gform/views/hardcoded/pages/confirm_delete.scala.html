@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import helper._
+@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
@@ -40,7 +41,7 @@
     frontendAppConfig = frontendAppConfig
 ) {
 
-<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id, formId, lang)" method="GET">
+<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id.to4Ga, formId, lang)" method="GET">
     <h1>Start your @formCategory(formTemplate) again?</h1>
 
     @{CSRF.formField}

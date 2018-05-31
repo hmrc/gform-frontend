@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, RepeatingGroup }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
@@ -165,7 +166,7 @@ object SummaryRenderingService {
           .sequence(sectionsToRender.map {
             case (section, index) =>
               val x = begin_section(
-                formTemplate._id,
+                formTemplate._id.to4Ga,
                 formId,
                 section.shortName.getOrElse(section.title),
                 section.description,

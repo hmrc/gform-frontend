@@ -56,7 +56,7 @@ class DeclarationController(
 
   import i18nSupport._
 
-  def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]) = auth.async(formId) {
+  def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]) = auth.async(formId) {
     implicit request => cache =>
       cache.form.status match {
         case Validated =>
@@ -106,8 +106,8 @@ class DeclarationController(
     doc.html
   }
 
-  def submitDeclaration(formTemplateId4Ga: FormTemplateId, formId: FormId, lang: Option[String]) = auth.async(formId) {
-    implicit request => cache =>
+  def submitDeclaration(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, lang: Option[String]) =
+    auth.async(formId) { implicit request => cache =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
         val validationResultF = validationService.validateComponents(
           getAllDeclarationFields(cache.formTemplate.declarationSection.fields),
@@ -171,7 +171,7 @@ class DeclarationController(
             Future.successful(BadRequest("Cannot determine action"))
         }
       }
-  }
+    }
 
   private def updateFormWithDeclaration(
     form: Form,

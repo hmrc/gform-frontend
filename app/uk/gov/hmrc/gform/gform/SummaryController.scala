@@ -58,7 +58,7 @@ class SummaryController(
 
   import i18nSupport._
 
-  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] =
+  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]): Action[AnyContent] =
     auth.async(formId) { implicit request => cache =>
       cache.form.status match {
         case Summary | Validated | Signed => getSummaryHTML(formId, cache, lang).map(Ok(_))
@@ -66,7 +66,7 @@ class SummaryController(
       }
     }
 
-  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId, totalPage: Int, lang: Option[String]) =
+  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, totalPage: Int, lang: Option[String]) =
     auth.async(formId) { implicit request => cache =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -103,7 +103,7 @@ class SummaryController(
       }
     }
 
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId, lang: Option[String]): Action[AnyContent] =
+  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]): Action[AnyContent] =
     auth.async(formId) { implicit request => cache =>
       cache.form.status match {
         case InProgress | Summary =>

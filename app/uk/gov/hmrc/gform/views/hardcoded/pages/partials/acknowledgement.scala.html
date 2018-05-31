@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.service.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import java.time.LocalDate
+@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.InfoType
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.StandardInfo
@@ -57,7 +58,7 @@
 
 <p>
     <a
-      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id, lang, eventId).url"
+      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.formId, formTemplate._id.to4Ga, lang, eventId).url"
       class="print-link print-hidden js-visible">
         Print your @{formCategory.getString}
     </a>
