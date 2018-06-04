@@ -48,6 +48,21 @@
   margin-right: 0;
 }
 
+/* File uploader */
+.file-upload__file-list {
+  margin: 0;
+  padding: 0;
+}
+
+.file-upload__file-list-item {
+  margin: 0;
+  padding: 0;
+}
+
+.file-upload__file-list-item .gf-delete {
+  margin-left: 1em;
+}
+
 /* Info components */
 .panel-info ul {
   margin-left: 1em;
