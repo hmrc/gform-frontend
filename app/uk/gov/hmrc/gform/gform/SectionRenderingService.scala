@@ -44,6 +44,7 @@ import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
@@ -115,7 +116,6 @@ class SectionRenderingService(
                                   formTemplate._id.to4Ga,
                                   0,
                                   ei,
-                                  dynamicSections.size,
                                   validatedType,
                                   lang,
                                   fieldValue.onlyShowOnSummary)))
@@ -231,17 +231,8 @@ class SectionRenderingService(
 
     val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
     for {
-      snippets <- Future.sequence(
-                   formTemplate.declarationSection.fields.map(
-                     fieldValue =>
-                       htmlFor(
-                         fieldValue,
-                         formTemplate._id.to4Ga,
-                         0,
-                         ei,
-                         formTemplate.sections.size,
-                         maybeValidatedType,
-                         lang)))
+      snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue =>
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, maybeValidatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(
         form._id,
@@ -294,7 +285,7 @@ class SectionRenderingService(
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
       snippets <- Future.sequence(formTemplate.acknowledgementSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, formTemplate.sections.size, None, lang)))
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, None, lang)))
       renderingInfo = SectionRenderingInformation(
         form._id,
         SectionNumber(0),
@@ -338,7 +329,7 @@ class SectionRenderingService(
     val listResult = errors.map { case (_, validationResult) => validationResult }
     for {
       snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, formTemplate.sections.size, validatedType, lang)))
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, validatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(
         formId,
@@ -386,7 +377,6 @@ class SectionRenderingService(
     formTemplateId4Ga: FormTemplateId4Ga,
     index: Int,
     ei: ExtraInfo,
-    totalSections: Int,
     maybeValidated: Option[ValidatedType],
     lang: Option[String],
     isHidden: Boolean = false)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] =
@@ -405,8 +395,7 @@ class SectionRenderingService(
         htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei)
           .pure[Future]
       case FileUpload() =>
-        Future.successful(
-          htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, totalSections, maybeValidated, lang))
+        Future.successful(htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, maybeValidated, lang))
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
     }
@@ -426,18 +415,17 @@ class SectionRenderingService(
     formTemplateId4Ga: FormTemplateId4Ga,
     index: Int,
     ei: ExtraInfo,
-    totalSections: Int,
     validatedType: Option[ValidatedType],
     lang: Option[String])(implicit hc: HeaderCarrier) =
     html.form.snippets.field_template_file_upload(
       ei.formId,
       formTemplateId4Ga,
       ei.sectionNumber,
+      sectionTitle4GaFactory(ei.formTemplate.sections(ei.sectionNumber.value).title),
       fieldValue,
       buildFormFieldValidationResult(fieldValue, ei, validatedType),
       index,
       ei.formMaxAttachmentSizeMB,
-      totalSections,
       lang
     )
 
@@ -720,8 +708,8 @@ class SectionRenderingService(
           Future
             .sequence((1 to groupList.size).map { count =>
               Future
-                .sequence(groupList(count - 1).map(fv =>
-                  htmlFor(fv, formTemplateId4Ga, count, ei, ei.dynamicSections.size, validatedType, lang)))
+                .sequence(
+                  groupList(count - 1).map(fv => htmlFor(fv, formTemplateId4Ga, count, ei, validatedType, lang)))
                 .map { lhtml =>
                   val showButton = {
                     groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
@@ -734,8 +722,7 @@ class SectionRenderingService(
       }
     } else {
       Future
-        .sequence(groupField.fields.map(fv =>
-          htmlFor(fv, formTemplateId4Ga, 0, ei, ei.dynamicSections.size, validatedType, lang)))
+        .sequence(groupField.fields.map(fv => htmlFor(fv, formTemplateId4Ga, 0, ei, validatedType, lang)))
         .map(a => (a, true))
     }
 

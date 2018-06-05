@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, RepeatingGroup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -41,7 +42,7 @@ import uk.gov.hmrc.http.cache.client.CacheMap
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
-case class SummaryForRender(snippets: List[Html], javascripts: Html, totalPage: Int)
+case class SummaryForRender(snippets: List[Html], javascripts: Html)
 
 object SummaryRenderingService {
 
@@ -165,13 +166,14 @@ object SummaryRenderingService {
         Future
           .sequence(sectionsToRender.map {
             case (section, index) =>
+              val sectionTitle4Ga = sectionTitle4GaFactory(formTemplate.sections(index).title)
               val x = begin_section(
                 formTemplate._id.to4Ga,
                 formId,
                 section.shortName.getOrElse(section.title),
                 section.description,
-                index,
-                sections.size,
+                SectionNumber(index),
+                sectionTitle4Ga,
                 lang)
               Future
                 .sequence(
@@ -191,6 +193,6 @@ object SummaryRenderingService {
             cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
         })
       fieldJavascript(fields, repeatingGroups)
-        .flatMap(javascript => snippetsF.map(snippets => SummaryForRender(snippets, Html(javascript), sections.size)))
+        .flatMap(javascript => snippetsF.map(snippets => SummaryForRender(snippets, Html(javascript))))
     }
 }

@@ -21,6 +21,7 @@ import cats.data.Validated.Valid
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.libs.json.JsValue
+import play.api.mvc.Call
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
@@ -92,9 +93,12 @@ class SummarySpec extends Spec {
     val render = SummaryRenderingService.summaryForRender(f, Map(), retrievals, formId, formTemplate, mockRepeatService, envelope, None)
 
     val testStringValues = extractAllHrefs(render.futureValue.snippets)
+
+    def callUrlEscaped(call: Call) = call.url.replaceAll("&", "&amp;")
+
     val expectedResult = List(
-      routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), 2, None).url,
-      routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(1), 2, None).url
+      callUrlEscaped(routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), SectionTitle4Ga("Your-details"), None)),
+      callUrlEscaped(routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(1), SectionTitle4Ga("About-you"), None))
     )
 
     testStringValues should be(expectedResult)
@@ -381,6 +385,6 @@ class SummarySpec extends Spec {
     val htmlAheadOfSection2 = htmls(3)
     val doc = Jsoup.parse(htmlAheadOfSection2.toString)
     val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
-    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(2), 3, None).url
+    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(2), SectionTitle4Ga("Business-details"), None).url
   }
 }

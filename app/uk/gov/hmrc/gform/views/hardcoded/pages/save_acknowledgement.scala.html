@@ -23,7 +23,8 @@
 @(
     formId: FormId,
     formTemplate: FormTemplate,
-    totalSections: Int,
+        originSectionNumber: SectionNumber,
+        sectionTitle4Ga: SectionTitle4Ga,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
 )(implicit messages: Messages)
@@ -52,7 +53,7 @@
 <p>You can</p>
 
 <li>
-    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), totalSections, lang)">
+    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, originSectionNumber, sectionTitle4Ga, lang)">
         Continue
     </a>
     the form
