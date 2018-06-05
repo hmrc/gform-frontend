@@ -63,8 +63,7 @@ class ValidationService(
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     fieldValues
-      .map(fv => validateFieldValue(fv, data, envelopeId, retrievals))
-      .sequenceU
+      .traverse(fv => validateFieldValue(fv, data, envelopeId, retrievals))
       .map(Monoid[ValidatedType].combineAll)
 
   private def validateUsingValidators(section: Section, data: Map[FormComponentId, Seq[String]])(
@@ -644,7 +643,7 @@ class ComponentsValidator(
     }
 
   def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
-    f: (Int, Int, Int) => ConcreteDate): Validated[E, ConcreteDate] = (v3 |@| v2 |@| v1).map(f)
+    f: (Int, Int, Int) => ConcreteDate): Validated[E, ConcreteDate] = (v3, v2, v1).mapN(f)
 
   def alwaysOk(fieldValue: FormComponent)(xs: Seq[String]): FormFieldValidationResult =
     xs match {
