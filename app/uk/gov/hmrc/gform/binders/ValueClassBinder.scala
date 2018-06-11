@@ -53,7 +53,7 @@ object ValueClassBinder {
       }
 
     override def unbind(key: String, sectionNumber: SectionNumber): String =
-      s"""sectionNumber=${sectionNumber.value.toString}"""
+      s"""$key=${sectionNumber.value.toString}"""
   }
   private def parseString[A: Reads](str: String) =
     JsString(str).validate[A] match {
