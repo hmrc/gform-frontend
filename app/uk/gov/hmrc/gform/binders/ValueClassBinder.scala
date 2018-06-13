@@ -34,10 +34,7 @@ object ValueClassBinder {
   implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
     override def bind(key: String, value: String): Either[String, SectionNumber] =
-      Try {
-        SectionNumber(value.toInt)
-      }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
-
+      Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
   implicit val userIdBinder: PathBindable[UserId] = valueClassBinder(_.value)
@@ -55,6 +52,16 @@ object ValueClassBinder {
     override def unbind(key: String, sectionNumber: SectionNumber): String =
       s"""$key=${sectionNumber.value.toString}"""
   }
+
+  def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: QueryStringBindable[String]) =
+    new QueryStringBindable[A] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]] =
+        stringBinder.bind(key, params).map(_.right.flatMap(parseString[A]))
+
+      override def unbind(key: String, a: A): String =
+        stringBinder.unbind(key, fromAtoString(a))
+    }
+
   private def parseString[A: Reads](str: String) =
     JsString(str).validate[A] match {
       case JsSuccess(a, _) => Right(a)
@@ -65,15 +72,6 @@ object ValueClassBinder {
     new PathBindable[A] {
       override def bind(key: String, value: String): Either[String, A] =
         stringBinder.bind(key, value).right.flatMap(parseString[A])
-
-      override def unbind(key: String, a: A): String =
-        stringBinder.unbind(key, fromAtoString(a))
-    }
-
-  def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: QueryStringBindable[String]) =
-    new QueryStringBindable[A] {
-      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]] =
-        stringBinder.bind(key, params).map(_.right.flatMap(parseString[A]))
 
       override def unbind(key: String, a: A): String =
         stringBinder.unbind(key, fromAtoString(a))
