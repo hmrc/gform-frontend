@@ -127,22 +127,34 @@ class ComponentsValidator(
   envelopeId: EnvelopeId,
   retrievals: MaterialisedRetrievals) {
 
-  def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
-    case sortCode @ UkSortCode(_)  => validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data)
-    case date @ Date(_, _, _)      => validateDate(fieldValue, date)
-    case Text(constraint, _)       => validateText(fieldValue, constraint, retrievals)(data)
-    case TextArea(constraint, _)   => validateText(fieldValue, constraint, retrievals)(data)
-    case address @ Address(_)      => validateAddress(fieldValue, address)(data)
-    case c @ Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
-    case Group(_, _, _, _, _, _)   => validF //a group is read-only
-    case FileUpload()              => validateFileUpload(fieldValue)
-    case InformationMessage(_, _)  => validF
+  def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] = {
+
+    def validIf(validationResult: ValidatedType): Future[ValidatedType] =
+      ((validationResult.isValid, fieldValue.validIf) match {
+        case (true, Some(vi)) if !BooleanExpr.isTrue(vi.expr, data, retrievals) =>
+          getError(fieldValue, "Please enter required data")
+        case _ => validationResult
+      }).pure[Future]
+
+    // format: OFF
+    fieldValue.`type` match {
+    case sortCode @ UkSortCode(_)   => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
+    case date @ Date(_, _, _)       => validIf(validateDate(fieldValue, date))
+    case text @ Text(constraint, _) => validIf(validateText(fieldValue, constraint, retrievals)(data))
+    case TextArea(constraint, _)    => validIf(validateText(fieldValue, constraint, retrievals)(data))
+    case address @ Address(_)       => validIf(validateAddress(fieldValue, address)(data))
+    case c @ Choice(_, _, _, _, _)  => validIf(validateChoice(fieldValue)(data))
+    case Group(_, _, _, _, _, _)    => validF //a group is read-only
+    case FileUpload()               => validateFileUpload(fieldValue)
+    case InformationMessage(_, _)   => validF
+  }
+  // format: ON
   }
 
   def validF(implicit ec: ExecutionContext) =
     ().valid.pure[Future]
 
-  private def validateDate(fieldValue: FormComponent, date: Date): Future[ValidatedType] = Future.successful {
+  private def validateDate(fieldValue: FormComponent, date: Date): ValidatedType = {
     val reqFieldValidResult = validateDateRequiredField(fieldValue)(data)
     val otherRulesValidResult = validateDateImpl(fieldValue, date)(data)
     Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
@@ -290,9 +302,9 @@ class ComponentsValidator(
       }
 
   private def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
-    data: Map[FormComponentId, Seq[String]]): Future[ValidatedType] = Future.successful {
+    data: Map[FormComponentId, Seq[String]]): ValidatedType = {
     val textData = data.get(fieldValue.id).toList.flatten
-    val validationResult: ValidatedType =
+    // format: OFF
       (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
         case (true, Nil, _)                                    => getError(fieldValue, "Please enter required data")
         case (_, _, AnyText)                                   => ().valid
@@ -324,10 +336,7 @@ class ComponentsValidator(
         case (false, Nil, _)       => ().valid
         case (_, value :: rest, _) => ().valid // we don't support multiple values yet
       }
-    fieldValue.validIf match {
-      case Some(valid) if validationResult.isValid => checkValidIf(fieldValue, data, valid.expr)
-      case _                                       => validationResult
-    }
+    // format: ON
   }
 
   private def checkVrn(fieldValue: FormComponent, value: String) = {
@@ -344,12 +353,6 @@ class ComponentsValidator(
       case _            => getError(fieldValue, "Not a valid VRN")
     }
   }
-
-  private def checkValidIf(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]], expr: BooleanExpr) =
-    BooleanExpr.isTrue(expr, data, retrievals) match {
-      case true  => ().valid
-      case false => getError(fieldValue, "Please enter required data")
-    }
 
   private def checkNonUkCountryCode(fieldValue: FormComponent, value: String) = {
     val countryCode = "[A-Z]{2}".r
@@ -416,7 +419,7 @@ class ComponentsValidator(
   }
 
   private def validateSortCode(fieldValue: FormComponent, sC: UkSortCode, mandatory: Boolean)(
-    data: Map[FormComponentId, Seq[String]]) = Future.successful {
+    data: Map[FormComponentId, Seq[String]]) =
     Monoid[ValidatedType].combineAll(
       UkSortCode
         .fields(fieldValue.id)
@@ -429,7 +432,6 @@ class ComponentsValidator(
           }
         }
     )
-  }
 
   private def validateNumber(
     fieldValue: FormComponent,
@@ -493,8 +495,7 @@ class ComponentsValidator(
     }
   }
 
-  private def validateChoice(fieldValue: FormComponent)(
-    data: Map[FormComponentId, Seq[String]]): Future[ValidatedType] = Future.successful {
+  private def validateChoice(fieldValue: FormComponent)(data: Map[FormComponentId, Seq[String]]): ValidatedType = {
     val choiceValue = data.get(fieldValue.id).toList.flatten.headOption
 
     (fieldValue.mandatory, choiceValue) match {
@@ -510,7 +511,7 @@ class ComponentsValidator(
     validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
 
   def validateAddress(fieldValue: FormComponent, address: Address)(
-    data: Map[FormComponentId, Seq[String]]): Future[ValidatedType] = Future.successful {
+    data: Map[FormComponentId, Seq[String]]): ValidatedType = {
     val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
 
     def validateRequiredFied(value: String) = validateRequired(fieldValue, fieldValue.id.withSuffix(value)) _
