@@ -231,16 +231,8 @@ class SectionRenderingService(
 
     val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
     for {
-      snippets <- Future.sequence(
-                   formTemplate.declarationSection.fields.map(
-                     fieldValue =>
-                       htmlFor(
-                         fieldValue,
-                         formTemplate._id.to4Ga,
-                         0,
-                         ei,
-                         maybeValidatedType,
-                         lang)))
+      snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue =>
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, maybeValidatedType, lang)))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(
         form._id,
@@ -403,8 +395,7 @@ class SectionRenderingService(
         htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei)
           .pure[Future]
       case FileUpload() =>
-        Future.successful(
-          htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, maybeValidated, lang))
+        Future.successful(htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, maybeValidated, lang))
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
     }
@@ -717,8 +708,8 @@ class SectionRenderingService(
           Future
             .sequence((1 to groupList.size).map { count =>
               Future
-                .sequence(groupList(count - 1).map(fv =>
-                  htmlFor(fv, formTemplateId4Ga, count, ei, validatedType, lang)))
+                .sequence(
+                  groupList(count - 1).map(fv => htmlFor(fv, formTemplateId4Ga, count, ei, validatedType, lang)))
                 .map { lhtml =>
                   val showButton = {
                     groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
@@ -731,8 +722,7 @@ class SectionRenderingService(
       }
     } else {
       Future
-        .sequence(groupField.fields.map(fv =>
-          htmlFor(fv, formTemplateId4Ga, 0, ei, validatedType, lang)))
+        .sequence(groupField.fields.map(fv => htmlFor(fv, formTemplateId4Ga, 0, ei, validatedType, lang)))
         .map(a => (a, true))
     }
 

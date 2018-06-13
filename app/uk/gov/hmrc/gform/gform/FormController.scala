@@ -178,8 +178,7 @@ class FormController(
       choice.bindFromRequest.fold(
         _ => Future.successful(BadRequest(continue_form_page(cache.formTemplate, formId, lang, frontendAppConfig))), {
           case "continue" =>
-            Future.successful(
-              redirectOrigin(formId, cache.retrievals, cache.formTemplate, lang))
+            Future.successful(redirectOrigin(formId, cache.retrievals, cache.formTemplate, lang))
           case "delete" => Future.successful(Ok(confirm_delete(cache.formTemplate, formId, lang, frontendAppConfig)))
           case _        => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
         }
@@ -225,9 +224,9 @@ class FormController(
             userData = UserData(formData, keystore, InProgress)
             _           <- gformConnector.updateUserData(formId, userData)
             isFormValid <- isFormValidF
-            sectionTitle4Ga =  sectionTitle4GaFactory(cache.formTemplate.sections(sn.value).title)
-            gotoForm        =  routes.FormController.form(formId, cache.formTemplate._id.to4Ga, sn, sectionTitle4Ga, lang)
-            gotoFormError   =  routes.FormController
+            sectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(sn.value).title)
+            gotoForm = routes.FormController.form(formId, cache.formTemplate._id.to4Ga, sn, sectionTitle4Ga, lang)
+            gotoFormError = routes.FormController
               .formError(formId, cache.formTemplate._id.to4Ga, sectionNumber, sectionTitle4Ga, lang)
           } yield Redirect(if (isFormValid) gotoForm else gotoFormError)
 
@@ -242,7 +241,8 @@ class FormController(
             isFormValid   <- isFormValidF
             originSectionTitle4Ga =  sectionTitle4GaFactory(sections(sectionNumber.value).title)
             gotoSummary   =  routes.SummaryController.summaryById(formId, cache.formTemplate._id.to4Ga, lang)
-            gotoFormError =  routes.FormController.formError(formId, cache.formTemplate._id.to4Ga, sectionNumber, originSectionTitle4Ga, lang) // format: ON
+            gotoFormError =  routes.FormController.formError(formId, cache.formTemplate._id.to4Ga, sectionNumber, originSectionTitle4Ga, lang)
+            // format: ON
           } yield Redirect(if (isFormValid) gotoSummary else gotoFormError)
 
         def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] =
@@ -252,12 +252,20 @@ class FormController(
             formData <- formDataF
             userData = UserData(formData, keystore, InProgress)
             originSection = new Origin(cache.formTemplate.sections, cache.retrievals).minSectionNumber
-            originSectionTitle4Ga =  sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
+            originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
             result <- gformConnector
                        .updateUserData(formId, userData)
-                       .map(response =>
-                         Ok(views.html.hardcoded.pages
-                           .save_acknowledgement(formId,  cache.formTemplate, originSection, originSectionTitle4Ga, lang, frontendAppConfig)))
+                       .map(
+                         response =>
+                           Ok(
+                             views.html.hardcoded.pages
+                               .save_acknowledgement(
+                                 formId,
+                                 cache.formTemplate,
+                                 originSection,
+                                 originSectionTitle4Ga,
+                                 lang,
+                                 frontendAppConfig)))
           } yield result
 
         def processBack(userId: UserId, form: Form, sn: SectionNumber): Future[Result] =
@@ -266,8 +274,11 @@ class FormController(
             formData <- formDataF
             userData = UserData(formData, keystore, InProgress)
             sectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(sn.value).title)
-            result <- gformConnector.updateUserData(formId, userData).map(response =>
-                         Redirect(routes.FormController.form(formId, cache.formTemplate._id.to4Ga, sn, sectionTitle4Ga, lang)))
+            result <- gformConnector
+                       .updateUserData(formId, userData)
+                       .map(response =>
+                         Redirect(
+                           routes.FormController.form(formId, cache.formTemplate._id.to4Ga, sn, sectionTitle4Ga, lang)))
           } yield result
 
         def processAddGroup(groupId: String): Future[Result] =
@@ -307,7 +318,7 @@ class FormController(
             keystore <- repeatService.getData()
             userData = UserData(formData, keystore, InProgress)
             _ <- gformConnector.updateUserData(formId, userData)
-            sectionTitle4Ga =  sectionTitle4GaFactory(cache.formTemplate.sections(sectionNumber.value).title)
+            sectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(sectionNumber.value).title)
           } yield
             Redirect(
               routes.FormController
