@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.localisation
 
-@(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, title: String, description: Option[String], idx: Int, totalSections: Int, lang: Option[String])
+@(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, title: String, description: Option[String], sectionNumber: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String])
 
 <table class="table--font-reset">
   <thead>
@@ -29,7 +29,7 @@
       </th>
 
       <th class="text--right">
-        <a class="print-hidden" href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, SectionNumber(idx), totalSections, lang).url">
+        <a class="print-hidden" href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang).url">
           Change <span class="visuallyhidden">@localisation(title)</span>
         </a>
       </th>

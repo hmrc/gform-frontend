@@ -17,12 +17,11 @@
 package uk.gov.hmrc.gform.binders
 
 import cats.implicits._
-import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.PathBindable
+import play.api.mvc.{ PathBindable, QueryStringBindable }
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, SectionNumber, SectionTitle4Ga }
 
 import scala.util.Try
 object ValueClassBinder {
@@ -32,6 +31,7 @@ object ValueClassBinder {
   implicit val formTemplateId4GaBinder: PathBindable[FormTemplateId4Ga] = valueClassBinder(_.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
+  implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
     override def bind(key: String, value: String): Either[String, SectionNumber] =
       Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
@@ -39,20 +39,41 @@ object ValueClassBinder {
   }
   implicit val userIdBinder: PathBindable[UserId] = valueClassBinder(_.value)
 
-  def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) = {
+  implicit val formIdQueryBinder: QueryStringBindable[FormId] = valueClassQueryBinder(_.value)
+  implicit val sectionNumberQueryBinder: QueryStringBindable[SectionNumber] = new QueryStringBindable[SectionNumber] {
 
-    def parseString(str: String) =
-      JsString(str).validate[A] match {
-        case JsSuccess(a, _) => Right(a)
-        case JsError(_)      => Left("No valid value in path: " + str)
+    override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SectionNumber]] =
+      params.get(key).flatMap(_.headOption).map { value =>
+        Try { SectionNumber(value.toInt) }
+          .map(_.asRight)
+          .getOrElse(s"No valid value in path $key: $value".asLeft)
       }
 
-    new PathBindable[A] {
-      override def bind(key: String, value: String): Either[String, A] =
-        stringBinder.bind(key, value).right.flatMap(parseString)
+    override def unbind(key: String, sectionNumber: SectionNumber): String =
+      s"""$key=${sectionNumber.value.toString}"""
+  }
+
+  def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: QueryStringBindable[String]) =
+    new QueryStringBindable[A] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]] =
+        stringBinder.bind(key, params).map(_.right.flatMap(parseString[A]))
 
       override def unbind(key: String, a: A): String =
         stringBinder.unbind(key, fromAtoString(a))
     }
-  }
+
+  private def parseString[A: Reads](str: String) =
+    JsString(str).validate[A] match {
+      case JsSuccess(a, _) => Right(a)
+      case JsError(_)      => Left("No valid value in url binding: " + str)
+    }
+
+  def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) =
+    new PathBindable[A] {
+      override def bind(key: String, value: String): Either[String, A] =
+        stringBinder.bind(key, value).right.flatMap(parseString[A])
+
+      override def unbind(key: String, a: A): String =
+        stringBinder.unbind(key, fromAtoString(a))
+    }
 }

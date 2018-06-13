@@ -26,11 +26,11 @@
 formId: FormId,
 formTemplateId4Ga: FormTemplateId4Ga,
 sectionNumber: SectionNumber,
+sectionTitle4Ga: SectionTitle4Ga,
 fieldValue: FormComponent,
 validationResult: Option[FormFieldValidationResult],
 index: Int,
 formMaxAttachmentSizeMB: Int,
-totalSections: Int,
 lang: Option[String]
 )
 
@@ -72,8 +72,8 @@ lang: Option[String]
                   formId,
                   formTemplateId4Ga,
                   sectionNumber,
+                    sectionTitle4Ga,
                   FileId(fieldValue.id.value).value,
-                  totalSections,
                   lang
                 )
             }>

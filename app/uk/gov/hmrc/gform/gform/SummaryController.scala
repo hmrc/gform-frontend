@@ -27,12 +27,12 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder, Origin }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel
 import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -41,7 +41,7 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationServi
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 class SummaryController(
@@ -66,7 +66,7 @@ class SummaryController(
       }
     }
 
-  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, totalPage: Int, lang: Option[String]) =
+  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]) =
     auth.async(formId) { implicit request => cache =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -93,9 +93,12 @@ class SummaryController(
         // format: ON
         } yield result
 
+        val originSection = new Origin(cache.formTemplate.sections, cache.retrievals).minSectionNumber
+        val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
+
         get(data, FormComponentId("save")) match {
           // format: OFF
-        case "Exit" :: Nil        => Ok(save_acknowledgement(formId, cache.formTemplate, totalPage, lang, frontendAppConfig)).pure[Future]
+        case "Exit" :: Nil        => Ok(save_acknowledgement(formId, cache.formTemplate, originSection, originSectionTitle4Ga, lang, frontendAppConfig)).pure[Future]
         case "Declaration" :: Nil => handleDeclaration
         case _                    => BadRequest("Cannot determine action").pure[Future]
         // format: ON

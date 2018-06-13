@@ -50,7 +50,7 @@
       Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
 
-    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id.to4Ga, summary.totalPage, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
+    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id.to4Ga, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
         @{
             CSRF.formField
