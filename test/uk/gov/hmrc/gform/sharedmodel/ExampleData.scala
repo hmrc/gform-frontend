@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
@@ -61,6 +62,7 @@ trait ExampleFieldId {
   def `fieldId - startDate-day` = FormComponentId("startDate-day")
   def `fieldId - startDate-month` = FormComponentId("startDate-month")
   def `fieldId - number` = FormComponentId("number")
+  def `fieldId - choice` = FormComponentId("choice")
   def default = FormComponentId("test")
 
   //fieldId when submitting form
@@ -69,6 +71,8 @@ trait ExampleFieldId {
 }
 
 trait ExampleFieldValue { dependecies: ExampleFieldId =>
+
+  def validIf: Option[ValidIf] = None
 
   def `fieldValue - facePhoto` = FormComponent(
     `fieldId - facePhoto`,
@@ -172,7 +176,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     "someLabel",
     None,
     None,
-    None,
+    validIf,
     false,
     false,
     false,
@@ -210,7 +214,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     "sample label",
     None,
     None,
-    None,
+    validIf,
     true,
     false,
     false,
@@ -219,18 +223,18 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     None
   )
 
-  def `fieldValue - number - validIf` = FormComponent(
-    `fieldId - number`,
-    Text(Number(), Constant("")),
+  def `fieldValue - choice` = FormComponent(
+    `fieldId - choice`,
+    Choice(Radio, NonEmptyList.of("u", "v"), Vertical, List(), None),
     "sample label",
     None,
     None,
-    None,
+    validIf,
     true,
-    false,
-    false,
-    false,
-    false,
+    true,
+    true,
+    true,
+    true,
     None
   )
 
@@ -248,8 +252,6 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
     false,
     None
   )
-
-  def listFieldValue = List()
 
 }
 
@@ -368,6 +370,7 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
   def `formField - startDateMonth` = FormField(`fieldId - startDate-month`, "10")
   def `formField - startDateYear` = FormField(`fieldId - startDate-year`, "2008")
   def `formField - number` = FormField(`fieldId - number`, "1,234")
+  def `formField - choice` = FormField(`fieldId - choice`, "u")
 
   //actions:
 
@@ -387,7 +390,8 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
     `fieldId - startDate-month` -> `formField - startDateMonth`,
     `fieldId - startDate-day`   -> `formField - startDateDay`,
     `fieldId - businessName`    -> `formField - businessName`,
-    `fieldId - number`          -> `formField - number`
+    `fieldId - number`          -> `formField - number`,
+    `fieldId - choice`          -> `formField - choice`
   )
 
   def rawDataFromBrowser: Map[FormComponentId, Seq[String]] = data.mapValues(x => Seq(x.value))
