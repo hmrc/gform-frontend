@@ -16,18 +16,10 @@
 
 package uk.gov.hmrc.gform.services
 
+import cats.data.NonEmptyList
 import org.scalatest.mockito.MockitoSugar.mock
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import cats.data.Validated
-import cats.data.Validated.Valid
-import cats.scalatest.EitherMatchers
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.FileUploadService
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -35,17 +27,25 @@ import uk.gov.hmrc.gform.validation.ComponentsValidator
 import cats.implicits._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.http.HeaderCarrier
+import scala.collection.immutable.List
 
 class ValidIfValidationSpec extends Spec {
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
-  "Valid if " should "return no errors" in new Test {
+  "Valid if " should "return no errors for valid if it's condition is met" in new Test {
     override val value = "15"
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
-  "Valid if " should "return an error if it's condition is not met" in new Test {
+  "Valid if " should "return no errors for an info field even thpiugh it's condition is not met" in new Test {
+    validate(`fieldValue - info`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+  "Valid if " should "return an error for a text field if it's condition is not met" in new Test {
     override val value = "12"
     val expected = Map(`fieldValue - number`.id -> Set("Please enter required data")).invalid[Unit]
-    validate(`fieldValue - number - validIf`, rawDataFromBrowser).futureValue shouldBe expected
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+  }
+  "Valid if " should "return an error for a choice field if it's condition is not met" in new Test {
+    val expected = Map(`fieldValue - choice`.id -> Set("Please enter required data")).invalid[Unit]
+    validate(`fieldValue - choice`, rawDataFromBrowser).futureValue shouldBe expected
   }
   "Valid if " should "return the error for invalid data instead of it's own" in new Test {
     override val value = "THX1138"
@@ -54,11 +54,11 @@ class ValidIfValidationSpec extends Spec {
   }
 
   trait Test extends ExampleData {
-    def value: String
+    def value: String = ""
 
     override def `formField - number` = FormField(`fieldId - number`, value)
 
-    override def `fieldValue - number - validIf` = FormComponent(
+    override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Constant("")),
       "sample label",
@@ -72,6 +72,8 @@ class ValidIfValidationSpec extends Spec {
       false,
       None
     )
+
+    override def validIf = Some(ValidIf(Equals(FormCtx("choice"), Constant(""))))
 
     override def data = Map(
       `fieldId - number` -> `formField - number`
