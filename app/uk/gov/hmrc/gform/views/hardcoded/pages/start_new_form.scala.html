@@ -1,0 +1,58 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import helper._
+@import play.api.i18n.Messages.Implicits._
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.play.views.html.helpers.{form, input}
+
+@(
+        formTemplate: FormTemplate,
+        accessCode: AccessCode,
+        lang: Option[String],
+        frontendAppConfig: FrontendAppConfig
+)(
+        implicit
+        request: Request[_],
+        messages: Messages
+)
+
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = formTemplate.formName,
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+    frontendAppConfig = frontendAppConfig
+) {
+<h1>New @formCategory(formTemplate)?</h1>
+
+    <h1>Make a note of your access code</h1>
+
+    <div style="background-color : #28A197 ; text-align : center ; padding : 10 px ; color : #ffffff ;">
+        <p style="font-weight : 800 ;">Access code</p><span id="subref" class="h1-heading" style="color : #ffffff ;">@{accessCode.value}</span>
+    </div>
+
+    <p>
+        <b>Make a note of this access code. You will be asked for this each time you want to continue an existing form.</b>
+    </p>
+
+    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id, lang)">Continue</a>
+
+}

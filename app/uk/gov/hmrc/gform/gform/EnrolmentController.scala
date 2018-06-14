@@ -101,7 +101,7 @@ class EnrolmentController(
         enrolmentService
           .enrolUser(authConfig.serviceId, identifiers, verifiers)
           .map { _ =>
-            val newPageUrl = routes.FormController.newForm(formTemplate._id, lang).url
+            val newPageUrl = routes.FormController.dashboard(formTemplate._id, lang).url
             val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
             val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
             val redirectUrl = s"$ggLoginUrl?continue=$continueUrl"
@@ -180,7 +180,7 @@ class EnrolmentController(
   )(implicit hc: HeaderCarrier, request: Request[_]): PartialFunction[Throwable, Future[Result]] = {
     case _ =>
       Future.successful(
-        Redirect(routes.FormController.newForm(formTemplate._id, lang)).withNewSession
+        Redirect(routes.FormController.dashboard(formTemplate._id, lang)).withNewSession
       )
   }
 }
