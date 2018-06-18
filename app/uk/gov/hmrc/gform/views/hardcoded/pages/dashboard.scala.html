@@ -43,7 +43,7 @@
 ) {
 <h1>Would you like to continue your @formCategory(formTemplate) or start again?</h1>
 
-<form action=@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplate._id, lang) method="POST">
+<form action=@uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang) method="POST">
 
     @{CSRF.formField}
 

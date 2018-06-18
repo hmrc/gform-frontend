@@ -1,10 +1,10 @@
 # microservice specific routes
 
-GET           /dashboard/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.FormController.dashboard(formTemplateId: FormTemplateId, lang : Option[String])
-GET           /dashboard/:formTemplateId/show-access-code                                                        uk.gov.hmrc.gform.gform.FormController.showAccessCode(formTemplateId: FormTemplateId, lang : Option[String])
-GET           /dashboard/:formTemplateId/new-form-agent                                                          uk.gov.hmrc.gform.gform.FormController.newFormAgent(formTemplateId: FormTemplateId, lang : Option[String])
+GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.FormController.dashboard(formTemplateId: FormTemplateId, lang : Option[String])
+GET           /new-form/:formTemplateId/show-access-code                                                         uk.gov.hmrc.gform.gform.FormController.showAccessCode(formTemplateId: FormTemplateId, lang : Option[String])
+GET           /new-form/:formTemplateId/agent                                                                    uk.gov.hmrc.gform.gform.FormController.newFormAgent(formTemplateId: FormTemplateId, lang : Option[String])
 POST          /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.FormController.newFormPost(formTemplateId: FormTemplateId, lang : Option[String])
-GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.FormController.newForm(formTemplateId: FormTemplateId, lang : Option[String])
+GET           /new-form/:formTemplateId/nonagent                                                                 uk.gov.hmrc.gform.gform.FormController.newForm(formTemplateId: FormTemplateId, lang : Option[String])
 GET           /form/:formTemplateId4Ga/:sectionTitle4Ga/file-upload-page/:fileId                                 uk.gov.hmrc.gform.gform.FormController.fileUploadPage(f: FormId, formTemplateId4Ga: FormTemplateId4Ga, n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, fileId: String, lang: Option[String])
 
 GET           /form/:formTemplateId4Ga/:sectionTitle4Ga                                                          uk.gov.hmrc.gform.gform.FormController.form(f: FormId, formTemplateId4Ga: FormTemplateId4Ga, n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String])
