@@ -397,7 +397,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def userId = UserId("James007")
 
-  def formId = FormId(userId, formTemplateId)
+  def formId = FormId(userId, formTemplateId, None)
 
   def formFields: Seq[FormField] = data.values.toSeq
 

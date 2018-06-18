@@ -17,11 +17,11 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
-import play.api.libs.json.{ JsValue, Writes }
+import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ Account, UserId, ValAddress }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Account, UserId, ValAddress }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
@@ -37,10 +37,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******form*******/
   //TODO: remove userId since this information will be passed using HeaderCarrier
-  def newForm(formTemplateId: FormTemplateId, userId: UserId)(
+  def newForm(formTemplateId: FormTemplateId, userId: UserId, accessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[FormId] =
-    ws.POSTEmpty[FormId](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}")
+    ec: ExecutionContext): Future[FormId] = {
+    val ac = accessCode.map("/" + _.value).getOrElse("")
+    ws.POSTEmpty[FormId](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}$ac")
+  }
 
   def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}")

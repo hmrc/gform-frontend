@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.form
+package uk.gov.hmrc.gform.typeclasses
 
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId, ValueClassFormat }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import scala.util.Random
 
-case class FormId(value: String)
+trait Rnd[T] {
+  def random(i: Int): T
+}
 
-object FormId {
-
-  def apply(userId: UserId, formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): FormId = {
-    val ac = accessCode.map("-" + _.value).getOrElse("")
-    new FormId(s"${userId.value}-${formTemplateId.value}$ac")
+object Rnd {
+  implicit object RandomInt extends Rnd[Int] {
+    def random(i: Int) = Random.nextInt(i)
   }
-
-  implicit val format: OFormat[FormId] = ValueClassFormat.oformat("_id", FormId.apply, _.value)
-
 }

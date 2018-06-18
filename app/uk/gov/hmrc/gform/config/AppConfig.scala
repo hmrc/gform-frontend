@@ -55,4 +55,4 @@ case class GoogleAnalytics(
   host: String
 )
 
-case class FeatureToggle(emailEnabled: Boolean)
+case class FeatureToggle(emailEnabled: Boolean, concurrentAgentAccess: Boolean)

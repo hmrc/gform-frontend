@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.form
+package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId, ValueClassFormat }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import org.scalatest.{ FlatSpec, Matchers }
+import scala.util.Random
+import uk.gov.hmrc.gform.typeclasses.Rnd
 
-case class FormId(value: String)
+class AccessCodeSpec extends FlatSpec with Matchers {
 
-object FormId {
-
-  def apply(userId: UserId, formTemplateId: FormTemplateId, accessCode: Option[AccessCode]): FormId = {
-    val ac = accessCode.map("-" + _.value).getOrElse("")
-    new FormId(s"${userId.value}-${formTemplateId.value}$ac")
+  "AccessCode" should "generate access code" in {
+    implicit object FixedRandomInt extends Rnd[Int] {
+      val r = new Random(12)
+      def random(i: Int) = r.nextInt(i)
+    }
+    AccessCode.random should be(AccessCode("46Q-Z2HW-XIB"))
   }
 
-  implicit val format: OFormat[FormId] = ValueClassFormat.oformat("_id", FormId.apply, _.value)
-
+  it should "generate unique access codes" in {
+    val codeA = AccessCode.random
+    val codeB = AccessCode.random
+    codeA shouldNot be(codeB)
+  }
 }

@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.implicits._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
@@ -40,6 +41,19 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
+
+case class AccessCodeForm(accessCode: String)
+
+private class Identifiers(cache: AuthCacheWithoutForm, val accessCode: Option[AccessCode]) {
+  val formTemplateId: FormTemplateId = cache.formTemplate._id
+  val userId: UserId = UserId(cache.retrievals.userDetails.groupIdentifier)
+  val formId: FormId = FormId(userId, formTemplateId, accessCode)
+}
+
+private object Identifiers {
+  def apply(cache: AuthCacheWithoutForm, accessCode: AccessCode) = new Identifiers(cache, Some(accessCode))
+  def apply(cache: AuthCacheWithoutForm) = new Identifiers(cache, None)
+}
 
 class FormController(
   appConfig: AppConfig,
@@ -66,12 +80,48 @@ class FormController(
     Redirect(routes.FormController.form(formId, formTemplate._id.to4Ga, originSection, originSectionTitle4Ga, lang))
   }
 
+  val accessCodeForm: play.api.data.Form[AccessCodeForm] =
+    play.api.data
+      .Form(
+        play.api.data.Forms
+          .mapping(AccessCode.key -> play.api.data.Forms.nonEmptyText)(AccessCodeForm.apply)(AccessCodeForm.unapply))
+
+  def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+    implicit request => cache =>
+      cache.retrievals.affinityGroup match {
+        case Some(AffinityGroup.Agent) if appConfig.feature.concurrentAgentAccess =>
+          Future.successful(
+            Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages
+              .dashboard(cache.formTemplate, accessCodeForm, lang, frontendAppConfig)))
+        case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
+      }
+  }
+
+  def newFormAgent(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+    implicit request => cache =>
+      val accessCode = AccessCode.random
+      for {
+        _ <- startForm(Identifiers(cache, accessCode))
+      } yield
+        Redirect(routes.FormController.showAccessCode(formTemplateId, lang))
+          .flashing(AccessCode.key -> accessCode.value)
+  }
+
+  def showAccessCode(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+    implicit request => cache =>
+      request.flash.get(AccessCode.key) match {
+        case Some(accessCode) =>
+          Future.successful(
+            Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages
+              .start_new_form(cache.formTemplate, AccessCode(accessCode), lang, frontendAppConfig)))
+        case None => Future.successful(Redirect(routes.FormController.dashboard(formTemplateId, lang)))
+      }
+  }
+
   def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
     implicit request => cache =>
       for {
-        (form, wasFormFound) <- getOrStartForm(
-                                 cache.formTemplate._id,
-                                 UserId(cache.retrievals.userDetails.groupIdentifier))
+        (form, wasFormFound) <- getOrStartForm(Identifiers(cache))
       } yield {
         if (wasFormFound) {
           Ok(continue_form_page(cache.formTemplate, form._id, lang, frontendAppConfig))
@@ -79,23 +129,56 @@ class FormController(
       }
   }
 
-  //true - it got the form, false - new form was created
-  private def getOrStartForm(formTemplateId: FormTemplateId, userId: UserId)(
-    implicit hc: HeaderCarrier): Future[(Form, Boolean)] = {
-    val formId = FormId(userId, formTemplateId)
+  def newFormPost(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+    implicit request => cache =>
+      accessCodeForm.bindFromRequest.fold(
+        hasErrors =>
+          Future.successful(
+            BadRequest(uk.gov.hmrc.gform.views.html.hardcoded.pages
+              .dashboard(cache.formTemplate, hasErrors, lang, frontendAppConfig))),
+        accessCodeF => {
+          val accessCode = AccessCode(accessCodeF.accessCode)
+          for {
+            maybeForm <- getForm(Identifiers(cache, accessCode))
+          } yield
+            maybeForm match {
+              case Some(form) => redirectOrigin(form._id, cache.retrievals, cache.formTemplate, lang)
+              case None       => Redirect(routes.FormController.dashboard(formTemplateId, lang))
+            }
+        }
+      )
+  }
 
-    def startForm: Future[Form] =
-      for {
-        formId <- gformConnector.newForm(formTemplateId, userId)
-        form   <- gformConnector.getForm(formId)
-      } yield form
+  private def getForm(ids: Identifiers)(implicit hc: HeaderCarrier): Future[Option[Form]] =
+    for {
+      maybeForm <- gformConnector.maybeForm(ids.formId)
+      maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
+    } yield maybeFormExceptSubmitted
 
+  private def startFreshForm(ids: Identifiers)(implicit hc: HeaderCarrier): Future[Form] = {
+    import ids._
+    for {
+      formId <- gformConnector.newForm(formTemplateId, userId, accessCode)
+      form   <- gformConnector.getForm(formId)
+    } yield form
+  }
+
+  private def startForm(ids: Identifiers)(implicit hc: HeaderCarrier): Future[Form] = {
+    val formId = ids.formId
+    def formIdAlreadyExists = Future.failed(new Exception(s"Form $formId already exists"))
     for {
       maybeForm <- gformConnector.maybeForm(formId)
-      maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
-      form <- maybeFormExceptSubmitted.map(Future.successful).getOrElse(startForm)
-    } yield (form, maybeFormExceptSubmitted.isDefined)
+      form      <- if (maybeForm.isDefined) formIdAlreadyExists else startFreshForm(ids)
+    } yield form
   }
+
+  //true - it got the form, false - new form was created
+  private def getOrStartForm(ids: Identifiers)(implicit hc: HeaderCarrier): Future[(Form, Boolean)] =
+    for {
+      maybeForm <- gformConnector.maybeForm(ids.formId)
+      maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
+      form <- maybeFormExceptSubmitted.map(Future.successful).getOrElse(startFreshForm(ids))
+    } yield (form, maybeFormExceptSubmitted.isDefined)
 
   def form(
     formId: FormId,
