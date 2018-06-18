@@ -11,7 +11,7 @@ GET           /form/:formTemplateId4Ga/:sectionTitle4Ga                         
 GET           /form/:formTemplateId4Ga/:sectionTitle4Ga/validate                                                 uk.gov.hmrc.gform.gform.FormController.formError(f: FormId, formTemplateId4Ga: FormTemplateId4Ga, n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String])
 
 POST          /form/:formTemplateId/:formId/decision                                                             uk.gov.hmrc.gform.gform.FormController.decision(formTemplateId: FormTemplateId, formId: FormId, lang: Option[String])
-GET           /form/:formTemplateId4Ga/delete                                                                    uk.gov.hmrc.gform.gform.FormController.delete(formTemplateId4Ga: FormTemplateId4Ga, f: FormId, lang: Option[String])
+POST          /form/:formTemplateId4Ga/:formId/delete                                                            uk.gov.hmrc.gform.gform.FormController.delete(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, lang: Option[String])
 POST          /form/:formId/:sectionNumber                                                                       uk.gov.hmrc.gform.gform.FormController.updateFormData(formId: FormId, sectionNumber: SectionNumber, lang: Option[String])
 
 GET           /summary/:formTemplateId4Ga/                                                                       uk.gov.hmrc.gform.gform.SummaryController.summaryById(f: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String])
