@@ -390,7 +390,8 @@ class SectionRenderingService(
       case Address(international) =>
         Future.successful(htmlForAddress(fieldValue, international, index, maybeValidated, ei))
       case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, maybeValidated, ei, isHidden)
-      case TextArea          => Future.successful(htmlForTextArea(fieldValue, index, maybeValidated, ei, isHidden))
+      case t @ TextArea(_, expr) =>
+        Future.successful(htmlForTextArea(fieldValue, t, expr, index, maybeValidated, ei, isHidden))
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei)
           .pure[Future]
@@ -555,6 +556,8 @@ class SectionRenderingService(
 
   private def htmlForTextArea(
     fieldValue: FormComponent,
+    textArea: TextArea,
+    expr: Expr,
     index: Int,
     validatedType: Option[ValidatedType],
     ei: ExtraInfo,
@@ -565,7 +568,8 @@ class SectionRenderingService(
       isHidden: Boolean): Html = {
       val prepopValue = "" // TODO we don't support prepopulation for multiline input yet
       val htmlWithValues =
-        html.form.snippets.field_template_textarea(fieldValue, prepopValue, validatedValue, index, ei.section.title)
+        html.form.snippets
+          .field_template_textarea(fieldValue, textArea, prepopValue, validatedValue, index, ei.section.title)
       if (isHidden)
         html.form.snippets
           .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))

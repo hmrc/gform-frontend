@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, Sterling, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, Sterling, Text, TextArea }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 package object ops {
@@ -27,8 +27,9 @@ package object ops {
 
   implicit class FormComponentOps(formComponent: FormComponent) {
     def isSterling = formComponent.`type` match {
-      case Text(Sterling, _) => true
-      case _                 => false
+      case Text(Sterling, _)     => true
+      case TextArea(Sterling, _) => true
+      case _                     => false
     }
   }
 

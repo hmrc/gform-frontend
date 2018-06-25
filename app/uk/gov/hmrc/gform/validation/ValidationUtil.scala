@@ -84,8 +84,8 @@ object ValidationUtil {
           }
         }
       case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _) |
-          TextArea =>
-        List[(FormComponentId, FormFieldValidationResult)]()
+          TextArea(_, _) =>
+        List.empty[(FormComponentId, FormFieldValidationResult)]
     }
 
   def evaluateWithoutSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
@@ -148,7 +148,7 @@ object ValidationUtil {
 
           ComponentField(fieldValue, dataMap)
 
-        case Text(constraint, _) =>
+        case IsTextOrTextArea(constraint) =>
           val data = constraint match {
             case UkVrn => dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
             case _     => dataGetter(fieldValue.id).headOption.getOrElse("")
@@ -158,8 +158,6 @@ object ValidationUtil {
             .fold[FormFieldValidationResult](
               FieldOk(fieldValue, data)
             )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
-        case TextArea =>
-          FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
         case Group(_, _, _, _, _, _) => {
           FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
         }
@@ -191,6 +189,15 @@ object ValidationUtil {
 
     }
     resultErrors
+  }
+
+  private final object IsTextOrTextArea {
+    def unapply(expr: ComponentType): Option[TextConstraint] =
+      expr match {
+        case Text(constraint, _)     => Some(constraint)
+        case TextArea(constraint, _) => Some(constraint)
+        case _                       => None
+      }
   }
 
   def validateFileUploadHasScannedFiles(fieldValues: List[FormComponent], e: Envelope): Validated[GformError, Unit] = {
