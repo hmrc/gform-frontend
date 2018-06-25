@@ -23,12 +23,21 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object Javascript {
 
+  private object HasExpr {
+    def unapply(fc: FormComponent): Option[Expr] =
+      fc.`type` match {
+        case Text(_, expr)     => Some(expr)
+        case TextArea(_, expr) => Some(expr)
+        case _                 => None
+      }
+  }
+
   def fieldJavascript(fields: List[FormComponent], groupList: Future[List[List[List[FormComponent]]]])(
     implicit ex: ExecutionContext): Future[String] = {
 
     val fieldIdWithExpr: List[(FormComponent, Expr)] =
       fields.collect {
-        case formComponent @ FormComponent(_, Text(_, expr), _, _, _, _, _, _, _, _, _, _, _) => (formComponent, expr)
+        case formComponent @ HasExpr(expr) => (formComponent, expr)
       }
 
     Future
@@ -62,14 +71,33 @@ object Javascript {
       })
   }
 
+  private object HasDigits {
+    def unapply(expr: ComponentType): Option[Int] =
+      expr match {
+        case Text(Number(_, digits, _), _)             => Some(digits)
+        case Text(PositiveNumber(_, digits, _), _)     => Some(digits)
+        case TextArea(Number(_, digits, _), _)         => Some(digits)
+        case TextArea(PositiveNumber(_, digits, _), _) => Some(digits)
+        case _                                         => None
+      }
+  }
+
+  private object HasSterling {
+    def unapply(expr: ComponentType): Option[Int] =
+      expr match {
+        case Text(Sterling, _)     => Some(2)
+        case TextArea(Sterling, _) => Some(2)
+        case _                     => None
+      }
+  }
+
   def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(
     implicit ex: ExecutionContext): Future[String] = {
 
     def roundTo = field.`type` match {
-      case Text(Number(_, digits, _), _)         => digits
-      case Text(PositiveNumber(_, digits, _), _) => digits
-      case Text(Sterling, _)                     => 2
-      case _                                     => TextConstraint.defaultFactionalDigits
+      case HasDigits(digits)   => digits
+      case HasSterling(digits) => digits
+      case _                   => TextConstraint.defaultFactionalDigits
     }
 
     def eventListeners(id: String, functionName: String) =

@@ -53,7 +53,7 @@
                 <span id="@{fieldValue.id}-total">
                   @validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
                 </span>
-                @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text)}
+                @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
             </span>
         </div>
     </div>

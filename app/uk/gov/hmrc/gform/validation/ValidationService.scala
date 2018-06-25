@@ -130,8 +130,8 @@ class ComponentsValidator(
   def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] = fieldValue.`type` match {
     case sortCode @ UkSortCode(_)  => validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data)
     case date @ Date(_, _, _)      => validateDate(fieldValue, date)
-    case text @ Text(_, _)         => validateText(fieldValue, text, retrievals)(data)
-    case TextArea                  => validF
+    case Text(constraint, _)       => validateText(fieldValue, constraint, retrievals)(data)
+    case TextArea(constraint, _)   => validateText(fieldValue, constraint, retrievals)(data)
     case address @ Address(_)      => validateAddress(fieldValue, address)(data)
     case c @ Choice(_, _, _, _, _) => validateChoice(fieldValue)(data)
     case Group(_, _, _, _, _, _)   => validF //a group is read-only
@@ -289,11 +289,11 @@ class ComponentsValidator(
         }
       }
 
-  private def validateText(fieldValue: FormComponent, text: Text, retrievals: MaterialisedRetrievals)(
+  private def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
     data: Map[FormComponentId, Seq[String]]): Future[ValidatedType] = Future.successful {
     val textData = data.get(fieldValue.id).toList.flatten
     val validationResult: ValidatedType =
-      (fieldValue.mandatory, textData.filterNot(_.isEmpty()), text.constraint) match {
+      (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
         case (true, Nil, _)                                    => getError(fieldValue, "Please enter required data")
         case (_, _, AnyText)                                   => ().valid
         case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)

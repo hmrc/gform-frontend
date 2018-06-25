@@ -131,11 +131,11 @@ object SummaryRenderingService {
         }
 
         fieldValue.`type` match {
-          case UkSortCode(_) => Future.successful(sort_code(fieldValue, validate(fieldValue)))
-          case Date(_, _, _) => Future.successful(date(fieldValue, validate(fieldValue)))
-          case Address(_)    => Future.successful(address(fieldValue, validate(fieldValue)))
-          case Text(_, _)    => Future.successful(text(fieldValue, validate(fieldValue)))
-          case TextArea      => Future.successful(textarea(fieldValue, validate(fieldValue)))
+          case UkSortCode(_)  => Future.successful(sort_code(fieldValue, validate(fieldValue)))
+          case Date(_, _, _)  => Future.successful(date(fieldValue, validate(fieldValue)))
+          case Address(_)     => Future.successful(address(fieldValue, validate(fieldValue)))
+          case Text(_, _)     => Future.successful(text(fieldValue, validate(fieldValue)))
+          case TextArea(_, _) => Future.successful(textarea(fieldValue, validate(fieldValue)))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex
               .map {

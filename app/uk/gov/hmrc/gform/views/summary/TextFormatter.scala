@@ -70,7 +70,7 @@ object TextFormatter {
       .getOrElse("")
   }
 
-  def appendUnit(text: Text): String = text.constraint match {
+  def appendUnit(constraint: TextConstraint): String = constraint match {
     case PositiveNumber(_, _, Some(unit)) => unit
     case Number(_, _, Some(unit))         => unit
     case _                                => ""
