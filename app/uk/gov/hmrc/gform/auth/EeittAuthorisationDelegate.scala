@@ -47,12 +47,9 @@ class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: C
       "UTF-8"
     )
 
-    val eeittUrl = configModule.serviceConfig.baseUrl("eeitt-frontend")
+    val baseUrl = configModule.serviceConfig.baseUrl("eeitt-frontend")
 
-    val eeitt = if (eeittUrl.contains("9190")) "http://localhost" else eeittUrl
-
-    val eeittLoginUrl = s"$eeitt/eeitt-auth/enrollment-verification"
-    s"$eeittLoginUrl?callbackUrl=$continueUrl"
+    s"$baseUrl/eeitt-auth/enrollment-verification?callbackUrl=$continueUrl"
   }
 }
 
