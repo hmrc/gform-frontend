@@ -32,12 +32,30 @@ object Javascript {
       }
   }
 
-  def fieldJavascript(fields: List[FormComponent], groupList: Future[List[List[List[FormComponent]]]])(
-    implicit ex: ExecutionContext): Future[String] = {
+  def fieldJavascript(
+    sectionFields: List[FormComponent],
+    allFields: List[FormComponent],
+    groupList: Future[List[List[List[FormComponent]]]])(implicit ex: ExecutionContext): Future[String] = {
+
+    val sectionFieldIds = sectionFields.map(_.id).toSet
+
+    def isDynamic(expr: Expr): Boolean = expr match {
+      case f @ FormCtx(_) =>
+        sectionFieldIds.contains(f.toFieldId)
+      case Sum(f @ FormCtx(_)) =>
+        sectionFieldIds.contains(f.toFieldId)
+      case Add(field1, field2) =>
+        isDynamic(field1) || isDynamic(field2)
+      case Subtraction(field1, field2) =>
+        isDynamic(field1) || isDynamic(field2)
+      case Multiply(field1, field2) =>
+        isDynamic(field1) || isDynamic(field2)
+      case otherwise => false
+    }
 
     val fieldIdWithExpr: List[(FormComponent, Expr)] =
-      fields.collect {
-        case formComponent @ HasExpr(expr) => (formComponent, expr)
+      sectionFields.collect {
+        case formComponent @ HasExpr(expr) if isDynamic(expr) => (formComponent, expr)
       }
 
     Future
@@ -91,7 +109,7 @@ object Javascript {
       }
   }
 
-  def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(
+  private def toJavascriptFn(field: FormComponent, expr: Expr, groupList: Future[List[List[List[FormComponent]]]])(
     implicit ex: ExecutionContext): Future[String] = {
 
     def roundTo = field.`type` match {

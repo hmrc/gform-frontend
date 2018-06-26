@@ -20,29 +20,23 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
 import play.api.i18n.Messages
 import play.api.mvc.Request
-import play.twirl.api.{ Html, HtmlFormat }
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.models.helpers.Javascript.fieldJavascript
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, RepeatingGroup }
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
-import uk.gov.hmrc.gform.views.html.summaryTextArea
-import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
-
-case class SummaryForRender(snippets: List[Html], javascripts: Html)
 
 object SummaryRenderingService {
 
@@ -77,7 +71,7 @@ object SummaryRenderingService {
   )(
     implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[SummaryForRender] =
+    ec: ExecutionContext): Future[List[Html]] =
     repeatService.getAllSections(formTemplate, data).flatMap { sections =>
       val fields: List[FormComponent] = sections.flatMap(repeatService.atomicFields)
 
@@ -186,13 +180,6 @@ object SummaryRenderingService {
           })
           .map(x => x.flatten) //TODO ask a better way to do this.
       }
-      val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
-      val repeatingGroups: Future[List[List[List[FormComponent]]]] =
-        Future.sequence(sections.flatMap(_.fields).map(fv => (fv.id, fv.`type`)).collect {
-          case (fieldId, group: Group) =>
-            cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
-        })
-      fieldJavascript(fields, repeatingGroups)
-        .flatMap(javascript => snippetsF.map(snippets => SummaryForRender(snippets, Html(javascript))))
+      snippetsF
     }
 }

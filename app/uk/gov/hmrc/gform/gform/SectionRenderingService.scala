@@ -121,6 +121,7 @@ class SectionRenderingService(
                                   fieldValue.onlyShowOnSummary)))
       javascript <- createJavascript(
                      dynamicSections.flatMap(_.fields),
+                     repeatService.atomicFields(section),
                      dynamicSections.flatMap(repeatService.atomicFields))
       hiddenTemplateFields = Fields.getFields(section, dynamicSections, repeatService)
       hiddenSnippets = Fields
@@ -349,8 +350,10 @@ class SectionRenderingService(
     } yield html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, formId, false, false, frontendAppConfig)
   }
 
-  private def createJavascript(fieldList: List[FormComponent], atomicFields: List[FormComponent])(
-    implicit hc: HeaderCarrier): Future[String] = {
+  private def createJavascript(
+    fieldList: List[FormComponent],
+    sectionAtomicFields: List[FormComponent],
+    allAtomicFields: List[FormComponent])(implicit hc: HeaderCarrier): Future[String] = {
     val groups: List[(FormComponentId, Group)] = fieldList
       .filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel))
       .map(fv => (fv.id, fv.`type`))
@@ -364,7 +367,7 @@ class SectionRenderingService(
         case (fieldId, group: Group) =>
           cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
       })
-    fieldJavascript(atomicFields, repeatingSections).flatMap { x =>
+    fieldJavascript(sectionAtomicFields, allAtomicFields, repeatingSections).flatMap { x =>
       Future
         .sequence(groups.map { case (fieldId, group) => Future.successful(collapsingGroupJavascript(fieldId, group)) })
         .map(_.mkString("\n"))
