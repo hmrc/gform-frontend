@@ -389,9 +389,8 @@ class SectionRenderingService(
         Future.successful(htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, isHidden))
       case Address(international) =>
         Future.successful(htmlForAddress(fieldValue, international, index, maybeValidated, ei))
-      case t @ Text(_, expr) => htmlForText(fieldValue, t, expr, index, maybeValidated, ei, isHidden)
-      case t @ TextArea(_, expr) =>
-        Future.successful(htmlForTextArea(fieldValue, t, expr, index, maybeValidated, ei, isHidden))
+      case t @ Text(_, _)     => renderText(implicitly)(t, fieldValue, index, maybeValidated, ei, isHidden)
+      case t @ TextArea(_, _) => renderTextArea(implicitly)(t, fieldValue, index, maybeValidated, ei, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei)
           .pure[Future]
@@ -509,76 +508,71 @@ class SectionRenderingService(
     }
   }
 
-  private def htmlForText(
+  private type RenderTemplate[T] = (FormComponent, T, String, Option[FormFieldValidationResult], Int, String) => Html
+
+  private def renderTextArea(implicit hc: HeaderCarrier) =
+    renderField[TextArea](
+      html.form.snippets.field_template_textarea.apply _,
+      html.form.snippets.field_template_textarea.apply _,
+      _.constraint,
+      _.value
+    ) _
+
+  private def renderText(implicit hc: HeaderCarrier) =
+    renderField[Text](
+      html.form.snippets.field_template_text_total.apply _,
+      html.form.snippets.field_template_text.apply _,
+      _.constraint,
+      _.value
+    ) _
+
+  private def renderField[T](
+    asTotalValue: RenderTemplate[T],
+    asStandard: RenderTemplate[T],
+    toTextConstraint: T => TextConstraint,
+    toExpr: T => Expr
+  )(
+    t: T,
     fieldValue: FormComponent,
-    t: Text,
-    expr: Expr,
     index: Int,
     validatedType: Option[ValidatedType],
     ei: ExtraInfo,
-    isHidden: Boolean)(implicit hc: HeaderCarrier) = {
-    def scale = t.constraint match {
+    isHidden: Boolean
+  )(
+    implicit hc: HeaderCarrier
+  ) =
+    for {
+      prepopValue <- prepopF(toExpr(t), ei, fieldValue, toTextConstraint(t))
+    } yield
+      if (isHidden)
+        html.form.snippets
+          .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
+      else {
+        val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
+        fieldValue.presentationHint match {
+          case Some(xs) if xs.contains(TotalValue) =>
+            asTotalValue(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+          case _ =>
+            asStandard(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+        }
+      }
+
+  private def prepopF(expr: Expr, ei: ExtraInfo, fieldValue: FormComponent, constraint: TextConstraint)(
+    implicit hc: HeaderCarrier): Future[String] = {
+
+    def scale = constraint match {
       case Number(_, maxFractionalDigits, _)         => Some(maxFractionalDigits)
       case PositiveNumber(_, maxFractionalDigits, _) => Some(maxFractionalDigits)
       case _                                         => None
     }
-    def renderText(
-      fieldValue: FormComponent,
-      t: Text,
-      prepopValue: String,
-      validatedValue: Option[FormFieldValidationResult],
-      isHidden: Boolean): Html = {
-      val htmlWithValues = fieldValue.presentationHint match {
-        case Some(xs) if xs.contains(TotalValue) =>
-          html.form.snippets
-            .field_template_text_total(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
-        case _ =>
-          html.form.snippets.field_template_text(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
-      }
-      if (isHidden)
-        html.form.snippets
-          .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
-      else htmlWithValues
-    }
 
-    val prepopValueF = ei.fieldData.get(fieldValue.id) match {
+    ei.fieldData.get(fieldValue.id) match {
       case None | Some(List("")) => {
-        prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section, scale)
+        prepopService
+          .prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section, scale)
       }
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
-    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
-
-    for {
-      prepopValue <- prepopValueF
-    } yield renderText(fieldValue, t, prepopValue, validatedValue, isHidden)
-  }
-
-  private def htmlForTextArea(
-    fieldValue: FormComponent,
-    textArea: TextArea,
-    expr: Expr,
-    index: Int,
-    validatedType: Option[ValidatedType],
-    ei: ExtraInfo,
-    isHidden: Boolean)(implicit hc: HeaderCarrier) = {
-    def renderTextArea(
-      fieldValue: FormComponent,
-      validatedValue: Option[FormFieldValidationResult],
-      isHidden: Boolean): Html = {
-      val prepopValue = "" // TODO we don't support prepopulation for multiline input yet
-      val htmlWithValues =
-        html.form.snippets
-          .field_template_textarea(fieldValue, textArea, prepopValue, validatedValue, index, ei.section.title)
-      if (isHidden)
-        html.form.snippets
-          .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
-      else htmlWithValues
-    }
-
-    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
-
-    renderTextArea(fieldValue, validatedValue, isHidden)
   }
 
   private def htmlForSortCode(
