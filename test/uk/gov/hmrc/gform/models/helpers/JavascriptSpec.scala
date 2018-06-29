@@ -34,27 +34,27 @@ class JavascriptSpec extends Spec {
     Javascript.fieldJavascript(
       sectionFields = fields,
       allFields = formComponent("otherSection") :: fields,
-      groupList = List[List[List[FormComponent]]]().pure[Future])
+      groupList = List[List[List[FormComponent]]]())
   }
 
   "if calculation references only a constant" should "not generate Javascript for the static calculation" in {
     val result = fieldJavascript(formComponent("staticExpr"))
-    result.futureValue should not include ("addstaticExpr")
+    result should not include ("addstaticExpr")
   }
 
   "if calculation references only a field in this section" should "not generate Javascript for the static calculation" in {
     val result = fieldJavascript(formComponent("staticExpr", FormCtx("thisSection")))
-    result.futureValue should not include ("addstaticExpr")
+    result should not include ("addstaticExpr")
   }
 
   "if calculation references only a group in this section" should "generate Javascript for the dynamic calculation" in {
     val result = fieldJavascript(formComponent("dynamicExpr", Sum(FormCtx("thisSection"))))
-    result.futureValue should include("sumthisSection")
+    result should include("sumthisSection")
   }
 
   "if calculation adds a field in this section" should "generate Javascript for the dynamic calculation" in {
     val result = fieldJavascript(formComponent("dynamicExpr", Add(FormCtx("thisSection"), c)))
-    result.futureValue should include("adddynamicExpr")
+    result should include("adddynamicExpr")
   }
 
   "if calculation deep inside uses a field in this section" should "generate Javascript for the dynamic calculation" in {
@@ -62,7 +62,7 @@ class JavascriptSpec extends Spec {
       formComponent(
         "dynamicExpr",
         Add(c, Add(Subtraction(c, Subtraction(Multiply(c, Multiply(FormCtx("thisSection"), c)), c)), c))))
-    result.futureValue should include("adddynamicExpr")
+    result should include("adddynamicExpr")
   }
 
 }
