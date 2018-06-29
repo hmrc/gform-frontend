@@ -175,7 +175,7 @@ class RepeatingComponentService(
         case (fieldId, group: Group) =>
           cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
       })
-    Group.getGroup(repeatingSections, FormComponentId(expr1)).flatMap(x => Future.successful(x.map(dataGetter).sum))
+    repeatingSections.map(Group.getGroup(_, FormComponentId(expr1)).map(dataGetter).sum)
   }
 
   private def getRequestedCount(
@@ -429,29 +429,29 @@ class RepeatingComponentService(
   def clearSession(implicit hc: HeaderCarrier, ec: ExecutionContext) = sessionCache.remove()
 
   def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
-    def atomicFields(fields: List[FormComponent]): List[FormComponent] =
-      fields.flatMap {
-        case (fv: FormComponent) =>
-          fv.`type` match {
-            case groupField @ Group(_, _, _, _, _, _) =>
-              section match {
-                case Section(_, _, _, _, _, _, _, _, _) =>
-                  atomicFields {
-                    val fields = getAllFieldsInGroup(fv, groupField)
-                    val first = fields.head.map { nv =>
-                      nv.copy(
-                        shortName = LabelHelper.buildRepeatingLabel(nv.shortName, 1),
-                        label = LabelHelper.buildRepeatingLabel(nv, 1)
-                      )
-                    }
-                    (first +: fields.tail).flatten
+    def loop(fields: List[FormComponent]): List[FormComponent] =
+      fields.flatMap { fv =>
+        fv.`type` match {
+          case groupField @ Group(_, _, _, _, _, _) =>
+            section match {
+              case Section(_, _, _, _, _, _, _, _, _) =>
+                loop {
+                  val fields = getAllFieldsInGroup(fv, groupField)
+                  val first = fields.head.map { nv =>
+                    nv.copy(
+                      shortName = LabelHelper.buildRepeatingLabel(nv.shortName, 1),
+                      label = LabelHelper.buildRepeatingLabel(nv, 1)
+                    )
                   }
-                case DeclarationSection(_, _, _, _) => atomicFields(groupField.fields)
-              }
-            case _ => List(fv)
-          }
+                  (first +: fields.tail).flatten
+                }
+              case DeclarationSection(_, _, _, _) => loop(groupField.fields)
+              case _                              => List.empty
+            }
+          case _ => List(fv)
+        }
       }
-    atomicFields(section.fields)
+    loop(section.fields)
   }
 
   private def buildGroupFieldsLabelsForSummary(

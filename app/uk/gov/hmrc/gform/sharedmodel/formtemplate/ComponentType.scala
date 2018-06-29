@@ -113,13 +113,12 @@ case class Group(
 
 object Group {
 
-  def getGroup(list: Future[List[List[List[FormComponent]]]], fieldId: FormComponentId)(
-    implicit ex: ExecutionContext): Future[List[FormComponentId]] = {
-    val x: Future[List[List[FormComponent]]] = list.map(
-      _.find(x => x.flatMap(y => y.map(_.id.value.contains(fieldId.value))).contains(true))
-        .fold(List.empty[List[FormComponent]])(z => z))
+  def getGroup(list: List[List[List[FormComponent]]], fieldId: FormComponentId): List[FormComponentId] = {
+    val x: List[List[FormComponent]] = list
+      .find(x => x.flatMap(y => y.map(_.id.value.contains(fieldId.value))).contains(true))
+      .getOrElse(List.empty[List[FormComponent]])
 
-    x.map(matchList => getGroupLength(matchList.size, fieldId))
+    getGroupLength(x.size, fieldId)
   }
 
   private def getGroupLength(max: Int, id: FormComponentId): List[FormComponentId] = {

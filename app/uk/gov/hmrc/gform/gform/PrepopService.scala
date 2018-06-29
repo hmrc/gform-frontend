@@ -104,13 +104,11 @@ class PrepopService(
             case (fieldId, group: Group) =>
               cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
           })
-        val listOfValues = Group
-          .getGroup(repeatingSections, FormComponentId(field))
-          .map(z =>
-            for {
-              id <- z
-              x = data.get(id).map(_.head).getOrElse("")
-            } yield toBigDecimal(x))
+        val listOfValues = repeatingSections.map(rs =>
+          for {
+            id <- Group.getGroup(rs, FormComponentId(field))
+            x = data.get(id).map(_.head).getOrElse("")
+          } yield toBigDecimal(x))
         for { vs <- listOfValues } yield round(vs.sum).toString()
       case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
       case _           => Future.successful("")

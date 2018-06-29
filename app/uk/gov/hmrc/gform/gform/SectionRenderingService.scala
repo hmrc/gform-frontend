@@ -363,16 +363,14 @@ class SectionRenderingService(
 
     val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
     val repeatingSections: Future[List[List[List[FormComponent]]]] =
-      Future.sequence(fieldList.map(fv => (fv.id, fv.`type`)).collect {
-        case (fieldId, group: Group) =>
-          cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
-      })
-    fieldJavascript(sectionAtomicFields, allAtomicFields, repeatingSections).flatMap { x =>
-      Future
-        .sequence(groups.map { case (fieldId, group) => Future.successful(collapsingGroupJavascript(fieldId, group)) })
-        .map(_.mkString("\n"))
-        .map(y => y + x)
-    }
+      Future.traverse(fieldList)(fv => cacheMap.map(_.getEntry[RepeatingGroup](fv.id.value).map(_.list).getOrElse(Nil)))
+
+    repeatingSections.map(
+      rs =>
+        groups
+          .map((collapsingGroupJavascript _).tupled)
+          .mkString("\n")
+          + fieldJavascript(sectionAtomicFields, allAtomicFields, rs))
   }
 
   private def htmlFor(
