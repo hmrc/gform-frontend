@@ -18,7 +18,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.views.html._
-@import uk.gov.hmrc.gform.summary.SummaryForRender
 @import views.html.helper.CSRF
 @import scala.concurrent.ExecutionContext
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -27,7 +26,7 @@
 
 @(
     formTemplate: FormTemplate,
-    summary: SummaryForRender,
+    snippets: List[Html],
     formId: FormId,
     formCategory: FormCategory,
     lang: Option[String],
@@ -57,7 +56,7 @@
         }
 
       	@{
-      	    summary.snippets
+      	    snippets
       	}
 
       	<input type="hidden"
@@ -87,8 +86,4 @@
         </div>
     </form>
 
-    <script type="text/javascript">
-
-      @summary.javascripts
-    </script>
 }
