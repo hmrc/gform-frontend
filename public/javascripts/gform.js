@@ -271,6 +271,12 @@ $('#BackToSummary').on('click', function(e) {
     gfForm.submit();
 })
 
+$('#saveComeBackLater').on('click', function(e) {
+  e.preventDefault();
+  gfFormAction.attr('value', 'Save');
+  gfForm.submit();
+});
+
 // Add focus class to file upload label on input focus for outline in firefox
 $('.file-upload__file').focus(function(){
     $(this).siblings('.file-upload__file-label').addClass('focus');
