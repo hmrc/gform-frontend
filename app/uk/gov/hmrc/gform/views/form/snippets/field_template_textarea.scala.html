@@ -32,15 +32,21 @@
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-field-group--error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-      @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+        @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+        @if(fieldValue.helpText) {
+          <span class="form-hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</span>
+        }
       </label>
     } else {
-      <label for="@{fieldValue.id}" class="visuallyhidden">@sectionTitle</label>
+      <label for="@{fieldValue.id}" class="visuallyhidden">
+        @sectionTitle
+        @if(fieldValue.helpText) {
+          <span class="form-hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</span>
+        }
+      </label>
     }
 
-    @if(fieldValue.helpText) {
-      <div class="form-field--hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</div>
-    }
+    
 
     @{
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
