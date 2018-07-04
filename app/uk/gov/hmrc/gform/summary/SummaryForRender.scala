@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
+import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -152,16 +153,18 @@ object SummaryRenderingService {
           .fold(false)(x => x.contains(InvisibleInSummary))
 
       val snippetsF: Future[List[Html]] = {
-        val allSections = sections.zipWithIndex
-        val sectionsToRender = allSections.filter {
-          case (section, idx) =>
-            BooleanExpr.isTrue(section.includeIf.getOrElse(IncludeIf(IsTrue)).expr, data, retrievals)
+
+        val visibility = Visibility(sections, data, retrievals.affinityGroup)
+
+        val sectionsToRender = sections.zipWithIndex.collect {
+          case (section, index) if visibility.isVisible(section) => (section, index)
         }
+
         Future
-          .sequence(sectionsToRender.map {
+          .traverse(sectionsToRender) {
             case (section, index) =>
               val sectionTitle4Ga = sectionTitle4GaFactory(formTemplate.sections(index).title)
-              val x = begin_section(
+              val begin = begin_section(
                 formTemplate._id.to4Ga,
                 formId,
                 section.shortName.getOrElse(section.title),
@@ -169,15 +172,16 @@ object SummaryRenderingService {
                 SectionNumber(index),
                 sectionTitle4Ga,
                 lang)
+              val end = end_section(formTemplate._id, formId, section.title, index)
+
               Future
                 .sequence(
                   section.fields
                     .filterNot(showOnSummary)
                     .map(valueToHtml)
                 )
-                .map(x => x ++ List(end_section(formTemplate._id, formId, section.title, index)))
-                .map(z => x :: z)
-          })
+                .map(begin +: _ :+ end)
+          }
           .map(x => x.flatten) //TODO ask a better way to do this.
       }
       snippetsF

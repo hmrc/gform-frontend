@@ -131,7 +131,7 @@ class ComponentsValidator(
 
     def validIf(validationResult: ValidatedType): Future[ValidatedType] =
       ((validationResult.isValid, fieldValue.validIf) match {
-        case (true, Some(vi)) if !BooleanExpr.isTrue(vi.expr, data, retrievals) =>
+        case (true, Some(vi)) if !BooleanExpr.isTrue(vi.expr, data, retrievals.affinityGroup).beResult =>
           getError(fieldValue, "Please enter required data")
         case _ => validationResult
       }).pure[Future]

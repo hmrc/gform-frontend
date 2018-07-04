@@ -18,12 +18,14 @@ package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
 import play.api.libs.json.JsValue
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Account, UserId, ValAddress }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -67,20 +69,24 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").map(_ => ())
 
   /******submission*******/
-  def submitForm(formId: FormId, customerId: String)(
+  def submitForm(formId: FormId, customerId: String, affinityGroup: Option[AffinityGroup])(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[HttpResponse] = {
-    implicit val hcNew = hc.withExtraHeaders("customerId" -> customerId)
+    implicit val hcNew = hc
+      .withExtraHeaders("customerId" -> customerId)
+      .withExtraHeaders("affinityGroup" -> affinityGroupNameO(affinityGroup))
     ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")(
       implicitly[HttpReads[HttpResponse]],
       hcNew,
       ec)
   }
 
-  def submitFormWithPdf(formId: FormId, customerId: String, htmlForm: String)(
+  def submitFormWithPdf(formId: FormId, customerId: String, htmlForm: String, affinityGroup: Option[AffinityGroup])(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[HttpResponse] = {
-    implicit val hcNew = hc.withExtraHeaders("customerId" -> customerId)
+    implicit val hcNew = hc
+      .withExtraHeaders("customerId" -> customerId)
+      .withExtraHeaders("affinityGroup" -> affinityGroupNameO(affinityGroup))
     ws.POSTString[HttpResponse](s"$baseUrl/forms/${formId.value}/submission-pdf", htmlForm)(
       implicitly[HttpReads[HttpResponse]],
       hcNew,

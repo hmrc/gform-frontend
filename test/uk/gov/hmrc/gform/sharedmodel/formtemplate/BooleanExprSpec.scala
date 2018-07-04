@@ -27,115 +27,119 @@ class BooleanExprSpec extends Spec {
 
   val equalsCombinations = Table(
     ("Ctx value", "left argument", "right argument", "expected result"),
-    ("0", "number", "0", true),
-    ("0", "number", "1", false),
-    ("00", "number", "0", true),
-    ("0", "number", "00", true),
-    ("1,000", "number", "1000", true),
-    ("Fred", "firstName", "Fred", true),
-    ("Fred", "firstName", "Dave", false),
-    ("0", "number", "Fred", false),
-    ("Fred", "firstName", "0", false)
+    ("0", "number", "0", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "1", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("00", "number", "0", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "00", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("1,000", "number", "1000", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("Fred", "firstName", "Fred", BooleanExprResultWithDependents(true, List(FormComponentId("firstName")))),
+    ("Fred", "firstName", "Dave", BooleanExprResultWithDependents(false, List(FormComponentId("firstName")))),
+    ("0", "number", "Fred", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("Fred", "firstName", "0", BooleanExprResultWithDependents(false, List(FormComponentId("firstName"))))
   )
 
   forAll(equalsCombinations) { (ctxValue, left, right, result) =>
     new Test {
       override val value = ctxValue
-      BooleanExpr.isTrue(Equals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+      BooleanExpr
+        .isTrue(Equals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext.affinityGroup) shouldBe result
     }
   }
 
   val notEqualsCombinations = Table(
     ("Ctx value", "left argument", "right argument", "expected result"),
-    ("0", "number", "0", false),
-    ("0", "number", "1", true),
-    ("00", "number", "0", false),
-    ("0", "number", "00", false),
-    ("1,000", "number", "1000", false),
-    ("Fred", "firstName", "Fred", false),
-    ("Fred", "firstName", "Dave", true),
-    ("0", "number", "Fred", true),
-    ("Fred", "firstName", "0", true)
+    ("0", "number", "0", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "1", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("00", "number", "0", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "00", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("1,000", "number", "1000", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("Fred", "firstName", "Fred", BooleanExprResultWithDependents(false, List(FormComponentId("firstName")))),
+    ("Fred", "firstName", "Dave", BooleanExprResultWithDependents(true, List(FormComponentId("firstName")))),
+    ("0", "number", "Fred", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("Fred", "firstName", "0", BooleanExprResultWithDependents(true, List(FormComponentId("firstName"))))
   )
 
   forAll(notEqualsCombinations) { (ctxValue, left, right, result) =>
     new Test {
       override val value = ctxValue
-      BooleanExpr.isTrue(NotEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+      BooleanExpr
+        .isTrue(NotEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext.affinityGroup) shouldBe result
     }
   }
 
   val greaterThanCombinations = Table(
     ("Ctx value", "left argument", "right argument", "expected result"),
-    ("1", "number", "0", true),
-    ("0", "number", "-1", true),
-    ("0", "number", "1", false),
-    ("0", "number", "0", false),
-    ("Fred", "firstName", "Dave", true),
-    ("Dave", "firstName", "Fred", false),
-    ("Fred", "firstName", "Fred", false)
+    ("1", "number", "0", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "-1", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "1", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "0", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("Fred", "firstName", "Dave", BooleanExprResultWithDependents(true, List(FormComponentId("firstName")))),
+    ("Dave", "firstName", "Fred", BooleanExprResultWithDependents(false, List(FormComponentId("firstName")))),
+    ("Fred", "firstName", "Fred", BooleanExprResultWithDependents(false, List(FormComponentId("firstName"))))
   )
 
   forAll(greaterThanCombinations) { (ctxValue, left, right, result) =>
     new Test {
       override val value = ctxValue
-      BooleanExpr.isTrue(GreaterThan(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+      BooleanExpr
+        .isTrue(GreaterThan(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext.affinityGroup) shouldBe result
     }
   }
 
   val greaterThanOrEqualsCombinations = Table(
     ("Ctx value", "left argument", "right argument", "expected result"),
-    ("1", "number", "0", true),
-    ("0", "number", "-1", true),
-    ("0", "number", "1", false),
-    ("0", "number", "0", true),
-    ("Fred", "firstName", "Dave", true),
-    ("Dave", "firstName", "Fred", false),
-    ("Fred", "firstName", "Fred", true)
+    ("1", "number", "0", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "-1", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "1", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "0", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("Fred", "firstName", "Dave", BooleanExprResultWithDependents(true, List(FormComponentId("firstName")))),
+    ("Dave", "firstName", "Fred", BooleanExprResultWithDependents(false, List(FormComponentId("firstName")))),
+    ("Fred", "firstName", "Fred", BooleanExprResultWithDependents(true, List(FormComponentId("firstName"))))
   )
 
   forAll(greaterThanOrEqualsCombinations) { (ctxValue, left, right, result) =>
     new Test {
       override val value = ctxValue
       BooleanExpr
-        .isTrue(GreaterThanOrEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+        .isTrue(GreaterThanOrEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext.affinityGroup) shouldBe result
     }
   }
 
   val lessThanCombinations = Table(
     ("Ctx value", "left argument", "right argument", "expected result"),
-    ("1", "number", "0", false),
-    ("0", "number", "-1", false),
-    ("0", "number", "1", true),
-    ("0", "number", "0", false),
-    ("Fred", "firstName", "Dave", false),
-    ("Dave", "firstName", "Fred", true),
-    ("Fred", "firstName", "Fred", false)
+    ("1", "number", "0", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "-1", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "1", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "0", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("Fred", "firstName", "Dave", BooleanExprResultWithDependents(false, List(FormComponentId("firstName")))),
+    ("Dave", "firstName", "Fred", BooleanExprResultWithDependents(true, List(FormComponentId("firstName")))),
+    ("Fred", "firstName", "Fred", BooleanExprResultWithDependents(false, List(FormComponentId("firstName"))))
   )
 
   forAll(lessThanCombinations) { (ctxValue, left, right, result) =>
     new Test {
       override val value = ctxValue
-      BooleanExpr.isTrue(LessThan(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+      BooleanExpr
+        .isTrue(LessThan(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext.affinityGroup) shouldBe result
     }
   }
 
   val lessThanOrEqualsCombinations = Table(
     ("Ctx value", "left argument", "right argument", "expected result"),
-    ("1", "number", "0", false),
-    ("0", "number", "-1", false),
-    ("0", "number", "1", true),
-    ("0", "number", "0", true),
-    ("Fred", "firstName", "Dave", false),
-    ("Dave", "firstName", "Fred", true),
-    ("Fred", "firstName", "Fred", true)
+    ("1", "number", "0", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "-1", BooleanExprResultWithDependents(false, List(FormComponentId("number")))),
+    ("0", "number", "1", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("0", "number", "0", BooleanExprResultWithDependents(true, List(FormComponentId("number")))),
+    ("Fred", "firstName", "Dave", BooleanExprResultWithDependents(false, List(FormComponentId("firstName")))),
+    ("Dave", "firstName", "Fred", BooleanExprResultWithDependents(true, List(FormComponentId("firstName")))),
+    ("Fred", "firstName", "Fred", BooleanExprResultWithDependents(true, List(FormComponentId("firstName"))))
   )
 
   forAll(lessThanOrEqualsCombinations) { (ctxValue, left, right, result) =>
     new Test {
       override val value = ctxValue
       BooleanExpr
-        .isTrue(LessThanOrEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext) shouldBe result
+        .isTrue(LessThanOrEquals(FormCtx(left), Constant(right)), rawDataFromBrowser, authContext.affinityGroup) shouldBe result
     }
   }
 

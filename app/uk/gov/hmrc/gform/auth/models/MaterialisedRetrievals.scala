@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.auth.models
 
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.LegacyCredentials
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 
 case class MaterialisedRetrievals(
   authProviderId: LegacyCredentials,
@@ -29,13 +30,7 @@ case class MaterialisedRetrievals(
   credentialStrength: Option[String],
   agentCode: Option[String]
 ) {
-  def affinityGroupName: String = affinityGroup match {
-    case Some(AffinityGroup.Individual)   => "individual"
-    case Some(AffinityGroup.Agent)        => "agent"
-    case Some(AffinityGroup.Organisation) => "organisation"
-    case _                                => ""
-  }
-
+  val affinityGroupName: String = affinityGroupNameO(affinityGroup)
 }
 
 object MaterialisedRetrievals {
