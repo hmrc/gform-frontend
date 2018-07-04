@@ -340,9 +340,9 @@ class SummarySpec extends Spec {
 
   it should "not render sections with includeIf expressions that evaluate to false" in new Test {
 
-    override val section1 = super.section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))))
+    override val section2 = super.section2.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))))
     override val formTemplate = super.formTemplate.copy(
-      sections = List(section1)
+      sections = List(section2)
     )
     val renderWithDataMatching = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("Pete")), retrievals, formId, formTemplate, mockRepeatService, envelope, None)
     renderWithDataMatching.futureValue.size shouldBe 3

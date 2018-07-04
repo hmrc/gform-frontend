@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals.getTaxIdValue
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -107,8 +108,21 @@ class DeclarationController(
   }
 
   def submitDeclaration(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, lang: Option[String]) =
-    auth.async(formId) { implicit request => cache =>
+    auth.async(formId) { implicit request => cacheOrig =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
+        val visibility = Visibility(cacheOrig.formTemplate.sections, data, cacheOrig.retrievals.affinityGroup)
+        val invisibleSections = cacheOrig.formTemplate.sections.filterNot(visibility.isVisible)
+
+        val invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
+
+        val visibleFields: Seq[FormField] =
+          cacheOrig.form.formData.fields.filterNot(field => invisibleFields.contains(field.id))
+
+        val form = cacheOrig.form.copy(formData = cacheOrig.form.formData.copy(fields = visibleFields))
+
+        // This cache contains form with all fields from hidden sections removed
+        val cache = cacheOrig.copy(form = form)
+
         val validationResultF = validationService.validateComponents(
           getAllDeclarationFields(cache.formTemplate.declarationSection.fields),
           data,
@@ -138,8 +152,8 @@ class DeclarationController(
                     cache.formTemplate,
                     data)
                   _ <- if (config.sendPdfWithSubmission)
-                        gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF)
-                      else { gformConnector.submitForm(formId, customerId) }
+                        gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF, cache.retrievals.affinityGroup)
+                      else { gformConnector.submitForm(formId, customerId, cache.retrievals.affinityGroup) }
                   _ <- repeatService.clearSession
                 } yield {
                   if (customerId.isEmpty)

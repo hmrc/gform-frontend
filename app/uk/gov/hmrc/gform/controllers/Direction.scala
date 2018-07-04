@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.controllers
 
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
+import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
 
@@ -27,14 +28,10 @@ trait Navigation {
   def retrievals: MaterialisedRetrievals
 
   lazy val availableSectionNumbers: List[SectionNumber] = {
-    def shouldInclude(s: Section): Boolean = {
-      val isIncludedExpression = s.includeIf.map(_.expr).getOrElse(IsTrue)
-      BooleanExpr.isTrue(isIncludedExpression, data, retrievals)
+    val visibility = Visibility(sections, data, retrievals.affinityGroup)
+    sections.zipWithIndex.collect {
+      case (section, index) if visibility.isVisible(section) => SectionNumber(index)
     }
-
-    sections.zipWithIndex
-      .filter(si => shouldInclude(si._1))
-      .map(si => SectionNumber(si._2))
   }
 
   lazy val minSectionNumber: SectionNumber = availableSectionNumbers.min(Ordering.by((_: SectionNumber).value))

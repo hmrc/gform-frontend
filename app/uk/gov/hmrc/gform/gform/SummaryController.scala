@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestAc
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -126,18 +127,23 @@ class SummaryController(
 
   private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
+
     val data = FormDataHelpers.formDataMap(cache.form.formData)
+
+    def filterSection(sections: List[Section]): List[Section] = {
+      val visibility = Visibility(sections, data, retrievals.affinityGroup)
+      sections.filter(visibility.isVisible)
+    }
+
     val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
-    val filteredSections =
-      sectionsF.map(_.filter(x => BooleanExpr.isTrue(x.includeIf.map(_.expr).getOrElse(IsTrue), data, retrievals)))
+
+    val filteredSections = sectionsF.map(filterSection)
+
     for { // format: OFF
       sections          <- filteredSections
       allFields         =  sections.flatMap(repeatService.atomicFields)
       v1                <- sections.traverse(x => validationService.validateForm(allFields, x, cache.form.envelopeId, retrievals)(data)).map(Monoid[ValidatedType].combineAll)
-      v                 =  Monoid.combine(
-                             v1,
-                             ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope)
-                           )
+      v                 =  Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
       errors            = validationService.evaluateValidation(v, allFields, data, envelope).toMap
       // format: ON
     } yield (v, errors)
