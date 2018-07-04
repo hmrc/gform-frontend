@@ -33,11 +33,14 @@ fieldValue.id.withSuffix(id).toString
 <div class="form-group">
     <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
         <fieldset>
-            <legend class="h3-heading">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</legend>
+            <legend>
+              <span class="form-label-bold">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</span>
+              @if(fieldValue.helpText) {
+                <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+              }
+            </legend>
 
-            @if(fieldValue.helpText) {
-            <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-            }
+            
 
             @{
                val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
