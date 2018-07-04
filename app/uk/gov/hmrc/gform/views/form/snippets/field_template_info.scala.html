@@ -32,9 +32,7 @@
   @infoType match {
     case StandardInfo => {
       <div class="panel panel-indent panel-info">
-        <p>
-            @text
-        </p>
+        @text
       </div>
     }
 
@@ -66,9 +64,7 @@
     }
 
   case NoFormat => {
-  <div class="panel panel-info">
-    <p> @text </p>
-  </div>
-    }
+    @text
+  }
   }
 </div>
