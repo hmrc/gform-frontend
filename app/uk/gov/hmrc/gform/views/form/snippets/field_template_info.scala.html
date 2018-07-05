@@ -31,7 +31,7 @@
 <div class="subsection">
   @infoType match {
     case StandardInfo => {
-      <div class="panel panel-indent panel-info">
+      <div class="panel panel-border-wide">
         @text
       </div>
     }
@@ -41,7 +41,7 @@
         <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</summary>
 
         <div class="details__inner" id="details-content-@{fieldValue.id}" aria-hidden="true">
-          <div class="panel panel-indent panel-info">
+          <div class="panel panel-border-narrow">
             @text
           </div>
         </div>
