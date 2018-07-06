@@ -23,8 +23,7 @@ object FrontendBuild extends Build with MicroService {
     "org.jetbrains" % "markdown" % "0.1.28",
     "com.chuusai" %% "shapeless" % "2.3.3",
     "uk.gov.hmrc" %% "http-caching-client" % "7.1.0",
-    "uk.gov.hmrc" %% "emailaddress" % "2.2.0",
-    "org.jsoup" % "jsoup" % "1.11.3"
+    "uk.gov.hmrc" %% "emailaddress" % "2.2.0"
   )
 
   def test(scope: String = "test") = Seq(
@@ -35,7 +34,8 @@ object FrontendBuild extends Build with MicroService {
     "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
-    "org.mockito" % "mockito-all" % "1.10.19" % scope
+    "org.mockito" % "mockito-all" % "1.10.19" % scope,
+    "org.jsoup" % "jsoup" % "1.11.3"
   )
 
 }
