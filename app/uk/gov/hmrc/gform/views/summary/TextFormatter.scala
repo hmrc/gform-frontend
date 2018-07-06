@@ -19,11 +19,17 @@ package uk.gov.hmrc.gform.views.summary
 import java.awt.Component
 import java.io
 
-import play.api.Logger
+import scala.math.BigDecimal
+import scala.util.Try
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import java.text.NumberFormat
+import java.util.Locale
 
 object TextFormatter {
+
+  private val defaultFormat = NumberFormat.getInstance(Locale.UK)
+  private val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 
   def formatText(validationResult: Option[FormFieldValidationResult]): String = {
     val currentValue = validationResult match {
@@ -40,22 +46,16 @@ object TextFormatter {
           case Number(_, _, Some(unit))         => currentValue + " " + unit
           case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
             val poundOrComma = "[£,]".r
-            val valueWithoutPoundsOrCommas = poundOrComma.replaceAllIn(currentValue, "")
-            val sections = valueWithoutPoundsOrCommas.split("""\.""")
-
-            val number = if (sections(0).size >= 5) {
-              val integerPart = sections(0).reverse.grouped(3).mkString(",").reverse
-              if (sections.size == 2) {
-                integerPart + "." + sections(1)
-              } else {
-                integerPart
-              }
-            } else valueWithoutPoundsOrCommas
-
-            if (text.constraint == Sterling)
-              "£" + number
-            else
-              number
+            val valueWithoutPoundsOrCommas: String = poundOrComma.replaceAllIn(currentValue, "")
+            val maybeBigDecimal = Try(BigDecimal(valueWithoutPoundsOrCommas)).toOption
+            maybeBigDecimal match {
+              case Some(bd) =>
+                if (text.constraint == Sterling)
+                  currencyFormat.format(bd)
+                else
+                  defaultFormat.format(bd)
+              case None => currentValue
+            }
           case _ =>
             currentValue
         }

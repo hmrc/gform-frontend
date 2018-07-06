@@ -22,9 +22,9 @@ import uk.gov.hmrc.gform.validation.FieldOk
 
 class TextFormatterSpec extends Spec {
 
-  def getComponent(text: Text) = FormComponent(
+  def getComponent(constraint: TextConstraint) = FormComponent(
     `fieldId - firstName`,
-    text,
+    Text(constraint, Constant("")),
     "First Name",
     None,
     None,
@@ -38,73 +38,58 @@ class TextFormatterSpec extends Spec {
     None
   )
 
-  def getValidationResult(component: FormComponent, value: String) = Some(FieldOk(component, value))
+  val equalsCombinations = Table(
+    // format: off
+    ("value",     "sterlingResult",  "numberResult"),
+    ("1",         "£1.00",           "1"),
+    ("12",        "£12.00",          "12"),
+    ("123",       "£123.00",         "123"),
+    ("1234",      "£1,234.00",       "1,234"),
+    ("12345",     "£12,345.00",      "12,345"),
+    ("123456",    "£123,456.00",     "123,456"),
+    ("1234567",   "£1,234,567.00",   "1,234,567"),
+    ("12345678",  "£12,345,678.00",  "12,345,678"),
+    ("123456789", "£123,456,789.00", "123,456,789"),
+    ("-1",         "-£1.00",           "-1"),
+    ("-12",        "-£12.00",          "-12"),
+    ("-123",       "-£123.00",         "-123"),
+    ("-1234",      "-£1,234.00",       "-1,234"),
+    ("-12345",     "-£12,345.00",      "-12,345"),
+    ("-123456",    "-£123,456.00",     "-123,456"),
+    ("-1234567",   "-£1,234,567.00",   "-1,234,567"),
+    ("-12345678",  "-£12,345,678.00",  "-12,345,678"),
+    ("-123456789", "-£123,456,789.00", "-123,456,789"),
+    ("1.12",         "£1.12",           "1.12"),
+    ("12.12",        "£12.12",          "12.12"),
+    ("123.12",       "£123.12",         "123.12"),
+    ("1234.12",      "£1,234.12",       "1,234.12"),
+    ("12345.12",     "£12,345.12",      "12,345.12"),
+    ("123456.12",    "£123,456.12",     "123,456.12"),
+    ("1234567.12",   "£1,234,567.12",   "1,234,567.12"),
+    ("12345678.12",  "£12,345,678.12",  "12,345,678.12"),
+    ("123456789.12", "£123,456,789.12", "123,456,789.12"),
+    ("-1.12",         "-£1.12",           "-1.12"),
+    ("-12.12",        "-£12.12",          "-12.12"),
+    ("-123.12",       "-£123.12",         "-123.12"),
+    ("-1234.12",      "-£1,234.12",       "-1,234.12"),
+    ("-12345.12",     "-£12,345.12",      "-12,345.12"),
+    ("-123456.12",    "-£123,456.12",     "-123,456.12"),
+    ("-1234567.12",   "-£1,234,567.12",   "-1,234,567.12"),
+    ("-12345678.12",  "-£12,345,678.12",  "-12,345,678.12"),
+    ("-123456789.12", "-£123,456,789.12", "-123,456,789.12"),
+    ("-1,2,3,4,5,6,7,8,9.12", "-£123,456,789.12", "-123,456,789.12"), // ignore spurious commas
+    ("-1,234,5678,9.12",      "-£123,456,789.12", "-123,456,789.12"),
+    ("£-1,234,£56£78,9.12",   "-£123,456,789.12", "-123,456,789.12"), // ignore spurious £
+    ("bogus",                 "bogus",            "bogus")            // unknown values are rendered unaltered
+    // format: on
+  )
 
-  def testValuesLessThan5Digits(text: Text) = {
-    val component = getComponent(text)
+  forAll(equalsCombinations) { (input, expectedSterling, expectedNumber) =>
+    def formatForConstraint(constraint: TextConstraint) =
+      TextFormatter.formatText(Some(FieldOk(getComponent(constraint), input)))
 
-    TextFormatter.formatText(getValidationResult(component, "1000")) shouldBe values("1000", text.constraint)
-    TextFormatter.formatText(getValidationResult(component, "1000.00")) shouldBe values("1000.00", text.constraint)
-  }
-
-  def values(value: String, constraint: TextConstraint) =
-    constraint match {
-      case Sterling => s"£$value"
-      case _        => value
-    }
-
-  def testValuesGreaterThan5Digits(text: Text) = {
-    val component = getComponent(text)
-
-    TextFormatter.formatText(getValidationResult(component, "10000")) shouldBe values("10,000", text.constraint)
-    TextFormatter.formatText(getValidationResult(component, "10000.00")) shouldBe values("10,000.00", text.constraint)
-    TextFormatter.formatText(getValidationResult(component, "100000")) shouldBe values("100,000", text.constraint)
-    TextFormatter.formatText(getValidationResult(component, "100000.00")) shouldBe values("100,000.00", text.constraint)
-  }
-
-  def testValuesWithPoundSignsAndCommas(text: Text) = {
-    val component = getComponent(text)
-
-    TextFormatter.formatText(getValidationResult(component, "£100,00.00")) shouldBe values("10,000.00", text.constraint)
-    TextFormatter.formatText(getValidationResult(component, "£10,0.00")) shouldBe values("100.00", text.constraint)
-    TextFormatter.formatText(getValidationResult(component, "£88666,564.59")) shouldBe values(
-      "88,666,564.59",
-      text.constraint)
-  }
-
-  "formatText" should "not add commas for Text component with Sterling constraint and current value's length less than 5" in {
-    testValuesLessThan5Digits(Text(Sterling, Constant("")))
-  }
-
-  it should "add commas for Text component with Sterling constraint and current value's length equal or greater 5" in {
-    testValuesGreaterThan5Digits(Text(Sterling, Constant("")))
-  }
-
-  it should "remove pound signs and commas input for Text component with Sterling constraint" in {
-    testValuesWithPoundSignsAndCommas(Text(Sterling, Constant("")))
-  }
-
-  "formatText" should "not add commas for Text component with Number constraint and current value's length less than 5" in {
-    testValuesLessThan5Digits(Text(Number(), Constant("")))
-  }
-
-  it should "add commas for Text component with Number constraint and current value's length equal or greater 5" in {
-    testValuesGreaterThan5Digits(Text(Number(), Constant("")))
-  }
-
-  it should "remove pound signs and commas input for Text component with Number constraint" in {
-    testValuesWithPoundSignsAndCommas(Text(Number(), Constant("")))
-  }
-
-  "formatText" should "not add commas for Text component with PositiveNumber constraint and current value's length less than 5" in {
-    testValuesLessThan5Digits(Text(PositiveNumber(), Constant("")))
-  }
-
-  it should "add commas for Text component with PositiveNumber constraint and current value's length equal or greater 5" in {
-    testValuesGreaterThan5Digits(Text(PositiveNumber(), Constant("")))
-  }
-
-  it should "remove pound signs and commas input for Text component with PositiveNumber constraint " in {
-    testValuesWithPoundSignsAndCommas(Text(PositiveNumber(), Constant("")))
+    formatForConstraint(Sterling) shouldBe expectedSterling
+    formatForConstraint(Number()) shouldBe expectedNumber
+    formatForConstraint(PositiveNumber()) shouldBe expectedNumber
   }
 }
