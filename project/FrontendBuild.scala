@@ -19,9 +19,9 @@ object FrontendBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "play-partials" % "6.1.0",
     "org.julienrf" %% "play-json-derived-codecs" % "3.3",
     "org.typelevel" %% "cats-core" % "1.1.0",
-    "com.github.pureconfig" %% "pureconfig" % "0.8.0",
-    "org.jetbrains" % "markdown" % "0.1.25",
-    "com.chuusai" %% "shapeless" % "2.3.2",
+    "com.github.pureconfig" %% "pureconfig" % "0.9.1",
+    "org.jetbrains" % "markdown" % "0.1.28",
+    "com.chuusai" %% "shapeless" % "2.3.3",
     "uk.gov.hmrc" %% "http-caching-client" % "7.1.0",
     "uk.gov.hmrc" %% "emailaddress" % "2.2.0",
     "org.jsoup" % "jsoup" % "1.11.3"
