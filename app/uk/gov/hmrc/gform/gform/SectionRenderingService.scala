@@ -55,6 +55,22 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
+sealed trait HasErrors {
+
+  def hasErrors: Boolean = this match {
+    case Errors(_) => true
+    case NoErrors  => false
+  }
+
+  def render: Html = this match {
+    case Errors(html) => html
+    case NoErrors     => Html("")
+  }
+}
+
+case object NoErrors extends HasErrors
+case class Errors(html: Html) extends HasErrors
+
 case class FormRender(id: String, name: String, value: String)
 
 class SectionRenderingService(
@@ -156,7 +172,7 @@ class SectionRenderingService(
       )
   }
 
-  def generatePageLevelErrorHtml(listValidation: List[FormFieldValidationResult]): Html = {
+  def generatePageLevelErrorHtml(listValidation: List[FormFieldValidationResult]): HasErrors = {
 
     val allValidationResults = listValidation.flatMap {
       case componentField: ComponentField => parseFormFieldValidationResult(componentField)
@@ -171,9 +187,9 @@ class SectionRenderingService(
       }
 
     if (errorsHtml.nonEmpty)
-      html.form.errors.page_level_error(errorsHtml, listValidation)
+      Errors(html.form.errors.page_level_error(errorsHtml, listValidation))
     else
-      Html("")
+      NoErrors
   }
 
   def parseFormFieldValidationResult(componentField: ComponentField): List[FormFieldValidationResult] = {

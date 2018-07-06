@@ -21,10 +21,11 @@
 @import uk.gov.hmrc.gform.views.html._
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.HasErrors
 
 @(
         formTemplate: FormTemplate,
-        pageLevelError: Html,
+        pageLevelError: HasErrors,
         page: SectionRenderingInformation,
         formId: FormId,
         shouldDisplayBack: Boolean,
@@ -39,6 +40,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = localisation(formTemplate.formName),
+    containsErrors = pageLevelError.hasErrors,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
@@ -55,7 +57,7 @@
     <p class="page-description">@localisation(page.sectionDescription.get)</p>
     }
 
-    @pageLevelError
+    @pageLevelError.render
     <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
         @{
             CSRF.formField
