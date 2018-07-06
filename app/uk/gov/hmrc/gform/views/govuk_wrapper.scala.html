@@ -22,6 +22,7 @@
 
 @(appConfig: FrontendAppConfig,
   title: String,
+  headTitle: String,
   developmentPhase: DevelopmentPhase = ResearchBanner,
   mainClass: Option[String] = None,
   mainDataAttributes: Option[Html] = None,
@@ -126,7 +127,7 @@ case _ => {}
       sidebar = sidebar)
 }
 
-@hmrcGovUkTemplate(Some(title), bodyClasses)(
+@hmrcGovUkTemplate(Some(headTitle), bodyClasses)(
     head = head,
     bodyEnd = bodyEnd,
     insideHeader = insideHeader,
