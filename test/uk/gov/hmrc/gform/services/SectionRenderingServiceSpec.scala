@@ -109,6 +109,45 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
     visibleFields should be(List("firstName", "surname"))
   }
+
+  val joe = "Joe"
+
+  val equalsCombinations = Table(
+    ("editable", "desc", "expected result"),
+    (false, "be", ""),
+    (true, "not be", joe)
+  )
+
+  forAll(equalsCombinations) { (editable, desc, result) =>
+    "readonly=" + !editable + " field" should desc + " recalculated (set to empty in rendered html)" in {
+
+      val sections = allSections.map(sc => sc.copy(fields = sc.fields.map(f => f.copy(editable = editable))))
+      val data: Map[FormComponentId, Seq[String]] = Map(FormComponentId("firstName") -> List(joe))
+      val generatedHtml = testService
+        .renderSection(
+          form,
+          SectionNumber.firstSection,
+          data,
+          formTemplate,
+          None,
+          Envelope(Nil),
+          envelopeId,
+          None,
+          sections,
+          0,
+          Nil,
+          retrievals,
+          None
+        )
+        .futureValue
+
+      val doc = Jsoup.parse(generatedHtml.body)
+      val firstName = doc.getElementById("firstName").`val`()
+
+      firstName shouldBe result
+    }
+  }
+
   "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
     val generatedHtml = testService
       .renderSection(

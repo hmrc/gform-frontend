@@ -21,15 +21,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, FormCom
 
 object Javascript {
 
-  private object HasExpr {
-    def unapply(fc: FormComponent): Option[Expr] =
-      fc.`type` match {
-        case Text(_, expr)     => Some(expr)
-        case TextArea(_, expr) => Some(expr)
-        case _                 => None
-      }
-  }
-
   def fieldJavascript(
     sectionFields: List[FormComponent],
     allFields: List[FormComponent],

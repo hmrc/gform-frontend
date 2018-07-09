@@ -51,6 +51,7 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+import uk.gov.hmrc.gform.models.helpers.HasExpr
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -94,7 +95,7 @@ class SectionRenderingService(
   def renderSection(
     form: Form,
     sectionNumber: SectionNumber,
-    fieldData: Map[FormComponentId, Seq[String]],
+    fieldDataAll: Map[FormComponentId, Seq[String]],
     formTemplate: FormTemplate,
     errors: Option[List[(FormComponent, FormFieldValidationResult)]],
     envelope: Envelope,
@@ -108,6 +109,14 @@ class SectionRenderingService(
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
     val section = dynamicSections(sectionNumber.value)
+
+    val fieldsToRecalculate: List[FormComponentId] = section.fields
+      .collect {
+        case fc @ HasExpr(_) if !fc.editable => fc.id
+      }
+
+    val fieldData = fieldDataAll -- fieldsToRecalculate
+
     val ei = ExtraInfo(
       form._id,
       sectionNumber,
