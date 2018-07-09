@@ -49,8 +49,15 @@
     }
 
     case ImportantInfo => {
-      <div class="highlight-message highlight-message--light">
-          @text
+      <div class="notice">
+          <i class="icon icon-important">
+              <span class="visually-hidden">Warning</span>
+          </i>
+          <p>
+          <strong class="bold-small">
+              @text
+          </strong>
+          </p>
       </div>
     }
 
