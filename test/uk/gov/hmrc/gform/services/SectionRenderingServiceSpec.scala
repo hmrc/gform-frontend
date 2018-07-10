@@ -88,7 +88,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         SectionNumber.firstSection,
         Map.empty,
         formTemplate,
-        None,
+        Nil,
         Envelope(Nil),
         envelopeId,
         None,
@@ -129,7 +129,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
           SectionNumber.firstSection,
           data,
           formTemplate,
-          None,
+          Nil,
           Envelope(Nil),
           envelopeId,
           None,
@@ -155,7 +155,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         SectionNumber.firstSection,
         Map.empty,
         formTemplate,
-        None,
+        Nil,
         Envelope(Nil),
         envelopeId,
         None,
@@ -192,7 +192,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         SectionNumber.firstSection,
         Map.empty,
         formTemplate,
-        None,
+        Nil,
         Envelope(Nil),
         envelopeId,
         None,
@@ -217,7 +217,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         SectionNumber(1),
         Map.empty,
         formTemplate,
-        None,
+        Nil,
         Envelope(Nil),
         envelopeId,
         None,
@@ -309,7 +309,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         SectionNumber(0),
         Map.empty,
         formTemplate,
-        None,
+        Nil,
         Envelope(Nil),
         envelopeId,
         None,
@@ -362,7 +362,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         SectionNumber(0),
         Map.empty,
         formTemplate,
-        None,
+        Nil,
         Envelope(Nil),
         envelopeId,
         None,
@@ -428,7 +428,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         SectionNumber(0),
         Map.empty,
         formTemplate,
-        None,
+        Nil,
         Envelope(Nil),
         envelopeId,
         None,
@@ -457,7 +457,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None,
         Map.empty,
-        None,
+        Nil,
         None
       )
       .futureValue
@@ -481,7 +481,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None,
         Map.empty,
-        None,
+        Nil,
         None
       )
       .futureValue
@@ -505,7 +505,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None,
         Map.empty,
-        None,
+        Nil,
         None
       )
       .futureValue
