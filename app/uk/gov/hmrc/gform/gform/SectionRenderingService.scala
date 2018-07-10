@@ -97,7 +97,7 @@ class SectionRenderingService(
     sectionNumber: SectionNumber,
     fieldDataAll: Map[FormComponentId, Seq[String]],
     formTemplate: FormTemplate,
-    errors: Option[List[(FormComponent, FormFieldValidationResult)]],
+    errors: List[(FormComponent, FormFieldValidationResult)],
     envelope: Envelope,
     envelopeId: EnvelopeId,
     validatedType: Option[ValidatedType],
@@ -128,22 +128,21 @@ class SectionRenderingService(
       section,
       retrievals)
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(form._id, sectionNumber, lang)
-    val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
+    val listResult = errors.map { case (_, validationResult) => validationResult }
 
     val originSection = new Origin(formTemplate.sections, retrievals).minSectionNumber
 
     for {
-      snippetsForFields <- Future.sequence(
-                            section.fields.map(
-                              fieldValue =>
-                                htmlFor(
-                                  fieldValue,
-                                  formTemplate._id.to4Ga,
-                                  0,
-                                  ei,
-                                  validatedType,
-                                  lang,
-                                  fieldValue.onlyShowOnSummary)))
+      snippetsForFields <- Future.traverse(section.fields)(
+                            fieldValue =>
+                              htmlFor(
+                                fieldValue,
+                                formTemplate._id.to4Ga,
+                                0,
+                                ei,
+                                validatedType,
+                                lang,
+                                fieldValue.onlyShowOnSummary))
       javascript <- createJavascript(
                      dynamicSections.flatMap(_.fields),
                      repeatService.atomicFields(section),
@@ -234,7 +233,7 @@ class SectionRenderingService(
     retrievals: MaterialisedRetrievals,
     maybeValidatedType: Option[ValidatedType],
     fieldData: Map[FormComponentId, Seq[String]],
-    errors: Option[List[(FormComponent, FormFieldValidationResult)]],
+    errors: List[(FormComponent, FormFieldValidationResult)],
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
@@ -255,10 +254,10 @@ class SectionRenderingService(
       case _                    => "Accept and submit"
     }
 
-    val listResult = errors.getOrElse(Nil).map { case (_, validationResult) => validationResult }
+    val listResult = errors.map { case (_, validationResult) => validationResult }
     for {
-      snippets <- Future.sequence(formTemplate.declarationSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, maybeValidatedType, lang)))
+      snippets <- Future.traverse(formTemplate.declarationSection.fields)(fieldValue =>
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, maybeValidatedType, lang))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(
         form._id,
@@ -310,8 +309,8 @@ class SectionRenderingService(
     val now = LocalDateTime.now()
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
-      snippets <- Future.sequence(formTemplate.acknowledgementSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, None, lang)))
+      snippets <- Future.traverse(formTemplate.acknowledgementSection.fields)(fieldValue =>
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, None, lang))
       renderingInfo = SectionRenderingInformation(
         form._id,
         SectionNumber(0),
@@ -354,8 +353,8 @@ class SectionRenderingService(
       emptyRetrievals)
     val listResult = errors.map { case (_, validationResult) => validationResult }
     for {
-      snippets <- Future.sequence(enrolmentSection.fields.map(fieldValue =>
-                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, validatedType, lang)))
+      snippets <- Future.traverse(enrolmentSection.fields)(fieldValue =>
+                   htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, validatedType, lang))
       pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
       renderingInfo = SectionRenderingInformation(
         formId,
@@ -732,8 +731,7 @@ class SectionRenderingService(
           Future
             .sequence((1 to groupList.size).map { count =>
               Future
-                .sequence(
-                  groupList(count - 1).map(fv => htmlFor(fv, formTemplateId4Ga, count, ei, validatedType, lang)))
+                .traverse(groupList(count - 1))(fv => htmlFor(fv, formTemplateId4Ga, count, ei, validatedType, lang))
                 .map { lhtml =>
                   val showButton = {
                     groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
@@ -746,7 +744,7 @@ class SectionRenderingService(
       }
     } else {
       Future
-        .sequence(groupField.fields.map(fv => htmlFor(fv, formTemplateId4Ga, 0, ei, validatedType, lang)))
+        .traverse(groupField.fields)(fv => htmlFor(fv, formTemplateId4Ga, 0, ei, validatedType, lang))
         .map(a => (a, true))
     }
 

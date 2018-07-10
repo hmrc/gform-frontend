@@ -62,7 +62,7 @@ class DeclarationController(
       cache.form.status match {
         case Validated =>
           renderer
-            .renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, None, Map.empty, None, lang)
+            .renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, None, Map.empty, Nil, lang)
             .map(Ok(_))
         case _ => Future.successful(BadRequest)
       }
@@ -177,7 +177,7 @@ class DeclarationController(
                            cache.retrievals,
                            Some(validationResult),
                            data,
-                           Some(errorMap),
+                           errorMap,
                            lang)
                 } yield Ok(html)
             }
