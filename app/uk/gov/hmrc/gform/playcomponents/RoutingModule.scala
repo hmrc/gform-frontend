@@ -78,7 +78,7 @@ class RoutingModule(
     val key = "application.router"
     val property = configModule.typesafeConfig.getString(key)
     property match {
-      case null =>
+      case null | "prod.Routes" =>
         Logger.info("Using router with prod.Routes")
         prodRoutes
       case "testOnlyDoNotUseInAppConf.Routes" =>
@@ -86,7 +86,7 @@ class RoutingModule(
         testOnlyDoNotUseInAppConfRoutes
       case _ =>
         Logger.error(
-          s"The option $key has unsupported value: $property. We support only testOnlyDoNotUseInAppConf.Routes . Using prod.Routes .")
+          s"The option $key has unsupported value: $property. We support only prod.Routes and testOnlyDoNotUseInAppConf.Routes . Using prod.Routes .")
         prodRoutes
     }
   }
