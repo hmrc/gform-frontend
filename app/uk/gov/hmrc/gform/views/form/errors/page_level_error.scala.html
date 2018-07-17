@@ -23,14 +23,14 @@
 @(validations: List[Html], t: List[FormFieldValidationResult])
 
 <div
-  class="flash error-summary@if(t.exists(_.isNotOk)) { error-summary--show}"
+  class="error-summary@if(t.exists(_.isNotOk)) { error-summary--show}"
   id="error-summary-display"
   role="alert"
   aria-labelledby="error-summary-heading"
   tabindex="-1">
-    <h2 id="error-summary-heading" class="heading-small">Please fix the following: </h2>
+    <h2 id="error-summary-heading" class="heading-medium error-summary-heading">There is a problem</h2>
 
-    <ul class="js-error-summary-messages">
+    <ul class="error-summary-list">
         @for(error <- validations) {
             @error
         }
