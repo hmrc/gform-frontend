@@ -147,7 +147,7 @@ class SectionRenderingService(
                      dynamicSections.flatMap(_.fields),
                      repeatService.atomicFields(section),
                      dynamicSections.flatMap(repeatService.atomicFields))
-      hiddenTemplateFields = Fields.getFields(section, dynamicSections, repeatService)
+      hiddenTemplateFields = Fields.getHiddenTemplateFields(section, dynamicSections, repeatService)
       hiddenSnippets = Fields
         .toFormField(fieldData, hiddenTemplateFields)
         .map(formField => html.form.snippets.hidden_field(formField))

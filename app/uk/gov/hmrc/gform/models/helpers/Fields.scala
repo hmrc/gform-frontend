@@ -164,20 +164,13 @@ object Fields {
     getFormFields(templateFields)
   }
 
-  def getFields(
+  def getHiddenTemplateFields(
     currentSection: Section,
     dynamicSections: List[Section],
     repeatingComponentService: RepeatingComponentService)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): List[FormComponent] = {
-    def isTotalValue(maybe: Option[List[PresentationHint]]): Boolean =
-      maybe.exists(x => x.contains(TotalValue))
-
-    val renderFields = currentSection.fields
-      .filter(y => isTotalValue(y.presentationHint))
-
-    val renderList: List[Section] = dynamicSections
-      .filterNot(_ == currentSection) :+ currentSection.copy(fields = renderFields)
+    val renderList: List[Section] = dynamicSections.filterNot(_ == currentSection)
 
     renderList
       .flatMap(repeatingComponentService.atomicFields)

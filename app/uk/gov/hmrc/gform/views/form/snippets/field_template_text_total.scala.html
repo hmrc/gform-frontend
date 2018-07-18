@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.gform.FormRender
 @import uk.gov.hmrc.gform.ops.FormComponentOps
 @import uk.gov.hmrc.gform.service.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
@@ -42,7 +43,7 @@
               @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
                   @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
               } else {
-                Total
+                @(fieldValue.label)
               }
             </span>
         </div>
@@ -53,6 +54,7 @@
                 <span id="@{fieldValue.id}-total">
                   @validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
                 </span>
+		@(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop))))
                 @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
             </span>
         </div>
