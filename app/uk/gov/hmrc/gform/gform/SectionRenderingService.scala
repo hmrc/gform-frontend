@@ -545,6 +545,7 @@ class SectionRenderingService(
     def scale = t.constraint match {
       case Number(_, maxFractionalDigits, _)         => Some(maxFractionalDigits)
       case PositiveNumber(_, maxFractionalDigits, _) => Some(maxFractionalDigits)
+      case Sterling                                  => Some(2)
       case _                                         => None
     }
     def renderText(
