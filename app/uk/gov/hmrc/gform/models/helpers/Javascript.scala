@@ -161,7 +161,7 @@ object Javascript {
           |  var x = [ $values ];
           |  var result = $calculation;
           |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
-          |  return document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
+          |  document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
           |};
           |$listener
           |""".stripMargin
