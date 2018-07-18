@@ -62,12 +62,17 @@ class PrepopServiceSpec extends Spec with ExampleData {
   }
 
   it should "return an added value between" in {
-    val result = call(Add(FormCtx(`formField - number`.id.value), FormCtx(`formField - number`.id.value)))
-    result.futureValue should be("2468")
+    val result = call(Add(FormCtx(`formField - number`.id.value), FormCtx(`formField - number`.id.value)), Some(2))
+    result.futureValue should be("2468.00")
   }
 
-  def call(expr: Expr, authContext: MaterialisedRetrievals = authContext) =
-    prepopService.prepopData(expr, formTemplate, authContext, rawDataFromBrowser, `section - about you`)
+  it should "return an rounded result after multiplication by a fraction" in {
+    val result = call(Multiply(FormCtx(`formField - number`.id.value), Constant("0.001")), Some(2))
+    result.futureValue should be("1.23")
+  }
+
+  def call(expr: Expr, round: Option[Int] = None) =
+    prepopService.prepopData(expr, formTemplate, authContext, rawDataFromBrowser, `section - about you`, round)
 
   implicit lazy val hc = HeaderCarrier()
 }
