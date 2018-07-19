@@ -143,11 +143,10 @@ class SectionRenderingService(
                                 validatedType,
                                 lang,
                                 fieldValue.onlyShowOnSummary))
-      javascript <- createJavascript(
-                     dynamicSections.flatMap(_.fields),
-                     repeatService.atomicFields(section),
-                     dynamicSections.flatMap(repeatService.atomicFields))
-      hiddenTemplateFields = Fields.getHiddenTemplateFields(section, dynamicSections, repeatService)
+      sectionAtomicFields  <- repeatService.atomicFields(section)
+      allAtomicFields      <- Future.traverse(dynamicSections)(repeatService.atomicFields).map(_.flatten)
+      javascript           <- createJavascript(dynamicSections.flatMap(_.fields), sectionAtomicFields, allAtomicFields)
+      hiddenTemplateFields <- Fields.getHiddenTemplateFields(section, dynamicSections, repeatService)
       hiddenSnippets = Fields
         .toFormField(fieldData, hiddenTemplateFields)
         .map(formField => html.form.snippets.hidden_field(formField))
@@ -411,16 +410,15 @@ class SectionRenderingService(
       case g @ Group(_, _, _, _, _, _) =>
         htmlForGroup(g, formTemplateId4Ga, fieldValue, index, ei, maybeValidated, lang)
       case Date(_, offset, dateValue) =>
-        Future.successful(htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, isHidden))
+        htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, isHidden)
       case Address(international) =>
-        Future.successful(htmlForAddress(fieldValue, international, index, maybeValidated, ei))
+        htmlForAddress(fieldValue, international, index, maybeValidated, ei)
       case t @ Text(_, _)     => renderText(implicitly)(t, fieldValue, index, maybeValidated, ei, isHidden)
       case t @ TextArea(_, _) => renderTextArea(implicitly)(t, fieldValue, index, maybeValidated, ei, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(fieldValue, choice, options, orientation, selections, optionalHelpText, index, maybeValidated, ei)
-          .pure[Future]
       case FileUpload() =>
-        Future.successful(htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, maybeValidated, lang))
+        htmlForFileUpload(fieldValue, formTemplateId4Ga, index, ei, maybeValidated, lang)
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
     }
@@ -442,17 +440,19 @@ class SectionRenderingService(
     ei: ExtraInfo,
     validatedType: Option[ValidatedType],
     lang: Option[String])(implicit hc: HeaderCarrier) =
-    html.form.snippets.field_template_file_upload(
-      ei.formId,
-      formTemplateId4Ga,
-      ei.sectionNumber,
-      sectionTitle4GaFactory(ei.formTemplate.sections(ei.sectionNumber.value).title),
-      fieldValue,
-      buildFormFieldValidationResult(fieldValue, ei, validatedType),
-      index,
-      ei.formMaxAttachmentSizeMB,
-      lang
-    )
+    buildFormFieldValidationResult(fieldValue, ei, validatedType).map(
+      validationResult =>
+        html.form.snippets.field_template_file_upload(
+          ei.formId,
+          formTemplateId4Ga,
+          ei.sectionNumber,
+          sectionTitle4GaFactory(ei.formTemplate.sections(ei.sectionNumber.value).title),
+          fieldValue,
+          validationResult,
+          index,
+          ei.formMaxAttachmentSizeMB,
+          lang
+      ))
 
   private def markDownParser(markDownText: String): String =
     if (markDownText.nonEmpty) {
@@ -496,41 +496,40 @@ class SectionRenderingService(
         options.toList.map(_ => Html(""))
       )
 
-    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
-
-    choice match {
-      case Radio | YesNo =>
-        html.form.snippets.choice(
-          "radio",
-          fieldValue,
-          options,
-          orientation,
-          prepopValues,
-          validatedValue,
-          optionalHelpTextMarkDown,
-          index,
-          ei.section.title)
-      case Checkbox =>
-        html.form.snippets.choice(
-          "checkbox",
-          fieldValue,
-          options,
-          orientation,
-          prepopValues,
-          validatedValue,
-          optionalHelpTextMarkDown,
-          index,
-          ei.section.title)
-      case Inline =>
-        html.form.snippets.choiceInline(
-          fieldValue,
-          options,
-          prepopValues,
-          validatedValue,
-          optionalHelpTextMarkDown,
-          index,
-          ei.section.title)
-    }
+    buildFormFieldValidationResult(fieldValue, ei, validatedType).map(validatedValue =>
+      choice match {
+        case Radio | YesNo =>
+          html.form.snippets.choice(
+            "radio",
+            fieldValue,
+            options,
+            orientation,
+            prepopValues,
+            validatedValue,
+            optionalHelpTextMarkDown,
+            index,
+            ei.section.title)
+        case Checkbox =>
+          html.form.snippets.choice(
+            "checkbox",
+            fieldValue,
+            options,
+            orientation,
+            prepopValues,
+            validatedValue,
+            optionalHelpTextMarkDown,
+            index,
+            ei.section.title)
+        case Inline =>
+          html.form.snippets.choiceInline(
+            fieldValue,
+            options,
+            prepopValues,
+            validatedValue,
+            optionalHelpTextMarkDown,
+            index,
+            ei.section.title)
+    })
   }
 
   private type RenderTemplate[T] = (FormComponent, T, String, Option[FormFieldValidationResult], Int, String) => Html
@@ -567,13 +566,13 @@ class SectionRenderingService(
     implicit hc: HeaderCarrier
   ) =
     for {
-      prepopValue <- prepopF(toExpr(t), ei, fieldValue, toTextConstraint(t))
+      prepopValue    <- prepopF(toExpr(t), ei, fieldValue, toTextConstraint(t))
+      validatedValue <- buildFormFieldValidationResult(fieldValue, ei, validatedType)
     } yield
       if (isHidden)
         html.form.snippets
           .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
       else {
-        val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
         fieldValue.presentationHint match {
           case Some(xs) if xs.contains(TotalValue) =>
             asTotalValue(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
@@ -613,10 +612,10 @@ class SectionRenderingService(
       case None => prepopService.prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section)
       case _    => Future.successful("") // Don't prepop something we already submitted
     }
-    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType)
 
     for {
-      prepopValue <- prepopValueF
+      validatedValue <- buildFormFieldValidationResult(fieldValue, ei, validatedType)
+      prepopValue    <- prepopValueF
     } yield {
       if (isHidden)
         html.form.snippets
@@ -631,12 +630,8 @@ class SectionRenderingService(
     index: Int,
     validatedType: Option[ValidatedType],
     ei: ExtraInfo)(implicit hc: HeaderCarrier) =
-    html.form.snippets.field_template_address(
-      international,
-      fieldValue,
-      buildFormFieldValidationResult(fieldValue, ei, validatedType),
-      index,
-      ei.section.title)
+    buildFormFieldValidationResult(fieldValue, ei, validatedType).map(fieldValues =>
+      html.form.snippets.field_template_address(international, fieldValue, fieldValues, index, ei.section.title))
 
   private def htmlForDate(
     fieldValue: FormComponent,
@@ -649,28 +644,28 @@ class SectionRenderingService(
     val prepopValues: Option[DateExpr] = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
 
     if (isHidden) {
-      html.form.snippets.hidden_field_populated(
-        List(
-          FormRender(
-            fieldValue.id.value + "-day",
-            fieldValue.id.value + "-day",
-            prepopValues.map(_.day.toString).getOrElse("")),
-          FormRender(
-            fieldValue.id.value + "-month",
-            fieldValue.id.value + "-month",
-            prepopValues.map(_.month.toString).getOrElse("")),
-          FormRender(
-            fieldValue.id.value + "-year",
-            fieldValue.id.value + "-year",
-            prepopValues.map(_.year.toString).getOrElse(""))
+      Future.successful(
+        html.form.snippets.hidden_field_populated(
+          List(
+            FormRender(
+              fieldValue.id.value + "-day",
+              fieldValue.id.value + "-day",
+              prepopValues.map(_.day.toString).getOrElse("")),
+            FormRender(
+              fieldValue.id.value + "-month",
+              fieldValue.id.value + "-month",
+              prepopValues.map(_.month.toString).getOrElse("")),
+            FormRender(
+              fieldValue.id.value + "-year",
+              fieldValue.id.value + "-year",
+              prepopValues.map(_.year.toString).getOrElse(""))
+          )
         )
       )
-    } else
-      html.form.snippets.field_template_date(
-        fieldValue,
-        buildFormFieldValidationResult(fieldValue, ei, validatedType),
-        prepopValues,
-        index)
+    } else {
+      buildFormFieldValidationResult(fieldValue, ei, validatedType).map(fieldValues =>
+        html.form.snippets.field_template_date(fieldValue, fieldValues, prepopValues, index))
+    }
   }
 
   private def htmlForGroup(
@@ -752,7 +747,7 @@ class SectionRenderingService(
   private def buildFormFieldValidationResult(
     fieldValue: FormComponent,
     ei: ExtraInfo,
-    validatedType: Option[ValidatedType])(implicit hc: HeaderCarrier): Option[FormFieldValidationResult] = {
+    validatedType: Option[ValidatedType])(implicit hc: HeaderCarrier): Future[Option[FormFieldValidationResult]] = {
     // TODO: Simplify building this result. When this method is called we already know what component we are dealing with
     // TODO: it is possible to get inner fields (if any) and build the result.
     val gformErrors: Map[FormComponentId, Set[String]] = validatedType.fold[ValidatedType](Valid(()))(identity) match {
@@ -760,9 +755,9 @@ class SectionRenderingService(
       case Valid(())       => Map.empty[FormComponentId, Set[String]]
     }
     val section = ei.dynamicSections(ei.sectionNumber.value)
-    lazy val okF: FormComponent => Option[FormFieldValidationResult] =
-      Fields.getValidationResult(ei.fieldData, repeatService.atomicFields(section), ei.envelope, gformErrors)
-    okF(fieldValue)
+    repeatService
+      .atomicFields(section)
+      .map(fieldValues => Fields.getValidationResult(ei.fieldData, fieldValues, ei.envelope, gformErrors)(fieldValue))
   }
 
   private def emptyRetrievals = MaterialisedRetrievals(

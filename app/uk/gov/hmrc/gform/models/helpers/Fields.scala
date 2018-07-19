@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
+import scala.concurrent.Future
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models._
@@ -169,10 +170,8 @@ object Fields {
     dynamicSections: List[Section],
     repeatingComponentService: RepeatingComponentService)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): List[FormComponent] = {
+    ec: ExecutionContext): Future[List[FormComponent]] = {
     val renderList: List[Section] = dynamicSections.filterNot(_ == currentSection)
-
-    renderList
-      .flatMap(repeatingComponentService.atomicFields)
+    Future.traverse(renderList)(repeatingComponentService.atomicFields).map(_.flatten)
   }
 }

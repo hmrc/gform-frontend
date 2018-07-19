@@ -212,8 +212,8 @@ class FormController(
       envelope          <- envelopeF
       sections          <- sectionsF
       section           = sections(sectionNumber.value)
-      sectionFields     = repeatService.atomicFields(section)
-      allFields         =  sections.flatMap(repeatService.atomicFields)
+      sectionFields     <- repeatService.atomicFields(section)
+      allFields         <- Future.traverse(sections)(repeatService.atomicFields).map(_.flatten)
       v                 <- validationService.validateForm(sectionFields, section, cache.form.envelopeId, cache.retrievals)(data)
       errors            = validationService.evaluateValidation(v, allFields, data, envelope)
       html              <- renderer.renderSection(cache.form, sectionNumber, data, cache.formTemplate, errors, envelope, cache.form.envelopeId, Some(v), sections, formMaxAttachmentSizeMB, contentTypes, cache.retrievals, lang)
@@ -287,8 +287,8 @@ class FormController(
           sections      <- sectionsF
           envelope      <- envelopeF
           section       = sections(sectionNumber.value)
-          sectionFields = repeatService.atomicFields(section)
-          allFields     = sections.flatMap(repeatService.atomicFields)
+          sectionFields <- repeatService.atomicFields(section)
+          allFields     <- Future.traverse(sections)(repeatService.atomicFields).map(_.flatten)
           v             <- validationService.validateForm(sectionFields, section, cache.form.envelopeId, cache.retrievals)(data)
           errors        = validationService.evaluateValidation(v, allFields, data, envelope)
           // format: on
@@ -392,8 +392,8 @@ class FormController(
             optCompList = repeatingGroups.getEntry[RepeatingGroup](groupId)
             envelope <- envelopeF
             section = dynamicSections(sectionNumber.value)
-            allFields = dynamicSections.flatMap(repeatService.atomicFields)
-            sectionFields = repeatService.atomicFields(section)
+            allFields     <- Future.traverse(dynamicSections)(repeatService.atomicFields).map(_.flatten)
+            sectionFields <- repeatService.atomicFields(section)
             v <- validationService.validateForm(sectionFields, section, cache.form.envelopeId, cache.retrievals)(
                   updatedData)
             errors = validationService.evaluateValidation(v, allFields, updatedData, envelope).toMap

@@ -407,10 +407,10 @@ class RepeatingComponentService(
 
   def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): List[List[FormComponent]] = {
-    val resultOpt =
-      Await.result(sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value), configModule.timeOut seconds)
-    resultOpt.map(_.list).getOrElse(List(groupField.fields))
+    ec: ExecutionContext): Future[List[FormComponent]] = {
+    val maybeRepeatingGroupF: Future[Option[RepeatingGroup]] =
+      sessionCache.fetchAndGetEntry[RepeatingGroup](topFieldValue.id.value)
+    maybeRepeatingGroupF.map(_.map(_.list.flatten).getOrElse(groupField.fields))
   }
 
   def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(
@@ -428,29 +428,33 @@ class RepeatingComponentService(
 
   def clearSession(implicit hc: HeaderCarrier, ec: ExecutionContext) = sessionCache.remove()
 
-  def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
-    def loop(fields: List[FormComponent]): List[FormComponent] =
-      fields.flatMap { fv =>
-        fv.`type` match {
-          case groupField @ Group(_, _, _, _, _, _) =>
-            section match {
-              case Section(_, _, _, _, _, _, _, _, _) =>
-                loop {
-                  val fields = getAllFieldsInGroup(fv, groupField)
-                  val first = fields.head.map { nv =>
-                    nv.copy(
-                      shortName = LabelHelper.buildRepeatingLabel(nv.shortName, 1),
-                      label = LabelHelper.buildRepeatingLabel(nv, 1)
-                    )
-                  }
-                  (first +: fields.tail).flatten
-                }
-              case DeclarationSection(_, _, _, _) => loop(groupField.fields)
-              case _                              => List.empty
-            }
-          case _ => List(fv)
+  def atomicFields(
+    section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] = {
+    def loop(fields: List[FormComponent]): Future[List[FormComponent]] =
+      Future
+        .traverse(fields) { fv =>
+          fv.`type` match {
+            case groupField @ Group(_, _, _, _, _, _) =>
+              section match {
+                case Section(_, _, _, _, _, _, _, _, _) =>
+                  (for {
+                    fields <- getAllFieldsInGroup(fv, groupField)
+                  } yield
+                    fields match {
+                      case head :: tail =>
+                        val headUpd = head.copy(
+                          shortName = LabelHelper.buildRepeatingLabel(head.shortName, 1),
+                          label = LabelHelper.buildRepeatingLabel(head, 1))
+                        headUpd :: tail
+                      case Nil => Nil
+                    }).flatMap(loop)
+                case DeclarationSection(_, _, _, _) => loop(groupField.fields)
+                case _                              => Future.successful(List.empty)
+              }
+            case _ => Future.successful(List(fv))
+          }
         }
-      }
+        .map(_.flatten)
     loop(section.fields)
   }
 

@@ -115,7 +115,7 @@ class SummaryController(
         for {
           summaryHml <- getSummaryHTML(formId, cache, lang)
           htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
-          pdfStream <- pdfService.generatePDF(htmlForPDF)
+          pdfStream  <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
           body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
@@ -139,13 +139,14 @@ class SummaryController(
 
     val filteredSections = sectionsF.map(filterSection)
 
-    for { // format: OFF
-      sections          <- filteredSections
-      allFields         =  sections.flatMap(repeatService.atomicFields)
-      v1                <- sections.traverse(x => validationService.validateForm(allFields, x, cache.form.envelopeId, retrievals)(data)).map(Monoid[ValidatedType].combineAll)
-      v                 =  Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
-      errors            = validationService.evaluateValidation(v, allFields, data, envelope).toMap
-      // format: ON
+    for {
+      sections  <- filteredSections
+      allFields <- Future.traverse(sections)(repeatService.atomicFields).map(_.flatten)
+      v1 <- sections
+             .traverse(x => validationService.validateForm(allFields, x, cache.form.envelopeId, retrievals)(data))
+             .map(Monoid[ValidatedType].combineAll)
+      v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
+      errors = validationService.evaluateValidation(v, allFields, data, envelope).toMap
     } yield (v, errors)
   }
 
@@ -154,11 +155,19 @@ class SummaryController(
     val data = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
-    // format: OFF
     for {
-      envelope          <- envelopeF
-      (v, _)            <- validateForm(cache, envelope, cache.retrievals)
-      result            <- SummaryRenderingService.renderSummary(cache.formTemplate, v, data, cache.retrievals, formId, repeatService, envelope, lang, frontendAppConfig)
+      envelope <- envelopeF
+      (v, _)   <- validateForm(cache, envelope, cache.retrievals)
+      result <- SummaryRenderingService.renderSummary(
+                 cache.formTemplate,
+                 v,
+                 data,
+                 cache.retrievals,
+                 formId,
+                 repeatService,
+                 envelope,
+                 lang,
+                 frontendAppConfig)
     } yield result
   }
 }

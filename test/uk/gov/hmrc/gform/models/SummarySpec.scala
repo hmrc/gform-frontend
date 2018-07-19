@@ -61,15 +61,15 @@ class SummarySpec extends Spec {
         Future.successful(CacheMap("Empty", Map.empty[String, JsValue]))
 
       override def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[List[List[FormComponent]]] = {
-        Future.successful(List[List[FormComponent]]())
+        Future.successful(List.empty[List[FormComponent]])
       }
 
-      override def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[List[FormComponent]] = {
-        List.empty[List[FormComponent]]
+      override def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] = {
+        Future.successful(List.empty[FormComponent])
       }
 
-      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): List[FormComponent] = {
-        section.fields
+      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] = {
+        Future.successful(section.fields)
       }
     }
 

@@ -97,13 +97,14 @@ class PrepopService(
         } yield toBigDecimal(y) * toBigDecimal(z)
         value.map(x => round(x).toString)
       case Sum(FormCtx(field)) =>
-        val atomicFields = repeatingComponentService.atomicFields(section)
+        val atomicFieldsF: Future[List[FormComponent]] = repeatingComponentService.atomicFields(section)
         val cacheMap: Future[CacheMap] = repeatingComponentService.getAllRepeatingGroups
         val repeatingSections: Future[List[List[List[FormComponent]]]] =
-          Future.sequence(atomicFields.map(fv => (fv.id, fv.`type`)).collect {
-            case (fieldId, group: Group) =>
-              cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
-          })
+          atomicFieldsF.flatMap(atomicFields =>
+            Future.sequence(atomicFields.map(fv => (fv.id, fv.`type`)).collect {
+              case (fieldId, group: Group) =>
+                cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
+            }))
         val listOfValues = repeatingSections.map(rs =>
           for {
             id <- Group.getGroup(rs, FormComponentId(field))
