@@ -72,10 +72,9 @@ object SummaryRenderingService {
   )(
     implicit
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[List[Html]] =
-    repeatService.getAllSections(formTemplate, data).flatMap { sections =>
-      val fields: List[FormComponent] = sections.flatMap(repeatService.atomicFields)
+    ec: ExecutionContext): Future[List[Html]] = {
 
+    def renderHtmls(sections: List[Section], fields: List[FormComponent]): Future[List[Html]] = {
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
         val gformErrors = validatedType match {
           case Invalid(errors) => errors
@@ -186,4 +185,10 @@ object SummaryRenderingService {
       }
       snippetsF
     }
+    for {
+      sections <- repeatService.getAllSections(formTemplate, data)
+      fields   <- Future.traverse(sections)(repeatService.atomicFields).map(_.flatten)
+      htmls    <- renderHtmls(sections, fields)
+    } yield htmls
+  }
 }
