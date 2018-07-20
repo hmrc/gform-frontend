@@ -210,3 +210,14 @@ button.button--secondary:active{
     height: 0;
   }
 }
+
+/* warning text pattern fix to allow for the content to be run through the markdown processor */
+.notice .notice-content {
+  display: block;
+  padding-left: 65px;
+  margin-left: -15px;
+}
+
+.notice .notice-content p {
+  font-weight: 700
+}
