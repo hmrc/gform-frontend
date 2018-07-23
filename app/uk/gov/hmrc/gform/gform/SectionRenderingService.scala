@@ -162,7 +162,7 @@ class SectionRenderingService(
         envelopeId,
         actionForm,
         true,
-        "Save and continue",
+        section.continueLabel.getOrElse("Save and continue"),
         formMaxAttachmentSizeMB,
         contentTypes,
         section.progressIndicator

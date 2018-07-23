@@ -37,7 +37,8 @@ case class Section(
   repeatsMax: Option[TextExpression],
   repeatsMin: Option[TextExpression],
   validators: Option[SectionValidator], //TODO List instead of Option
-  fields: List[FormComponent]
+  fields: List[FormComponent],
+  continueLabel: Option[String]
 ) extends BaseSection
 
 object Section {
