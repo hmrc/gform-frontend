@@ -278,7 +278,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         `fieldValue - firstName`,
         `fieldValue - surname`,
         `fieldValue - facePhoto`
-      ))
+      ),
+      None)
 
   def `section - businessDetails` =
     Section(
@@ -294,7 +295,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         `fieldValue - businessName`,
         `fieldValue - startDate`,
         `fieldValue - iptRegNum`
-      ))
+      ),
+      None)
 
   def `repeating section` = Section(
     "Repeating section",
@@ -307,7 +309,8 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     None,
     List(
       `fieldValue - surname`
-    )
+    ),
+    None
   )
 
   def `section - group` = `section - about you`.copy(fields = List(`fieldValue - group`))

@@ -42,9 +42,9 @@ class SummarySpec extends Spec {
 
   trait Test extends ExampleData {
     override def dmsSubmission = DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
-    def section0 = Section("Your details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, None, true, true, true, false, false, None)))
-    def section1 = Section("About you", None, None, None, None, None, None, None, List(FormComponent(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, None, true, true, true, false, false, None)))
-    def section2 = Section("Business details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, None, true, true, true, false, false, None)))
+    def section0 = Section("Your details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, None, true, true, true, false, false, None)), None)
+    def section1 = Section("About you", None, None, None, None, None, None, None, List(FormComponent(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, None, true, true, true, false, false, None)), None)
+    def section2 = Section("Business details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, None, true, true, true, false, false, None)), None)
 
     override def `formField - iptRegNum` = super.`formField - iptRegNum`.copy(value = "Test!Your details!Test")
     override def `formField - firstName` = super.`formField - firstName`.copy(value = "Test!About you!Test")
@@ -111,7 +111,7 @@ class SummarySpec extends Spec {
       FormComponent(FormComponentId("Info"), Text(AnyText, Constant("")), "Info", None, None, None, true, true, submissible = false, false, false, None, presentationHint = Some(List(InvisibleInSummary))),
       FormComponent(FormComponentId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, None, true, true, true, false, false, None),
       FormComponent(FormComponentId("HomeAddress"), Address(international = false), "Home address", None, None, None, true, true, true, false, false, None)
-    ))
+    ), None)
 
     override def formTemplate = super.formTemplate.copy(sections = List(section))
 
@@ -360,12 +360,12 @@ class SummarySpec extends Spec {
       ),
       "Test!group-label!Test", None, None, None, true, true, true, true, false, None
     )
-    override def section0 = Section("", None, None, None, None, None, None, None, List(groupFieldValue))
+    override def section0 = Section("", None, None, None, None, None, None, None, List(groupFieldValue), None)
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     val render0 = SummaryRenderingService.summaryForRender(f, Map.empty[FormComponentId, Seq[String]], retrievals, formId, formTemplate, mockRepeatService, envelope, None)
     extractAllTestStringValues(render0.futureValue) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
-      sections = List(Section("", None, None, None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test")))))
+      sections = List(Section("", None, None, None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test"))), None))
     )
 
     val filedValues1 = formTemplate.sections.flatMap(_.fields)

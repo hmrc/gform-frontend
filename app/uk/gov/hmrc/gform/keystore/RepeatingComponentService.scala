@@ -436,7 +436,7 @@ class RepeatingComponentService(
           fv.`type` match {
             case groupField @ Group(_, _, _, _, _, _) =>
               section match {
-                case Section(_, _, _, _, _, _, _, _, _) =>
+                case Section(_, _, _, _, _, _, _, _, _, _) =>
                   (for {
                     fields <- getAllFieldsInGroup(fv, groupField)
                   } yield

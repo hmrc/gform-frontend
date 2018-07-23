@@ -45,7 +45,8 @@ class NavitagionSpec extends Spec {
     repeatsMax = None,
     repeatsMin = None,
     validators = None,
-    fields = formComponent :: Nil
+    fields = formComponent :: Nil,
+    continueLabel = None
   )
 
   def getAvailableSectionNumbers(sectionsData: List[Section], formData: Map[FormComponentId, String]) =
