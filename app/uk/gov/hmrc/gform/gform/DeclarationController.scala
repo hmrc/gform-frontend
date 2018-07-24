@@ -110,7 +110,11 @@ class DeclarationController(
   def submitDeclaration(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, lang: Option[String]) =
     auth.async(formId) { implicit request => cacheOrig =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
-        val visibility = Visibility(cacheOrig.formTemplate.sections, data, cacheOrig.retrievals.affinityGroup)
+        val formData: Map[FormComponentId, List[String]] = cacheOrig.form.formData.fields.map {
+          case FormField(id, value) => id -> (value :: Nil)
+        }.toMap
+
+        val visibility = Visibility(cacheOrig.formTemplate.sections, formData, cacheOrig.retrievals.affinityGroup)
         val invisibleSections = cacheOrig.formTemplate.sections.filterNot(visibility.isVisible)
 
         val invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
