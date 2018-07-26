@@ -242,3 +242,16 @@ button.button--secondary:active{
 .subsection ul li {
   margin-bottom: 5px;
 }
+
+table thead th {
+  border-bottom: none;
+}
+
+table td:first-child.grid-layout__column--1-3 {
+  font-weight: bold;
+}
+
+.col_2_3 {
+  width: calc(100% * 2/3);
+  float: left;
+}
