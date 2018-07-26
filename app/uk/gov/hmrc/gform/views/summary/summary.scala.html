@@ -43,11 +43,13 @@
     mainClass = Some("full-width"),
     frontendAppConfig = frontendAppConfig
 ) {
+    <div class="col_2_3">
     <h1 class="h1-heading">Check your answers</h1>
 
     <p>
       Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
     </p>
+    </div>
 
     <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id.to4Ga, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
