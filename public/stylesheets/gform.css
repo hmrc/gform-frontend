@@ -242,3 +242,13 @@ button.button--secondary:active{
 .subsection ul li {
   margin-bottom: 5px;
 }
+
+.ack-header {
+  font-size: 48px;
+  margin-bottom: 30px;
+}
+
+.ack-subheader {
+  font-size: 36px;
+  margin-bottom: 30px;
+}
