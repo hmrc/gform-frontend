@@ -83,10 +83,18 @@ object SummaryRenderingService {
         Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
       }
 
-      def valueToHtml(fieldValue: FormComponent): Future[Html] = {
+      def valueToHtml(
+        fieldValue: FormComponent,
+        formTemplateId4Ga: FormTemplateId4Ga,
+        formId: FormId,
+        title: String,
+        sectionNumber: SectionNumber,
+        sectionTitle4Ga: SectionTitle4Ga,
+        lang: Option[String]): Future[Html] = {
 
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Future[Html] = {
           val isLabel = fieldValue.shortName.getOrElse(fieldValue.label).nonEmpty
+
           def groupGrid(formComponents: List[FormComponent]) = {
             val value = formComponents
               .filter { y =>
@@ -98,6 +106,7 @@ object SummaryRenderingService {
               group_grid(fieldValue, value, isLabel)
             } else Html("")
           }
+
           fieldValue.`type` match {
             case groupField: Group
                 if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
@@ -117,19 +126,49 @@ object SummaryRenderingService {
                 .pure[Future]
             case groupField @ Group(_, orientation, _, _, _, _) =>
               for {
-                fvs      <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
-                htmlList <- Future.sequence(fvs.flatMap(_.map { case (fv: FormComponent) => valueToHtml(fv) }.toList))
+                fvs <- repeatService.getAllFieldsInGroupForSummary(fieldValue, groupField)
+                htmlList <- Future.sequence(fvs.flatMap(_.map {
+                             case (fv: FormComponent) =>
+                               valueToHtml(
+                                 fv,
+                                 formTemplateId4Ga,
+                                 formId,
+                                 title,
+                                 sectionNumber,
+                                 sectionTitle4Ga,
+                                 lang
+                               )
+                           }.toList))
               } yield group(fieldValue, htmlList, orientation, isLabel)
-            case _ => valueToHtml(fieldValue)
+            case _ =>
+              valueToHtml(
+                fieldValue,
+                formTemplateId4Ga,
+                formId,
+                title,
+                sectionNumber,
+                sectionTitle4Ga,
+                lang
+              )
           }
         }
 
+        val changeButton = change_button(
+          formTemplateId4Ga,
+          formId,
+          title,
+          sectionNumber,
+          sectionTitle4Ga,
+          lang,
+          fieldValue.id
+        )
+
         fieldValue.`type` match {
-          case UkSortCode(_)  => Future.successful(sort_code(fieldValue, validate(fieldValue)))
-          case Date(_, _, _)  => Future.successful(date(fieldValue, validate(fieldValue)))
-          case Address(_)     => Future.successful(address(fieldValue, validate(fieldValue)))
-          case Text(_, _)     => Future.successful(text(fieldValue, validate(fieldValue)))
-          case TextArea(_, _) => Future.successful(textarea(fieldValue, validate(fieldValue)))
+          case UkSortCode(_)  => Future.successful(sort_code(fieldValue, validate(fieldValue), changeButton))
+          case Date(_, _, _)  => Future.successful(date(fieldValue, validate(fieldValue), changeButton))
+          case Address(_)     => Future.successful(address(fieldValue, validate(fieldValue), changeButton))
+          case Text(_, _)     => Future.successful(text(fieldValue, validate(fieldValue), changeButton))
+          case TextArea(_, _) => Future.successful(textarea(fieldValue, validate(fieldValue), changeButton))
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex
               .map {
@@ -140,8 +179,8 @@ object SummaryRenderingService {
               }
               .collect { case Some(selection) => selection }
 
-            Future.successful(choice(fieldValue, selections))
-          case f @ FileUpload()         => Future.successful(file_upload(fieldValue, f, validate(fieldValue)))
+            Future.successful(choice(fieldValue, selections, changeButton))
+          case f @ FileUpload()         => Future.successful(file_upload(fieldValue, f, validate(fieldValue), changeButton))
           case InformationMessage(_, _) => Future.successful(Html(""))
           case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
         }
@@ -167,7 +206,6 @@ object SummaryRenderingService {
                 formTemplate._id.to4Ga,
                 formId,
                 section.shortName.getOrElse(section.title),
-                section.description,
                 SectionNumber(index),
                 sectionTitle4Ga,
                 lang)
@@ -177,7 +215,15 @@ object SummaryRenderingService {
                 .sequence(
                   section.fields
                     .filterNot(showOnSummary)
-                    .map(valueToHtml)
+                    .map(
+                      valueToHtml(
+                        _,
+                        formTemplate._id.to4Ga,
+                        formId,
+                        section.shortName.getOrElse(section.title),
+                        SectionNumber(index),
+                        sectionTitle4Ga,
+                        lang))
                 )
                 .map(begin +: _ :+ end)
           }
@@ -185,6 +231,7 @@ object SummaryRenderingService {
       }
       snippetsF
     }
+
     for {
       sections <- repeatService.getAllSections(formTemplate, data)
       fields   <- Future.traverse(sections)(repeatService.atomicFields).map(_.flatten)

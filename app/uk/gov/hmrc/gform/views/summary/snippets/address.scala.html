@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.views.html.localisation
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FormComponent, validationResultO: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, validationResultO: Option[FormFieldValidationResult], changeButton: Html)
 
     @validationResult = @{
         //it's always there, TODO: change template signature
@@ -61,8 +61,8 @@
                     <br />
                 }
             }
+            @changeButton
             </td>
         }
 
-        <td></td>
     </tr>

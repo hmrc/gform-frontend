@@ -14,28 +14,15 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.localisation
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkSortCode
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
-@safeId(id: String) = @{
-    fieldValue.id.withSuffix(id).value
-}
+@(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, title: String, sectionNumber: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String], fieldId: FormComponentId)
 
-<tr>
-  <td class="grid-layout__column--1-3">
-    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-  </td>
-
-  <td>
-    @UkSortCode.fields(fieldValue.id).map{ fieldId =>
-     @validationResult.map(_.getCurrentValue(fieldId.toString)).getOrElse("")
-    }.mkString("-")
-   </td>
-
-   <td>@changeButton</td>
-</tr>
+      <div class="text--right">
+        <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang).url + "#" + fieldId}">
+          Change <span class="visuallyhidden">@localisation(title)</span>
+        </a>
+      </div>
