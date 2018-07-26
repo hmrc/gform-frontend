@@ -101,7 +101,8 @@ class SummarySpec extends Spec {
       callUrlEscaped(routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(1), SectionTitle4Ga("About-you"), None))
     )
 
-    testStringValues should be(expectedResult)
+    testStringValues(0) should startWith(expectedResult(0))
+    testStringValues(1) should startWith(expectedResult(1))
   }
 
   it should "display values for each field type with a submissible field, " in new Test {
@@ -382,9 +383,20 @@ class SummarySpec extends Spec {
 
     val summaryForRender = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), retrievals, formId, formTemplate, mockRepeatService, envelope, None)
     val htmls = summaryForRender.futureValue
-    val htmlAheadOfSection2 = htmls(3)
-    val doc = Jsoup.parse(htmlAheadOfSection2.toString)
-    val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
-    urlOfHrefToSection2 shouldBe uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(2), SectionTitle4Ga("Business-details"), None).url
+
+    {
+      val htmlAheadOfSection0 = htmls(1)
+      val doc = Jsoup.parse(htmlAheadOfSection0.toString)
+      val urlOfHrefToSection0 = doc.select("a:contains(Change)").get(0).attributes().get("href")
+      val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), SectionTitle4Ga("Your-details"), None).url + s"#iptRegNum"
+      urlOfHrefToSection0 shouldBe targetUrl
+    }
+    {
+      val htmlAheadOfSection2 = htmls(4)
+      val doc = Jsoup.parse(htmlAheadOfSection2.toString)
+      val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
+      val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(2), SectionTitle4Ga("Business-details"), None).url + s"#nameOfBusiness"
+      urlOfHrefToSection2 shouldBe targetUrl
+    }
   }
 }

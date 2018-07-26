@@ -22,7 +22,7 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FormComponent, fileUpload: FileUpload, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, fileUpload: FileUpload, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
 @hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
 
@@ -41,5 +41,5 @@
       </td>
     }
 
-    <td></td>
+    <td>@changeButton</td>
 </tr>
