@@ -22,7 +22,7 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.play.views.html.helpers._
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
 @currentValueLines = @{TextFormatter.formatText(validationResult).split("\\R")}
 
@@ -46,6 +46,7 @@
         <td colspan="@colspan">
             @currentValue
         </td>
+        @changeButton
     }
 }
 

@@ -17,7 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.localisation
 
-@(fieldValue: FormComponent, selections: List[String])
+@(fieldValue: FormComponent, selections: List[String], changeButton: Html)
 
 <tr>
   @if(fieldValue.label || fieldValue.shortName) {
@@ -30,5 +30,5 @@
     @selections.map{ selection => @selection<br /> }
   </td>
 
-  <td></td>
+  <td>@changeButton</td>
 </tr>

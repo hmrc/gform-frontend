@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.localisation
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).toString
@@ -36,5 +36,5 @@ fieldValue.id.withSuffix(id).toString
     }
   </td>
 
-  <td></td>
+  <td>@changeButton</td>
 </tr>
