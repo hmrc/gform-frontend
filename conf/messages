@@ -1,2 +1,6 @@
+## Global
+global.error.InternalServerError500.title=We’re experiencing technical difficulties
+global.error.InternalServerError500.heading=We’re experiencing technical difficulties
+global.error.InternalServerError500.message=Try signing in again in a few minutes.
 ## Landfill Tax Form ##
 lt.ltDetails.telephoneHint                  = A telephone number must be longer than 3 digits.
