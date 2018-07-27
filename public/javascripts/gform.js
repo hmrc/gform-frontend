@@ -96,7 +96,7 @@ var uploader = function(el) {
   var deleteBtnEl = $('<a href="#" class="gf-delete" data-file-id="' + fileId + '">Delete</a>');
 
   var handleError = function(text) {
-    var errorEl = '<span class="error-notification" role="alert">' + text + '</span>';
+    var errorEl = '<span class="error-notification error-message" role="alert">' + text + '</span>';
 
     uploaderBtn.html(config.uploadText);
     uploadedFileEl.empty();
