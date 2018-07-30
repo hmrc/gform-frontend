@@ -56,8 +56,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def updateUserData(formId: FormId, userData: UserData)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] =
+    ec: ExecutionContext): Future[Unit] = {
+    val x = 0
+    val xx = x
     ws.PUT[UserData, HttpResponse](s"$baseUrl/forms/${formId.value}", userData).map(_ => ())
+  }
 
   //TODO: now returns string, but it should return list of validations
   def validateSection(formId: FormId, sectionNumber: SectionNumber)(
