@@ -31,7 +31,7 @@
     @currentValueLines.last
 }
 
-@hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
+@hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
     errorInline("summary", e, Seq())
@@ -46,7 +46,7 @@
         <td colspan="@colspan">
             @currentValue
         </td>
-        @changeButton
+        <td>@changeButton</td>
     }
 }
 
@@ -55,8 +55,8 @@
         <td class="grid-layout__column--1-3">
             @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
         </td>
-        @renderCurrentValue(2)
+        @renderCurrentValue(1)
     } else {
-        @renderCurrentValue(3)
+        @renderCurrentValue(2)
     }
 </tr>
