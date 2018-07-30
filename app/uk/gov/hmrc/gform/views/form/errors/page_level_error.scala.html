@@ -28,7 +28,9 @@
   role="alert"
   aria-labelledby="error-summary-heading"
   tabindex="-1">
-    <h2 id="error-summary-heading" class="heading-medium error-summary-heading">There is a problem</h2>
+    <h2 id="error-summary-heading" class="heading-medium error-summary-heading">There are errors on the page</h2>
+
+    <p>Check you’ve entered the information correctly</p>
 
     <ul class="error-summary-list">
         @for(error <- validations) {
