@@ -282,3 +282,7 @@ table td:first-child.grid-layout__column--1-3 {
   font-weight: bold;
 }
 /*should better use ASSET_FRONTEND instead End*/
+
+.summary-section {
+  margin-bottom: 60px;
+}
