@@ -153,15 +153,17 @@ object SummaryRenderingService {
           }
         }
 
-        val changeButton = change_button(
-          formTemplateId4Ga,
-          formId,
-          title,
-          sectionNumber,
-          sectionTitle4Ga,
-          lang,
-          fieldValue.id
-        )
+        val changeButton = if (fieldValue.derived) { Html("") } else {
+          change_button(
+            formTemplateId4Ga,
+            formId,
+            title,
+            sectionNumber,
+            sectionTitle4Ga,
+            lang,
+            fieldValue.id
+          )
+        }
 
         fieldValue.`type` match {
           case UkSortCode(_)  => Future.successful(sort_code(fieldValue, validate(fieldValue), changeButton))
