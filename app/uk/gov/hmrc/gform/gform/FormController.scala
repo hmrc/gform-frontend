@@ -273,6 +273,8 @@ class FormController(
       gformConnector.deleteForm(formId).map(_ => Redirect(routes.FormController.newForm(cache.formTemplate._id, lang)))
     }
 
+  val deleteOnExit = delete _
+
   def updateFormData(formId: FormId, sectionNumber: SectionNumber, lang: Option[String]) = auth.async(formId) {
     implicit request => cache =>
       val envelopeF = for {
