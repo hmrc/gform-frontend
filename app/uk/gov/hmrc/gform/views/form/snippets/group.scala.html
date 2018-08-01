@@ -35,7 +35,7 @@
 
 <div class="form-group">
   <h2 class="heading-small heading-section">
-    @if(!groupField.repeatsMax.isDefined) {
+    @if(groupField.repeatsMax.isDefined) {
       @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
     } else {
       @localisation(fieldValue.label)
