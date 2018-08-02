@@ -63,6 +63,10 @@
   margin-left: 1em;
 }
 
+.file-upload__file-label {
+  margin-bottom: 5px;
+}
+
 /* Info components */
 .panel-info ul {
   margin-left: 1em;

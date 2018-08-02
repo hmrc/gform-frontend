@@ -34,16 +34,17 @@ formMaxAttachmentSizeMB: Int,
 lang: Option[String]
 )
 
+@defaultLabel = @{"Upload a file"}
+@defaultChangeLabel = @{"Change file"}
+
 @currentValue = @{
     val v = for {
         vr <- validationResult
         cv <- vr.getCurrentValue
     } yield cv
 
-    v.getOrElse("Upload document")
+    v.getOrElse(defaultLabel)
 }
-
-@defaultLabel = @{"Upload document"}
 
 <div class="form-group">
     <div
@@ -51,11 +52,11 @@ lang: Option[String]
       data-form-id="@{formId.value}"
       data-file-id="@{fieldValue.id.value}"
       data-upload-text="@{defaultLabel}"
-      data-change-text="Change document"
+      data-change-text="@{defaultChangeLabel}"
       data-max-file-size="@{formMaxAttachmentSizeMB * 1024 * 1024}"
       data-label="@LabelHelper.buildRepeatingLabel(fieldValue, index)"
-      data-file-size-error="This document may not exceed @{formMaxAttachmentSizeMB}MB"
-      data-initial-text="@if(currentValue.isEmpty || currentValue == defaultLabel) {Upload document} else {Change document}"
+      data-file-size-error="This file may not exceed @{formMaxAttachmentSizeMB}MB"
+      data-initial-text="@if(currentValue.isEmpty || currentValue == defaultLabel) {@{defaultLabel}} else {@{defaultChangeLabel}}"
       data-default-label="@{defaultLabel}">
         <div class="file-upload__errors">
           @{
