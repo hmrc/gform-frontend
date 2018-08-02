@@ -153,7 +153,7 @@ object SummaryRenderingService {
           }
         }
 
-        val changeButton = if (fieldValue.derived) { Html("") } else {
+        val changeButton = if (fieldValue.editable) {
           change_button(
             formTemplateId4Ga,
             formId,
@@ -163,7 +163,7 @@ object SummaryRenderingService {
             lang,
             fieldValue.id
           )
-        }
+        } else { Html("") }
 
         fieldValue.`type` match {
           case UkSortCode(_)  => Future.successful(sort_code(fieldValue, validate(fieldValue), changeButton))
