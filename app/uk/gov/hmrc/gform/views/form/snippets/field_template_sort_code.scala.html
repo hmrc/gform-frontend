@@ -27,7 +27,7 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
-<div class="form-group @if(validationResult.map(_.isOk).contains(false)) { form-field-group--error }">
+<div class="form-group @if(validationResult.map(_.isOk).contains(false)) { form-group-error }">
   @* TODO: What should total style be? *@
   <label for="@{fieldValue.id}">
     @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
@@ -40,7 +40,7 @@
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
         val errors: Set[String] = ValidationUtil.printErrors(map)
 
-        errors.map(e => errorInline(e, e, Seq("")))
+        errors.map(e => errorInline(e, e, Seq("error-message")))
     }
 
     @UkSortCode.fields(fieldValue.id).map{ fieldId =>
