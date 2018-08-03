@@ -33,7 +33,7 @@ sectionTitle: String
 )
 
 <div class="form-group">
-  <div class="@if(validationResult.map(_.isOk).contains(false)) { form-field-group--error}">
+  <div class="@if(validationResult.map(_.isOk).contains(false)) { form-group-error}">
     <div class="choice-list">
       <div class="choice-list__item">
         <div class="choice-list__item__label">
@@ -43,7 +43,7 @@ sectionTitle: String
           <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
           }
 
-          @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq(""))
+          @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq("error-message"))
         </div>
 
         <div class="choice-list__item__choices inline">

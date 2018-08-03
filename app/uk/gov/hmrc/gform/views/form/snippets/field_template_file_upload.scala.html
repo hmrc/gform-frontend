@@ -48,7 +48,7 @@ lang: Option[String]
 
 <div class="form-group">
     <div
-      class="file-uploader @if(!validationResult.forall(_.isOk)) { form-field-group--error }"
+      class="file-uploader @if(!validationResult.forall(_.isOk)) { form-group-error }"
       data-form-id="@{formId.value}"
       data-file-id="@{fieldValue.id.value}"
       data-upload-text="@{defaultLabel}"
@@ -62,7 +62,7 @@ lang: Option[String]
           @{
               val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
               val errors: Set[String] = ValidationUtil.printErrors(map)
-              errors.map(e => errorInline(e, e, Seq("")))
+              errors.map(e => errorInline(e, e, Seq("error-message")))
           }
         </div>
 
