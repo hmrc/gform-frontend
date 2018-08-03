@@ -21,6 +21,7 @@ import java.io
 
 import scala.math.BigDecimal
 import scala.util.Try
+import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import java.text.NumberFormat
@@ -47,7 +48,7 @@ object TextFormatter {
           case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
             val poundOrComma = "[£,]".r
             val valueWithoutPoundsOrCommas: String = poundOrComma.replaceAllIn(currentValue, "")
-            val maybeBigDecimal = Try(BigDecimal(valueWithoutPoundsOrCommas)).toOption
+            val maybeBigDecimal = toBigDecimalSafe(valueWithoutPoundsOrCommas)
             maybeBigDecimal match {
               case Some(bd) =>
                 if (text.constraint == Sterling)

@@ -20,6 +20,7 @@ import play.api.Logger
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals._
+import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.implicits._
@@ -62,11 +63,6 @@ class PrepopService(
     data: Map[FormComponentId, Seq[String]],
     section: BaseSection,
     scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
-    def toBigDecimal(str: String): BigDecimal =
-      Try(BigDecimal(str.replace(",", ""))) match {
-        case Success(x) => x
-        case Failure(_) => BigDecimal(0)
-      }
 
     def round(x: BigDecimal): BigDecimal = scale match {
       case Some(s) => x.setScale(s, RoundingMode.FLOOR)
@@ -82,19 +78,19 @@ class PrepopService(
         val value = for {
           y <- prepopData(field1, formTemplate, retrievals, data, section)
           z <- prepopData(field2, formTemplate, retrievals, data, section)
-        } yield toBigDecimal(y) + toBigDecimal(z)
+        } yield toBigDecimalDefault(y) + toBigDecimalDefault(z)
         value.map(x => round(x).toString)
       case Subtraction(field1, field2) =>
         val value = for {
           y <- prepopData(field1, formTemplate, retrievals, data, section)
           z <- prepopData(field2, formTemplate, retrievals, data, section)
-        } yield toBigDecimal(y) - toBigDecimal(z)
+        } yield toBigDecimalDefault(y) - toBigDecimalDefault(z)
         value.map(x => round(x).toString)
       case Multiply(field1, field2) =>
         val value = for {
           y <- prepopData(field1, formTemplate, retrievals, data, section)
           z <- prepopData(field2, formTemplate, retrievals, data, section)
-        } yield toBigDecimal(y) * toBigDecimal(z)
+        } yield toBigDecimalDefault(y) * toBigDecimalDefault(z)
         value.map(x => round(x).toString)
       case Sum(FormCtx(field)) =>
         val atomicFieldsF: Future[List[FormComponent]] = repeatingComponentService.atomicFields(section)
@@ -109,7 +105,7 @@ class PrepopService(
           for {
             id <- Group.getGroup(rs, FormComponentId(field))
             x = data.get(id).map(_.head).getOrElse("")
-          } yield toBigDecimal(x))
+          } yield toBigDecimalDefault(x))
         for { vs <- listOfValues } yield round(vs.sum).toString()
       case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
       case _           => Future.successful("")

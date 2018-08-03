@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.{ AffinityGroup => CoreAffinityGroup }
+import uk.gov.hmrc.gform.commons.BigDecimalUtil.{ toBigDecimalDefault, toBigDecimalSafe }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 
 import scala.util.{ Failure, Success, Try }
@@ -56,8 +57,8 @@ object BooleanExpr {
     def isTrue0(expr: BooleanExpr): BooleanExprResultWithDependents = isTrue(expr, data, affinityGroup)
 
     def decimalValue(field: Expr): BigDecimal = {
-      val str = stringValue(field)._1.replace(",", "")
-      Try(BigDecimal(str)).getOrElse(0)
+      val str = stringValue(field)._1
+      toBigDecimalDefault(str)
     }
 
     def operate(field1: Expr, operator: (BigDecimal, BigDecimal) => BigDecimal, field2: Expr): String =
@@ -75,9 +76,6 @@ object BooleanExpr {
         case _ => ("", List.empty)
       }
 
-    def toMaybeBigDecimal(str: String): Option[BigDecimal] =
-      Try(BigDecimal(str.replace(",", ""))).toOption
-
     def compare(
       leftField: Expr,
       bigDecimalRelation: (BigDecimal, BigDecimal) => Boolean,
@@ -85,7 +83,7 @@ object BooleanExpr {
       rightField: Expr): BooleanExprResultWithDependents = {
       val (left, xs1) = stringValue(leftField)
       val (right, xs2) = stringValue(rightField)
-      (toMaybeBigDecimal(left), toMaybeBigDecimal(right)) match {
+      (toBigDecimalSafe(left), toBigDecimalSafe(right)) match {
         case (Some(l), Some(r)) => BooleanExprResultWithDependents(bigDecimalRelation(l, r), xs1 ++ xs2)
         case _                  => BooleanExprResultWithDependents(stringRelation(left, right), xs1 ++ xs2)
       }

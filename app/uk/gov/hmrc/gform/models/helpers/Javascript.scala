@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
+import uk.gov.hmrc.gform.models.helpers.{ HasDigits, HasSterling }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, FormComponentId }
 
@@ -70,26 +71,6 @@ object Javascript {
         |  return new Big(a).times(new Big(b));
         |};
         |""".stripMargin
-  }
-
-  private object HasDigits {
-    def unapply(expr: ComponentType): Option[Int] =
-      expr match {
-        case Text(Number(_, digits, _), _)             => Some(digits)
-        case Text(PositiveNumber(_, digits, _), _)     => Some(digits)
-        case TextArea(Number(_, digits, _), _)         => Some(digits)
-        case TextArea(PositiveNumber(_, digits, _), _) => Some(digits)
-        case _                                         => None
-      }
-  }
-
-  private object HasSterling {
-    def unapply(expr: ComponentType): Option[Int] =
-      expr match {
-        case Text(Sterling, _)     => Some(2)
-        case TextArea(Sterling, _) => Some(2)
-        case _                     => None
-      }
   }
 
   private def toJavascriptFn(field: FormComponent, expr: Expr, groupList: List[List[List[FormComponent]]]): String = {
