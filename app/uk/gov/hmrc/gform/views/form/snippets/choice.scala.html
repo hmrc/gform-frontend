@@ -55,8 +55,6 @@ sectionTitle: String
             </legend>
             }
 
-
-
             @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq("error-message"))
 
             @options.toList.zipWithIndex.map{ case (option, index) =>
