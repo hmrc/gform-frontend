@@ -183,62 +183,19 @@ class AuthenticatedRequestActions(
       case _ => AuthProviders(AuthProvider.GovernmentGateway)
     }
 
-    val eventualGGAuthorised: Future[AuthResult] = ggAuthorised(predicate, authConfig, isNewForm).map { x =>
-      val z = 0
-      val zz = z
-      x match {
-        case s: GGAuthSuccessful =>
-          s.retrievals.affinityGroup match {
-            case Some(x) =>
-              val d = x == AffinityGroup.Agent
-              val x3 = 0
-              val xx3 = x3
+    val eventualGGAuthorised: Future[AuthResult] = ggAuthorised(predicate, authConfig, isNewForm)
 
-            case _ =>
-          }
-          val d = s.retrievals.affinityGroup.contains(Agent)
-          val dd = d
-      }
-      x
-    }
-
-    authConfig match {
-      case config: AuthConfigWithAgentAccess =>
-        val x1 = 0
-        val xx1 = x1
-        val c = config
-      case _ =>
-        val x2 = 0
-        val xx2 = x2
-    }
-
-    authConfig match {
-      case config: HMRCAuthConfigWithAuthModule =>
-        val x1 = 0
-        val xx1 = x1
-        val c = config
-        val a = c.agentAccess
-        val d = a.isDefined
-      case _ =>
-        val x2 = 0
-        val xx2 = x2
-    }
-
-    authConfig match {
+  authConfig match {
       case config: AuthConfigWithAgentAccess if config.agentAccess.isDefined => {
-        val x = 0
-        val xx = x
         eventualGGAuthorised.map {
           case ggSuccessfulAuth @ GGAuthSuccessful(retrievals)
-              if retrievals.affinityGroup.contains(AffinityGroup.Agent) => {
-            val y = 0
-            val yy = y
+              if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
             ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments) match {
               case HMRCAgentAuthorisationSuccessful                => updateEnrolments(ggSuccessfulAuth, request)
               case HMRCAgentAuthorisationDenied                    => AuthorisationAgentDenied
               case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthorisationFailed(agentSubscribeUrl)
             }
-          }
+
           case otherAuthResults => otherAuthResults
         }
       }
