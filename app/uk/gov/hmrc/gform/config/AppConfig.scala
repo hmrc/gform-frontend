@@ -25,6 +25,7 @@ case class AppConfig(
   `google-analytics`: GoogleAnalytics,
   `government-gateway-sign-in-url`: String,
   `gform-frontend-base-url`: String,
+  `agent-subscription-frontend-base-url`: String,
   feature: FeatureToggle,
   formMaxAttachmentSizeMB: Int,
   /*we can't override list in app-config-base:*/

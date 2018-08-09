@@ -22,3 +22,4 @@ final case class AuthenticationFailed(loginUrl: String) extends AuthResult
 final object AuthenticationWhiteListFailed extends AuthResult
 final case class AuthorisationFailed(errorUrl: String) extends AuthResult
 final object EnrolmentRequired extends AuthResult
+final object AuthorisationAgentDenied extends AuthResult
