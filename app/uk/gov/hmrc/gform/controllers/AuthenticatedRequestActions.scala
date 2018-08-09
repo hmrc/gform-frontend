@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, Retrievals, VerifyPid }
-
+import cats.implicits._
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
@@ -105,20 +105,26 @@ class AuthenticatedRequestActions(
     hc: HeaderCarrier) =
     result match {
       case GGAuthSuccessful(retrivals)    => onSuccess(retrivals)
-      case AuthenticationFailed(loginUrl) => Future.successful(Redirect(loginUrl))
+      case AuthenticationFailed(loginUrl) => Redirect(loginUrl).pure[Future]
       case AuthenticationWhiteListFailed =>
-        Future.successful(
-          Ok(
-            views.html.error_template(
-              pageTitle = "Non WhiteListed User",
-              heading = "Non WhiteListed User",
-              message = whiteListedMessage,
-              frontendAppConfig = frontendAppConfig)))
+        Ok(
+          views.html.error_template(
+            pageTitle = "Non WhiteListed User",
+            heading = "Non WhiteListed User",
+            message = whiteListedMessage,
+            frontendAppConfig = frontendAppConfig)).pure[Future]
+      case AuthorisationAgentDenied =>
+        Ok(
+          views.html.error_template(
+            pageTitle = "Agent access denied",
+            heading = "Agent access denied",
+            message = "Agents cannot access this form",
+            frontendAppConfig = frontendAppConfig)).pure[Future]
       case AuthorisationFailed(errorUrl) =>
-        Future.successful(Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName))
+        Redirect(errorUrl).flashing("formTitle" -> formTemplate.formName).pure[Future]
       case EnrolmentRequired =>
-        Future.successful(
-          Redirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url))
+        Redirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url)
+          .pure[Future]
     }
 
   private def checkUser(form: Form, retrievals: MaterialisedRetrievals)(actionResult: => Future[Result])(
@@ -175,8 +181,40 @@ class AuthenticatedRequestActions(
         AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(config.serviceId.value)
       case _ => AuthProviders(AuthProvider.GovernmentGateway)
     }
-    ggAuthorised(predicate, authConfig, isNewForm)
+
+    val eventualGGAuthorised: Future[AuthResult] = ggAuthorised(predicate, authConfig, isNewForm)
+
+    authConfig match {
+      case config: AuthConfigWithAgentAccess if config.agentAccess.isDefined =>
+        eventualGGAuthorised.map {
+          case ggSuccessfulAuth @ GGAuthSuccessful(retrievals)
+              if ggSuccessfulAuth.retrievals.affinityGroup == Some(Agent) =>
+            ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments) match {
+              case HMRCAgentAuthorisationSuccessful                => updateEnrolments(ggSuccessfulAuth, request)
+              case HMRCAgentAuthorisationDenied                    => AuthorisationAgentDenied
+              case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthorisationFailed(agentSubscribeUrl)
+            }
+          case otherAuthResults => otherAuthResults
+        }
+    }
   }
+
+  private def agentSubscribeUrl()(implicit request: Request[AnyContent]): String = {
+    val continueUrl = java.net.URLEncoder.encode(request.uri, "UTF-8")
+    val baseUrl = appConfig.`agent-subscription-frontend-base-url`
+    s"$baseUrl/agent-subscription/check-business-type?continue=$continueUrl"
+  }
+
+  private def ggAgentAuthorise(agentAccess: AgentAccess, enrolments: Enrolments)(
+    implicit request: Request[AnyContent]): HMRCAgentAuthorisation =
+    agentAccess match {
+      case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
+        HMRCAgentAuthorisationSuccessful
+      case DenyAnyAgentAffinityUser =>
+        HMRCAgentAuthorisationDenied
+      case _ =>
+        HMRCAgentAuthorisationFailed(agentSubscribeUrl)
+    }
 
   private def ggAuthorised(predicate: Predicate, authConfig: AuthConfig, isNewForm: Boolean)(
     implicit request: Request[AnyContent],
@@ -271,6 +309,11 @@ class AuthenticatedRequestActions(
     case _ => request
   }
 }
+
+sealed trait HMRCAgentAuthorisation
+final object HMRCAgentAuthorisationSuccessful extends HMRCAgentAuthorisation
+final object HMRCAgentAuthorisationDenied extends HMRCAgentAuthorisation
+case class HMRCAgentAuthorisationFailed(subscribeUrl: String) extends HMRCAgentAuthorisation
 
 sealed trait AuthCache {
   def retrievals: MaterialisedRetrievals
