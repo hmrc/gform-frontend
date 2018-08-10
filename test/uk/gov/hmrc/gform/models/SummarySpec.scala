@@ -42,9 +42,9 @@ class SummarySpec extends Spec {
 
   trait Test extends ExampleData {
     override def dmsSubmission = DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
-    def section0 = Section("Your details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - iptRegNum`, Text(AnyText, Constant("")), "Insurance Premium Tax (IPT) number", None, None, None, true, true, true, false, false, None)), None)
-    def section1 = Section("About you", None, None, None, None, None, None, None, List(FormComponent(`fieldId - firstName`, Text(AnyText, Constant("")), "First Name", None, None, None, true, true, true, false, false, None)), None)
-    def section2 = Section("Business details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - businessName`, Text(AnyText, Constant("")), "Name of business", None, None, None, true, true, true, false, false, None)), None)
+    def section0 = Section("Your details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - iptRegNum`, Text(AnyText, Value), "Insurance Premium Tax (IPT) number", None, None, None, true, true, true, false, false, None)), None)
+    def section1 = Section("About you", None, None, None, None, None, None, None, List(FormComponent(`fieldId - firstName`, Text(AnyText, Value), "First Name", None, None, None, true, true, true, false, false, None)), None)
+    def section2 = Section("Business details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - businessName`, Text(AnyText, Value), "Name of business", None, None, None, true, true, true, false, false, None)), None)
 
     override def `formField - iptRegNum` = super.`formField - iptRegNum`.copy(value = "Test!Your details!Test")
     override def `formField - firstName` = super.`formField - firstName`.copy(value = "Test!About you!Test")
@@ -108,8 +108,8 @@ class SummarySpec extends Spec {
   it should "display values for each field type with a submissible field, " in new Test {
 
     val section = Section("Personal details", None, None, None, None, None, None, None, List(
-      FormComponent(FormComponentId("Surname"), Text(AnyText, Constant("")), "Surname", None, None, None, true, true, true, false, false, None),
-      FormComponent(FormComponentId("Info"), Text(AnyText, Constant("")), "Info", None, None, None, true, true, submissible = false, false, false, None, presentationHint = Some(List(InvisibleInSummary))),
+      FormComponent(FormComponentId("Surname"), Text(AnyText, Value), "Surname", None, None, None, true, true, true, false, false, None),
+      FormComponent(FormComponentId("Info"), Text(AnyText, Value), "Info", None, None, None, true, true, submissible = false, false, false, None, presentationHint = Some(List(InvisibleInSummary))),
       FormComponent(FormComponentId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, None, true, true, true, false, false, None),
       FormComponent(FormComponentId("HomeAddress"), Address(international = false), "Home address", None, None, None, true, true, true, false, false, None)
     ), None)
