@@ -18,16 +18,6 @@ package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-object HasExpr {
-  def unapply(fc: FormComponent): Option[Expr] =
-    fc.`type` match {
-      case Text(_, expr)     => Some(expr)
-      case TextArea(_, expr) => Some(expr)
-      case UkSortCode(expr)  => Some(expr)
-      case _                 => None
-    }
-}
-
 object HasDigits {
   def unapply(expr: ComponentType): Option[Int] =
     expr match {

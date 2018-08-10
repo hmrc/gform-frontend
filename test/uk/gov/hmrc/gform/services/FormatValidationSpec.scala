@@ -42,7 +42,7 @@ class FormatValidationSpec extends Spec {
     "must be a whole number")
 
   "UkSortCode" should "be valid with 2 digits in each box" in {
-    val text = UkSortCode(Constant(""))
+    val text = UkSortCode(Value)
 
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
@@ -59,7 +59,7 @@ class FormatValidationSpec extends Spec {
   }
 
   "UkSortCode" should "be invalid with 3 digits in one box" in {
-    val text = UkSortCode(Constant(""))
+    val text = UkSortCode(Value)
 
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
@@ -76,7 +76,7 @@ class FormatValidationSpec extends Spec {
   }
 
   "UkSortCode" should "return an error message" in {
-    val text = UkSortCode(Constant(""))
+    val text = UkSortCode(Value)
 
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
@@ -93,7 +93,7 @@ class FormatValidationSpec extends Spec {
   }
 
   "UkSortCode" should "return invalid data on -" in {
-    val text = UkSortCode(Constant(""))
+    val text = UkSortCode(Value)
 
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
@@ -110,7 +110,7 @@ class FormatValidationSpec extends Spec {
   }
 
   "UkSortCode" should "be invalid with decimals" in {
-    val text = UkSortCode(Constant(""))
+    val text = UkSortCode(Value)
 
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
@@ -207,7 +207,6 @@ class FormatValidationSpec extends Spec {
       .validate(fieldValue)
       .futureValue
 
-  private val fieldValueFunction: TextConstraint => FormComponent = contraint =>
-    fieldValue(Text(contraint, Constant("")))
+  private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Value))
 
 }

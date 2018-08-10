@@ -59,7 +59,7 @@ class NumberValidationSpec extends Spec {
   "PositiveWholeNumber format" should "return invalid for decimal fractions" in new Test {
     override val value = "123.4"
     val textConstraint = PositiveNumber(maxFractionalDigits = 0)
-    val number = Text(textConstraint, Constant(""))
+    val number = Text(textConstraint, Value)
     override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
     val expected = Map(`fieldValue - number`.id -> Set("must be a whole number")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support dots in number formats"
@@ -68,7 +68,7 @@ class NumberValidationSpec extends Spec {
   "PositiveNumber format" should "accept whole numbers" in new Test {
     override val value = "123"
     val textConstraint = PositiveNumber()
-    val number = Text(textConstraint, Constant(""))
+    val number = Text(textConstraint, Value)
     override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
@@ -81,7 +81,7 @@ class NumberValidationSpec extends Spec {
   "PositiveNumber format" should "return invalid for negative" in new Test {
     override val value = "-123"
     val textConstraint = PositiveNumber()
-    val number = Text(textConstraint, Constant(""))
+    val number = Text(textConstraint, Value)
     override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
     val expected = Map(`fieldValue - number`.id -> Set("must be a positive number")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support negative numbers in postive number formats"
@@ -104,7 +104,7 @@ class NumberValidationSpec extends Spec {
   "Number(maxFractionalDigits = 0) format" should "return invalid for too many whole digits" in new Test {
     override val value = "1234567890123456789"
     val textConstraint = Number(maxFractionalDigits = 0)
-    val number = Text(textConstraint, Constant(""))
+    val number = Text(textConstraint, Value)
     override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
     val expected = Map(`fieldValue - number`.id -> Set("must be at most 11 digits")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
@@ -119,7 +119,7 @@ class NumberValidationSpec extends Spec {
   "Number(2,1) format" should "return invalid for too many digits" in new Test {
     override val value = "123.21"
     val textConstraint = Number(2, 1)
-    val number = Text(textConstraint, Constant(""))
+    val number = Text(textConstraint, Value)
     override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
     val expected = Map(
       `fieldValue - number`.id -> Set(
@@ -134,7 +134,7 @@ class NumberValidationSpec extends Spec {
 
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
-      Text(Number(), Constant("")),
+      Text(Number(), Value),
       "sample label",
       None,
       None,

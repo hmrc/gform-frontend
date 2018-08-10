@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class DependencyGraphSpec extends Spec {
 
-  "DependencyGraph" should "recalculate single dependency" in {
+  "Recalculation" should "recalculate single dependency" in {
 
     val inputData = mkFormData(
       "a" -> "123",
@@ -53,7 +53,7 @@ class DependencyGraphSpec extends Spec {
     val sections =
       mkSection("page 1", mkFormComponent("a", FormCtx("b")) :: mkFormComponent("b", FormCtx("a")) :: Nil) :: Nil
 
-    val res = DependencyGraph.recalculateFormData(inputData, mkFormTemplate(sections))
+    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
 
     res match {
       case Left(NoTopologicalOrder(_, _)) => succeed
@@ -70,7 +70,7 @@ class DependencyGraphSpec extends Spec {
     val sections =
       mkSection("page 1", mkFormComponent("a", Value) :: mkFormComponent("b", FormCtx("a")) :: Nil) :: Nil
 
-    val res = DependencyGraph.recalculateFormData(inputData, mkFormTemplate(sections))
+    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
 
     res match {
       case Left(NoDataFound(FormComponentId("a"), _)) => succeed
@@ -88,7 +88,7 @@ class DependencyGraphSpec extends Spec {
     val sections =
       mkSection("page 1", mkFormComponent("a", Value) :: mkFormComponent("b", FormCtx("c")) :: Nil) :: Nil
 
-    val res = DependencyGraph.recalculateFormData(inputData, mkFormTemplate(sections))
+    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
 
     res match {
       case Left(NoFormComponent(FormComponentId("c"), _)) => succeed
@@ -148,7 +148,7 @@ class DependencyGraphSpec extends Spec {
 
   private def verify(input: FormData, expectedOutput: FormData, sections: List[Section])(
     implicit position: Position) = {
-    val output = DependencyGraph.recalculateFormData(input, mkFormTemplate(sections))
+    val output = Recalculation.recalculateFormData(input, mkFormTemplate(sections))
 
     Right(expectedOutput) shouldBe output
 

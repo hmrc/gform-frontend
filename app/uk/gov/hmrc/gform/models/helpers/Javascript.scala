@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import uk.gov.hmrc.gform.models.helpers.{ HasDigits, HasSterling }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, FormComponentId }
 
 object Javascript {
 

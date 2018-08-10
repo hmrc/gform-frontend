@@ -16,18 +16,18 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats._
 import cats.implicits._
-import java.text.{ DecimalFormat, NumberFormat }
+import java.text.NumberFormat
 import java.util.Locale
 import play.api.Logger
 import scala.util.{ Failure, Success, Try }
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
 import uk.gov.hmrc.gform.commons.BigDecimalUtil
-import uk.gov.hmrc.gform.models.helpers.{ HasDigits, HasExpr, HasSterling }
+import uk.gov.hmrc.gform.models.helpers.{ HasDigits, HasSterling }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph._
 
 sealed trait GraphException {
   def reportProblem: String = this match {
@@ -44,37 +44,7 @@ case class NoTopologicalOrder(fcId: FormComponentId, graph: Graph[FormComponentI
 case class NoFormComponent(fcId: FormComponentId, lookup: Map[FormComponentId, FormComponent]) extends GraphException
 case class NoDataFound(fcId: FormComponentId, lookup: Map[FormComponentId, String]) extends GraphException
 
-object DependencyGraph {
-
-  private val emptyGraph: Graph[FormComponentId, DiEdge] = Graph.empty
-
-  private def toGraph(formTemplate: FormTemplate): Graph[FormComponentId, DiEdge] = {
-    val graphs: List[Graph[FormComponentId, DiEdge]] = formTemplate.sections.flatMap(_.fields.map(fromFormComponent))
-    graphs.foldLeft(emptyGraph)(_ ++ _)
-  }
-
-  private def constructDepencyGraph(
-    graph: Graph[FormComponentId, DiEdge]): Either[GraphException, graph.LayeredTopologicalOrder[graph.NodeT]] =
-    graph.topologicalSort.map(_.toLayered).leftMap(node => NoTopologicalOrder(node.toOuter, graph))
-
-  private def fromFormComponent(fc: FormComponent): Graph[FormComponentId, DiEdge] = {
-    val fcIds: List[FormComponentId] = fc match {
-      case HasExpr(expr) => fromExpr(expr)
-      case _             => List.empty
-    }
-
-    fcIds.map(fc.id ~> _).foldLeft(emptyGraph)(_ + _)
-  }
-
-  private def fromExpr(expr: Expr): List[FormComponentId] =
-    expr match {
-      case FormCtx(fc) => FormComponentId(fc) :: Nil
-      // case Sum(FormCtx(fc)) => ??? // TODO JoVl implement once GFC-544 is fixed
-      case Add(field1, field2)         => fromExpr(field1) ++ fromExpr(field2)
-      case Subtraction(field1, field2) => fromExpr(field1) ++ fromExpr(field2)
-      case Multiply(field1, field2)    => fromExpr(field1) ++ fromExpr(field2)
-      case otherwise                   => List.empty
-    }
+object Recalculation {
 
   def recalculateFormData(formData: FormData, formTemplate: FormTemplate): Either[GraphException, FormData] = {
 
@@ -87,7 +57,7 @@ object DependencyGraph {
       formData.fields.map { case FormField(id, value) => id -> value }.toMap
 
     for {
-      graphTopologicalOrder <- constructDepencyGraph(graph)
+      graphTopologicalOrder <- constructDepencyGraph(graph).leftMap(node => NoTopologicalOrder(node.toOuter, graph))
       recalc <- {
         val genesisLookup: Either[GraphException, Map[FormComponentId, String]] = Right(lookupMap)
         graphTopologicalOrder.map(_._2).foldRight(genesisLookup) {

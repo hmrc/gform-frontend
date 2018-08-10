@@ -60,7 +60,7 @@ class ValidIfValidationSpec extends Spec {
 
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
-      Text(Number(), Constant("")),
+      Text(Number(), Value),
       "sample label",
       None,
       None,
@@ -73,7 +73,7 @@ class ValidIfValidationSpec extends Spec {
       None
     )
 
-    override def validIf = Some(ValidIf(Equals(FormCtx("choice"), Constant(""))))
+    override def validIf = Some(ValidIf(Equals(FormCtx("choice"), Value)))
 
     override def data = Map(
       `fieldId - number` -> `formField - number`

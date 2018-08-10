@@ -24,7 +24,7 @@ class NavitagionSpec extends Spec {
 
   def mkFormComponent(formComponentId: FormComponentId): FormComponent = FormComponent(
     id = formComponentId,
-    `type` = Text(AnyText, Constant("")),
+    `type` = Text(AnyText, Value),
     label = "",
     helpText = None,
     shortName = None,

@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.DependencyGraph
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel._
@@ -323,7 +323,7 @@ class FormController(
             formData      <- formDataF
             keystore      <- repeatService.getData()
             sections      <- sectionsF
-            formDataUpdE   = DependencyGraph.recalculateFormData(formData, cache.formTemplate)
+            formDataUpdE   = Recalculation.recalculateFormData(formData, cache.formTemplate)
             formDataUpd    = formDataUpdE match {
               case Left(graphException) => Logger.error(graphException.reportProblem); formData
               case Right(fd) => fd

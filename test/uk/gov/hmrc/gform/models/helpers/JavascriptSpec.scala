@@ -24,7 +24,7 @@ import scala.concurrent.Future
 
 class JavascriptSpec extends Spec {
 
-  private val c = Constant("")
+  private val c = Value
 
   def formComponent(id: String, value: Expr = c) =
     FormComponent(FormComponentId(id), Text(AnyText, value), "", None, None, None, false, true, true, true, false, None)
