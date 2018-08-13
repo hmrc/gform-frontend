@@ -30,6 +30,11 @@ object DependencyGraph {
     graphs.foldLeft(emptyGraph)(_ ++ _)
   }
 
+  def toGraph(section: Section): Graph[FormComponentId, DiEdge] = {
+    val graphs: List[Graph[FormComponentId, DiEdge]] = section.fields.map(fromFormComponent)
+    graphs.foldLeft(emptyGraph)(_ ++ _)
+  }
+
   def constructDepencyGraph(
     graph: Graph[FormComponentId, DiEdge]): Either[graph.NodeT, graph.LayeredTopologicalOrder[graph.NodeT]] =
     graph.topologicalSort.map(_.toLayered)
