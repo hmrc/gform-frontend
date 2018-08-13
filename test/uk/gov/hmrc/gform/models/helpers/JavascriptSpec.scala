@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models.helpers
 
 import cats.implicits._
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.models.Dependecies
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.concurrent.Future
@@ -34,7 +35,9 @@ class JavascriptSpec extends Spec {
     Javascript.fieldJavascript(
       sectionFields = fields,
       allFields = formComponent("otherSection") :: fields,
-      groupList = List[List[List[FormComponent]]]())
+      groupList = List.empty[List[List[FormComponent]]],
+      dependencies = Dependecies(List.empty)
+    )
   }
 
   "if calculation references only a constant" should "not generate Javascript for the static calculation" in {

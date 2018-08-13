@@ -16,14 +16,20 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
+import uk.gov.hmrc.gform.models.Dependecies
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
+case class JsFunction(name: String) extends AnyVal {
+  override def toString = name
+}
 
 object Javascript {
 
   def fieldJavascript(
     sectionFields: List[FormComponent],
     allFields: List[FormComponent],
-    groupList: List[List[List[FormComponent]]]): String = {
+    groupList: List[List[List[FormComponent]]],
+    dependencies: Dependecies): String = {
 
     val sectionFieldIds = sectionFields.map(_.id).toSet
 
@@ -47,7 +53,7 @@ object Javascript {
       }
 
     fieldIdWithExpr
-      .map(x => toJavascriptFn(x._1, x._2, groupList))
+      .map(x => toJavascriptFn(x._1, x._2, groupList, dependencies.toLookup))
       .mkString("\n") +
       """function getNumber(value) {
         |  if (value == ""){
@@ -71,7 +77,11 @@ object Javascript {
         |""".stripMargin
   }
 
-  private def toJavascriptFn(field: FormComponent, expr: Expr, groupList: List[List[List[FormComponent]]]): String = {
+  private def toJavascriptFn(
+    field: FormComponent,
+    expr: Expr,
+    groupList: List[List[List[FormComponent]]],
+    dependenciesLookup: Map[FormComponentId, List[FormComponentId]]): String = {
 
     def roundTo = field.`type` match {
       case HasDigits(digits)   => digits
@@ -79,26 +89,38 @@ object Javascript {
       case _                   => TextConstraint.defaultFactionalDigits
     }
 
-    def eventListeners(id: String, functionName: String) =
-      s"""document.getElementById("$id").addEventListener("change",$functionName);
-         |document.getElementById("$id").addEventListener("keyup",$functionName);
-         |window.addEventListener("load", $functionName);
-       """.stripMargin
+    def listeners(functionName: JsFunction) = {
+      val windowEl = s"""window.addEventListener("load", $functionName);"""
 
-    def values(id: String) = s"""getNumber(document.getElementById("$id").value.replace(/[£,]/g,''))"""
+      val componentEls =
+        dependenciesLookup.get(field.id) match {
+          case None => ""
+          case Some(deps) =>
+            deps
+              .map { id =>
+                s"""|document.getElementById("$id").addEventListener("change",$functionName);
+                    |document.getElementById("$id").addEventListener("keyup",$functionName);
+                    |""".stripMargin
+              }
+              .mkString("\n")
+        }
+      componentEls + windowEl
+    }
+
+    def values(id: FormComponentId) = s"""getNumber(document.getElementById("$id").value.replace(/[£,]/g,''))"""
 
     def ids2(e1: Expr, e2: Expr) = ids(e1) ::: ids(e2)
 
     def ids3(e1: Expr, e2: Expr, e3: Expr) = ids(e1) ::: ids(e2) ::: ids(e3)
 
-    def ids(expr: Expr): List[String] =
+    def ids(expr: Expr): List[FormComponentId] =
       expr match {
         case Add(e1, Multiply(e2, e3)) =>
           ids3(e1, e2, e3)
         case Add(e1, e2) =>
           ids2(e1, e2)
-        case FormCtx(amountX) =>
-          List(amountX)
+        case FormCtx(id) =>
+          List(FormComponentId(id))
         case Subtraction(e1, Multiply(e2, e3)) =>
           ids3(e1, e2, e3)
         case Subtraction(e1, e2) =>
@@ -106,9 +128,9 @@ object Javascript {
         case Multiply(e1, e2) =>
           ids2(e1, e2)
         case Sum(FormCtx(id)) =>
-          Group.getGroup(groupList, FormComponentId(id)).map(_.value)
+          Group.getGroup(groupList, FormComponentId(id))
         case otherwise =>
-          List("")
+          List.empty
       }
 
     def consts(expr: Expr): List[String] =
@@ -131,11 +153,9 @@ object Javascript {
 
     // TODO: These filters are a bit of a hack
     val demValues =
-      (ids(expr).filterNot(_.isEmpty).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", ")
-    def listeners(functionName: String) =
-      ids(expr).filterNot(_.isEmpty).map(eventListeners(_, functionName)).mkString("\n")
+      (ids(expr).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", ")
 
-    def function(name: String, values: String, calculation: String, listener: String) =
+    def jsFunction(name: JsFunction, values: String, calculation: String, listener: String) =
       s"""|function $name() {
           |  var x = [ $values ];
           |  var result = $calculation;
@@ -147,10 +167,11 @@ object Javascript {
 
     // TODO: the use of reduce() is simplistic, we need to generate true javascript expressions based on the parsed gform expression
     expr match {
-      case Sum(FormCtx(id)) =>
+      case Sum(FormCtx(_id)) =>
+        val id = FormComponentId(_id)
         val eventListeners: String =
           Group
-            .getGroup(groupList, FormComponentId(id))
+            .getGroup(groupList, id)
             .map(groupFieldId => s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
               document.getElementById("${groupFieldId.value}").addEventListener("keyup",sum$id);
               window.addEventListener("load",sum$id);
@@ -158,7 +179,7 @@ object Javascript {
             .mkString("\n")
 
         val groups: String =
-          Group.getGroup(groupList, FormComponentId(id)).map(_.value).map(values).mkString(s",")
+          Group.getGroup(groupList, id).map(values).mkString(s",")
 
         s"""
               function sum$id() {
@@ -170,20 +191,20 @@ object Javascript {
             """
 
       case Add(_, Multiply(_, _)) =>
-        val functionName = "addMultiply" + field.id.value
-        function(functionName, demValues, "add(x[0], multiply(x[1],x[2]))", listeners(functionName))
+        val functionName = JsFunction("addMultiply" + field.id.value)
+        jsFunction(functionName, demValues, "add(x[0], multiply(x[1],x[2]))", listeners(functionName))
       case Add(b, sn) =>
-        val functionName = "add" + field.id.value
-        function(functionName, demValues, "x.reduce(add, 0)", listeners(functionName))
+        val functionName = JsFunction("add" + field.id.value)
+        jsFunction(functionName, demValues, "x.reduce(add, 0)", listeners(functionName))
       case Subtraction(_, Multiply(_, _)) =>
-        val functionName = "subtractMultiply" + field.id.value
-        function(functionName, demValues, "subtract(x[0], multiply(x[1],x[2]))", listeners(functionName))
+        val functionName = JsFunction("subtractMultiply" + field.id.value)
+        jsFunction(functionName, demValues, "subtract(x[0], multiply(x[1],x[2]))", listeners(functionName))
       case Subtraction(_, _) =>
-        val functionName = "subtract" + field.id.value
-        function(functionName, demValues, "subtract(x[0], x[1])", listeners(functionName))
+        val functionName = JsFunction("subtract" + field.id.value)
+        jsFunction(functionName, demValues, "subtract(x[0], x[1])", listeners(functionName))
       case Multiply(_, _) =>
-        val functionName = "multiply" + field.id.value
-        function(functionName, demValues, "x.reduce(multiply, 1)", listeners(functionName))
+        val functionName = JsFunction("multiply" + field.id.value)
+        jsFunction(functionName, demValues, "x.reduce(multiply, 1)", listeners(functionName))
       case otherwise => ""
     }
   }

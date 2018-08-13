@@ -40,12 +40,13 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
-import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
+import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
@@ -116,6 +117,26 @@ class SectionRenderingService(
 
     val fieldData = fieldDataAll -- fieldsToRecalculate
 
+    val graph = DependencyGraph.toGraph(section)
+
+    val graphTopologicalOrder: Either[graph.NodeT, graph.LayeredTopologicalOrder[graph.NodeT]] =
+      DependencyGraph.constructDepencyGraph(graph)
+
+    val dependencies: Dependecies = graphTopologicalOrder match {
+      case Left(_) => Dependecies(List.empty[FormComponentIdDeps])
+      case Right(lto) =>
+        val depLayers: Traversable[List[FormComponentId]] = lto.map(_._2.map(_.toOuter).toList)
+        val (deps, _) =
+          depLayers
+            .foldRight((List.empty[FormComponentIdDeps], List.empty[FormComponentId])) {
+              case (layer, (deps, acc)) =>
+                val newDeps = layer.map { fcId =>
+                  FormComponentIdDeps(fcId, acc) // all of acc depends on fcId
+                }
+                (deps ++ newDeps, acc ++ layer)
+            }
+        Dependecies(deps)
+    }
     val ei = ExtraInfo(
       form._id,
       sectionNumber,
@@ -142,9 +163,13 @@ class SectionRenderingService(
                                 validatedType,
                                 lang,
                                 fieldValue.onlyShowOnSummary))
-      sectionAtomicFields  <- repeatService.atomicFields(section)
-      allAtomicFields      <- Future.traverse(dynamicSections)(repeatService.atomicFields).map(_.flatten)
-      javascript           <- createJavascript(dynamicSections.flatMap(_.fields), sectionAtomicFields, allAtomicFields)
+      sectionAtomicFields <- repeatService.atomicFields(section)
+      allAtomicFields     <- Future.traverse(dynamicSections)(repeatService.atomicFields).map(_.flatten)
+      javascript <- createJavascript(
+                     dynamicSections.flatMap(_.fields),
+                     sectionAtomicFields,
+                     allAtomicFields,
+                     dependencies)
       hiddenTemplateFields <- Fields.getHiddenTemplateFields(section, dynamicSections, repeatService)
       hiddenSnippets = Fields
         .toFormField(fieldData, hiddenTemplateFields)
@@ -375,7 +400,8 @@ class SectionRenderingService(
   private def createJavascript(
     fieldList: List[FormComponent],
     sectionAtomicFields: List[FormComponent],
-    allAtomicFields: List[FormComponent])(implicit hc: HeaderCarrier): Future[String] = {
+    allAtomicFields: List[FormComponent],
+    dependencies: Dependecies)(implicit hc: HeaderCarrier): Future[String] = {
     val groups: List[(FormComponentId, Group)] = fieldList
       .filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel))
       .map(fv => (fv.id, fv.`type`))
@@ -392,7 +418,7 @@ class SectionRenderingService(
         groups
           .map((collapsingGroupJavascript _).tupled)
           .mkString("\n")
-          + fieldJavascript(sectionAtomicFields, allAtomicFields, rs))
+          + fieldJavascript(sectionAtomicFields, allAtomicFields, rs, dependencies))
   }
 
   private def htmlFor(
