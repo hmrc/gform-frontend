@@ -21,3 +21,4 @@ final case class AuthSuccessful(retrievals: MaterialisedRetrievals) extends Auth
 final case class AuthRedirect(loginUrl: String, flashing: Seq[(String, String)] = Seq.empty) extends AuthResult
 final case class AuthRedirectFlashingFormname(loginUrl: String) extends AuthResult
 final case class AuthBlocked(message: String) extends AuthResult
+final case class AuthForbidden(message:String) extends AuthResult

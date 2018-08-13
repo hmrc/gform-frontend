@@ -24,18 +24,18 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector => _, _}
 import uk.gov.hmrc.gform.auth._
 import gform.auth.models._
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.{AppConfig, FrontendAppConfig}
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, Retrievals, VerifyPid }
+import uk.gov.hmrc.auth.core.retrieve.{GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, Retrievals, VerifyPid}
 import cats.implicits._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
@@ -62,46 +62,73 @@ class AuthenticatedRequestActions(
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
+  private def authFormUser(retrievals: MaterialisedRetrievals)(form: Form)(implicit ec: ExecutionContext) : Future[AuthResult] =
+    (if(form.userId.value == retrievals.userDetails.groupIdentifier)
+      AuthSuccessful(retrievals)
+    else
+      AuthForbidden("You cannot access this page")).pure[Future]
+
+  private def authUserWhitelist(retrievals: MaterialisedRetrievals)(implicit
+  hc: HeaderCarrier) : Future[AuthResult] = {
+    if (frontendAppConfig.whitelistEnabled) {
+      for {
+        isValid <- gformConnector.whiteList(retrievals.userDetails.email)
+      } yield
+        isValid match {
+          case Some(idx) =>
+            Logger.info(s"Passed successful through white listing: $idx user index")
+            AuthSuccessful(retrievals)
+          case None =>
+            Logger.warn(s"User failed whitelisting and is denied access : ${idForLog(retrievals.authProviderId)}")
+            AuthBlocked("Non-whitelisted User")
+        }
+    } else Future.successful(AuthSuccessful(retrievals))
+  }
+
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult   <- authenticateAndAuthorise(formTemplate, formTemplate, isNewForm = true)
+        authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = true)
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
+                   request,
                    onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
                  )
       } yield result
   }
 
-  def async(formId: FormId)(f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
-    Action.async { implicit request =>
+  def async(formId: FormId)(
+    f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] = Action.async {
+    implicit request =>
       for {
         form         <- gformConnector.getForm(formId)
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-        authResult   <- authenticateAndAuthorise(formTemplate, formTemplate, isNewForm = false)
+        authResult   <- authenticateAndAuthorise(formTemplate, isNewForm = false)
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
-                   authResult,
-                   formTemplate,
-                   onSuccess = retrievals =>
-                     checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate)))
-                 )
+          authResult,
+          formTemplate,
+          request,
+          onSuccess = retrievals =>
+            checkUser(form, retrievals)(f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate)))
+        )
       } yield result
     }
 
   private def handleAuthResults(
     result: AuthResult,
     formTemplate: FormTemplate,
+    request: Request[_],
     onSuccess: MaterialisedRetrievals => Future[Result]
   )(
     implicit
     hc: HeaderCarrier): Future[Result] =
     result match {
-      case AuthSuccessful(retrivals)        => onSuccess(retrivals)
+      case AuthSuccessful(retrievals)        => onSuccess(retrievals)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthRedirectFlashingFormname(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName).pure[Future]
@@ -112,6 +139,8 @@ class AuthenticatedRequestActions(
             heading = "Access denied",
             message = message,
             frontendAppConfig = frontendAppConfig)).pure[Future]
+      case AuthForbidden(message) =>
+        errResponder.forbidden(request, message)
     }
 
   private def checkUser(form: Form, retrievals: MaterialisedRetrievals)(actionResult: => Future[Result])(
@@ -121,11 +150,11 @@ class AuthenticatedRequestActions(
     else
       errResponder.forbidden(request, "We're sorry, but you can't access this page")
 
-  private def authenticateAndAuthorise(template: FormTemplate, formTemplate: FormTemplate, isNewForm: Boolean)(
+  private def authenticateAndAuthorise(formTemplate: FormTemplate, isNewForm: Boolean)(
     implicit request: Request[AnyContent],
     hc: HeaderCarrier): Future[AuthResult] =
-    template.authConfig match {
-      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, template, isNewForm)
+    formTemplate.authConfig match {
+      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, isNewForm)
       case authConfig                  => performHMRCAuth(authConfig, formTemplate, isNewForm)
     }
 
@@ -234,7 +263,7 @@ class AuthenticatedRequestActions(
       .recover(handleErrorCondition(request, authConfig, formTemplate))
   }
 
-  def log(id: LegacyCredentials) = id match {
+  def idForLog(id: LegacyCredentials) = id match {
     case GGCredId(str)   => str
     case VerifyPid(str)  => str
     case PAClientId(str) => str
@@ -277,10 +306,10 @@ class AuthenticatedRequestActions(
       val url = s"$ggLoginUrl?continue=$continueUrl"
       AuthRedirectFlashingFormname(url)
     case x: WhiteListException =>
-      Logger.warn(s"user failed whitelisting and is denied access : ${log(x.id)}")
+      Logger.warn(s"User failed whitelisting and is denied access : ${idForLog(x.id)}")
       AuthBlocked("Non-whitelisted User")
     case otherException =>
-      Logger.debug(s"expection thrown on authorization with message : ${otherException.getMessage}")
+      Logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
       throw otherException
   }
 
