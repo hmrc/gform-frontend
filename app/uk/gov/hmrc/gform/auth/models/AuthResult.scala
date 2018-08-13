@@ -17,9 +17,7 @@
 package uk.gov.hmrc.gform.auth.models
 
 sealed trait AuthResult
-final case class GGAuthSuccessful(retrievals: MaterialisedRetrievals) extends AuthResult
-final case class AuthenticationFailed(loginUrl: String) extends AuthResult
-final object AuthenticationWhiteListFailed extends AuthResult
-final case class AuthorisationFailed(errorUrl: String) extends AuthResult
-final object EnrolmentRequired extends AuthResult
-final object AuthorisationAgentDenied extends AuthResult
+final case class AuthSuccessful(retrievals: MaterialisedRetrievals) extends AuthResult
+final case class AuthRedirect(loginUrl: String, flashing: Seq[(String, String)] = Seq.empty) extends AuthResult
+final case class AuthRedirectFlashingFormname(loginUrl: String) extends AuthResult
+final case class AuthBlocked(message: String) extends AuthResult
