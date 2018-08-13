@@ -50,7 +50,6 @@ class ControllersModule(
     configModule.frontendAppConfig,
     authModule.authConnector,
     authModule.eeittAuthorisationDelegate,
-    configModule.whiteListedUsers,
     playBuiltInsModule.i18nSupport,
     errResponder
   )

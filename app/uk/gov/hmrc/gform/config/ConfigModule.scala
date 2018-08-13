@@ -30,7 +30,6 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
   val playConfiguration: Configuration = playBuiltInsModule.context.initialConfiguration
   val typesafeConfig: TypeSafeConfig = ConfigFactory.load()
 
-  val whiteListedUsers: List[String] = typesafeConfig.getString("whitelisted-users").split(",").map(_.trim).toList
   val timeOut: Int = typesafeConfig.getInt("future.timeout")
 
   val appConfig: AppConfig = AppConfig.loadOrThrow()
