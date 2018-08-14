@@ -46,10 +46,9 @@ class ControllersModule(
 
   val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
     gformBackendModule.gformConnector,
-    configModule.appConfig,
+    authModule.authService,
     configModule.frontendAppConfig,
     authModule.authConnector,
-    authModule.eeittAuthorisationDelegate,
     playBuiltInsModule.i18nSupport,
     errResponder
   )
