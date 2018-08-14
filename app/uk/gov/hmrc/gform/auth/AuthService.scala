@@ -21,11 +21,9 @@ import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import gform.auth.models._
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
-import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve.Retrievals
 import cats.implicits._
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
 
@@ -39,13 +37,6 @@ class AuthService(
   eeittDelegate: EeittAuthorisationDelegate,
   eeittService: EeittService
 ) {
-
-  // format: OFF
-  val defaultRetrievals = Retrievals.authProviderId and Retrievals.allEnrolments and
-    Retrievals.affinityGroup and Retrievals.internalId and
-    Retrievals.externalId and Retrievals.userDetailsUri and
-    Retrievals.credentialStrength and Retrievals.agentCode
-  // format: ON
 
   def authenticateAndAuthorise(formTemplate: FormTemplate, ggAuthorised: GGAuthorisedParams => Future[AuthResult])(
     implicit request: Request[AnyContent],

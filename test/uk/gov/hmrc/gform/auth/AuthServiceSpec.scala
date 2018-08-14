@@ -20,18 +20,10 @@ import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.config.{ AppConfig, FeatureToggle, GoogleAnalytics }
 import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.eeitt.{ Agent, BusinessUser }
-import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.RegimeId
-import uk.gov.hmrc.gform.wshttp.{ StubbedWSHttp, WSHttp }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
-import uk.gov.hmrc.gform.auth.AuthConnector
 import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.play.config.ServicesConfig
-
-import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthServiceSpec extends Spec with ExampleData {
 
