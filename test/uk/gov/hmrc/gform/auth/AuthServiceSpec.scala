@@ -16,30 +16,32 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.libs.json.JsValue
+import play.api.mvc.{AnyContent, Request}
+import uk.gov.hmrc.auth.core.AffinityGroup
+import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.config.{ AppConfig, FeatureToggle, GoogleAnalytics }
+import uk.gov.hmrc.gform.auth.models.{AuthBlocked, AuthForbidden, AuthSuccessful, MaterialisedRetrievals}
+import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.gform.gform.EeittService
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.config.ServicesConfig
+
+import scala.concurrent.Future
 
 class AuthServiceSpec extends Spec with ExampleData {
 
   behavior of "Authentication and authorisation Service"
 
-  private val googleAnalytics = new GoogleAnalytics("token", "host")
-
-  private val featureToggle = FeatureToggle(false, false)
-
   val appConfig = AppConfig(
     appName = "appName",
-    `google-analytics` = googleAnalytics,
+    `google-analytics` = null,
     `government-gateway-sign-in-url` = "government-gateway-sign-in-url",
     `gform-frontend-base-url` = "gform-frontend-base-url",
     `agent-subscription-frontend-base-url` = "agent-subscription-frontend-base-url",
-    feature = featureToggle,
+    feature = null,
     formMaxAttachmentSizeMB = 1,
     /*we can't override list in app-config-base:*/
     contentTypesSeparatedByPipe = "csv|txt"
@@ -55,14 +57,49 @@ class AuthServiceSpec extends Spec with ExampleData {
   val mockEeittService = new EeittService(mockEeittConnector)
 
   val authService = new AuthService(appConfig, mockEeittDelegate, mockEeittService)
-}
 
-trait Fixture extends ExampleData {
-  def status: Int
-  def responseJson: Option[JsValue]
-  lazy val r = HttpResponse(
-    responseStatus = status,
-    responseJson = responseJson
-  )
-  implicit lazy val hc: HeaderCarrier = HeaderCarrier()
+  implicit val hc = HeaderCarrier()
+
+  val request: Request[AnyContent] = null
+
+  val legacyCredentials = OneTimeLogin
+
+  val materialisedRetrievals =
+    MaterialisedRetrievals(legacyCredentials, enrolments, None, None, None, userDetails, None, None)
+
+  val materialisedRetrievalsAgent =
+    MaterialisedRetrievals(legacyCredentials, enrolments, Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent), None, None, userDetails, None, None)
+
+  def ggAuthorisedSuccessful(ggAuthorisedParams: GGAuthorisedParams) = Future.successful(AuthSuccessful(materialisedRetrievals))
+
+  def ggAuthorisedSuccessfulAgent(ggAuthorisedParams: GGAuthorisedParams) = Future.successful(AuthSuccessful(materialisedRetrievalsAgent))
+
+  val authConfigAgentDenied = HMRCAuthConfigWithRegimeId(authConfigModule, Some(DenyAnyAgentAffinityUser), serviceId, regimeId)
+  val formTemplateAgentDenied = formTemplate.copy( authConfig = authConfigAgentDenied )
+
+  val authConfigAnyAgentAllowed = HMRCAuthConfigWithRegimeId(authConfigModule, Some(AllowAnyAgentAffinityUser), serviceId, regimeId)
+  val formTemplateAnyAgentAllowed = formTemplate.copy( authConfig = authConfigAnyAgentAllowed )
+
+  it should "authorise a gg authentication only user when no agentAccess config" in {
+    val result = authService.authenticateAndAuthorise(formTemplate, request, ggAuthorisedSuccessful)
+    result.futureValue should be(AuthSuccessful(materialisedRetrievals))
+  }
+
+  it should "authorise a gg authentication only non-agent when agent access is configured to agent denied" in {
+    val result = authService.authenticateAndAuthorise(formTemplateAgentDenied, request, ggAuthorisedSuccessful)
+    result.futureValue should be(AuthSuccessful(materialisedRetrievals))
+  }
+
+  it should "block a gg authentication only agent when agent access is configured to agent denied" in {
+    val result = authService.authenticateAndAuthorise(formTemplateAgentDenied, request, ggAuthorisedSuccessfulAgent)
+    result.futureValue should be(AuthBlocked("Agents cannot access this form"))
+  }
+
+  it should "authorise a gg authentication only agent when agent access is configured to allow any agent" in {
+    val result = authService.authenticateAndAuthorise(formTemplateAnyAgentAllowed, request, ggAuthorisedSuccessfulAgent)
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsAgent))
+  }
+
+
+
 }
