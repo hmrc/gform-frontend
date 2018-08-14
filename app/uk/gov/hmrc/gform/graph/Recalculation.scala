@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.models.helpers.{ HasDigits, HasSterling }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph._
+import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.roundTo
 
 sealed trait GraphException {
   def reportProblem: String = this match {
@@ -35,14 +36,11 @@ sealed trait GraphException {
       s"$graph is not possible to sort topologically. Violating node is $fcId. Does graph contains cycle: ${graph.findCycle}"
     case NoFormComponent(fcId, lookup) =>
       s"""No FormComponent found for $fcId. Available FormComponents: ${lookup.keys.mkString(",")}"""
-    case NoDataFound(fcId, lookup) =>
-      s"""No submitted data found for $fcId. Available data: ${lookup.keys.mkString(",")}"""
   }
 }
 
 case class NoTopologicalOrder(fcId: FormComponentId, graph: Graph[FormComponentId, DiEdge]) extends GraphException
 case class NoFormComponent(fcId: FormComponentId, lookup: Map[FormComponentId, FormComponent]) extends GraphException
-case class NoDataFound(fcId: FormComponentId, lookup: Map[FormComponentId, String]) extends GraphException
 
 object Recalculation {
 
@@ -50,8 +48,14 @@ object Recalculation {
 
     val graph: Graph[FormComponentId, DiEdge] = toGraph(formTemplate)
 
-    val fcLookup: Map[FormComponentId, FormComponent] =
-      formTemplate.sections.flatMap(_.fields).map(fc => fc.id -> fc).toMap
+    def expandGroupComponent(fc: FormComponent): Map[FormComponentId, FormComponent] =
+      fc.expandFormComponent.expandedFC.map(fc => fc.id -> fc).toMap
+
+    val fcLookup: Map[FormComponentId, FormComponent] = {
+      val maps: List[Map[FormComponentId, FormComponent]] =
+        formTemplate.sections.flatMap(_.fields).map(expandGroupComponent)
+      maps.foldLeft(Map.empty[FormComponentId, FormComponent])(_ ++ _)
+    }
 
     val lookupMap: Map[FormComponentId, String] =
       formData.fields.map { case FormField(id, value) => id -> value }.toMap
@@ -78,25 +82,20 @@ object Recalculation {
     fcLookup: Map[FormComponentId, FormComponent],
     dataLookup: Map[FormComponentId, String]): Either[GraphException, Map[FormComponentId, String]] =
     for {
-      fc   <- Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup))
-      data <- Either.fromOption(dataLookup.get(fcId), NoDataFound(fcId, dataLookup))
+      fc <- Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup))
     } yield {
-      val result = recalculate(fc, dataLookup)
-      dataLookup + (fcId -> result)
+      if (fc.editable) dataLookup else dataLookup + (fcId -> recalculate(fc, dataLookup))
     }
 
   private def recalculate(fc: FormComponent, dataLookup: Map[FormComponentId, String]): String =
     fc match {
-      case HasExpr(expr) =>
-        calculateExpr(fc.id, expr, dataLookup) match {
+      case HasExpr(SingleExpr(expr)) =>
+        eval(fc.id, expr, dataLookup) match {
           case Left(x) => x
           case Right(bigDecimal) =>
-            val roundTo = fc.`type` match {
-              case HasDigits(digits)   => digits
-              case HasSterling(digits) => digits
-              case _                   => TextConstraint.defaultFactionalDigits
-            }
-            defaultFormat(roundTo).format(bigDecimal)
+            defaultFormat(roundTo(fc))
+              .format(bigDecimal)
+              .replaceAll(",", "") // Format number to have required number of decimal places, but do not keep commas
         }
       case _ => ""
     }
@@ -107,15 +106,21 @@ object Recalculation {
     formatter
   }
 
-  private def calculateExpr(
+  private def sum(fcId: FormComponentId, fc: String, dataLookup: Map[FormComponentId, String]) = {
+    val results = dataLookup.collect { case (key, value) if key.value.endsWith(fc) => Constant(value) }
+    val summation = results.foldLeft(Expr.additionIdentity)(Add)
+    eval(fcId, summation, dataLookup)
+  }
+
+  private def eval(
     fcId: FormComponentId,
     expr: Expr,
     dataLookup: Map[FormComponentId, String]): Either[String, BigDecimal] =
     expr match {
-      case Value        => dataLookup.getOrElse(fcId, "").asLeft
-      case Constant(fc) => fc.asLeft
-      case FormCtx(fc)  => dataLookup.getOrElse(FormComponentId(fc), "").asLeft
-      // case Sum(FormCtx(fc)) => ??? // TODO JoVl implement once GFC-544 is fixed
+      case Value                       => dataLookup.getOrElse(fcId, "").asLeft
+      case Constant(fc)                => fc.asLeft
+      case fc @ FormCtx(_)             => dataLookup.getOrElse(fc.toFieldId, "").asLeft
+      case Sum(FormCtx(fc))            => sum(fcId, fc, dataLookup)
       case Add(field1, field2)         => makeCalc(fcId, dataLookup, _ + _, field1, field2).asRight
       case Subtraction(field1, field2) => makeCalc(fcId, dataLookup, _ - _, field1, field2).asRight
       case Multiply(field1, field2)    => makeCalc(fcId, dataLookup, _ * _, field1, field2).asRight
@@ -129,7 +134,7 @@ object Recalculation {
     xExpr: Expr,
     yExpr: Expr
   ): BigDecimal = {
-    def calc(expr: Expr) = calculateExpr(fcId, expr, dataLookup).leftMap(BigDecimalUtil.toBigDecimalDefault).merge
+    def calc(expr: Expr) = eval(fcId, expr, dataLookup).leftMap(BigDecimalUtil.toBigDecimalDefault).merge
     operator(calc(xExpr), calc(yExpr))
   }
 }

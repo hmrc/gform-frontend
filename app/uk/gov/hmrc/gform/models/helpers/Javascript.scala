@@ -18,75 +18,93 @@ package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.models.Dependecies
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import FormComponentHelper.roundTo
 
 case class JsFunction(name: String) extends AnyVal {
   override def toString = name
 }
+
+case class RepeatFormComponentIds(op: FormComponentId => List[FormComponentId]) extends AnyVal
 
 object Javascript {
 
   def fieldJavascript(
     sectionFields: List[FormComponent],
     allFields: List[FormComponent],
-    groupList: List[List[List[FormComponent]]],
+    repeatFormComponentIds: RepeatFormComponentIds,
     dependencies: Dependecies): String = {
 
     val sectionFieldIds = sectionFields.map(_.id).toSet
 
     def isDynamic(expr: Expr): Boolean = expr match {
-      case f @ FormCtx(_) =>
-        sectionFieldIds.contains(f.toFieldId)
-      case Sum(f @ FormCtx(_)) =>
-        sectionFieldIds.contains(f.toFieldId)
-      case Add(field1, field2) =>
-        isDynamic(field1) || isDynamic(field2)
-      case Subtraction(field1, field2) =>
-        isDynamic(field1) || isDynamic(field2)
-      case Multiply(field1, field2) =>
-        isDynamic(field1) || isDynamic(field2)
-      case otherwise => false
+      case f @ FormCtx(_)              => sectionFieldIds.contains(f.toFieldId)
+      case Sum(f)                      => isDynamic(f)
+      case Add(field1, field2)         => isDynamic(field1) || isDynamic(field2)
+      case Subtraction(field1, field2) => isDynamic(field1) || isDynamic(field2)
+      case Multiply(field1, field2)    => isDynamic(field1) || isDynamic(field2)
+      case otherwise                   => false
     }
 
     val fieldIdWithExpr: List[(FormComponent, Expr)] =
       sectionFields.collect {
-        case formComponent @ HasExpr(expr) if isDynamic(expr) => (formComponent, expr)
+        case formComponent @ HasExpr(SingleExpr(expr)) if isDynamic(expr) => (formComponent, expr)
       }
 
     fieldIdWithExpr
-      .map(x => toJavascriptFn(x._1, x._2, groupList, dependencies.toLookup))
+      .map(x => toJavascriptFn(x._1, x._2, repeatFormComponentIds, dependencies.toLookup))
       .mkString("\n") +
-      """function getNumber(value) {
-        |  if (value == ""){
-        |    return "0";
-        |  } else {
-        |   return value.replace(",", "");
-        |  }
-        |};
-        |
-        |function add(a, b) {
-        |  return new Big(a).add(new Big(b));
-        |};
-        |
-        |function subtract(a, b) {
-        |  return new Big(a).minus(new Big(b));
-        |};
-        |
-        |function multiply(a, b) {
-        |  return new Big(a).times(new Big(b));
-        |};
-        |""".stripMargin
+      """|function getValue(elementId) {
+         |   return getNumber(document.getElementById(elementId).value.replace(/[£,]/g,''));
+         |};
+         |
+         |function getNumber(value) {
+         |  if (value == ""){
+         |    return "0";
+         |  } else {
+         |   return value.replace(",", "");
+         |  }
+         |};
+         |
+         |function add(a, b) {
+         |  return new Big(a).add(new Big(b));
+         |};
+         |
+         |function subtract(a, b) {
+         |  return new Big(a).minus(new Big(b));
+         |};
+         |
+         |function multiply(a, b) {
+         |  return new Big(a).times(new Big(b));
+         |};
+         |""".stripMargin
   }
 
   private def toJavascriptFn(
     field: FormComponent,
     expr: Expr,
-    groupList: List[List[List[FormComponent]]],
+    repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]]): String = {
 
-    def roundTo = field.`type` match {
-      case HasDigits(digits)   => digits
-      case HasSterling(digits) => digits
-      case _                   => TextConstraint.defaultFactionalDigits
+    def computeExpr(expr: Expr): String = {
+
+      def sum(id: String) = {
+        val groupFcIds: List[FormComponentId] = repeatFormComponentIds.op(FormComponentId(id))
+        val sumExpr = groupFcIds.map(x => FormCtx(x.value)).foldLeft(Expr.additionIdentity)(Add)
+        computeExpr(sumExpr)
+      }
+
+      def compute(operation: String, left: Expr, right: Expr) =
+        s"$operation(${computeExpr(left)}, ${computeExpr(right)})"
+
+      expr match {
+        case FormCtx(id)       => s"""getValue("$id")"""
+        case Constant(amount)  => amount
+        case Add(a, b)         => compute("add", a, b)
+        case Subtraction(a, b) => compute("subtract", a, b)
+        case Multiply(a, b)    => compute("multiply", a, b)
+        case Sum(FormCtx(id))  => sum(id)
+        case otherwise         => ""
+      }
     }
 
     def listeners(functionName: JsFunction) = {
@@ -98,8 +116,11 @@ object Javascript {
           case Some(deps) =>
             deps
               .map { id =>
-                s"""|document.getElementById("$id").addEventListener("change",$functionName);
-                    |document.getElementById("$id").addEventListener("keyup",$functionName);
+                s"""|var element$id = document.getElementById("$id")
+                    |if (element$id) {
+                    |  element$id.addEventListener("change",$functionName);
+                    |  element$id.addEventListener("keyup",$functionName);
+                    |}
                     |""".stripMargin
               }
               .mkString("\n")
@@ -107,112 +128,23 @@ object Javascript {
       componentEls + windowEl
     }
 
-    def values(id: FormComponentId) = s"""getNumber(document.getElementById("$id").value.replace(/[£,]/g,''))"""
+    val elementId = field.id
+    val functionName = JsFunction("compute" + elementId)
 
-    def ids2(e1: Expr, e2: Expr) = ids(e1) ::: ids(e2)
+    s"""|function $functionName() {
+        |  var result = ${computeExpr(expr)}.toFixed(${roundTo(field)}, 0);
+        |  document.getElementById("$elementId").value = result;
+        |  var total = document.getElementById("$elementId-total");
+        |  if(total) total.innerHTML = result;
+        |}
+        |${listeners(functionName)}
+        |""".stripMargin
 
-    def ids3(e1: Expr, e2: Expr, e3: Expr) = ids(e1) ::: ids(e2) ::: ids(e3)
-
-    def ids(expr: Expr): List[FormComponentId] =
-      expr match {
-        case Add(e1, Multiply(e2, e3)) =>
-          ids3(e1, e2, e3)
-        case Add(e1, e2) =>
-          ids2(e1, e2)
-        case FormCtx(id) =>
-          List(FormComponentId(id))
-        case Subtraction(e1, Multiply(e2, e3)) =>
-          ids3(e1, e2, e3)
-        case Subtraction(e1, e2) =>
-          ids2(e1, e2)
-        case Multiply(e1, e2) =>
-          ids2(e1, e2)
-        case Sum(FormCtx(id)) =>
-          Group.getGroup(groupList, FormComponentId(id))
-        case otherwise =>
-          List.empty
-      }
-
-    def consts(expr: Expr): List[String] =
-      expr match {
-        case Constant(amount) => List(amount)
-        case Add(amountA, amountB) =>
-          val x = consts(amountA)
-          val y = consts(amountB)
-          x ::: y
-        case Subtraction(field1, field2) =>
-          val x = consts(field1)
-          val y = consts(field2)
-          x ::: y
-        case Multiply(field1, field2) =>
-          val x = consts(field1)
-          val y = consts(field2)
-          x ::: y
-        case _ => List("")
-      }
-
-    // TODO: These filters are a bit of a hack
-    val demValues =
-      (ids(expr).map(values) ::: consts(expr).filterNot(_.isEmpty)).mkString(", ")
-
-    def jsFunction(name: JsFunction, values: String, calculation: String, listener: String) =
-      s"""|function $name() {
-          |  var x = [ $values ];
-          |  var result = $calculation;
-          |  document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 0);
-          |  document.getElementById("${field.id.value}-total").innerHTML = result.toFixed($roundTo, 0);
-          |};
-          |$listener
-          |""".stripMargin
-
-    // TODO: the use of reduce() is simplistic, we need to generate true javascript expressions based on the parsed gform expression
-    expr match {
-      case Sum(FormCtx(_id)) =>
-        val id = FormComponentId(_id)
-        val eventListeners: String =
-          Group
-            .getGroup(groupList, id)
-            .map(groupFieldId => s"""document.getElementById("${groupFieldId.value}").addEventListener("change",sum$id);
-              document.getElementById("${groupFieldId.value}").addEventListener("keyup",sum$id);
-              window.addEventListener("load",sum$id);
-           """)
-            .mkString("\n")
-
-        val groups: String =
-          Group.getGroup(groupList, id).map(values).mkString(s",")
-
-        s"""
-              function sum$id() {
-              var sum = [$groups];
-              var result = sum.reduce(add, 0);
-              return document.getElementById("${field.id.value}").value = result.toFixed($roundTo, 1);
-            };
-            $eventListeners
-            """
-
-      case Add(_, Multiply(_, _)) =>
-        val functionName = JsFunction("addMultiply" + field.id.value)
-        jsFunction(functionName, demValues, "add(x[0], multiply(x[1],x[2]))", listeners(functionName))
-      case Add(b, sn) =>
-        val functionName = JsFunction("add" + field.id.value)
-        jsFunction(functionName, demValues, "x.reduce(add, 0)", listeners(functionName))
-      case Subtraction(_, Multiply(_, _)) =>
-        val functionName = JsFunction("subtractMultiply" + field.id.value)
-        jsFunction(functionName, demValues, "subtract(x[0], multiply(x[1],x[2]))", listeners(functionName))
-      case Subtraction(_, _) =>
-        val functionName = JsFunction("subtract" + field.id.value)
-        jsFunction(functionName, demValues, "subtract(x[0], x[1])", listeners(functionName))
-      case Multiply(_, _) =>
-        val functionName = JsFunction("multiply" + field.id.value)
-        jsFunction(functionName, demValues, "x.reduce(multiply, 1)", listeners(functionName))
-      case otherwise => ""
-    }
   }
 
   def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) =
-    s"""
-       |function removeOnClick$fieldId() {
-       |${group.fields.map(fv => s"""  document.getElementById("${fv.id}").value = '';""").mkString("\n")}
-       |}
-     """.stripMargin
+    s"""|function removeOnClick$fieldId() {
+        |${group.fields.map(fv => s"""  document.getElementById("${fv.id}").value = '';""").mkString("\n")}
+        |}
+        |""".stripMargin
 }

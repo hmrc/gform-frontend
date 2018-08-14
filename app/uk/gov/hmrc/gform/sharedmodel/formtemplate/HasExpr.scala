@@ -16,14 +16,19 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-object HasExpr {
-  def unapply(fc: FormComponent): Option[Expr] = unapply(fc.`type`)
+sealed trait ExprCardinality
+case class SingleExpr(expr: Expr) extends ExprCardinality
+case class MultipleExpr(fields: List[FormComponent]) extends ExprCardinality
 
-  def unapply(ct: ComponentType): Option[Expr] =
+object HasExpr {
+  def unapply(fc: FormComponent): Option[ExprCardinality] = unapply(fc.`type`)
+
+  def unapply(ct: ComponentType): Option[ExprCardinality] =
     ct match {
-      case Text(_, expr)     => Some(expr)
-      case TextArea(_, expr) => Some(expr)
-      case UkSortCode(expr)  => Some(expr)
-      case _                 => None
+      case Text(_, expr)                => Some(SingleExpr(expr))
+      case TextArea(_, expr)            => Some(SingleExpr(expr))
+      case UkSortCode(expr)             => Some(SingleExpr(expr))
+      case Group(fields, _, _, _, _, _) => Some(MultipleExpr(fields))
+      case _                            => None
     }
 }

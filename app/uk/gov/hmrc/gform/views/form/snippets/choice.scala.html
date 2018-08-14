@@ -18,7 +18,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
-@import uk.gov.hmrc.gform.service.LabelHelper
+@import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
@@ -44,18 +44,18 @@ sectionTitle: String
               @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
               @if(fieldValue.helpText) {
                 <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
-              }  
+              }
             </legend>
             } else {
             <legend class="visuallyhidden">
               @{sectionTitle}
               @if(fieldValue.helpText) {
                 <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
-              } 
+              }
             </legend>
             }
 
-            
+
 
             @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq("error-message"))
 

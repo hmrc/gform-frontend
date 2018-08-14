@@ -23,6 +23,7 @@ import play.api.libs.json._
 
 import scala.collection.immutable._
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 
 sealed trait ComponentType
 
@@ -110,27 +111,6 @@ case class Group(
   repeatLabel: Option[String] = None,
   repeatAddAnotherText: Option[String] = None
 ) extends ComponentType
-
-object Group {
-
-  def getGroup(list: List[List[List[FormComponent]]], fieldId: FormComponentId): List[FormComponentId] = {
-    val x: List[List[FormComponent]] = list
-      .find(x => x.flatMap(y => y.map(_.id.value.contains(fieldId.value))).contains(true))
-      .getOrElse(List.empty[List[FormComponent]])
-
-    getGroupLength(x.size, fieldId)
-  }
-
-  private def getGroupLength(max: Int, id: FormComponentId): List[FormComponentId] = {
-    val suffix = List.range(0, max)
-    suffix.map(x =>
-      if (x == 0) {
-        id
-      } else {
-        FormComponentId(s"$x" + s"_${id.value}")
-    })
-  }
-}
 
 case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
 
