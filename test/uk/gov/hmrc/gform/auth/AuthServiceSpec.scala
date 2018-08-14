@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.auth.models
+package uk.gov.hmrc.gform.auth
 
-sealed trait AuthResult
-final case class AuthSuccessful(retrievals: MaterialisedRetrievals) extends AuthResult
-final case class AuthRedirect(loginUrl: String, flashing: Seq[(String, String)] = Seq.empty) extends AuthResult
-final case class AuthRedirectFlashingFormname(loginUrl: String) extends AuthResult
-final case class AuthBlocked(message: String) extends AuthResult
-final case class AuthForbidden(message: String) extends AuthResult
+import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
+
+class AuthServiceSpec extends Spec with ExampleData {
+
+  behavior of "Authentication and authorisation Service"
+}

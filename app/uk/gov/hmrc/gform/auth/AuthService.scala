@@ -20,27 +20,27 @@ import play.api.Logger
 import play.api.mvc._
 import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector => _, _}
+import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import gform.auth.models._
-import uk.gov.hmrc.gform.config.{AppConfig, FrontendAppConfig}
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve.Retrievals
 import cats.implicits._
-import uk.gov.hmrc.gform.gform.{AuthContextPrepop, EeittService}
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 class AuthService(
-                   gformConnector: GformConnector,
-                   appConfig: AppConfig,
-                   frontendAppConfig: FrontendAppConfig,
-                   val authConnector: AuthConnector,
-                   eeittDelegate: EeittAuthorisationDelegate,
-                   eeittService: EeittService
-                 ) extends AuthorisedFunctions {
+  gformConnector: GformConnector,
+  appConfig: AppConfig,
+  frontendAppConfig: FrontendAppConfig,
+  val authConnector: AuthConnector,
+  eeittDelegate: EeittAuthorisationDelegate,
+  eeittService: EeittService
+) extends AuthorisedFunctions {
 
   // format: OFF
   val defaultRetrievals = Retrievals.authProviderId and Retrievals.allEnrolments and
@@ -49,28 +49,28 @@ class AuthService(
     Retrievals.credentialStrength and Retrievals.agentCode
   // format: ON
 
-  def authenticateAndAuthorise(formTemplate: FormTemplate,
-                               authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
-                              )(
-                                implicit request: Request[AnyContent],
-                                hc: HeaderCarrier): Future[AuthResult] =
+  def authenticateAndAuthorise(
+    formTemplate: FormTemplate,
+    authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult])(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier): Future[AuthResult] =
     formTemplate.authConfig match {
       case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, authGivenRetrievals)
-      case authConfig => performHMRCAuth(authConfig, formTemplate, authGivenRetrievals)
+      case authConfig                  => performHMRCAuth(authConfig, formTemplate, authGivenRetrievals)
     }
 
   private def performEEITTAuth(
-                                authConfig: EEITTAuthConfig,
-                                formTemplate: FormTemplate,
-                                authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
-                              )(
-                                implicit request: Request[AnyContent],
-                                hc: HeaderCarrier
-                              ): Future[AuthResult] =
+    authConfig: EEITTAuthConfig,
+    formTemplate: FormTemplate,
+    authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
+  )(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier
+  ): Future[AuthResult] =
     ggAuthorised(AuthProviders(AuthProvider.GovernmentGateway), authConfig, formTemplate, authGivenRetrievals).flatMap {
-      case ggSuccessfulAuth@AuthSuccessful(retrievals) =>
+      case ggSuccessfulAuth @ AuthSuccessful(retrievals) =>
         eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails).map {
-          case EeittAuthorisationSuccessful => updateEnrolments(ggSuccessfulAuth, request)
+          case EeittAuthorisationSuccessful            => updateEnrolments(ggSuccessfulAuth, request)
           case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormname(eeittLoginUrl)
         }
       case otherAuthResults => otherAuthResults.pure[Future]
@@ -90,27 +90,29 @@ class AuthService(
       .getOrElse(authSuccessful)
   }
 
-  private def performHMRCAuth(authConfig: AuthConfig, formTemplate: FormTemplate,
-                              authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
-                             )(
-                               implicit request: Request[AnyContent],
-                               hc: HeaderCarrier): Future[AuthResult] = {
+  private def performHMRCAuth(
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult])(
+    implicit request: Request[AnyContent],
+    hc: HeaderCarrier): Future[AuthResult] = {
     val predicate = authConfig match {
       case config: AuthConfigWithEnrolment =>
         AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(config.serviceId.value)
       case _ => AuthProviders(AuthProvider.GovernmentGateway)
     }
 
-    val eventualGGAuthorised: Future[AuthResult] = ggAuthorised(predicate, authConfig, formTemplate, authGivenRetrievals)
+    val eventualGGAuthorised: Future[AuthResult] =
+      ggAuthorised(predicate, authConfig, formTemplate, authGivenRetrievals)
 
     authConfig match {
       case config: AuthConfigWithAgentAccess if config.agentAccess.isDefined => {
         eventualGGAuthorised.map {
-          case ggSuccessfulAuth@AuthSuccessful(retrievals)
-            if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
+          case ggSuccessfulAuth @ AuthSuccessful(retrievals)
+              if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
             ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments) match {
-              case HMRCAgentAuthorisationSuccessful => updateEnrolments(ggSuccessfulAuth, request)
-              case HMRCAgentAuthorisationDenied => AuthBlocked("Agents cannot access this form")
+              case HMRCAgentAuthorisationSuccessful                => updateEnrolments(ggSuccessfulAuth, request)
+              case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
               case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
             }
 
@@ -127,8 +129,8 @@ class AuthService(
     s"$baseUrl/agent-subscription/check-business-type?continue=$continueUrl"
   }
 
-  private def ggAgentAuthorise(agentAccess: AgentAccess, enrolments: Enrolments
-                              )(implicit request: Request[AnyContent]): HMRCAgentAuthorisation =
+  private def ggAgentAuthorise(agentAccess: AgentAccess, enrolments: Enrolments)(
+    implicit request: Request[AnyContent]): HMRCAgentAuthorisation =
     agentAccess match {
       case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
         HMRCAgentAuthorisationSuccessful
@@ -139,11 +141,11 @@ class AuthService(
     }
 
   private def ggAuthorised(
-                            predicate: Predicate,
-                            authConfig: AuthConfig,
-                            formTemplate: FormTemplate,
-                            authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
-                          )(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
+  )(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
     import uk.gov.hmrc.auth.core.retrieve.~
 
     authorised(predicate)
@@ -167,9 +169,9 @@ class AuthService(
   }
 
   private def handleErrorCondition(
-                                    request: Request[AnyContent],
-                                    authConfig: AuthConfig,
-                                    formTemplate: FormTemplate): PartialFunction[scala.Throwable, AuthResult] = {
+    request: Request[AnyContent],
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate): PartialFunction[scala.Throwable, AuthResult] = {
     case _: InsufficientEnrolments =>
       authConfig match {
         case _: AuthConfigWithEnrolment =>
@@ -202,10 +204,10 @@ class AuthService(
   }
 
   def evaluateSubmissionReference(
-                                   expression: TextExpression,
-                                   retrievals: MaterialisedRetrievals,
-                                   formTemplate: FormTemplate,
-                                   data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] =
+    expression: TextExpression,
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate,
+    data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] =
     expression.expr match {
       case AuthCtx(value) =>
         val authContextPrepop = new AuthContextPrepop()
