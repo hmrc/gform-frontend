@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.models.helpers.{ Fields, RepeatFormComponentIds }
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
@@ -110,9 +110,9 @@ class SectionRenderingService(
 
     val section = dynamicSections(sectionNumber.value)
 
-    val fieldsToRecalculate: List[FormComponentId] = section.fields
+    val fieldsToRecalculate: List[FormComponentId] = section.expandSection.toExpandedFormTemplate.allFCs
       .collect {
-        case fc @ HasExpr(_) if !fc.editable => fc.id
+        case fc @ HasExpr(SingleExpr(_)) if !fc.editable => fc.id
       }
 
     val fieldData = fieldDataAll -- fieldsToRecalculate
@@ -401,25 +401,21 @@ class SectionRenderingService(
     fieldList: List[FormComponent],
     sectionAtomicFields: List[FormComponent],
     allAtomicFields: List[FormComponent],
-    dependencies: Dependecies)(implicit hc: HeaderCarrier): Future[String] = {
-    val groups: List[(FormComponentId, Group)] = fieldList
-      .filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel))
-      .map(fv => (fv.id, fv.`type`))
-      .collect {
-        case (fieldId, group: Group) => (fieldId, group)
-      }
+    dependencies: Dependecies)(implicit hc: HeaderCarrier): Future[String] =
+    for {
+      cacheMap <- repeatService.getAllRepeatingGroups
+    } yield {
+      val groups: List[(FormComponentId, Group)] = fieldList
+        .filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel))
+        .collect {
+          case fc @ IsGroup(group) => (fc.id, group)
+        }
 
-    val cacheMap: Future[CacheMap] = repeatService.getAllRepeatingGroups
-    val repeatingSections: Future[List[List[List[FormComponent]]]] =
-      Future.traverse(fieldList)(fv => cacheMap.map(_.getEntry[RepeatingGroup](fv.id.value).map(_.list).getOrElse(Nil)))
+      val repeatFormComponentIds = RepeatingComponentService.getRepeatFormComponentIds(cacheMap, fieldList)
 
-    repeatingSections.map(
-      rs =>
-        groups
-          .map((collapsingGroupJavascript _).tupled)
-          .mkString("\n")
-          + fieldJavascript(sectionAtomicFields, allAtomicFields, rs, dependencies))
-  }
+      groups.map((collapsingGroupJavascript _).tupled).mkString("\n") +
+        fieldJavascript(sectionAtomicFields, allAtomicFields, repeatFormComponentIds, dependencies)
+    }
 
   private def htmlFor(
     fieldValue: FormComponent,
@@ -617,10 +613,9 @@ class SectionRenderingService(
     }
 
     ei.fieldData.get(fieldValue.id) match {
-      case None | Some(List("")) => {
+      case None | Some(List("")) =>
         prepopService
           .prepopData(expr, ei.formTemplate, ei.retrievals, ei.fieldData, ei.section, scale)
-      }
       case _ => Future.successful("") // Don't prepop something we already submitted
     }
   }

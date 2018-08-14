@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
 import scala.collection.immutable.List
@@ -26,6 +25,10 @@ sealed trait BaseSection {
   def title: String
   def shortName: Option[String]
   def fields: List[FormComponent]
+}
+
+case class ExpandedSection(expandedFCs: List[ExpandedFormComponent]) extends AnyVal {
+  def toExpandedFormTemplate: ExpandedFormTemplate = ExpandedFormTemplate(this :: Nil)
 }
 
 case class Section(
@@ -39,7 +42,9 @@ case class Section(
   validators: Option[SectionValidator], //TODO List instead of Option
   fields: List[FormComponent],
   continueLabel: Option[String]
-) extends BaseSection
+) extends BaseSection {
+  val expandSection: ExpandedSection = ExpandedSection(fields.map(_.expandFormComponent)) // TODO expand sections
+}
 
 object Section {
   implicit val format = Json.format[Section]

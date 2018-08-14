@@ -69,6 +69,8 @@ class PrepopService(
       case None    => x
     }
 
+    val cacheMap = repeatingComponentService.getAllRepeatingGroups
+
     expr match {
       case AuthCtx(value)  => Future.successful(authContextPrepop.values(value, retrievals))
       case Constant(value) => Future.successful(value)
@@ -92,21 +94,10 @@ class PrepopService(
           z <- prepopData(field2, formTemplate, retrievals, data, section)
         } yield toBigDecimalDefault(y) * toBigDecimalDefault(z)
         value.map(x => round(x).toString)
-      case Sum(FormCtx(field)) =>
-        val atomicFieldsF: Future[List[FormComponent]] = repeatingComponentService.atomicFields(section)
-        val cacheMap: Future[CacheMap] = repeatingComponentService.getAllRepeatingGroups
-        val repeatingSections: Future[List[List[List[FormComponent]]]] =
-          atomicFieldsF.flatMap(atomicFields =>
-            Future.sequence(atomicFields.map(fv => (fv.id, fv.`type`)).collect {
-              case (fieldId, group: Group) =>
-                cacheMap.map(_.getEntry[RepeatingGroup](fieldId.value).map(_.list).getOrElse(Nil))
-            }))
-        val listOfValues = repeatingSections.map(rs =>
-          for {
-            id <- Group.getGroup(rs, FormComponentId(field))
-            x = data.get(id).map(_.head).getOrElse("")
-          } yield toBigDecimalDefault(x))
-        for { vs <- listOfValues } yield round(vs.sum).toString()
+      case Sum(ctx @ FormCtx(_)) =>
+        val value =
+          cacheMap.map(cacheMap => RepeatingComponentService.sumFunctionality(ctx, formTemplate, data, cacheMap))
+        value.map(x => round(x).toString)
       case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
       case _           => Future.successful("")
     }
