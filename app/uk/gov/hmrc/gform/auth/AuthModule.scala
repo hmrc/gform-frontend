@@ -52,15 +52,12 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
     taxEnrolmentsConnector
   )
 
-  lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule)
+  lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule.serviceConfig)
 
   lazy val eeittService: EeittService = new EeittService(eeittConnector)
 
   lazy val authService: AuthService = new AuthService(
-    gformBackendModule.gformConnector,
     configModule.appConfig,
-    configModule.frontendAppConfig,
-    authConnector,
     eeittAuthorisationDelegate,
     eeittService
   )

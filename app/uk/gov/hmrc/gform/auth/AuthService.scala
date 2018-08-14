@@ -35,13 +35,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 case class GGAuthorisedParams(predicate: Predicate, authConfig: AuthConfig, formTemplate: FormTemplate)
 
 class AuthService(
-  gformConnector: GformConnector,
   appConfig: AppConfig,
-  frontendAppConfig: FrontendAppConfig,
-  val authConnector: AuthConnector,
   eeittDelegate: EeittAuthorisationDelegate,
   eeittService: EeittService
-) extends AuthorisedFunctions {
+) {
 
   // format: OFF
   val defaultRetrievals = Retrievals.authProviderId and Retrievals.allEnrolments and

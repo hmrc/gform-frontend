@@ -18,14 +18,14 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RegimeId
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: ConfigModule) {
+class EeittAuthorisationDelegate(eeittConnector: EeittConnector, servicesConfig: ServicesConfig) {
 
   def authenticate(regimeId: RegimeId, userDetails: UserDetails)(
     implicit hc: HeaderCarrier,
@@ -47,7 +47,7 @@ class EeittAuthorisationDelegate(eeittConnector: EeittConnector, configModule: C
       "UTF-8"
     )
 
-    val baseUrl = configModule.serviceConfig.baseUrl("eeitt-frontend")
+    val baseUrl = servicesConfig.baseUrl("eeitt-frontend")
 
     s"$baseUrl/eeitt-auth/enrollment-verification?callbackUrl=$continueUrl"
   }
