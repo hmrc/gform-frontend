@@ -18,14 +18,12 @@ package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class AuthModule(configModule: ConfigModule,
-                 wSHttpModule: WSHttpModule,
-                 gformBackendModule: GformBackendModule) { self =>
+class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBackendModule: GformBackendModule) {
+  self =>
 
   lazy val authConnector = new AuthConnector(
     configModule.serviceConfig.baseUrl("auth"),

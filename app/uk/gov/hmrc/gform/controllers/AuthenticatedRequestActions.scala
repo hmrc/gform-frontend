@@ -23,18 +23,18 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc._
-import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector => _, _}
+import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve.{GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid}
+import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
 import cats.implicits._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
@@ -68,31 +68,32 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
-  def async(formId: FormId)(
-    f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] = Action.async {
-    implicit request =>
+  def async(formId: FormId)(f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
+    Action.async { implicit request =>
       for {
         form         <- gformConnector.getForm(formId)
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
         authResult   <- authService.authenticateAndAuthorise(formTemplate, authFormUser(form))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
-          authResult,
-          formTemplate,
-          request,
-          onSuccess = retrievals => f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate))
-        )
+                   authResult,
+                   formTemplate,
+                   request,
+                   onSuccess = retrievals => f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate))
+                 )
       } yield result
     }
 
-  private def authFormUser(form: Form)(retrievals: MaterialisedRetrievals)(implicit ec: ExecutionContext) : Future[AuthResult] =
-    (if(form.userId.value == retrievals.userDetails.groupIdentifier)
-      AuthSuccessful(retrievals)
-    else
-      AuthForbidden("You cannot access this page")).pure[Future]
+  private def authFormUser(form: Form)(retrievals: MaterialisedRetrievals)(
+    implicit ec: ExecutionContext): Future[AuthResult] =
+    (if (form.userId.value == retrievals.userDetails.groupIdentifier)
+       AuthSuccessful(retrievals)
+     else
+       AuthForbidden("You cannot access this page")).pure[Future]
 
-  private def authUserWhitelist(retrievals: MaterialisedRetrievals)(implicit
-                                                                    hc: HeaderCarrier) : Future[AuthResult] = {
+  private def authUserWhitelist(retrievals: MaterialisedRetrievals)(
+    implicit
+    hc: HeaderCarrier): Future[AuthResult] =
     if (frontendAppConfig.whitelistEnabled) {
       for {
         isValid <- gformConnector.whiteList(retrievals.userDetails.email)
@@ -106,7 +107,6 @@ class AuthenticatedRequestActions(
             AuthBlocked("Non-whitelisted User")
         }
     } else Future.successful(AuthSuccessful(retrievals))
-  }
 
   private def handleAuthResults(
     result: AuthResult,
@@ -117,7 +117,7 @@ class AuthenticatedRequestActions(
     implicit
     hc: HeaderCarrier): Future[Result] =
     result match {
-      case AuthSuccessful(retrievals)        => onSuccess(retrievals)
+      case AuthSuccessful(retrievals)       => onSuccess(retrievals)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthRedirectFlashingFormname(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName).pure[Future]
@@ -133,9 +133,9 @@ class AuthenticatedRequestActions(
     }
 
   private def removeEeittAuthIdFromSession(
-                                            request: Request[AnyContent],
-                                            authConfig: AuthConfig
-                                          ): Request[AnyContent] = authConfig match {
+    request: Request[AnyContent],
+    authConfig: AuthConfig
+  ): Request[AnyContent] = authConfig match {
 
     // a bit of session clean up due to the session's size restrictions.
     // The registrationNumber/arn passed by eeitt-auth in the session is saved in the user's enrolments field after

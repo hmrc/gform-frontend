@@ -65,9 +65,9 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
   protected val auditingModule = new AuditingModule(configModule, akkaModule, playBuiltInsModule)
   private val wSHttpModule = new WSHttpModule(auditingModule, configModule)
 
-  private val authModule = new AuthModule(configModule, wSHttpModule, gformBackendModule)
-
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
+
+  private val authModule = new AuthModule(configModule, wSHttpModule, gformBackendModule)
 
   private val pdfGeneratorModule = new PdfGeneratorModule(configModule, wSHttpModule)
 
