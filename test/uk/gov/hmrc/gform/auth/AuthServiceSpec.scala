@@ -27,24 +27,15 @@ import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RegimeId
 import uk.gov.hmrc.gform.wshttp.{ StubbedWSHttp, WSHttp }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
-
 import uk.gov.hmrc.gform.auth.AuthConnector
+import uk.gov.hmrc.gform.gform.EeittService
+import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthServiceSpec extends Spec with ExampleData {
 
   behavior of "Authentication and authorisation Service"
-
-  lazy val wSHttp = new StubbedWSHttp(HttpResponse(0))
-
-  val mockGformConnector = new GformConnector(wSHttp, "baseUrl") {
-//    override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(
-//      implicit hc: HeaderCarrier,
-//      ec: ExecutionContext): Future[BusinessUser] =
-//      Future.successful(BusinessUser("TESTREGNUM"))
-
-  }
 
   private val googleAnalytics = new GoogleAnalytics("token", "host")
 
@@ -62,10 +53,16 @@ class AuthServiceSpec extends Spec with ExampleData {
     contentTypesSeparatedByPipe = "csv|txt"
   )
 
-//  val authConnector = AuthConnector()
-//
-//
-//  val authService = new AuthService(mockGformConnector, appConfig, frontendAppConfig)
+  val mockEeittConnector = new EeittConnector("", null)
+
+  val mockServicesConfig: ServicesConfig = new ServicesConfig {}
+
+  val mockEeittDelegate: EeittAuthorisationDelegate =
+    new EeittAuthorisationDelegate(mockEeittConnector, mockServicesConfig)
+
+  val mockEeittService = new EeittService(mockEeittConnector)
+
+  val authService = new AuthService(appConfig, mockEeittDelegate, mockEeittService)
 }
 
 trait Fixture extends ExampleData {
