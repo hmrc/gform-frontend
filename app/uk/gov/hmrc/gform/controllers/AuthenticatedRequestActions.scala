@@ -26,13 +26,14 @@ import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import gform.auth.models._
-import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
+import uk.gov.hmrc.auth.core.retrieve._
 import cats.implicits._
+import uk.gov.hmrc.auth.core.authorise.Predicate
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -41,6 +42,7 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 class AuthenticatedRequestActions(
   gformConnector: GformConnector,
   authService: AuthService,
+  appConfig: AppConfig,
   frontendAppConfig: FrontendAppConfig,
   val authConnector: AuthConnector,
   i18nSupport: I18nSupport,
@@ -57,7 +59,7 @@ class AuthenticatedRequestActions(
     implicit request =>
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult   <- authService.authenticateAndAuthorise(formTemplate, authUserWhitelist(_))
+        authResult   <- authService.authenticateAndAuthorise(formTemplate, ggAuthorised(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -73,7 +75,7 @@ class AuthenticatedRequestActions(
       for {
         form         <- gformConnector.getForm(formId)
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-        authResult   <- authService.authenticateAndAuthorise(formTemplate, authFormUser(form))
+        authResult   <- authService.authenticateAndAuthorise(formTemplate, ggAuthorised(authFormUser(form)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -149,6 +151,61 @@ class AuthenticatedRequestActions(
       val updatedHeaders = request.headers.replace(HeaderNames.COOKIE -> Cookies.encodeCookieHeader(updatedCookies))
       Request[AnyContent](request.copy(headers = updatedHeaders), request.body)
     case _ => request
+  }
+
+  // format: OFF
+  val defaultRetrievals = Retrievals.authProviderId and Retrievals.allEnrolments and
+    Retrievals.affinityGroup and Retrievals.internalId and
+    Retrievals.externalId and Retrievals.userDetailsUri and
+    Retrievals.credentialStrength and Retrievals.agentCode
+  // format: ON
+
+  private def ggAuthorised(authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult])(
+    ggAuthorisedParams: GGAuthorisedParams)(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
+    import uk.gov.hmrc.auth.core.retrieve.~
+
+    authorised(ggAuthorisedParams.predicate)
+      .retrieve(defaultRetrievals) {
+        case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
+          for {
+            userDetails <- authConnector.getUserDetails(userDetailsUri.get)
+            retrievals = MaterialisedRetrievals(
+              authProviderId,
+              enrolments,
+              affinityGroup,
+              internalId,
+              externalId,
+              userDetails,
+              credentialStrength,
+              agentCode)
+            result <- authGivenRetrievals(retrievals)
+          } yield result
+      }
+      .recover(handleErrorCondition(request, ggAuthorisedParams.authConfig, ggAuthorisedParams.formTemplate))
+  }
+
+  private def handleErrorCondition(
+    request: Request[AnyContent],
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate): PartialFunction[scala.Throwable, AuthResult] = {
+    case _: InsufficientEnrolments =>
+      authConfig match {
+        case _: AuthConfigWithEnrolment =>
+          Logger.debug("Enrolment required")
+          AuthRedirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url)
+        case _ =>
+          Logger.debug("Auth Failed")
+          AuthRedirectFlashingFormname(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+      }
+    case _: NoActiveSession =>
+      Logger.debug("No Active Session")
+      val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
+      val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+      val url = s"$ggLoginUrl?continue=$continueUrl"
+      AuthRedirectFlashingFormname(url)
+    case otherException =>
+      Logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
+      throw otherException
   }
 
   def idForLog(id: LegacyCredentials) = id match {
