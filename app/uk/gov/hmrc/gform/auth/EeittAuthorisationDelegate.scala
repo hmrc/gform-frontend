@@ -24,7 +24,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class EeittAuthorisationDelegate(eeittConnector: EeittConnector, servicesConfig: ServicesConfig) {
+class EeittAuthorisationDelegate(eeittConnector: EeittConnector, baseUrl: String) {
 
   def authenticate(regimeId: RegimeId, userDetails: UserDetails, requestUri: String)(
     implicit hc: HeaderCarrier,
@@ -41,7 +41,6 @@ class EeittAuthorisationDelegate(eeittConnector: EeittConnector, servicesConfig:
   private def eeittLoginUrl(requestUri: String): String = {
 
     val continueUrl = java.net.URLEncoder.encode(requestUri,"UTF-8")
-    val baseUrl = servicesConfig.baseUrl("eeitt-frontend")
 
     s"$baseUrl/eeitt-auth/enrollment-verification?callbackUrl=$continueUrl"
   }

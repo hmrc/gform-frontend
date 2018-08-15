@@ -52,7 +52,7 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
     taxEnrolmentsConnector
   )
 
-  lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule.serviceConfig)
+  lazy val eeittAuthorisationDelegate = new EeittAuthorisationDelegate(eeittConnector, configModule.serviceConfig.baseUrl("eeitt-frontend"))
 
   lazy val eeittService: EeittService = new EeittService(eeittConnector)
 
