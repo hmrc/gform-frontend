@@ -45,16 +45,18 @@ class AuthService(
   def authenticateAndAuthorise(
     formTemplate: FormTemplate,
     request: Request[AnyContent],
+    requestUri : String,
     ggAuthorised: GGAuthorisedParams => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] =
     formTemplate.authConfig match {
-      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, request, ggAuthorised)
-      case authConfig                  => performHMRCAuth(authConfig, formTemplate, request, ggAuthorised)
+      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, request, requestUri, ggAuthorised)
+      case authConfig                  => performHMRCAuth(authConfig, formTemplate, request, requestUri, ggAuthorised)
     }
 
   private def performEEITTAuth(
     authConfig: EEITTAuthConfig,
     formTemplate: FormTemplate,
     request: Request[AnyContent],
+    requestUri : String,
     ggAuthorised: GGAuthorisedParams => Future[AuthResult]
   )(implicit hc: HeaderCarrier): Future[AuthResult] = {
     implicit val r = request
@@ -62,32 +64,19 @@ class AuthService(
       .apply(GGAuthorisedParams(AuthProviders(AuthProvider.GovernmentGateway), authConfig, formTemplate, request))
       .flatMap {
         case ggSuccessfulAuth @ AuthSuccessful(retrievals) =>
-          eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails).map {
-            case EeittAuthorisationSuccessful            => updateEnrolments(ggSuccessfulAuth, request)
+          eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails, requestUri).map {
+            case EeittAuthorisationSuccessful            => ggSuccessfulAuth
             case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormname(eeittLoginUrl)
           }
         case otherAuthResults => otherAuthResults.pure[Future]
       }
   }
 
-  private def updateEnrolments(authSuccessful: AuthSuccessful, request: Request[_]): AuthSuccessful = {
-    // the registrationNumber will be stored in the session by eeittAuth
-    def updateFor(authBy: String): Option[AuthSuccessful] =
-      request.session.get(authBy).map { regNum =>
-        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(authBy, regNum)
-        val newEnrolments = Enrolments(authSuccessful.retrievals.enrolments.enrolments + newEnrolment)
-        authSuccessful.copy(retrievals = authSuccessful.retrievals.copy(enrolments = newEnrolments))
-      }
-
-    updateFor(EEITTAuthConfig.nonAgentIdName)
-      .orElse(updateFor(EEITTAuthConfig.agentIdName))
-      .getOrElse(authSuccessful)
-  }
-
   private def performHMRCAuth(
     authConfig: AuthConfig,
     formTemplate: FormTemplate,
     request: Request[AnyContent],
+    requestUri : String,
     ggAuthorised: GGAuthorisedParams => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] = {
     val predicate = authConfig match {
       case config: AuthConfigWithEnrolment =>
@@ -105,7 +94,7 @@ class AuthService(
         eventualGGAuthorised.map {
           case ggSuccessfulAuth @ AuthSuccessful(retrievals)
               if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
-            ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments) match {
+            ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments, requestUri) match {
               case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
               case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
               case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
@@ -118,13 +107,13 @@ class AuthService(
     }
   }
 
-  private def agentSubscribeUrl()(implicit request: Request[AnyContent]): String = {
-    val continueUrl = java.net.URLEncoder.encode(request.uri, "UTF-8")
+  private def agentSubscribeUrl(requestUri:String): String = {
+    val continueUrl = java.net.URLEncoder.encode(requestUri, "UTF-8")
     val baseUrl = appConfig.`agent-subscription-frontend-base-url`
     s"$baseUrl/agent-subscription/check-business-type?continue=$continueUrl"
   }
 
-  private def ggAgentAuthorise(agentAccess: AgentAccess, enrolments: Enrolments)(
+  private def ggAgentAuthorise(agentAccess: AgentAccess, enrolments: Enrolments, requestUri: String)(
     implicit request: Request[AnyContent]): HMRCAgentAuthorisation =
     agentAccess match {
       case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
@@ -134,7 +123,7 @@ class AuthService(
       case AllowAnyAgentAffinityUser =>
         HMRCAgentAuthorisationSuccessful
       case _ =>
-        HMRCAgentAuthorisationFailed(agentSubscribeUrl)
+        HMRCAgentAuthorisationFailed(agentSubscribeUrl(requestUri))
     }
 
   def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String = retrievals.userDetails.affinityGroup match {

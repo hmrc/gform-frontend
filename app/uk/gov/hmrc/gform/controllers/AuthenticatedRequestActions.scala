@@ -58,7 +58,7 @@ class AuthenticatedRequestActions(
     implicit request =>
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult   <- authService.authenticateAndAuthorise(formTemplate, request, ggAuthorised(authUserWhitelist(_)))
+        authResult   <- authService.authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -74,7 +74,7 @@ class AuthenticatedRequestActions(
       for {
         form         <- gformConnector.getForm(formId)
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-        authResult   <- authService.authenticateAndAuthorise(formTemplate, request, ggAuthorised(authFormUser(form)))
+        authResult   <- authService.authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authFormUser(form)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -118,7 +118,7 @@ class AuthenticatedRequestActions(
     implicit
     hc: HeaderCarrier): Future[Result] =
     result match {
-      case AuthSuccessful(retrievals)       => onSuccess(retrievals)
+      case AuthSuccessful(retrievals)       => onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthRedirectFlashingFormname(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName).pure[Future]
@@ -132,6 +132,28 @@ class AuthenticatedRequestActions(
       case AuthForbidden(message) =>
         errResponder.forbidden(request, message)
     }
+
+  private def updateEnrolments(
+    authConfig: AuthConfig,
+    retrievals: MaterialisedRetrievals,
+    request: Request[_]): MaterialisedRetrievals = {
+    // the registrationNumber will be stored in the session by eeittAuth
+    // is this needed for new form and existing form?
+    def updateFor(authBy: String): Option[MaterialisedRetrievals] =
+      request.session.get(authBy).map { regNum =>
+        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(authBy, regNum)
+        val newEnrolments = Enrolments(retrievals.enrolments.enrolments + newEnrolment)
+        retrievals.copy(enrolments = newEnrolments)
+      }
+
+    authConfig match {
+      case _: EEITTAuthConfig =>
+        updateFor(EEITTAuthConfig.nonAgentIdName)
+          .orElse(updateFor(EEITTAuthConfig.agentIdName))
+          .getOrElse(retrievals)
+      case _ => retrievals
+    }
+  }
 
   private def removeEeittAuthIdFromSession(
     request: Request[AnyContent],

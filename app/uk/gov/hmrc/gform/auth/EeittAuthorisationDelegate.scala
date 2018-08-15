@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
@@ -27,26 +26,21 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class EeittAuthorisationDelegate(eeittConnector: EeittConnector, servicesConfig: ServicesConfig) {
 
-  def authenticate(regimeId: RegimeId, userDetails: UserDetails)(
+  def authenticate(regimeId: RegimeId, userDetails: UserDetails, requestUri: String)(
     implicit hc: HeaderCarrier,
-    ex: ExecutionContext,
-    request: Request[AnyContent]): Future[EeittAuth] = {
+    ex: ExecutionContext): Future[EeittAuth] = {
 
     val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, regimeId, userDetails.affinityGroup)
 
     authResultF.map {
       case Verification(true)  => EeittAuthorisationSuccessful
-      case Verification(false) => EeittAuthorisationFailed(eeittLoginUrl())
+      case Verification(false) => EeittAuthorisationFailed(eeittLoginUrl(requestUri))
     }
   }
 
-  private def eeittLoginUrl()(implicit request: Request[AnyContent]): String = {
+  private def eeittLoginUrl(requestUri: String): String = {
 
-    val continueUrl = java.net.URLEncoder.encode(
-      request.uri,
-      "UTF-8"
-    )
-
+    val continueUrl = java.net.URLEncoder.encode(requestUri,"UTF-8")
     val baseUrl = servicesConfig.baseUrl("eeitt-frontend")
 
     s"$baseUrl/eeitt-auth/enrollment-verification?callbackUrl=$continueUrl"
