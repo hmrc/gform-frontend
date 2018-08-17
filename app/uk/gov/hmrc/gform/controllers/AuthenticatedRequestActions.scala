@@ -58,7 +58,8 @@ class AuthenticatedRequestActions(
     implicit request =>
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult   <- authService.authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authUserWhitelist(_)))
+        authResult <- authService
+                       .authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -74,7 +75,8 @@ class AuthenticatedRequestActions(
       for {
         form         <- gformConnector.getForm(formId)
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
-        authResult   <- authService.authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authFormUser(form)))
+        authResult <- authService
+                       .authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authFormUser(form)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
