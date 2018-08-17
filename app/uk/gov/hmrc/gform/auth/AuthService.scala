@@ -45,7 +45,7 @@ class AuthService(
   def authenticateAndAuthorise(
     formTemplate: FormTemplate,
     request: Request[AnyContent],
-    requestUri : String,
+    requestUri: String,
     ggAuthorised: GGAuthorisedParams => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] =
     formTemplate.authConfig match {
       case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, request, requestUri, ggAuthorised)
@@ -56,7 +56,7 @@ class AuthService(
     authConfig: EEITTAuthConfig,
     formTemplate: FormTemplate,
     request: Request[AnyContent],
-    requestUri : String,
+    requestUri: String,
     ggAuthorised: GGAuthorisedParams => Future[AuthResult]
   )(implicit hc: HeaderCarrier): Future[AuthResult] = {
     implicit val r = request
@@ -76,7 +76,7 @@ class AuthService(
     authConfig: AuthConfig,
     formTemplate: FormTemplate,
     request: Request[AnyContent],
-    requestUri : String,
+    requestUri: String,
     ggAuthorised: GGAuthorisedParams => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] = {
     val predicate = authConfig match {
       case config: AuthConfigWithEnrolment =>
@@ -107,7 +107,7 @@ class AuthService(
     }
   }
 
-  private def agentSubscribeUrl(requestUri:String): String = {
+  private def agentSubscribeUrl(requestUri: String): String = {
     val continueUrl = java.net.URLEncoder.encode(requestUri, "UTF-8")
     val baseUrl = appConfig.`agent-subscription-frontend-base-url`
     s"$baseUrl/agent-subscription/check-business-type?continue=$continueUrl"

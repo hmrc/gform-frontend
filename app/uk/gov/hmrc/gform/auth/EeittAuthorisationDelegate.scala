@@ -40,7 +40,7 @@ class EeittAuthorisationDelegate(eeittConnector: EeittConnector, baseUrl: String
 
   private def eeittLoginUrl(requestUri: String): String = {
 
-    val continueUrl = java.net.URLEncoder.encode(requestUri,"UTF-8")
+    val continueUrl = java.net.URLEncoder.encode(requestUri, "UTF-8")
 
     s"$baseUrl/eeitt-auth/enrollment-verification?callbackUrl=$continueUrl"
   }
