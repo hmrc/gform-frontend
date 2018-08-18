@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.keystore
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.cache.client.SessionCache
-import uk.gov.hmrc.http.{ HttpDelete, HttpGet, HttpPut }
-
-class SessionCacheConnector(
-  sourceName: String,
-  baseUrl: String,
-  val domain: String,
-  wSHttp: WSHttp
-) extends SessionCache {
-
-  override def defaultSource: String = sourceName
-
-  override def baseUri: String = baseUrl
-
-  override def http: HttpGet with HttpPut with HttpDelete = wSHttp
-}
+/**
+  * Represents one group instance of a Group. Group instance means set of Group component fields.
+  */
+case class GroupList(componentList: List[FormComponent]) extends AnyVal

@@ -27,7 +27,7 @@
 
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FormComponent, textArea: TextArea, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
@@ -65,7 +65,7 @@
         cols="30"
         @if(!fieldValue.editable) { readonly="" }
         class="@inputClasses @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}"
-        id="@fieldValue.id">@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)</textarea> @TextFormatter.appendUnit(textArea.constraint)
+        id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea> @TextFormatter.appendUnit(textArea.constraint)
     } else {
     <span class="input-currency">
         <textarea
@@ -74,7 +74,7 @@
             cols="30"
             @if(!fieldValue.editable) { readonly="" }
             class="@inputClasses input--no-spinner input--left-padding"
-            id="@fieldValue.id">@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)</textarea>
+            id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>
     </span>
     }
 

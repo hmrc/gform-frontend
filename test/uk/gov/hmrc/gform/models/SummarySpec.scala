@@ -52,27 +52,6 @@ class SummarySpec extends Spec {
 
     override def formTemplate = super.formTemplate.copy(sections = List(section0, section1, section2))
 
-    val mockRepeatService = new RepeatingComponentService(null, null) {
-      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[Section]] = {
-        Future.successful(formTemplate.sections)
-      }
-
-      override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
-        Future.successful(CacheMap("Empty", Map.empty[String, JsValue]))
-
-      override def getAllFieldsInGroupForSummary(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ex: ExecutionContext): Future[List[List[FormComponent]]] = {
-        Future.successful(List.empty[List[FormComponent]])
-      }
-
-      override def getAllFieldsInGroup(topFieldValue: FormComponent, groupField: Group)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] = {
-        Future.successful(List.empty[FormComponent])
-      }
-
-      override def atomicFields(section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] = {
-        Future.successful(section.fields)
-      }
-    }
-
     val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
 
     def fieldValues = formTemplate.sections.flatMap(_.fields)
@@ -82,17 +61,17 @@ class SummarySpec extends Spec {
   }
 
   "Summary" should "display the summary sections" in new Test {
-    val render = SummaryRenderingService.summaryForRender(f, rawDataFromBrowser, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    render.futureValue.size should be(9)
-    extractAllTestStringValues(render.futureValue) should be(List("Your details", "About you", "Business details"))
+    val render = SummaryRenderingService.summaryForRender(f, rawDataFromBrowser, retrievals, formId, formTemplate, envelope, None)
+    render.size should be(9)
+    extractAllTestStringValues(render) should be(List("Your details", "About you", "Business details"))
   }
 
   it should "display links to page sections" in new Test {
     override def formTemplate = super.formTemplate.copy(sections = List(section0, section1))
 
-    val render = SummaryRenderingService.summaryForRender(f, Map(), retrievals, formId, formTemplate, mockRepeatService, envelope, None)
+    val render = SummaryRenderingService.summaryForRender(f, Map(), retrievals, formId, formTemplate, envelope, None)
 
-    val testStringValues = extractAllHrefs(render.futureValue)
+    val testStringValues = extractAllHrefs(render)
 
     def callUrlEscaped(call: Call) = call.url.replaceAll("&", "&amp;")
 
@@ -131,17 +110,16 @@ class SummarySpec extends Spec {
     )
 
     override def fieldValues = formTemplate.sections.flatMap(_.fields)
-    val render = SummaryRenderingService.summaryForRender(f, rawDataFromBrowser, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val testStringValues = extractAllTestStringValues(render.futureValue)
+    val render = SummaryRenderingService.summaryForRender(f, rawDataFromBrowser, retrievals, formId, formTemplate, envelope, None)
+    val testStringValues = extractAllTestStringValues(render)
     testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
-    extractDates(render.futureValue) should be(List(("19", "November", "1841")))
+    extractDates(render) should be(List(("19", "November", "1841")))
   }
 
   it should "display the title when shortName is not present in the section" in new Test {
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
 
-    val doc = Jsoup.parse(render.futureValue.head.toString())
-    println(doc.getElementsByTag("SPAN").text())
+    val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("SPAN").text().toLowerCase should include("your details")
   }
 
@@ -149,9 +127,9 @@ class SummarySpec extends Spec {
     val shortName = "THIS_IS_A_VERY_VERY_VERY_SHORT_NAME"
     val section = section0.copy(shortName = Some(shortName))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
 
-    val doc = Jsoup.parse(render.futureValue.head.toString())
+    val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("SPAN").text().toUpperCase should include(shortName)
   }
 
@@ -173,8 +151,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
   }
 
@@ -195,8 +173,8 @@ class SummarySpec extends Spec {
     )
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
   }
 
@@ -218,8 +196,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
   }
 
@@ -241,8 +219,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
   }
 
@@ -264,8 +242,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
   }
 
@@ -288,8 +266,8 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
   }
 
@@ -311,8 +289,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
   }
 
@@ -334,8 +312,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val doc = Jsoup.parse(render.futureValue.mkString)
+    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
   }
 
@@ -345,10 +323,10 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(
       sections = List(section2)
     )
-    val renderWithDataMatching = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("Pete")), retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    renderWithDataMatching.futureValue.size shouldBe 3
-    val renderWithDataMismatch = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    renderWithDataMismatch.futureValue.size shouldBe 0
+    val renderWithDataMatching = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("Pete")), retrievals, formId, formTemplate, envelope, None)
+    renderWithDataMatching.size shouldBe 3
+    val renderWithDataMismatch = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), retrievals, formId, formTemplate, envelope, None)
+    renderWithDataMismatch.size shouldBe 0
   }
 
   it should "display Group Labels (or Group Short Names if specified)" in new Test {
@@ -363,15 +341,15 @@ class SummarySpec extends Spec {
     )
     override def section0 = Section("", None, None, None, None, None, None, None, List(groupFieldValue), None)
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
-    val render0 = SummaryRenderingService.summaryForRender(f, Map.empty[FormComponentId, Seq[String]], retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    extractAllTestStringValues(render0.futureValue) should be(List("group-label"))
+    val render0 = SummaryRenderingService.summaryForRender(f, Map.empty[FormComponentId, Seq[String]], retrievals, formId, formTemplate, envelope, None)
+    extractAllTestStringValues(render0) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
       sections = List(Section("", None, None, None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test"))), None))
     )
 
     val filedValues1 = formTemplate.sections.flatMap(_.fields)
-    val render1 = SummaryRenderingService.summaryForRender(f, Map.empty[FormComponentId, Seq[String]], retrievals, formId, formTemplateWGroupWithShortname, mockRepeatService, envelope, None)
-    extractAllTestStringValues(render1.futureValue) should be(List("group-shortname"))
+    val render1 = SummaryRenderingService.summaryForRender(f, Map.empty[FormComponentId, Seq[String]], retrievals, formId, formTemplateWGroupWithShortname, envelope, None)
+    extractAllTestStringValues(render1) should be(List("group-shortname"))
   }
 
   "The Change hrefs" should "link to the correct page" in new Test {
@@ -381,8 +359,8 @@ class SummarySpec extends Spec {
     )
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), fieldValues, envelope)
 
-    val summaryForRender = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), retrievals, formId, formTemplate, mockRepeatService, envelope, None)
-    val htmls = summaryForRender.futureValue
+    val summaryForRender = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), retrievals, formId, formTemplate, envelope, None)
+    val htmls = summaryForRender
 
     {
       val htmlAheadOfSection0 = htmls(1)

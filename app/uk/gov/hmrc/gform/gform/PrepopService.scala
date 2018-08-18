@@ -25,7 +25,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.implicits._
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.concurrent.Future
@@ -52,7 +51,6 @@ class AuthContextPrepop {
 
 class PrepopService(
   authContextPrepop: AuthContextPrepop,
-  repeatingComponentService: RepeatingComponentService,
   eeittService: EeittService
 ) {
 
@@ -68,8 +66,6 @@ class PrepopService(
       case Some(s) => x.setScale(s, RoundingMode.FLOOR)
       case None    => x
     }
-
-    val cacheMap = repeatingComponentService.getAllRepeatingGroups
 
     expr match {
       case AuthCtx(value)  => Future.successful(authContextPrepop.values(value, retrievals))
@@ -95,9 +91,8 @@ class PrepopService(
         } yield toBigDecimalDefault(y) * toBigDecimalDefault(z)
         value.map(x => round(x).toString)
       case Sum(ctx @ FormCtx(_)) =>
-        val value =
-          cacheMap.map(cacheMap => RepeatingComponentService.sumFunctionality(ctx, formTemplate, data, cacheMap))
-        value.map(x => round(x).toString)
+        val x = RepeatingComponentService.sumFunctionality(ctx, formTemplate, data)
+        Future.successful(round(x).toString)
       case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
       case _           => Future.successful("")
     }

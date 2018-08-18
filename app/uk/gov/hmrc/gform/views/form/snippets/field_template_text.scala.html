@@ -26,7 +26,7 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -73,7 +73,7 @@
         name="@fieldValue.id"
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
-        value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
+        value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
         class="@inputClasses @inputBoxSize @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text.constraint)
     } else {
     <span class="input-currency">
@@ -82,7 +82,7 @@
             name="@fieldValue.id"
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
-            value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
+            value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
             class="@inputClasses @inputBoxSize input--no-spinner input--left-padding">
     </span>
     }

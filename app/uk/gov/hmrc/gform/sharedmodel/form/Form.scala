@@ -27,7 +27,6 @@ case class Form(
   envelopeId: EnvelopeId,
   userId: UserId,
   formTemplateId: FormTemplateId,
-  repeatingGroupStructure: Option[RepeatingGroupStructure],
   formData: FormData,
   status: FormStatus
 )
@@ -39,7 +38,6 @@ object Form {
       EnvelopeId.format and
       UserId.oformat and
       FormTemplateId.vformat and
-      RepeatingGroupStructure.optionFormat and
       FormData.format and
       FormStatus.format
   )(Form.apply _)
@@ -50,7 +48,6 @@ object Form {
         EnvelopeId.format.writes(form.envelopeId) ++
         UserId.oformat.writes(form.userId) ++
         FormTemplateId.oformat.writes(form.formTemplateId) ++
-        RepeatingGroupStructure.optionFormat.writes(form.repeatingGroupStructure) ++
         FormData.format.writes(form.formData) ++
         FormStatus.format.writes(form.status))
 

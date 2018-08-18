@@ -410,8 +410,6 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def formData = FormData(formFields)
 
-  def repeatingGroupStructure: Option[RepeatingGroupStructure] = None
-
   def formDataNil = FormData(fields = Nil)
 
   def envelopeId = EnvelopeId("b66c5979-e885-49cd-9281-c7f42ce6b307")
@@ -423,7 +421,6 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     envelopeId,
     userId,
     formTemplateId,
-    repeatingGroupStructure,
     formData,
     InProgress
   )

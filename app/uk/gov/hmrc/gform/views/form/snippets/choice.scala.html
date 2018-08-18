@@ -67,14 +67,14 @@ sectionTitle: String
           <div
             class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
             @if(optionHelpText(index).body.nonEmpty) {
-            data-target="helptext-@{fieldValue.id}@index"
+            data-target="helptext-@{fieldValue.id.appendIndex(index)}"
             }>
-              <input id="@{fieldValue.id}@index"
+              <input id="@{fieldValue.id.appendIndex(index)}"
                      name="@{fieldValue.id}"
                      value="@index"
                      type="@inputType"
                      @if(optionHelpText(index).body.nonEmpty) {
-                     aria-controls="helptext-@{fieldValue.id}@index"
+                     aria-controls="helptext-@{fieldValue.id.appendIndex(index)}"
                      aria-expanded="false"
                      }
                      @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
@@ -82,14 +82,14 @@ sectionTitle: String
                      role="@inputType"
               />
 
-              <label for="@{fieldValue.id}@index">
+              <label for="@{fieldValue.id.appendIndex(index)}">
                 @option
               </label>
           </div>
 
           @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
               @if(optionHelpText(index).body.nonEmpty){
-              <div id="helptext-@{fieldValue.id}@index" class="panel panel-border-narrow js-hidden" aria-hidden="true">
+              <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-border-narrow js-hidden" aria-hidden="true">
                   @Html(optionHelpText(index).body)
               </div>
               }
@@ -99,7 +99,7 @@ sectionTitle: String
           @options.toList.zipWithIndex.map{ case (option, index) =>
               @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("horizontal")) {
                   @if(optionHelpText(index).body.nonEmpty){
-                  <div id="helptext-@{fieldValue.id}@index" class="panel panel-border-narrow js-hidden" aria-hidden="true">
+                  <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-border-narrow js-hidden" aria-hidden="true">
                       @Html(optionHelpText(index).body)
                   </div>
                   }
