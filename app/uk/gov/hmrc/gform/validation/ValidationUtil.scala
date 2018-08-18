@@ -36,9 +36,6 @@ object ValidationUtil {
   type ValidatedNumeric = Validated[String, Int]
   type ValidatedConcreteDate = Validated[GformError, ConcreteDate]
 
-  //TODO: name it and use it
-  type XXX = Map[FormComponent, FormFieldValidationResult]
-
   type ValidatedType = Validated[GformError, Unit]
 
   val printErrors: (Map[String, Set[String]]) => Set[String] = (map: Map[String, Set[String]]) => {

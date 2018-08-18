@@ -23,7 +23,6 @@ import play.api.libs.json._
 
 import scala.collection.immutable._
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 
 sealed trait ComponentType
 
@@ -110,7 +109,9 @@ case class Group(
   repeatsMin: Option[Int] = None,
   repeatLabel: Option[String] = None,
   repeatAddAnotherText: Option[String] = None
-) extends ComponentType
+) extends ComponentType {
+  val baseGroupList = GroupList(fields)
+}
 
 case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
 

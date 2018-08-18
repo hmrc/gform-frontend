@@ -47,7 +47,6 @@ class DeclarationController(
   auth: AuthenticatedRequestActions,
   gformConnector: GformConnector,
   auditService: AuditService,
-  repeatService: RepeatingComponentService,
   summaryController: SummaryController,
   pdfService: PdfGeneratorService,
   renderer: SectionRenderingService,
@@ -62,7 +61,7 @@ class DeclarationController(
       cache.form.status match {
         case Validated =>
           renderer
-            .renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, None, Map.empty, Nil, lang)
+            .renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, Valid(()), Map.empty, Nil, lang)
             .map(Ok(_))
         case _ => Future.successful(BadRequest)
       }
@@ -144,7 +143,7 @@ class DeclarationController(
                                  cache.retrievals,
                                  cache.formTemplate,
                                  formDataMap(updatedForm.formData))
-                  _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, None, Signed))
+                  _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, Signed))
                   //todo perhaps not make these calls at all if the feature flag is false?
                   summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
                   cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml)
@@ -158,7 +157,6 @@ class DeclarationController(
                   _ <- if (config.sendPdfWithSubmission)
                         gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF, cache.retrievals.affinityGroup)
                       else { gformConnector.submitForm(formId, customerId, cache.retrievals.affinityGroup) }
-                  _ <- repeatService.clearSession
                 } yield {
                   if (customerId.isEmpty)
                     Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
@@ -179,7 +177,7 @@ class DeclarationController(
                            cache.form,
                            cache.formTemplate,
                            cache.retrievals,
-                           Some(validationResult),
+                           validationResult,
                            data,
                            errorMap,
                            lang)

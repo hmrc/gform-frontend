@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.services
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.keystore.{ RepeatingComponentService, SessionCacheConnector }
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.cache.client.CacheMap
 
@@ -36,30 +35,16 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`))
 
-    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
-      override def fetch()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CacheMap]] =
-        Future.successful(None)
-    }
-
-    val testService = new RepeatingComponentService(testSessionCacheConnector, null)
-
-    testService.getAllSections(formTemplate, Map.empty).futureValue shouldBe List(`section - group`)
+    RepeatingComponentService.getAllSections(formTemplate, Map.empty) shouldBe List(`section - group`)
   }
 
   it should "return no dynamically created sections when field in repeatsMax expression in repeating group and no form data" in {
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, `repeating section`))
 
-    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
-      override def fetch()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CacheMap]] =
-        Future.successful(None)
-    }
-
-    val testService = new RepeatingComponentService(testSessionCacheConnector, null)
-
     val expectedList = List(`section - group`)
 
-    testService.getAllSections(formTemplate, Map.empty).futureValue shouldBe expectedList
+    RepeatingComponentService.getAllSections(formTemplate, Map.empty) shouldBe expectedList
   }
 
   it should "return dynamically created sections (title and shortName text built dynamically) when field to track in repeating group, and non-empty form data" in {
@@ -76,38 +61,25 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     val thisSection1 = `section - group`.copy(fields = List(thisGroupFieldValue))
 
     val thisSection2 = `repeating section`.copy(
-      title = """${n_repeatingSectionDriver}, $n""",
-      shortName = Some("""$n, ${n_repeatingSectionDriver}""")
+      title = """${n_firstName}, $n""",
+      shortName = Some("""$n, ${n_firstName}"""),
+      fields = List(
+        `fieldValue - firstName`
+      )
     )
     val formTemplate = super.formTemplate.copy(sections = List(thisSection1, thisSection2))
 
-    val textFieldR = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
+    val textFieldR = `fieldValue - firstName`.copy(id = FormComponentId(s"1_${`fieldId - firstName`.value}"))
     val sectionR = thisSection2.copy(fields = List(textFieldR), title = "ONE, 1", shortName = Some("1, ONE"))
 
-    val textFieldR2 = `fieldValue - surname`.copy(id = FormComponentId(s"2_${`fieldId - surname`.value}"))
+    val textFieldR2 = `fieldValue - firstName`.copy(id = FormComponentId(s"2_${`fieldId - firstName`.value}"))
     val sectionR2 = thisSection2.copy(fields = List(textFieldR2), title = "TWO, 2", shortName = Some("2, TWO"))
-
-    val jsValue = Json.toJson(
-      RepeatingGroup(
-        List(
-          List(`fieldValue - firstName`),
-          List(`fieldValue - firstName`.copy(id = FormComponentId(s"1_${`fieldId - firstName`.value}")))),
-        true))
-    val mockCache = CacheMap("YEAH_MAN", Map("GroupFieldValueId" -> jsValue))
-    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
-      override def fetch()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CacheMap]] =
-        Future.successful(Some(mockCache))
-    }
-
-    val testService = new RepeatingComponentService(testSessionCacheConnector, null)
 
     val expectedList = List(thisSection1, sectionR, sectionR2)
 
-    val formData = Map(
-      FormComponentId("repeatingSectionDriver")   -> Seq("ONE"),
-      FormComponentId("1_repeatingSectionDriver") -> Seq("TWO"))
+    val formData = Map(FormComponentId("firstName") -> Seq("ONE"), FormComponentId("1_firstName") -> Seq("TWO"))
 
-    testService.getAllSections(formTemplate, formData).futureValue shouldBe expectedList
+    RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
 
   it should "return a dynamically created section when field to track in a NON-repeating group" in {
@@ -118,15 +90,6 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, thisSection2))
 
-    val jsValue = Json.toJson(List(List(`fieldValue - firstName`)))
-    val mockCache = CacheMap("YEAH_MAN", Map("GroupFieldValueId" -> jsValue))
-    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
-      override def fetch()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CacheMap]] =
-        Future.successful(Some(mockCache))
-    }
-
-    val testService = new RepeatingComponentService(testSessionCacheConnector, null)
-
     val textFieldDosR = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
     val sectionR = thisSection2
       .copy(fields = List(textFieldDosR), title = "Repeating section title 1", shortName = Some("shortName 1"))
@@ -134,7 +97,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val formData = Map(`fieldId - firstName` -> Seq("1"))
 
-    testService.getAllSections(formTemplate, formData).futureValue shouldBe expectedList
+    RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
 
   it should "return dynamically created sections (title and shortName text built dynamically) when field to track in a NON-repeating group, with form data" in {
@@ -143,13 +106,6 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
       shortName = Some("shortName $n")
     )
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, thisSection2))
-
-    val testSessionCacheConnector = new SessionCacheConnector(null, null, null, null) {
-      override def fetch()(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CacheMap]] =
-        Future.successful(None)
-    }
-
-    val testService = new RepeatingComponentService(testSessionCacheConnector, null)
 
     val textFieldDos1 = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
     val textFieldDos2 = `fieldValue - surname`.copy(id = FormComponentId(s"2_${`fieldId - surname`.value}"))
@@ -161,6 +117,6 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val formData = Map(`fieldId - firstName` -> Seq("2"))
 
-    testService.getAllSections(formTemplate, formData).futureValue shouldBe expectedList
+    RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
 }

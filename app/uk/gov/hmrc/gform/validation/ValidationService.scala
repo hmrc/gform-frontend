@@ -46,8 +46,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class ValidationService(
   fileUploadService: FileUploadService,
-  gformConnector: GformConnector,
-  repeatService: RepeatingComponentService
+  gformConnector: GformConnector
 ) {
 
   private def validateFieldValue(
@@ -136,19 +135,17 @@ class ComponentsValidator(
         case _ => validationResult
       }).pure[Future]
 
-    // format: OFF
     fieldValue.`type` match {
-    case sortCode @ UkSortCode(_)   => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
-    case date @ Date(_, _, _)       => validIf(validateDate(fieldValue, date))
-    case text @ Text(constraint, _) => validIf(validateText(fieldValue, constraint, retrievals)(data))
-    case TextArea(constraint, _)    => validIf(validateText(fieldValue, constraint, retrievals)(data))
-    case address @ Address(_)       => validIf(validateAddress(fieldValue, address)(data))
-    case c @ Choice(_, _, _, _, _)  => validIf(validateChoice(fieldValue)(data))
-    case Group(_, _, _, _, _, _)    => validF //a group is read-only
-    case FileUpload()               => validateFileUpload(fieldValue)
-    case InformationMessage(_, _)   => validF
-  }
-  // format: ON
+      case sortCode @ UkSortCode(_)   => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
+      case date @ Date(_, _, _)       => validIf(validateDate(fieldValue, date))
+      case text @ Text(constraint, _) => validIf(validateText(fieldValue, constraint, retrievals)(data))
+      case TextArea(constraint, _)    => validIf(validateText(fieldValue, constraint, retrievals)(data))
+      case address @ Address(_)       => validIf(validateAddress(fieldValue, address)(data))
+      case c @ Choice(_, _, _, _, _)  => validIf(validateChoice(fieldValue)(data))
+      case Group(_, _, _, _, _, _)    => validF //a group is read-only
+      case FileUpload()               => validateFileUpload(fieldValue)
+      case InformationMessage(_, _)   => validF
+    }
   }
 
   def validF(implicit ec: ExecutionContext) =
@@ -290,53 +287,44 @@ class ComponentsValidator(
         val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
 
         file match {
-          // format: OFF
-        case Some(File(fileId, Error(Some(reason)), _))  => getError(fieldValue, reason)
-        case Some(File(fileId, Error(None), _))    => getError(fieldValue, "Unknown error from file upload")
-        case Some(File(fileId, Infected, _))       => getError(fieldValue, "Virus detected")
-        case Some(File(fileId, _, _))              => ().valid
-        case None if fieldValue.mandatory          => getError(fieldValue, "Upload a file")
-        case None                                  => ().valid
-        // format: ON
+          case Some(File(fileId, Error(Some(reason)), _)) => getError(fieldValue, reason)
+          case Some(File(fileId, Error(None), _))         => getError(fieldValue, "Unknown error from file upload")
+          case Some(File(fileId, Infected, _))            => getError(fieldValue, "Virus detected")
+          case Some(File(fileId, _, _))                   => ().valid
+          case None if fieldValue.mandatory               => getError(fieldValue, "Upload a file")
+          case None                                       => ().valid
         }
       }
 
   private def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
     data: Map[FormComponentId, Seq[String]]): ValidatedType = {
     val textData = data.get(fieldValue.id).toList.flatten
-    // format: OFF
-      (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
-        case (true, Nil, _)                                    => getError(fieldValue, "Please enter required data")
-        case (_, _, AnyText)                                   => ().valid
-        case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
-        case (_, value :: Nil, BasicText)                      => textValidation(fieldValue, value)
-        case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(fieldValue, value, min, max)
-        case (_, value :: Nil, Sterling) =>
-          validateNumber(
-            fieldValue,
-            value,
-            ValidationValues.sterlingLength,
-            TextConstraint.defaultFactionalDigits,
-            false)
-        case (_, value :: Nil, UkBankAccountNumber) =>
-          checkLength(fieldValue, value, ValidationValues.bankAccountLength)
-        case (_, value :: Nil, UTR)              => checkId(fieldValue, value)
-        case (_, value :: Nil, NINO)             => checkId(fieldValue, value)
-        case (_, value :: Nil, UkVrn)            => checkVrn(fieldValue, value)
-        case (_, value :: Nil, NonUkCountryCode) => checkNonUkCountryCode(fieldValue, value)
-        case (_, value :: Nil, CountryCode)      => checkCountryCode(fieldValue, value)
-        case (_, value :: Nil, TelephoneNumber) =>
-          textValidator(fieldValue, value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
-        case (_, value :: Nil, Email) =>
-          Monoid.combine(email(fieldValue, value), textValidator(fieldValue, value, 0, ValidationValues.emailLimit))
-        case (_, value :: Nil, Number(maxWhole, maxFractional, _)) =>
-          validateNumber(fieldValue, value, maxWhole, maxFractional, false)
-        case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) =>
-          validateNumber(fieldValue, value, maxWhole, maxFractional, true)
-        case (false, Nil, _)       => ().valid
-        case (_, value :: rest, _) => ().valid // we don't support multiple values yet
-      }
-    // format: ON
+    (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
+      case (true, Nil, _)                                    => getError(fieldValue, "Please enter required data")
+      case (_, _, AnyText)                                   => ().valid
+      case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
+      case (_, value :: Nil, BasicText)                      => textValidation(fieldValue, value)
+      case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(fieldValue, value, min, max)
+      case (_, value :: Nil, Sterling) =>
+        validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
+      case (_, value :: Nil, UkBankAccountNumber) =>
+        checkLength(fieldValue, value, ValidationValues.bankAccountLength)
+      case (_, value :: Nil, UTR)              => checkId(fieldValue, value)
+      case (_, value :: Nil, NINO)             => checkId(fieldValue, value)
+      case (_, value :: Nil, UkVrn)            => checkVrn(fieldValue, value)
+      case (_, value :: Nil, NonUkCountryCode) => checkNonUkCountryCode(fieldValue, value)
+      case (_, value :: Nil, CountryCode)      => checkCountryCode(fieldValue, value)
+      case (_, value :: Nil, TelephoneNumber) =>
+        textValidator(fieldValue, value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
+      case (_, value :: Nil, Email) =>
+        Monoid.combine(email(fieldValue, value), textValidator(fieldValue, value, 0, ValidationValues.emailLimit))
+      case (_, value :: Nil, Number(maxWhole, maxFractional, _)) =>
+        validateNumber(fieldValue, value, maxWhole, maxFractional, false)
+      case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) =>
+        validateNumber(fieldValue, value, maxWhole, maxFractional, true)
+      case (false, Nil, _)       => ().valid
+      case (_, value :: rest, _) => ().valid // we don't support multiple values yet
+    }
   }
 
   private def checkVrn(fieldValue: FormComponent, value: String) = {

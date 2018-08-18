@@ -16,11 +16,16 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
+import cats.Semigroup
 import play.api.libs.json._
 
-case class FormData(fields: Seq[FormField])
+case class FormData(fields: Seq[FormField]) extends AnyVal
 
 object FormData {
+
+  implicit val semigroup: Semigroup[FormData] = new Semigroup[FormData] {
+    def combine(x: FormData, y: FormData): FormData = FormData(x.fields ++ y.fields)
+  }
 
   implicit val format: OFormat[FormData] = Json.format[FormData]
 }

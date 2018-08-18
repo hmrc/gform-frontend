@@ -51,7 +51,7 @@ class EnrolmentController(
       formTemplate.authConfig match {
         case authConfig: AuthConfigWithEnrolment =>
           renderer
-            .renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Map.empty, Nil, None, lang)
+            .renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, Map.empty, Nil, Valid(()), lang)
             .map(Ok(_))
         case _ =>
           Future.successful(
@@ -167,7 +167,7 @@ class EnrolmentController(
                authConfig.enrolmentSection,
                data,
                errorMap,
-               Some(validationResult),
+               validationResult,
                lang)
     } yield Ok(html)
   }

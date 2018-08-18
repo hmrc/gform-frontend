@@ -48,14 +48,8 @@ object Recalculation {
 
     val graph: Graph[FormComponentId, DiEdge] = toGraph(formTemplate)
 
-    def expandGroupComponent(fc: FormComponent): Map[FormComponentId, FormComponent] =
-      fc.expandFormComponent.expandedFC.map(fc => fc.id -> fc).toMap
-
-    val fcLookup: Map[FormComponentId, FormComponent] = {
-      val maps: List[Map[FormComponentId, FormComponent]] =
-        formTemplate.sections.flatMap(_.fields).map(expandGroupComponent)
-      maps.foldLeft(Map.empty[FormComponentId, FormComponent])(_ ++ _)
-    }
+    val fcLookup: Map[FormComponentId, FormComponent] =
+      formTemplate.expandFormTemplate.allFCs.map(fc => fc.id -> fc).toMap
 
     val lookupMap: Map[FormComponentId, String] =
       formData.fields.map { case FormField(id, value) => id -> value }.toMap
@@ -66,8 +60,11 @@ object Recalculation {
         val genesisLookup: Either[GraphException, Map[FormComponentId, String]] = Right(lookupMap)
         graphTopologicalOrder.map(_._2).foldRight(genesisLookup) {
           case (iter, dataLookup) =>
-            iter.toList.foldLeft(dataLookup) {
-              case (dataLookupE, node) => dataLookupE.flatMap(calculate(node.toOuter, fcLookup, _))
+            val nodes: List[FormComponentId] = iter.toList.collect {
+              case node if lookupMap.get(node.toOuter).isDefined => node.toOuter
+            }
+            nodes.foldLeft(dataLookup) {
+              case (dataLookupE, node) => dataLookupE.flatMap(calculate(node, fcLookup, _))
             }
         }
       }

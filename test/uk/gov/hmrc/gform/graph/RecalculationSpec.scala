@@ -91,12 +91,12 @@ class RecalculationSpec extends FlatSpec with Matchers {
     val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
 
     res match {
-      case Right(FormData(List(FormField(FormComponentId("b"), ""), FormField(FormComponentId("a"), "")))) => succeed
-      case otherwise                                                                                       => fail
+      case Right(FormData(List(FormField(FormComponentId("b"), "")))) => succeed
+      case otherwise                                                  => fail
     }
   }
 
-  it should "detect missing FormComponent data" in {
+  it should "detect missing submission data and treat them as empty" in {
 
     val inputData = mkFormData(
       "a" -> "1",
@@ -115,8 +115,8 @@ class RecalculationSpec extends FlatSpec with Matchers {
     val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
 
     res match {
-      case Left(NoFormComponent(FormComponentId("c"), _)) => succeed
-      case otherwise                                      => fail
+      case Right(FormData(List(FormField(FormComponentId("a"), "1"), FormField(FormComponentId("b"), "")))) => succeed
+      case otherwise                                                                                        => fail
     }
   }
 
