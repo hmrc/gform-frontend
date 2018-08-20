@@ -34,7 +34,7 @@ class GroupSpec extends Spec {
       List(
         FormComponent(
           FormComponentId("tid"),
-          Text(AnyText, Constant("")),
+          Text(AnyText, Value),
           "tlabel",
           None,
           None,

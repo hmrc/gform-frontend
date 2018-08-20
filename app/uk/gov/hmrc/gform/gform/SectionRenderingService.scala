@@ -51,7 +51,6 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.gform.models.helpers.HasExpr
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier

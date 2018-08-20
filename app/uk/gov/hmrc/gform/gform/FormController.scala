@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.implicits._
+import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
@@ -27,6 +28,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel._
@@ -309,7 +311,7 @@ class FormController(
             userData = UserData(formData, keystore, InProgress)
             _           <- gformConnector.updateUserData(formId, userData)
             isFormValid <- isFormValidF
-            sectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(sn.value).title)
+            sectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(sn.value).title) // TODO JoVl GFC-484 lookup into formTemplate.sections is wrong
             gotoForm = routes.FormController.form(formId, cache.formTemplate._id.to4Ga, sn, sectionTitle4Ga, lang)
             gotoFormError = routes.FormController
               .formError(formId, cache.formTemplate._id.to4Ga, sectionNumber, sectionTitle4Ga, lang)
@@ -321,7 +323,12 @@ class FormController(
             formData      <- formDataF
             keystore      <- repeatService.getData()
             sections      <- sectionsF
-            userData      = UserData(formData, keystore, Summary)
+            formDataUpdE   = Recalculation.recalculateFormData(formData, cache.formTemplate)
+            formDataUpd    = formDataUpdE match {
+              case Left(graphException) => Logger.error(graphException.reportProblem); formData
+              case Right(fd) => fd
+            }
+            userData       = UserData(formDataUpd, keystore, Summary)
             _             <- gformConnector.updateUserData(formId, userData)
             isFormValid   <- isFormValidF
             originSectionTitle4Ga =  sectionTitle4GaFactory(sections(sectionNumber.value).title)
@@ -358,7 +365,7 @@ class FormController(
             keystore <- repeatService.getData()
             formData <- formDataF
             userData = UserData(formData, keystore, InProgress)
-            sectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(sn.value).title)
+            sectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(sn.value).title) // TODO JoVl GFC-484 lookup into formTemplate.sections is wrong
             result <- gformConnector
                        .updateUserData(formId, userData)
                        .map(response =>

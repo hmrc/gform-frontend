@@ -203,7 +203,7 @@ object SummaryRenderingService {
         Future
           .traverse(sectionsToRender) {
             case (section, index) =>
-              val sectionTitle4Ga = sectionTitle4GaFactory(formTemplate.sections(index).title)
+              val sectionTitle4Ga = sectionTitle4GaFactory(formTemplate.sections(index).title) // TODO JoVl GFC-484 lookup into formTemplate.sections is wrong
               val begin = begin_section(
                 formTemplate._id.to4Ga,
                 formId,

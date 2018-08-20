@@ -24,7 +24,7 @@ class TextFormatterSpec extends Spec {
 
   def getComponent(constraint: TextConstraint) = FormComponent(
     `fieldId - firstName`,
-    Text(constraint, Constant("")),
+    Text(constraint, Value),
     "First Name",
     None,
     None,

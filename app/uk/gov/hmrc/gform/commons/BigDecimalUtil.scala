@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.helpers
+package uk.gov.hmrc.gform.commons
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, Text, TextArea }
+import scala.util.Try
 
-object HasExpr {
-  def unapply(fc: FormComponent): Option[Expr] =
-    fc.`type` match {
-      case Text(_, expr)     => Some(expr)
-      case TextArea(_, expr) => Some(expr)
-      case _                 => None
-    }
+object BigDecimalUtil {
+
+  def toBigDecimalSafe(str: String): Option[BigDecimal] =
+    Try(BigDecimal(str.replace(",", ""))).toOption
+
+  def toBigDecimalDefault(str: String): BigDecimal =
+    toBigDecimalSafe(str).getOrElse(0)
+
 }
