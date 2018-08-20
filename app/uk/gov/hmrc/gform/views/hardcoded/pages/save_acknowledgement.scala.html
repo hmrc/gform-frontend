@@ -35,32 +35,28 @@
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
-<br>
-<div style="background-color : #28A197 ; text-align : center ; padding : 10 px ; color : #ffffff ;">
-    <br/>
-    <p><span class="h1-heading" style="color : #ffffff ;">Your form progress is saved</span></p>
-    <br/>
-    <p><span>This information is held for 30 days from when you began the form</span></p>
-    <br/>
+<div class = "transaction-banner--complete">
+    <h1 class ="transaction-banner__heading">Your form progress has been saved</h1>
+    <p>Your information is held for 30 days in a secured environment.</p>
 </div>
-<br>
 
-<p>If the form you are working on has a submission deadline you will need to return and complete the form before that deadline</p>
-<fieldset class="form-field-group panel-indent panel-indent--gutter">
-    <label class="form-element-bold">
-        Your form is not processed by HMRC until you confirm it is complete
-</fieldset>
+<p>You’ll need to log in to the sign-in page to retrieve your application.</p>
+<div class="panel-indent panel-indent--gutter bold-small">
+    For us to consider your claim, you’ll need to submit it.
+</div>
 <p>You can</p>
-
-<li>
-    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, originSectionNumber, sectionTitle4Ga, lang)">
+<ul class = "bullets">
+   <li>
+      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, originSectionNumber, sectionTitle4Ga, lang)">
         Continue
-    </a>
-    the form
-</li>
-<li>delete and
-    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id.to4Ga, formId, lang)">
+      </a>
+     the form
+   </li>
+   <li>
+     delete and
+      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id.to4Ga, formId, lang)">
         Start again
-    </a>
-</li>
+      </a>
+   </li>
+</ul>
 }
