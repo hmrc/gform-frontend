@@ -28,7 +28,11 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
-<div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
+}
+
+<div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
         @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
@@ -53,7 +57,7 @@
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
         val errors: Set[String] = ValidationUtil.printErrors(map)
 
-        errors.map(e => errorInline(e, e, Seq("")))
+        errors.map(e => errorInline(e, e, Seq("error-message")))
     }
 
     @if(!fieldValue.isSterling) {
