@@ -36,71 +36,75 @@ optionHelpText: List[Html],
 index: Int,
 sectionTitle: String
 )
-<div class="form-group">
-    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-group-error}">
-        <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" id=@{fieldValue.id}>
-            @if(fieldValue.label.nonEmpty) {
-            <legend class="form-label">
-              @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
-              @if(fieldValue.helpText) {
-                <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
-              }  
-            </legend>
-            } else {
-            <legend class="visuallyhidden">
-              @{sectionTitle}
-              @if(fieldValue.helpText) {
-                <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
-              } 
-            </legend>
+
+@hasErrors = @{
+  validationResult.map(_.isOk).contains(false)
+}
+
+<div class="form-group@if(hasErrors) { form-group-error}">
+
+      <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" id=@{fieldValue.id}>
+          @if(fieldValue.label.nonEmpty) {
+          <legend class="form-label">
+            @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+            @if(fieldValue.helpText) {
+              <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
             }
+          </legend>
+          } else {
+          <legend class="visuallyhidden">
+            @{sectionTitle}
+            @if(fieldValue.helpText) {
+              <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+            }
+          </legend>
+          }
 
-            
-
+          @if(hasErrors) {
             @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq("error-message"))
+          }
 
-            @options.toList.zipWithIndex.map{ case (option, index) =>
-            <div
-              class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
-              @if(optionHelpText(index).body.nonEmpty) {
-              data-target="helptext-@{fieldValue.id}@index"
-              }>
-                <input id="@{fieldValue.id}@index"
-                       name="@{fieldValue.id}"
-                       value="@index"
-                       type="@inputType"
-                       @if(optionHelpText(index).body.nonEmpty) {
-                       aria-controls="helptext-@{fieldValue.id}@index"
-                       aria-expanded="false"
-                       }
-                       @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
-                       index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
-                       role="@inputType"
-                />
+          @options.toList.zipWithIndex.map{ case (option, index) =>
+          <div
+            class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
+            @if(optionHelpText(index).body.nonEmpty) {
+            data-target="helptext-@{fieldValue.id}@index"
+            }>
+              <input id="@{fieldValue.id}@index"
+                     name="@{fieldValue.id}"
+                     value="@index"
+                     type="@inputType"
+                     @if(optionHelpText(index).body.nonEmpty) {
+                     aria-controls="helptext-@{fieldValue.id}@index"
+                     aria-expanded="false"
+                     }
+                     @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
+                     index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
+                     role="@inputType"
+              />
 
-                <label for="@{fieldValue.id}@index">
-                  @option
-                </label>
-            </div>
+              <label for="@{fieldValue.id}@index">
+                @option
+              </label>
+          </div>
 
-            @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
-                @if(optionHelpText(index).body.nonEmpty){
-                <div id="helptext-@{fieldValue.id}@index" class="panel panel-border-narrow js-hidden" aria-hidden="true">
-                    @Html(optionHelpText(index).body)
-                </div>
-                }
+          @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
+              @if(optionHelpText(index).body.nonEmpty){
+              <div id="helptext-@{fieldValue.id}@index" class="panel panel-border-narrow js-hidden" aria-hidden="true">
+                  @Html(optionHelpText(index).body)
+              </div>
               }
             }
+          }
 
-            @options.toList.zipWithIndex.map{ case (option, index) =>
-                @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("horizontal")) {
-                    @if(optionHelpText(index).body.nonEmpty){
-                    <div id="helptext-@{fieldValue.id}@index" class="panel panel-border-narrow js-hidden" aria-hidden="true">
-                        @Html(optionHelpText(index).body)
-                    </div>
-                    }
-                }
-            }
-        </fieldset>
-    </div>
+          @options.toList.zipWithIndex.map{ case (option, index) =>
+              @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("horizontal")) {
+                  @if(optionHelpText(index).body.nonEmpty){
+                  <div id="helptext-@{fieldValue.id}@index" class="panel panel-border-narrow js-hidden" aria-hidden="true">
+                      @Html(optionHelpText(index).body)
+                  </div>
+                  }
+              }
+          }
+      </fieldset>
 </div>
