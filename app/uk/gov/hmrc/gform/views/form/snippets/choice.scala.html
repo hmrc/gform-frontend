@@ -38,7 +38,7 @@ sectionTitle: String
 )
 
 @hasErrors = @{
-  validationResult.map(_.isOk).contains(false)
+  validationResult.exists(_.isNotOk)
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
