@@ -292,3 +292,8 @@ table td:first-child.grid-layout__column--1-3 {
   border-bottom: none;
   font-weight: bold;
 }
+
+/* Alignment to Design system form-hint */
+.form-hint{
+    margin-bottom: 10px;
+}

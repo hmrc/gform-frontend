@@ -32,21 +32,21 @@
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
         @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-        @if(fieldValue.helpText) {
-          <span class="form-hint @if(fieldValue.derived){js-hidden}">
+      </label>
+    @if(fieldValue.helpText) {
+    <span class="form-hint @if(fieldValue.derived){js-hidden}">
             @{fieldValue.helpText}
           </span>
-        }
-      </label>
+    }
     } else {
       <label for="@{fieldValue.id}" class="visuallyhidden">
         @sectionTitle
-        @if(fieldValue.helpText) {
-          <span class="form-hint @if(fieldValue.derived){js-hidden}">
+      </label>
+    @if(fieldValue.helpText) {
+    <span class="form-hint @if(fieldValue.derived){js-hidden}">
             @{fieldValue.helpText}
           </span>
-        }
-      </label>
+    }
     }
 
     @{
