@@ -28,7 +28,13 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
-<div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
+}
+
+@inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
+
+<div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
         @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
@@ -53,7 +59,7 @@
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
         val errors: Set[String] = ValidationUtil.printErrors(map)
 
-        errors.map(e => errorInline(e, e, Seq("")))
+        errors.map(e => errorInline(e, e, Seq("error-message")))
     }
 
     @if(!fieldValue.isSterling) {
@@ -63,7 +69,7 @@
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
         value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-        class="form-control @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text.constraint)
+        class="@inputClasses @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text.constraint)
     } else {
     <span class="input-currency">
         <input
@@ -72,7 +78,7 @@
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
             value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-            class="form-control input--no-spinner input--left-padding">
+            class="@inputClasses input--no-spinner input--left-padding">
     </span>
     }
 </div>
