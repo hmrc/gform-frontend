@@ -27,8 +27,13 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
 
-<div class="form-group @if(validationResult.map(_.isOk).contains(false)) { form-group-error }">
-  @* TODO: What should total style be? *@
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
+}
+
+@inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
+
+<div class="form-group @if(hasErrors) { form-group-error }">
   <label for="@{fieldValue.id}">
     @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
     @if(fieldValue.helpText) {
@@ -50,6 +55,6 @@
       @if(!fieldValue.editable) { readonly="" }
       id="@fieldId"
       value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
-      class="form-control input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
+      class="@inputClasses input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
     }
 </div>
