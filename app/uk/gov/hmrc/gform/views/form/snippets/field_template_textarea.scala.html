@@ -32,6 +32,8 @@
   validationResult.exists(_.isNotOk)
 }
 
+@inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
+
 <div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
@@ -62,7 +64,7 @@
         rows="10"
         cols="30"
         @if(!fieldValue.editable) { readonly="" }
-        class="form-control @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}"
+        class="@inputClasses @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}"
         id="@fieldValue.id">@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)</textarea> @TextFormatter.appendUnit(textArea.constraint)
     } else {
     <span class="input-currency">
@@ -71,7 +73,7 @@
             rows="10"
             cols="30"
             @if(!fieldValue.editable) { readonly="" }
-            class="form-control input--no-spinner input--left-padding"
+            class="@inputClasses input--no-spinner input--left-padding"
             id="@fieldValue.id">@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)</textarea>
     </span>
     }

@@ -46,9 +46,13 @@ lang: Option[String]
     v.getOrElse(defaultLabel)
 }
 
-<div class="form-group">
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
+}
+
+<div class="form-group@if(hasErrors) { form-group-error}">
     <div
-      class="file-uploader @if(!validationResult.forall(_.isOk)) { form-group-error }"
+      class="file-uploader"
       data-form-id="@{formId.value}"
       data-file-id="@{fieldValue.id.value}"
       data-upload-text="@{defaultLabel}"

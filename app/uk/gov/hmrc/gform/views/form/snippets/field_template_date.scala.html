@@ -30,8 +30,13 @@
 fieldValue.id.withSuffix(id).toString
 }
 
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
+}
 
-  <div class="form-group @if(validationResult.map(_.isOk).contains(false)) { form-group-error }">
+@inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
+
+  <div class="form-group @if(hasErrors) { form-group-error }">
       <fieldset>
           <legend>
             <span class="form-label-bold">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</span>
@@ -56,7 +61,7 @@ fieldValue.id.withSuffix(id).toString
                          @if(!fieldValue.editable) { readonly="" }
                          id="@{fieldValue.id}-day"
                          value="@validationResult.flatMap(_.getOptionalCurrentValue(safeId("day"))).orElse(prepop.map(_.day)).getOrElse("")"
-                         class="form-control input--xxsmall" />
+                         class="@inputClasses input--xxsmall" />
               </div>
 
               <div class="form-group">
@@ -67,7 +72,7 @@ fieldValue.id.withSuffix(id).toString
                          @if(!fieldValue.editable) { readonly="" }
                          id="@{fieldValue.id}-month"
                          value="@validationResult.flatMap(_.getOptionalCurrentValue(safeId("month"))).orElse(prepop.map(_.month)).getOrElse("")"
-                         class="form-control input--xxsmall" />
+                         class="@inputClasses input--xxsmall" />
               </div>
 
               <div class="form-group form-group-year">
@@ -78,7 +83,7 @@ fieldValue.id.withSuffix(id).toString
                          @if(!fieldValue.editable) { readonly="" }
                          id="@{fieldValue.id}-year"
                          value="@validationResult.flatMap(_.getOptionalCurrentValue(safeId("year"))).orElse(prepop.map(_.year)).getOrElse("")"
-                         class="form-control input--xsmall" />
+                         class="@inputClasses input--xsmall" />
               </div>
           </div>
       </fieldset>
