@@ -85,7 +85,7 @@ object Fields {
     envelope: Envelope,
     gformErrors: Map[FormComponentId, Set[String]])(fieldValue: FormComponent): Option[FormFieldValidationResult] = {
     val formFields: Map[FormComponentId, FormField] =
-      toFormField(formFieldMap, fieldValues).filter(_.value.nonEmpty).map(hf => hf.id -> hf).toMap
+      toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
 
     val dataGetter: FormComponentId => List[FormField] = fId => formFields.get(fId).toList
 
