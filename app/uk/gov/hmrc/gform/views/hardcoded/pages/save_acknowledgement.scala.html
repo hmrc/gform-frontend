@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
     formId: FormId,
@@ -36,13 +37,13 @@
     frontendAppConfig = frontendAppConfig
 ) {
 <div class = "transaction-banner--complete">
-    <h1 class ="transaction-banner__heading">Your application has been saved</h1>
+    <h1 class ="transaction-banner__heading">Your @formCategory(formTemplate) has been saved</h1>
     <p>Your information is held for 30 days in a secured environment.</p>
 </div>
 
-<p>You’ll need to log in to the sign-in page to retrieve your application.</p>
+<p>You’ll need to log in to the sign-in page to retrieve your @formCategory(formTemplate).</p>
 <div class="panel-indent panel-indent--gutter bold-small">
-    For us to consider your application, you’ll need to submit it.
+    For us to consider your @formCategory(formTemplate), you’ll need to submit it.
 </div>
 <p>You can:</p>
 <ul class = "bullets">
@@ -50,7 +51,7 @@
       <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, originSectionNumber, sectionTitle4Ga, lang)">
         Return
       </a>
-     to your application
+     to your @formCategory(formTemplate)
    </li>
    <li>
      delete and
