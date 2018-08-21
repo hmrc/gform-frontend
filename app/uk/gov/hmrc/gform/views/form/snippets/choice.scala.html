@@ -59,7 +59,7 @@ sectionTitle: String
           </legend>
           }
 
-          @if(hasErrors) {app/uk/gov/hmrc/gform/views/form/snippets/choiceInline.scala.html
+          @if(hasErrors) {
             @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq("error-message"))
           }
 
