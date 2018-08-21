@@ -37,3 +37,11 @@ object HasSterling {
       case _                     => None
     }
 }
+
+object FormComponentHelper {
+  def roundTo(fc: FormComponent) = fc.`type` match {
+    case HasDigits(digits)   => digits
+    case HasSterling(digits) => digits
+    case _                   => TextConstraint.defaultFactionalDigits
+  }
+}

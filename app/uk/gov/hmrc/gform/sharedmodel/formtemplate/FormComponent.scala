@@ -17,6 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+
+case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal
 
 case class FormComponent(
   id: FormComponentId,
@@ -32,8 +35,40 @@ case class FormComponent(
   onlyShowOnSummary: Boolean = false,
   errorMessage: Option[String],
   presentationHint: Option[List[PresentationHint]] = None
-)
+) {
+
+  private def updateField(i: Int, fc: FormComponent): FormComponent =
+    fc.copy(
+      label = LabelHelper.buildRepeatingLabel(fc, i),
+      shortName = LabelHelper.buildRepeatingLabel(fc.shortName, i))
+
+  private def loop(fc: FormComponent): List[FormComponent] =
+    fc.`type` match {
+      case Group(fields, _, max, _, _, _) =>
+        val expandedFields =
+          for {
+            field <- fields
+            res <- updateField(1, field) :: (1 until (max.getOrElse(1)))
+                    .map(i => updateField(i + 1, field.copy(id = FormComponentId(i + "_" + field.id.value))))
+                    .toList
+          } yield res
+        expandedFields.flatMap(loop) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
+
+      case _ => fc :: Nil
+    }
+
+  val expandFormComponent: ExpandedFormComponent = ExpandedFormComponent(loop(this))
+
+}
 
 object FormComponent {
   implicit val format = Json.format[FormComponent]
+}
+
+object IsGroup {
+  def unapply(fc: FormComponent): Option[Group] =
+    fc.`type` match {
+      case g @ Group(_, _, _, _, _, _) => Some(g)
+      case _                           => None
+    }
 }

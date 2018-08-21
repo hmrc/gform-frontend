@@ -24,7 +24,7 @@ final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr
 final case class Subtraction(field1: Expr, field2: Expr) extends Expr
 final case class FormCtx(value: String) extends Expr {
-  def toFieldId = FormComponentId(this.value)
+  def toFieldId = FormComponentId(value)
 }
 final case class Sum(field1: Expr) extends Expr
 final case class AuthCtx(value: AuthInfo) extends Expr
@@ -38,6 +38,7 @@ object FormCtx {
 }
 
 object Expr {
+  val additionIdentity: Expr = Constant("0")
   implicit val format: OFormat[Expr] = derived.oformat
 }
 

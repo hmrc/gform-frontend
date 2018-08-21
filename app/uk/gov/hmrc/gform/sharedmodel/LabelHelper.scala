@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.service
+package uk.gov.hmrc.gform.sharedmodel
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 object LabelHelper {
   def buildRepeatingLabel(field: FormComponent, index: Int) =

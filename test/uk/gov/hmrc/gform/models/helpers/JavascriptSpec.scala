@@ -18,43 +18,59 @@ package uk.gov.hmrc.gform.models.helpers
 
 import cats.implicits._
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.models.Dependecies
+import uk.gov.hmrc.gform.sharedmodel.form.RepeatingGroup
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+import Function.const
 import scala.concurrent.Future
 
 class JavascriptSpec extends Spec {
 
-  private val c = Value
+  private val c = Constant("1")
 
   def formComponent(id: String, value: Expr = c) =
     FormComponent(FormComponentId(id), Text(AnyText, value), "", None, None, None, false, true, true, true, false, None)
 
-  private def fieldJavascript(field: FormComponent) = {
+  private def fieldJavascript(
+    field: FormComponent,
+    rfcIds: RepeatFormComponentIds = RepeatFormComponentIds(const(List.empty[FormComponentId]))) = {
     val fields = List(formComponent("thisSection"), field)
     Javascript.fieldJavascript(
       sectionFields = fields,
       allFields = formComponent("otherSection") :: fields,
-      groupList = List[List[List[FormComponent]]]())
+      repeatFormComponentIds = rfcIds,
+      dependencies = Dependecies(List.empty)
+    )
   }
 
   "if calculation references only a constant" should "not generate Javascript for the static calculation" in {
     val result = fieldJavascript(formComponent("staticExpr"))
-    result should not include ("addstaticExpr")
+    result should not include ("toFixed")
   }
 
   "if calculation references only a field in this section" should "not generate Javascript for the static calculation" in {
     val result = fieldJavascript(formComponent("staticExpr", FormCtx("thisSection")))
-    result should not include ("addstaticExpr")
+    val jsExp = """getValue("thisSection").toFixed(2, 0);"""
+    result should include(jsExp)
   }
 
   "if calculation references only a group in this section" should "generate Javascript for the dynamic calculation" in {
-    val result = fieldJavascript(formComponent("dynamicExpr", Sum(FormCtx("thisSection"))))
-    result should include("sumthisSection")
+    val thisSection = "thisSection"
+    val result =
+      fieldJavascript(
+        formComponent("dynamicExpr", Sum(FormCtx(thisSection))),
+        RepeatFormComponentIds(_ :: (1 until 5 map (i => FormComponentId(i + "_" + thisSection))).toList)
+      )
+    val jsExp =
+      """add(add(add(add(add(0, getValue("thisSection")), getValue("1_thisSection")), getValue("2_thisSection")), getValue("3_thisSection")), getValue("4_thisSection")).toFixed(2, 0)"""
+    result should include(jsExp)
   }
 
   "if calculation adds a field in this section" should "generate Javascript for the dynamic calculation" in {
     val result = fieldJavascript(formComponent("dynamicExpr", Add(FormCtx("thisSection"), c)))
-    result should include("adddynamicExpr")
+    val jsExp = """add(getValue("thisSection"), 1).toFixed(2, 0);"""
+    result should include(jsExp)
   }
 
   "if calculation deep inside uses a field in this section" should "generate Javascript for the dynamic calculation" in {
@@ -62,7 +78,10 @@ class JavascriptSpec extends Spec {
       formComponent(
         "dynamicExpr",
         Add(c, Add(Subtraction(c, Subtraction(Multiply(c, Multiply(FormCtx("thisSection"), c)), c)), c))))
-    result should include("adddynamicExpr")
+    val jsExp =
+      """add(1, add(subtract(1, subtract(multiply(1, multiply(getValue("thisSection"), 1)), 1)), 1)).toFixed(2, 0);"""
+    result should include(jsExp)
+
   }
 
 }

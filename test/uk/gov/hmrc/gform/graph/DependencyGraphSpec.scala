@@ -17,195 +17,129 @@
 package uk.gov.hmrc.gform.graph
 
 import org.scalactic.source.Position
-import uk.gov.hmrc.gform.Spec
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph._
+import FormTemplateBuilder._
 
-class DependencyGraphSpec extends Spec {
+class DependencyGraphSpec extends FlatSpec with Matchers {
 
-  "Recalculation" should "recalculate single dependency" in {
-
-    val inputData = mkFormData(
-      "a" -> "123",
-      "b" -> "eee"
+  "Dependency Graph" should "handle simple case of two dependencies" in {
+    val sections = List(
+      mkSection(List(mkFormComponent("a", Value))),
+      mkSection(List(mkFormComponent("b", FormCtx("a"))))
     )
-
-    val expectedOutputData = mkFormData(
-      "a" -> "123",
-      "b" -> "123"
+    layers(sections) shouldBe List(
+      (0, List("b")),
+      (1, List("a"))
     )
-
-    val sections =
-      mkSection("page 1", mkFormComponent("a", Value) :: Nil) ::
-        mkSection("page 2", mkFormComponent("b", FormCtx("a")) :: Nil) :: Nil
-
-    verify(inputData, expectedOutputData, sections)
-
   }
 
-  it should "detect cycle in dependencies (graph cannot be sorted)" in {
+  it should "handle long chain of dependencies" in {
 
-    val inputData = mkFormData(
-      "a" -> "1",
-      "b" -> "2"
+    val sections = List(
+      mkSection(List(mkFormComponent("a", Value))),
+      mkSection(List(mkFormComponent("b", FormCtx("a")))),
+      mkSection(List(mkFormComponent("c", FormCtx("b")))),
+      mkSection(List(mkFormComponent("d", FormCtx("c")))),
+      mkSection(List(mkFormComponent("e", FormCtx("d")))),
+      mkSection(List(mkFormComponent("f", FormCtx("e"))))
     )
 
-    val sections =
-      mkSection("page 1", mkFormComponent("a", FormCtx("b")) :: mkFormComponent("b", FormCtx("a")) :: Nil) :: Nil
+    layers(sections) shouldBe List(
+      (0, List("f")),
+      (1, List("e")),
+      (2, List("d")),
+      (3, List("c")),
+      (4, List("b")),
+      (5, List("a"))
+    )
+  }
 
-    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
+  it should "handle Group deps" in {
+    val sections = List(
+      mkSection(List(mkFormComponent("a", Value))),
+      mkSection(
+        List(
+          mkFormComponent("b", FormCtx("a")),
+          mkFormComponent("group", mkGroup(5, List(mkFormComponent("c", FormCtx("a")))))
+        )
+      )
+    )
 
-    res match {
-      case Left(NoTopologicalOrder(_, _)) => succeed
-      case otherwise                      => fail
+    layers(sections) shouldBe List(
+      (0, List("1_c", "2_c", "3_c", "4_c", "b", "c")),
+      (1, List("a"))
+    )
+  }
+
+  it should "Group deps Addition" in {
+    val sections = List(
+      mkSection(List(mkFormComponent("a", Value))),
+      mkSection(
+        List(
+          mkFormComponent("b", FormCtx("a")),
+          mkFormComponent("group", mkGroup(5, List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b"))))))
+        )
+      )
+    )
+
+    layers(sections) shouldBe List(
+      (0, List("1_c", "2_c", "3_c", "4_c", "c")),
+      (1, List("b")),
+      (2, List("a"))
+    )
+  }
+
+  it should "handle dependencies between Groups" in {
+    val sections = List(
+      mkSection(List(mkFormComponent("a", Value))),
+      mkSection(
+        List(
+          mkFormComponent("b", FormCtx("a")),
+          mkFormComponent("group", mkGroup(5, List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b"))))))
+        )),
+      mkSection(
+        List(
+          mkFormComponent("group2", mkGroup(3, List(mkFormComponent("d", FormCtx("c")))))
+        ))
+    )
+
+    layers(sections) shouldBe List(
+      (0, List("1_c", "1_d", "2_c", "2_d", "3_c", "4_c", "d")),
+      (1, List("c")),
+      (2, List("b")),
+      (3, List("a"))
+    )
+  }
+
+  it should "handle dependencies between Groups for Sum" in {
+    val sections = List(
+      mkSection(List(mkFormComponent("a", Value))),
+      mkSection(
+        List(
+          mkFormComponent("b", FormCtx("a")),
+          mkFormComponent("group", mkGroup(5, List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b"))))))
+        )),
+      mkSection(
+        List(
+          mkFormComponent("group2", mkGroup(3, List(mkFormComponent("d", Sum(FormCtx("c"))))))
+        ))
+    )
+
+    layers(sections) shouldBe List(
+      (0, List("1_d", "2_d", "d")),
+      (1, List("1_c", "2_c", "3_c", "4_c", "c")),
+      (2, List("b")),
+      (3, List("a"))
+    )
+  }
+
+  private def layers(sections: List[Section])(implicit position: Position): List[(Int, List[String])] =
+    constructDepencyGraph(toGraph(mkFormTemplate(sections))) match {
+      case Left(e) => fail
+      case Right(topOrder) =>
+        topOrder.toList.map { case (index, items) => (index, items.toList.map(_.toOuter.value).sorted) }
     }
-  }
-
-  it should "detect missing submission data" in {
-
-    val inputData = mkFormData(
-      "b" -> "2"
-    )
-
-    val sections =
-      mkSection("page 1", mkFormComponent("a", Value) :: mkFormComponent("b", FormCtx("a")) :: Nil) :: Nil
-
-    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
-
-    res match {
-      case Left(NoDataFound(FormComponentId("a"), _)) => succeed
-      case otherwise                                  => fail
-    }
-  }
-
-  it should "detect missing FormComponent data" in {
-
-    val inputData = mkFormData(
-      "a" -> "1",
-      "b" -> "2"
-    )
-
-    val sections =
-      mkSection("page 1", mkFormComponent("a", Value) :: mkFormComponent("b", FormCtx("c")) :: Nil) :: Nil
-
-    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
-
-    res match {
-      case Left(NoFormComponent(FormComponentId("c"), _)) => succeed
-      case otherwise                                      => fail
-    }
-  }
-
-  it should "recalculate chain of dependencies" in {
-    val inputData = mkFormData(
-      "a" -> "100",
-      "b" -> "100",
-      "c" -> "100",
-      "d" -> "100"
-    )
-
-    val expectedOutputData = mkFormData(
-      "a" -> "100",
-      "b" -> "110",
-      "c" -> "220",
-      "d" -> "330"
-    )
-
-    val sections =
-      mkSection("page 1", mkFormComponent("a", Value) :: Nil) ::
-        mkSection("page 2", mkFormComponent("b", Add(FormCtx("a"), Constant("10"))) :: Nil) ::
-        mkSection("page 3", mkFormComponent("c", Multiply(FormCtx("b"), Constant("2"))) :: Nil) ::
-        mkSection("page 4", mkFormComponent("d", Add(FormCtx("b"), FormCtx("c"))) :: Nil) :: Nil
-
-    verify(inputData, expectedOutputData, sections)
-
-  }
-
-  it should "recalculate trees of chain of dependencies" in {
-    val inputData = mkFormData(
-      "a" -> "100",
-      "b" -> "100",
-      "c" -> "200",
-      "d" -> "200"
-    )
-
-    val expectedOutputData = mkFormData(
-      "a" -> "100",
-      "b" -> "110",
-      "c" -> "200",
-      "d" -> "220"
-    )
-
-    val sections =
-      mkSection("page 1", mkFormComponent("a", Value) :: Nil) ::
-        mkSection("page 2", mkFormComponent("b", Add(FormCtx("a"), Constant("10"))) :: Nil) ::
-        mkSection("page 3", mkFormComponent("c", Value) :: Nil) ::
-        mkSection("page 4", mkFormComponent("d", Add(FormCtx("c"), Constant("20"))) :: Nil) :: Nil
-
-    verify(inputData, expectedOutputData, sections)
-
-  }
-
-  private def verify(input: FormData, expectedOutput: FormData, sections: List[Section])(
-    implicit position: Position) = {
-    val output = Recalculation.recalculateFormData(input, mkFormTemplate(sections))
-
-    Right(expectedOutput) shouldBe output
-
-  }
-
-  private def mkFormData(fields: (String, String)*): FormData =
-    FormData(fields.map { case (fcId, value) => FormField(FormComponentId(fcId), value) })
-
-  private def mkSection(name: String, formComponents: List[FormComponent]) =
-    Section(
-      name,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      formComponents,
-      None
-    )
-
-  private def mkFormComponent(name: String, expr: Expr) =
-    FormComponent(
-      FormComponentId(name),
-      Text(Sterling, expr),
-      name,
-      None,
-      None,
-      None,
-      true,
-      false,
-      true,
-      false,
-      false,
-      None,
-      None)
-
-  private def mkFormTemplate(sections: List[Section]) = FormTemplate(
-    FormTemplateId("tst1"),
-    "Dependecy heavy experiment",
-    "",
-    Some(BetaBanner),
-    None,
-    None,
-    DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
-    HMRCAuthConfigWithAuthModule(AuthConfigModule("hmrc")),
-    "randd_confirmation_submission",
-    "http://www.google.co.uk",
-    "http://www.yahoo.co.uk",
-    sections,
-    AcknowledgementSection(
-      "Acknowledgement Page",
-      Some("this page is to acknowledge submission"),
-      Some("shortName for acknowledgement"),
-      List(`fieldValue - info`)
-    ),
-    DeclarationSection("Declaration", None, None, Nil)
-  )
 }
