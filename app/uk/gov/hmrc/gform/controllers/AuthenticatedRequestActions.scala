@@ -29,10 +29,11 @@ import gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormTemplate, _ }
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve._
 import cats.implicits._
+import uk.gov.hmrc.auth.core.authorise.Predicate
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -56,6 +57,8 @@ class AuthenticatedRequestActions(
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
+      val x = 1
+      val h = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -184,10 +187,16 @@ class AuthenticatedRequestActions(
   // format: ON
 
   private def ggAuthorised(authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult])(
-    ggAuthorisedParams: GGAuthorisedParams)(implicit request: Request[AnyContent], hc: HeaderCarrier) = {
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    request: Request[AnyContent]): Future[AuthResult] = {
     import uk.gov.hmrc.auth.core.retrieve.~
 
-    authorised(ggAuthorisedParams.predicate)
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+
+    authorised(predicate)
       .retrieve(defaultRetrievals) {
         case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
           for {
@@ -204,7 +213,7 @@ class AuthenticatedRequestActions(
             result <- authGivenRetrievals(retrievals)
           } yield result
       }
-      .recover(handleErrorCondition(request, ggAuthorisedParams.authConfig, ggAuthorisedParams.formTemplate))
+      .recover(handleErrorCondition(request, authConfig, formTemplate))
   }
 
   private def handleErrorCondition(

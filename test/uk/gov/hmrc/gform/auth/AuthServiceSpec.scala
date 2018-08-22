@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.libs.json.{ JsBoolean, JsObject }
 import play.api.mvc.{ AnyContent, Request }
+import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.{ Enrolment, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.Spec
@@ -118,22 +119,46 @@ class AuthServiceSpec extends Spec with ExampleData {
 
   val requestUri = "/submissions/test"
 
-  def ggAuthorisedSuccessful(ggAuthorisedParams: GGAuthorisedParams) =
+  def ggAuthorisedSuccessful(
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    request: Request[AnyContent]) =
     Future.successful(AuthSuccessful(materialisedRetrievals))
 
-  def ggAuthorisedSuccessfulIndividual(ggAuthorisedParams: GGAuthorisedParams) =
+  def ggAuthorisedSuccessfulIndividual(
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    request: Request[AnyContent]) =
     Future.successful(AuthSuccessful(materialisedRetrievalsIndividual))
 
-  def ggAuthorisedSuccessfulOrganisation(ggAuthorisedParams: GGAuthorisedParams) =
+  def ggAuthorisedSuccessfulOrganisation(
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    request: Request[AnyContent]) =
     Future.successful(AuthSuccessful(materialisedRetrievalsOrganisation))
 
-  def ggAuthorisedSuccessfulAgent(ggAuthorisedParams: GGAuthorisedParams) =
+  def ggAuthorisedSuccessfulAgent(
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    request: Request[AnyContent]) =
     Future.successful(AuthSuccessful(materialisedRetrievalsAgent))
 
-  def ggAuthorisedSuccessfulEnrolledAgent(ggAuthorisedParams: GGAuthorisedParams) =
+  def ggAuthorisedSuccessfulEnrolledAgent(
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    request: Request[AnyContent]) =
     Future.successful(AuthSuccessful(materialisedRetrievalsEnrolledAgent))
 
-  def ggAuthorisedRedirect(ggAuthorisedParams: GGAuthorisedParams) =
+  def ggAuthorisedRedirect(
+    predicate: Predicate,
+    authConfig: AuthConfig,
+    formTemplate: FormTemplate,
+    request: Request[AnyContent]) =
     Future.successful(AuthRedirect(""))
 
   val authConfigAgentDenied =
