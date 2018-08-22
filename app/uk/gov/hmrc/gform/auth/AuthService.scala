@@ -30,12 +30,6 @@ import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-case class GGAuthorisedParams(
-  predicate: Predicate,
-  authConfig: AuthConfig,
-  formTemplate: FormTemplate,
-  request: Request[AnyContent])
-
 class AuthService(
   appConfig: AppConfig,
   eeittDelegate: EeittAuthorisationDelegate,
@@ -46,7 +40,8 @@ class AuthService(
     formTemplate: FormTemplate,
     request: Request[AnyContent],
     requestUri: String,
-    ggAuthorised: GGAuthorisedParams => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] =
+    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[AuthResult])(
+    implicit hc: HeaderCarrier): Future[AuthResult] =
     formTemplate.authConfig match {
       case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, request, requestUri, ggAuthorised)
       case authConfig                  => performHMRCAuth(authConfig, formTemplate, request, requestUri, ggAuthorised)
@@ -57,11 +52,11 @@ class AuthService(
     formTemplate: FormTemplate,
     request: Request[AnyContent],
     requestUri: String,
-    ggAuthorised: GGAuthorisedParams => Future[AuthResult]
+    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[AuthResult]
   )(implicit hc: HeaderCarrier): Future[AuthResult] = {
     implicit val r = request
     ggAuthorised
-      .apply(GGAuthorisedParams(AuthProviders(AuthProvider.GovernmentGateway), authConfig, formTemplate, request))
+      .apply(AuthProviders(AuthProvider.GovernmentGateway), authConfig, formTemplate, request)
       .flatMap {
         case ggSuccessfulAuth @ AuthSuccessful(retrievals) =>
           eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails, requestUri).map {
@@ -77,7 +72,8 @@ class AuthService(
     formTemplate: FormTemplate,
     request: Request[AnyContent],
     requestUri: String,
-    ggAuthorised: GGAuthorisedParams => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] = {
+    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[AuthResult])(
+    implicit hc: HeaderCarrier): Future[AuthResult] = {
     val predicate = authConfig match {
       case config: AuthConfigWithEnrolment =>
         AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(config.serviceId.value)
@@ -85,7 +81,7 @@ class AuthService(
     }
 
     val eventualGGAuthorised: Future[AuthResult] =
-      ggAuthorised.apply(GGAuthorisedParams(predicate, authConfig, formTemplate, request))
+      ggAuthorised.apply(predicate, authConfig, formTemplate, request)
 
     implicit val r = request
 
