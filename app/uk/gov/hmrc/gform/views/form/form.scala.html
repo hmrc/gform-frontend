@@ -52,12 +52,14 @@
       <a href="#" class="link-back" id="backButton">Back</a>
     </div>
     }
+
+    @pageLevelError.render
+
     <h1 class="h1-heading form-title">@localisation(page.sectionTitle)</h1>
     @if(page.sectionDescription.isDefined){
     <p class="page-description">@localisation(page.sectionDescription.get)</p>
     }
 
-    @pageLevelError.render
     <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
         @{
             CSRF.formField
