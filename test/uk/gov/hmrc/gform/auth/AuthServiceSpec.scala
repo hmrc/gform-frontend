@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.libs.json.{JsBoolean, JsObject}
-import play.api.mvc.{AnyContent, Request}
-import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
+import play.api.libs.json.{ JsBoolean, JsObject }
+import play.api.mvc.{ AnyContent, Request }
+import uk.gov.hmrc.auth.core.{ Enrolment, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.Future
@@ -50,20 +50,16 @@ class AuthServiceSpec extends Spec with ExampleData {
   )
 
   lazy val wSHttp = new StubbedWSHttp(
-    HttpResponse(
-    responseStatus = 200,
-    responseJson = Some(JsObject(Map("isAllowed" -> JsBoolean(true))))))
+    HttpResponse(responseStatus = 200, responseJson = Some(JsObject(Map("isAllowed" -> JsBoolean(true))))))
   val mockEeittConnector = new EeittConnector("", wSHttp)
   val mockEeittDelegate = new EeittAuthorisationDelegate(mockEeittConnector, "/eeitt-frontend-base")
   val mockEeittService = new EeittService(mockEeittConnector)
   val authService = new AuthService(appConfig, mockEeittDelegate, mockEeittService)
 
   lazy val wSHttpNotAllowed = new StubbedWSHttp(
-    HttpResponse(
-      responseStatus = 200,
-      responseJson = Some(JsObject(Map("isAllowed" -> JsBoolean(false))))))
+    HttpResponse(responseStatus = 200, responseJson = Some(JsObject(Map("isAllowed" -> JsBoolean(false))))))
   val mockEeittConnectorNotAllowed = new EeittConnector("", wSHttpNotAllowed)
-  val mockEeittDelegateNotAllowed  =new EeittAuthorisationDelegate(mockEeittConnectorNotAllowed, "/eeitt-frontend-base")
+  val mockEeittDelegateNotAllowed = new EeittAuthorisationDelegate(mockEeittConnectorNotAllowed, "/eeitt-frontend-base")
   val mockEeittServiceNotAllowed = new EeittService(mockEeittConnectorNotAllowed)
   val authServiceNotAllowed = new AuthService(appConfig, mockEeittDelegateNotAllowed, mockEeittServiceNotAllowed)
 
@@ -161,39 +157,49 @@ class AuthServiceSpec extends Spec with ExampleData {
   }
 
   it should "authorise a gg authentication only non-agent when agent access is configured to agent denied" in {
-    val result = authService.authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessful)
+    val result =
+      authService.authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessful)
     result.futureValue should be(AuthSuccessful(materialisedRetrievals))
   }
 
   it should "authorise a gg authentication only individual when agent access is configured to agent denied" in {
-    val result = authService.authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessfulIndividual)
+    val result = authService
+      .authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessfulIndividual)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividual))
   }
 
   it should "authorise a gg authentication only organisation when agent access is configured to agent denied" in {
-    val result = authService.authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessfulOrganisation)
+    val result = authService
+      .authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessfulOrganisation)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsOrganisation))
   }
 
   it should "block a gg authentication only agent when agent access is configured to agent denied" in {
-    val result = authService.authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessfulAgent)
+    val result =
+      authService.authenticateAndAuthorise(formTemplateAgentDenied, request, requestUri, ggAuthorisedSuccessfulAgent)
     result.futureValue should be(AuthBlocked("Agents cannot access this form"))
   }
 
   it should "authorise a gg authentication only agent when agent access is configured to allow any agent" in {
-    val result = authService.authenticateAndAuthorise(formTemplateAnyAgentAllowed, request, requestUri, ggAuthorisedSuccessfulAgent)
+    val result = authService
+      .authenticateAndAuthorise(formTemplateAnyAgentAllowed, request, requestUri, ggAuthorisedSuccessfulAgent)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsAgent))
   }
 
   it should "authorise a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
     val result =
-      authService.authenticateAndAuthorise(formTemplateRequireMTDAgentEnrolment, request, requestUri, ggAuthorisedSuccessfulEnrolledAgent)
+      authService.authenticateAndAuthorise(
+        formTemplateRequireMTDAgentEnrolment,
+        request,
+        requestUri,
+        ggAuthorisedSuccessfulEnrolledAgent)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
     val result =
-      authService.authenticateAndAuthorise(formTemplateRequireMTDAgentEnrolment, request, requestUri, ggAuthorisedRedirect)
+      authService
+        .authenticateAndAuthorise(formTemplateRequireMTDAgentEnrolment, request, requestUri, ggAuthorisedRedirect)
     result.futureValue should be(AuthRedirect(""))
   }
 
@@ -208,8 +214,11 @@ class AuthServiceSpec extends Spec with ExampleData {
   }
 
   it should "redirect an eeitt authorised user when user is not eeitt enrolled" in {
-    val result = authServiceNotAllowed.authenticateAndAuthorise(formTemplateEeitt, request, requestUri, ggAuthorisedSuccessful)
-    result.futureValue should be(AuthRedirectFlashingFormname("/eeitt-frontend-base/eeitt-auth/enrollment-verification?callbackUrl=%2Fsubmissions%2Ftest"))
+    val result =
+      authServiceNotAllowed.authenticateAndAuthorise(formTemplateEeitt, request, requestUri, ggAuthorisedSuccessful)
+    result.futureValue should be(
+      AuthRedirectFlashingFormname(
+        "/eeitt-frontend-base/eeitt-auth/enrollment-verification?callbackUrl=%2Fsubmissions%2Ftest"))
   }
 
   it should "redirect an eeitt authorised user when gg authentication fails" in {
