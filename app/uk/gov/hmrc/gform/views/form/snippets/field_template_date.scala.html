@@ -35,7 +35,9 @@ fieldValue.id.withSuffix(id).toString
 }
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
-
+@makeSelector(value: String) = @{
+  value.toLowerCase().replace(" ", "-")
+}
   <div class="form-group @if(hasErrors) { form-group-error }">
       <fieldset>
           <legend>
@@ -49,7 +51,7 @@ fieldValue.id.withSuffix(id).toString
              val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
              val errors: Set[String] = ValidationUtil.printErrors(map)
 
-             errors.map(e => errorInline(e, e, Seq("error-message")))
+             errors.map(e => errorInline(makeSelector(e), e, Seq("error-message")))
           }
 
           <div class="form-date">

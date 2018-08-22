@@ -295,7 +295,7 @@ class ComponentsValidator(
         case Some(File(fileId, Error(None), _))    => getError(fieldValue, "Unknown error from file upload")
         case Some(File(fileId, Infected, _))       => getError(fieldValue, "Virus detected")
         case Some(File(fileId, _, _))              => ().valid
-        case None if fieldValue.mandatory          => getError(fieldValue, "Please upload the file")
+        case None if fieldValue.mandatory          => getError(fieldValue, "Upload a file")
         case None                                  => ().valid
         // format: ON
         }

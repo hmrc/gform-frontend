@@ -22,6 +22,10 @@
 
 @(validation: FormFieldValidationResult, errorMessage: String)
 
+@makeSelector(value: String) = @{
+  value.toLowerCase().replace(" ", "-")
+}
+
 @fieldId = @{
   validation match {
     case _:FieldGlobalError =>
@@ -34,10 +38,18 @@
   }
 }
 
-<li>
+@context = @{
+  fieldId.replace("-day", "")
+          .replace("-month", "")
+          .replace("-year", "")
+}
+
+  <li>
     <a href="#@fieldId"
-       id="@{validation.fieldValue.id.value}-error-summary"
-       data-focuses="@fieldId">
-        @{errorMessage}
+      data-context="@context"
+      data-focuses="@fieldId"
+      class="js-hidden">
+    @{errorMessage}
     </a>
-</li>
+  </li>
+
