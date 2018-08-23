@@ -57,12 +57,10 @@ class AuthenticatedRequestActions(
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
-      val x = 1
-      val h = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authUserWhitelist(_)))
+                       .authenticateAndAuthorise(formTemplate, request.uri, ggAuthorised(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -79,7 +77,7 @@ class AuthenticatedRequestActions(
         form         <- gformConnector.getForm(formId)
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request, request.uri, ggAuthorised(authFormUser(form)))
+                       .authenticateAndAuthorise(formTemplate, request.uri, ggAuthorised(authFormUser(form)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
