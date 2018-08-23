@@ -59,7 +59,7 @@ class AuthService(
         case ggSuccessfulAuth @ AuthSuccessful(retrievals) =>
           eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails, requestUri).map {
             case EeittAuthorisationSuccessful            => ggSuccessfulAuth
-            case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormname(eeittLoginUrl)
+            case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormName(eeittLoginUrl)
           }
         case otherAuthResults => otherAuthResults.pure[Future]
       }
