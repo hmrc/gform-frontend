@@ -29,7 +29,7 @@ import gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, FormTemplate, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve._
 import cats.implicits._
@@ -123,7 +123,7 @@ class AuthenticatedRequestActions(
     result match {
       case AuthSuccessful(retrievals)       => onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
-      case AuthRedirectFlashingFormname(loginUrl) =>
+      case AuthRedirectFlashingFormName(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName).pure[Future]
       case AuthBlocked(message) =>
         Ok(
@@ -177,12 +177,10 @@ class AuthenticatedRequestActions(
     case _ => request
   }
 
-  // format: OFF
   val defaultRetrievals = Retrievals.authProviderId and Retrievals.allEnrolments and
     Retrievals.affinityGroup and Retrievals.internalId and
     Retrievals.externalId and Retrievals.userDetailsUri and
     Retrievals.credentialStrength and Retrievals.agentCode
-  // format: ON
 
   private def ggAuthorised(authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult])(
     predicate: Predicate,
@@ -217,7 +215,7 @@ class AuthenticatedRequestActions(
   private def handleErrorCondition(
     request: Request[AnyContent],
     authConfig: AuthConfig,
-    formTemplate: FormTemplate): PartialFunction[scala.Throwable, AuthResult] = {
+    formTemplate: FormTemplate): PartialFunction[Throwable, AuthResult] = {
     case _: InsufficientEnrolments =>
       authConfig match {
         case _: AuthConfigWithEnrolment =>
@@ -225,14 +223,14 @@ class AuthenticatedRequestActions(
           AuthRedirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url)
         case _ =>
           Logger.debug("Auth Failed")
-          AuthRedirectFlashingFormname(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
+          AuthRedirectFlashingFormName(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)
       }
     case _: NoActiveSession =>
       Logger.debug("No Active Session")
       val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + request.uri, "UTF-8")
       val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
       val url = s"$ggLoginUrl?continue=$continueUrl"
-      AuthRedirectFlashingFormname(url)
+      AuthRedirectFlashingFormName(url)
     case otherException =>
       Logger.debug(s"Exception thrown on authorization with message : ${otherException.getMessage}")
       throw otherException

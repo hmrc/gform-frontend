@@ -239,7 +239,7 @@ class AuthServiceSpec extends Spec with ExampleData {
     val result =
       authServiceNotAllowed.authenticateAndAuthorise(formTemplateEeitt, requestUri, ggAuthorisedSuccessful)
     result.futureValue should be(
-      AuthRedirectFlashingFormname(
+      AuthRedirectFlashingFormName(
         "/eeitt-frontend-base/eeitt-auth/enrollment-verification?callbackUrl=%2Fsubmissions%2Ftest"))
   }
 
