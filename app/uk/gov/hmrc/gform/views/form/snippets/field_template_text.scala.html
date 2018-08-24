@@ -26,14 +26,26 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import akka.japi.Option.Some
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
+@isLessThan5Chars = @{
+    fieldValue.`type` match{
+        case t@Text(_, _) => {
+            t.constraint match{
+                case TextWithRestrictions(_, max) => Some(max); if(max<5){true} else {false}
+                case _ => false
+            }
+        }
+        case _ => false
+    }
+}
+@inputBoxSize = @{if (isLessThan5Chars) "input--xsmall"}
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
-
 <div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
@@ -78,7 +90,7 @@
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
             value="@validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)"
-            class="@inputClasses input--no-spinner input--left-padding">
+            class="@inputClasses @inputBoxSize input--no-spinner input--left-padding">
     </span>
     }
 </div>
