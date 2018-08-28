@@ -32,18 +32,17 @@
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
-@isLessThan5Chars = @{
+@inputBoxSize = @{
     fieldValue.`type` match{
         case t@Text(_, _) => {
             t.constraint match{
-                case TextWithRestrictions(_, max) => Some(max); if(max<5){true} else {false}
-                case _ => false
+                case TextWithRestrictions(_, max) => Some(max); if(max<5){"input--xsmall"} else {""}
+                case _ => ""
             }
         }
-        case _ => false
+        case _ => ""
     }
 }
-@inputBoxSize = @{if (isLessThan5Chars) "input--xsmall"}
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 <div class="form-group @if(hasErrors) {form-group-error}">
