@@ -26,20 +26,14 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import akka.japi.Option.Some
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
 @inputBoxSize = @{
-    fieldValue.`type` match{
-        case t@Text(_, _) => {
-            t.constraint match{
-                case TextWithRestrictions(_, (max)) if(max<5) => "input--xsmall"
-                case _ => ""
-            }
-        }
+    fieldValue.`type` match {
+        case Text(TextWithRestrictions(_, max),_) if  max<5 => "input--xsmall"
         case _ => ""
     }
 }
