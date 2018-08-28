@@ -36,7 +36,7 @@
     fieldValue.`type` match{
         case t@Text(_, _) => {
             t.constraint match{
-                case TextWithRestrictions(_, max) => Some(max); if(max<5){"input--xsmall"} else {""}
+                case TextWithRestrictions(_, (max)) if(max<5) => "input--xsmall"
                 case _ => ""
             }
         }
