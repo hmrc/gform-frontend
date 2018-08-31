@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
@@ -323,7 +323,7 @@ class SectionRenderingService(
     val formCategory = formTemplate.formCategory.getOrElse(Default)
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
-    val now = LocalDateTime.now()
+    val now = ZonedDateTime.now(ZoneId.of("Europe/London"))
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
       snippets <- Future.traverse(formTemplate.acknowledgementSection.fields)(fieldValue =>
