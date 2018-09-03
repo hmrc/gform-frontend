@@ -36,7 +36,10 @@
           @errors
       </td>
     } else {
-      <td colspan="2">
+      <td class="grid-layout__column--1-3">
+        @{fieldValue.shortName.getOrElse(fieldValue.label)}
+      </td>
+      <td>
           @validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")
       </td>
     }
