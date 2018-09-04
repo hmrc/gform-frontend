@@ -29,6 +29,18 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
+@newVal = @{ val test = validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
+    val zero = BigDecimal("0")
+    val amount = BigDecimal(test)
+    if (amount < zero){
+        val finalValue = "-£" + amount.abs.toString()
+        finalValue
+    } else {
+        val positiveValue = "£" + test
+        positiveValue
+    }
+}
+
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
     @{
         val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
@@ -50,9 +62,8 @@
 
         <div class="column-half text--right">
             <span class="heading-small">
-                @if(fieldValue.isSterling){&pound;}
                 <span id="@{fieldValue.id}-total">
-                  @validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
+                    @newVal
                 </span>
 		@(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop))))
                 @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
