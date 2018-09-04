@@ -29,15 +29,15 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
-@newVal = @{ val test = validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
+@currentVal = @{ val current = validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
     val zero = BigDecimal("0")
-    val amount = BigDecimal(test)
-    if (amount < zero){
-        val finalValue = "-£" + amount.abs.toString()
-        finalValue
+    val currentAmount = BigDecimal(current)
+    if (currentAmount < zero){
+        val finalNegativeAmount = "-£" + currentAmount.abs.toString()
+        finalNegativeAmount
     } else {
-        val positiveValue = "£" + test
-        positiveValue
+        val finalPositiveAmount = "£" + current
+        finalPositiveAmount
     }
 }
 
@@ -63,7 +63,7 @@
         <div class="column-half text--right">
             <span class="heading-small">
                 <span id="@{fieldValue.id}-total">
-                    @newVal
+                    @currentVal
                 </span>
 		@(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop))))
                 @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
