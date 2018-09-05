@@ -78,6 +78,56 @@ class NumberValidationSpec extends Spec {
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
 
+  "Number format" should "accept whole numbers with correctly positioned commas" in new Test {
+    override val value = "789,343"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept positively signed whole numbers with correctly positioned commas" in new Test {
+    override val value = "+789,343"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept positively signed whole numbers with a decimal point with correctly positioned commas" in new Test {
+    override val value = "+789,343."
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept negatively signed whole numbers with correctly positioned commas" in new Test {
+    override val value = "-789,343"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept negatively signed whole numbers with a decimal point with correctly positioned commas" in new Test {
+    override val value = "-789,343."
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept fractional numbers with correctly positioned commas" in new Test {
+    override val value = "789,343.34"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept positively signed fractional numbers with correctly positioned commas" in new Test {
+    override val value = "+789,343.34"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept positively signed fractional numbers with a decimal point with correctly positioned commas" in new Test {
+    override val value = "+789,343.34"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept negatively signed fractional numbers with correctly positioned commas" in new Test {
+    override val value = "-789,343.34"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "accept negatively signed fractional numbers with a decimal point with correctly positioned commas" in new Test {
+    override val value = "-789,343.34"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
   "PositiveNumber format" should "return invalid for negative" in new Test {
     override val value = "-123"
     val textConstraint = PositiveNumber()
@@ -113,6 +163,42 @@ class NumberValidationSpec extends Spec {
   "Number format" should "return invalid for too many fractional digits" in new Test {
     override val value = "9.87654321"
     val expected = Map(`fieldValue - number`.id -> Set("decimal fraction must be at most 2 digits")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+  }
+
+  "Number format" should "return invalid number for an unsigned number with incorrectly positioned commas" in new Test {
+    override val value = "123,4"
+    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+  }
+
+  "Number format" should "return invalid number for an unsigned number with a decimal point and incorrectly positioned commas" in new Test {
+    override val value = "123,4."
+    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+  }
+
+  "Number format" should "return invalid number for a positively signed number with incorrectly positioned commas" in new Test {
+    override val value = "+123,4"
+    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+  }
+
+  "Number format" should "return invalid number for a positively signed number with a decimal point but no fractional part with incorrectly positioned commas" in new Test {
+    override val value = "+123,4."
+    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+  }
+
+  "Number format" should "return invalid number for a negatively signed number with incorrectly positioned commas" in new Test {
+    override val value = "-123,4"
+    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+  }
+
+  "Number format" should "return invalid number for a negatively signed number with a decimal point but no fractional part with incorrectly positioned commas" in new Test {
+    override val value = "-123,4."
+    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
 

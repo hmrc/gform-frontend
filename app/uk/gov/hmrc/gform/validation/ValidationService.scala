@@ -439,31 +439,32 @@ class ComponentsValidator(
     maxWhole: Int,
     maxFractional: Int,
     mustBePositive: Boolean): ValidatedType = {
-    val WholeShape = "([+-]?)(\\d+)[.]?".r
-    val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
+    val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
+    val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
-      case (WholeShape(_, whole), _, _) if whole.size > maxWhole =>
+      case (WholeShape(_, whole, _), _, _) if whole.size > maxWhole =>
         getError(fieldValue, s"must be at most $maxWhole digits")
-      case (WholeShape("-", _), _, true) => getError(fieldValue, "must be a positive number")
-      case (WholeShape(_, _), _, _)      => ().valid
-      case (FractionalShape(_, whole, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 =>
+      case (WholeShape("-", _, _), _, true) => getError(fieldValue, "must be a positive number")
+      case (WholeShape(_, _, _), _, _)      => ().valid
+      case (FractionalShape(_, whole, _, fractional), 0, _) if whole.size > maxWhole && fractional.size > 0 =>
         getError(fieldValue, s"number must be at most $maxWhole whole digits and no decimal fraction")
-      case (FractionalShape(_, whole, fractional), _, _) if whole.size > maxWhole && fractional.size > maxFractional =>
+      case (FractionalShape(_, whole, _, fractional), _, _)
+          if whole.size > maxWhole && fractional.size > maxFractional =>
         getError(
           fieldValue,
           s"number must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
-      case (FractionalShape(_, whole, _), _, _) if whole.size > maxWhole =>
+      case (FractionalShape(_, whole, _, _), _, _) if whole.size > maxWhole =>
         getError(fieldValue, s"number must be at most $maxWhole whole digits")
-      case (FractionalShape(_, _, fractional), 0, _) if fractional.size > 0 =>
+      case (FractionalShape(_, _, _, fractional), 0, _) if fractional.size > 0 =>
         getError(fieldValue, "must be a whole number")
-      case (FractionalShape(_, _, fractional), _, _) if fractional.size > maxFractional =>
+      case (FractionalShape(_, _, _, fractional), _, _) if fractional.size > maxFractional =>
         getError(fieldValue, s"decimal fraction must be at most $maxFractional digits")
-      case (FractionalShape("-", _, _), _, true) => getError(fieldValue, "must be a positive number")
-      case (FractionalShape(_, _, _), _, _)      => ().valid
-      case (_, 0, true)                          => getError(fieldValue, "must be a positive whole number")
-      case (_, _, true)                          => getError(fieldValue, "must be a positive number")
-      case (_, 0, false)                         => getError(fieldValue, "must be a whole number")
-      case _                                     => getError(fieldValue, "must be a number")
+      case (FractionalShape("-", _, _, _), _, true) => getError(fieldValue, "must be a positive number")
+      case (FractionalShape(_, _, _, _), _, _)      => ().valid
+      case (_, 0, true)                             => getError(fieldValue, "must be a positive whole number")
+      case (_, _, true)                             => getError(fieldValue, "must be a positive number")
+      case (_, 0, false)                            => getError(fieldValue, "must be a whole number")
+      case _                                        => getError(fieldValue, "must be a number")
     }
   }
 
