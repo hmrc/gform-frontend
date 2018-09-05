@@ -73,6 +73,16 @@ class NumberValidationSpec extends Spec {
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
 
+  "Number format" should "not consider commas when computing the size of the whole number" in new Test {
+    override val value = "1,234,567,890"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
+  "Number format" should "not consider commas when computing the size of the integer part of a fractional number" in new Test {
+    override val value = "1,234,567,890.12"
+    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+  }
+
   "Number format" should "accept negative numbers" in new Test {
     override val value = "-789"
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
@@ -113,17 +123,7 @@ class NumberValidationSpec extends Spec {
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
 
-  "Number format" should "accept positively signed fractional numbers with a decimal point with correctly positioned commas" in new Test {
-    override val value = "+789,343.34"
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
-  }
-
   "Number format" should "accept negatively signed fractional numbers with correctly positioned commas" in new Test {
-    override val value = "-789,343.34"
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
-  }
-
-  "Number format" should "accept negatively signed fractional numbers with a decimal point with correctly positioned commas" in new Test {
     override val value = "-789,343.34"
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
