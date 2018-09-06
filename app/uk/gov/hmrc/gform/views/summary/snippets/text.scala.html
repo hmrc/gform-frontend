@@ -40,6 +40,6 @@
     @{if(hasErrors) errors else currentValue}
   </dd>
   <dd class="cya-change">
-    @{if(fieldValue.presentationHint.fold[List[PresentationHint]](Nil)(x => x).contains(TotalValue)) "" else changeButton}
+    @changeButton
   </dd>
 </div>
