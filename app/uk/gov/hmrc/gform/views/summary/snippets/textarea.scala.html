@@ -27,7 +27,7 @@
 @currentValueLines = @{TextFormatter.formatText(validationResult).split("\\R")}
 
 @currentValue = {
-    @currentValueLines.init.map{line => @line<br /> }
+    @currentValueLines.init.map{line => @line<br> }
     @currentValueLines.last
 }
 
@@ -37,26 +37,14 @@
     errorInline("summary", e, Seq())
 }}
 
-@renderCurrentValue(colspan: Int) = {
-    @if(hasErrors) {
-        <td colspan="@colspan" class="summary-cell--error">
-            @errors
-        </td>
-    } else {
-        <td colspan="@colspan">
-            @currentValue
-        </td>
-        <td>@changeButton</td>
-    }
-}
-
-<tr class="@if(hasErrors) {summary--error}">
-    @if(localisation(fieldValue.shortName.getOrElse(fieldValue.label)).nonEmpty) {
-        <td class="grid-layout__column--1-3">
-            @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-        </td>
-        @renderCurrentValue(1)
-    } else {
-        @renderCurrentValue(2)
-    }
-</tr>
+<div>
+  <dt class="cya-question@if(hasErrors) { summary--error}">
+    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+  </dt>
+  <dd class="cya-answer">
+    @{if(hasErrors) errors else validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")}
+  </dd>
+  <dd class="cya-change">
+    @changeButton
+  </dd>
+</div>

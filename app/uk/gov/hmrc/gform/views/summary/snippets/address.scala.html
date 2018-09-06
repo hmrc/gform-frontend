@@ -31,39 +31,38 @@
     }
 
     @showError(e: String) = @{
-        errorInline(e, e, Seq(""))
+        errorInline(e, e, Seq("error-message"))
     }
 
-    <tr class="@{if(validationResult.isNotOk) "summary--error"}">
-        <td class="grid-layout__column--1-3">
+    <div>
+      <dt class="cya-question@{if(validationResult.isNotOk) " summary--error"}">
         @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-        </td>
+      </dt>
 
+      <dd class="cya-answer">
         @if(validationResult.isNotOk) {
-            <td class="summary-cell--error">
-                @{validationResult.globalErrors.map {error => {error}  }}
-                @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
-                    errors.map(e => showError(e))
-                }}
-            </td>
+          @{validationResult.globalErrors.map {error => {error}  }}
+          @{validationResult.fieldErrorsByFieldValue.map {case(field, errors) =>
+            errors.map(e => showError(e))
+          }}
         } else {
-            <td>
-            @List(
-                "street1",
-                "street2",
-                "street3",
-                "street4",
-                "postcode",
-                "country"
-            ).map { suffix =>
-                @if(validationResultO.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
-                    @validationResultO.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
-                    <br />
-                }
+          @List(
+            "street1",
+            "street2",
+            "street3",
+            "street4",
+            "postcode",
+            "country"
+          ).map { suffix =>
+            @if(validationResultO.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
+              @validationResultO.map(_.getCurrentValue(safeId(suffix))).getOrElse("")
+              <br>
             }
-            </td>
+          }
         }
+      </dd>
 
-        <td>@changeButton</td>
-
-    </tr>
+      <dd class="cya-change">
+        @changeButton
+      </dd>
+    </div>

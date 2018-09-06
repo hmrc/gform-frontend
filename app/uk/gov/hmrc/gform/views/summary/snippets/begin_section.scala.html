@@ -21,16 +21,7 @@
 
 @(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, title: String, sectionNumber: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String])
 
-<table class="table--font-reset summary-section">
-  <thead>
-    <tr>
-      <th colspan="2">
-        <span class="h2-heading">@localisation(title)</span>
-      </th>
-
-      <th class="text--right">
-      </th>
-    </tr>
-  </thead>
-
-  <tbody>
+<h2 class="heading-medium">
+  @localisation(title)
+</h2>
+<dl class="govuk-check-your-answers cya-questions-long">

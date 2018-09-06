@@ -107,18 +107,9 @@
 }
 
 /* Summary errors */
-.summary--error td:first-child {
+.summary--error {
   border-left: 3px solid #df3034;
   padding-left: 10px;
-}
-
-.summary--error .error-notification {
-  padding-bottom: 0;
-}
-
-.table--font-reset td.summary-cell--error {
-  color: #b10e1e;
-  font-weight: bold;
 }
 
 button.button--secondary{

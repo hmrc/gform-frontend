@@ -64,9 +64,9 @@
       	       name="formId"
       	       value="@{formId.value}" />
 
-
+        <h2>Now send your @{formCategory.getString}</h2>
         <div class="print-hidden">
-          <p>You can print this summary page then come back later to complete your submission.</p>
+          <p>You can print this summary page then come back later to complete your @{formCategory.getString}.</p>
 
           <p>
             <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formId, formTemplate._id.to4Ga, lang).url" class="print-link print-hidden js-visible">Print this summary page</a>

@@ -21,8 +21,6 @@
 
 @(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, title: String, sectionNumber: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String], fieldId: FormComponentId)
 
-      <div class="text--right">
-        <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang).url + "#" + fieldId}">
-          Change <span class="visuallyhidden">@localisation(title)</span>
-        </a>
-      </div>
+  <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang).url + "#" + fieldId}">
+    Change <span class="visuallyhidden">@localisation(title)</span>
+  </a>
