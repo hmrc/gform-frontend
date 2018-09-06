@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ExpandUtils {

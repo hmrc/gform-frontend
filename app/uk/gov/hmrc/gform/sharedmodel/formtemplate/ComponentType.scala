@@ -22,7 +22,6 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 import scala.collection.immutable._
-import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait ComponentType
 

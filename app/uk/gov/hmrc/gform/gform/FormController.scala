@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.Semigroup
 import cats.data.Validated.Valid
 import cats.instances.future._
 import cats.syntax.applicative._
@@ -24,8 +23,7 @@ import cats.syntax.monoid._
 import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._

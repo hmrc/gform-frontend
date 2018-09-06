@@ -20,22 +20,18 @@ import cats.data.NonEmptyList
 import cats.data.Validated.Valid
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
-import play.api.libs.json.JsValue
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.collection.immutable.List
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class SummarySpec extends Spec {
