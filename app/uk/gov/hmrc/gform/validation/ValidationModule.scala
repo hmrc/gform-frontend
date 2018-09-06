@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 
-import javax.inject.Inject
-
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 

@@ -25,10 +25,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import cats.implicits._
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
 import scala.util.control.NonFatal
 import uk.gov.hmrc.http.HeaderCarrier
 

@@ -16,13 +16,11 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import cats.implicits._
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.models.Dependecies
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import Function.const
-import scala.concurrent.Future
 
 class JavascriptSpec extends Spec {
 
