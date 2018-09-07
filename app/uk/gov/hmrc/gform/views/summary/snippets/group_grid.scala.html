@@ -14,45 +14,30 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.views.html.localisation
-@import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
-@import scala.concurrent.Future
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean)
 
-@currentValue(idx: Int) = @{TextFormatter.formatText(fields(idx))}
-
-@n = @{
-  var vals = 0
-  fields.zipWithIndex.map {
-    case (field, index) => {
-      if(currentValue(index).nonEmpty) {
-        vals += 1
-      }
+@groupFields = @{
+  fields.map {
+    case f @ Some(field) => {
+      val groupField = TextFormatter.formatText(f)
+      if(groupField.nonEmpty) groupField else AnyContentAsEmpty
     }
-  }
-  vals
+    case _ => AnyContentAsEmpty
+  }.filter(_.isInstanceOf[String])
 }
 
-@if(n > 0) {
+@if(groupFields.nonEmpty) {
   <div>
     <dt class="cya-question">
       @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
     </dt>
     <dd class="cya-answer">
-    @fields.zipWithIndex.map { case (field, index) =>
-      @if(currentValue(index).nonEmpty) {
-        <div>
-          @currentValue(index)
-        </div>
-      }
-    }
+      @groupFields.map{ f => @f<br> }
     </dd>
     <dd class="cya-change"></dd>
   </div>
