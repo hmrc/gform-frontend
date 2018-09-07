@@ -273,16 +273,11 @@ table td:first-child.grid-layout__column--1-3 {
 /*should better use ASSET_FRONTEND instead End*/
 
 /*
-* whilst using tables for layout in the summary
-* these classes help layout, they should not be
-* needed when switching to pure GDS CYA
-* patterns
+* even using the CYA pattern does
+* not give us this custom heading
+* style for group headings
 */
-.summary-section {
-  margin-bottom: 60px;
-}
-
-.table--font-reset td.summary-group-label {
+.summary-group-label {
   border-bottom: none;
   font-weight: bold;
 }
