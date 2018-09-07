@@ -25,20 +25,17 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
-
+@import java.text.NumberFormat
+@import java.util.Locale
+@import scala.math._
+@import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
+@import uk.gov.hmrc.gform.commons.NumberFormatUtil.formatCurrency
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
-
-@currentVal = @{ val current = validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)
-    val zero = BigDecimal("0")
-    val currentAmount = BigDecimal(current)
-    if (currentAmount < zero){
-        val finalNegativeAmount = "-£" + currentAmount.abs.toString()
-        finalNegativeAmount
-    } else {
-        val finalPositiveAmount = "£" + current
-        finalPositiveAmount
-    }
+@validatedValue = @{validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)}
+@validatedSterling = @{
+    val currentSter = toBigDecimalDefault(validatedValue)
+    formatCurrency.format(currentSter)
 }
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
@@ -62,8 +59,9 @@
 
         <div class="column-half text--right">
             <span class="heading-small">
-                <span id="@{fieldValue.id}-total">
-                    @currentVal
+                <span id="@{fieldValue.id}-total" @if(fieldValue.isSterling){class="sterling"}>
+                    @if(fieldValue.isSterling){@validatedSterling}
+                    @if(!fieldValue.isSterling){@validatedValue}
                 </span>
 		@(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop))))
                 @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
