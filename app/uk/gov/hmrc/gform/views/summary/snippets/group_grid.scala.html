@@ -23,10 +23,9 @@
 
 @groupFields = @{
   fields.map {
-    case f @ Some(field) => {
+    case f @ Some(field) =>
       val groupField = TextFormatter.formatText(f)
       if(groupField.nonEmpty) groupField else AnyContentAsEmpty
-    }
     case _ => AnyContentAsEmpty
   }.filter(_.isInstanceOf[String])
 }
