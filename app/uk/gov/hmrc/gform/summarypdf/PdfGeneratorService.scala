@@ -34,19 +34,24 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     pdfGeneratorConnector.generatePDF(body, headers)
   }
 
-  def sanitiseHtmlForPDF(html: Html): String = {
+  def sanitiseHtmlForPDF(html: Html, submitted: Boolean = false): String = {
     val doc: Document = Jsoup.parse(html.body)
     removeComments(doc)
-    doc.getElementsByTag("link").remove()
+//    doc.getElementsByTag("link").remove()
     doc.getElementsByTag("meta").remove()
     doc.getElementsByTag("script").remove()
     doc.getElementsByTag("a").remove()
+    doc.getElementsByTag("header").remove()
+    doc.getElementsByClass("service-info").remove()
     doc.getElementsByClass("footer-wrapper").remove()
     doc.getElementById("global-cookie-message").remove()
     doc.getElementsByClass("print-hidden").remove()
     doc.getElementsByClass("report-error").remove()
     doc.getElementById("global-app-error").remove()
-    doc.getElementsByTag("head").append(s"<style>${PdfGeneratorService.css}</style>")
+    doc.getElementsByTag("head").append(s"<style>.pdf-only{display:block;}</style>")
+    if (submitted) {
+      doc.getElementsByClass("unsubmitted").remove()
+    }
     doc.html
   }
 
@@ -66,9 +71,8 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
 
 object PdfGeneratorService {
   // TODO TDC: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
-  lazy val css: String = {
+  lazy val old_css: String = {
     val is = getClass.getResourceAsStream("/reduced-application.min.css")
     scala.io.Source.fromInputStream(is).getLines.mkString
   }
-
 }

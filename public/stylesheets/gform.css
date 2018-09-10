@@ -290,3 +290,12 @@ table td:first-child.grid-layout__column--1-3 {
 textarea.form-control {
   width: 100%;
 }
+
+.pdf-only {
+  display: none;
+}
+
+.local-crest {
+  background: url(/submissions/assets/stylesheets/images/hmrc_crest_18px.png) 5px center no-repeat;
+  padding: 3px 0 3px 38px;
+}

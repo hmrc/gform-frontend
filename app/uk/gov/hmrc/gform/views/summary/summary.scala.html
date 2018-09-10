@@ -44,11 +44,20 @@
     frontendAppConfig = frontendAppConfig
 ) {
 
-    <h1 class="h1-heading">@heading</h1>
 
-    <p>
-      Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
-    </p>
+    <div class="pdf-only">
+      <span>HM Revenue &amp; Customs</span>
+      <h1>@{localisation(formTemplate.formName)}</h1>
+    </div>
+
+    <div class="unsubmitted">
+      <h1 class="h1-heading">
+        @heading
+      </h1>
+      <p>
+        Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
+      </p>
+    </div>
 
     <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id.to4Ga, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
@@ -64,8 +73,8 @@
       	       name="formId"
       	       value="@{formId.value}" />
 
-        <h2>Now send your @{formCategory.getString}</h2>
         <div class="print-hidden">
+          <h2>Now send your @{formCategory.getString}</h2>
           <p>You can print this summary page then come back later to complete your @{formCategory.getString}.</p>
 
           <p>

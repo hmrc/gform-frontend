@@ -76,7 +76,7 @@ class AcknowledgementController(
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
           submission  <- gformConnector.submissionStatus(formId)
-          cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml)
+          cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
           htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)
           pdfStream <- pdfService.generatePDF(htmlForPDF)
@@ -116,28 +116,30 @@ class AcknowledgementController(
       // TODO: Add Submission mark when it's implemented for the submission auditing event
       val extraData =
         s"""
-           |<table class="table--font-reset ">
-           |  <thead>
-           |    <tr>
-           |      <th class="grid-layout__column--1-2"> <h2 class="h2-heading">Submission details</h2> </th>
-           |      <th class="text--right"> </th>
-           |    </tr>
-           |  </thead>
-           |  <tbody>
-           |    <tr>
-           |      <td>Submission date</td>
-           |      <td>$formattedTime</td>
-           |    </tr>
-           |    <tr>
-           |      <td>Submission reference</td>
-           |      <td>$ref</td>
-           |    </tr>
-           |    <tr>
-           |      <td>Submission mark</td>
-           |      <td>$hashedValue</td>
-           |    </tr>
-           |  </tbody>
-           |</table>
+           |<h2 class="h2-heading">Submission details</h2>
+           |<dl class="govuk-check-your-answers cya-questions-long">
+           |  <div>
+           |    <dt class="cya-question">
+           |      Submission date
+           |    </dt>
+           |    <dd class="cya-answer">$formattedTime</dd>
+           |    <dd></dd>
+           |  </div>
+           |  <div>
+           |    <dt class="cya-question">
+           |      Submission reference
+           |    </dt>
+           |    <dd class="cya-answer">$ref</dd>
+           |    <dd></dd>
+           |  </div>
+           |  <div>
+           |    <dt class="cya-question">
+           |      Submission mark
+           |    </dt>
+           |    <dd class="cya-answer">$hashedValue</dd>
+           |    <dd></dd>
+           |  </div>
+           |</dl>
       """.stripMargin
 
       val doc = Jsoup.parse(html)
