@@ -26,7 +26,7 @@ import scala.concurrent.Future
 
 class JavascriptSpec extends Spec {
 
-  private val c = Constant("1")
+  private val c = Constant("5")
 
   def formComponent(id: String, value: Expr = c) =
     FormComponent(FormComponentId(id), Text(AnyText, value), "", None, None, None, false, true, true, true, false, None)
@@ -50,7 +50,7 @@ class JavascriptSpec extends Spec {
 
   "if calculation references only a field in this section" should "not generate Javascript for the static calculation" in {
     val result = fieldJavascript(formComponent("staticExpr", FormCtx("thisSection")))
-    val jsExp = """getValue("thisSection").toFixed(2, 0);"""
+    val jsExp = """getValue("thisSection", 0).toFixed(2, 0);"""
     result should include(jsExp)
   }
 
@@ -62,13 +62,13 @@ class JavascriptSpec extends Spec {
         RepeatFormComponentIds(_ :: (1 until 5 map (i => FormComponentId(i + "_" + thisSection))).toList)
       )
     val jsExp =
-      """add(add(add(add(add(0, getValue("thisSection")), getValue("1_thisSection")), getValue("2_thisSection")), getValue("3_thisSection")), getValue("4_thisSection")).toFixed(2, 0)"""
+      """add(add(add(add(add(0, getValue("thisSection", 0)), getValue("1_thisSection", 0)), getValue("2_thisSection", 0)), getValue("3_thisSection", 0)), getValue("4_thisSection", 0)).toFixed(2, 0)"""
     result should include(jsExp)
   }
 
   "if calculation adds a field in this section" should "generate Javascript for the dynamic calculation" in {
     val result = fieldJavascript(formComponent("dynamicExpr", Add(FormCtx("thisSection"), c)))
-    val jsExp = """add(getValue("thisSection"), 1).toFixed(2, 0);"""
+    val jsExp = """add(getValue("thisSection", 0), 5).toFixed(2, 0);"""
     result should include(jsExp)
   }
 
@@ -78,7 +78,7 @@ class JavascriptSpec extends Spec {
         "dynamicExpr",
         Add(c, Add(Subtraction(c, Subtraction(Multiply(c, Multiply(FormCtx("thisSection"), c)), c)), c))))
     val jsExp =
-      """add(1, add(subtract(1, subtract(multiply(1, multiply(getValue("thisSection"), 1)), 1)), 1)).toFixed(2, 0);"""
+      """add(5, add(subtract(5, subtract(multiply(5, multiply(getValue("thisSection", 1), 5)), 5)), 5)).toFixed(2, 0);"""
     result should include(jsExp)
 
   }
