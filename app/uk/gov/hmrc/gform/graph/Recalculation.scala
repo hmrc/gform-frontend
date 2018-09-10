@@ -44,6 +44,8 @@ case class NoFormComponent(fcId: FormComponentId, lookup: Map[FormComponentId, F
 
 object Recalculation {
 
+  import Expr._
+
   def recalculateFormData(formData: FormData, formTemplate: FormTemplate): Either[GraphException, FormData] = {
 
     val graph: Graph[FormComponentId, DiEdge] = toGraph(formTemplate)
@@ -87,7 +89,8 @@ object Recalculation {
   private def recalculate(fc: FormComponent, dataLookup: Map[FormComponentId, String]): String =
     fc match {
       case HasExpr(SingleExpr(expr)) =>
-        eval(fc.id, expr, dataLookup) match {
+        val dl = dataLookup.filter { case (_, value) => value.nonEmpty }
+        eval(fc.id, expr, dl, "") match {
           case Left(x) => x
           case Right(bigDecimal) =>
             defaultFormat(roundTo(fc))
@@ -105,22 +108,23 @@ object Recalculation {
 
   private def sum(fcId: FormComponentId, fc: String, dataLookup: Map[FormComponentId, String]) = {
     val results = dataLookup.collect { case (key, value) if key.value.endsWith(fc) => Constant(value) }
-    val summation = results.foldLeft(Expr.additionIdentity)(Add)
-    eval(fcId, summation, dataLookup)
+    val summation = results.foldLeft(additionIdentityExpr)(Add)
+    eval(fcId, summation, dataLookup, additionIdentity.toString)
   }
 
   private def eval(
     fcId: FormComponentId,
     expr: Expr,
-    dataLookup: Map[FormComponentId, String]): Either[String, BigDecimal] =
+    dataLookup: Map[FormComponentId, String],
+    default: String): Either[String, BigDecimal] =
     expr match {
-      case Value                       => dataLookup.getOrElse(fcId, "").asLeft
+      case Value                       => dataLookup.getOrElse(fcId, default).asLeft
       case Constant(fc)                => fc.asLeft
-      case fc @ FormCtx(_)             => dataLookup.getOrElse(fc.toFieldId, "").asLeft
+      case fc @ FormCtx(_)             => dataLookup.getOrElse(fc.toFieldId, default).asLeft
       case Sum(FormCtx(fc))            => sum(fcId, fc, dataLookup)
-      case Add(field1, field2)         => makeCalc(fcId, dataLookup, _ + _, field1, field2).asRight
-      case Subtraction(field1, field2) => makeCalc(fcId, dataLookup, _ - _, field1, field2).asRight
-      case Multiply(field1, field2)    => makeCalc(fcId, dataLookup, _ * _, field1, field2).asRight
+      case Add(field1, field2)         => makeCalc(fcId, dataLookup, _ + _, field1, field2, additionIdentity).asRight
+      case Subtraction(field1, field2) => makeCalc(fcId, dataLookup, _ - _, field1, field2, additionIdentity).asRight
+      case Multiply(field1, field2)    => makeCalc(fcId, dataLookup, _ * _, field1, field2, multiplicationIdentity).asRight
       case otherwise                   => "".asLeft
     }
 
@@ -129,9 +133,10 @@ object Recalculation {
     dataLookup: Map[FormComponentId, String],
     operator: (BigDecimal, BigDecimal) => BigDecimal,
     xExpr: Expr,
-    yExpr: Expr
+    yExpr: Expr,
+    id: Int
   ): BigDecimal = {
-    def calc(expr: Expr) = eval(fcId, expr, dataLookup).leftMap(BigDecimalUtil.toBigDecimalDefault).merge
+    def calc(expr: Expr) = eval(fcId, expr, dataLookup, id.toString).leftMap(BigDecimalUtil.toBigDecimalDefault).merge
     operator(calc(xExpr), calc(yExpr))
   }
 }

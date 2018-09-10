@@ -53,13 +53,18 @@ object Javascript {
     fieldIdWithExpr
       .map(x => toJavascriptFn(x._1, x._2, repeatFormComponentIds, dependencies.toLookup))
       .mkString("\n") +
-      """|function getValue(elementId) {
-         |   return getNumber(document.getElementById(elementId).value.replace(/[£,]/g,''));
+      """|function getValue(elementId, identity) {
+         |   var el = document.getElementById(elementId);
+         |   if (el) {
+         |     return getNumber(el.value.replace(/[£,]/g,''), identity);
+         |   } else {
+         |     return identity;
+         |   };
          |};
          |
-         |function getNumber(value) {
+         |function getNumber(value, identity) {
          |  if (value == ""){
-         |    return "0";
+         |    return identity;
          |  } else {
          |   return value.replace(",", "");
          |  }
@@ -85,23 +90,25 @@ object Javascript {
     repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]]): String = {
 
-    def computeExpr(expr: Expr): String = {
+    import Expr._
+
+    def computeExpr(expr: Expr, opIdentity: Int): String = {
 
       def sum(id: String) = {
         val groupFcIds: List[FormComponentId] = repeatFormComponentIds.op(FormComponentId(id))
-        val sumExpr = groupFcIds.map(x => FormCtx(x.value)).foldLeft(Expr.additionIdentity)(Add)
-        computeExpr(sumExpr)
+        val sumExpr = groupFcIds.map(x => FormCtx(x.value)).foldLeft(additionIdentityExpr)(Add)
+        computeExpr(sumExpr, additionIdentity)
       }
 
-      def compute(operation: String, left: Expr, right: Expr) =
-        s"$operation(${computeExpr(left)}, ${computeExpr(right)})"
+      def compute(operation: String, left: Expr, right: Expr, id: Int) =
+        s"$operation(${computeExpr(left, id)}, ${computeExpr(right, id)})"
 
       expr match {
-        case FormCtx(id)       => s"""getValue("$id")"""
+        case FormCtx(id)       => s"""getValue("$id", $opIdentity)"""
         case Constant(amount)  => amount
-        case Add(a, b)         => compute("add", a, b)
-        case Subtraction(a, b) => compute("subtract", a, b)
-        case Multiply(a, b)    => compute("multiply", a, b)
+        case Add(a, b)         => compute("add", a, b, additionIdentity)
+        case Subtraction(a, b) => compute("subtract", a, b, additionIdentity)
+        case Multiply(a, b)    => compute("multiply", a, b, multiplicationIdentity)
         case Sum(FormCtx(id))  => sum(id)
         case otherwise         => ""
       }
@@ -132,7 +139,7 @@ object Javascript {
     val functionName = JsFunction("compute" + elementId)
 
     s"""|function $functionName() {
-        |  var result = ${computeExpr(expr)}.toFixed(${roundTo(field)}, 0);
+        |  var result = ${computeExpr(expr, additionIdentity)}.toFixed(${roundTo(field)}, 0);
         |  document.getElementById("$elementId").value = result;
         |  var total = document.getElementById("$elementId-total");
         |  if(total) total.innerHTML = result;

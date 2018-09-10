@@ -210,8 +210,6 @@ object RepeatingComponentService {
           fv.`type` match {
             case groupField @ Group(_, _, _, _, _, _) =>
               section match {
-                case s @ Section(_, _, _, _, _, _, _, _, _, _) =>
-                  s.expandSection.expandedFCs.flatMap(_.expandedFC)
                 case DeclarationSection(_, _, _, _) => loop(groupField.fields)
                 case _                              => List.empty
               }
@@ -219,6 +217,9 @@ object RepeatingComponentService {
           }
         }
 
-    loop(section.fields)
+    section match {
+      case s: Section => s.expandSection.expandedFCs.flatMap(_.expandedFC)
+      case _          => loop(section.fields)
+    }
   }
 }
