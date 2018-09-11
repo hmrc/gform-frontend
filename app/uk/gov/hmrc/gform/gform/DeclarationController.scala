@@ -85,20 +85,16 @@ class DeclarationController(
 
     val extraData =
       s"""
-         |<table class="table--font-reset ">
-         |  <thead>
-         |    <tr>
-         |      <th class="grid-layout__column--1-2"> <h2 class="h2-heading">Submission details</h2> </th>
-         |      <th class="text--right"> </th>
-         |    </tr>
-         |  </thead>
-         |  <tbody>
-         |    <tr>
-         |      <td>Submission reference</td>
-         |      <td>$referenceNumber</td>
-         |     </tr>
-         |  </tbody>
-         |</table>
+         |<h2 class="h2-heading">Submission details</h2>
+         |<dl class="govuk-check-your-answers cya-questions-long">
+         |  <div>
+         |    <dt class="cya-question">
+         |      Submission reference
+         |    </dt>
+         |    <dd class="cya-answer">$referenceNumber</dd>
+         |    <dd></dd>
+         |  </div>
+         |</dl>
       """.stripMargin
 
     val doc = Jsoup.parse(html)
