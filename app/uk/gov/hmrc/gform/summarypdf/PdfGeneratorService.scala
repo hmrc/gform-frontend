@@ -34,7 +34,7 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     pdfGeneratorConnector.generatePDF(body, headers)
   }
 
-  def sanitiseHtmlForPDF(html: Html, submitted: Boolean = false): String = {
+  def sanitiseHtmlForPDF(html: Html, submitted: Boolean): String = {
     val doc: Document = Jsoup.parse(html.body)
     removeComments(doc)
     doc.getElementsByTag("link").remove()
