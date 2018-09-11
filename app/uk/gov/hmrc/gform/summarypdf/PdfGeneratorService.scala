@@ -52,7 +52,7 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
       .getElementsByTag("head")
       .append(s"<style>${PdfGeneratorService.css}</style>")
     if (submitted) {
-      doc.getElementsByClass("unsubmitted").remove()
+      doc.getElementsByClass("cya-intro").remove()
     }
     doc.html.replace("£", "&pound;")
   }
