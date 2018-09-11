@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.models.helpers
 import uk.gov.hmrc.gform.models.Dependecies
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import FormComponentHelper.roundTo
+import uk.gov.hmrc.gform.ops._
 
 case class JsFunction(name: String) extends AnyVal {
   override def toString = name
@@ -77,12 +78,8 @@ object Javascript {
          |  return new Big(a).times(new Big(b));
          |};
          |
-         |function isSterling(totalEl) {
-         |return totalEl.className ==='sterling';
-         |}
-         |
          |function displaySterling(result) {
-         |return result<0 ? result.replace("-", "-£") : '£' + result
+         |return result < 0 ? result.replace("-", "-£") : '£' + result
          |}
          |""".stripMargin
   }
@@ -142,8 +139,8 @@ object Javascript {
     s"""|function $functionName() {
         |  var result = ${computeExpr(expr)}.toFixed(${roundTo(field)}, 0);
         |  document.getElementById("$elementId").value = result;
-        |  var totalEl = document.getElementById("$elementId-total");
-        |  if(totalEl) totalEl.innerHTML = isSterling(totalEl) ? displaySterling(result) : result;
+        |  var total = document.getElementById("$elementId-total");
+        |  if(total) total.innerHTML = ${if (field.isSterling) "displaySterling(result)" else "result"};
         |}
         |${listeners(functionName)}
         |""".stripMargin
