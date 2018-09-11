@@ -72,18 +72,10 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
 }
 
 object PdfGeneratorService {
-  // TODO TDC: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
-  lazy val old_css: String = {
-    val is = getClass.getResourceAsStream("/reduced-application.min.css")
-    scala.io.Source.fromInputStream(is).getLines.mkString
-  }
-
   val css: String =
-    """|
-       |body{font-family:Arial,sans-serif;font-size: 19px;}
+    """|body{font-family:Arial,sans-serif;font-size: 19px;}
        |dl{border-bottom: 1px solid #bfc1c3;}
        |dt{font-weight: bold;}
        |dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
-       |.pdf-only{display:block;}
     """.stripMargin
 }

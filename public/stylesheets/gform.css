@@ -294,8 +294,3 @@ textarea.form-control {
 .pdf-only {
   display: none;
 }
-
-.local-crest {
-  background: url(/submissions/assets/stylesheets/images/hmrc_crest_18px.png) 5px center no-repeat;
-  padding: 3px 0 3px 38px;
-}
