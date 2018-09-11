@@ -37,7 +37,7 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
   def sanitiseHtmlForPDF(html: Html, submitted: Boolean = false): String = {
     val doc: Document = Jsoup.parse(html.body)
     removeComments(doc)
-//    doc.getElementsByTag("link").remove()
+    doc.getElementsByTag("link").remove()
     doc.getElementsByTag("meta").remove()
     doc.getElementsByTag("script").remove()
     doc.getElementsByTag("a").remove()
@@ -48,11 +48,13 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     doc.getElementsByClass("print-hidden").remove()
     doc.getElementsByClass("report-error").remove()
     doc.getElementById("global-app-error").remove()
-    doc.getElementsByTag("head").append(s"<style>.pdf-only{display:block;}</style>")
+    doc
+      .getElementsByTag("head")
+      .append(s"<style>${PdfGeneratorService.css}</style>")
     if (submitted) {
       doc.getElementsByClass("unsubmitted").remove()
     }
-    doc.html
+    doc.html.replace("£", "&pound;")
   }
 
   private def removeComments(node: Node): Unit = {
@@ -75,4 +77,13 @@ object PdfGeneratorService {
     val is = getClass.getResourceAsStream("/reduced-application.min.css")
     scala.io.Source.fromInputStream(is).getLines.mkString
   }
+
+  val css: String =
+    """|
+       |body{font-family:Arial,sans-serif;font-size: 19px;}
+       |dl{border-bottom: 1px solid #bfc1c3;}
+       |dt{font-weight: bold;}
+       |dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
+       |.pdf-only{display:block;}
+    """.stripMargin
 }

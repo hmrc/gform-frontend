@@ -144,7 +144,7 @@ class AcknowledgementController(
 
       val doc = Jsoup.parse(html)
       doc.select("article[class*=content__body]").append(extraData)
-      doc.html
+      doc.html.replace("£", "&pound;")
     }
   }
 }
