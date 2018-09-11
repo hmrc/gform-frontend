@@ -91,18 +91,6 @@ object SummaryRenderingService {
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Html = {
           val isLabel = fieldValue.shortName.getOrElse(fieldValue.label).nonEmpty
 
-          def groupGrid(formComponents: List[FormComponent]) = {
-            val value = formComponents
-              .filter { y =>
-                val x = validate(y)
-                x.isDefined
-              }
-              .map(validate)
-            if (value.nonEmpty) {
-              group_grid(fieldValue, value, isLabel)
-            } else Html("")
-          }
-
           fieldValue.`type` match {
             case groupField: Group
                 if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
@@ -119,8 +107,17 @@ object SummaryRenderingService {
               }
 
               repeating_group(htmlList)
-            case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
-              groupGrid(groupField.fields)
+            case groupField: Group
+                if presentationHint.contains(SummariseGroupAsGrid) => // TODO unify this case with previous one after new group_grid template is in place
+              val fcs: List[FormComponent] =
+                getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
+
+              val value = fcs.map(validate).filterNot(_ == None)
+
+              if (value.nonEmpty) {
+                group_grid(fieldValue, value, isLabel)
+              } else Html("")
+
             case groupField @ Group(_, orientation, _, _, _, _) =>
               val fvs: List[GroupList] =
                 getAllFieldsInGroup(fieldValue, groupField, data)
