@@ -21,23 +21,12 @@
 
 @(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean)
 
-@groupFields = @{
-  fields.map {
-    case f @ Some(field) =>
-      val groupField = TextFormatter.formatText(f)
-      if(groupField.nonEmpty) groupField else AnyContentAsEmpty
-    case _ => AnyContentAsEmpty
-  }.filter(_.isInstanceOf[String])
-}
-
-@if(groupFields.nonEmpty) {
   <div>
     <dt class="cya-question">
       @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
     </dt>
     <dd class="cya-answer">
-      @groupFields.map{ f => @f<br> }
+      @fields.map{ f => @TextFormatter.formatText(f)<br> }
     </dd>
     <dd class="cya-change"></dd>
   </div>
-}
