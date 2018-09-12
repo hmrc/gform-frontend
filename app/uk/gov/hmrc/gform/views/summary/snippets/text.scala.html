@@ -24,9 +24,7 @@
 
 @(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
-@currentValue = @{TextFormatter.formatText(validationResult)}
-
-@hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
+@hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
     errorInline(fieldValue.id.value, e, Seq("error-message"))
@@ -37,7 +35,7 @@
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </dt>
   <dd class="cya-answer">
-    @{if(hasErrors) errors else currentValue}
+    @{if(hasErrors) errors else TextFormatter.formatText(validationResult)}
   </dd>
   <dd class="cya-change">
     @changeButton
