@@ -93,7 +93,15 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
     hiddenFieldNames should be(
-      List("csrfToken", "nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum", "save"))
+      List(
+        "csrfToken",
+        "nameOfBusiness",
+        "startDate-day",
+        "startDate-month",
+        "startDate-year",
+        "iptRegNum",
+        "facePhoto",
+        "save"))
     visibleFields should be(List("firstName", "surname"))
   }
 
@@ -175,6 +183,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         "startDate-month",
         "startDate-year",
         "iptRegNum",
+        "facePhoto",
         "save"))
     visibleFields should be(List())
   }

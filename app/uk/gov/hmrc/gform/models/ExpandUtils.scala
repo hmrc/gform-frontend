@@ -58,10 +58,19 @@ object ExpandUtils {
     filtered.take(Math.max(fieldsInGroups.size, present.size))
   }
 
+  def hiddenFileUploads(section: Section): List[FormComponent] =
+    section.fields.filter {
+      case IsFileUpload() => true
+      case _              => false
+    }
+
   def findFormComponent(targetFcId: FormComponentId, sections: List[Section]): Option[FormComponent] =
     sections.flatMap(_.fields).find(_.id == targetFcId)
 
   private val NumericPrefix = "^(\\d+)_.*".r
+
+  private def hasPrefix(n: Int, fcId: FormComponentId): Boolean =
+    fcId.value.startsWith(n.toString + "_")
 
   private def addPrefix(n: Int, targetFcId: FormComponentId): FormComponentId =
     targetFcId.value match {
@@ -132,7 +141,7 @@ object ExpandUtils {
 
         val formDataFields =
           groupFC.expandFormComponent.allIds.collect {
-            case fcId if fcId.value.startsWith(index.toString) => FormField(fcId, "")
+            case fcId if hasPrefix(index, fcId) => FormField(fcId, "")
           }
 
         val anchor = group.fields

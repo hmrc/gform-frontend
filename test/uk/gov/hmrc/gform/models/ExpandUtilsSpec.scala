@@ -572,24 +572,26 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
   }
 
-  it should "handle FormComponent of type InformationMessage" in {
+  it should "handle FormComponent of type InformationMessage and FileUpload" in {
 
     val section = mkSectionWithGroupHaving(
       List(
         "a" -> choice,
         "b" -> informationMessage,
-        "c" -> Text(AnyText, Value)
+        "c" -> FileUpload(),
+        "d" -> Text(AnyText, Value)
       )
     )
 
-    val data = mkData("a", "b", "c", "1_a", "1_b", "1_c")
+    val data = mkData("a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
 
     val emptyHidden = getAlwaysEmptyHidden(data, section)
 
     val expectedChoice = "a" :: "1_a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
     val expectedInfo = "b" :: "1_b" :: Nil map (id => mkFormComponent(FormComponentId(id), informationMessage))
+    val expectedFileUpload = "c" :: "1_c" :: Nil map (id => mkFormComponent(FormComponentId(id), FileUpload()))
 
-    emptyHidden should contain theSameElementsAs (expectedChoice ++ expectedInfo)
+    emptyHidden should contain theSameElementsAs (expectedChoice ++ expectedInfo ++ expectedFileUpload)
 
   }
 
@@ -632,6 +634,20 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     dataUpd shouldBe expectedData
     hiddenFormComponent shouldBe expectedFC
+  }
+
+  "hiddenFileUploads" should "return FileUpload components which are not part of a group" in {
+    val fileUploadOutsideOfGroup = mkFormComponent(FormComponentId("a"), FileUpload())
+    val fileUpload = mkFormComponent(FormComponentId("b"), FileUpload())
+    val text = mkFormComponent(FormComponentId("c"), Text(AnyText, Value))
+
+    val group = mkGroupWith(fileUpload :: Nil)
+    val fileUploadInAGroup = mkFormComponent(FormComponentId("dummy"), group)
+
+    val section = mkSection(text :: fileUploadOutsideOfGroup :: fileUploadInAGroup :: Nil)
+    val res = hiddenFileUploads(section)
+
+    res shouldBe List(fileUploadOutsideOfGroup)
   }
 
   private def mkSectionWithGroupHaving(xs: List[(String, ComponentType)]): Section = {

@@ -167,6 +167,7 @@ object Fields {
 
     val submitted = submittedFCs(data, sectionAtomicFields)
     val alwaysEmptyHidden = getAlwaysEmptyHidden(data, section)
+    val hiddenFUs = hiddenFileUploads(section)
 
     val idsToRenderAsEmptyHidden = alwaysEmptyHidden.map(_.id)
 
@@ -174,6 +175,6 @@ object Fields {
       case (id, acc) => acc.updated(id, "" :: Nil)
     }
 
-    (submitted ++ alwaysEmptyHidden, dataUpd)
+    (submitted ++ alwaysEmptyHidden ++ hiddenFUs, dataUpd)
   }
 }
