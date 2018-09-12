@@ -37,17 +37,8 @@ class PrepopServiceSpec extends Spec with ExampleData {
       "TESTSTRING"
   }
 
-  val mockRepeatingGroupService = new RepeatingComponentService(null, null) {
-    override def atomicFields(
-      section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] =
-      Future.successful(`section - about you`.fields)
-
-    override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
-      Future.successful(CacheMap("SOMESESSIONID", Map("Hello" -> Json.toJson(List(`section - about you`.fields)))))
-  }
-
   val prepopService =
-    new PrepopService(mockAuthPrepop, mockRepeatingGroupService, new EeittService(new EeittConnector("", null)))
+    new PrepopService(mockAuthPrepop, new EeittService(new EeittConnector("", null)))
 
   it should "return a auth number in the pattern matching" in {
     val result = call(AuthCtx(GG))

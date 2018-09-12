@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.keystore.KeystoreModule
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
@@ -32,7 +32,6 @@ import uk.gov.hmrc.gform.wshttp.WSHttpModule
 class GformModule(
   configModule: ConfigModule,
   wSHttpModule: WSHttpModule,
-  keystoreModule: KeystoreModule,
   controllersModule: ControllersModule,
   pdfGeneratorModule: PdfGeneratorModule,
   authModule: AuthModule,
@@ -46,10 +45,9 @@ class GformModule(
   private val authContextPrepop = new AuthContextPrepop
 
   private val prepopService: PrepopService =
-    new PrepopService(authContextPrepop, keystoreModule.repeatingComponentService, authModule.eeittService)
+    new PrepopService(authContextPrepop, authModule.eeittService)
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
-    keystoreModule.repeatingComponentService,
     prepopService,
     configModule.frontendAppConfig
   )
@@ -69,7 +67,6 @@ class GformModule(
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    keystoreModule.repeatingComponentService,
     fileUploadModule.fileUploadService,
     validationModule.validationService,
     sectionRenderingService,
@@ -79,7 +76,6 @@ class GformModule(
   val summaryController: SummaryController = new SummaryController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    keystoreModule.repeatingComponentService,
     fileUploadModule.fileUploadService,
     validationModule.validationService,
     pdfGeneratorModule.pdfGeneratorService,
@@ -110,7 +106,6 @@ class GformModule(
     controllersModule.authenticatedRequestActions,
     gformBackendModule.gformConnector,
     auditingModule.auditService,
-    keystoreModule.repeatingComponentService,
     summaryController,
     pdfGeneratorModule.pdfGeneratorService,
     sectionRenderingService,

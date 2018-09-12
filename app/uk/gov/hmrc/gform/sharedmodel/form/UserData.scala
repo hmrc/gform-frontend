@@ -20,7 +20,6 @@ import play.api.libs.json.{ Json, OFormat }
 
 case class UserData(
   formData: FormData,
-  repeatingGroupStructure: Option[RepeatingGroupStructure],
   formStatus: FormStatus
 )
 

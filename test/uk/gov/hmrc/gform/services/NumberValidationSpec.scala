@@ -16,116 +16,19 @@
 
 package uk.gov.hmrc.gform.services
 
-import cats.data.Validated
-import cats.data.Validated.Valid
-import cats.scalatest.EitherMatchers
-import org.scalatest.concurrent.ScalaFutures
+import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
-import cats.implicits._
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.http.HeaderCarrier
 
-class NumberValidationSpec extends Spec {
-  val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
-  "Number format" should "accepts whole numbers" in new Test {
-    override val value = "123"
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
-  }
-
-  "Number format" should "accept stirling pound and commas within numbers" in new Test {
-    override val value = "£1,234"
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
-  }
-
-  "Number format" should "return invalid for non-numeric" in new Test {
-    override val value = "THX1138"
-    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support alphabetics in number formats"
-  }
-
-  "Number format" should "accepts decimal fractions" in new Test {
-    override val value = "123.4"
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
-  }
-
-  "PositiveWholeNumber format" should "return invalid for decimal fractions" in new Test {
-    override val value = "123.4"
-    val textConstraint = PositiveNumber(maxFractionalDigits = 0)
-    val number = Text(textConstraint, Value)
-    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
-    val expected = Map(`fieldValue - number`.id -> Set("must be a whole number")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support dots in number formats"
-  }
-
-  "PositiveNumber format" should "accept whole numbers" in new Test {
-    override val value = "123"
-    val textConstraint = PositiveNumber()
-    val number = Text(textConstraint, Value)
-    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
-  }
-
-  "Number format" should "accept negative numbers" in new Test {
-    override val value = "-789"
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
-  }
-
-  "PositiveNumber format" should "return invalid for negative" in new Test {
-    override val value = "-123"
-    val textConstraint = PositiveNumber()
-    val number = Text(textConstraint, Value)
-    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
-    val expected = Map(`fieldValue - number`.id -> Set("must be a positive number")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support negative numbers in postive number formats"
-  }
-
-  "Number format" should "return invalid for too many digits" in new Test {
-    override val value = "1234567890123456789.87654321"
-    val expected = Map(
-      `fieldValue - number`.id -> Set(
-        "number must be at most 11 whole digits and decimal fraction must be at most 2 digits")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
-  }
-
-  "Number format" should "return invalid for too many whole digits" in new Test {
-    override val value = "1234567890123456789.87"
-    val expected = Map(`fieldValue - number`.id -> Set("number must be at most 11 whole digits")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
-  }
-
-  "Number(maxFractionalDigits = 0) format" should "return invalid for too many whole digits" in new Test {
-    override val value = "1234567890123456789"
-    val textConstraint = Number(maxFractionalDigits = 0)
-    val number = Text(textConstraint, Value)
-    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
-    val expected = Map(`fieldValue - number`.id -> Set("must be at most 11 digits")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
-  }
-
-  "Number format" should "return invalid for too many fractional digits" in new Test {
-    override val value = "9.87654321"
-    val expected = Map(`fieldValue - number`.id -> Set("decimal fraction must be at most 2 digits")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
-  }
-
-  "Number(2,1) format" should "return invalid for too many digits" in new Test {
-    override val value = "123.21"
-    val textConstraint = Number(2, 1)
-    val number = Text(textConstraint, Value)
-    override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = number)
-    val expected = Map(
-      `fieldValue - number`.id -> Set(
-        "number must be at most 2 whole digits and decimal fraction must be at most 1 digits")).invalid[Unit]
-    validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
-  }
+class NumberValidationSpec extends Spec with TableDrivenPropertyChecks {
 
   trait Test extends ExampleData {
     def value: String
@@ -157,4 +60,136 @@ class NumberValidationSpec extends Spec {
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }
 
+  val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
+
+  "A number which satisfies the whole shape and fractional shape pattern" should "be accepted as a valid number" in {
+    val numbers =
+      Table(
+        "number",
+        "+32432",
+        "123",
+        "+32,432",
+        "+32,432.",
+        "-32432",
+        "-32,432",
+        "-32,432.",
+        "32432",
+        "32,432",
+        "32,432.",
+        "+.23",
+        "+232.23",
+        "+2,232.23",
+        "-.23",
+        "-232.23",
+        "-2,232.23",
+        ".23",
+        "232.23",
+        "2,232.23",
+        "1,234,567,890",
+        "1,234,567,890.12",
+        "+1,234,567,890",
+        "-1,234,567,890.12",
+        "£1,234"
+      )
+
+    forAll(numbers) { number =>
+      new Test {
+        override val value = number
+        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+      }
+    }
+  }
+
+  "A number which does not satisfy the whole shape and fractional shape pattern" should "not be accepted as a valid number" in {
+
+    val numbers =
+      Table(
+        "number",
+        "+3,2432",
+        "+3,2432.",
+        "-3,2432",
+        "-3,2432.",
+        "3,2432",
+        "3,2432.",
+        "+2,32.23",
+        "-2,32.23",
+        "2,32.23",
+        "12,34,567,890",
+        "12,34,567,890.12",
+        "+12,34,567,890",
+        "12,34,567,890.12",
+        "£12,34",
+        "THX1138"
+      )
+
+    forAll(numbers) { number =>
+      new Test {
+        override val value = number
+        val expectedError = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expectedError
+      }
+    }
+  }
+
+  "A number which does not satisfy the fractional part rules" should "not be accepted as a valid number" in {
+    val numbers =
+      Table(
+        ("number", "expected"),
+        (
+          "1234567890123456789.87654321",
+          Map(
+            `fieldValue - number`.id -> Set(
+              "number must be at most 11 whole digits and decimal fraction must be at most 2 digits")).invalid[Unit]),
+        (
+          "1234567890123456789.87",
+          Map(`fieldValue - number`.id              -> Set("number must be at most 11 whole digits")).invalid[Unit]),
+        ("9.87654321", Map(`fieldValue - number`.id -> Set("decimal fraction must be at most 2 digits")).invalid[Unit])
+      )
+
+    forAll(numbers) { (number, expected) =>
+      new Test {
+        override val value = number
+        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+      }
+    }
+  }
+
+  "A number with applied constraints" should "be invalid if it does not satisfy those constraints" in {
+    val numbers =
+      Table(
+        ("number", "constraint", "expected"),
+        (
+          "123.21",
+          Text(Number(2, 1), Value),
+          Map(
+            `fieldValue - number`.id -> Set(
+              "number must be at most 2 whole digits and decimal fraction must be at most 1 digits")).invalid[Unit]),
+        //return invalid for too many whole digits
+        (
+          "1234567890123456789",
+          Text(Number(maxFractionalDigits = 0), Value),
+          Map(`fieldValue - number`.id -> Set("must be at most 11 digits"))
+            .invalid[Unit]),
+        (
+          "-123",
+          Text(PositiveNumber(), Value),
+          Map(`fieldValue - number`.id -> Set("must be a positive number"))
+            .invalid[Unit]),
+        ("123", Text(PositiveNumber(), Value), ().valid),
+        //return invalid for decimal fractions
+        (
+          "123.4",
+          Text(PositiveNumber(maxFractionalDigits = 0), Value),
+          Map(`fieldValue - number`.id -> Set("must be a whole number"))
+            .invalid[Unit])
+      )
+
+    forAll(numbers) { (number, constraint, expected) =>
+      new Test {
+        override val value = number
+        override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = constraint)
+        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+      }
+    }
+  }
 }

@@ -29,12 +29,13 @@
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 @import uk.gov.hmrc.gform.commons.NumberFormatUtil.formatCurrency
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FormComponent, text: Text, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 @validatedValue = @{validationResult.flatMap(_.getCurrentValue).getOrElse(prepop)}
 @validatedSterling = @{
     val currentSter = toBigDecimalDefault(validatedValue)
     formatCurrency.format(currentSter)
 }
+
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
     @{
@@ -64,7 +65,7 @@
                         @validatedValue
                     }
                 </span>
-		@(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop))))
+		@(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop.getOrElse("")))))
                 @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
             </span>
         </div>

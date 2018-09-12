@@ -38,7 +38,9 @@ object FormCtx {
 }
 
 object Expr {
-  val additionIdentity: Expr = Constant("0")
+  val additionIdentity = 0
+  val additionIdentityExpr: Expr = Constant(additionIdentity.toString)
+  val multiplicationIdentity = 1
   implicit val format: OFormat[Expr] = derived.oformat
 }
 

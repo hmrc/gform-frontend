@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestAc
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
@@ -48,7 +49,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 class SummaryController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
-  repeatService: RepeatingComponentService,
   fileUploadService: FileUploadService,
   validationService: ValidationService,
   pdfService: PdfGeneratorService,
@@ -80,7 +80,7 @@ class SummaryController(
         val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
         lazy val redirectToDeclaration = gformConnector
-          .updateUserData(formId, UserData(cache.form.formData, cache.form.repeatingGroupStructure, Validated))
+          .updateUserData(formId, UserData(cache.form.formData, Validated))
           .map { _ =>
             Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang))
           }
@@ -135,19 +135,21 @@ class SummaryController(
       sections.filter(visibility.isVisible)
     }
 
-    val sectionsF = repeatService.getAllSections(cache.formTemplate, data)
+    val allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
 
-    val filteredSections = sectionsF.map(filterSection)
+    val sections = filterSection(allSections)
+
+    val allFields = submittedFCs(data, sections.flatMap(_.expandSection.allFCs))
 
     for {
-      sections  <- filteredSections
-      allFields <- Future.traverse(sections)(repeatService.atomicFields).map(_.flatten)
+
       v1 <- sections
              .traverse(x => validationService.validateForm(allFields, x, cache.form.envelopeId, retrievals)(data))
              .map(Monoid[ValidatedType].combineAll)
       v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
       errors = validationService.evaluateValidation(v, allFields, data, envelope).toMap
     } yield (v, errors)
+
   }
 
   def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(
@@ -158,16 +160,8 @@ class SummaryController(
     for {
       envelope <- envelopeF
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
-      result <- SummaryRenderingService.renderSummary(
-                 cache.formTemplate,
-                 v,
-                 data,
-                 cache.retrievals,
-                 formId,
-                 repeatService,
-                 envelope,
-                 lang,
-                 frontendAppConfig)
-    } yield result
+    } yield
+      SummaryRenderingService
+        .renderSummary(cache.formTemplate, v, data, cache.retrievals, formId, envelope, lang, frontendAppConfig)
   }
 }

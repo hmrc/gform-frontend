@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.services
 
+import cats.data.Validated.Valid
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{ Document, Element }
 import org.jsoup.select.Elements
@@ -48,7 +49,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   implicit val messages = mock[play.api.i18n.Messages]
   val retrievals = mock[MaterialisedRetrievals]
 
-  val mockPrepopService = new PrepopService(null, null, null) {
+  val mockPrepopService = new PrepopService(null, null) {
     override def prepopData(
       expr: Expr,
       formTemplate: FormTemplate,
@@ -59,39 +60,25 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       Future.successful("")
   }
 
-  val mockRepeatService = new RepeatingComponentService(null, null) {
-
-    override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext): Future[List[Section]] =
-      Future.successful(allSections)
-
-    override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
-      Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
-
-    override def atomicFields(
-      section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] =
-      Future.successful(section.fields)
-
-    override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext) =
-      Future.successful((List(groupField.fields), false))
-  }
-
-  val testService = new SectionRenderingService(mockRepeatService, mockPrepopService, frontendAppConfig)
+  val testService = new SectionRenderingService(mockPrepopService, frontendAppConfig)
 
   "SectionRenderingService" should "generate first page" in {
     val generatedHtml = testService
       .renderSection(
         form,
         SectionNumber.firstSection,
-        Map.empty,
+        Map(
+          FormComponentId("nameOfBusiness")  -> Seq(""),
+          FormComponentId("startDate-day")   -> Seq(""),
+          FormComponentId("startDate-month") -> Seq(""),
+          FormComponentId("startDate-year")  -> Seq(""),
+          FormComponentId("iptRegNum")       -> Seq("")
+        ),
         formTemplate,
         Nil,
         Envelope(Nil),
         envelopeId,
-        None,
+        Valid(()),
         allSections,
         0,
         Nil,
@@ -132,7 +119,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
           Nil,
           Envelope(Nil),
           envelopeId,
-          None,
+          Valid(()),
           sections,
           0,
           Nil,
@@ -153,12 +140,18 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber.firstSection,
-        Map.empty,
+        Map(
+          FormComponentId("nameOfBusiness")  -> Seq(""),
+          FormComponentId("startDate-day")   -> Seq(""),
+          FormComponentId("startDate-month") -> Seq(""),
+          FormComponentId("startDate-year")  -> Seq(""),
+          FormComponentId("iptRegNum")       -> Seq("")
+        ),
         formTemplate,
         Nil,
         Envelope(Nil),
         envelopeId,
-        None,
+        Valid(()),
         allSections.map(sc => sc.copy(fields = sc.fields.map(f => f.copy(onlyShowOnSummary = true)))),
         0,
         Nil,
@@ -195,7 +188,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        None,
+        Valid(()),
         List(allSections.head.copy(progressIndicator = Some("Progress Indicator"))),
         0,
         Nil,
@@ -215,12 +208,16 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber(1),
-        Map.empty,
+        Map(
+          FormComponentId("firstName") -> Seq(""),
+          FormComponentId("surname")   -> Seq(""),
+          FormComponentId("facePhoto") -> Seq("")
+        ),
         formTemplate,
         Nil,
         Envelope(Nil),
         envelopeId,
-        None,
+        Valid(()),
         allSections,
         0,
         Nil,
@@ -312,7 +309,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        None,
+        Valid(()),
         allSections,
         0,
         Nil,
@@ -365,7 +362,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        None,
+        Valid(()),
         allSections,
         0,
         Nil,
@@ -387,27 +384,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
   it should "hide add-group button when limit has been reached (repeating groups)" in new ExampleData {
 
-    val mock2RepeatService = new RepeatingComponentService(null, null) {
-
-      override def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]])(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext): Future[List[Section]] =
-        Future.successful(allSections)
-
-      override def getAllRepeatingGroups(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CacheMap] =
-        Future.successful(CacheMap("EMPTY", Map.empty[String, JsValue]))
-
-      override def atomicFields(
-        section: BaseSection)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[FormComponent]] =
-        Future.successful(section.fields)
-
-      override def getRepeatingGroupsForRendering(topFieldValue: FormComponent, groupField: Group)(
-        implicit hc: HeaderCarrier,
-        ec: ExecutionContext) =
-        Future.successful((List(groupField.fields, groupField.fields), true))
-    }
-
-    val thisTestService = new SectionRenderingService(mock2RepeatService, mockPrepopService, frontendAppConfig)
+    val thisTestService = new SectionRenderingService(mockPrepopService, frontendAppConfig)
 
     override def `group - type` = Group(
       fields = List(`fieldValue - firstName`),
@@ -426,12 +403,15 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber(0),
-        Map.empty,
+        Map(
+          FormComponentId("firstName")   -> Seq(""),
+          FormComponentId("1_firstName") -> Seq("")
+        ),
         formTemplate,
         Nil,
         Envelope(Nil),
         envelopeId,
-        None,
+        Valid(()),
         allSections,
         0,
         Nil,
@@ -445,7 +425,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val addButtonValue = "AddGroup-" + `fieldValue - group`.id.value
     val fieldName = `fieldValue - firstName`.id.value
     doc.getElementsByAttributeValue("value", addButtonValue).size shouldBe 0
-    doc.getElementsByAttributeValue("name", fieldName).size shouldBe 2
+    doc.getElementsByAttributeValue("name", fieldName).size shouldBe 1
+    doc.getElementsByAttributeValue("name", "1_" + fieldName).size shouldBe 1
     doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 2
   }
 
@@ -455,7 +436,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         form,
         formTemplate,
         retrievals,
-        None,
+        Valid(()),
         Map.empty,
         Nil,
         None
@@ -479,7 +460,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         form,
         formTemplate.copy(formCategory = Some(HMRCClaimForm)),
         retrievals,
-        None,
+        Valid(()),
         Map.empty,
         Nil,
         None
@@ -503,7 +484,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         form,
         formTemplate.copy(formCategory = Some(HMRCReturnForm)),
         retrievals,
-        None,
+        Valid(()),
         Map.empty,
         Nil,
         None

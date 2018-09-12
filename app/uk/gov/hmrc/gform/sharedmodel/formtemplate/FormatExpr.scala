@@ -106,7 +106,7 @@ object TextConstraint {
 
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
 
-  def filterNumberValue(s: String): String = s.filterNot(c => (c == '£' || c == ','))
+  def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
 }
 
 object TextExpression {

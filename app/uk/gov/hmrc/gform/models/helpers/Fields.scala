@@ -16,17 +16,11 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
-import scala.concurrent.Future
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, _ }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
-import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.gform.models.ExpandUtils._
 
 object Fields {
 
@@ -157,8 +151,7 @@ object Fields {
         case UkSortCode(_)                                       => UkSortCode.fields(fv.id).map(getFieldData)
         case Text(_, _) | TextArea(_, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload()                                        => List(getFieldData(fv.id))
-        case InformationMessage(_, _)                            => List()
-
+        case InformationMessage(_, _)                            => List(getFieldData(fv.id))
       }
     }
 
@@ -166,12 +159,21 @@ object Fields {
   }
 
   def getHiddenTemplateFields(
-    currentSection: Section,
+    section: Section,
     dynamicSections: List[Section],
-    repeatingComponentService: RepeatingComponentService)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[List[FormComponent]] = {
-    val renderList: List[Section] = dynamicSections.filterNot(_ == currentSection)
-    Future.traverse(renderList)(repeatingComponentService.atomicFields).map(_.flatten)
+    data: Map[FormComponentId, Seq[String]]): (List[FormComponent], Map[FormComponentId, Seq[String]]) = {
+    val renderList: List[Section] = dynamicSections.filterNot(_ == section)
+    val sectionAtomicFields: List[FormComponent] = renderList.flatMap(_.expandSection.allFCs)
+
+    val submitted = submittedFCs(data, sectionAtomicFields)
+    val alwaysEmptyHidden = getAlwaysEmptyHidden(data, section)
+
+    val idsToRenderAsEmptyHidden = alwaysEmptyHidden.map(_.id)
+
+    val dataUpd = idsToRenderAsEmptyHidden.foldRight(data) {
+      case (id, acc) => acc.updated(id, "" :: Nil)
+    }
+
+    (submitted ++ alwaysEmptyHidden, dataUpd)
   }
 }
