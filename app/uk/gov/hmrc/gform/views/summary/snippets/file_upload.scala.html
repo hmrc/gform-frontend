@@ -24,7 +24,7 @@
 
 @(fieldValue: FormComponent, fileUpload: FileUpload, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
-@hasErrors = @{validationResult.map(_.isNotOk).getOrElse(false)}
+@hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
     errorInline("summary", e, Seq("error-message"))
