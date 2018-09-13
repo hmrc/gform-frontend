@@ -41,15 +41,18 @@
         frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages)
 
+@heading = @{"Your " + formCategory.getString + " has been submitted"}
+
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = supportContents.sectionTitle,
+    title = heading,
+    serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     bodyClasses = None,
     frontendAppConfig = frontendAppConfig
 ) {
 
 <div class="govuk-box-highlight">
-  <h1 class="bold-medium ack-header">Your @{formCategory.getString} has been submitted</h1>
+  <h1 class="bold-medium ack-header">@heading</h1>
 
   <p class="ack-subheader">@timeMessage</p>
 </div>

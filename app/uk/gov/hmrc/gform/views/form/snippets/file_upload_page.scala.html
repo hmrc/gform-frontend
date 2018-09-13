@@ -38,12 +38,15 @@
         messages: Messages
 )
 
+@heading = @{"Upload document"}
+
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = localisation(formTemplate.formName),
+    title = heading,
+    serviceName = formTemplate.formName,
     developmentPhase = ResearchBanner,
     frontendAppConfig = frontendAppConfig
 ) {
-    <h1 class="h1-heading">Upload document</h1>
+    <h1 class="h1-heading">@heading</h1>
 
     <form
       action=@actionUrl

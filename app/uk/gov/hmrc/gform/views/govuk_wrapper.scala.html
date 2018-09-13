@@ -22,6 +22,7 @@
 
 @(appConfig: FrontendAppConfig,
   title: String,
+  serviceTitle: String,
   headTitle: String,
   developmentPhase: DevelopmentPhase = ResearchBanner,
   mainClass: Option[String] = None,
@@ -56,7 +57,7 @@
 
 @insideHeader = {
     @uiLayouts.header_nav(
-      navTitle = Some(title),
+      navTitle = Some(serviceTitle),
       navTitleLink = None,
       showBetaLink = false,
       navLinks = Some(navLinks))

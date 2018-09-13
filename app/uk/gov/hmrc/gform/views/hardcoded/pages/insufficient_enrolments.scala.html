@@ -25,12 +25,15 @@
         messages: Messages
 )
 
+@heading = @{"Insufficient Enrolments"}
+
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = pageTitle,
+    title = heading,
+    serviceName = "",
     bodyClasses = None,
     frontendAppConfig = frontendAppConfig
 ) {
 
-<h1>Insufficient Enrolments</h1>
+<h1>@heading</h1>
 }
