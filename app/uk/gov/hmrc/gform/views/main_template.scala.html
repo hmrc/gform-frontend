@@ -35,10 +35,7 @@
 @serviceInfoContent = {}
 
 @headTitle = @{
-    (if (containsErrors) "Error:" else "") + title + " - " + serviceName + " - GOV.UK"
-}
-@serviceTitle =@{
-    serviceName
+    (if (containsErrors) "Error: " else "") + title + " - " + serviceName + " - GOV.UK"
 }
 @sidebar = {
     @if(sidebarLinks.isDefined) {
@@ -48,7 +45,7 @@
 
 @govuk_wrapper(appConfig = frontendAppConfig,
                title = title,
-               serviceTitle = serviceTitle,
+               serviceTitle = serviceName,
                headTitle = headTitle,
                developmentPhase = developmentPhase,
                mainClass = mainClass,
