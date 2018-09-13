@@ -30,14 +30,17 @@
     frontendAppConfig: FrontendAppConfig
 )(implicit messages: Messages)
 
+@heading = @{"Your " + formCategory(formTemplate) + " has been saved"}
+
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = formTemplate.formName,
+    title = heading,
+    serviceName = formTemplate.formName,
     bodyClasses = None,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
 <div class = "transaction-banner--complete">
-    <h1 class ="transaction-banner__heading">Your @formCategory(formTemplate) has been saved</h1>
+    <h1 class ="transaction-banner__heading">@heading</h1>
     <p>Your information is held for 30 days in a secured environment.</p>
 </div>
 

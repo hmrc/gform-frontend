@@ -35,13 +35,16 @@
         messages: Messages
 )
 
+@heading = @{"New " + formCategory(formTemplate) + "?"}
+
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = formTemplate.formName,
+    title = heading,
+    serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
-<h1>New @formCategory(formTemplate)?</h1>
+<h1>@heading</h1>
 
     <h1>Make a note of your access code</h1>
 

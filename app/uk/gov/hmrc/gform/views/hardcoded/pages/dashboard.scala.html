@@ -35,13 +35,15 @@
         messages: Messages
 )
 
+@heading = @{"Would you like to continue your " + formCategory(formTemplate) + " or start again?"}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = formTemplate.formName,
+    title = heading,
+    serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
-<h1>Would you like to continue your @formCategory(formTemplate) or start again?</h1>
+<h1>@heading</h1>
 
 <form action=@uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang) method="POST">
 

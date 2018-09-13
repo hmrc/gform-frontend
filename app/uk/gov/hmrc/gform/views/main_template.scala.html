@@ -18,6 +18,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner}
 
 @(title: String,
+  serviceName: String,
   containsErrors: Boolean = false,
   developmentPhase: DevelopmentPhase = ResearchBanner,
   sidebarLinks: Option[Html] = None,
@@ -33,6 +34,12 @@
 
 @serviceInfoContent = {}
 
+@headTitle = @{
+    (if (containsErrors) "Error:" else "") + title + " - " + serviceName + " - GOV.UK"
+}
+@serviceTitle =@{
+    serviceName
+}
 @sidebar = {
     @if(sidebarLinks.isDefined) {
         @layouts.sidebar(sidebarLinks.get, Some("sidebar"))
@@ -41,7 +48,8 @@
 
 @govuk_wrapper(appConfig = frontendAppConfig,
                title = title,
-               headTitle = (if (containsErrors) "Error: " else "") + title,
+               serviceTitle = serviceTitle,
+               headTitle = headTitle,
                developmentPhase = developmentPhase,
                mainClass = mainClass,
                bodyClasses = bodyClasses,

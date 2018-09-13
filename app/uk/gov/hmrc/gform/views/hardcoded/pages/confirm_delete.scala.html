@@ -34,10 +34,11 @@
         messages: Messages
 )
 
-
+@heading = @{"Start your " + formCategory(formTemplate) + " again?"}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = formTemplate.formName,
+    title = heading,
+    serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
@@ -47,7 +48,7 @@
 </div>
 
 <form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id.to4Ga, formId, lang)" method="POST">
-    <h1>Start your @formCategory(formTemplate) again?</h1>
+    <h1>@heading</h1>
 
     @{CSRF.formField}
     <div class="form-group">
