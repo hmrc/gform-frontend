@@ -310,8 +310,8 @@ class FormController(
     headerCarrier: HeaderCarrier
   ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType, Envelope)] = {
     val section = sections(sectionNumber.value)
-    val allFC = submittedFCs(data, sections.flatMap(_.expandSection.allFCs))
-    val sectionFields = submittedFCs(data, section.expandSection.allFCs)
+    val allFC = sections.flatMap(_.expandSection.allFCs)
+    val sectionFields = section.expandSection.allFCs
     implicit val hc = headerCarrier
     for {
       envelope <- envelopeF(envelopeId)

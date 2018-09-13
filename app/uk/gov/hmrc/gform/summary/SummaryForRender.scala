@@ -97,7 +97,7 @@ object SummaryRenderingService {
               val htmlList: List[Html] = {
 
                 val groups: List[GroupList] =
-                  getAllFieldsInGroup(fieldValue, groupField, data)
+                  getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
 
                 for {
                   group <- groups
