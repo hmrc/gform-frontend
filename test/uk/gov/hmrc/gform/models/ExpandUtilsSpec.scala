@@ -468,13 +468,13 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
   private def mkData(fcIds: String*) =
     fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap
 
-  "getAlwaysEmptyHidden" should "should ignore Choice which is not part of a Group" in {
+  "getAlwaysEmptyHiddenGroup" should "should ignore Choice which is not part of a Group" in {
 
     val section = mkSection(mkFormComponent(FormComponentId("a"), choice) :: Nil)
 
     val data = mkData("a")
 
-    val res = getAlwaysEmptyHidden(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section)
 
     res shouldBe empty
   }
@@ -489,7 +489,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = Map.empty[FormComponentId, Seq[String]]
 
-    val res = getAlwaysEmptyHidden(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section)
 
     val expectedChoice = "a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -507,7 +507,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkData("a")
 
-    val res = getAlwaysEmptyHidden(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section)
 
     val expectedChoice = "a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -525,7 +525,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkData("a", "1_a", "2_a")
 
-    val res = getAlwaysEmptyHidden(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section)
 
     val expectedChoice = "a" :: "1_a" :: "2_a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -544,7 +544,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkData("a", "b")
 
-    val res = getAlwaysEmptyHidden(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section)
 
     val expectedChoice = "a" :: "b" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -564,7 +564,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkData("a", "b", "c", "1_a", "1_b", "1_c")
 
-    val res = getAlwaysEmptyHidden(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section)
 
     val expectedChoice = "a" :: "b" :: "1_a" :: "1_b" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -585,7 +585,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkData("a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
 
-    val emptyHidden = getAlwaysEmptyHidden(data, section)
+    val emptyHidden = getAlwaysEmptyHiddenGroup(data, section)
 
     val expectedChoice = "a" :: "1_a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
     val expectedInfo = "b" :: "1_b" :: Nil map (id => mkFormComponent(FormComponentId(id), informationMessage))
@@ -634,6 +634,34 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     dataUpd shouldBe expectedData
     hiddenFormComponent shouldBe expectedFC
+  }
+
+  it should "render choice (outside of group) always as empty on current page" in {
+    val section = mkSection(mkFormComponent(FormComponentId("a"), choice) :: Nil)
+
+    val sections = section ::
+      mkSection(mkFormComponent(FormComponentId("b"), choice) :: Nil) ::
+      mkSection(mkFormComponent(FormComponentId("c"), Text(AnyText, Value)) :: Nil) :: Nil
+
+    val data = mkData("a", "b", "c")
+
+    val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data)
+
+    val expectedData = Map(
+      FormComponentId("a") -> List(""),
+      FormComponentId("b") -> List("B"),
+      FormComponentId("c") -> List("C")
+    )
+
+    val expectedFC = List(
+      "a" -> choice,
+      "b" -> choice,
+      "c" -> Text(AnyText, Value)
+    ) map { case (id, comp) => mkFormComponent(FormComponentId(id), comp) }
+
+    dataUpd shouldBe expectedData
+    hiddenFormComponent should contain theSameElementsAs expectedFC
+
   }
 
   "hiddenFileUploads" should "return FileUpload components which are not part of a group" in {

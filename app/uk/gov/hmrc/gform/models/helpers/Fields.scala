@@ -166,15 +166,16 @@ object Fields {
     val sectionAtomicFields: List[FormComponent] = renderList.flatMap(_.expandSection.allFCs)
 
     val submitted = submittedFCs(data, sectionAtomicFields)
-    val alwaysEmptyHidden = getAlwaysEmptyHidden(data, section)
+    val alwaysEmptyHiddenGroup = getAlwaysEmptyHiddenGroup(data, section)
+    val alwaysEmptyHidden = getAlwaysEmptyHidden(section)
     val hiddenFUs = hiddenFileUploads(section)
 
-    val idsToRenderAsEmptyHidden = alwaysEmptyHidden.map(_.id)
+    val idsToRenderAsEmptyHidden = (alwaysEmptyHiddenGroup ++ alwaysEmptyHidden).map(_.id)
 
     val dataUpd = idsToRenderAsEmptyHidden.foldRight(data) {
       case (id, acc) => acc.updated(id, "" :: Nil)
     }
 
-    (submitted ++ alwaysEmptyHidden ++ hiddenFUs, dataUpd)
+    (submitted ++ alwaysEmptyHiddenGroup ++ alwaysEmptyHidden ++ hiddenFUs, dataUpd)
   }
 }
