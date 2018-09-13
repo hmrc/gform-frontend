@@ -34,7 +34,7 @@ object ExpandUtils {
     }
   }
 
-  def getAlwaysEmptyHidden(data: Map[FormComponentId, Seq[String]], section: Section): List[FormComponent] = {
+  def getAlwaysEmptyHiddenGroup(data: Map[FormComponentId, Seq[String]], section: Section): List[FormComponent] = {
     val aeh = alwaysEmptyHidden(data, section) _
     aeh({ case IsInformationMessage(info) => info }) ++ // It is safe to include hidden fields for info messages, since they are not submissible
       aeh({ case IsChoice(choice)         => choice }) ++
@@ -57,6 +57,12 @@ object ExpandUtils {
     val present = fcIds.filter(key => filtered.exists(_.id == key))
     filtered.take(Math.max(fieldsInGroups.size, present.size))
   }
+
+  def getAlwaysEmptyHidden(section: Section): List[FormComponent] =
+    section.fields.filter {
+      case IsChoice(_) => true
+      case _           => false
+    }
 
   def hiddenFileUploads(section: Section): List[FormComponent] =
     section.fields.filter {
