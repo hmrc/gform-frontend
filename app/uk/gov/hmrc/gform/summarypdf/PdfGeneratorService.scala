@@ -34,20 +34,27 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     pdfGeneratorConnector.generatePDF(body, headers)
   }
 
-  def sanitiseHtmlForPDF(html: Html): String = {
+  def sanitiseHtmlForPDF(html: Html, submitted: Boolean): String = {
     val doc: Document = Jsoup.parse(html.body)
     removeComments(doc)
     doc.getElementsByTag("link").remove()
     doc.getElementsByTag("meta").remove()
     doc.getElementsByTag("script").remove()
     doc.getElementsByTag("a").remove()
+    doc.getElementsByTag("header").remove()
+    doc.getElementsByClass("service-info").remove()
     doc.getElementsByClass("footer-wrapper").remove()
     doc.getElementById("global-cookie-message").remove()
     doc.getElementsByClass("print-hidden").remove()
     doc.getElementsByClass("report-error").remove()
     doc.getElementById("global-app-error").remove()
-    doc.getElementsByTag("head").append(s"<style>${PdfGeneratorService.css}</style>")
-    doc.html
+    doc
+      .getElementsByTag("head")
+      .append(s"<style>${PdfGeneratorService.css}</style>")
+    if (submitted) {
+      doc.getElementsByClass("cya-intro").remove()
+    }
+    doc.html.replace("£", "&pound;")
   }
 
   private def removeComments(node: Node): Unit = {
@@ -65,10 +72,10 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
 }
 
 object PdfGeneratorService {
-  // TODO TDC: Delete application.min.css from source code and only send HTML once the pdf-service is caching CSS
-  lazy val css: String = {
-    val is = getClass.getResourceAsStream("/reduced-application.min.css")
-    scala.io.Source.fromInputStream(is).getLines.mkString
-  }
-
+  val css: String =
+    """|body{font-family:Arial,sans-serif;font-size: 19px;}
+       |dl{border-bottom: 1px solid #bfc1c3;}
+       |dt{font-weight: bold;}
+       |dt,dd{margin:0; width: 100%; display:block; text-align:left; padding-left:0;padding-bottom:10px;}
+    """.stripMargin
 }

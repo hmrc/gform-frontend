@@ -14,12 +14,10 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.views.html._
+@import uk.gov.hmrc.gform.sharedmodel.form.FormId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormCategory}
+@import uk.gov.hmrc.gform.views.html.localisation
 @import views.html.helper.CSRF
-@import scala.concurrent.ExecutionContext
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
@@ -44,32 +42,40 @@
     frontendAppConfig = frontendAppConfig
 ) {
 
-    <h1 class="h1-heading">@heading</h1>
+    <div class="pdf-only" aria-hidden="true">
+      <span>
+        HM Revenue &amp; Customs
+      </span>
+      <h1>
+        @{localisation(formTemplate.formName)}
+      </h1>
+    </div>
 
-    <p>
-      Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
-    </p>
+    <div class="cya-intro">
+      <h1 class="h1-heading">
+        @heading
+      </h1>
+      <p>
+        Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
+      </p>
+    </div>
 
     <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formId, formTemplate._id.to4Ga, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
-        @{
-            CSRF.formField
-        }
+        @CSRF.formField
+      	@snippets
 
-      	@{
-      	    snippets
-      	}
-
-      	<input type="hidden"
-      	       name="formId"
-      	       value="@{formId.value}" />
-
+      	<input type="hidden" name="formId" value="@{formId.value}" />
 
         <div class="print-hidden">
-          <p>You can print this summary page then come back later to complete your submission.</p>
-
+          <h2>
+            Now send your @{formCategory.getString}
+          </h2>
           <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formId, formTemplate._id.to4Ga, lang).url" class="print-link print-hidden js-visible">Print this summary page</a>
+            You can print this summary page then come back later to complete your @{formCategory.getString}.
+          </p>
+          <p>
+            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formId, formTemplate._id.to4Ga, lang).url">Print this summary page</a>
           </p>
         </div>
 
@@ -86,5 +92,4 @@
             </div>
         </div>
     </form>
-
 }
