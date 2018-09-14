@@ -45,30 +45,22 @@
         errors.map(e => errorInline(e, e, Seq("error-message")))
     }
 
-    <div class="grid-row">
-        <div class="column-half">
-            <span class="heading-small">
+    <div class="form-group">
+        <span class="form-hint">
               @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
                   @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
               } else {
                 @(fieldValue.label)
               }
-            </span>
-        </div>
-
-        <div class="column-half text--right">
-            <span class="heading-small">
-                <span id="@{fieldValue.id}-total">
-                    @if(fieldValue.isSterling){
-                        @validatedSterling
-                    } else {
-                        @validatedValue
-                    }
-                </span>
-		@(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop.getOrElse("")))))
-                @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
+              <span id="@{fieldValue.id}-total">
+                  @if(fieldValue.isSterling){
+                      @validatedSterling
+                  } else {
+                      @validatedValue
+                  }
+              </span>
+                  @(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop.getOrElse("")))))
+                  @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
             </span>
         </div>
     </div>
-
-</div>
