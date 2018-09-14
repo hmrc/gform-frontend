@@ -120,7 +120,7 @@ class SummarySpec extends Spec {
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
 
     val doc = Jsoup.parse(render.head.toString())
-    doc.getElementsByTag("SPAN").text().toLowerCase should include("your details")
+    doc.getElementsByTag("H2").text().toLowerCase should include("your details")
   }
 
   it should "display the shortName as section title if present" in new Test {
@@ -130,7 +130,7 @@ class SummarySpec extends Spec {
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
 
     val doc = Jsoup.parse(render.head.toString())
-    doc.getElementsByTag("SPAN").text().toUpperCase should include(shortName)
+    doc.getElementsByTag("H2").text().toUpperCase should include(shortName)
   }
 
   it should "display shortName instead of label for Address field" in new Test {
@@ -153,7 +153,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
+    doc.getElementsByTag("DT").text().equals(shortName) shouldBe true
   }
 
   it should "display label when shortName not provided for Address field" in new Test {
@@ -175,7 +175,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
+    doc.getElementsByTag("DT").text().equals(label) shouldBe true
   }
 
   it should "display shortName instead of label for Text field" in new Test {
@@ -198,7 +198,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
+    doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
 
   it should "display label if shortName not provided for Text field" in new Test {
@@ -221,7 +221,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
+    doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
 
   it should "display shortName instead of label for Choice field" in new Test {
@@ -244,7 +244,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
+    doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
 
   it should "display label if shortName not provided for Choice field" in new Test {
@@ -268,7 +268,7 @@ class SummarySpec extends Spec {
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
+    doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
 
   it should "display shortName instead of label for Date field" in new Test {
@@ -291,7 +291,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(shortName) shouldBe true
+    doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
 
   it should "display label if shortName not provided for Date field" in new Test {
@@ -314,7 +314,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
-    doc.getElementsByTag("TBODY").first().getElementsByTag("TD").first().text().equals(label) shouldBe true
+    doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
 
   it should "not render sections with includeIf expressions that evaluate to false" in new Test {
