@@ -107,18 +107,9 @@
 }
 
 /* Summary errors */
-.summary--error td:first-child {
+.summary--error {
   border-left: 3px solid #df3034;
   padding-left: 10px;
-}
-
-.summary--error .error-notification {
-  padding-bottom: 0;
-}
-
-.table--font-reset td.summary-cell--error {
-  color: #b10e1e;
-  font-weight: bold;
 }
 
 button.button--secondary{
@@ -282,16 +273,11 @@ table td:first-child.grid-layout__column--1-3 {
 /*should better use ASSET_FRONTEND instead End*/
 
 /*
-* whilst using tables for layout in the summary
-* these classes help layout, they should not be
-* needed when switching to pure GDS CYA
-* patterns
+* even using the CYA pattern does
+* not give us this custom heading
+* style for group headings
 */
-.summary-section {
-  margin-bottom: 60px;
-}
-
-.table--font-reset td.summary-group-label {
+.summary-group-label {
   border-bottom: none;
   font-weight: bold;
 }
@@ -303,4 +289,8 @@ table td:first-child.grid-layout__column--1-3 {
 
 textarea.form-control {
   width: 100%;
+}
+
+.pdf-only {
+  display: none;
 }

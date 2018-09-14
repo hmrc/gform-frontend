@@ -14,26 +14,18 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.views.html.localisation
-@import views.html.helper.CSRF
-@import scala.concurrent.Future
-
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+
 @(fieldValue: FormComponent, snippets: List[Html], orientation: Orientation, isLabel: Boolean)
 
 @if(isLabel){
-<tr>
-    <td colspan="3" class="summary-group-label">
-        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-    </td>
-
-</tr>
+ <div>
+  <dt class="summary-group-label">
+    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+  </dt>
+ </div>
 }
-      @{
-         snippets
-      }
 
+@snippets

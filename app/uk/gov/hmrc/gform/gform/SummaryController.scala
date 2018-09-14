@@ -114,7 +114,7 @@ class SummaryController(
           // format: OFF
         for {
           summaryHml <- getSummaryHTML(formId, cache, lang)
-          htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml)
+          htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml, submitted=false)
           pdfStream  <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
