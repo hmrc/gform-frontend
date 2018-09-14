@@ -44,7 +44,7 @@ object Extractors {
       m <- hrefExtractor.findAllIn(h.body).matchData
     } yield m.group(1)
 
-  val dateR = "(\\d{2}) (\\w+) (\\d{4})".r.unanchored
+  val dateR = "(\\d{2})\\W+(\\w+)\\W+(\\d{4})".r.unanchored
 
   def extractDates(html: List[Html]): List[(String, String, String)] =
     for {
