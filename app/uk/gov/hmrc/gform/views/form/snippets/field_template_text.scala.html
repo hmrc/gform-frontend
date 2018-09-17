@@ -39,21 +39,15 @@
     }
 }
 
-@sterlingHelper = @{
-  if(fieldValue.isSterling) {
-    <span class="visuallyhidden">in pounds sterling, do not enter the pound sign</span>
-  } else { "" }
-}
-
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 <div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-        @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) @sterlingHelper
+        @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
       </label>
     } else {
       <label for="@{fieldValue.id}" class="visuallyhidden">
-        @sectionTitle @sterlingHelper
+        @sectionTitle
       </label>
     }
 
