@@ -23,6 +23,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
+@import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
@@ -38,34 +39,31 @@
     }
 }
 
+@sterlingHelper = @{
+  if(fieldValue.isSterling) {
+    <span class="visuallyhidden">in pounds sterling, do not enter the pound sign</span>
+  } else { "" }
+}
+
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 <div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-        @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+        @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) @sterlingHelper
       </label>
-    @if(fieldValue.helpText) {
-    <span class="form-hint @if(fieldValue.derived){js-hidden}">
-            @{fieldValue.helpText}
-          </span>
-    }
     } else {
       <label for="@{fieldValue.id}" class="visuallyhidden">
-        @sectionTitle
+        @sectionTitle @sterlingHelper
       </label>
-    @if(fieldValue.helpText) {
-    <span class="form-hint @if(fieldValue.derived){js-hidden}">
-            @{fieldValue.helpText}
-          </span>
-    }
     }
 
-    @{
-        val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-        val errors: Set[String] = ValidationUtil.printErrors(map)
-
-        errors.map(e => errorInline(e, e, Seq("error-message")))
+    @if(fieldValue.helpText.isDefined) {
+      <span class="form-hint @if(fieldValue.derived){js-hidden}">
+        @{fieldValue.helpText}
+      </span>
     }
+
+    @inline_error_map(fieldValue, validationResult)
 
     @if(!fieldValue.isSterling) {
     <input

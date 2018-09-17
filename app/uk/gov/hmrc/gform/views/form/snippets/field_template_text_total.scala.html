@@ -24,6 +24,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
+@import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import java.text.NumberFormat
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
@@ -38,12 +39,8 @@
 }
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
-    @{
-        val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-        val errors: Set[String] = ValidationUtil.printErrors(map)
 
-        errors.map(e => errorInline(e, e, Seq("error-message")))
-    }
+  @inline_error_map(fieldValue, validationResult)
 
     <div class="form-group">
         <span class="heading-small">
