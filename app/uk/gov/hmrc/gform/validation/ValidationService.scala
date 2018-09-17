@@ -303,11 +303,13 @@ class ComponentsValidator(
 
         file match {
           case Some(File(fileId, Error(Some(reason)), _)) => getError(fieldValue, reason)
-          case Some(File(fileId, Error(None), _))         => getError(fieldValue, "Unknown error from file upload")
-          case Some(File(fileId, Infected, _))            => getError(fieldValue, "Virus detected")
-          case Some(File(fileId, _, _))                   => ().valid
-          case None if fieldValue.mandatory               => getError(fieldValue, "Upload a file")
-          case None                                       => ().valid
+          case Some(File(fileId, Error(None), _)) =>
+            getError(fieldValue, s"${messagePrefix(fieldValue)} has an unknown error from file upload")
+          case Some(File(fileId, Infected, _)) =>
+            getError(fieldValue, s"${messagePrefix(fieldValue)} has a virus detected")
+          case Some(File(fileId, _, _))     => ().valid
+          case None if fieldValue.mandatory => getError(fieldValue, s"${messagePrefix(fieldValue)} must be uploaded")
+          case None                         => ().valid
         }
       }
 
