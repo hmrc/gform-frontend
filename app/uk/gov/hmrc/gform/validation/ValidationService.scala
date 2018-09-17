@@ -43,8 +43,6 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.util.matching.Regex
-
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
 class ValidationService(
@@ -644,13 +642,13 @@ class ComponentsValidator(
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day, fieldValue.label)
+    val d = isNumeric(day, messagePrefix(fieldValue) + " day")
       .andThen(y => isWithinBounds(y, 31))
       .leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
-    val m = isNumeric(month, fieldValue.label)
+    val m = isNumeric(month, messagePrefix(fieldValue) + " month")
       .andThen(y => isWithinBounds(y, 12))
       .leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
-    val y = isNumeric(year, fieldValue.label)
+    val y = isNumeric(year, messagePrefix(fieldValue) + " year")
       .andThen(y => hasValidNumberOfDigits(y, 4))
       .leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
