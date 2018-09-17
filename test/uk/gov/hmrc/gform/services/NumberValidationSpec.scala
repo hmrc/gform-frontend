@@ -29,6 +29,8 @@ import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.http.HeaderCarrier
 
 class NumberValidationSpec extends Spec with TableDrivenPropertyChecks {
+  private def messagePrefix(fieldValue: FormComponent) =
+    fieldValue.shortName.getOrElse(fieldValue.label)
 
   trait Test extends ExampleData {
     def value: String
@@ -125,7 +127,8 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks {
     forAll(numbers) { number =>
       new Test {
         override val value = number
-        val expectedError = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+        val expectedError = Map(
+          `fieldValue - number`.id -> Set(s"${messagePrefix(`fieldValue - number`)} must be a number")).invalid[Unit]
         validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expectedError
       }
     }
@@ -137,13 +140,18 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks {
         ("number", "expected"),
         (
           "1234567890123456789.87654321",
-          Map(
-            `fieldValue - number`.id -> Set(
-              "number must be at most 11 whole digits and decimal fraction must be at most 2 digits")).invalid[Unit]),
+          Map(`fieldValue - number`.id -> Set(
+            s"${messagePrefix(`fieldValue - number`)} must be at most 11 whole digits and decimal fraction must be at most 2 digits"))
+            .invalid[Unit]),
         (
           "1234567890123456789.87",
-          Map(`fieldValue - number`.id              -> Set("number must be at most 11 whole digits")).invalid[Unit]),
-        ("9.87654321", Map(`fieldValue - number`.id -> Set("decimal fraction must be at most 2 digits")).invalid[Unit])
+          Map(
+            `fieldValue - number`.id -> Set(s"${messagePrefix(`fieldValue - number`)} must be at most 11 whole digits"))
+            .invalid[Unit]),
+        (
+          "9.87654321",
+          Map(`fieldValue - number`.id -> Set(s"${messagePrefix(`fieldValue - number`)} must be at most 2 digits"))
+            .invalid[Unit])
       )
 
     forAll(numbers) { (number, expected) =>
@@ -161,26 +169,26 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks {
         (
           "123.21",
           Text(Number(2, 1), Value),
-          Map(
-            `fieldValue - number`.id -> Set(
-              "number must be at most 2 whole digits and decimal fraction must be at most 1 digits")).invalid[Unit]),
+          Map(`fieldValue - number`.id -> Set(
+            s"${messagePrefix(`fieldValue - number`)} must be at most 2 whole digits and decimal fraction must be at most 1 digits"))
+            .invalid[Unit]),
         //return invalid for too many whole digits
         (
           "1234567890123456789",
           Text(Number(maxFractionalDigits = 0), Value),
-          Map(`fieldValue - number`.id -> Set("must be at most 11 digits"))
+          Map(`fieldValue - number`.id -> Set(s"${messagePrefix(`fieldValue - number`)} must be at most 11 digits"))
             .invalid[Unit]),
         (
           "-123",
           Text(PositiveNumber(), Value),
-          Map(`fieldValue - number`.id -> Set("must be a positive number"))
+          Map(`fieldValue - number`.id -> Set(s"${messagePrefix(`fieldValue - number`)} must be a positive number"))
             .invalid[Unit]),
         ("123", Text(PositiveNumber(), Value), ().valid),
         //return invalid for decimal fractions
         (
           "123.4",
           Text(PositiveNumber(maxFractionalDigits = 0), Value),
-          Map(`fieldValue - number`.id -> Set("must be a whole number"))
+          Map(`fieldValue - number`.id -> Set(s"${messagePrefix(`fieldValue - number`)} must be a whole number"))
             .invalid[Unit])
       )
 

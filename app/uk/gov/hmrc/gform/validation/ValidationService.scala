@@ -391,7 +391,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          s"${messagePrefix(fieldValue)} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+          s"${messagePrefix(fieldValue)} must be less than 1000 characters and can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
         )
 
     }
@@ -405,7 +405,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          s"${messagePrefix(fieldValue)} can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
+          s"${messagePrefix(fieldValue)} must be less than 100000 characters and can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
         )
     }
   }
@@ -464,19 +464,22 @@ class ComponentsValidator(
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
       case (WholeShape(_, whole, _), _, _) if filterCommas(whole).size > maxWhole =>
-        getError(fieldValue, s"must be at most $maxWhole digits")
-      case (WholeShape("-", _, _), _, true) => getError(fieldValue, "must be a positive number")
-      case (WholeShape(_, _, _), _, _)      => ().valid
+        getError(fieldValue, s"${messagePrefix(fieldValue)} must be at most $maxWhole digits")
+      case (WholeShape("-", _, _), _, true) =>
+        getError(fieldValue, s"${messagePrefix(fieldValue)} must be a positive number")
+      case (WholeShape(_, _, _), _, _) => ().valid
       case (FractionalShape(_, whole, _, fractional), 0, _)
           if filterCommas(whole).size > maxWhole && fractional.size > 0 =>
-        getError(fieldValue, s"number must be at most $maxWhole whole digits and no decimal fraction")
+        getError(
+          fieldValue,
+          s"${messagePrefix(fieldValue)} must be at most $maxWhole whole digits and no decimal fraction")
       case (FractionalShape(_, whole, _, fractional), _, _)
           if filterCommas(whole).size > maxWhole && fractional.size > maxFractional =>
         getError(
           fieldValue,
-          s"number must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
+          s"${messagePrefix(fieldValue)} must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
       case (FractionalShape(_, whole, _, _), _, _) if filterCommas(whole).size > maxWhole =>
-        getError(fieldValue, s"number must be at most $maxWhole whole digits")
+        getError(fieldValue, s"${messagePrefix(fieldValue)} must be at most $maxWhole whole digits")
       case (FractionalShape(_, _, _, fractional), 0, _) if fractional.size > 0 =>
         getError(fieldValue, s"${messagePrefix(fieldValue)} must be a whole number")
       case (FractionalShape(_, _, _, fractional), _, _) if fractional.size > maxFractional =>
