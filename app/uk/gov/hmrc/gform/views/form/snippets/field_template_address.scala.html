@@ -96,18 +96,16 @@
         }
 
         <div class="form-group-related">
-            <label class="form-label" for="@safeId("street1")">Address 1</label>
-
+            <label class="form-label" for="@safeId("street1")">Building and street</label>
             @safeError("street1")
             <input type="text"
                    class="form-control"
                    name="@safeId("street1")"
                    id="@safeId("street1")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("street1"))).getOrElse("")" />
+            value="@validationResult.map(_.getCurrentValue(safeId("street1"))).getOrElse("")" />
         </div>
-
         <div class="form-group-related">
-            <label class="form-label" for="@safeId("street2")">Address 2 (optional)</label>
+            <label class="form-label" for="@safeId("street2")"><span class="visuallyhidden">Building and street line 2 of 2</span></label>
             @safeError("street2")
             <input type="text"
                    class="form-control"
@@ -115,9 +113,8 @@
                    id="@safeId("street2")"
                    value="@validationResult.map(_.getCurrentValue(safeId("street2"))).getOrElse("")" />
         </div>
-
         <div class="form-group-related">
-            <label class="form-label" for="@safeId("street3")">Address 3 (optional)</label>
+            <label class="form-label" for="@safeId("street3")">Town or city</label>
 
             @safeError("street3")
             <input type="text"
@@ -128,7 +125,7 @@
         </div>
 
         <div class="form-group-related">
-            <label class="form-label" for="@safeId("street4")">Address 4 (optional)</label>
+            <label class="form-label" for="@safeId("street4")">County</label>
 
             @safeError("street4")
             <input type="text"
