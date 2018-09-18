@@ -660,7 +660,7 @@ class ComponentsValidator(
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }
 
-  def isNumeric(str: String, label: String = ""): ValidatedNumeric =
+  def isNumeric(str: String, label: String): ValidatedNumeric =
     Try(str.toInt) match {
       case Success(x) => Valid(x)
       case Failure(_) => Invalid(s"$label must be numeric")
