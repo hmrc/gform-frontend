@@ -28,24 +28,18 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class FormatValidationSpec extends Spec {
 
-  private def messagePrefix(fieldValue: FormComponent) =
-    fieldValue.shortName.getOrElse(fieldValue.label)
-
   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest("12345678910", Sterling)
-  "Sterling Format" should "" in createFailTest(
-    "1234567891011",
-    Sterling,
-    s"${messagePrefix(`fieldValue - number`)} must be at most 11 digits")
+  "Sterling Format" should "" in createFailTest("1234567891011", Sterling, "sample label must be at most 11 digits")
   "UkBankAccountNumber Format" should "be valid with 8 digits" in createSuccessTest("12345678", UkBankAccountNumber)
 
   "UkBankAccountNumber Format" should "be invalid with 9" in createFailTest(
     "123456789",
     UkBankAccountNumber,
-    s"${messagePrefix(`fieldValue - number`)} must be 8 numbers")
+    "sample label must be 8 numbers")
   "UkBankAccountNumber Format" should "be invalid with decimals" in createFailTest(
     "123456789.12345678",
     UkBankAccountNumber,
-    s"${messagePrefix(`fieldValue - number`)} must be a whole number")
+    "sample label must be a whole number")
 
   "UkSortCode" should "be valid with 2 digits in each box" in {
     val text = UkSortCode(Value)
@@ -78,8 +72,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(
-      Map(fieldValue.id -> Set(s"${messagePrefix(`fieldValue - number`)} must be 2 numbers")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be 2 numbers")))
   }
 
   "UkSortCode" should "return an error message" in {
@@ -96,8 +89,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(
-      Map(fieldValue.id -> Set(s"${messagePrefix(fieldValue)} values must be two digit numbers")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label values must be two digit numbers")))
   }
 
   "UkSortCode" should "return invalid data on -" in {
@@ -114,7 +106,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set(s"${messagePrefix(fieldValue)} must be 2 numbers")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be 2 numbers")))
   }
 
   "UkSortCode" should "be invalid with decimals" in {
@@ -131,7 +123,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set(s"${messagePrefix(fieldValue)} must be a whole number")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be a whole number")))
   }
 
   "TelephoneNumber" should "be valid within limit of 30" in createSuccessTest(

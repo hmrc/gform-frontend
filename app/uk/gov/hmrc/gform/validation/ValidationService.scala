@@ -505,9 +505,9 @@ class ComponentsValidator(
     xs.filterNot(_.isEmpty()) match {
       case Nil => ().valid
       case value :: Nil =>
-        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid
+        Map(fieldId -> errors(fieldValue, s"${messagePrefix(fieldValue)} must not be entered")).invalid
       case value :: rest =>
-        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yet
+        Map(fieldId -> errors(fieldValue, s"${messagePrefix(fieldValue)} must not be entered")).invalid // we don't support multiple values yet
     }
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
@@ -518,8 +518,10 @@ class ComponentsValidator(
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
         Map(fieldId -> errors(fieldValue, s"Address line 4 is longer than ${ValidationValues.addressLine4} characters")).invalid
       case (value :: Nil, _) if value.length > ValidationValues.addressLine =>
-        Map(fieldId -> errors(fieldValue, s"Address line ${fieldId.value
-          .substring(fieldId.value.length() - 1)} is longer than ${ValidationValues.addressLine} characters")).invalid
+        Map(
+          fieldId -> errors(
+            fieldValue,
+            s"Address line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")).invalid
       case _ => ().valid
     }
   }
