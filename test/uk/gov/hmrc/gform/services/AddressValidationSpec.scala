@@ -94,7 +94,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       EnvelopeId("whatever"),
       retrievals).validate(speccedAddress).futureValue
 
-    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("street1") -> Set("Address line 1 must be entered")))
+    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("street1") -> Set("l line 1 must be entered")))
   }
 
   "non-international" should "return invalid for street1 but no postcode" in {
@@ -114,8 +114,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       EnvelopeId("whatever"),
       retrievals).validate(speccedAddress).futureValue
 
-    result.toEither should beLeft(
-      Map(speccedAddress.id.withSuffix("postcode") -> Set("Address postcode must be entered")))
+    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered")))
   }
 
   "international" should "accept not uk, street1, country" in {
@@ -156,7 +155,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       EnvelopeId("whatever"),
       retrievals).validate(speccedAddress).futureValue
 
-    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("Country must be entered")))
+    result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("l Country must be entered")))
   }
 
   "international" should "return invalid for not uk, street1, postcode and country" in {
@@ -201,7 +200,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     result.toEither should beLeft(
       Map(
-        speccedAddress.id.withSuffix("postcode") -> Set("Address postcode must be entered"),
+        speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered"),
         speccedAddress.id.withSuffix("country")  -> Set("l must not be entered")
       ))
   }
@@ -226,8 +225,8 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     result.toEither should beLeft(
       Map(
-        FormComponentId("x-country") -> Set("Country must be entered"),
-        FormComponentId("x-street1") -> Set("Address line 1 must be entered")
+        FormComponentId("x-country") -> Set("l Country must be entered"),
+        FormComponentId("x-street1") -> Set("l line 1 must be entered")
       )
     )
   }
@@ -337,10 +336,10 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
 
     result.toEither should beLeft(
       Map(
-        FormComponentId("x-street2") -> Set("Address line 2 is longer than 35 characters"),
-        FormComponentId("x-street1") -> Set("Address line 1 is longer than 35 characters"),
-        FormComponentId("x-street3") -> Set("Address line 3 is longer than 35 characters"),
-        FormComponentId("x-street4") -> Set("Address line 4 is longer than 27 characters")
+        FormComponentId("x-street2") -> Set("l line 2 is longer than 35 characters"),
+        FormComponentId("x-street1") -> Set("l line 1 is longer than 35 characters"),
+        FormComponentId("x-street3") -> Set("l line 3 is longer than 35 characters"),
+        FormComponentId("x-street4") -> Set("l line 4 is longer than 27 characters")
       )
     )
   }

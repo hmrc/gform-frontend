@@ -200,14 +200,10 @@ class ComponentsValidator(
                         fieldValue,
                         inputDate,
                         offset,
-                        Map(
-                          fieldValue.id -> errors(fieldValue, s"${messagePrefix(fieldValue)} should be before Today")))(
-                        isBeforeToday))
+                        Map(fieldValue.id -> errors(fieldValue, "should be before Today")))(isBeforeToday))
 
               case (Before, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDate(
-                  concreteDate,
-                  Map(fieldValue.id -> errors(fieldValue, s"${messagePrefix(fieldValue)} is not a valid date")))
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
                   .andThen { concreteDate =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
@@ -218,9 +214,7 @@ class ComponentsValidator(
                             concreteDate,
                             offset,
                             Map(fieldValue.id ->
-                              errors(
-                                fieldValue,
-                                s"${messagePrefix(fieldValue)} should be before ${dateWithOffset(concreteDate, offset)}"))
+                              errors(fieldValue, s"should be before ${dateWithOffset(concreteDate, offset)}"))
                           )(isBeforeConcreteDate))
                   }
 
@@ -248,9 +242,7 @@ class ComponentsValidator(
                       otherLocalDate,
                       offset,
                       Map(fieldValue.id ->
-                        errors(
-                          fieldValue,
-                          s"${messagePrefix(fieldValue)} should be $beforeOrAfterString ${dateWithOffset(otherLocalDate, offset)}"))
+                        errors(fieldValue, s"should be $beforeOrAfterString ${dateWithOffset(otherLocalDate, offset)}"))
                     )(beforeOrAfterFunction)
                   }
                 }
@@ -264,14 +256,10 @@ class ComponentsValidator(
                         fieldValue,
                         inputDate,
                         offset,
-                        Map(
-                          fieldValue.id -> errors(fieldValue, s"${messagePrefix(fieldValue)} should be after today")))(
-                        isAfterToday))
+                        Map(fieldValue.id -> errors(fieldValue, "should be after today")))(isAfterToday))
 
               case (After, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDate(
-                  concreteDate,
-                  Map(fieldValue.id -> errors(fieldValue, s"${messagePrefix(fieldValue)} must be a valid date")))
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
                   .andThen { concreteDate =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
@@ -281,9 +269,10 @@ class ComponentsValidator(
                             inputDate,
                             concreteDate,
                             offset,
-                            Map(fieldValue.id -> errors(
-                              fieldValue,
-                              s"${messagePrefix(fieldValue)} should be after ${dateWithOffset(concreteDate, offset)}"))
+                            Map(
+                              fieldValue.id -> errors(
+                                fieldValue,
+                                s"should be after ${dateWithOffset(concreteDate, offset)}"))
                           )(isAfterConcreteDate))
                   }
             }
@@ -391,7 +380,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          "must be less than 1000 characters and can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+          "can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
         )
 
     }
@@ -405,7 +394,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          "must be less than 100000 characters and can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
+          "can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
         )
     }
   }
@@ -496,7 +485,7 @@ class ComponentsValidator(
     xs: Seq[String]): ValidatedType =
     xs.filterNot(_.isEmpty()) match {
       case Nil =>
-        Map(fieldId -> errors(fieldValue, s"${errorPrefix.getOrElse(messagePrefix(fieldValue))} must be entered")).invalid
+        Map(fieldId -> errors(fieldValue, s"${errorPrefix.getOrElse(" ")}must be entered")).invalid
       case value :: Nil  => ().valid
       case value :: rest => ().valid // we don't support multiple values yet
     }
@@ -505,9 +494,9 @@ class ComponentsValidator(
     xs.filterNot(_.isEmpty()) match {
       case Nil => ().valid
       case value :: Nil =>
-        Map(fieldId -> errors(fieldValue, s"${messagePrefix(fieldValue)} must not be entered")).invalid
+        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid
       case value :: rest =>
-        Map(fieldId -> errors(fieldValue, s"${messagePrefix(fieldValue)} must not be entered")).invalid // we don't support multiple values yet
+        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yet
     }
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
@@ -516,12 +505,12 @@ class ComponentsValidator(
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => ().valid
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
-        Map(fieldId -> errors(fieldValue, s"Address line 4 is longer than ${ValidationValues.addressLine4} characters")).invalid
+        Map(fieldId -> errors(fieldValue, s"line 4 is longer than ${ValidationValues.addressLine4} characters")).invalid
       case (value :: Nil, _) if value.length > ValidationValues.addressLine =>
         Map(
           fieldId -> errors(
             fieldValue,
-            s"Address line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")).invalid
+            s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")).invalid
       case _ => ().valid
     }
   }
@@ -557,25 +546,25 @@ class ComponentsValidator(
       case "true" :: Nil =>
         List(
           Monoid[ValidatedType].combine(
-            validateRequiredField("street1", "Address line 1")(addressValueOf("street1")),
+            validateRequiredField("street1", "line 1 ")(addressValueOf("street1")),
             lengthValidation("street1")(addressValueOf("street1"))
           ),
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
-          validateRequiredField("postcode", "Address postcode")(addressValueOf("postcode")),
+          validateRequiredField("postcode", "postcode ")(addressValueOf("postcode")),
           validateForbiddenField("country")(addressValueOf("country"))
         )
       case _ =>
         List(
           Monoid[ValidatedType].combine(
-            validateRequiredField("street1", "Address line 1")(addressValueOf("street1")),
+            validateRequiredField("street1", "line 1 ")(addressValueOf("street1")),
             lengthValidation("street1")(addressValueOf("street1"))),
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
           validateForbiddenField("postcode")(addressValueOf("postcode")),
-          validateRequiredField("country", "Country")(addressValueOf("country"))
+          validateRequiredField("country", "Country ")(addressValueOf("country"))
         )
     }
 
@@ -629,9 +618,7 @@ class ComponentsValidator(
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
         validateLocalDate(fieldValue, errorMsg, day, month, year) match {
           case Valid(concreteDate) =>
-            validateConcreteDate(
-              concreteDate,
-              Map(fieldId -> errors(fieldValue, s"${messagePrefix(fieldValue)} must be a valid date")))
+            validateConcreteDate(concreteDate, Map(fieldId -> errors(fieldValue, "must be a valid date")))
           case Invalid(nonEmptyList) => Invalid(nonEmptyList)
         }
 
@@ -688,10 +675,10 @@ class ComponentsValidator(
     }
 
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
-    Set(fieldValue.errorMessage.getOrElse(defaultErr))
+    Set(fieldValue.errorMessage.getOrElse(messagePrefix(fieldValue) + " " + defaultErr))
 
   private def getError(fieldValue: FormComponent, defaultMessage: String) =
-    Map(fieldValue.id -> errors(fieldValue, messagePrefix(fieldValue) + " " + defaultMessage)).invalid
+    Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
 }
 
 object ValidationValues {

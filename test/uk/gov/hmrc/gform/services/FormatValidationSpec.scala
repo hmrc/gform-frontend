@@ -185,13 +185,13 @@ class FormatValidationSpec extends Spec {
   "BasicText" should "return invalid with invalid text" in createFailTest(
     List.fill[String](100001)("a").mkString,
     BasicText,
-    "sample label must be less than 100000 characters and can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
+    "sample label can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
   )
   "ShortText" should "return valid with shortText" in createSuccessTest("this is test text", ShortText)
   "ShortText" should "return invalid with too long of text" in createFailTest(
     List.fill(1001)("a").mkString,
     ShortText,
-    "sample label must be less than 1000 characters and can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+    "sample label can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
   )
   "Text(min, max)" should "return valid with in constraints text" in createSuccessTest(
     "this is in constraints",
