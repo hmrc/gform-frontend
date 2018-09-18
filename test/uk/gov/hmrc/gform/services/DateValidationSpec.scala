@@ -170,7 +170,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set(s"Date should be after 2017-06-21")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label should be after 21 June 2017")))
   }
 
   "After Today -1" should "accepts today and dates in future" in {
@@ -475,8 +475,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
 
     result.toEither should beLeft(
       Map(
-        fieldValue.id.withSuffix("day")   -> Set(s"must be numeric"),
-        fieldValue.id.withSuffix("month") -> Set(s"must be numeric")
+        fieldValue.id.withSuffix("day")   -> Set("sample label day must be numeric"),
+        fieldValue.id.withSuffix("month") -> Set("sample label month must be numeric")
       ))
   }
 
@@ -509,7 +509,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals).validate(fieldValue).futureValue
 
-    result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("Date is missing")))
+    result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("sample label is missing")))
   }
 
   "Date validations" should "return supplied error message" in {

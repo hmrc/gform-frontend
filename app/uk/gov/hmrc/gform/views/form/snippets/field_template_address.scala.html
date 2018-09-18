@@ -84,103 +84,102 @@
       <input type="hidden" name="@safeId("uk")" id="@safeId("uk")" value="true" />
     }
 
-    <div class="@if(validationResult.map(_.isOk).contains(false)) { form-group-error }">
-        @if(fieldValue.helpText) {
-        <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
-        }
 
-        @safeError(suffix : String) = @{
-        val errors: Set[String] = validationResult.map(_.fieldErrorsWithSuffix(suffix)).getOrElse(Set())
+      @if(fieldValue.helpText.nonEmpty) {
+      <div class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+      }
 
-        errors.map(e => errorInline(e, e, Seq("error-message")))
-        }
+      @safeError(suffix : String) = @{
+      val errors: Set[String] = validationResult.map(_.fieldErrorsWithSuffix(suffix)).getOrElse(Set())
 
-        <div class="form-group-related">
-            <label class="form-label" for="@safeId("street1")">Address 1</label>
+      errors.map(e => errorInline(suffix, e, Seq("error-message")))
+      }
 
-            @safeError("street1")
-            <input type="text"
-                   class="form-control"
-                   name="@safeId("street1")"
-                   id="@safeId("street1")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("street1"))).getOrElse("")" />
+      <div class="form-group@if(safeError("street1").nonEmpty){ form-group-error }">
+          <label class="form-label" for="@safeId("street1")">Address 1</label>
+
+          @safeError("street1")
+          <input type="text"
+                 class="form-control@if(safeError("street1").nonEmpty){ form-control-error}"
+                 name="@safeId("street1")"
+                 id="@safeId("street1")"
+                 value="@validationResult.map(_.getCurrentValue(safeId("street1"))).getOrElse("")" />
+      </div>
+
+      <div class="form-group@if(safeError("street2").nonEmpty){ form-group-error }">
+          <label class="form-label" for="@safeId("street2")">Address 2 (optional)</label>
+          @safeError("street2")
+          <input type="text"
+                 class="form-control"
+                 name="@safeId("street2")"
+                 id="@safeId("street2")"
+                 value="@validationResult.map(_.getCurrentValue(safeId("street2"))).getOrElse("")" />
+      </div>
+
+      <div class="form-group@if(safeError("street3").nonEmpty){ form-group-error }">
+          <label class="form-label" for="@safeId("street3")">Address 3 (optional)</label>
+
+          @safeError("street3")
+          <input type="text"
+                 class="form-control"
+                 name="@safeId("street3")"
+                 id="@safeId("street3")"
+                 value="@validationResult.map(_.getCurrentValue(safeId("street3"))).getOrElse("")" />
+      </div>
+
+      <div class="form-group@if(safeError("street4").nonEmpty){ form-group-error }">
+          <label class="form-label" for="@safeId("street4")">Address 4 (optional)</label>
+
+          @safeError("street4")
+          <input type="text"
+                 class="form-control"
+                 name="@safeId("street4")"
+                 id="@safeId("street4")"
+                 value="@validationResult.map(_.getCurrentValue(safeId("street4"))).getOrElse("")" />
+      </div>
+
+      @if(international) {
+      <div id="@groupId("address-local")">
+        <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
+          <label class="form-label" for="@safeId("postcode")">Postcode</label>
+
+            @safeError("postcode")
+          <input type="text"
+                 class="form-control input--small@if(safeError("postcode").nonEmpty){ form-control-error}"
+                 name="@safeId("postcode")"
+                 id="@safeId("postcode")"
+                 value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
         </div>
+      </div>
 
-        <div class="form-group-related">
-            <label class="form-label" for="@safeId("street2")">Address 2 (optional)</label>
-            @safeError("street2")
-            <input type="text"
-                   class="form-control"
-                   name="@safeId("street2")"
-                   id="@safeId("street2")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("street2"))).getOrElse("")" />
+      <div id="@groupId("address-international")">
+        <div class="form-group@if(safeError("country").nonEmpty){ form-group-error }">
+          <label class="form-label" for="@safeId("country")">Country</label>
+
+            @safeError("country")
+          <input type="text"
+                 class="form-control@if(safeError("country").nonEmpty){ form-control-error}"
+                 name="@safeId("country")"
+                 id="@safeId("country")"
+                 value="@validationResult.map(_.getCurrentValue(safeId("country"))).getOrElse("")" />
         </div>
+      </div>
+      } else {
+        <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
+          <label class="form-label" for="@safeId("postcode")">Postcode</label>
 
-        <div class="form-group-related">
-            <label class="form-label" for="@safeId("street3")">Address 3 (optional)</label>
+            @safeError("postcode")
+          <input type="text"
+                 class="form-control input--small@if(safeError("postcode").nonEmpty){ form-control-error}"
+                 name="@safeId("postcode")"
+                 id="@safeId("postcode")"
+                 value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
 
-            @safeError("street3")
-            <input type="text"
-                   class="form-control"
-                   name="@safeId("street3")"
-                   id="@safeId("street3")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("street3"))).getOrElse("")" />
+            @safeError("country")
+          <input type="hidden"
+                 name="@safeId("country")"
+                 id="@safeId("country")"
+                 value="" />
         </div>
-
-        <div class="form-group-related">
-            <label class="form-label" for="@safeId("street4")">Address 4 (optional)</label>
-
-            @safeError("street4")
-            <input type="text"
-                   class="form-control"
-                   name="@safeId("street4")"
-                   id="@safeId("street4")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("street4"))).getOrElse("")" />
-        </div>
-
-        @if(international) {
-        <div id="@groupId("address-local")">
-          <div class="form-group">
-            <label class="form-label" for="@safeId("postcode")">Postcode</label>
-
-              @safeError("postcode")
-            <input type="text"
-                   class="form-control input--small"
-                   name="@safeId("postcode")"
-                   id="@safeId("postcode")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
-          </div>
-        </div>
-
-        <div id="@groupId("address-international")">
-          <div class="form-group">
-            <label class="form-label" for="@safeId("country")">Country</label>
-
-              @safeError("country")
-            <input type="text"
-                   class="form-control"
-                   name="@safeId("country")"
-                   id="@safeId("country")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("country"))).getOrElse("")" />
-          </div>
-        </div>
-        } else {
-          <div class="form-group">
-            <label class="form-label" for="@safeId("postcode")">Postcode</label>
-
-              @safeError("postcode")
-            <input type="text"
-                   class="form-control input--small"
-                   name="@safeId("postcode")"
-                   id="@safeId("postcode")"
-                   value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
-
-              @safeError("country")
-            <input type="hidden"
-                   name="@safeId("country")"
-                   id="@safeId("country")"
-                   value="" />
-          </div>
-        }
-    </div>
+      }
 </fieldset>

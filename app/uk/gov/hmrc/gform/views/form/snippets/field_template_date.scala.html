@@ -21,9 +21,8 @@
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
+@import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
-
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
 
 @safeId(id: String) = @{
@@ -47,12 +46,7 @@ fieldValue.id.withSuffix(id).toString
             }
           </legend>
 
-          @{
-             val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-             val errors: Set[String] = ValidationUtil.printErrors(map)
-
-             errors.map(e => errorInline(makeSelector(e), e, Seq("error-message")))
-          }
+          @inline_error_map(fieldValue, validationResult)
 
           <div class="form-date">
               <div class="form-group">

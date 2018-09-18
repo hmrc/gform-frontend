@@ -30,26 +30,30 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.collection.immutable.List
 
 class ValidIfValidationSpec extends Spec {
+
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   "Valid if " should "return no errors for valid if it's condition is met" in new Test {
     override val value = "15"
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
-  "Valid if " should "return no errors for an info field even thpiugh it's condition is not met" in new Test {
+  "Valid if " should "return no errors for an info field even though it's condition is not met" in new Test {
     validate(`fieldValue - info`, rawDataFromBrowser).futureValue shouldBe ().valid
   }
   "Valid if " should "return an error for a text field if it's condition is not met" in new Test {
     override val value = "12"
-    val expected = Map(`fieldValue - number`.id -> Set("Please enter required data")).invalid[Unit]
+    val expected =
+      Map(`fieldValue - number`.id -> Set("sample label must be entered")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
   }
   "Valid if " should "return an error for a choice field if it's condition is not met" in new Test {
-    val expected = Map(`fieldValue - choice`.id -> Set("Please enter required data")).invalid[Unit]
+    val expected =
+      Map(`fieldValue - choice`.id -> Set("sample label must be selected")).invalid[Unit]
     validate(`fieldValue - choice`, rawDataFromBrowser).futureValue shouldBe expected
   }
   "Valid if " should "return the error for invalid data instead of it's own" in new Test {
     override val value = "THX1138"
-    val expected = Map(`fieldValue - number`.id -> Set("must be a number")).invalid[Unit]
+    val expected =
+      Map(`fieldValue - number`.id -> Set("sample label must be a number")).invalid[Unit]
     validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected withClue "we don't support alphabetics in number formats"
   }
 

@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-
+@import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
 @(
 formId: FormId,
@@ -63,11 +63,7 @@ lang: Option[String]
       data-initial-text="@if(currentValue.isEmpty || currentValue == defaultLabel) {@{defaultLabel}} else {@{defaultChangeLabel}}"
       data-default-label="@{defaultLabel}">
         <div class="file-upload__errors">
-          @{
-              val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-              val errors: Set[String] = ValidationUtil.printErrors(map)
-              errors.map(e => errorInline(e, e, Seq("error-message")))
-          }
+          @inline_error_map(fieldValue, validationResult)
         </div>
 
         <ul class="file-upload__file-list">

@@ -29,17 +29,17 @@ import uk.gov.hmrc.http.HeaderCarrier
 class FormatValidationSpec extends Spec {
 
   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest("12345678910", Sterling)
-  "Sterling Format" should "" in createFailTest("1234567891011", Sterling, "must be at most 11 digits")
+  "Sterling Format" should "" in createFailTest("1234567891011", Sterling, "sample label must be at most 11 digits")
   "UkBankAccountNumber Format" should "be valid with 8 digits" in createSuccessTest("12345678", UkBankAccountNumber)
 
   "UkBankAccountNumber Format" should "be invalid with 9" in createFailTest(
     "123456789",
     UkBankAccountNumber,
-    "must be a whole number of 8 length")
+    "sample label must be 8 numbers")
   "UkBankAccountNumber Format" should "be invalid with decimals" in createFailTest(
     "123456789.12345678",
     UkBankAccountNumber,
-    "must be a whole number")
+    "sample label must be a whole number")
 
   "UkSortCode" should "be valid with 2 digits in each box" in {
     val text = UkSortCode(Value)
@@ -72,7 +72,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be 2 numbers")))
   }
 
   "UkSortCode" should "return an error message" in {
@@ -89,7 +89,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a two digit number")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label values must be two digit numbers")))
   }
 
   "UkSortCode" should "return invalid data on -" in {
@@ -106,7 +106,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number of 2 length")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be 2 numbers")))
   }
 
   "UkSortCode" should "be invalid with decimals" in {
@@ -123,7 +123,7 @@ class FormatValidationSpec extends Spec {
 
     val result = validator(fieldValue, data)
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("must be a whole number")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be a whole number")))
   }
 
   "TelephoneNumber" should "be valid within limit of 30" in createSuccessTest(
@@ -133,65 +133,73 @@ class FormatValidationSpec extends Spec {
   "TelephoneNumber" should "be invalid with over the limit" in createFailTest(
     "1234567891011121314151617181920",
     TelephoneNumber,
-    "Entered too many characters should be at most 30 long")
+    "sample label has more than 30 characters")
   "Email" should "be valid with proper structure" in createSuccessTest("test@test.com", Email)
   "Email" should "be invalid with invalid email address" in createFailTest(
     "testtest.com",
     Email,
-    "This email address is not valid")
+    "sample label is not valid")
   "Email" should "be invalid with too long email address" in createFailTest(
     List.fill(241)("a").mkString + "@test.com",
     Email,
-    "Entered too many characters should be at most 241 long")
+    "sample label has more than 241 characters")
   "UTR" should "be valid " in createSuccessTest("1000000000", UTR)
-  "UTR" should "be invalid with decimals" in createFailTest("123456789", UTR, "Not a valid Id")
+  "UTR" should "be invalid with decimals" in createFailTest("123456789", UTR, "sample label is not a valid Id")
   "NINO" should "be valid with a valid NINO " in createSuccessTest("AA111111A", NINO)
-  "NINO" should "be return Invalid with an incorrect NINO" in createFailTest("AA111111", NINO, "Not a valid Id")
+  "NINO" should "be return Invalid with an incorrect NINO" in createFailTest(
+    "AA111111",
+    NINO,
+    "sample label is not a valid Id")
   "UkVrn" should "return valid standard" in createSuccessTest("GB999999973", UkVrn)
   "UkVrn" should "return valid branch" in createSuccessTest("GB999999973001", UkVrn)
   "UkVrn" should "return valid gpvernment" in createSuccessTest("GBGD001", UkVrn)
   "UkVrn" should "return valid health" in createSuccessTest("GBHA599", UkVrn)
-  "UkVrn" should "return invalid without the GB precedding" in createFailTest("ABCD111111111", UkVrn, "Not a valid VRN")
-  "UkVrn" should "return invalid if too short" in createFailTest("GB123", UkVrn, "Not a valid VRN")
+  "UkVrn" should "return invalid without the GB precedding" in createFailTest(
+    "ABCD111111111",
+    UkVrn,
+    "sample label is not a valid VRN")
+  "UkVrn" should "return invalid if too short" in createFailTest("GB123", UkVrn, "sample label is not a valid VRN")
   "NonUkCountryCode" should "return valid" in createSuccessTest("US", NonUkCountryCode)
   "NonUkCountryCode" should "return invalid if code is UK" in createFailTest(
     "UK",
     NonUkCountryCode,
-    "Not a valid non UK country code")
+    "sample label is not a valid non UK country code")
   "NonUkCountryCode" should "return invalid if it's too short" in createFailTest(
     "U",
     NonUkCountryCode,
-    "Not a valid non UK country code")
+    "sample label is not a valid non UK country code")
   "NonUkCountryCode" should "return invalid if it's too long" in createFailTest(
     "USA",
     NonUkCountryCode,
-    "Not a valid non UK country code")
+    "sample label is not a valid non UK country code")
   "Country Code" should "return valid if it's any valid country code" in createSuccessTest("UK", CountryCode)
   "Country Code" should "return invalid if it's too long" in createFailTest(
     "UTT",
     CountryCode,
-    "Not a valid country code")
+    "sample label is not a valid country code")
   "Country Code" should "return invalid if it's too short" in createFailTest(
     "U",
     CountryCode,
-    "Not a valid country code")
+    "sample label is not a valid country code")
   "BasicText" should "return valid with text" in createSuccessTest("This is test text", BasicText)
   "BasicText" should "return invalid with invalid text" in createFailTest(
     List.fill[String](100001)("a").mkString,
     BasicText,
-    "The text is over 100000 so is not valid")
+    "sample label can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
+  )
   "ShortText" should "return valid with shortText" in createSuccessTest("this is test text", ShortText)
   "ShortText" should "return invalid with too long of text" in createFailTest(
     List.fill(1001)("a").mkString,
     ShortText,
-    "the text is too long for the validation")
+    "sample label can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+  )
   "Text(min, max)" should "return valid with in constraints text" in createSuccessTest(
     "this is in constraints",
     TextWithRestrictions(1, 100))
   "Text(min, max)" should "return invalid with too long of text" in createFailTest(
     List.fill(101)("a").mkString,
     TextWithRestrictions(1, 100),
-    "Entered too many characters should be at most 100 long")
+    "sample label has more than 100 characters")
   private def createSuccessTest(data: String, contraint: TextConstraint) =
     validator(fieldValueFunction(contraint), getData(data)).toEither should beRight(())
 
