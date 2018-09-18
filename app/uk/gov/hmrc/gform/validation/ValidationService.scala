@@ -132,7 +132,7 @@ class ComponentsValidator(
     def validIf(validationResult: ValidatedType): Future[ValidatedType] =
       ((validationResult.isValid, fieldValue.validIf) match {
         case (true, Some(vi)) if !BooleanExpr.isTrue(vi.expr, data, retrievals.affinityGroup).beResult =>
-          getError(fieldValue, s"${messagePrefix(fieldValue)} must be entered")
+          getError(fieldValue, "must be entered")
         case _ => validationResult
       }).pure[Future]
 
@@ -304,11 +304,11 @@ class ComponentsValidator(
         file match {
           case Some(File(fileId, Error(Some(reason)), _)) => getError(fieldValue, reason)
           case Some(File(fileId, Error(None), _)) =>
-            getError(fieldValue, s"${messagePrefix(fieldValue)} has an unknown error from file upload")
+            getError(fieldValue, "has an unknown error from file upload")
           case Some(File(fileId, Infected, _)) =>
-            getError(fieldValue, s"${messagePrefix(fieldValue)} has a virus detected")
+            getError(fieldValue, "has a virus detected")
           case Some(File(fileId, _, _))     => ().valid
-          case None if fieldValue.mandatory => getError(fieldValue, s"${messagePrefix(fieldValue)} must be uploaded")
+          case None if fieldValue.mandatory => getError(fieldValue, "must be uploaded")
           case None                         => ().valid
         }
       }
@@ -317,7 +317,7 @@ class ComponentsValidator(
     data: Map[FormComponentId, Seq[String]]): ValidatedType = {
     val textData = data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
-      case (true, Nil, _)                                    => getError(fieldValue, s"${messagePrefix(fieldValue)} must be entered")
+      case (true, Nil, _)                                    => getError(fieldValue, "must be entered")
       case (_, _, AnyText)                                   => ().valid
       case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
       case (_, value :: Nil, BasicText)                      => textValidation(fieldValue, value)
@@ -355,7 +355,7 @@ class ComponentsValidator(
       case Branch()     => ().valid
       case Government() => ().valid
       case Health()     => ().valid
-      case _            => getError(fieldValue, s"${messagePrefix(fieldValue)} is not a valid VRN")
+      case _            => getError(fieldValue, "is not a valid VRN")
     }
   }
 
@@ -363,7 +363,7 @@ class ComponentsValidator(
     val countryCode = "[A-Z]{2}".r
     value match {
       case countryCode() if value != "UK" => ().valid
-      case _                              => getError(fieldValue, s"${messagePrefix(fieldValue)} is not a valid non UK country code")
+      case _                              => getError(fieldValue, "is not a valid non UK country code")
     }
   }
 
@@ -371,7 +371,7 @@ class ComponentsValidator(
     val countryCode = "[A-Z]{2}".r
     value match {
       case countryCode() => ().valid
-      case _             => getError(fieldValue, s"${messagePrefix(fieldValue)} is not a valid country code")
+      case _             => getError(fieldValue, "is not a valid country code")
     }
   }
 
@@ -380,7 +380,7 @@ class ComponentsValidator(
     value match {
       case UTR()                => ().valid
       case x if Nino.isValid(x) => ().valid
-      case _                    => getError(fieldValue, s"${messagePrefix(fieldValue)} is not a valid Id")
+      case _                    => getError(fieldValue, "is not a valid Id")
     }
   }
 
@@ -391,7 +391,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          s"${messagePrefix(fieldValue)} must be less than 1000 characters and can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+          "must be less than 1000 characters and can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
         )
 
     }
@@ -405,7 +405,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          s"${messagePrefix(fieldValue)} must be less than 100000 characters and can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
+          "must be less than 100000 characters and can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
         )
     }
   }
@@ -413,15 +413,15 @@ class ComponentsValidator(
   private def textValidator(fieldValue: FormComponent, value: String, min: Int, max: Int) =
     value.length match {
       case tooLong if tooLong > max =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} has more than $max characters")
+        getError(fieldValue, s"has more than $max characters")
       case tooShort if tooShort < min =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} has less than $min characters")
+        getError(fieldValue, s"has less than $min characters")
       case _ => ().valid
     }
 
   private def email(fieldValue: FormComponent, value: String) =
     if (EmailAddress.isValid(value)) ().valid
-    else getError(fieldValue, s"${messagePrefix(fieldValue)} is not valid")
+    else getError(fieldValue, "is not valid")
 
   private def checkLength(fieldValue: FormComponent, value: String, desiredLength: Int) = {
     val WholeShape = s"[0-9]{$desiredLength}".r
@@ -429,10 +429,10 @@ class ComponentsValidator(
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
       case FractionalShape(_, _, _) =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be a whole number")
+        getError(fieldValue, "must be a whole number")
       case WholeShape() => ().valid
       case _ =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be $desiredLength numbers")
+        getError(fieldValue, s"must be $desiredLength numbers")
     }
   }
 
@@ -445,7 +445,7 @@ class ComponentsValidator(
           val sortCode: Seq[String] = data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
-              getError(fieldValue, s"${messagePrefix(fieldValue)} values must be two digit numbers")
+              getError(fieldValue, "values must be two digit numbers")
             case (Nil, false)      => ().valid
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
           }
@@ -464,33 +464,31 @@ class ComponentsValidator(
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
       case (WholeShape(_, whole, _), _, _) if filterCommas(whole).size > maxWhole =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be at most $maxWhole digits")
+        getError(fieldValue, s"must be at most $maxWhole digits")
       case (WholeShape("-", _, _), _, true) =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be a positive number")
+        getError(fieldValue, "must be a positive number")
       case (WholeShape(_, _, _), _, _) => ().valid
       case (FractionalShape(_, whole, _, fractional), 0, _)
           if filterCommas(whole).size > maxWhole && fractional.size > 0 =>
-        getError(
-          fieldValue,
-          s"${messagePrefix(fieldValue)} must be at most $maxWhole whole digits and no decimal fraction")
+        getError(fieldValue, s"must be at most $maxWhole whole digits and no decimal fraction")
       case (FractionalShape(_, whole, _, fractional), _, _)
           if filterCommas(whole).size > maxWhole && fractional.size > maxFractional =>
         getError(
           fieldValue,
-          s"${messagePrefix(fieldValue)} must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
+          s"must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
       case (FractionalShape(_, whole, _, _), _, _) if filterCommas(whole).size > maxWhole =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be at most $maxWhole whole digits")
+        getError(fieldValue, s"must be at most $maxWhole whole digits")
       case (FractionalShape(_, _, _, fractional), 0, _) if fractional.size > 0 =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be a whole number")
+        getError(fieldValue, "must be a whole number")
       case (FractionalShape(_, _, _, fractional), _, _) if fractional.size > maxFractional =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be at most $maxFractional digits")
+        getError(fieldValue, s"must be at most $maxFractional digits")
       case (FractionalShape("-", _, _, _), _, true) =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be a positive number")
+        getError(fieldValue, "must be a positive number")
       case (FractionalShape(_, _, _, _), _, _) => ().valid
-      case (_, 0, true)                        => getError(fieldValue, s"${messagePrefix(fieldValue)} must be a positive whole number")
-      case (_, _, true)                        => getError(fieldValue, s"${messagePrefix(fieldValue)} must be a positive number")
-      case (_, 0, false)                       => getError(fieldValue, s"${messagePrefix(fieldValue)} must be a whole number")
-      case _                                   => getError(fieldValue, s"${messagePrefix(fieldValue)} must be a number")
+      case (_, 0, true)                        => getError(fieldValue, "must be a positive whole number")
+      case (_, _, true)                        => getError(fieldValue, "must be a positive number")
+      case (_, 0, false)                       => getError(fieldValue, "must be a whole number")
+      case _                                   => getError(fieldValue, "must be a number")
     }
   }
 
@@ -507,9 +505,9 @@ class ComponentsValidator(
     xs.filterNot(_.isEmpty()) match {
       case Nil => ().valid
       case value :: Nil =>
-        Map(fieldId -> errors(fieldValue, s"${messagePrefix(fieldValue)} must not be entered")).invalid
+        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid
       case value :: rest =>
-        Map(fieldId -> errors(fieldValue, s"${messagePrefix(fieldValue)} must not be entered")).invalid // we don't support multiple values yet
+        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yet
     }
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
@@ -531,7 +529,7 @@ class ComponentsValidator(
 
     (fieldValue.mandatory, choiceValue) match {
       case (true, None | Some("")) =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} must be selected")
+        getError(fieldValue, "must be selected")
       case _ => ().valid
     }
   }
@@ -636,7 +634,7 @@ class ComponentsValidator(
         }
 
       case _ =>
-        getError(fieldValue, s"${messagePrefix(fieldValue)} is missing")
+        getError(fieldValue, "is missing")
     }
   }
 
@@ -691,7 +689,7 @@ class ComponentsValidator(
     Set(fieldValue.errorMessage.getOrElse(defaultErr))
 
   private def getError(fieldValue: FormComponent, defaultMessage: String) =
-    Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
+    Map(fieldValue.id -> errors(fieldValue, messagePrefix(fieldValue) + " " + defaultMessage)).invalid
 }
 
 object ValidationValues {
