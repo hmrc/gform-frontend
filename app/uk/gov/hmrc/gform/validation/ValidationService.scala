@@ -485,7 +485,7 @@ class ComponentsValidator(
     xs: Seq[String]): ValidatedType =
     xs.filterNot(_.isEmpty()) match {
       case Nil =>
-        Map(fieldId -> errors(fieldValue, s"${errorPrefix.getOrElse(" ")}must be entered")).invalid
+        Map(fieldId -> errors(fieldValue, s"${errorPrefix.getOrElse("")} must be entered")).invalid
       case value :: Nil  => ().valid
       case value :: rest => ().valid // we don't support multiple values yet
     }
@@ -546,25 +546,25 @@ class ComponentsValidator(
       case "true" :: Nil =>
         List(
           Monoid[ValidatedType].combine(
-            validateRequiredField("street1", "line 1 ")(addressValueOf("street1")),
+            validateRequiredField("street1", "line 1")(addressValueOf("street1")),
             lengthValidation("street1")(addressValueOf("street1"))
           ),
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
-          validateRequiredField("postcode", "postcode ")(addressValueOf("postcode")),
+          validateRequiredField("postcode", "postcode")(addressValueOf("postcode")),
           validateForbiddenField("country")(addressValueOf("country"))
         )
       case _ =>
         List(
           Monoid[ValidatedType].combine(
-            validateRequiredField("street1", "line 1 ")(addressValueOf("street1")),
+            validateRequiredField("street1", "line 1")(addressValueOf("street1")),
             lengthValidation("street1")(addressValueOf("street1"))),
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
           validateForbiddenField("postcode")(addressValueOf("postcode")),
-          validateRequiredField("country", "Country ")(addressValueOf("country"))
+          validateRequiredField("country", "Country")(addressValueOf("country"))
         )
     }
 
