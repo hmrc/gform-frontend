@@ -28,12 +28,14 @@ sealed trait ComponentType
 
 case class Text(
   constraint: TextConstraint,
-  value: Expr
+  value: Expr,
+  displayWidth: String
 ) extends ComponentType
 
 case class TextArea(
   constraint: TextConstraint,
-  value: Expr
+  value: Expr,
+  displayWidth: String
 ) extends ComponentType
 
 case class UkSortCode(value: Expr) extends ComponentType

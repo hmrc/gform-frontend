@@ -78,7 +78,7 @@ object TextFormatter {
   }
 
   def isNumber(formComponent: FormComponent) = formComponent.`type` match {
-    case Text(Number(_, _, _), _) | Text(PositiveNumber(_, _, _), _) => true
-    case _                                                           => false
+    case Text(Number(_, _, _), _, _) | Text(PositiveNumber(_, _, _), _, _) => true
+    case _                                                                 => false
   }
 }

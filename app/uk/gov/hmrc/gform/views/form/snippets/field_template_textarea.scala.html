@@ -35,6 +35,18 @@
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 
+@sizeClasses = @{
+  textArea.displayWidth match {
+    case "XS" => "form-control-1-8"
+    case "S" => "form-control-1-4"
+    case "M" => "form-control-1-3"
+    case "L" => "form-control-1-2"
+    case "XL" => "form-control-2-3"
+    case "XXL" => "form-control-3-4"
+    case _ => ""
+  }
+}
+
 <div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
@@ -60,7 +72,7 @@
         rows="10"
         cols="30"
         @if(!fieldValue.editable) { readonly="" }
-        class="@inputClasses @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}"
+        class="@inputClasses @sizeClasses @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}"
         id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea> @TextFormatter.appendUnit(textArea.constraint)
     } else {
     <span class="input-currency">
@@ -69,7 +81,7 @@
             rows="10"
             cols="30"
             @if(!fieldValue.editable) { readonly="" }
-            class="@inputClasses input--no-spinner input--left-padding"
+            class="@inputClasses @sizeClasses input--no-spinner input--left-padding"
             id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>
     </span>
     }
