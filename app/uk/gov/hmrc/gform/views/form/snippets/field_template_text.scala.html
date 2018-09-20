@@ -34,12 +34,25 @@
 }
 @inputBoxSize = @{
     fieldValue.`type` match {
-        case Text(TextWithRestrictions(_, max),_) if  max<5 => "input--xsmall"
+        case Text(TextWithRestrictions(_, max),_, _) if  max<5 => "input--xsmall"
         case _ => ""
     }
 }
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
+
+@sizeClasses = @{
+  text.displayWidth match {
+    case DisplayWidth.XS => "form-control-1-8"
+    case DisplayWidth.S => "form-control-1-4"
+    case DisplayWidth.M => "form-control-1-3"
+    case DisplayWidth.L => "form-control-1-2"
+    case DisplayWidth.XL => "form-control-2-3"
+    case DisplayWidth.XXL => "form-control-3-4"
+    case DisplayWidth.INVALID => ""
+  }
+}
+
 <div class="form-group @if(hasErrors) {form-group-error}">
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
@@ -66,7 +79,7 @@
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
         value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
-        class="@inputClasses @inputBoxSize @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text.constraint)
+        class="@inputClasses @sizeClasses @inputBoxSize @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}">  @TextFormatter.appendUnit(text.constraint)
     } else {
     <span class="input-currency">
         <input

@@ -137,15 +137,15 @@ class ComponentsValidator(
       }).pure[Future]
 
     fieldValue.`type` match {
-      case sortCode @ UkSortCode(_)   => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
-      case date @ Date(_, _, _)       => validIf(validateDate(fieldValue, date))
-      case text @ Text(constraint, _) => validIf(validateText(fieldValue, constraint, retrievals)(data))
-      case TextArea(constraint, _)    => validIf(validateText(fieldValue, constraint, retrievals)(data))
-      case address @ Address(_)       => validIf(validateAddress(fieldValue, address)(data))
-      case c @ Choice(_, _, _, _, _)  => validIf(validateChoice(fieldValue)(data))
-      case Group(_, _, _, _, _, _)    => validF //a group is read-only
-      case FileUpload()               => validateFileUpload(fieldValue)
-      case InformationMessage(_, _)   => validF
+      case sortCode @ UkSortCode(_)      => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
+      case date @ Date(_, _, _)          => validIf(validateDate(fieldValue, date))
+      case text @ Text(constraint, _, _) => validIf(validateText(fieldValue, constraint, retrievals)(data))
+      case TextArea(constraint, _, _)    => validIf(validateText(fieldValue, constraint, retrievals)(data))
+      case address @ Address(_)          => validIf(validateAddress(fieldValue, address)(data))
+      case c @ Choice(_, _, _, _, _)     => validIf(validateChoice(fieldValue)(data))
+      case Group(_, _, _, _, _, _)       => validF //a group is read-only
+      case FileUpload()                  => validateFileUpload(fieldValue)
+      case InformationMessage(_, _)      => validF
     }
   }
 

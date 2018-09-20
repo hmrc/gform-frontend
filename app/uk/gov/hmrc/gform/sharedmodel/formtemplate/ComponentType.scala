@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 
 import scala.collection.immutable._
 import scala.concurrent.{ ExecutionContext, Future }
@@ -28,12 +29,14 @@ sealed trait ComponentType
 
 case class Text(
   constraint: TextConstraint,
-  value: Expr
+  value: Expr,
+  displayWidth: DisplayWidth = DisplayWidth.L
 ) extends ComponentType
 
 case class TextArea(
   constraint: TextConstraint,
-  value: Expr
+  value: Expr,
+  displayWidth: DisplayWidth = DisplayWidth.XL
 ) extends ComponentType
 
 case class UkSortCode(value: Expr) extends ComponentType
@@ -59,6 +62,14 @@ case object Address {
   val optionalFields = (id: FormComponentId) =>
     List("street2", "street3", "street4", "uk", "postcode", "country").map(id.withSuffix)
   val fields = (id: FormComponentId) => mandatoryFields(id) ++ optionalFields(id)
+}
+
+object DisplayWidth extends Enumeration {
+  type DisplayWidth = Value
+  val XS, S, M, L, XL, XXL, INVALID = Value
+
+  implicit val displayWidthReads = Reads.enumNameReads(DisplayWidth)
+  implicit val displayWidthWrites = Writes.enumNameWrites
 }
 
 case class Choice(

@@ -80,8 +80,8 @@ object ValidationUtil {
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
           }
         }
-      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _) |
-          TextArea(_, _) =>
+      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _) |
+          TextArea(_, _, _) =>
         List.empty[(FormComponentId, FormFieldValidationResult)]
     }
 
@@ -191,9 +191,9 @@ object ValidationUtil {
   private final object IsTextOrTextArea {
     def unapply(expr: ComponentType): Option[TextConstraint] =
       expr match {
-        case Text(constraint, _)     => Some(constraint)
-        case TextArea(constraint, _) => Some(constraint)
-        case _                       => None
+        case Text(constraint, _, _)     => Some(constraint)
+        case TextArea(constraint, _, _) => Some(constraint)
+        case _                          => None
       }
   }
 
