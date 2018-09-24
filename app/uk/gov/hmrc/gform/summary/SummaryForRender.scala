@@ -88,6 +88,18 @@ object SummaryRenderingService {
         sectionTitle4Ga: SectionTitle4Ga,
         lang: Option[String]): Html = {
 
+        val changeButton = if (fieldValue.editable) {
+          change_button(
+            formTemplateId4Ga,
+            formId,
+            title,
+            sectionNumber,
+            sectionTitle4Ga,
+            lang,
+            fieldValue.id
+          )
+        } else { Html("") }
+
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Html = {
           val isLabel = fieldValue.shortName.getOrElse(fieldValue.label).nonEmpty
 
@@ -102,7 +114,7 @@ object SummaryRenderingService {
                 for {
                   group <- groups
                   value = group.componentList.map(validate)
-                } yield group_grid(fieldValue, value, false)
+                } yield group_grid(fieldValue, value, false, changeButton)
 
               }
 
@@ -115,7 +127,7 @@ object SummaryRenderingService {
               val value = fcs.map(validate).filterNot(_ == None)
 
               if (value.nonEmpty) {
-                group_grid(fieldValue, value, isLabel)
+                group_grid(fieldValue, value, isLabel, changeButton)
               } else Html("")
 
             case groupField @ Group(_, orientation, _, _, _, _) =>
@@ -147,18 +159,6 @@ object SummaryRenderingService {
               )
           }
         }
-
-        val changeButton = if (fieldValue.editable) {
-          change_button(
-            formTemplateId4Ga,
-            formId,
-            title,
-            sectionNumber,
-            sectionTitle4Ga,
-            lang,
-            fieldValue.id
-          )
-        } else { Html("") }
 
         fieldValue.`type` match {
           case UkSortCode(_)     => sort_code(fieldValue, validate(fieldValue), changeButton)
