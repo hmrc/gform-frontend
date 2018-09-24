@@ -88,17 +88,15 @@ object SummaryRenderingService {
         sectionTitle4Ga: SectionTitle4Ga,
         lang: Option[String]): Html = {
 
-        val changeButton = if (fieldValue.editable) {
-          change_button(
-            formTemplateId4Ga,
-            formId,
-            title,
-            sectionNumber,
-            sectionTitle4Ga,
-            lang,
-            fieldValue.id
-          )
-        } else { Html("") }
+        val changeButton = change_button(
+          formTemplateId4Ga,
+          formId,
+          title,
+          sectionNumber,
+          sectionTitle4Ga,
+          lang,
+          fieldValue
+        )
 
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Html = {
           val isLabel = fieldValue.shortName.getOrElse(fieldValue.label).nonEmpty
