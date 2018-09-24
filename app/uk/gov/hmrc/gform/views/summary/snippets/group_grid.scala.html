@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
-@(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean)
+@(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean, changeButton: Html)
 
   <div>
     <dt class="cya-question">
@@ -28,5 +28,5 @@
     <dd class="cya-answer">
       @fields.map{ f => @TextFormatter.formatText(f)<br> }
     </dd>
-    <dd class="cya-change"></dd>
+    <dd class="cya-change">@changeButton</dd>
   </div>
