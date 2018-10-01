@@ -329,14 +329,6 @@ function setUpErrorSummary($el) {
 
 setUpErrorSummary($('.error-summary'));
 
-// because uk and international fields share the same field names
-// we must toggle the disabled state based on runtime selection
-function toggleDisabled(fields, disabled) {
-  fields.each(function (i, f) {
-    disabled ? $(f).attr('disabled', 'disabled') : $(f).removeAttr('disabled')
-  })
-}
-
 function toggleLabels(fields, isUK) {
   var labels = {
     uk: ['Building and street', '<span class="visuallyhidden">Building and street line 2</span>', 'Town or city', 'County'],
