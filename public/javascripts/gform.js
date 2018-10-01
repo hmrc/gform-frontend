@@ -329,20 +329,26 @@ function setUpErrorSummary($el) {
 
 setUpErrorSummary($('.error-summary'));
 
-function toggleLabels(fields, isUK) {
+function toggleAddressLabels(e) {
+  var isUK = $(e.target).attr('data-address-choice') === "uk";
   var labels = {
-    uk: ['Building and street', '<span class="visuallyhidden">Building and street line 2</span>', 'Town or city', 'County'],
-    international: ['Address 1', 'Address 2 (optional)', 'Address 3 (optional)', 'Address 4 (optional)']
+    uk: [
+      'Building and street',
+      '<span class="visuallyhidden">Building and street line 2</span>',
+      'Town or city',
+      'County'
+    ],
+    international: [
+      'Address 1',
+      'Address 2 (optional)',
+      'Address 3 (optional)',
+      'Address 4 (optional)'
+    ]
   };
   [1, 2, 3, 4].forEach(function (line) {
     $('label[data-address-line="' + line + '"]').html(isUK ? labels.uk[line - 1] : labels.international[line - 1])
   });
 }
 
-function toggleInternationalFields(e) {
-  var isUK = $(e.target).attr('data-address-choice') === "uk";
-  toggleLabels($('input[type="text"]'), isUK);
-}
-
-$('input[data-address-choice]').on('click', toggleInternationalFields);
+$('input[data-address-choice]').on('click', toggleAddressLabels);
 
