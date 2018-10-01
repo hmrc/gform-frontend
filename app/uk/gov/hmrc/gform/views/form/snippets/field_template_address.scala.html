@@ -20,8 +20,6 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
 
-
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 
 @safeId(id: String) = @{
@@ -40,10 +38,10 @@
   validationResult.map(_.getCurrentValue(safeId("uk"))).contains("false")
 }
 
-@label1 = @{if(internationalSelected) "Address 1" else "Building and street"}
-@label2 = @{if(internationalSelected) "Address 2 (optional)" else "<span class=\"visuallyhidden\">Building and street line 2</span>"}
-@label3 = @{if(internationalSelected) "Address 3 (optional)" else "Town or city"}
-@label4 = @{if(internationalSelected) "Address 4 (optional)" else "County"}
+@label1 = @{if(internationalSelected) localisation("Address 1") else localisation("Building and street")}
+@label2 = @{if(internationalSelected) localisation("Address 2 (optional)") else "<span class=\"visuallyhidden\">" + localisation("Building and street line 2") + "</span>"}
+@label3 = @{if(internationalSelected) localisation("Address 3 (optional)") else localisation("Town or city")}
+@label4 = @{if(internationalSelected) localisation("Address 4 (optional)") else localisation("County")}
 
 <fieldset>
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
@@ -56,7 +54,7 @@
       <div class="form-group">
           <fieldset class="inline">
               <legend class="form-label">
-                  Is this a UK address?
+                  @localisation("Is this a UK address?")
               </legend>
 
               <div class="multiple-choice" data-target="@groupId("address-local")">
@@ -71,7 +69,7 @@
                     @if(!internationalSelected) {
                         checked="checked"
                     }/>
-                  <label for="@groupId("address-international-yes")">Yes</label>
+                  <label for="@groupId("address-international-yes")">@localisation("Yes")</label>
               </div>
 
               <div class="multiple-choice" data-target="@groupId("address-international")">
@@ -87,7 +85,7 @@
                         checked="checked"
                     }/>
 
-                  <label for="@groupId("address-international-no")">No</label>
+                  <label for="@groupId("address-international-no")">@localisation("No")</label>
               </div>
           </fieldset>
       </div>
@@ -152,7 +150,7 @@
       @if(international) {
       <div id="@groupId("address-local")">
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">Postcode</label>
+          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">@localisation("Postcode")</label>
 
             @safeError("postcode")
           <input type="text"
@@ -165,7 +163,7 @@
 
       <div id="@groupId("address-international")">
         <div class="form-group@if(safeError("country").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="country" for="@safeId("country")">Country</label>
+          <label class="form-label" data-address-line="country" for="@safeId("country")">@localisation("Country")</label>
 
             @safeError("country")
           <input type="text"
@@ -177,7 +175,7 @@
       </div>
       } else {
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">Postcode</label>
+          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">@localisation("Postcode")</label>
 
             @safeError("postcode")
           <input type="text"
