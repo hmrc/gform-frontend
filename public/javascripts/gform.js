@@ -329,25 +329,19 @@ function setUpErrorSummary($el) {
 
 setUpErrorSummary($('.error-summary'));
 
+function showLabel($label) {
+  $label.removeClass('js-hidden').attr('aria-hidden', false)
+}
+
+function hideLabel($label) {
+  $label.addClass('js-hidden').attr('aria-hidden', true)
+}
+
 function toggleAddressLabels(e) {
-  var isUK = $(e.target).attr('data-address-choice') === "uk";
-  var labels = {
-    uk: [
-      'Building and street',
-      '<span class="visuallyhidden">Building and street line 2</span>',
-      'Town or city',
-      'County'
-    ],
-    international: [
-      'Address 1',
-      'Address 2 (optional)',
-      'Address 3 (optional)',
-      'Address 4 (optional)'
-    ]
-  };
-  [1, 2, 3, 4].forEach(function (line) {
-    $('label[data-address-line="' + line + '"]').html(isUK ? labels.uk[line - 1] : labels.international[line - 1])
-  });
+  var choice = $(e.target).attr('data-address-choice');
+  $('span[data-address-label]').each(function (i, label) {
+    $(label).attr('data-address-label') === choice ? showLabel($(label)) : hideLabel($(label))
+  })
 }
 
 $('input[data-address-choice]').on('click', toggleAddressLabels);
