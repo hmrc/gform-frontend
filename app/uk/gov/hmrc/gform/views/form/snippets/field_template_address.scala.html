@@ -36,6 +36,15 @@
   }
 }
 
+@internationalSelected = @{
+  validationResult.map(_.getCurrentValue(safeId("uk"))).contains("false")
+}
+
+@label1 = @{if(internationalSelected) "Address 1" else "Building and street"}
+@label2 = @{if(internationalSelected) "Address 2 (optional)" else "<span class=\"visuallyhidden\">Building and street line 2</span>"}
+@label3 = @{if(internationalSelected) "Address 3 (optional)" else "Town or city"}
+@label4 = @{if(internationalSelected) "Address 4 (optional)" else "County"}
+
 <fieldset>
     @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
       <legend class="h3-heading">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</legend>
@@ -56,10 +65,11 @@
                     type="radio"
                     name="@safeId("uk")"
                     value="true"
+                    data-address-choice="uk"
                     aria-controls="@groupId("address-local")"
                     aria-expanded="true"
-                    @if(validationResult.map(_.getCurrentValue(safeId("uk"))) != Some("false")) {
-                        checked
+                    @if(!internationalSelected) {
+                        checked="checked"
                     }/>
                   <label for="@groupId("address-international-yes")">Yes</label>
               </div>
@@ -70,10 +80,11 @@
                     type="radio"
                     name="@safeId("uk")"
                     value="false"
+                    data-address-choice="international"
                     aria-controls="@groupId("address-international")"
                     aria-expanded="false"
-                    @if(validationResult.map(_.getCurrentValue(safeId("uk"))) == Some("false")) {
-                        checked
+                    @if(internationalSelected) {
+                        checked="checked"
                     }/>
 
                   <label for="@groupId("address-international-no")">No</label>
@@ -96,7 +107,7 @@
       }
 
       <div class="form-group@if(safeError("street1").nonEmpty){ form-group-error }">
-          <label class="form-label" for="@safeId("street1")">Address 1</label>
+          <label class="form-label" data-address-line="1" for="@safeId("street1")">@label1</label>
 
           @safeError("street1")
           <input type="text"
@@ -107,7 +118,7 @@
       </div>
 
       <div class="form-group@if(safeError("street2").nonEmpty){ form-group-error }">
-          <label class="form-label" for="@safeId("street2")">Address 2 (optional)</label>
+          <label class="form-label" data-address-line="2" for="@safeId("street2")">@Html(label2)</label>
           @safeError("street2")
           <input type="text"
                  class="form-control"
@@ -117,7 +128,7 @@
       </div>
 
       <div class="form-group@if(safeError("street3").nonEmpty){ form-group-error }">
-          <label class="form-label" for="@safeId("street3")">Address 3 (optional)</label>
+          <label class="form-label" data-address-line="3" for="@safeId("street3")">@label3</label>
 
           @safeError("street3")
           <input type="text"
@@ -128,7 +139,7 @@
       </div>
 
       <div class="form-group@if(safeError("street4").nonEmpty){ form-group-error }">
-          <label class="form-label" for="@safeId("street4")">Address 4 (optional)</label>
+          <label class="form-label" data-address-line="4" for="@safeId("street4")">@label4</label>
 
           @safeError("street4")
           <input type="text"
@@ -141,7 +152,7 @@
       @if(international) {
       <div id="@groupId("address-local")">
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" for="@safeId("postcode")">Postcode</label>
+          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">Postcode</label>
 
             @safeError("postcode")
           <input type="text"
@@ -154,7 +165,7 @@
 
       <div id="@groupId("address-international")">
         <div class="form-group@if(safeError("country").nonEmpty){ form-group-error }">
-          <label class="form-label" for="@safeId("country")">Country</label>
+          <label class="form-label" data-address-line="country" for="@safeId("country")">Country</label>
 
             @safeError("country")
           <input type="text"
@@ -166,7 +177,7 @@
       </div>
       } else {
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" for="@safeId("postcode")">Postcode</label>
+          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">Postcode</label>
 
             @safeError("postcode")
           <input type="text"
