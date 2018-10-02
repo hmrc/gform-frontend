@@ -42,26 +42,27 @@ import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.http.HeaderCarrier
+@import uk.gov.hmrc.gform.views.html._
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
 class ValidationService(
-  fileUploadService: FileUploadService,
-  gformConnector: GformConnector
-) {
+                         fileUploadService: FileUploadService,
+                         gformConnector: GformConnector
+                       ) {
 
   private def validateFieldValue(
-    fieldValue: FormComponent,
-    data: Map[FormComponentId, Seq[String]],
-    envelopeId: EnvelopeId,
-    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+                                  fieldValue: FormComponent,
+                                  data: Map[FormComponentId, Seq[String]],
+                                  envelopeId: EnvelopeId,
+                                  retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     new ComponentsValidator(data, fileUploadService, envelopeId, retrievals).validate(fieldValue)
 
   def validateComponents(
-    fieldValues: List[FormComponent],
-    data: Map[FormComponentId, Seq[String]],
-    envelopeId: EnvelopeId,
-    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+                          fieldValues: List[FormComponent],
+                          data: Map[FormComponentId, Seq[String]],
+                          envelopeId: EnvelopeId,
+                          retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     fieldValues
       .traverse(fv => validateFieldValue(fv, data, envelopeId, retrievals))
       .map(Monoid[ValidatedType].combineAll)
@@ -73,11 +74,11 @@ class ValidationService(
       .getOrElse(().valid.pure[Future])
 
   def validateForm(
-    sectionFields: List[FormComponent],
-    section: Section,
-    envelopeId: EnvelopeId,
-    retrievals: MaterialisedRetrievals)(data: Map[FormComponentId, Seq[String]])(
-    implicit hc: HeaderCarrier): Future[ValidatedType] = {
+                    sectionFields: List[FormComponent],
+                    section: Section,
+                    envelopeId: EnvelopeId,
+                    retrievals: MaterialisedRetrievals)(data: Map[FormComponentId, Seq[String]])(
+                    implicit hc: HeaderCarrier): Future[ValidatedType] = {
     val eT = for {
       _ <- EitherT(validateComponents(sectionFields, data, envelopeId, retrievals).map(_.toEither))
       _ <- EitherT(validateUsingValidators(section, data).map(_.toEither))
@@ -86,11 +87,11 @@ class ValidationService(
   }
 
   def evaluateValidation(
-    v: ValidatedType,
-    fields: List[FormComponent],
-    data: Map[FormComponentId, Seq[String]],
-    envelope: Envelope): List[(FormComponent, FormFieldValidationResult)] =
-    // We need to keep the formComponent order as they appear on the form for page-level-error rendering, do not convert to map
+                          v: ValidatedType,
+                          fields: List[FormComponent],
+                          data: Map[FormComponentId, Seq[String]],
+                          envelope: Envelope): List[(FormComponent, FormFieldValidationResult)] =
+  // We need to keep the formComponent order as they appear on the form for page-level-error rendering, do not convert to map
     ValidationUtil
       .evaluateValidationResult(fields, v, data, envelope)
       .map(v => v.fieldValue -> v)
@@ -122,17 +123,17 @@ class ValidationService(
 }
 
 class ComponentsValidator(
-  data: Map[FormComponentId, Seq[String]],
-  fileUploadService: FileUploadService,
-  envelopeId: EnvelopeId,
-  retrievals: MaterialisedRetrievals) {
+                           data: Map[FormComponentId, Seq[String]],
+                           fileUploadService: FileUploadService,
+                           envelopeId: EnvelopeId,
+                           retrievals: MaterialisedRetrievals) {
 
   def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] = {
 
     def validIf(validationResult: ValidatedType): Future[ValidatedType] =
       ((validationResult.isValid, fieldValue.validIf) match {
         case (true, Some(vi)) if !BooleanExpr.isTrue(vi.expr, data, retrievals.affinityGroup).beResult =>
-          getError(fieldValue, "must be entered")
+          getError(fieldValue, localisation("must be entered"))
         case _ => validationResult
       }).pure[Future]
 
@@ -177,7 +178,7 @@ class ComponentsValidator(
   }
 
   private def messagePrefix(fieldValue: FormComponent) =
-    fieldValue.shortName.getOrElse(fieldValue.label)
+    localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date)(
     data: Map[FormComponentId, Seq[String]]): ValidatedType = {
@@ -200,10 +201,10 @@ class ComponentsValidator(
                         fieldValue,
                         inputDate,
                         offset,
-                        Map(fieldValue.id -> errors(fieldValue, "should be before Today")))(isBeforeToday))
+                        Map(fieldValue.id -> errors(fieldValue, localisation("should be before Today"))))(isBeforeToday))
 
               case (Before, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, localisation("is not a valid date"))))
                   .andThen { concreteDate =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
@@ -214,7 +215,7 @@ class ComponentsValidator(
                             concreteDate,
                             offset,
                             Map(fieldValue.id ->
-                              errors(fieldValue, s"should be before ${dateWithOffset(concreteDate, offset)}"))
+                              errors(fieldValue, localisation(s"should be before ${dateWithOffset(concreteDate, offset)}")))
                           )(isBeforeConcreteDate))
                   }
 
@@ -242,7 +243,7 @@ class ComponentsValidator(
                       otherLocalDate,
                       offset,
                       Map(fieldValue.id ->
-                        errors(fieldValue, s"should be $beforeOrAfterString ${dateWithOffset(otherLocalDate, offset)}"))
+                        errors(fieldValue, localisation(s"should be $beforeOrAfterString ${dateWithOffset(otherLocalDate, offset)}")))
                     )(beforeOrAfterFunction)
                   }
                 }
@@ -256,10 +257,10 @@ class ComponentsValidator(
                         fieldValue,
                         inputDate,
                         offset,
-                        Map(fieldValue.id -> errors(fieldValue, "should be after today")))(isAfterToday))
+                        Map(fieldValue.id -> errors(fieldValue, localisation("should be after today"))))(isAfterToday))
 
               case (After, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, localisation("must be a valid date"))))
                   .andThen { concreteDate =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
@@ -272,7 +273,7 @@ class ComponentsValidator(
                             Map(
                               fieldValue.id -> errors(
                                 fieldValue,
-                                s"should be after ${dateWithOffset(concreteDate, offset)}"))
+                                localisation(s"should be after ${dateWithOffset(concreteDate, offset)}")))
                           )(isAfterConcreteDate))
                   }
             }
@@ -293,11 +294,11 @@ class ComponentsValidator(
         file match {
           case Some(File(fileId, Error(Some(reason)), _)) => getError(fieldValue, reason)
           case Some(File(fileId, Error(None), _)) =>
-            getError(fieldValue, "has an unknown error from file upload")
+            getError(fieldValue, localisation("has an unknown error from file upload"))
           case Some(File(fileId, Infected, _)) =>
-            getError(fieldValue, "has a virus detected")
+            getError(fieldValue, localisation("has a virus detected"))
           case Some(File(fileId, _, _))     => ().valid
-          case None if fieldValue.mandatory => getError(fieldValue, "must be uploaded")
+          case None if fieldValue.mandatory => getError(fieldValue, localisation("must be uploaded"))
           case None                         => ().valid
         }
       }
@@ -306,7 +307,7 @@ class ComponentsValidator(
     data: Map[FormComponentId, Seq[String]]): ValidatedType = {
     val textData = data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
-      case (true, Nil, _)                                    => getError(fieldValue, "must be entered")
+      case (true, Nil, _)                                    => getError(fieldValue, localisation("must be entered"))
       case (_, _, AnyText)                                   => ().valid
       case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
       case (_, value :: Nil, BasicText)                      => textValidation(fieldValue, value)
@@ -344,7 +345,7 @@ class ComponentsValidator(
       case Branch()     => ().valid
       case Government() => ().valid
       case Health()     => ().valid
-      case _            => getError(fieldValue, "is not a valid VRN")
+      case _            => getError(fieldValue, localisation("is not a valid VRN"))
     }
   }
 
@@ -352,7 +353,7 @@ class ComponentsValidator(
     val countryCode = "[A-Z]{2}".r
     value match {
       case countryCode() if value != "UK" => ().valid
-      case _                              => getError(fieldValue, "is not a valid non UK country code")
+      case _                              => getError(fieldValue, localisation("is not a valid non UK country code"))
     }
   }
 
@@ -360,7 +361,7 @@ class ComponentsValidator(
     val countryCode = "[A-Z]{2}".r
     value match {
       case countryCode() => ().valid
-      case _             => getError(fieldValue, "is not a valid country code")
+      case _             => getError(fieldValue, localisation("is not a valid country code"))
     }
   }
 
@@ -369,7 +370,7 @@ class ComponentsValidator(
     value match {
       case UTR()                => ().valid
       case x if Nino.isValid(x) => ().valid
-      case _                    => getError(fieldValue, "is not a valid Id")
+      case _                    => getError(fieldValue, localisation("is not a valid Id"))
     }
   }
 
@@ -380,7 +381,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          "can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+          localisation("can only include letters, numbers, spaces, hyphens, ampersands and apostrophes")
         )
 
     }
@@ -394,7 +395,7 @@ class ComponentsValidator(
       case _ =>
         getError(
           fieldValue,
-          "can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
+          localisation("can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores")
         )
     }
   }
@@ -402,15 +403,15 @@ class ComponentsValidator(
   private def textValidator(fieldValue: FormComponent, value: String, min: Int, max: Int) =
     value.length match {
       case tooLong if tooLong > max =>
-        getError(fieldValue, s"has more than $max characters")
+        getError(fieldValue, localisation(s"has more than $max characters"))
       case tooShort if tooShort < min =>
-        getError(fieldValue, s"has less than $min characters")
+        getError(fieldValue, localisation(s"has less than $min characters"))
       case _ => ().valid
     }
 
   private def email(fieldValue: FormComponent, value: String) =
     if (EmailAddress.isValid(value)) ().valid
-    else getError(fieldValue, "is not valid")
+    else getError(fieldValue, localisation("is not valid"))
 
   private def checkLength(fieldValue: FormComponent, value: String, desiredLength: Int) = {
     val WholeShape = s"[0-9]{$desiredLength}".r
@@ -418,10 +419,10 @@ class ComponentsValidator(
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
       case FractionalShape(_, _, _) =>
-        getError(fieldValue, "must be a whole number")
+        getError(fieldValue, localisation("must be a whole number"))
       case WholeShape() => ().valid
       case _ =>
-        getError(fieldValue, s"must be $desiredLength numbers")
+        getError(fieldValue, localisation(s"must be $desiredLength numbers"))
     }
   }
 
@@ -434,7 +435,7 @@ class ComponentsValidator(
           val sortCode: Seq[String] = data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
-              getError(fieldValue, "values must be two digit numbers")
+              getError(fieldValue, localisation("values must be two digit numbers"))
             case (Nil, false)      => ().valid
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
           }
@@ -444,40 +445,40 @@ class ComponentsValidator(
   private def filterCommas(number: String) = number.filterNot(c => c == ',')
 
   private def validateNumber(
-    fieldValue: FormComponent,
-    value: String,
-    maxWhole: Int,
-    maxFractional: Int,
-    mustBePositive: Boolean): ValidatedType = {
+                              fieldValue: FormComponent,
+                              value: String,
+                              maxWhole: Int,
+                              maxFractional: Int,
+                              mustBePositive: Boolean): ValidatedType = {
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
       case (WholeShape(_, whole, _), _, _) if filterCommas(whole).size > maxWhole =>
-        getError(fieldValue, s"must be at most $maxWhole digits")
+        getError(fieldValue, localisation(s"must be at most $maxWhole digits"))
       case (WholeShape("-", _, _), _, true) =>
-        getError(fieldValue, "must be a positive number")
+        getError(fieldValue, localisation("must be a positive number"))
       case (WholeShape(_, _, _), _, _) => ().valid
       case (FractionalShape(_, whole, _, fractional), 0, _)
-          if filterCommas(whole).size > maxWhole && fractional.size > 0 =>
-        getError(fieldValue, s"must be at most $maxWhole whole digits and no decimal fraction")
+        if filterCommas(whole).size > maxWhole && fractional.size > 0 =>
+        getError(fieldValue, localisation(s"must be at most $maxWhole whole digits and no decimal fraction"))
       case (FractionalShape(_, whole, _, fractional), _, _)
-          if filterCommas(whole).size > maxWhole && fractional.size > maxFractional =>
+        if filterCommas(whole).size > maxWhole && fractional.size > maxFractional =>
         getError(
           fieldValue,
-          s"must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
+          localisation(s"must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits"))
       case (FractionalShape(_, whole, _, _), _, _) if filterCommas(whole).size > maxWhole =>
-        getError(fieldValue, s"must be at most $maxWhole whole digits")
+        getError(fieldValue, localisation(s"must be at most $maxWhole whole digits"))
       case (FractionalShape(_, _, _, fractional), 0, _) if fractional.size > 0 =>
-        getError(fieldValue, "must be a whole number")
+        getError(fieldValue, localisation("must be a whole number"))
       case (FractionalShape(_, _, _, fractional), _, _) if fractional.size > maxFractional =>
-        getError(fieldValue, s"must be at most $maxFractional digits")
+        getError(fieldValue, localisation(s"must be at most $maxFractional digits"))
       case (FractionalShape("-", _, _, _), _, true) =>
-        getError(fieldValue, "must be a positive number")
+        getError(fieldValue, localisation("must be a positive number"))
       case (FractionalShape(_, _, _, _), _, _) => ().valid
-      case (_, 0, true)                        => getError(fieldValue, "must be a positive whole number")
-      case (_, _, true)                        => getError(fieldValue, "must be a positive number")
-      case (_, 0, false)                       => getError(fieldValue, "must be a whole number")
-      case _                                   => getError(fieldValue, "must be a number")
+      case (_, 0, true)                        => getError(fieldValue, localisation("must be a positive whole number"))
+      case (_, _, true)                        => getError(fieldValue, localisation("must be a positive number"))
+      case (_, 0, false)                       => getError(fieldValue, localisation("must be a whole number"))
+      case _                                   => getError(fieldValue, localisation("must be a number"))
     }
   }
 
@@ -485,7 +486,7 @@ class ComponentsValidator(
     xs: Seq[String]): ValidatedType =
     xs.filterNot(_.isEmpty()) match {
       case Nil =>
-        Map(fieldId -> errors(fieldValue, s"${errorPrefix.getOrElse("")} must be entered")).invalid
+        Map(fieldId -> errors(fieldValue, localisation(s"${errorPrefix.getOrElse("")} must be entered"))).invalid
       case value :: Nil  => ().valid
       case value :: rest => ().valid // we don't support multiple values yet
     }
@@ -494,9 +495,9 @@ class ComponentsValidator(
     xs.filterNot(_.isEmpty()) match {
       case Nil => ().valid
       case value :: Nil =>
-        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid
+        Map(fieldId -> errors(fieldValue, localisation("must not be entered"))).invalid
       case value :: rest =>
-        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yet
+        Map(fieldId -> errors(fieldValue, localisation("must not be entered"))).invalid // we don't support multiple values yet
     }
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
@@ -505,12 +506,12 @@ class ComponentsValidator(
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => ().valid
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
-        Map(fieldId -> errors(fieldValue, s"line 4 is longer than ${ValidationValues.addressLine4} characters")).invalid
+        Map(fieldId -> errors(fieldValue, localisation(s"line 4 is longer than ${ValidationValues.addressLine4} characters"))).invalid
       case (value :: Nil, _) if value.length > ValidationValues.addressLine =>
         Map(
           fieldId -> errors(
             fieldValue,
-            s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")).invalid
+            localisation(s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters"))).invalid
       case _ => ().valid
     }
   }
@@ -520,7 +521,7 @@ class ComponentsValidator(
 
     (fieldValue.mandatory, choiceValue) match {
       case (true, None | Some("")) =>
-        getError(fieldValue, "must be selected")
+        getError(fieldValue, localisation("must be selected"))
       case _ => ().valid
     }
   }
@@ -579,11 +580,11 @@ class ComponentsValidator(
     }
 
   def validateConcreteDate(
-    fieldValue: FormComponent,
-    localDate: LocalDate,
-    concreteDate: LocalDate,
-    offset: OffsetDate,
-    dateError: GformError)(func: (LocalDate, LocalDate, OffsetDate) => Boolean): ValidatedType =
+                            fieldValue: FormComponent,
+                            localDate: LocalDate,
+                            concreteDate: LocalDate,
+                            offset: OffsetDate,
+                            dateError: GformError)(func: (LocalDate, LocalDate, OffsetDate) => Boolean): ValidatedType =
     func(localDate, concreteDate, offset) match {
       case true  => ().valid
       case false => dateError.invalid
@@ -608,39 +609,39 @@ class ComponentsValidator(
     }
 
   def validateInputDate(
-    fieldValue: FormComponent,
-    fieldId: FormComponentId,
-    errorMsg: Option[String],
-    data: Map[FormComponentId, Seq[String]]): ValidatedLocalDate = {
+                         fieldValue: FormComponent,
+                         fieldId: FormComponentId,
+                         errorMsg: Option[String],
+                         data: Map[FormComponentId, Seq[String]]): ValidatedLocalDate = {
     val fieldIdList = Date.fields(fieldId).map(fId => data.get(fId))
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
         validateLocalDate(fieldValue, errorMsg, day, month, year) match {
           case Valid(concreteDate) =>
-            validateConcreteDate(concreteDate, Map(fieldId -> errors(fieldValue, "must be a valid date")))
+            validateConcreteDate(concreteDate, Map(fieldId -> errors(fieldValue, localisation("must be a valid date"))))
           case Invalid(nonEmptyList) => Invalid(nonEmptyList)
         }
 
       case _ =>
-        getError(fieldValue, "is missing")
+        getError(fieldValue, localisation("is missing"))
     }
   }
 
   def validateLocalDate(
-    fieldValue: FormComponent,
-    errorMessage: Option[String],
-    day: String,
-    month: String,
-    year: String): ValidatedConcreteDate = {
+                         fieldValue: FormComponent,
+                         errorMessage: Option[String],
+                         day: String,
+                         month: String,
+                         year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day, messagePrefix(fieldValue) + " day")
+    val d = isNumeric(day, messagePrefix(fieldValue) + localisation(" day"))
       .andThen(y => isWithinBounds(y, 31))
       .leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
-    val m = isNumeric(month, messagePrefix(fieldValue) + " month")
+    val m = isNumeric(month, messagePrefix(fieldValue) + localisation(" month"))
       .andThen(y => isWithinBounds(y, 12))
       .leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
-    val y = isNumeric(year, messagePrefix(fieldValue) + " year")
+    val y = isNumeric(year, messagePrefix(fieldValue) + localisation(" year"))
       .andThen(y => hasValidNumberOfDigits(y, 4))
       .leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
@@ -650,19 +651,19 @@ class ComponentsValidator(
   def isNumeric(str: String, label: String): ValidatedNumeric =
     Try(str.toInt) match {
       case Success(x) => Valid(x)
-      case Failure(_) => Invalid(s"$label must be numeric")
+      case Failure(_) => Invalid(localisation(s"$label must be numeric"))
     }
 
   def isWithinBounds(number: Int, dayOrMonth: Int): ValidatedNumeric =
     number match {
       case x if number <= dayOrMonth => Valid(number)
-      case y if number > dayOrMonth  => Invalid(s"entered is greater than $dayOrMonth")
+      case y if number > dayOrMonth  => Invalid(localisation(s"entered is greater than $dayOrMonth"))
     }
 
   def hasValidNumberOfDigits(number: Int, digits: Int): ValidatedNumeric =
     number.toString.length match {
       case x if x == digits => Valid(number)
-      case y if y != digits => Invalid(s"is not a $digits digit number")
+      case y if y != digits => Invalid(localisation(s"is not a $digits digit number"))
     }
 
   def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
