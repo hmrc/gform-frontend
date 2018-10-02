@@ -133,7 +133,7 @@ class ComponentsValidator(
     def validIf(validationResult: ValidatedType): Future[ValidatedType] =
       ((validationResult.isValid, fieldValue.validIf) match {
         case (true, Some(vi)) if !BooleanExpr.isTrue(vi.expr, data, retrievals.affinityGroup).beResult =>
-          getError(fieldValue, localisation("must be entered"))
+          getError(fieldValue, "must be entered")
         case _ => validationResult
       }).pure[Future]
 
@@ -214,11 +214,8 @@ class ComponentsValidator(
                             inputDate,
                             concreteDate,
                             offset,
-                            Map(
-                              fieldValue.id ->
-                                errors(
-                                  fieldValue,
-                                  localisation(s"should be before ${dateWithOffset(concreteDate, offset)}")))
+                            Map(fieldValue.id ->
+                              errors(fieldValue, s"should be before ${dateWithOffset(concreteDate, offset)}"))
                           )(isBeforeConcreteDate))
                   }
 
@@ -297,9 +294,9 @@ class ComponentsValidator(
         file match {
           case Some(File(fileId, Error(Some(reason)), _)) => getError(fieldValue, reason)
           case Some(File(fileId, Error(None), _)) =>
-            getError(fieldValue, localisation("has an unknown error from file upload"))
+            getError(fieldValue, "has an unknown error from file upload")
           case Some(File(fileId, Infected, _)) =>
-            getError(fieldValue, localisation("has a virus detected"))
+            getError(fieldValue, "has a virus detected")
           case Some(File(fileId, _, _))     => ().valid
           case None if fieldValue.mandatory => getError(fieldValue, "must be uploaded")
           case None                         => ().valid
@@ -414,7 +411,7 @@ class ComponentsValidator(
 
   private def email(fieldValue: FormComponent, value: String) =
     if (EmailAddress.isValid(value)) ().valid
-    else getError(fieldValue, localisation("is not valid"))
+    else getError(fieldValue, "is not valid")
 
   private def checkLength(fieldValue: FormComponent, value: String, desiredLength: Int) = {
     val WholeShape = s"[0-9]{$desiredLength}".r
@@ -468,8 +465,7 @@ class ComponentsValidator(
           if filterCommas(whole).size > maxWhole && fractional.size > maxFractional =>
         getError(
           fieldValue,
-          localisation(
-            s"must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits"))
+          s"must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
       case (FractionalShape(_, whole, _, _), _, _) if filterCommas(whole).size > maxWhole =>
         getError(fieldValue, s"must be at most $maxWhole whole digits")
       case (FractionalShape(_, _, _, fractional), 0, _) if fractional.size > 0 =>
