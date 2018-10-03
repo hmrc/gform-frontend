@@ -42,6 +42,7 @@ import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.views.html._
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
@@ -177,7 +178,7 @@ class ComponentsValidator(
   }
 
   private def messagePrefix(fieldValue: FormComponent) =
-    fieldValue.shortName.getOrElse(fieldValue.label)
+    localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date)(
     data: Map[FormComponentId, Seq[String]]): ValidatedType = {
@@ -225,8 +226,8 @@ class ComponentsValidator(
                 lazy val validatedThisDate = validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
 
                 val beforeOrAfterString = beforeOrAfter match {
-                  case After  => "after"
-                  case Before => "before"
+                  case After  => localisation("after")
+                  case Before => localisation("before")
                 }
 
                 val beforeOrAfterFunction = beforeOrAfter match {
@@ -546,25 +547,25 @@ class ComponentsValidator(
       case "true" :: Nil =>
         List(
           Monoid[ValidatedType].combine(
-            validateRequiredField("street1", "line 1")(addressValueOf("street1")),
+            validateRequiredField("street1", localisation("line 1"))(addressValueOf("street1")),
             lengthValidation("street1")(addressValueOf("street1"))
           ),
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
-          validateRequiredField("postcode", "postcode")(addressValueOf("postcode")),
+          validateRequiredField("postcode", localisation("postcode"))(addressValueOf("postcode")),
           validateForbiddenField("country")(addressValueOf("country"))
         )
       case _ =>
         List(
           Monoid[ValidatedType].combine(
-            validateRequiredField("street1", "line 1")(addressValueOf("street1")),
+            validateRequiredField("street1", localisation("line 1"))(addressValueOf("street1")),
             lengthValidation("street1")(addressValueOf("street1"))),
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
           validateForbiddenField("postcode")(addressValueOf("postcode")),
-          validateRequiredField("country", "Country")(addressValueOf("country"))
+          validateRequiredField("country", localisation("Country"))(addressValueOf("country"))
         )
     }
 
@@ -634,13 +635,13 @@ class ComponentsValidator(
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day, messagePrefix(fieldValue) + " day")
+    val d = isNumeric(day, messagePrefix(fieldValue) + localisation(" day"))
       .andThen(y => isWithinBounds(y, 31))
       .leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
-    val m = isNumeric(month, messagePrefix(fieldValue) + " month")
+    val m = isNumeric(month, messagePrefix(fieldValue) + localisation(" month"))
       .andThen(y => isWithinBounds(y, 12))
       .leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
-    val y = isNumeric(year, messagePrefix(fieldValue) + " year")
+    val y = isNumeric(year, messagePrefix(fieldValue) + localisation(" year"))
       .andThen(y => hasValidNumberOfDigits(y, 4))
       .leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
@@ -675,10 +676,10 @@ class ComponentsValidator(
     }
 
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
-    Set(fieldValue.errorMessage.getOrElse(messagePrefix(fieldValue) + " " + defaultErr))
+    Set(localisation(fieldValue.errorMessage.getOrElse(messagePrefix(fieldValue) + " " + localisation(defaultErr))))
 
   private def getError(fieldValue: FormComponent, defaultMessage: String) =
-    Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
+    Map(fieldValue.id -> errors(fieldValue, localisation(defaultMessage))).invalid
 }
 
 object ValidationValues {
