@@ -635,13 +635,13 @@ class ComponentsValidator(
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day, messagePrefix(fieldValue) + localisation(" day"))
+    val d = isNumeric(day, messagePrefix(fieldValue) + " " + localisation("day"))
       .andThen(y => isWithinBounds(y, 31))
       .leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
-    val m = isNumeric(month, messagePrefix(fieldValue) + localisation(" month"))
+    val m = isNumeric(month, messagePrefix(fieldValue) + " " + localisation("month"))
       .andThen(y => isWithinBounds(y, 12))
       .leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
-    val y = isNumeric(year, messagePrefix(fieldValue) + localisation(" year"))
+    val y = isNumeric(year, messagePrefix(fieldValue) + " " + localisation("year"))
       .andThen(y => hasValidNumberOfDigits(y, 4))
       .leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
