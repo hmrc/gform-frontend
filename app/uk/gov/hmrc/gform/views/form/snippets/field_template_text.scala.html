@@ -49,7 +49,7 @@
     case DisplayWidth.L => "form-control-1-2"
     case DisplayWidth.XL => "form-control-2-3"
     case DisplayWidth.XXL => "form-control-3-4"
-    case DisplayWidth.DEFAULT => if(TextFormatter.isNumber(fieldValue)) "form-control--numeric" else "form-control-1-2"
+    case DisplayWidth.DEFAULT => if(TextFormatter.isNumber(fieldValue) || fieldValue.isSterling) "form-control--numeric" else "form-control-1-2"
   }
 }
 
