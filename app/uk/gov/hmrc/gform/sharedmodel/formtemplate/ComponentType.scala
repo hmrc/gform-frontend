@@ -30,13 +30,13 @@ sealed trait ComponentType
 case class Text(
   constraint: TextConstraint,
   value: Expr,
-  displayWidth: DisplayWidth = DisplayWidth.L
+  displayWidth: DisplayWidth = DisplayWidth.DEFAULT
 ) extends ComponentType
 
 case class TextArea(
   constraint: TextConstraint,
   value: Expr,
-  displayWidth: DisplayWidth = DisplayWidth.XL
+  displayWidth: DisplayWidth = DisplayWidth.DEFAULT
 ) extends ComponentType
 
 case class UkSortCode(value: Expr) extends ComponentType
@@ -66,7 +66,7 @@ case object Address {
 
 object DisplayWidth extends Enumeration {
   type DisplayWidth = Value
-  val XS, S, M, L, XL, XXL, INVALID = Value
+  val XS, S, M, L, XL, XXL, DEFAULT = Value
 
   implicit val displayWidthReads = Reads.enumNameReads(DisplayWidth)
   implicit val displayWidthWrites = Writes.enumNameWrites
