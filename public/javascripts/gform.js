@@ -328,3 +328,21 @@ function setUpErrorSummary($el) {
 }
 
 setUpErrorSummary($('.error-summary'));
+
+function showLabel($label) {
+  $label.removeClass('js-hidden').attr('aria-hidden', false)
+}
+
+function hideLabel($label) {
+  $label.addClass('js-hidden').attr('aria-hidden', true)
+}
+
+function toggleAddressLabels(e) {
+  var choice = $(e.target).attr('data-address-choice');
+  $('span[data-address-label]').each(function (i, label) {
+    $(label).attr('data-address-label') === choice ? showLabel($(label)) : hideLabel($(label))
+  })
+}
+
+$('input[data-address-choice]').on('click', toggleAddressLabels);
+
