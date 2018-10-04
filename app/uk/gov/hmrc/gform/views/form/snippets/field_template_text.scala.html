@@ -49,7 +49,7 @@
     case DisplayWidth.L => "form-control-1-2"
     case DisplayWidth.XL => "form-control-2-3"
     case DisplayWidth.XXL => "form-control-3-4"
-    case DisplayWidth.INVALID => ""
+    case DisplayWidth.DEFAULT => if(TextFormatter.isNumber(fieldValue)) "form-control--numeric" else "form-control-1-2"
   }
 }
 
@@ -79,7 +79,7 @@
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
         value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
-        class="@inputClasses@if(TextFormatter.isNumber(fieldValue)){ form-control--numeric} @sizeClasses @inputBoxSize@if(fieldValue.derived){ js-hidden}">  @TextFormatter.appendUnit(text.constraint)
+        class="@inputClasses @sizeClasses @inputBoxSize@if(fieldValue.derived){ js-hidden}">  @TextFormatter.appendUnit(text.constraint)
     } else {
     <span class="input-currency">
         <input

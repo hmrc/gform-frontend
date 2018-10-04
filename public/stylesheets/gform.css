@@ -139,7 +139,7 @@ button.button--secondary:active{
     width: 160px;
   }
   .panel-indent .form-control--numeric,
-  .form-control.form-control--numeric,
+  input.form-control.form-control--numeric[type="text"],
   .form-control--numeric {
     width: 160px;
   }
