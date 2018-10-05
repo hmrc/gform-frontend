@@ -97,8 +97,8 @@ class FormController(
 
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
     implicit request => cache =>
-      cache.retrievals.affinityGroup match {
-        case Some(AffinityGroup.Agent) if appConfig.feature.concurrentAgentAccess =>
+      (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
+        case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
           Future.successful(
             Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages
               .dashboard(cache.formTemplate, accessCodeForm, lang, frontendAppConfig)))
