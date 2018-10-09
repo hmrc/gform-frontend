@@ -30,7 +30,6 @@ import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
-import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.Future
 

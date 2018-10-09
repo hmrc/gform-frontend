@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import cats.data.NonEmptyList
 import org.scalatest.mockito.MockitoSugar.mock
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField }
@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.http.HeaderCarrier
 import scala.collection.immutable.List
 
-class ValidIfValidationSpec extends Spec {
+class ValidIfValidationSpec extends Spec with GraphSpec {
 
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   "Valid if " should "return no errors for valid if it's condition is met" in new Test {
@@ -84,7 +84,13 @@ class ValidIfValidationSpec extends Spec {
     )
 
     def validate(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) =
-      new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(fieldValue)
+      new ComponentsValidator(
+        mkFormDataRecalculated(data),
+        mock[FileUploadService],
+        EnvelopeId("whatever"),
+        retrievals,
+        booleanExprEval,
+        ExampleData.formTemplate).validate(fieldValue)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }

@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.services
 import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.prop.TableDrivenPropertyChecks
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.http.HeaderCarrier
 
-class NumberValidationSpec extends Spec with TableDrivenPropertyChecks {
+class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with GraphSpec {
 
   trait Test extends ExampleData {
     def value: String
@@ -55,7 +55,14 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks {
     )
 
     def validate(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) =
-      new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals).validate(fieldValue)
+      new ComponentsValidator(
+        mkFormDataRecalculated(data),
+        mock[FileUploadService],
+        EnvelopeId("whatever"),
+        retrievals,
+        booleanExprEval,
+        ExampleData.formTemplate)
+        .validate(fieldValue)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }

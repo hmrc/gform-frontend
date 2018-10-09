@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.auth
 
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RegimeId
 import uk.gov.hmrc.http.HeaderCarrier

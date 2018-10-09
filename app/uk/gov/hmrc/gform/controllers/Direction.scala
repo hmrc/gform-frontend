@@ -16,19 +16,18 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.Visibility
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
 
 trait Navigation {
   def sections: List[Section]
-  def data: Map[FormComponentId, Seq[String]]
-  def retrievals: MaterialisedRetrievals
+  def data: FormDataRecalculated
 
   lazy val availableSectionNumbers: List[SectionNumber] = {
-    val visibility = Visibility(sections, data, retrievals.affinityGroup)
+    val visibility = Visibility(data)
     sections.zipWithIndex.collect {
       case (section, index) if visibility.isVisible(section) => SectionNumber(index)
     }
@@ -38,8 +37,8 @@ trait Navigation {
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
-case class Origin(sections: List[Section], retrievals: MaterialisedRetrievals) extends Navigation {
-  val data: Map[FormComponentId, Seq[String]] = Map.empty
+case class Origin(sections: List[Section]) extends Navigation {
+  val data: FormDataRecalculated = FormDataRecalculated.empty
 }
 
 sealed trait Direction
@@ -55,31 +54,28 @@ case class RemoveGroup(idx: Int, groupId: String) extends Direction
 case class Navigator(
   sectionNumber: SectionNumber,
   sections: List[Section],
-  data: Map[FormComponentId, Seq[String]],
-  retrievals: MaterialisedRetrievals)
-    extends Navigation {
+  data: FormDataRecalculated
+) extends Navigation {
   require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
   require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
 
   val RemoveGroupR = "RemoveGroup-(\\d*)_(.*)".r.unanchored
 
   def navigate: Direction = actionValue match {
-    // format: OFF
-    case "Save"                               => SaveAndExit
-    case "Continue" if isLastSectionNumber    => SaveAndSummary
-    case "Continue" if !isLastSectionNumber   => SaveAndContinue(nextSectionNumber)
-    case "Back"                               => Back(previousOrCurrentSectionNumber)
-    case "BackToSummary"                      => BackToSummary
-    case  x if x.startsWith("AddGroup")       => AddGroup(x)
-    case  RemoveGroupR(idx, x)                => RemoveGroup(idx.toInt, x)
-    case other                                => throw new BadRequestException(s"Invalid action: $other")
-    // format: ON
+    case "Save"                             => SaveAndExit
+    case "Continue" if isLastSectionNumber  => SaveAndSummary
+    case "Continue" if !isLastSectionNumber => SaveAndContinue(nextSectionNumber)
+    case "Back"                             => Back(previousOrCurrentSectionNumber)
+    case "BackToSummary"                    => BackToSummary
+    case x if x.startsWith("AddGroup")      => AddGroup(x)
+    case RemoveGroupR(idx, x)               => RemoveGroup(idx.toInt, x)
+    case other                              => throw new BadRequestException(s"Invalid action: $other")
   }
 
   private def actionValue: String = {
     val fieldId = FormComponentId("save")
     FormDataHelpers
-      .get(data, fieldId)
+      .get(data.data, fieldId)
       .headOption
       .getOrElse(
         throw new BadRequestException(s"Missing '${fieldId.value}' form field")

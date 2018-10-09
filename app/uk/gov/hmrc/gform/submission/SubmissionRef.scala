@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.submission
 
-import play.api.libs.json.{ Format, JsString, OFormat }
+import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
 case class SubmissionRef(value: String)

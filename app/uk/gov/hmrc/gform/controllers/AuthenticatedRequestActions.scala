@@ -23,7 +23,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc._
-import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
+import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }

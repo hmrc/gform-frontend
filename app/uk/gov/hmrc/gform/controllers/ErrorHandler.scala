@@ -20,7 +20,6 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.mvc.{ RequestHeader, Result }
 import play.core.SourceMapper
-import uk.gov.hmrc.play.http._
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.{ BadRequestException, ForbiddenException, NotFoundException }

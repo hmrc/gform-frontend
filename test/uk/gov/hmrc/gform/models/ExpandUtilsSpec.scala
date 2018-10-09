@@ -17,19 +17,19 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import ExpandUtils._
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class ExpandUtilsSpec extends FlatSpec with Matchers {
 
   "submittedFCs" should "FormComponents reconstructed from data and ignore unrelated FormComponents" in {
-    val data = mkData(
+    val data = mkFormDataRecalculated(
       "repeatingSectionDriver",
       "repeatingSecondField",
       "repeatingThirdField-day",
@@ -171,7 +171,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val groupIds = "a" :: "b" :: "c" :: "d" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("dummy"), mkGroup(groupIds))
 
-    val data = mkData(
+    val data = mkFormDataRecalculated(
       "unrelated",
       "a",
       "b",
@@ -195,66 +195,70 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val res3 = removeGroupFromData(3, Some(group), data)
     val res4 = removeGroupFromData(4, Some(group), data)
 
-    val expected1 = Map(
-      FormComponentId("a")         -> List("1_A"),
-      FormComponentId("b")         -> List("1_B"),
-      FormComponentId("c")         -> List("1_C"),
-      FormComponentId("d")         -> List("1_D"),
-      FormComponentId("1_a")       -> List("2_A"),
-      FormComponentId("1_b")       -> List("2_B"),
-      FormComponentId("1_c")       -> List("2_C"),
-      FormComponentId("1_d")       -> List("2_D"),
-      FormComponentId("2_a")       -> List("3_A"),
-      FormComponentId("2_b")       -> List("3_B"),
-      FormComponentId("2_c")       -> List("3_C"),
-      FormComponentId("2_d")       -> List("3_D"),
-      FormComponentId("unrelated") -> List("UNRELATED")
-    )
-    val expected2 = Map(
-      FormComponentId("a")         -> List("A"),
-      FormComponentId("b")         -> List("B"),
-      FormComponentId("c")         -> List("C"),
-      FormComponentId("d")         -> List("D"),
-      FormComponentId("1_a")       -> List("2_A"),
-      FormComponentId("1_b")       -> List("2_B"),
-      FormComponentId("1_c")       -> List("2_C"),
-      FormComponentId("1_d")       -> List("2_D"),
-      FormComponentId("2_a")       -> List("3_A"),
-      FormComponentId("2_b")       -> List("3_B"),
-      FormComponentId("2_c")       -> List("3_C"),
-      FormComponentId("2_d")       -> List("3_D"),
-      FormComponentId("unrelated") -> List("UNRELATED")
-    )
-    val expected3 = Map(
-      FormComponentId("a")         -> List("A"),
-      FormComponentId("b")         -> List("B"),
-      FormComponentId("c")         -> List("C"),
-      FormComponentId("d")         -> List("D"),
-      FormComponentId("1_a")       -> List("1_A"),
-      FormComponentId("1_b")       -> List("1_B"),
-      FormComponentId("1_c")       -> List("1_C"),
-      FormComponentId("1_d")       -> List("1_D"),
-      FormComponentId("2_a")       -> List("3_A"),
-      FormComponentId("2_b")       -> List("3_B"),
-      FormComponentId("2_c")       -> List("3_C"),
-      FormComponentId("2_d")       -> List("3_D"),
-      FormComponentId("unrelated") -> List("UNRELATED")
-    )
-    val expected4 = Map(
-      FormComponentId("a")         -> List("A"),
-      FormComponentId("b")         -> List("B"),
-      FormComponentId("c")         -> List("C"),
-      FormComponentId("d")         -> List("D"),
-      FormComponentId("1_a")       -> List("1_A"),
-      FormComponentId("1_b")       -> List("1_B"),
-      FormComponentId("1_c")       -> List("1_C"),
-      FormComponentId("1_d")       -> List("1_D"),
-      FormComponentId("2_a")       -> List("2_A"),
-      FormComponentId("2_b")       -> List("2_B"),
-      FormComponentId("2_c")       -> List("2_C"),
-      FormComponentId("2_d")       -> List("2_D"),
-      FormComponentId("unrelated") -> List("UNRELATED")
-    )
+    val expected1 = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a")         -> List("1_A"),
+        FormComponentId("b")         -> List("1_B"),
+        FormComponentId("c")         -> List("1_C"),
+        FormComponentId("d")         -> List("1_D"),
+        FormComponentId("1_a")       -> List("2_A"),
+        FormComponentId("1_b")       -> List("2_B"),
+        FormComponentId("1_c")       -> List("2_C"),
+        FormComponentId("1_d")       -> List("2_D"),
+        FormComponentId("2_a")       -> List("3_A"),
+        FormComponentId("2_b")       -> List("3_B"),
+        FormComponentId("2_c")       -> List("3_C"),
+        FormComponentId("2_d")       -> List("3_D"),
+        FormComponentId("unrelated") -> List("UNRELATED")
+      ))
+    val expected2 = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a")         -> List("A"),
+        FormComponentId("b")         -> List("B"),
+        FormComponentId("c")         -> List("C"),
+        FormComponentId("d")         -> List("D"),
+        FormComponentId("1_a")       -> List("2_A"),
+        FormComponentId("1_b")       -> List("2_B"),
+        FormComponentId("1_c")       -> List("2_C"),
+        FormComponentId("1_d")       -> List("2_D"),
+        FormComponentId("2_a")       -> List("3_A"),
+        FormComponentId("2_b")       -> List("3_B"),
+        FormComponentId("2_c")       -> List("3_C"),
+        FormComponentId("2_d")       -> List("3_D"),
+        FormComponentId("unrelated") -> List("UNRELATED")
+      ))
+    val expected3 = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a")         -> List("A"),
+        FormComponentId("b")         -> List("B"),
+        FormComponentId("c")         -> List("C"),
+        FormComponentId("d")         -> List("D"),
+        FormComponentId("1_a")       -> List("1_A"),
+        FormComponentId("1_b")       -> List("1_B"),
+        FormComponentId("1_c")       -> List("1_C"),
+        FormComponentId("1_d")       -> List("1_D"),
+        FormComponentId("2_a")       -> List("3_A"),
+        FormComponentId("2_b")       -> List("3_B"),
+        FormComponentId("2_c")       -> List("3_C"),
+        FormComponentId("2_d")       -> List("3_D"),
+        FormComponentId("unrelated") -> List("UNRELATED")
+      ))
+    val expected4 = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a")         -> List("A"),
+        FormComponentId("b")         -> List("B"),
+        FormComponentId("c")         -> List("C"),
+        FormComponentId("d")         -> List("D"),
+        FormComponentId("1_a")       -> List("1_A"),
+        FormComponentId("1_b")       -> List("1_B"),
+        FormComponentId("1_c")       -> List("1_C"),
+        FormComponentId("1_d")       -> List("1_D"),
+        FormComponentId("2_a")       -> List("2_A"),
+        FormComponentId("2_b")       -> List("2_B"),
+        FormComponentId("2_c")       -> List("2_C"),
+        FormComponentId("2_d")       -> List("2_D"),
+        FormComponentId("unrelated") -> List("UNRELATED")
+      ))
 
     res1 shouldBe expected1
     res2 shouldBe expected2
@@ -266,7 +270,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val groupIds = "a" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("dummy"), mkGroupWithDate(groupIds))
 
-    val data = mkData(
+    val data = mkFormDataRecalculated(
       "unrelated",
       "a-day",
       "a-month",
@@ -282,33 +286,36 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val res2 = removeGroupFromData(2, Some(group), data)
     val res3 = removeGroupFromData(3, Some(group), data)
 
-    val expected1 = Map(
-      FormComponentId("a-day")     -> List("1_A-DAY"),
-      FormComponentId("a-month")   -> List("1_A-MONTH"),
-      FormComponentId("a-year")    -> List("1_A-YEAR"),
-      FormComponentId("1_a-day")   -> List("2_A-DAY"),
-      FormComponentId("1_a-month") -> List("2_A-MONTH"),
-      FormComponentId("1_a-year")  -> List("2_A-YEAR"),
-      FormComponentId("unrelated") -> List("UNRELATED")
-    )
-    val expected2 = Map(
-      FormComponentId("a-day")     -> List("A-DAY"),
-      FormComponentId("a-month")   -> List("A-MONTH"),
-      FormComponentId("a-year")    -> List("A-YEAR"),
-      FormComponentId("1_a-day")   -> List("2_A-DAY"),
-      FormComponentId("1_a-month") -> List("2_A-MONTH"),
-      FormComponentId("1_a-year")  -> List("2_A-YEAR"),
-      FormComponentId("unrelated") -> List("UNRELATED")
-    )
-    val expected3 = Map(
-      FormComponentId("a-day")     -> List("A-DAY"),
-      FormComponentId("a-month")   -> List("A-MONTH"),
-      FormComponentId("a-year")    -> List("A-YEAR"),
-      FormComponentId("1_a-day")   -> List("1_A-DAY"),
-      FormComponentId("1_a-month") -> List("1_A-MONTH"),
-      FormComponentId("1_a-year")  -> List("1_A-YEAR"),
-      FormComponentId("unrelated") -> List("UNRELATED")
-    )
+    val expected1 = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a-day")     -> List("1_A-DAY"),
+        FormComponentId("a-month")   -> List("1_A-MONTH"),
+        FormComponentId("a-year")    -> List("1_A-YEAR"),
+        FormComponentId("1_a-day")   -> List("2_A-DAY"),
+        FormComponentId("1_a-month") -> List("2_A-MONTH"),
+        FormComponentId("1_a-year")  -> List("2_A-YEAR"),
+        FormComponentId("unrelated") -> List("UNRELATED")
+      ))
+    val expected2 = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a-day")     -> List("A-DAY"),
+        FormComponentId("a-month")   -> List("A-MONTH"),
+        FormComponentId("a-year")    -> List("A-YEAR"),
+        FormComponentId("1_a-day")   -> List("2_A-DAY"),
+        FormComponentId("1_a-month") -> List("2_A-MONTH"),
+        FormComponentId("1_a-year")  -> List("2_A-YEAR"),
+        FormComponentId("unrelated") -> List("UNRELATED")
+      ))
+    val expected3 = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a-day")     -> List("A-DAY"),
+        FormComponentId("a-month")   -> List("A-MONTH"),
+        FormComponentId("a-year")    -> List("A-YEAR"),
+        FormComponentId("1_a-day")   -> List("1_A-DAY"),
+        FormComponentId("1_a-month") -> List("1_A-MONTH"),
+        FormComponentId("1_a-year")  -> List("1_A-YEAR"),
+        FormComponentId("unrelated") -> List("UNRELATED")
+      ))
 
     res1 shouldBe expected1
     res2 shouldBe expected2
@@ -319,7 +326,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val groupIds = "a" :: "b" :: "c" :: "d" :: Nil map FormComponentId.apply
 
-    val data = mkData(
+    val data = mkFormDataRecalculated(
       "unrelated",
       "a",
       "b",
@@ -468,11 +475,15 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
   private def mkData(fcIds: String*) =
     fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap
 
+  private def mkFormDataRecalculated(fcIds: String*): FormDataRecalculated =
+    FormDataRecalculated.empty.copy(
+      data = fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap)
+
   "getAlwaysEmptyHiddenGroup" should "should ignore Choice which is not part of a Group" in {
 
     val section = mkSection(mkFormComponent(FormComponentId("a"), choice) :: Nil)
 
-    val data = mkData("a")
+    val data = mkFormDataRecalculated("a")
 
     val res = getAlwaysEmptyHiddenGroup(data, section)
 
@@ -487,7 +498,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       )
     )
 
-    val data = Map.empty[FormComponentId, Seq[String]]
+    val data = FormDataRecalculated.empty
 
     val res = getAlwaysEmptyHiddenGroup(data, section)
 
@@ -505,7 +516,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       )
     )
 
-    val data = mkData("a")
+    val data = mkFormDataRecalculated("a")
 
     val res = getAlwaysEmptyHiddenGroup(data, section)
 
@@ -523,7 +534,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       )
     )
 
-    val data = mkData("a", "1_a", "2_a")
+    val data = mkFormDataRecalculated("a", "1_a", "2_a")
 
     val res = getAlwaysEmptyHiddenGroup(data, section)
 
@@ -542,7 +553,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       )
     )
 
-    val data = mkData("a", "b")
+    val data = mkFormDataRecalculated("a", "b")
 
     val res = getAlwaysEmptyHiddenGroup(data, section)
 
@@ -562,7 +573,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       )
     )
 
-    val data = mkData("a", "b", "c", "1_a", "1_b", "1_c")
+    val data = mkFormDataRecalculated("a", "b", "c", "1_a", "1_b", "1_c")
 
     val res = getAlwaysEmptyHiddenGroup(data, section)
 
@@ -583,7 +594,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       )
     )
 
-    val data = mkData("a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
+    val data = mkFormDataRecalculated("a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
 
     val emptyHidden = getAlwaysEmptyHiddenGroup(data, section)
 
@@ -608,7 +619,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       mkSection(mkFormComponent(FormComponentId("e"), Text(AnyText, Value)) :: Nil) ::
       mkSection(mkFormComponent(FormComponentId("f"), Text(AnyText, Value)) :: Nil) :: Nil
 
-    val data = mkData("a", "b", "c", "1_a", "1_b", "1_c", "e", "f")
+    val data = mkFormDataRecalculated("a", "b", "c", "1_a", "1_b", "1_c", "e", "f")
 
     val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data)
 
@@ -621,16 +632,17 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       "1_b" -> choice
     ) map { case (id, comp) => mkFormComponent(FormComponentId(id), comp) }
 
-    val expectedData = Map(
-      FormComponentId("a")   -> List(""),
-      FormComponentId("1_a") -> List(""),
-      FormComponentId("b")   -> List(""),
-      FormComponentId("1_b") -> List(""),
-      FormComponentId("c")   -> List("C"),
-      FormComponentId("1_c") -> List("1_C"),
-      FormComponentId("e")   -> List("E"),
-      FormComponentId("f")   -> List("F")
-    )
+    val expectedData = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a")   -> List(""),
+        FormComponentId("1_a") -> List(""),
+        FormComponentId("b")   -> List(""),
+        FormComponentId("1_b") -> List(""),
+        FormComponentId("c")   -> List("C"),
+        FormComponentId("1_c") -> List("1_C"),
+        FormComponentId("e")   -> List("E"),
+        FormComponentId("f")   -> List("F")
+      ))
 
     dataUpd shouldBe expectedData
     hiddenFormComponent shouldBe expectedFC
@@ -643,15 +655,16 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       mkSection(mkFormComponent(FormComponentId("b"), choice) :: Nil) ::
       mkSection(mkFormComponent(FormComponentId("c"), Text(AnyText, Value)) :: Nil) :: Nil
 
-    val data = mkData("a", "b", "c")
+    val data = mkFormDataRecalculated("a", "b", "c")
 
     val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data)
 
-    val expectedData = Map(
-      FormComponentId("a") -> List(""),
-      FormComponentId("b") -> List("B"),
-      FormComponentId("c") -> List("C")
-    )
+    val expectedData = mkFormDataRecalculated(
+      Map(
+        FormComponentId("a") -> List(""),
+        FormComponentId("b") -> List("B"),
+        FormComponentId("c") -> List("C")
+      ))
 
     val expectedFC = List(
       "a" -> choice,
@@ -735,4 +748,6 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       None,
       None
     )
+
+  private def mkFormDataRecalculated(data: Data): FormDataRecalculated = FormDataRecalculated.empty.copy(data = data)
 }

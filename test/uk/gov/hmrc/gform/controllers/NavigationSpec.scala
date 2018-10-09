@@ -16,11 +16,22 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import cats.instances.option._
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
+import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.http.HeaderCarrier
 
-class NavitagionSpec extends Spec {
+class NavitagionSpec extends Spec with GraphSpec {
+
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  val recalculation: Recalculation[Option, Unit] =
+    new Recalculation[Option, Unit](booleanExprEval, ((s: GraphException) => ()))
 
   def mkFormComponent(formComponentId: FormComponentId): FormComponent = FormComponent(
     id = formComponentId,
@@ -49,14 +60,19 @@ class NavitagionSpec extends Spec {
     continueLabel = None
   )
 
-  def getAvailableSectionNumbers(sectionsData: List[Section], formData: Map[FormComponentId, String]) =
+  def getAvailableSectionNumbers(sectionsData: List[Section], formData: Map[FormComponentId, String]) = {
+    val res = recalculation.recalculateFormData(
+      formData.map { case (k, v) => k -> Seq(v) },
+      mkFormTemplate(sectionsData),
+      ExampleData.authContext
+    )
     new Navigation {
       val sections: List[Section] = sectionsData
-      val data: Map[FormComponentId, Seq[String]] = formData.mapValues(_ :: Nil)
-      val retrievals = authContext
+      val data: FormDataRecalculated = res.get
     }.availableSectionNumbers
+  }
 
-  def dependsOn(fcId: FormComponentId): Option[IncludeIf] = Some(IncludeIf(Equals(FormCtx(fcId.value), Constant("0"))))
+  def dependsOn(fcId: FormComponentId): Option[IncludeIf] = Some(IncludeIf(Equals(FormCtx(fcId.value), Constant("1"))))
 
   val fcId1 = FormComponentId("fcId1")
   val fcId2 = FormComponentId("fcId2")
@@ -81,10 +97,10 @@ class NavitagionSpec extends Spec {
   }
 
   "Chain of section" should "hide all dependent section in the chain" in {
-    val result1 = getAvailableSectionNumbers(sections, Map(fcId1 -> "0", fcId2 -> "0", fcId3 -> "0"))
-    val result2 = getAvailableSectionNumbers(sections, Map(fcId1 -> "0", fcId2 -> "0", fcId3 -> "1"))
-    val result3 = getAvailableSectionNumbers(sections, Map(fcId1 -> "0", fcId2 -> "1", fcId3 -> "0"))
-    val result4 = getAvailableSectionNumbers(sections, Map(fcId1 -> "1", fcId2 -> "0", fcId3 -> "0"))
+    val result1 = getAvailableSectionNumbers(sections, Map(fcId1 -> "1", fcId2 -> "1", fcId3 -> "1"))
+    val result2 = getAvailableSectionNumbers(sections, Map(fcId1 -> "1", fcId2 -> "1", fcId3 -> "2"))
+    val result3 = getAvailableSectionNumbers(sections, Map(fcId1 -> "1", fcId2 -> "2", fcId3 -> "1"))
+    val result4 = getAvailableSectionNumbers(sections, Map(fcId1 -> "2", fcId2 -> "1", fcId3 -> "1"))
 
     result1 shouldBe List(SectionNumber(0), SectionNumber(1), SectionNumber(2), SectionNumber(3), SectionNumber(4))
     result2 shouldBe List(SectionNumber(0), SectionNumber(1), SectionNumber(2), SectionNumber(4))

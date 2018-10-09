@@ -20,48 +20,124 @@ import cats.data.NonEmptyList
 import cats.data.Validated.Valid
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
-import play.api.libs.json.JsValue
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.collection.immutable.List
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class SummarySpec extends Spec {
 
   trait Test extends ExampleData {
-    override def dmsSubmission = DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
-    def section0 = Section("Your details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - iptRegNum`, Text(AnyText, Value), "Insurance Premium Tax (IPT) number", None, None, None, true, true, true, false, false, None)), None)
-    def section1 = Section("About you", None, None, None, None, None, None, None, List(FormComponent(`fieldId - firstName`, Text(AnyText, Value), "First Name", None, None, None, true, true, true, false, false, None)), None)
-    def section2 = Section("Business details", None, None, None, None, None, None, None, List(FormComponent(`fieldId - businessName`, Text(AnyText, Value), "Name of business", None, None, None, true, true, true, false, false, None)), None)
+    override def dmsSubmission =
+      DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
+    def section0 =
+      Section(
+        "Your details",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        List(
+          FormComponent(
+            `fieldId - iptRegNum`,
+            Text(AnyText, Value),
+            "Insurance Premium Tax (IPT) number",
+            None,
+            None,
+            None,
+            true,
+            true,
+            true,
+            false,
+            false,
+            None)),
+        None
+      )
+    def section1 =
+      Section(
+        "About you",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        List(
+          FormComponent(
+            `fieldId - firstName`,
+            Text(AnyText, Value),
+            "First Name",
+            None,
+            None,
+            None,
+            true,
+            true,
+            true,
+            false,
+            false,
+            None)),
+        None
+      )
+    def section2 =
+      Section(
+        "Business details",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        List(
+          FormComponent(
+            `fieldId - businessName`,
+            Text(AnyText, Value),
+            "Name of business",
+            None,
+            None,
+            None,
+            true,
+            true,
+            true,
+            false,
+            false,
+            None)),
+        None
+      )
 
     override def `formField - iptRegNum` = super.`formField - iptRegNum`.copy(value = "Test!Your details!Test")
     override def `formField - firstName` = super.`formField - firstName`.copy(value = "Test!About you!Test")
-    override def `formField - businessName` = super.`formField - businessName`.copy(value = "Test!Business details!Test")
+    override def `formField - businessName` =
+      super.`formField - businessName`.copy(value = "Test!Business details!Test")
 
     override def formTemplate = super.formTemplate.copy(sections = List(section0, section1, section2))
 
     val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
 
     def fieldValues = formTemplate.sections.flatMap(_.fields)
-    def f: ValidatedType = Valid(()) //valuesValidate(rawDataFromBrowser, fieldValues, envelope, Map.empty[FieldId, Set[String]])
+    def f: ValidatedType =
+      Valid(()) //valuesValidate(formDataRecalculated, fieldValues, envelope, Map.empty[FieldId, Set[String]])
     implicit val hc = HeaderCarrier()
 
   }
 
   "Summary" should "display the summary sections" in new Test {
-    val render = SummaryRenderingService.summaryForRender(f, rawDataFromBrowser, retrievals, formId, formTemplate, envelope, None)
+    val render = SummaryRenderingService.summaryForRender(f, formDataRecalculated, formId, formTemplate, envelope, None)
     render.size should be(9)
     extractAllTestStringValues(render) should be(List("Your details", "About you", "Business details"))
   }
@@ -69,15 +145,20 @@ class SummarySpec extends Spec {
   it should "display links to page sections" in new Test {
     override def formTemplate = super.formTemplate.copy(sections = List(section0, section1))
 
-    val render = SummaryRenderingService.summaryForRender(f, Map(), retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
 
     val testStringValues = extractAllHrefs(render)
 
     def callUrlEscaped(call: Call) = call.url.replaceAll("&", "&amp;")
 
     val expectedResult = List(
-      callUrlEscaped(routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), SectionTitle4Ga("Your-details"), None)),
-      callUrlEscaped(routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(1), SectionTitle4Ga("About-you"), None))
+      callUrlEscaped(
+        routes.FormController
+          .form(formId, formTemplate._id.to4Ga, SectionNumber(0), SectionTitle4Ga("Your-details"), None)),
+      callUrlEscaped(
+        routes.FormController
+          .form(formId, formTemplate._id.to4Ga, SectionNumber(1), SectionTitle4Ga("About-you"), None))
     )
 
     testStringValues(0) should startWith(expectedResult(0))
@@ -86,38 +167,102 @@ class SummarySpec extends Spec {
 
   it should "display values for each field type with a submissible field, " in new Test {
 
-    val section = Section("Personal details", None, None, None, None, None, None, None, List(
-      FormComponent(FormComponentId("Surname"), Text(AnyText, Value), "Surname", None, None, None, true, true, true, false, false, None),
-      FormComponent(FormComponentId("Info"), Text(AnyText, Value), "Info", None, None, None, true, true, submissible = false, false, false, None, presentationHint = Some(List(InvisibleInSummary))),
-      FormComponent(FormComponentId("BirthDate"), Date(AnyDate, Offset(0), None), "Birth date", None, None, None, true, true, true, false, false, None),
-      FormComponent(FormComponentId("HomeAddress"), Address(international = false), "Home address", None, None, None, true, true, true, false, false, None)
-    ), None)
+    val section = Section(
+      "Personal details",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      List(
+        FormComponent(
+          FormComponentId("Surname"),
+          Text(AnyText, Value),
+          "Surname",
+          None,
+          None,
+          None,
+          true,
+          true,
+          true,
+          false,
+          false,
+          None),
+        FormComponent(
+          FormComponentId("Info"),
+          Text(AnyText, Value),
+          "Info",
+          None,
+          None,
+          None,
+          true,
+          true,
+          submissible = false,
+          false,
+          false,
+          None,
+          presentationHint = Some(List(InvisibleInSummary))
+        ),
+        FormComponent(
+          FormComponentId("BirthDate"),
+          Date(AnyDate, Offset(0), None),
+          "Birth date",
+          None,
+          None,
+          None,
+          true,
+          true,
+          true,
+          false,
+          false,
+          None),
+        FormComponent(
+          FormComponentId("HomeAddress"),
+          Address(international = false),
+          "Home address",
+          None,
+          None,
+          None,
+          true,
+          true,
+          true,
+          false,
+          false,
+          None)
+      ),
+      None
+    )
 
     override def formTemplate = super.formTemplate.copy(sections = List(section))
 
-    override val rawDataFromBrowser = Map(
-      FormComponentId("Surname") -> Seq("Test!Saxe-Coburg-Gotha!Test"),
-      FormComponentId("Info") -> Seq("Test!Royal!Test"),
-      FormComponentId("BirthDate-day") -> Seq("19"),
-      FormComponentId("BirthDate-month") -> Seq("11"),
-      FormComponentId("BirthDate-year") -> Seq("1841"),
-      FormComponentId("HomeAddress-street1") -> Seq("Test!Street!Test"),
-      FormComponentId("HomeAddress-street2") -> Seq("Test!Second Street!Test"),
-      FormComponentId("HomeAddress-street3") -> Seq("Test!Third Street!Test"),
-      FormComponentId("HomeAddress-street4") -> Seq("Test!Town!Test"),
-      FormComponentId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
-      FormComponentId("HomeAddress-country") -> Seq("Test!UK!Test")
-    )
+    override val formDataRecalculated = FormDataRecalculated.empty.copy(
+      data = Map(
+        FormComponentId("Surname")              -> Seq("Test!Saxe-Coburg-Gotha!Test"),
+        FormComponentId("Info")                 -> Seq("Test!Royal!Test"),
+        FormComponentId("BirthDate-day")        -> Seq("19"),
+        FormComponentId("BirthDate-month")      -> Seq("11"),
+        FormComponentId("BirthDate-year")       -> Seq("1841"),
+        FormComponentId("HomeAddress-street1")  -> Seq("Test!Street!Test"),
+        FormComponentId("HomeAddress-street2")  -> Seq("Test!Second Street!Test"),
+        FormComponentId("HomeAddress-street3")  -> Seq("Test!Third Street!Test"),
+        FormComponentId("HomeAddress-street4")  -> Seq("Test!Town!Test"),
+        FormComponentId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
+        FormComponentId("HomeAddress-country")  -> Seq("Test!UK!Test")
+      ))
 
     override def fieldValues = formTemplate.sections.flatMap(_.fields)
-    val render = SummaryRenderingService.summaryForRender(f, rawDataFromBrowser, retrievals, formId, formTemplate, envelope, None)
+    val render = SummaryRenderingService.summaryForRender(f, formDataRecalculated, formId, formTemplate, envelope, None)
     val testStringValues = extractAllTestStringValues(render)
-    testStringValues should be(List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
+    testStringValues should be(
+      List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
     extractDates(render) should be(List(("19", "November", "1841")))
   }
 
   it should "display the title when shortName is not present in the section" in new Test {
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toLowerCase should include("your details")
@@ -127,7 +272,8 @@ class SummarySpec extends Spec {
     val shortName = "THIS_IS_A_VERY_VERY_VERY_SHORT_NAME"
     val section = section0.copy(shortName = Some(shortName))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toUpperCase should include(shortName)
@@ -151,7 +297,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(shortName) shouldBe true
   }
@@ -173,7 +320,8 @@ class SummarySpec extends Spec {
     )
     val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(label) shouldBe true
   }
@@ -196,7 +344,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -219,7 +368,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -242,7 +392,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -266,7 +417,8 @@ class SummarySpec extends Spec {
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -289,7 +441,8 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -312,20 +465,37 @@ class SummarySpec extends Spec {
 
     val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
-    val render = SummaryRenderingService.summaryForRender(f, Map.empty, retrievals, formId, formTemplate, envelope, None)
+    val render =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
 
   it should "not render sections with includeIf expressions that evaluate to false" in new Test {
 
-    override val section2 = super.section2.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))))
+    val includeIf = IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))
+    override val section2 = super.section2.copy(includeIf = Some(includeIf))
     override val formTemplate = super.formTemplate.copy(
       sections = List(section2)
     )
-    val renderWithDataMatching = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("Pete")), retrievals, formId, formTemplate, envelope, None)
+    val renderWithDataMatching = SummaryRenderingService.summaryForRender(
+      f,
+      FormDataRecalculated.empty.copy(data = Map(FormComponentId("firstName") -> Seq("Pete"))),
+      formId,
+      formTemplate,
+      envelope,
+      None)
     renderWithDataMatching.size shouldBe 3
-    val renderWithDataMismatch = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), retrievals, formId, formTemplate, envelope, None)
+    val renderWithDataMismatch = SummaryRenderingService.summaryForRender(
+      f,
+      FormDataRecalculated(
+        Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
+        Map(FormComponentId("firstName") -> Seq("*Not*Pete"))),
+      formId,
+      formTemplate,
+      envelope,
+      None
+    )
     renderWithDataMismatch.size shouldBe 0
   }
 
@@ -337,43 +507,79 @@ class SummarySpec extends Spec {
         List(),
         Horizontal
       ),
-      "Test!group-label!Test", None, None, None, true, true, true, true, false, None
+      "Test!group-label!Test",
+      None,
+      None,
+      None,
+      true,
+      true,
+      true,
+      true,
+      false,
+      None
     )
     override def section0 = Section("", None, None, None, None, None, None, None, List(groupFieldValue), None)
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
-    val render0 = SummaryRenderingService.summaryForRender(f, Map.empty[FormComponentId, Seq[String]], retrievals, formId, formTemplate, envelope, None)
+    val render0 =
+      SummaryRenderingService.summaryForRender(f, FormDataRecalculated.empty, formId, formTemplate, envelope, None)
     extractAllTestStringValues(render0) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
-      sections = List(Section("", None, None, None, None, None, None, None, List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test"))), None))
+      sections = List(
+        Section(
+          "",
+          None,
+          None,
+          None,
+          None,
+          None,
+          None,
+          None,
+          List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test"))),
+          None))
     )
 
     val filedValues1 = formTemplate.sections.flatMap(_.fields)
-    val render1 = SummaryRenderingService.summaryForRender(f, Map.empty[FormComponentId, Seq[String]], retrievals, formId, formTemplateWGroupWithShortname, envelope, None)
+    val render1 = SummaryRenderingService
+      .summaryForRender(f, FormDataRecalculated.empty, formId, formTemplateWGroupWithShortname, envelope, None)
     extractAllTestStringValues(render1) should be(List("group-shortname"))
   }
 
   "The Change hrefs" should "link to the correct page" in new Test {
 
-    override val formTemplate = super.formTemplate.copy(
-      sections = List(section0, section1.copy(includeIf = Some(IncludeIf(Equals(FormCtx("firstName"), Constant("Pete"))))), section2)
-    )
-    //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map(FieldId("firstName") -> Seq("*Not*Pete")), fieldValues, envelope)
+    val includeIf = IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))
 
-    val summaryForRender = SummaryRenderingService.summaryForRender(f, Map(FormComponentId("firstName") -> Seq("*Not*Pete")), retrievals, formId, formTemplate, envelope, None)
+    override val formTemplate = super.formTemplate.copy(
+      sections = List(section0, section1.copy(includeIf = Some(includeIf)), section2)
+    )
+
+    val summaryForRender = SummaryRenderingService.summaryForRender(
+      f,
+      FormDataRecalculated(
+        Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
+        Map(FormComponentId("firstName") -> Seq("*Not*Pete"))),
+      formId,
+      formTemplate,
+      envelope,
+      None
+    )
     val htmls = summaryForRender
 
     {
       val htmlAheadOfSection0 = htmls(1)
       val doc = Jsoup.parse(htmlAheadOfSection0.toString)
       val urlOfHrefToSection0 = doc.select("a:contains(Change)").get(0).attributes().get("href")
-      val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(0), SectionTitle4Ga("Your-details"), None).url + s"#iptRegNum"
+      val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
+        .form(formId, formTemplate._id.to4Ga, SectionNumber(0), SectionTitle4Ga("Your-details"), None)
+        .url + s"#iptRegNum"
       urlOfHrefToSection0 shouldBe targetUrl
     }
     {
       val htmlAheadOfSection2 = htmls(4)
       val doc = Jsoup.parse(htmlAheadOfSection2.toString)
       val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
-      val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, SectionNumber(2), SectionTitle4Ga("Business-details"), None).url + s"#nameOfBusiness"
+      val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
+        .form(formId, formTemplate._id.to4Ga, SectionNumber(2), SectionTitle4Ga("Business-details"), None)
+        .url + s"#nameOfBusiness"
       urlOfHrefToSection2 shouldBe targetUrl
     }
   }

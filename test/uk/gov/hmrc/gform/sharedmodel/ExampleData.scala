@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AnyText, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.immutable.List
 
@@ -398,6 +398,7 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
   )
 
   def rawDataFromBrowser: Map[FormComponentId, Seq[String]] = data.mapValues(x => Seq(x.value))
+  def formDataRecalculated: FormDataRecalculated = FormDataRecalculated.empty.copy(data = rawDataFromBrowser)
 }
 
 trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>

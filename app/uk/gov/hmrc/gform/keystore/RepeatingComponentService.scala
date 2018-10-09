@@ -16,35 +16,27 @@
 
 package uk.gov.hmrc.gform.keystore
 
-import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.RepeatFormComponentIds
-import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.http.cache.client.CacheMap
-import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent._
-import scala.concurrent.duration._
-import scala.util.{ Success, Try }
+import scala.util.Try
 
 object RepeatingComponentService {
 
   def getRepeatFormComponentIds(fcs: List[FormComponent]): RepeatFormComponentIds =
     RepeatFormComponentIds(fcId => fcs.filter(_.id.value.endsWith(fcId.value)).map(_.id))
 
-  def sumFunctionality(
-    field: FormCtx,
-    formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]): BigDecimal = {
+  def sumFunctionality(field: FormCtx, formTemplate: FormTemplate, data: FormDataRecalculated): BigDecimal = {
     val atomicFields: List[FormComponent] = formTemplate.sections.flatMap(_.fields)
     val repeatFormComponentIds = getRepeatFormComponentIds(formTemplate.expandFormTemplate.allFCs)
     val fcIds: List[FormComponentId] = repeatFormComponentIds.op(FormComponentId(field.value))
-    fcIds.map(id => data.get(id).flatMap(_.headOption).fold(0: BigDecimal)(toBigDecimalDefault)).sum
+    fcIds.map(id => data.data.get(id).flatMap(_.headOption).fold(0: BigDecimal)(toBigDecimalDefault)).sum
   }
 
-  def getAllSections(formTemplate: FormTemplate, data: Map[FormComponentId, Seq[String]]): List[Section] =
+  def getAllSections(formTemplate: FormTemplate, data: FormDataRecalculated): List[Section] =
     formTemplate.sections
       .flatMap { section =>
         if (isRepeatingSection(section)) {
@@ -59,7 +51,7 @@ object RepeatingComponentService {
   private def generateDynamicSections(
     section: Section,
     formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]): List[Section] = {
+    data: FormDataRecalculated): List[Section] = {
 
     val count = getRequestedCount(section.repeatsMax.get, formTemplate, data)
 
@@ -69,7 +61,7 @@ object RepeatingComponentService {
 
   }
 
-  private def copySection(section: Section, index: Int, data: Map[FormComponentId, Seq[String]]) = {
+  private def copySection(section: Section, index: Int, data: FormDataRecalculated) = {
     def copyField(field: FormComponent): FormComponent =
       field.`type` match {
         case grp @ Group(fields, _, _, _, _, _) =>
@@ -90,23 +82,20 @@ object RepeatingComponentService {
     )
   }
 
-  private def buildText(
-    template: Option[String],
-    index: Int,
-    data: Map[FormComponentId, Seq[String]]): Option[String] = {
+  private def buildText(template: Option[String], index: Int, data: FormDataRecalculated): Option[String] = {
 
     def evaluateTextExpression(str: String) = {
       val field = str.replaceFirst("""\$\{""", "").replaceFirst("""\}""", "")
       if (field.startsWith("n_")) {
         if (index == 1) {
           val fieldName = field.replaceFirst("n_", "")
-          data.getOrElse(FormComponentId(fieldName), Seq("")).mkString
+          data.data.getOrElse(FormComponentId(fieldName), Seq("")).mkString
         } else {
           val fieldName = field.replaceFirst("n_", s"${index - 1}_")
-          data.getOrElse(FormComponentId(fieldName), Seq("")).mkString
+          data.data.getOrElse(FormComponentId(fieldName), Seq("")).mkString
         }
       } else {
-        data.getOrElse(FormComponentId(field), Seq("")).mkString
+        data.data.getOrElse(FormComponentId(field), Seq("")).mkString
       }
     }
 
@@ -127,10 +116,7 @@ object RepeatingComponentService {
   }
 
   //This Evaluation is for the repeating sections, this will not become values.
-  private def evaluateExpression(
-    expr: Expr,
-    formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]): Int = {
+  private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: FormDataRecalculated): Int = {
     def eval(expr: Expr): Int = expr match {
       case Add(expr1, expr2)         => eval(expr1) + eval(expr2)
       case Multiply(expr1, expr2)    => eval(expr1) * eval(expr2)
@@ -148,10 +134,7 @@ object RepeatingComponentService {
   /**
     * This method decide if section is expanded based on repeated group or simple numeric expression
    **/
-  private def getRequestedCount(
-    expr: TextExpression,
-    formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]): Int = {
+  private def getRequestedCount(expr: TextExpression, formTemplate: FormTemplate, data: FormDataRecalculated): Int = {
 
     val repeatingGroupsFound = findRepeatingGroupsContainingField(expr, formTemplate)
 
@@ -169,11 +152,11 @@ object RepeatingComponentService {
     }
   }
 
-  private def getFormFieldIntValue(expr: TextExpression, data: Map[FormComponentId, Seq[String]]): Int = {
+  private def getFormFieldIntValue(expr: TextExpression, data: FormDataRecalculated): Int = {
 
     val id = extractFieldId(expr)
 
-    data.get(FormComponentId(id)) match {
+    data.data.get(FormComponentId(id)) match {
       case Some(value) => Try(value.head.toInt).toOption.getOrElse(0)
       case None        => 0
     }

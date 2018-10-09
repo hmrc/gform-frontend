@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate
+package uk.gov.hmrc.gform
 
-import cats.Eq
-import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-case class IncludeIf(expr: BooleanExpr)
-
-object IncludeIf {
-
-  implicit val catsEq: Eq[IncludeIf] = Eq.fromUniversalEquals
-
-  implicit val writes = Json.writes[IncludeIf]
-
-  implicit val reads: Reads[IncludeIf] = Json.reads[IncludeIf]
-
+package object graph {
+  type Data = Map[FormComponentId, Seq[String]]
 }

@@ -16,28 +16,19 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import cats.syntax.eq._
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section
+import uk.gov.hmrc.gform.sharedmodel.graph.{ IncludeIfGN, SimpleGN }
 
-case class Visibility(
-  sections: List[Section],
-  data: Map[FormComponentId, Seq[String]],
-  affinityGroup: Option[AffinityGroup]) {
-
-  private def hasVisibleAncestor(formComponentId: FormComponentId): Boolean =
-    sections
-      .find(_.fields.find(_.id == formComponentId).isDefined)
-      .map(isVisible)
-      .getOrElse(true)
-
-  private def areAncestorsVisible(beResultWithDep: BooleanExprResultWithDependents): Boolean =
-    beResultWithDep.dependingOn.foldLeft(beResultWithDep.beResult)(_ && hasVisibleAncestor(_))
+case class Visibility(data: FormDataRecalculated) {
 
   def isVisible(section: Section): Boolean = {
-
-    val isIncludedExpression: Option[BooleanExprResultWithDependents] =
-      section.includeIf.map(incIf => BooleanExpr.isTrue(incIf.expr, data, affinityGroup))
-
-    isIncludedExpression.fold(true)(areAncestorsVisible)
+    val invisible: Boolean =
+      data.invisible.exists {
+        case SimpleGN(fcId)               => false
+        case IncludeIfGN(fcId, includeIf) => section.includeIf.map(_ === includeIf).getOrElse(false)
+      }
+    !invisible
   }
 }

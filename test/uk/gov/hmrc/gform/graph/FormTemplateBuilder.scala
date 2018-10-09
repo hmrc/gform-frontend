@@ -43,6 +43,20 @@ object FormTemplateBuilder {
       None
     )
 
+  def mkSectionIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf) =
+    Section(
+      "Section Name",
+      None,
+      None,
+      None,
+      Some(includeIf),
+      None,
+      None,
+      None,
+      formComponents,
+      None
+    )
+
   def mkFormComponent(fcId: String, ct: ComponentType) =
     FormComponent(
       FormComponentId(fcId),
@@ -60,8 +74,28 @@ object FormTemplateBuilder {
       None
     )
 
+  def mkFormComponentEditable(fcId: String, ct: ComponentType) =
+    FormComponent(
+      FormComponentId(fcId),
+      ct,
+      "Label",
+      None,
+      None,
+      None,
+      true,
+      true,
+      true,
+      false,
+      false,
+      None,
+      None
+    )
+
   def mkFormComponent(fcId: String, expr: Expr): FormComponent =
     mkFormComponent(fcId, Text(AnyText, expr))
+
+  def mkFormComponentEditable(fcId: String, expr: Expr): FormComponent =
+    mkFormComponentEditable(fcId, Text(AnyText, expr))
 
   def mkFormTemplate(sections: List[Section]) = FormTemplate(
     FormTemplateId("tst1"),

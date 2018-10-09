@@ -16,18 +16,19 @@
 
 package uk.gov.hmrc.gform.validation
 
-import javax.inject.Inject
-
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.graph.GraphModule
 
 class ValidationModule(
   fileUploadModule: FileUploadModule,
-  gformBackendModule: GformBackendModule
+  gformBackendModule: GformBackendModule,
+  graphModule: GraphModule
 ) {
 
   val validationService = new ValidationService(
     fileUploadModule.fileUploadService,
-    gformBackendModule.gformConnector
+    gformBackendModule.gformConnector,
+    graphModule.booleanExprEval
   )
 }

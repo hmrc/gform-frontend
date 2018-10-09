@@ -16,9 +16,6 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
-import javax.inject.Inject
-
-import play.api.DefaultApplication
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 

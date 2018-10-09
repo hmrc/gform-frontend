@@ -26,8 +26,6 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.util.{ Failure, Success }
-
 class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp) {
 
   def generatePDF(payload: Map[String, Seq[String]], headers: Seq[(String, String)])(

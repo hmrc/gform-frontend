@@ -28,14 +28,14 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import java.text.NumberFormat
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
-@import uk.gov.hmrc.gform.commons.NumberFormatUtil.formatCurrency
+@import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 
 @(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
 @validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
 @validatedSterling = @{
     val currentSter = toBigDecimalDefault(validatedValue)
-    formatCurrency.format(currentSter)
+    currencyFormat.format(currentSter)
 }
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
