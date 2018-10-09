@@ -25,6 +25,6 @@
  <a class="print-hidden" href="@{
   uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang).url + "#" + fieldValue.id.value
  }">
-  Change <span class="visuallyhidden">@localisation(title)</span>
+  Change <span class="visuallyhidden">@localisation(fieldValue.shortName.getOrElse(fieldValue.label))</span>
  </a>
 }
