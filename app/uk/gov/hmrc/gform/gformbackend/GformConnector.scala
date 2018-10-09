@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Account, UserId, ValAddress }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }

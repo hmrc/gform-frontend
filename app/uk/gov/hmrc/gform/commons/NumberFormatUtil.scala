@@ -15,8 +15,11 @@
  */
 
 package uk.gov.hmrc.gform.commons
+
 import java.text.NumberFormat
 import java.util.Locale
+
 object NumberFormatUtil {
-  val formatCurrency = NumberFormat.getCurrencyInstance(Locale.UK)
+  val defaultFormat = NumberFormat.getInstance(Locale.UK)
+  val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 }

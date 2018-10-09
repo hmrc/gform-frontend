@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
@@ -39,16 +39,11 @@ class GformModule(
   fileUploadModule: FileUploadModule,
   validationModule: ValidationModule,
   auditingModule: AuditingModule,
-  playBuiltInsModule: PlayBuiltInsModule
+  playBuiltInsModule: PlayBuiltInsModule,
+  graphModule: GraphModule
 ) {
 
-  private val authContextPrepop = new AuthContextPrepop
-
-  private val prepopService: PrepopService =
-    new PrepopService(authContextPrepop, authModule.eeittService)
-
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
-    prepopService,
     configModule.frontendAppConfig
   )
 
@@ -59,7 +54,8 @@ class GformModule(
     validationModule.validationService,
     gformBackendModule.gformConnector,
     authModule.enrolmentService,
-    configModule.appConfig
+    configModule.appConfig,
+    graphModule.recalculation
   )
 
   val formController: FormController = new FormController(
@@ -70,7 +66,8 @@ class GformModule(
     fileUploadModule.fileUploadService,
     validationModule.validationService,
     sectionRenderingService,
-    gformBackendModule.gformConnector
+    gformBackendModule.gformConnector,
+    graphModule.recalculation
   )
 
   val summaryController: SummaryController = new SummaryController(
@@ -81,7 +78,8 @@ class GformModule(
     pdfGeneratorModule.pdfGeneratorService,
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
-    controllersModule.errResponder
+    controllersModule.errResponder,
+    graphModule.recalculation
   )
 
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
@@ -110,6 +108,7 @@ class GformModule(
     pdfGeneratorModule.pdfGeneratorService,
     sectionRenderingService,
     validationModule.validationService,
-    authModule.authService
+    authModule.authService,
+    graphModule.recalculation
   )
 }

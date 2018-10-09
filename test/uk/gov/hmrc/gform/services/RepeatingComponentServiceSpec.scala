@@ -16,15 +16,14 @@
 
 package uk.gov.hmrc.gform.services
 
-import play.api.libs.json.Json
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.collection.immutable.List
-import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class RepeatingComponentServiceSpec extends Spec with ExampleData {
@@ -35,7 +34,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`))
 
-    RepeatingComponentService.getAllSections(formTemplate, Map.empty) shouldBe List(`section - group`)
+    RepeatingComponentService.getAllSections(formTemplate, FormDataRecalculated.empty) shouldBe List(`section - group`)
   }
 
   it should "return no dynamically created sections when field in repeatsMax expression in repeating group and no form data" in {
@@ -44,7 +43,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val expectedList = List(`section - group`)
 
-    RepeatingComponentService.getAllSections(formTemplate, Map.empty) shouldBe expectedList
+    RepeatingComponentService.getAllSections(formTemplate, FormDataRecalculated.empty) shouldBe expectedList
   }
 
   it should "return dynamically created sections (title and shortName text built dynamically) when field to track in repeating group, and non-empty form data" in {
@@ -77,7 +76,8 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
     val expectedList = List(thisSection1, sectionR, sectionR2)
 
-    val formData = Map(FormComponentId("firstName") -> Seq("ONE"), FormComponentId("1_firstName") -> Seq("TWO"))
+    val formData = mkFormDataRecalculated(
+      Map(FormComponentId("firstName") -> Seq("ONE"), FormComponentId("1_firstName") -> Seq("TWO")))
 
     RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
@@ -95,7 +95,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
       .copy(fields = List(textFieldDosR), title = "Repeating section title 1", shortName = Some("shortName 1"))
     val expectedList = List(`section - group`, sectionR)
 
-    val formData = Map(`fieldId - firstName` -> Seq("1"))
+    val formData = mkFormDataRecalculated(Map(`fieldId - firstName` -> Seq("1")))
 
     RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
@@ -115,8 +115,10 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
       .copy(fields = List(textFieldDos2), title = "Repeating section title 2", shortName = Some("shortName 2"))
     val expectedList = List(`section - group`, sectionR1, sectionR2)
 
-    val formData = Map(`fieldId - firstName` -> Seq("2"))
+    val formData = mkFormDataRecalculated(Map(`fieldId - firstName` -> Seq("2")))
 
     RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
+
+  protected def mkFormDataRecalculated(data: Data): FormDataRecalculated = FormDataRecalculated.empty.copy(data = data)
 }

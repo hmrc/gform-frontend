@@ -18,26 +18,21 @@ package uk.gov.hmrc.gform.services
 
 import cats.data.Validated.Valid
 import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Document, Element }
+import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
-import play.api.libs.json.JsValue
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gform.{ PrepopService, SectionRenderingService }
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.gform.SectionRenderingService
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.wshttp.WSHttpModule
-import uk.gov.hmrc.http.cache.client.CacheMap
 
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
 
 class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
@@ -49,31 +44,21 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   implicit val messages = mock[play.api.i18n.Messages]
   val retrievals = mock[MaterialisedRetrievals]
 
-  val mockPrepopService = new PrepopService(null, null) {
-    override def prepopData(
-      expr: Expr,
-      formTemplate: FormTemplate,
-      retrievals: MaterialisedRetrievals,
-      data: Map[FormComponentId, Seq[String]],
-      section: BaseSection,
-      scale: Option[Int])(implicit hc: HeaderCarrier): Future[String] =
-      Future.successful("")
-  }
-
-  val testService = new SectionRenderingService(mockPrepopService, frontendAppConfig)
+  val testService = new SectionRenderingService(frontendAppConfig)
 
   "SectionRenderingService" should "generate first page" in {
     val generatedHtml = testService
       .renderSection(
         form,
         SectionNumber.firstSection,
-        Map(
-          FormComponentId("nameOfBusiness")  -> Seq(""),
-          FormComponentId("startDate-day")   -> Seq(""),
-          FormComponentId("startDate-month") -> Seq(""),
-          FormComponentId("startDate-year")  -> Seq(""),
-          FormComponentId("iptRegNum")       -> Seq("")
-        ),
+        mkFormDataRecalculated(
+          Map(
+            FormComponentId("nameOfBusiness")  -> Seq(""),
+            FormComponentId("startDate-day")   -> Seq(""),
+            FormComponentId("startDate-month") -> Seq(""),
+            FormComponentId("startDate-year")  -> Seq(""),
+            FormComponentId("iptRegNum")       -> Seq("")
+          )),
         formTemplate,
         Nil,
         Envelope(Nil),
@@ -85,7 +70,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -105,56 +89,19 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     visibleFields should be(List("firstName", "surname"))
   }
 
-  val joe = "Joe"
-
-  val equalsCombinations = Table(
-    ("editable", "desc", "expected result"),
-    (false, "be", ""),
-    (true, "not be", joe)
-  )
-
-  forAll(equalsCombinations) { (editable, desc, result) =>
-    "readonly=" + !editable + " field" should desc + " recalculated (set to empty in rendered html)" in {
-
-      val sections = allSections.map(sc => sc.copy(fields = sc.fields.map(f => f.copy(editable = editable))))
-      val data: Map[FormComponentId, Seq[String]] = Map(FormComponentId("firstName") -> List(joe))
-      val generatedHtml = testService
-        .renderSection(
-          form,
-          SectionNumber.firstSection,
-          data,
-          formTemplate,
-          Nil,
-          Envelope(Nil),
-          envelopeId,
-          Valid(()),
-          sections,
-          0,
-          Nil,
-          retrievals,
-          None
-        )
-        .futureValue
-
-      val doc = Jsoup.parse(generatedHtml.body)
-      val firstName = doc.getElementById("firstName").`val`()
-
-      firstName shouldBe result
-    }
-  }
-
   "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
     val generatedHtml = testService
       .renderSection(
         form,
         SectionNumber.firstSection,
-        Map(
-          FormComponentId("nameOfBusiness")  -> Seq(""),
-          FormComponentId("startDate-day")   -> Seq(""),
-          FormComponentId("startDate-month") -> Seq(""),
-          FormComponentId("startDate-year")  -> Seq(""),
-          FormComponentId("iptRegNum")       -> Seq("")
-        ),
+        mkFormDataRecalculated(
+          Map(
+            FormComponentId("nameOfBusiness")  -> Seq(""),
+            FormComponentId("startDate-day")   -> Seq(""),
+            FormComponentId("startDate-month") -> Seq(""),
+            FormComponentId("startDate-year")  -> Seq(""),
+            FormComponentId("iptRegNum")       -> Seq("")
+          )),
         formTemplate,
         Nil,
         Envelope(Nil),
@@ -166,7 +113,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -192,7 +138,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber.firstSection,
-        Map.empty,
+        FormDataRecalculated.empty,
         formTemplate,
         Nil,
         Envelope(Nil),
@@ -204,7 +150,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None
       )
-      .futureValue
 
     val doc: Document = Jsoup.parse(generatedHtml.body)
     val progressIndicator = doc.getElementById("progress-indicator")
@@ -217,11 +162,12 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber(1),
-        Map(
-          FormComponentId("firstName") -> Seq(""),
-          FormComponentId("surname")   -> Seq(""),
-          FormComponentId("facePhoto") -> Seq("")
-        ),
+        mkFormDataRecalculated(
+          Map(
+            FormComponentId("firstName") -> Seq(""),
+            FormComponentId("surname")   -> Seq(""),
+            FormComponentId("facePhoto") -> Seq("")
+          )),
         formTemplate,
         Nil,
         Envelope(Nil),
@@ -233,7 +179,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -313,7 +258,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber(0),
-        Map.empty,
+        FormDataRecalculated.empty,
         formTemplate,
         Nil,
         Envelope(Nil),
@@ -325,7 +270,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -366,7 +310,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber(0),
-        Map.empty,
+        FormDataRecalculated.empty,
         formTemplate,
         Nil,
         Envelope(Nil),
@@ -378,7 +322,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -393,7 +336,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
   it should "hide add-group button when limit has been reached (repeating groups)" in new ExampleData {
 
-    val thisTestService = new SectionRenderingService(mockPrepopService, frontendAppConfig)
+    val thisTestService = new SectionRenderingService(frontendAppConfig)
 
     override def `group - type` = Group(
       fields = List(`fieldValue - firstName`),
@@ -412,10 +355,11 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       .renderSection(
         form,
         SectionNumber(0),
-        Map(
-          FormComponentId("firstName")   -> Seq(""),
-          FormComponentId("1_firstName") -> Seq("")
-        ),
+        mkFormDataRecalculated(
+          Map(
+            FormComponentId("firstName")   -> Seq(""),
+            FormComponentId("1_firstName") -> Seq("")
+          )),
         formTemplate,
         Nil,
         Envelope(Nil),
@@ -427,7 +371,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -446,11 +389,10 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         formTemplate,
         retrievals,
         Valid(()),
-        Map.empty,
+        FormDataRecalculated.empty,
         Nil,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -470,11 +412,10 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         formTemplate.copy(formCategory = Some(HMRCClaimForm)),
         retrievals,
         Valid(()),
-        Map.empty,
+        FormDataRecalculated.empty,
         Nil,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -494,11 +435,10 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         formTemplate.copy(formCategory = Some(HMRCReturnForm)),
         retrievals,
         Valid(()),
-        Map.empty,
+        FormDataRecalculated.empty,
         Nil,
         None
       )
-      .futureValue
 
     val doc = Jsoup.parse(generatedHtml.body)
 
@@ -512,4 +452,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   }
 
   private def toList(elements: Elements) = JavaConverters.asScalaIteratorConverter(elements.iterator).asScala.toList
+
+  private def mkFormDataRecalculated(data: Data): FormDataRecalculated = FormDataRecalculated.empty.copy(data = data)
 }

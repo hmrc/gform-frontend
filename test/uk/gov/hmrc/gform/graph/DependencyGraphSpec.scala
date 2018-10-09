@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.graph
 
 import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph._
+import uk.gov.hmrc.gform.sharedmodel.graph._
 import FormTemplateBuilder._
 
 class DependencyGraphSpec extends FlatSpec with Matchers {
@@ -136,10 +136,82 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
     )
   }
 
+  it should "handle includeIf's boolean expression" in {
+
+    val includeIf = IncludeIf(Equals(Add(FormCtx("a"), FormCtx("b")), Constant("0")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSection(List(mkFormComponent("b", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("c", Value)), includeIf) :: Nil
+
+    layers(sections) shouldBe List(
+      (0, List("c")),
+      (1, List("includeIf_2")),
+      (2, List("a", "b"))
+    )
+  }
+
+  it should "handle includeIf's boolean expression - chain of dependencies (version A)" in {
+
+    val includeIf = IncludeIf(Equals(Add(FormCtx("a"), FormCtx("b")), Constant("0")))
+
+    val includeIf2 = IncludeIf(Equals(FormCtx("c"), Constant("0")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSection(List(mkFormComponent("b", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("c", Value)), includeIf) ::
+        mkSectionIncludeIf(List(mkFormComponent("d", Value)), includeIf2) ::
+        mkSection(List(mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))))) :: Nil
+
+    layers(sections) shouldBe List(
+      (0, List("d", "e")),
+      (1, List("includeIf_3")),
+      (2, List("c")),
+      (3, List("includeIf_2")),
+      (4, List("a", "b"))
+    )
+  }
+
+  it should "handle includeIf's boolean expression - chain of dependencies with expression dependent on possible hidden section" in {
+
+    val includeIf = IncludeIf(Equals(Add(FormCtx("a"), FormCtx("b")), Constant("0")))
+
+    val includeIf2 = IncludeIf(Equals(FormCtx("c"), Constant("0")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSection(List(mkFormComponent("b", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("c", Value)), includeIf) ::
+        mkSectionIncludeIf(List(mkFormComponent("d", Value)), includeIf2) ::
+        mkSection(List(mkFormComponent("e", Add(FormCtx("a"), FormCtx("d"))))) :: Nil
+
+    layers(sections) shouldBe List(
+      (0, List("e")),
+      (1, List("d")),
+      (2, List("includeIf_3")),
+      (3, List("c")),
+      (4, List("includeIf_2")),
+      (5, List("a", "b"))
+    )
+  }
+
   private def layers(sections: List[Section])(implicit position: Position): List[(Int, List[String])] =
     constructDepencyGraph(toGraph(mkFormTemplate(sections))) match {
       case Left(e) => fail
       case Right(topOrder) =>
-        topOrder.toList.map { case (index, items) => (index, items.toList.map(_.toOuter.value).sorted) }
+        topOrder.toList.map {
+          case (index, items) =>
+            (
+              index,
+              items.toList
+                .map(_.toOuter)
+                .map {
+                  case SimpleGN(fcId)       => fcId.value
+                  case IncludeIfGN(fcId, _) => fcId.value
+                }
+                .sorted)
+        }
     }
 }

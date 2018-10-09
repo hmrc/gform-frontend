@@ -16,9 +16,6 @@
 
 package uk.gov.hmrc.gform.nonRepudiation
 
-import javax.inject.Inject
-
-import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.sharedmodel.form.Form

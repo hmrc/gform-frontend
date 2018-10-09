@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.config
 
-import com.typesafe.config.{ Config => TypeSafeConfig }
 import pureconfig._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 

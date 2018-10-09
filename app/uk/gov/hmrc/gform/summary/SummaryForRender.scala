@@ -17,11 +17,9 @@
 package uk.gov.hmrc.gform.summary
 
 import cats.data.Validated.{ Invalid, Valid }
-import cats.implicits._
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -29,7 +27,7 @@ import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel.Visibility
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
@@ -37,16 +35,12 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.HeaderCarrier
-
 object SummaryRenderingService {
 
   def renderSummary(
     formTemplate: FormTemplate,
     validatedType: ValidatedType,
-    formFields: Map[FormComponentId, Seq[String]],
-    retrievals: MaterialisedRetrievals,
+    formFields: FormDataRecalculated,
     formId: FormId,
     envelope: Envelope,
     lang: Option[String],
@@ -55,15 +49,13 @@ object SummaryRenderingService {
     implicit
     request: Request[_],
     messages: Messages): Html = {
-    val sfr =
-      summaryForRender(validatedType, formFields, retrievals, formId, formTemplate, envelope, lang)
+    val sfr = summaryForRender(validatedType, formFields, formId, formTemplate, envelope, lang)
     summary(formTemplate, sfr, formId, formTemplate.formCategory.getOrElse(Default), lang, frontendAppConfig)
   }
 
   def summaryForRender(
     validatedType: ValidatedType,
-    data: Map[FormComponentId, Seq[String]],
-    retrievals: MaterialisedRetrievals,
+    data: FormDataRecalculated,
     formId: FormId,
     formTemplate: FormTemplate,
     envelope: Envelope,
@@ -185,11 +177,12 @@ object SummaryRenderingService {
         fieldValue.presentationHint
           .fold(false)(x => x.contains(InvisibleInSummary))
 
-      val visibility = Visibility(sections, data, retrievals.affinityGroup)
+      val visibility = Visibility(data)
 
-      val sectionsToRender = sections.zipWithIndex.collect {
-        case (section, index) if visibility.isVisible(section) => (section, index)
-      }
+      val sectionsToRender =
+        sections.zipWithIndex.collect {
+          case (section, index) if visibility.isVisible(section) => (section, index)
+        }
 
       sectionsToRender
         .flatMap {
@@ -218,6 +211,7 @@ object SummaryRenderingService {
                     lang))
             begin +: middle :+ end
         }
+
     }
 
     val sections = RepeatingComponentService.getAllSections(formTemplate, data)

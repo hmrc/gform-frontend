@@ -16,11 +16,6 @@
 
 package uk.gov.hmrc.gform.wshttp
 
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
-import play.api.http.HttpVerbs.{ POST => POST_VERB }
-import play.api.mvc.MultipartFormData.FilePart
-import uk.gov.hmrc.auth.core
 import uk.gov.hmrc.http.hooks.HttpHooks
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
@@ -30,9 +25,7 @@ import uk.gov.hmrc.play.frontend.auth.connectors.AuthConnector
 import uk.gov.hmrc.play.frontend.config.LoadAuditingConfig
 import uk.gov.hmrc.play.http.ws._
 
-import scala.concurrent.Future
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.hooks.HttpHook
 import uk.gov.hmrc.play.config.AppName
 
 object MicroserviceAuditConnector extends AuditConnector {

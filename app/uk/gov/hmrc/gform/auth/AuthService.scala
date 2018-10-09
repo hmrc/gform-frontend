@@ -134,9 +134,7 @@ class AuthService(
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] =
     expression.expr match {
-      case AuthCtx(value) =>
-        val authContextPrepop = new AuthContextPrepop()
-        authContextPrepop.values(value, retrievals).pure[Future]
+      case AuthCtx(value) => AuthContextPrepop.values(value, retrievals).pure[Future]
 
       case EeittCtx(value) => eeittService.getValue(value, retrievals, formTemplate)
 

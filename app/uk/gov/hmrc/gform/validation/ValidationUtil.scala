@@ -25,9 +25,8 @@ import cats.data.Validated.{ Invalid, Valid }
 import play.api.Logger
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-
-import scala.concurrent.Future
 
 object ValidationUtil {
 
@@ -97,10 +96,10 @@ object ValidationUtil {
   def evaluateValidationResult(
     atomicFields: List[FormComponent],
     validationResult: ValidatedType,
-    data: Map[FormComponentId, Seq[String]],
+    data: FormDataRecalculated,
     envelope: Envelope): List[FormFieldValidationResult] = {
 
-    val dataGetter: FormComponentId => Seq[String] = fId => data.get(fId).toList.flatten
+    val dataGetter: FormComponentId => Seq[String] = fId => data.data.get(fId).toList.flatten
 
     val gFormErrors = validationResult match {
       case Invalid(errors) => errors
@@ -164,7 +163,7 @@ object ValidationUtil {
             case Some(errors) =>
               FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
             case None =>
-              val optionalData = data.get(fieldValue.id).map { selectedValue =>
+              val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
                 selectedValue.map { index =>
                   fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
                 }.toMap

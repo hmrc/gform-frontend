@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json.{ Json, OFormat, OWrites, Reads }
+import play.api.libs.json.{ Json, OFormat }
 
 case class Account(
   sortCode: String,

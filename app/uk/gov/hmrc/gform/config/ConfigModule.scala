@@ -20,9 +20,7 @@ import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import net.ceedubs.ficus.Ficus._
 import play.api.Configuration
 import play.api.Mode.Mode
-import pureconfig._
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
-import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.play.config.{ ControllerConfig, ServicesConfig }
 
 class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {

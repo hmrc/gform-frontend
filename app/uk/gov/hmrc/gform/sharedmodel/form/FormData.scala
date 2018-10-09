@@ -18,8 +18,11 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.Semigroup
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 
 case class FormData(fields: Seq[FormField]) extends AnyVal
+case class FormDataRecalculated(invisible: Set[GraphNode], data: Map[FormComponentId, Seq[String]])
 
 object FormData {
 
@@ -28,4 +31,8 @@ object FormData {
   }
 
   implicit val format: OFormat[FormData] = Json.format[FormData]
+}
+
+object FormDataRecalculated {
+  val empty = FormDataRecalculated(Set.empty, Map.empty)
 }

@@ -16,15 +16,13 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ExpandUtils {
 
-  def submittedFCs(
-    data: Map[FormComponentId, Seq[String]],
-    formComponents: List[FormComponent]): List[FormComponent] = {
-    val fcIds: Set[FormComponentId] = data.keys.toSet
+  def submittedFCs(data: FormDataRecalculated, formComponents: List[FormComponent]): List[FormComponent] = {
+    val fcIds: Set[FormComponentId] = data.data.keys.toSet
 
     formComponents.filter {
       case fc @ IsDate(_)       => Date.fields(fc.id).forall(ds => fcIds.exists(_ == ds))
@@ -34,14 +32,14 @@ object ExpandUtils {
     }
   }
 
-  def getAlwaysEmptyHiddenGroup(data: Map[FormComponentId, Seq[String]], section: Section): List[FormComponent] = {
+  def getAlwaysEmptyHiddenGroup(data: FormDataRecalculated, section: Section): List[FormComponent] = {
     val aeh = alwaysEmptyHidden(data, section) _
     aeh({ case IsInformationMessage(info) => info }) ++ // It is safe to include hidden fields for info messages, since they are not submissible
       aeh({ case IsChoice(choice)         => choice }) ++
       aeh({ case IsFileUpload()           => () })
   }
 
-  private def alwaysEmptyHidden[A](data: Map[FormComponentId, Seq[String]], section: Section)(
+  private def alwaysEmptyHidden[A](data: FormDataRecalculated, section: Section)(
     pf: PartialFunction[FormComponent, A]): List[FormComponent] = {
 
     val (groupFcs, groups): (List[FormComponent], List[Group]) = section.fields.collect {
@@ -53,7 +51,7 @@ object ExpandUtils {
     val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent.expandedFC)
     val filtered = formComponents.filter(fc => pf.lift(fc).isDefined)
 
-    val fcIds: Set[FormComponentId] = data.keys.toSet
+    val fcIds: Set[FormComponentId] = data.data.keys.toSet
     val present = fcIds.filter(key => filtered.exists(_.id == key))
     filtered.take(Math.max(fieldsInGroups.size, present.size))
   }
@@ -171,14 +169,14 @@ object ExpandUtils {
   def removeGroupFromData(
     idx: Int,
     maybeGroupFc: Option[FormComponent],
-    data: Map[FormComponentId, Seq[String]]): Map[FormComponentId, Seq[String]] =
+    data: FormDataRecalculated): FormDataRecalculated =
     maybeGroupFc match {
       case None => data
       case Some(groupFC @ IsGroup(group)) =>
         val allGroupFcIds: Set[FormComponentId] = groupFC.expandFormComponent.allIds.toSet
         val groupIdToRemove = groupIndex(idx, group)
 
-        val updatedData: Map[FormComponentId, Seq[String]] = data -- groupIdToRemove
+        val updatedData: Map[FormComponentId, Seq[String]] = data.data -- groupIdToRemove
         val remainingGroupIds: Set[FormComponentId] = updatedData.keys.toSet.filter(id => allGroupFcIds.exists(_ == id))
 
         val groupFcWithoutLast: FormComponent = {
@@ -200,14 +198,13 @@ object ExpandUtils {
             }
             .toMap
 
-        (updatedData -- allGroupFcIds) ++ updatedMap
+        val newData = (updatedData -- allGroupFcIds) ++ updatedMap
+
+        data.copy(data = newData)
 
     }
 
-  def getAllFieldsInGroup(
-    topFieldValue: FormComponent,
-    group: Group,
-    data: Map[FormComponentId, Seq[String]]): List[GroupList] = {
+  def getAllFieldsInGroup(topFieldValue: FormComponent, group: Group, data: FormDataRecalculated): List[GroupList] = {
 
     val gFCIds: List[FormComponentId] = group.fields.map(_.id)
     val gFC: Set[FormComponentId] = gFCIds.toSet

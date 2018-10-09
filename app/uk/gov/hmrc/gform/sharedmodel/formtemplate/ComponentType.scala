@@ -23,7 +23,6 @@ import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 
 import scala.collection.immutable._
-import scala.concurrent.{ ExecutionContext, Future }
 
 sealed trait ComponentType
 

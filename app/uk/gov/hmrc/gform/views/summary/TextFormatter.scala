@@ -16,21 +16,12 @@
 
 package uk.gov.hmrc.gform.views.summary
 
-import java.awt.Component
-import java.io
-
-import scala.math.BigDecimal
-import scala.util.Try
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-import java.text.NumberFormat
-import java.util.Locale
+import uk.gov.hmrc.gform.commons.NumberFormatUtil._
 
 object TextFormatter {
-
-  private val defaultFormat = NumberFormat.getInstance(Locale.UK)
-  private val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 
   def formatText(validationResult: Option[FormFieldValidationResult]): String = {
     val currentValue = validationResult match {

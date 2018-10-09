@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.gform.fileupload
 
-import javax.inject.Inject
-
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, ControllersModule }
-import uk.gov.hmrc.gform.gformbackend.{ GformBackendModule, GformConnector }
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 

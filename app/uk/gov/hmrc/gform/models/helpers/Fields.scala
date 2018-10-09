@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.sharedmodel.form.FormField
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.models.ExpandUtils._
@@ -74,7 +74,7 @@ object Fields {
       .toMap
 
   def getValidationResult(
-    formFieldMap: Map[FormComponentId, Seq[String]],
+    formFieldMap: FormDataRecalculated,
     fieldValues: List[FormComponent],
     envelope: Envelope,
     gformErrors: Map[FormComponentId, Set[String]])(fieldValue: FormComponent): Option[FormFieldValidationResult] = {
@@ -132,12 +132,10 @@ object Fields {
       Some(ComponentField(fieldValue, data))
   }
 
-  def toFormField(
-    fieldData: Map[FormComponentId, Seq[String]],
-    templateFields: List[FormComponent]): List[FormField] = {
+  def toFormField(fieldData: FormDataRecalculated, templateFields: List[FormComponent]): List[FormField] = {
 
     val getFieldData: FormComponentId => FormField = fieldId => {
-      val value = fieldData.get(fieldId).toList.flatten.headOption.getOrElse("")
+      val value = fieldData.data.get(fieldId).toList.flatten.headOption.getOrElse("")
       FormField(fieldId, value)
     }
 
@@ -161,7 +159,7 @@ object Fields {
   def getHiddenTemplateFields(
     section: Section,
     dynamicSections: List[Section],
-    data: Map[FormComponentId, Seq[String]]): (List[FormComponent], Map[FormComponentId, Seq[String]]) = {
+    data: FormDataRecalculated): (List[FormComponent], FormDataRecalculated) = {
     val renderList: List[Section] = dynamicSections.filterNot(_ == section)
     val sectionAtomicFields: List[FormComponent] = renderList.flatMap(_.expandSection.allFCs)
 
@@ -172,10 +170,10 @@ object Fields {
 
     val idsToRenderAsEmptyHidden = (alwaysEmptyHiddenGroup ++ alwaysEmptyHidden).map(_.id)
 
-    val dataUpd = idsToRenderAsEmptyHidden.foldRight(data) {
+    val dataUpd = idsToRenderAsEmptyHidden.foldRight(data.data) {
       case (id, acc) => acc.updated(id, "" :: Nil)
     }
 
-    (submitted ++ alwaysEmptyHiddenGroup ++ alwaysEmptyHidden ++ hiddenFUs, dataUpd)
+    (submitted ++ alwaysEmptyHiddenGroup ++ alwaysEmptyHidden ++ hiddenFUs, data.copy(data = dataUpd))
   }
 }

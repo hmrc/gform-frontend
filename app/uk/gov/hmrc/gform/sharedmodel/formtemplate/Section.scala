@@ -27,7 +27,7 @@ sealed trait BaseSection {
   def fields: List[FormComponent]
 }
 
-case class ExpandedSection(expandedFCs: List[ExpandedFormComponent]) extends AnyVal {
+case class ExpandedSection(expandedFCs: List[ExpandedFormComponent], includeIf: Option[IncludeIf]) {
   def toExpandedFormTemplate: ExpandedFormTemplate = ExpandedFormTemplate(this :: Nil)
   def allFCs = toExpandedFormTemplate.allFCs
 }
@@ -44,7 +44,8 @@ case class Section(
   fields: List[FormComponent],
   continueLabel: Option[String]
 ) extends BaseSection {
-  val expandSection: ExpandedSection = ExpandedSection(fields.map(_.expandFormComponent)) // TODO expand sections
+  val expandSection
+    : ExpandedSection = ExpandedSection(fields.map(_.expandFormComponent), includeIf) // TODO expand sections
 }
 
 object Section {

@@ -16,17 +16,18 @@
 
 package uk.gov.hmrc.gform.services
 
+import cats.instances.future._
 import org.scalatest.mockito.MockitoSugar.mock
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ ComponentsValidator, ValidationValues }
-import uk.gov.hmrc.gform.sharedmodel.ExampleData._
+import uk.gov.hmrc.gform.validation.ComponentsValidator
 import uk.gov.hmrc.http.HeaderCarrier
 
-class FormatValidationSpec extends Spec {
+class FormatValidationSpec extends Spec with GraphSpec {
 
   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest("12345678910", Sterling)
   "Sterling Format" should "" in createFailTest("1234567891011", Sterling, "sample label must be at most 11 digits")
@@ -211,7 +212,13 @@ class FormatValidationSpec extends Spec {
   implicit lazy val hc = HeaderCarrier()
 
   private def validator(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) =
-    new ComponentsValidator(data, mock[FileUploadService], EnvelopeId("whatever"), retrievals)
+    new ComponentsValidator(
+      mkFormDataRecalculated(data),
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
 

@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
@@ -85,9 +86,14 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     gformBackendModule
   )
 
+  private val graphModule = new GraphModule(
+    authModule
+  )
+
   private val validationModule = new ValidationModule(
     fileUploadModule,
-    gformBackendModule
+    gformBackendModule,
+    graphModule
   )
 
   private val gformModule = new GformModule(
@@ -100,7 +106,8 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     fileUploadModule,
     validationModule,
     auditingModule,
-    playBuiltInsModule
+    playBuiltInsModule,
+    graphModule
   )
 
   private val testOnlyModule = new TestOnlyModule(

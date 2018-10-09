@@ -16,15 +16,12 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
-import javax.inject.{ Inject, Singleton }
-
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.{ StreamedBody, WSClient, WSRequest }
 import play.api.mvc._
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 import scala.concurrent.{ ExecutionContext, Future }

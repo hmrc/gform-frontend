@@ -20,13 +20,11 @@ package controllers
 import play.api.Logger
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Results.{ BadRequest, Forbidden, InternalServerError, NotFound }
-import play.api.mvc.{ Request, RequestHeader, Result }
+import play.api.mvc.{ RequestHeader, Result }
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import cats.implicits._
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 
 /**
   * This object suppose to render responses if something unexpected happened.

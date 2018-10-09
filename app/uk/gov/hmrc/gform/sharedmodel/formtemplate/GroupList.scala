@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+
 /**
   * Represents one group instance of a Group. Group instance means set of Group component fields.
   */
 case class GroupList(componentList: List[FormComponent]) extends AnyVal {
-  def hasData(data: Map[FormComponentId, Seq[String]]): Boolean = componentList.exists { field =>
-    data.get(field.id) match {
+  def hasData(data: FormDataRecalculated): Boolean = componentList.exists { field =>
+    data.data.get(field.id) match {
       case Some(x) if x.filter(_.nonEmpty).nonEmpty => true
       case _                                        => false
     }

@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.controllers.helpers
 
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
 
 import scala.concurrent.Future

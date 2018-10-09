@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 
-import uk.gov.hmrc.gform.models._
 import cats.implicits._
 
 import uk.gov.hmrc.gform.sharedmodel.form.FormField

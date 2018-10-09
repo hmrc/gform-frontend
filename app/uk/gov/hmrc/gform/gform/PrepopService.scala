@@ -17,24 +17,15 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.Logger
+import scala.util.control.NonFatal
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals._
-import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import cats.implicits._
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.http.cache.client.CacheMap
-
-import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
-import scala.util.control.NonFatal
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.math.BigDecimal.RoundingMode
-
-class AuthContextPrepop {
+object AuthContextPrepop {
   def values(value: AuthInfo, retrievals: MaterialisedRetrievals): String = value match {
     case GG                     => getGGCredId(retrievals)
     case PayeNino               => getTaxIdValue(None, "NINO", retrievals)
@@ -50,60 +41,16 @@ class AuthContextPrepop {
 }
 
 class PrepopService(
-  authContextPrepop: AuthContextPrepop,
   eeittService: EeittService
 ) {
 
-  def prepopData(
-    expr: Expr,
-    formTemplate: FormTemplate,
-    retrievals: MaterialisedRetrievals,
-    data: Map[FormComponentId, Seq[String]],
-    section: BaseSection,
-    scale: Option[Int] = None)(implicit hc: HeaderCarrier): Future[String] = {
-
-    def round(x: BigDecimal): BigDecimal = scale match {
-      case Some(s) => x.setScale(s, RoundingMode.FLOOR)
-      case None    => x
-    }
-
-    expr match {
-      case AuthCtx(value)  => Future.successful(authContextPrepop.values(value, retrievals))
-      case Constant(value) => Future.successful(value)
-      case EeittCtx(eeitt) => eeittPrepop(eeitt, retrievals, formTemplate)
-      case UserCtx(_)      => Future.successful(retrievals.affinityGroupName)
-      case Add(field1, field2) =>
-        val value = for {
-          y <- prepopData(field1, formTemplate, retrievals, data, section)
-          z <- prepopData(field2, formTemplate, retrievals, data, section)
-        } yield toBigDecimalDefault(y) + toBigDecimalDefault(z)
-        value.map(x => round(x).toString)
-      case Subtraction(field1, field2) =>
-        val value = for {
-          y <- prepopData(field1, formTemplate, retrievals, data, section)
-          z <- prepopData(field2, formTemplate, retrievals, data, section)
-        } yield toBigDecimalDefault(y) - toBigDecimalDefault(z)
-        value.map(x => round(x).toString)
-      case Multiply(field1, field2) =>
-        val value = for {
-          y <- prepopData(field1, formTemplate, retrievals, data, section)
-          z <- prepopData(field2, formTemplate, retrievals, data, section)
-        } yield toBigDecimalDefault(y) * toBigDecimalDefault(z)
-        value.map(x => round(x).toString)
-      case Sum(ctx @ FormCtx(_)) =>
-        val x = RepeatingComponentService.sumFunctionality(ctx, formTemplate, data)
-        Future.successful(round(x).toString)
-      case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[Future]
-      case _           => Future.successful("")
-    }
-  }
-
-  private def eeittPrepop(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate)(
-    implicit hc: HeaderCarrier) =
+  def eeittPrepop(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate, hc: HeaderCarrier) = {
+    implicit val hc_ = hc
     eeittService.getValue(eeitt, retrievals, formTemplate).recover {
       case NonFatal(error) =>
         Logger.error(s"error when getting known facts from eeitt: " + error.getMessage)
         "" // let's return empty string
     }
+  }
 
 }

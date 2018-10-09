@@ -23,7 +23,6 @@ import org.scalatest.prop.PropertyChecks
 import org.scalatest.time.{ Millis, Span }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 
-import scala.collection.immutable.List
 import scala.concurrent.ExecutionContext
 
 trait Spec

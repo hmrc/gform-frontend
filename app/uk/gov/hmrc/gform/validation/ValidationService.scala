@@ -28,17 +28,13 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import ValidationUtil.{ ValidatedType, _ }
-import play.api.Logger
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UkSortCode, _ }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExprEval, UkSortCode, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
-import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -48,26 +44,30 @@ import uk.gov.hmrc.gform.views.html._
 
 class ValidationService(
   fileUploadService: FileUploadService,
-  gformConnector: GformConnector
+  gformConnector: GformConnector,
+  booleanExpr: BooleanExprEval[Future]
 ) {
 
   private def validateFieldValue(
     fieldValue: FormComponent,
-    data: Map[FormComponentId, Seq[String]],
+    data: FormDataRecalculated,
     envelopeId: EnvelopeId,
-    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
-    new ComponentsValidator(data, fileUploadService, envelopeId, retrievals).validate(fieldValue)
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    new ComponentsValidator(data, fileUploadService, envelopeId, retrievals, booleanExpr, formTemplate)
+      .validate(fieldValue)
 
   def validateComponents(
     fieldValues: List[FormComponent],
-    data: Map[FormComponentId, Seq[String]],
+    data: FormDataRecalculated,
     envelopeId: EnvelopeId,
-    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Future[ValidatedType] =
     fieldValues
-      .traverse(fv => validateFieldValue(fv, data, envelopeId, retrievals))
+      .traverse(fv => validateFieldValue(fv, data, envelopeId, retrievals, formTemplate))
       .map(Monoid[ValidatedType].combineAll)
 
-  private def validateUsingValidators(section: Section, data: Map[FormComponentId, Seq[String]])(
+  private def validateUsingValidators(section: Section, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier): Future[ValidatedType] =
     section.validators
       .map(validateUsingSectionValidators(_, data))
@@ -77,10 +77,10 @@ class ValidationService(
     sectionFields: List[FormComponent],
     section: Section,
     envelopeId: EnvelopeId,
-    retrievals: MaterialisedRetrievals)(data: Map[FormComponentId, Seq[String]])(
-    implicit hc: HeaderCarrier): Future[ValidatedType] = {
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate)(data: FormDataRecalculated)(implicit hc: HeaderCarrier): Future[ValidatedType] = {
     val eT = for {
-      _ <- EitherT(validateComponents(sectionFields, data, envelopeId, retrievals).map(_.toEither))
+      _ <- EitherT(validateComponents(sectionFields, data, envelopeId, retrievals, formTemplate).map(_.toEither))
       _ <- EitherT(validateUsingValidators(section, data).map(_.toEither))
     } yield ()
     eT.value.map(Validated.fromEither)
@@ -89,17 +89,17 @@ class ValidationService(
   def evaluateValidation(
     v: ValidatedType,
     fields: List[FormComponent],
-    data: Map[FormComponentId, Seq[String]],
+    data: FormDataRecalculated,
     envelope: Envelope): List[(FormComponent, FormFieldValidationResult)] =
     // We need to keep the formComponent order as they appear on the form for page-level-error rendering, do not convert to map
     ValidationUtil
       .evaluateValidationResult(fields, v, data, envelope)
       .map(v => v.fieldValue -> v)
 
-  private def validateUsingSectionValidators(v: SectionValidator, data: Map[FormComponentId, Seq[String]])(
+  private def validateUsingSectionValidators(v: SectionValidator, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier): Future[ValidatedType] = {
     def dataGetter(fieldId: FormComponentId): String =
-      data.get(fieldId).toList.flatten.headOption.getOrElse("")
+      data.data.get(fieldId).toList.flatten.headOption.getOrElse("")
 
     def getValidated(is: Boolean, errors: Map[FormComponentId, Set[String]]) =
       if (is) ().valid else errors.invalid
@@ -108,8 +108,8 @@ class ValidationService(
       case HMRCUTRPostcodeCheckValidator(errorMessage, utr, postcode) =>
         gformConnector
           .validatePostCodeUtr(
-            data.get(FormComponentId(utr.value)).toList.flatten.headOption.getOrElse(""),
-            data.get(FormComponentId(postcode.value)).toList.flatten.headOption.getOrElse("")
+            data.data.get(FormComponentId(utr.value)).toList.flatten.headOption.getOrElse(""),
+            data.data.get(FormComponentId(postcode.value)).toList.flatten.headOption.getOrElse("")
           )
           .map(getValidated(_, Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))))
       case BankAccoutnModulusCheck(errorMessage, accountNumber, sortCode) =>
@@ -123,19 +123,24 @@ class ValidationService(
 }
 
 class ComponentsValidator(
-  data: Map[FormComponentId, Seq[String]],
+  data: FormDataRecalculated,
   fileUploadService: FileUploadService,
   envelopeId: EnvelopeId,
-  retrievals: MaterialisedRetrievals) {
+  retrievals: MaterialisedRetrievals,
+  booleanExpr: BooleanExprEval[Future],
+  formTemplate: FormTemplate) {
 
   def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] = {
 
     def validIf(validationResult: ValidatedType): Future[ValidatedType] =
-      ((validationResult.isValid, fieldValue.validIf) match {
-        case (true, Some(vi)) if !BooleanExpr.isTrue(vi.expr, data, retrievals.affinityGroup).beResult =>
-          getError(fieldValue, "must be entered")
-        case _ => validationResult
-      }).pure[Future]
+      (validationResult.isValid, fieldValue.validIf) match {
+        case (true, Some(vi)) =>
+          booleanExpr.isTrue(vi.expr, data.data, retrievals, data.invisible, formTemplate).map {
+            case false => getError(fieldValue, "must be entered")
+            case true  => validationResult
+          }
+        case _ => validationResult.pure[Future]
+      }
 
     fieldValue.`type` match {
       case sortCode @ UkSortCode(_)      => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
@@ -154,15 +159,14 @@ class ComponentsValidator(
     ().valid.pure[Future]
 
   private def validateDate(fieldValue: FormComponent, date: Date): ValidatedType = {
-    val reqFieldValidResult = validateDateRequiredField(fieldValue)(data)
+    val reqFieldValidResult = validateDateRequiredField(fieldValue)
     val otherRulesValidResult = validateDateImpl(fieldValue, date)(data)
     Monoid[ValidatedType].combineAll(List(reqFieldValidResult, otherRulesValidResult))
   }
 
   private lazy val dataGetter: FormComponent => String => Seq[String] = fv =>
-    suffix => data.get(fv.id.withSuffix(suffix)).toList.flatten
-  private def validateDateRequiredField(fieldValue: FormComponent)(
-    data: Map[FormComponentId, Seq[String]]): ValidatedType = {
+    suffix => data.data.get(fv.id.withSuffix(suffix)).toList.flatten
+  private def validateDateRequiredField(fieldValue: FormComponent): ValidatedType = {
     val dateValueOf = dataGetter(fieldValue)
 
     val validatedResult = fieldValue.mandatory match {
@@ -180,8 +184,7 @@ class ComponentsValidator(
   private def messagePrefix(fieldValue: FormComponent) =
     localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
-  private def validateDateImpl(fieldValue: FormComponent, date: Date)(
-    data: Map[FormComponentId, Seq[String]]): ValidatedType = {
+  private def validateDateImpl(fieldValue: FormComponent, date: Date)(data: FormDataRecalculated): ValidatedType = {
     val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
       localDate.plusDays(offset.value.toLong).format(govDateFormat)
@@ -304,8 +307,8 @@ class ComponentsValidator(
       }
 
   private def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
-    data: Map[FormComponentId, Seq[String]]): ValidatedType = {
-    val textData = data.get(fieldValue.id).toList.flatten
+    data: FormDataRecalculated): ValidatedType = {
+    val textData = data.data.get(fieldValue.id).toList.flatten
     (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
       case (true, Nil, _)                                    => getError(fieldValue, "must be entered")
       case (_, _, AnyText)                                   => ().valid
@@ -427,12 +430,12 @@ class ComponentsValidator(
   }
 
   private def validateSortCode(fieldValue: FormComponent, sC: UkSortCode, mandatory: Boolean)(
-    data: Map[FormComponentId, Seq[String]]) =
+    data: FormDataRecalculated) =
     Monoid[ValidatedType].combineAll(
       UkSortCode
         .fields(fieldValue.id)
         .map { fieldId =>
-          val sortCode: Seq[String] = data.get(fieldId).toList.flatten
+          val sortCode: Seq[String] = data.data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
               getError(fieldValue, "values must be two digit numbers")
@@ -516,8 +519,8 @@ class ComponentsValidator(
     }
   }
 
-  private def validateChoice(fieldValue: FormComponent)(data: Map[FormComponentId, Seq[String]]): ValidatedType = {
-    val choiceValue = data.get(fieldValue.id).toList.flatten.headOption
+  private def validateChoice(fieldValue: FormComponent)(data: FormDataRecalculated): ValidatedType = {
+    val choiceValue = data.data.get(fieldValue.id).toList.flatten.headOption
 
     (fieldValue.mandatory, choiceValue) match {
       case (true, None | Some("")) =>
@@ -532,9 +535,8 @@ class ComponentsValidator(
   def validateFF(fieldValue: FormComponent, value: String) =
     validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
 
-  def validateAddress(fieldValue: FormComponent, address: Address)(
-    data: Map[FormComponentId, Seq[String]]): ValidatedType = {
-    val addressValueOf: String => Seq[String] = suffix => data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
+  def validateAddress(fieldValue: FormComponent, address: Address)(data: FormDataRecalculated): ValidatedType = {
+    val addressValueOf: String => Seq[String] = suffix => data.data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
 
     def validateRequiredField(value: String, errorPrefix: String) =
       validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix)) _
@@ -612,8 +614,8 @@ class ComponentsValidator(
     fieldValue: FormComponent,
     fieldId: FormComponentId,
     errorMsg: Option[String],
-    data: Map[FormComponentId, Seq[String]]): ValidatedLocalDate = {
-    val fieldIdList = Date.fields(fieldId).map(fId => data.get(fId))
+    data: FormDataRecalculated): ValidatedLocalDate = {
+    val fieldIdList = Date.fields(fieldId).map(fId => data.data.get(fId))
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>

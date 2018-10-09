@@ -18,7 +18,7 @@ object FrontendBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "domain" % "5.1.0",
     "uk.gov.hmrc" %% "play-partials" % "6.1.0",
     "org.julienrf" %% "play-json-derived-codecs" % "3.3",
-    "org.typelevel" %% "cats-core" % "1.1.0",
+    "org.typelevel" %% "cats-core" % "1.4.0",
     "com.github.pureconfig" %% "pureconfig" % "0.9.1",
     "org.jetbrains" % "markdown" % "0.1.28",
     "com.chuusai" %% "shapeless" % "2.3.3",

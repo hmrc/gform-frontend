@@ -16,45 +16,74 @@
 
 package uk.gov.hmrc.gform.sharedmodel.graph
 
-import cats.implicits._
+import cats.instances.either._
+import cats.syntax.functor._
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+sealed trait GraphNode
+case class SimpleGN(fcId: FormComponentId) extends GraphNode
+case class IncludeIfGN(fcId: FormComponentId, includeIf: IncludeIf) extends GraphNode
+
 object DependencyGraph {
 
-  val emptyGraph: Graph[FormComponentId, DiEdge] = Graph.empty
+  val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
 
-  def toGraph(formTemplate: FormTemplate): Graph[FormComponentId, DiEdge] = graphFrom(formTemplate.expandFormTemplate)
-  def toGraph(section: Section): Graph[FormComponentId, DiEdge] =
-    graphFrom(section.expandSection.toExpandedFormTemplate)
+  def toGraph(formTemplate: FormTemplate): Graph[GraphNode, DiEdge] = graphFrom(formTemplate.expandFormTemplate)
 
-  private def graphFrom(expandedFT: ExpandedFormTemplate): Graph[FormComponentId, DiEdge] = {
+  private def graphFrom(expandedFT: ExpandedFormTemplate): Graph[GraphNode, DiEdge] = {
 
     val allFcIds = expandedFT.allFcIds
 
-    def edges(fc: FormComponent): List[DiEdge[FormComponentId]] = {
+    def edges(fc: FormComponent): List[DiEdge[GraphNode]] = {
       def fcIds(fc: FormComponent): List[FormComponentId] = fc match {
         case HasExpr(SingleExpr(expr)) => eval(expr)
         case _                         => List.empty
       }
-      fcIds(fc).map(fc.id ~> _)
+      fcIds(fc).map(fcId => SimpleGN(fc.id) ~> SimpleGN(fcId))
     }
 
     def eval(expr: Expr): List[FormComponentId] =
       expr match {
         case fc @ FormCtx(_)             => fc.toFieldId :: Nil
-        case Sum(FormCtx(fc))            => allFcIds.filter(_.value.endsWith(fc.value))
+        case Sum(FormCtx(fc))            => allFcIds.filter(_.value.endsWith(fc))
         case Add(field1, field2)         => eval(field1) ++ eval(field2)
         case Subtraction(field1, field2) => eval(field1) ++ eval(field2)
         case Multiply(field1, field2)    => eval(field1) ++ eval(field2)
         case otherwise                   => List.empty
       }
 
-    expandedFT.allFCs.flatMap(edges).foldLeft(emptyGraph)(_ + _)
+    def evalBooleanExpr(expr: BooleanExpr): List[FormComponentId] =
+      expr match {
+        case Equals(left, right)              => eval(left) ++ eval(right)
+        case NotEquals(left, right)           => eval(left) ++ eval(right)
+        case GreaterThan(left, right)         => eval(left) ++ eval(right)
+        case GreaterThanOrEquals(left, right) => eval(left) ++ eval(right)
+        case LessThan(left, right)            => eval(left) ++ eval(right)
+        case LessThanOrEquals(left, right)    => eval(left) ++ eval(right)
+        case Not(bExpr)                       => evalBooleanExpr(bExpr)
+        case Or(left, right)                  => evalBooleanExpr(left) ++ evalBooleanExpr(right)
+        case And(left, right)                 => evalBooleanExpr(left) ++ evalBooleanExpr(right)
+        case otherwise                        => List.empty
+      }
+
+    val includeIfs: List[DiEdge[GraphNode]] = expandedFT.allIncludeIfs.flatMap {
+      case (expandedFCs, includeIf, index) =>
+        val includeIfFcId = FormComponentId("includeIf_" + index)
+
+        val iign = IncludeIfGN(includeIfFcId, includeIf)
+        val deps = evalBooleanExpr(includeIf.expr)
+
+        expandedFCs.flatMap(_.allIds).map(a => SimpleGN(a) ~> iign) ++
+          deps.map(a => iign ~> SimpleGN(a))
+
+    }
+
+    expandedFT.allFCs.flatMap(edges).foldLeft(emptyGraph)(_ + _) ++ includeIfs
   }
 
   def constructDepencyGraph(
-    graph: Graph[FormComponentId, DiEdge]): Either[graph.NodeT, graph.LayeredTopologicalOrder[graph.NodeT]] =
+    graph: Graph[GraphNode, DiEdge]): Either[graph.NodeT, graph.LayeredTopologicalOrder[graph.NodeT]] =
     graph.topologicalSort.map(_.toLayered)
 }

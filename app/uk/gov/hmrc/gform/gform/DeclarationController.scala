@@ -17,20 +17,22 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.Validated.{ Invalid, Valid }
+import cats.instances.future._
 import org.jsoup.Jsoup
 import play.api.Logger
 import play.api.i18n.I18nSupport
+import play.api.mvc.{ Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals.getTaxIdValue
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -51,7 +53,8 @@ class DeclarationController(
   pdfService: PdfGeneratorService,
   renderer: SectionRenderingService,
   validationService: ValidationService,
-  authService: AuthService
+  authService: AuthService,
+  recalculation: Recalculation[Future, Throwable]
 ) extends FrontendController {
 
   import i18nSupport._
@@ -60,9 +63,20 @@ class DeclarationController(
     implicit request => cache =>
       cache.form.status match {
         case Validated =>
-          renderer
-            .renderDeclarationSection(cache.form, cache.formTemplate, cache.retrievals, Valid(()), Map.empty, Nil, lang)
-            .map(Ok(_))
+          Future.successful {
+            Ok {
+              renderer
+                .renderDeclarationSection(
+                  cache.form,
+                  cache.formTemplate,
+                  cache.retrievals,
+                  Valid(()),
+                  FormDataRecalculated.empty,
+                  Nil,
+                  lang)
+            }
+          }
+
         case _ => Future.successful(BadRequest)
       }
   }
@@ -73,11 +87,11 @@ class DeclarationController(
     submissionReference: Option[TextExpression],
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]
+    data: FormDataRecalculated
   )(implicit hc: HeaderCarrier): String = {
     // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
+      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data.data)
       case (_: EEITTAuthConfig, None)                 => authService.eeitReferenceNumber(retrievals)
       case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
     }
@@ -104,97 +118,110 @@ class DeclarationController(
 
   def submitDeclaration(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, lang: Option[String]) =
     auth.async(formId) { implicit request => cacheOrig =>
-      processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
+      processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val formData: Map[FormComponentId, List[String]] = cacheOrig.form.formData.fields.map {
           case FormField(id, value) => id -> (value :: Nil)
         }.toMap
 
-        val visibility = Visibility(cacheOrig.formTemplate.sections, formData, cacheOrig.retrievals.affinityGroup)
-        val invisibleSections = cacheOrig.formTemplate.sections.filterNot(visibility.isVisible)
-
-        val invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
-
-        val visibleFields: Seq[FormField] =
-          cacheOrig.form.formData.fields.filterNot(field => invisibleFields.contains(field.id))
-
-        val form = cacheOrig.form.copy(formData = cacheOrig.form.formData.copy(fields = visibleFields))
-
-        // This cache contains form with all fields from hidden sections removed
-        val cache = cacheOrig.copy(form = form)
-
-        val validationResultF = validationService.validateComponents(
-          getAllDeclarationFields(cache.formTemplate.declarationSection.fields),
-          data,
-          cache.form.envelopeId,
-          cache.retrievals)
-
-        get(data, FormComponentId("save")) match {
+        get(dataRaw, FormComponentId("save")) match {
           case "Continue" :: Nil =>
-            validationResultF.flatMap {
-              case Valid(()) =>
-                val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
-                for {
-                  customerId <- authService.evaluateSubmissionReference(
-                                 cache.formTemplate.dmsSubmission.customerId,
-                                 cache.retrievals,
-                                 cache.formTemplate,
-                                 formDataMap(updatedForm.formData))
-                  _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, Signed))
-                  //todo perhaps not make these calls at all if the feature flag is false?
-                  summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
-                  cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)
-                  htmlForPDF = addExtraDataToHTML(
-                    cleanHtml,
-                    cache.formTemplate.authConfig,
-                    cache.formTemplate.submissionReference,
-                    cache.retrievals,
-                    cache.formTemplate,
-                    data)
-                  _ <- if (config.sendPdfWithSubmission)
-                        gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF, cache.retrievals.affinityGroup)
-                      else { gformConnector.submitForm(formId, customerId, cache.retrievals.affinityGroup) }
-                } yield {
-                  if (customerId.isEmpty)
-                    Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
-                  val submissionEventId = auditService.sendSubmissionEvent(
-                    cache.form,
-                    cache.formTemplate.sections :+ cache.formTemplate.declarationSection,
-                    cache.retrievals,
-                    customerId)
-                  Redirect(
-                    uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-                      .showAcknowledgement(formId, formTemplateId4Ga, lang, submissionEventId))
-                }
-              case validationResult @ Invalid(_) =>
-                val errorMap: List[(FormComponent, FormFieldValidationResult)] =
-                  getErrorMap(validationResult, data, cache.formTemplate)
-                for {
-                  html <- renderer.renderDeclarationSection(
-                           cache.form,
-                           cache.formTemplate,
-                           cache.retrievals,
-                           validationResult,
-                           data,
-                           errorMap,
-                           lang)
-                } yield Ok(html)
-            }
+            for {
+              data <- recalculation.recalculateFormData(dataRaw, cacheOrig.formTemplate, cacheOrig.retrievals)
+              visibility = Visibility(data)
+              invisibleSections = cacheOrig.formTemplate.sections.filter(visibility.isVisible)
+
+              invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
+
+              visibleFields: Seq[FormField] = cacheOrig.form.formData.fields.filterNot(field =>
+                invisibleFields.contains(field.id))
+
+              form = cacheOrig.form.copy(formData = cacheOrig.form.formData.copy(fields = visibleFields))
+
+              // This cache contains form with all fields from hidden sections removed
+              cache = cacheOrig.copy(form = form)
+
+              valRes <- validationService.validateComponents(
+                         getAllDeclarationFields(cache.formTemplate.declarationSection.fields),
+                         data,
+                         cache.form.envelopeId,
+                         cache.retrievals,
+                         cacheOrig.formTemplate
+                       )
+
+              response <- isValid(valRes, formId, cache, data, formTemplateId4Ga, lang)
+
+            } yield response
+
           case _ =>
             Future.successful(BadRequest("Cannot determine action"))
         }
       }
     }
 
-  private def updateFormWithDeclaration(
-    form: Form,
-    formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]) = {
-    val fieldNames = data.keySet.map(_.value)
+  def isValid(
+    valType: ValidatedType,
+    formId: FormId,
+    cache: AuthCacheWithForm,
+    data: FormDataRecalculated,
+    formTemplateId4Ga: FormTemplateId4Ga,
+    lang: Option[String]
+  )(implicit request: Request[_]): Future[Result] = valType match {
+
+    case Valid(()) =>
+      val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
+      for {
+        customerId <- authService.evaluateSubmissionReference(
+                       cache.formTemplate.dmsSubmission.customerId,
+                       cache.retrievals,
+                       cache.formTemplate,
+                       formDataMap(updatedForm.formData))
+        _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, Signed))
+        //todo perhaps not make these calls at all if the feature flag is false?
+        summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
+        cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)
+        htmlForPDF = addExtraDataToHTML(
+          cleanHtml,
+          cache.formTemplate.authConfig,
+          cache.formTemplate.submissionReference,
+          cache.retrievals,
+          cache.formTemplate,
+          data)
+        _ <- if (config.sendPdfWithSubmission)
+              gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF, cache.retrievals.affinityGroup)
+            else { gformConnector.submitForm(formId, customerId, cache.retrievals.affinityGroup) }
+      } yield {
+        if (customerId.isEmpty)
+          Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
+        val submissionEventId = auditService.sendSubmissionEvent(
+          cache.form,
+          cache.formTemplate.sections :+ cache.formTemplate.declarationSection,
+          cache.retrievals,
+          customerId)
+        Redirect(
+          uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+            .showAcknowledgement(formId, formTemplateId4Ga, lang, submissionEventId))
+      }
+    case validationResult @ Invalid(_) =>
+      val errorMap: List[(FormComponent, FormFieldValidationResult)] =
+        getErrorMap(validationResult, data, cache.formTemplate)
+      val html = renderer.renderDeclarationSection(
+        cache.form,
+        cache.formTemplate,
+        cache.retrievals,
+        validationResult,
+        data,
+        errorMap,
+        lang)
+      Future.successful(Ok(html))
+  }
+
+  private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: FormDataRecalculated) = {
+    val fieldNames = data.data.keySet.map(_.value)
     val allDeclarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
     val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
-        .map(name => FormField(FormComponentId(name), data(FormComponentId(name)).head))
+        .map(name => FormField(FormComponentId(name), data.data(FormComponentId(name)).head))
     }
     val updatedFields = form.formData.fields ++ submissibleFormFields
 
@@ -203,7 +230,7 @@ class DeclarationController(
 
   private def getErrorMap(
     validationResult: ValidatedType,
-    data: Map[FormComponentId, Seq[String]],
+    data: FormDataRecalculated,
     formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
     validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))

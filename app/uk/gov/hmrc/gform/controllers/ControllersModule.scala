@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, I18nSupport, MessagesApi }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule

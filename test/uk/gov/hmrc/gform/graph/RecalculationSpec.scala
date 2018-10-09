@@ -16,22 +16,33 @@
 
 package uk.gov.hmrc.gform.graph
 
+import cats.implicits._
 import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormField }
+import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import uk.gov.hmrc.gform.GraphSpec
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import FormTemplateBuilder._
+import uk.gov.hmrc.http.HeaderCarrier
 
-class RecalculationSpec extends FlatSpec with Matchers {
+class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
-  "Recalculation" should "recalculate single dependency" in {
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    val inputData = mkFormData(
+  type EitherEffect[A] = Either[GraphException, A]
+
+  val recalculation: Recalculation[EitherEffect, GraphException] =
+    new Recalculation[EitherEffect, GraphException](booleanExprEval, ((s: GraphException) => s))
+
+  "recalculation" should "recalculate single dependency" in {
+
+    val inputData = mkData(
       "a" -> "123",
       "b" -> "eee"
     )
 
-    val expectedOutputData = mkFormData(
+    val expectedOutputData = mkData(
       "a" -> "123",
       "b" -> "123"
     )
@@ -51,7 +62,7 @@ class RecalculationSpec extends FlatSpec with Matchers {
 
   it should "detect cycle in dependencies (graph cannot be sorted)" in {
 
-    val inputData = mkFormData(
+    val inputData = mkData(
       "a" -> "1",
       "b" -> "2"
     )
@@ -65,7 +76,7 @@ class RecalculationSpec extends FlatSpec with Matchers {
       )
     )
 
-    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext)
 
     res match {
       case Left(NoTopologicalOrder(_, _)) => succeed
@@ -75,7 +86,7 @@ class RecalculationSpec extends FlatSpec with Matchers {
 
   it should "missing submission data is treated as if submission has been empty string" in {
 
-    val inputData = mkFormData(
+    val inputData = mkData(
       "b" -> "2"
     )
 
@@ -88,19 +99,21 @@ class RecalculationSpec extends FlatSpec with Matchers {
       )
     )
 
-    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext)
 
     res match {
-      case Right(FormData(List(FormField(FormComponentId("b"), "")))) => succeed
-      case otherwise                                                  => fail
+      case Right(formDataRecalculated) =>
+        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("")), (FormComponentId("b"), Seq("")))
+      case otherwise => fail
     }
   }
 
-  it should "detect missing submission data and treat them as empty" in {
+  it should "detect invalid submission data and report error" in {
 
-    val inputData = mkFormData(
+    val inputData = mkData(
       "a" -> "1",
-      "b" -> "2"
+      "b" -> "2",
+      "c" -> "3"
     )
 
     val sections = List(
@@ -112,23 +125,25 @@ class RecalculationSpec extends FlatSpec with Matchers {
       )
     )
 
-    val res = Recalculation.recalculateFormData(inputData, mkFormTemplate(sections))
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext)
 
     res match {
-      case Right(FormData(List(FormField(FormComponentId("a"), "1"), FormField(FormComponentId("b"), "")))) => succeed
-      case otherwise                                                                                        => fail
+      case Left(NoFormComponent(fcId, map)) =>
+        fcId shouldBe FormComponentId("c")
+        map.keys should contain theSameElementsAs (FormComponentId("a") :: FormComponentId("b") :: Nil)
+      case _ => fail
     }
   }
 
   it should "recalculate chain of dependencies" in {
-    val inputData = mkFormData(
+    val inputData = mkData(
       "a" -> "100",
       "b" -> "100",
       "c" -> "100",
       "d" -> "100"
     )
 
-    val expectedOutputData = mkFormData(
+    val expectedOutputData = mkData(
       "a" -> "100",
       "b" -> "110",
       "c" -> "220",
@@ -147,14 +162,14 @@ class RecalculationSpec extends FlatSpec with Matchers {
   }
 
   it should "recalculate trees of chain of dependencies" in {
-    val inputData = mkFormData(
+    val inputData = mkData(
       "a" -> "100",
       "b" -> "100",
       "c" -> "200",
       "d" -> "200"
     )
 
-    val expectedOutputData = mkFormData(
+    val expectedOutputData = mkData(
       "a" -> "100",
       "b" -> "110",
       "c" -> "200",
@@ -172,15 +187,209 @@ class RecalculationSpec extends FlatSpec with Matchers {
 
   }
 
-  private def verify(input: FormData, expectedOutput: FormData, sections: List[Section])(
-    implicit position: Position) = {
-    val output = Recalculation.recalculateFormData(input, mkFormTemplate(sections))
+  it should "disregard invisible parts" in {
+    val inputData = mkData(
+      "a" -> "1",
+      "b" -> "10",
+      "c" -> "100"
+    )
 
-    Right(expectedOutput) shouldBe output
+    val expectedOutputData = mkData(
+      "a" -> "1",
+      "b" -> "10",
+      "c" -> "1"
+    )
+
+    val includeIf = IncludeIf(Equals(FormCtx("a"), Constant("0")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("b", Value)), includeIf) ::
+        mkSection(List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b"))))) :: Nil
+
+    verify(inputData, expectedOutputData, sections)
 
   }
 
-  private def mkFormData(fields: (String, String)*): FormData =
-    FormData(fields.map { case (fcId, value) => FormField(FormComponentId(fcId), value) })
+  it should "do not disregard when no invisible parts" in {
+
+    val inputData = mkData(
+      "a" -> "1",
+      "b" -> "10"
+    )
+
+    val expectedOutputData = mkData(
+      "a" -> "1",
+      "b" -> "10",
+      "c" -> "11"
+    )
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSection(List(mkFormComponent("b", Value))) ::
+        mkSection(List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b"))))) :: Nil
+
+    verify(inputData, expectedOutputData, sections)
+
+  }
+
+  it should "recalculation with no complete submission" in {
+
+    val inputData = mkData(
+      "a" -> "1"
+    )
+
+    val expectedOutputData = mkData(
+      "a" -> "1",
+      "b" -> "",
+      "c" -> ""
+    )
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSection(List(mkFormComponent("b", Value))) ::
+        mkSection(List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b"))))) :: Nil
+
+    verify(inputData, expectedOutputData, sections)
+
+  }
+
+  it should "recalculate editable field" in {
+
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "1"),                           mkData("a" -> "1", "b" -> "",   "c" -> "")),
+      (mkData("a" -> "1", "b" -> "",   "c" -> ""  ), mkData("a" -> "1", "b" -> "",   "c" -> "")),
+      (mkData("a" -> "1", "b" -> "10"             ), mkData("a" -> "1", "b" -> "10", "c" -> "11")),
+      (mkData("a" -> "1", "b" -> "10", "c" -> "12"), mkData("a" -> "1", "b" -> "10", "c" -> "11"))
+      // format: on
+    )
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSection(List(mkFormComponent("b", Value))) ::
+        mkSection(List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b"))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+  }
+
+  it should "not recalculate editable field" in {
+
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "1"),                           mkData("a" -> "1", "b" -> "",   "c" -> "")),
+      (mkData("a" -> "1", "b" -> "",   "c" -> ""  ), mkData("a" -> "1", "b" -> "",   "c" -> "")),
+      (mkData("a" -> "1", "b" -> "10"             ), mkData("a" -> "1", "b" -> "10", "c" -> "11")),
+      (mkData("a" -> "1", "b" -> "10", "c" -> "12"), mkData("a" -> "1", "b" -> "10", "c" -> "12"))
+      // format: on
+    )
+
+    val sections =
+      mkSection(List(mkFormComponentEditable("a", Value))) ::
+        mkSection(List(mkFormComponentEditable("b", Value))) ::
+        mkSection(List(mkFormComponentEditable("c", Add(FormCtx("a"), FormCtx("b"))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+  }
+
+  it should "complex recalculation with 2 simple sections containing includeIf" in {
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "1"),                           mkData("a" -> "1", "b" -> "",  "c" -> "",  "d" -> "")),
+      (mkData("a" -> "0"),                           mkData("a" -> "0", "b" -> "",  "c" -> "",  "d" -> "")),
+      (mkData("a" -> "0", "b" -> "1"),               mkData("a" -> "0", "b" -> "1", "c" -> "",  "d" -> "1")),
+      (mkData("a" -> "0", "b" -> "1", "c" -> "1"),   mkData("a" -> "0", "b" -> "1", "c" -> "1", "d" -> "1")),
+      (mkData("a" -> "0", "b" -> "0", "c" -> "1"),   mkData("a" -> "0", "b" -> "0", "c" -> "1", "d" -> "1"))
+      // format: on
+    )
+
+    val includeIf1 = IncludeIf(Equals(FormCtx("a"), Constant("0")))
+    val includeIf2 = IncludeIf(Equals(FormCtx("b"), Constant("0")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("b", Value)), includeIf1) ::
+        mkSectionIncludeIf(List(mkFormComponent("c", Value)), includeIf2) ::
+        mkSection(List(mkFormComponent("d", Add(FormCtx("b"), FormCtx("c"))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+
+  }
+  it should "complex recalculation with 2 complex sections containing includeIf" in {
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "0", "b" -> "1", "bb" -> "10",               "d" -> "10"), mkData("a" -> "0", "b" -> "1", "bb" -> "10", "cc" -> "",   "d" -> "10")),
+      (mkData("a" -> "0", "b" -> "0", "bb" -> "10", "cc" -> "10", "d" -> "10"), mkData("a" -> "0", "b" -> "0", "bb" -> "10", "cc" -> "10", "d" -> "20")),
+      (mkData("a" -> "0", "b" -> "1", "bb" -> "10", "cc" -> "10", "d" -> "10"), mkData("a" -> "0", "b" -> "1", "bb" -> "10", "cc" -> "10", "d" -> "10"))
+      // format: on
+    )
+
+    val includeIf1 = IncludeIf(Equals(FormCtx("a"), Constant("0")))
+    val includeIf2 = IncludeIf(Equals(FormCtx("b"), Constant("0")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("b", Value), mkFormComponent("bb", Value)), includeIf1) ::
+        mkSectionIncludeIf(List(mkFormComponent("cc", Value)), includeIf2) ::
+        mkSection(List(mkFormComponent("d", Add(FormCtx("bb"), FormCtx("cc"))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+
+  }
+
+  it should "complex recalculation with 3 complex sections containing includeIf" in {
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "1", "b" -> "2", "bb" -> "10",                           "d" -> "10"             ),
+       mkData("a" -> "1", "b" -> "2", "bb" -> "10", "c" -> "",  "cc" -> "",   "d" -> "10", "e" -> "0" )),
+      (mkData("a" -> "1", "b" -> "0", "bb" -> "10", "c" -> "0", "cc" -> "10", "d" -> "10"             ),
+       mkData("a" -> "1", "b" -> "0", "bb" -> "10", "c" -> "0", "cc" -> "10", "d" -> "10", "e" -> "0" )),
+      (mkData("a" -> "1", "b" -> "1", "bb" -> "10", "c" -> "0", "cc" -> "10", "d" -> "10"             ),
+       mkData("a" -> "1", "b" -> "1", "bb" -> "10", "c" -> "0", "cc" -> "10", "d" -> "10", "e" -> "10")),
+      (mkData("a" -> "1", "b" -> "1", "bb" -> "10", "c" -> "1", "cc" -> "10", "d" -> "10"             ),
+       mkData("a" -> "1", "b" -> "1", "bb" -> "10", "c" -> "1", "cc" -> "10", "d" -> "10", "e" -> "20")),
+      (mkData("a" -> "0", "b" -> "1", "bb" -> "10", "c" -> "1", "cc" -> "10", "d" -> "10"             ),
+       mkData("a" -> "0", "b" -> "1", "bb" -> "10", "c" -> "1", "cc" -> "10", "d" -> "10", "e" -> "0" ))
+      // format: on
+    )
+
+    val includeIf1 = IncludeIf(Equals(FormCtx("a"), Constant("1")))
+    val includeIf2 = IncludeIf(Equals(FormCtx("b"), Constant("1")))
+    val includeIf3 = IncludeIf(Equals(FormCtx("c"), Constant("1")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("b", Value), mkFormComponent("bb", Value)), includeIf1) ::
+        mkSectionIncludeIf(List(mkFormComponent("c", Value), mkFormComponent("cc", Value)), includeIf2) ::
+        mkSectionIncludeIf(List(mkFormComponent("d", Value)), includeIf3) ::
+        mkSection(List(mkFormComponent("e", Add(FormCtx("cc"), FormCtx("d"))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+
+  }
+
+  private def verify(input: Data, expectedOutput: Data, sections: List[Section])(implicit position: Position) = {
+    val output = recalculation.recalculateFormData(input, mkFormTemplate(sections), ExampleData.authContext)
+    Right(expectedOutput) shouldBe output.map(_.data)
+
+  }
+
+  private def mkData(fields: (String, String)*): Data =
+    fields.map { case (fcId, value) => FormComponentId(fcId) -> Seq(value) }.toMap
 
 }
