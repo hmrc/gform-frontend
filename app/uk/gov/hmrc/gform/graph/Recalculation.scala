@@ -73,8 +73,7 @@ class Recalculation[F[_]: Monad, E](
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate)
 
-    val fcLookup: Map[FormComponentId, FormComponent] =
-      formTemplate.expandFormTemplate.allFCs.map(fc => fc.id -> fc).toMap
+    val fcLookup: Map[FormComponentId, FormComponent] = formTemplate.expandFormTemplate.fcsLookup
 
     val orderedGraph: Either[GraphException, graph.LayeredTopologicalOrder[graph.NodeT]] = DependencyGraph
       .constructDepencyGraph(graph)
@@ -186,7 +185,12 @@ class Recalculation[F[_]: Monad, E](
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[Either[GraphException, Data]] =
     Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup)).traverse { fc =>
       if (fc.editable && hasData(fc, dataLookup)) dataLookup.pure[F]
-      else recalculate(fc, visSet, dataLookup, retrievals, formTemplate).map(a => dataLookup + (fcId -> Seq(a)))
+      else
+        fc match {
+          case IsText(_) | IsTextArea(_) =>
+            recalculate(fc, visSet, dataLookup, retrievals, formTemplate).map(a => dataLookup + (fcId -> Seq(a)))
+          case _ => dataLookup.pure[F] // Nothing to recompute on non-text components
+        }
     }
 
   private def recalculate(

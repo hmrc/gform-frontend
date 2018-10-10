@@ -21,8 +21,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
   val allFCs: List[FormComponent] = expandedSection.flatMap(_.expandedFCs.flatMap(_.expandedFC))
-  val allFcIds: List[FormComponentId] = allFCs.map(_.id)
-  val fcsLookup: Map[FormComponentId, FormComponent] = allFCs.map(fc => fc.id -> fc).toMap
+  val allFcIds: List[FormComponentId] = expandedSection.flatMap(_.expandedFCs.flatMap(_.allIds))
+  val fcsLookup: Map[FormComponentId, FormComponent] =
+    allFCs.flatMap(fc => fc.expandFormComponent.allIds.map(_ -> fc)).toMap
   val allIncludeIfs: List[(List[ExpandedFormComponent], IncludeIf, Int)] = expandedSection.zipWithIndex.collect {
     case (ExpandedSection(expandedFCs, Some(includeIf)), index) => (expandedFCs, includeIf, index)
   }
