@@ -19,12 +19,14 @@
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
+@import uk.gov.hmrc.gform.sharedmodel.{AccessCodeId, UserFormTemplateId}
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
         formTemplate: FormTemplate,
-        formId: FormId,
+        userFormTemplateId: UserFormTemplateId,
+        maybeAccessCodeId: Option[AccessCodeId],
         lang: Option[String],
         frontendAppConfig: FrontendAppConfig
 )(
@@ -43,7 +45,7 @@
 ) {
 <h1>@heading</h1>
 
-<form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, formId, lang) method="POST">
+<form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, userFormTemplateId, maybeAccessCodeId, lang) method="POST">
 
     @{CSRF.formField}
     <div class="form-group">

@@ -18,12 +18,14 @@ package uk.gov.hmrc.gform.models
 
 import play.api.mvc.Call
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class SectionRenderingInformation(
-  formId: FormId,
+  userFormTemplateId: UserFormTemplateId,
+  maybeAccessCodeId: Option[AccessCodeId],
   sectionNumber: SectionNumber,
   sectionTitle: String,
   sectionDescription: Option[String],

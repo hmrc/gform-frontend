@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
@@ -43,6 +44,7 @@ import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
@@ -79,7 +81,8 @@ class SectionRenderingService(
 ) {
 
   case class ExtraInfo(
-    formId: FormId,
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
     sectionNumber: SectionNumber,
     fieldData: FormDataRecalculated,
     formTemplate: FormTemplate,
@@ -91,6 +94,8 @@ class SectionRenderingService(
   )
 
   def renderSection(
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
     form: Form,
     sectionNumber: SectionNumber,
     fieldData: FormDataRecalculated,
@@ -130,7 +135,8 @@ class SectionRenderingService(
         Dependecies(deps)
     }
     val ei = ExtraInfo(
-      form._id,
+      userFormTemplateId,
+      maybeAccessCodeId,
       sectionNumber,
       fieldData,
       formTemplate,
@@ -139,7 +145,8 @@ class SectionRenderingService(
       formMaxAttachmentSizeMB,
       section,
       retrievals)
-    val actionForm = uk.gov.hmrc.gform.gform.routes.FormController.updateFormData(form._id, sectionNumber, lang)
+    val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
+      .updateFormData(userFormTemplateId, maybeAccessCodeId, sectionNumber, lang)
     val listResult = errors.map { case (_, validationResult) => validationResult }
 
     val sectionAtomicFields = RepeatingComponentService.atomicFields(section)
@@ -156,7 +163,8 @@ class SectionRenderingService(
     val snippetsForFields = section.fields.map(fieldValue =>
       htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, validatedType, lang, fieldValue.onlyShowOnSummary))
     val renderingInfo = SectionRenderingInformation(
-      form._id,
+      userFormTemplateId,
+      maybeAccessCodeId,
       sectionNumber,
       section.title,
       section.description,
@@ -175,7 +183,6 @@ class SectionRenderingService(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      form._id,
       shouldDisplayBack = sectionNumber > originSection,
       shouldDisplayBackToSummary = shouldDisplayBackToSummary(form),
       frontendAppConfig
@@ -231,6 +238,8 @@ class SectionRenderingService(
     }
 
   def renderDeclarationSection(
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
     form: Form,
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
@@ -241,7 +250,8 @@ class SectionRenderingService(
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
     val ei = ExtraInfo(
-      form._id,
+      userFormTemplateId,
+      maybeAccessCodeId,
       SectionNumber(0),
       fieldData,
       formTemplate,
@@ -249,7 +259,8 @@ class SectionRenderingService(
       List(formTemplate.declarationSection),
       0,
       formTemplate.declarationSection,
-      retrievals)
+      retrievals
+    )
 
     val confirm = formTemplate.formCategory match {
       case Some(HMRCReturnForm) => "Accept and submit return"
@@ -263,7 +274,8 @@ class SectionRenderingService(
       htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, validatedType, lang))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
     val renderingInfo = SectionRenderingInformation(
-      form._id,
+      userFormTemplateId,
+      maybeAccessCodeId,
       SectionNumber(0),
       formTemplate.declarationSection.title,
       formTemplate.declarationSection.description,
@@ -271,7 +283,8 @@ class SectionRenderingService(
       snippets,
       "",
       EnvelopeId(""),
-      uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id.to4Ga, form._id, lang),
+      uk.gov.hmrc.gform.gform.routes.DeclarationController
+        .submitDeclaration(formTemplate._id.to4Ga, userFormTemplateId, maybeAccessCodeId, lang),
       false,
       confirm,
       0,
@@ -281,21 +294,22 @@ class SectionRenderingService(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      form._id,
       shouldDisplayBack = false,
       shouldDisplayBackToSummary = false,
       frontendAppConfig)
   }
 
   def renderAcknowledgementSection(
-    form: Form,
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
     eventId: String)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
     val ei = ExtraInfo(
-      form._id,
+      userFormTemplateId,
+      maybeAccessCodeId,
       SectionNumber(0),
       FormDataRecalculated.empty,
       formTemplate,
@@ -315,7 +329,8 @@ class SectionRenderingService(
       snippets <- Future.traverse(formTemplate.acknowledgementSection.fields)(fieldValue =>
                    Future.successful(htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, Valid(()), lang)))
       renderingInfo = SectionRenderingInformation(
-        form._id,
+        userFormTemplateId,
+        maybeAccessCodeId,
         SectionNumber(0),
         formTemplate.acknowledgementSection.title,
         formTemplate.acknowledgementSection.description,
@@ -323,7 +338,8 @@ class SectionRenderingService(
         snippets,
         "",
         EnvelopeId(""),
-        uk.gov.hmrc.gform.gform.routes.DeclarationController.submitDeclaration(formTemplate._id.to4Ga, form._id, lang),
+        uk.gov.hmrc.gform.gform.routes.DeclarationController
+          .submitDeclaration(formTemplate._id.to4Ga, userFormTemplateId, maybeAccessCodeId, lang),
         false,
         "Confirm and send",
         0,
@@ -343,9 +359,12 @@ class SectionRenderingService(
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
-    val formId = FormId("")
+    val userFormTemplateId = UserFormTemplateId("")
+    val maybeAccessCodeId = None
+    // TODO ExtraInfo needs to lose userFormTemplateId & maybeAccessCodeId
     val ei = ExtraInfo(
-      formId,
+      userFormTemplateId,
+      maybeAccessCodeId,
       SectionNumber(0),
       fieldData,
       formTemplate,
@@ -359,7 +378,8 @@ class SectionRenderingService(
       enrolmentSection.fields.map(fieldValue => htmlFor(fieldValue, formTemplate._id.to4Ga, 0, ei, validatedType, lang))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
     val renderingInfo = SectionRenderingInformation(
-      formId,
+      userFormTemplateId,
+      maybeAccessCodeId,
       SectionNumber(0),
       enrolmentSection.title,
       None,
@@ -373,7 +393,7 @@ class SectionRenderingService(
       0,
       Nil
     )
-    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, formId, false, false, frontendAppConfig)
+    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, false, frontendAppConfig)
   }
 
   private def createJavascript(
@@ -437,7 +457,8 @@ class SectionRenderingService(
     val validationResult = buildFormFieldValidationResult(fieldValue, ei, validatedType)
 
     html.form.snippets.field_template_file_upload(
-      ei.formId,
+      ei.userFormTemplateId,
+      ei.maybeAccessCodeId,
       formTemplateId4Ga,
       ei.sectionNumber,
       sectionTitle4GaFactory(ei.formTemplate.sections(ei.sectionNumber.value).title),

@@ -405,7 +405,11 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def userId = UserId("James007")
 
-  def formId = FormId(userId, formTemplateId, None)
+  def formId = FormId(UserFormTemplateId(userId, formTemplateId), None)
+
+  def userFormTemplateId = UserFormTemplateId(userId, FormTemplateId("form-for-tests"))
+
+  def accessCodeId = AccessCodeId("1234-0000-ABCD")
 
   def formFields: Seq[FormField] = data.values.toSeq
 

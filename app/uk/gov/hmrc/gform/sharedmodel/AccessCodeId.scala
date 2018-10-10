@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.{AccessCodeId, UserFormTemplateId}
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+package uk.gov.hmrc.gform.sharedmodel
 
-@(
-        formType: FormTemplateId,
-        userFormTemplateId: UserFormTemplateId,
-        maybeAccessCodeId: Option[AccessCodeId],
-        title: String,
-        currentPage: Int)
+// Not necessarily an identifier, per se
+// TODO need a good name for this case class
 
-</dl>
+case class AccessCodeId(value: String)
