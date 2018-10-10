@@ -56,8 +56,12 @@ case class Navigator(
   sections: List[Section],
   data: FormDataRecalculated
 ) extends Navigation {
-  require(sectionNumber >= minSectionNumber, s"section number is to big: ${sectionNumber.value}")
-  require(sectionNumber <= maxSectionNumber, s"section number is to low: ${sectionNumber.value}")
+  require(
+    sectionNumber >= minSectionNumber,
+    s"section number is too low: ${sectionNumber.value} is not >= $minSectionNumber")
+  require(
+    sectionNumber <= maxSectionNumber,
+    s"section number is too big: ${sectionNumber.value} is not <= $maxSectionNumber")
 
   val RemoveGroupR = "RemoveGroup-(\\d*)_(.*)".r.unanchored
 

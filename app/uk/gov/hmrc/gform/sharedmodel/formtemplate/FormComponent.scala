@@ -74,6 +74,22 @@ object FormComponent {
   implicit val format = Json.format[FormComponent]
 }
 
+object IsText {
+  def unapply(fc: FormComponent): Option[Text] =
+    fc.`type` match {
+      case t @ Text(_, _, _) => Some(t)
+      case _                 => None
+    }
+}
+
+object IsTextArea {
+  def unapply(fc: FormComponent): Option[TextArea] =
+    fc.`type` match {
+      case t @ TextArea(_, _, _) => Some(t)
+      case _                     => None
+    }
+}
+
 object IsGroup {
   def unapply(fc: FormComponent): Option[Group] =
     fc.`type` match {
