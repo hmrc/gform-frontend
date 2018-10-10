@@ -34,6 +34,7 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve._
 import cats.implicits._
 import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -71,10 +72,11 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
-  def async(formId: FormId)(f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
+  def async(userFormTemplateId: UserFormTemplateId, maybeAccessCodeId: Option[AccessCodeId])(
+    f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       for {
-        form         <- gformConnector.getForm(formId)
+        form         <- gformConnector.getForm(FormId(userFormTemplateId, maybeAccessCodeId))
         formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
         authResult <- authService
                        .authenticateAndAuthorise(formTemplate, request.uri, ggAuthorised(authFormUser(form)))

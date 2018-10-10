@@ -41,6 +41,7 @@ trait MicroService {
         "uk.gov.hmrc.gform.binders.ValueClassBinder._",
         "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
         "uk.gov.hmrc.gform.sharedmodel.form._",
+        "uk.gov.hmrc.gform.sharedmodel._",
         "uk.gov.hmrc.gform.models._"
       )
 //TODO enable it and fix errors in code!!!

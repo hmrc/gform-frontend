@@ -15,15 +15,24 @@
  *@
 
 @import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.{AccessCodeId, UserFormTemplateId}
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.localisation
 
-@(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, title: String, sectionNumber: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String], fieldValue: FormComponent)
+@(
+        formTemplateId4Ga: FormTemplateId4Ga,
+        userFormTemplateId: UserFormTemplateId,
+        maybeAccessCodeId: Option[AccessCodeId],
+        title: String,
+        sectionNumber: SectionNumber,
+        sectionTitle4Ga: SectionTitle4Ga,
+        lang: Option[String],
+        fieldValue: FormComponent)
 
 @if(fieldValue.editable) {
  <a class="print-hidden" href="@{
-  uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang).url + "#" + fieldValue.id.value
+  uk.gov.hmrc.gform.gform.routes.FormController.form(userFormTemplateId, maybeAccessCodeId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang).url + "#" + fieldValue.id.value
  }">
   Change <span class="visuallyhidden">@localisation(title)</span>
  </a>
