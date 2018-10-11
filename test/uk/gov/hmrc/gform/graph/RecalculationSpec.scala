@@ -151,6 +151,30 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     }
   }
 
+  it should "handle submitMode = derived" in {
+
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "1"),             mkData("a" -> "1", "b" -> "3")),
+      (mkData("a" -> "1", "b" -> "2"), mkData("a" -> "1", "b" -> "2"))
+      // format: on
+    )
+
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", Value),
+          mkFormComponent("b", Add(FormCtx("a"), Constant("2"))).copy(derived = true)
+        )
+      )
+    )
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+  }
+
   it should "missing submission data is treated as if submission has been empty string" in {
 
     val inputData = mkData(
