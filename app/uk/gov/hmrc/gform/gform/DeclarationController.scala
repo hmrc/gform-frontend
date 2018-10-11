@@ -30,7 +30,6 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -127,8 +126,7 @@ class DeclarationController(
           case "Continue" :: Nil =>
             for {
               data <- recalculation.recalculateFormData(dataRaw, cacheOrig.formTemplate, cacheOrig.retrievals)
-              visibility = Visibility(data)
-              invisibleSections = cacheOrig.formTemplate.sections.filter(visibility.isVisible)
+              invisibleSections = cacheOrig.formTemplate.sections.filter(data.isVisible)
 
               invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
 

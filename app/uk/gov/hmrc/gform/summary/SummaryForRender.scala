@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
-import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -177,11 +176,9 @@ object SummaryRenderingService {
         fieldValue.presentationHint
           .fold(false)(x => x.contains(InvisibleInSummary))
 
-      val visibility = Visibility(data)
-
       val sectionsToRender =
         sections.zipWithIndex.collect {
-          case (section, index) if visibility.isVisible(section) => (section, index)
+          case (section, index) if data.isVisible(section) => (section, index)
         }
 
       sectionsToRender

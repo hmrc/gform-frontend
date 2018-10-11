@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.controllers
 
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
-import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
@@ -27,9 +26,8 @@ trait Navigation {
   def data: FormDataRecalculated
 
   lazy val availableSectionNumbers: List[SectionNumber] = {
-    val visibility = Visibility(data)
     sections.zipWithIndex.collect {
-      case (section, index) if visibility.isVisible(section) => SectionNumber(index)
+      case (section, index) if data.isVisible(section) => SectionNumber(index)
     }
   }
 

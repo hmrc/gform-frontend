@@ -40,7 +40,6 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.sharedmodel.Visibility
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -145,14 +144,13 @@ class SummaryController(
 
     val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
 
-    def filterSection(sections: List[Section], visibility: Visibility): List[Section] =
-      sections.filter(visibility.isVisible)
+    def filterSection(sections: List[Section], data: FormDataRecalculated): List[Section] =
+      sections.filter(data.isVisible)
 
     for {
       data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals)
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
-      visibility = Visibility(data)
-      sections = filterSection(allSections, visibility)
+      sections = filterSection(allSections, data)
       allFields = submittedFCs(data, sections.flatMap(_.expandSection.allFCs))
 
       v1 <- sections
