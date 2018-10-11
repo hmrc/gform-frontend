@@ -315,7 +315,7 @@ function setUpErrorSummary($el) {
       links.push(context);
       $link.removeClass('js-hidden').on('click', function () {
         var focuses = $(this).attr('data-focuses');
-        $('#' + focuses).trigger('focus')
+        $('[name="' + focuses + '"]').first().trigger('focus')
       })
     } else {
       $link.parents('li').remove()

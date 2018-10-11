@@ -24,11 +24,11 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.{AppConfig, FrontendAppConfig}
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.helpers._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{Envelope, FileUploadService}
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -37,10 +37,10 @@ import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.FormData._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{UserId => _, _}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
+import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationService, ValidationUtil}
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views
@@ -49,17 +49,18 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-case class AccessCodeForm(accessCode: String)
+case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
-private class Identifiers(cache: AuthCacheWithoutForm, val accessCode: Option[AccessCode]) {
+private class Identifiers(cache: AuthCacheWithoutForm, val accessCode: Option[AccessCode], val accessOption: String) {
   val formTemplateId: FormTemplateId = cache.formTemplate._id
   val userId: UserId = UserId(cache.retrievals.userDetails.groupIdentifier)
   val formId: FormId = FormId(userId, formTemplateId, accessCode)
 }
 
 private object Identifiers {
-  def apply(cache: AuthCacheWithoutForm, accessCode: AccessCode) = new Identifiers(cache, Some(accessCode))
-  def apply(cache: AuthCacheWithoutForm) = new Identifiers(cache, None)
+  def apply(cache: AuthCacheWithoutForm, accessCode: AccessCode, accessOption: String) =
+    new Identifiers(cache, Some(accessCode), accessOption)
+  def apply(cache: AuthCacheWithoutForm) = new Identifiers(cache, None, "")
 }
 
 class FormController(
@@ -88,19 +89,11 @@ class FormController(
     Redirect(routes.FormController.form(formId, formTemplate._id.to4Ga, originSection, sectionTitle4Ga, lang))
   }
 
-  val accessCodeForm: play.api.data.Form[AccessCodeForm] =
-    play.api.data
-      .Form(
-        play.api.data.Forms
-          .mapping(AccessCode.key -> play.api.data.Forms.nonEmptyText)(AccessCodeForm.apply)(AccessCodeForm.unapply))
-
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
     implicit request => cache =>
       (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
         case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
-          Future.successful(
-            Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages
-              .dashboard(cache.formTemplate, accessCodeForm, lang, frontendAppConfig)))
+          Future.successful(Ok(access_code_start(cache.formTemplate, AccessCode.form, lang, frontendAppConfig)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
       }
   }
@@ -109,7 +102,7 @@ class FormController(
     implicit request => cache =>
       val accessCode = AccessCode.random
       for {
-        _ <- startForm(Identifiers(cache, accessCode))
+        _ <- startForm(Identifiers(cache, accessCode, AccessCode.optionNew))
       } yield
         Redirect(routes.FormController.showAccessCode(formTemplateId, lang))
           .flashing(AccessCode.key -> accessCode.value)
@@ -119,9 +112,7 @@ class FormController(
     implicit request => cache =>
       request.flash.get(AccessCode.key) match {
         case Some(accessCode) =>
-          Future.successful(
-            Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages
-              .start_new_form(cache.formTemplate, AccessCode(accessCode), lang, frontendAppConfig)))
+          Future.successful(Ok(start_new_form(cache.formTemplate, AccessCode(accessCode), lang, frontendAppConfig)))
         case None => Future.successful(Redirect(routes.FormController.dashboard(formTemplateId, lang)))
       }
   }
@@ -136,26 +127,41 @@ class FormController(
         } else redirectOrigin(form._id, cache.retrievals, cache.formTemplate, lang)
   }
 
-  def newFormPost(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
-    implicit request => cache =>
-      accessCodeForm.bindFromRequest.fold(
+  def newFormPost(formTemplateId: FormTemplateId, lang: Option[String]): Action[AnyContent] =
+    auth.async(formTemplateId) { implicit request => cache =>
+      AccessCode.form.bindFromRequest.fold(
         hasErrors =>
-          Future.successful(
-            BadRequest(uk.gov.hmrc.gform.views.html.hardcoded.pages
-              .dashboard(cache.formTemplate, hasErrors, lang, frontendAppConfig))),
+          Future.successful(BadRequest(access_code_start(cache.formTemplate, hasErrors, lang, frontendAppConfig))),
         accessCodeF => {
-          val accessCode = AccessCode(accessCodeF.accessCode)
-          for {
-            maybeForm <- getForm(Identifiers(cache, accessCode))
-          } yield
-            maybeForm match {
-              case Some(form) => redirectOrigin(form._id, cache.retrievals, cache.formTemplate, lang)
-              case None       => Redirect(routes.FormController.dashboard(formTemplateId, lang))
-            }
-
+          accessCodeF.accessOption match {
+            case AccessCode.optionNew =>
+              Future.successful(Redirect(routes.FormController.newFormAgent(formTemplateId, lang)))
+            case AccessCode.optionAccess =>
+              for {
+                maybeForm <- getForm(
+                              Identifiers(
+                                cache,
+                                AccessCode(accessCodeF.accessCode.getOrElse("")),
+                                accessCodeF.accessOption
+                              )
+                            )
+              } yield
+                maybeForm match {
+                  case Some(form) => redirectOrigin(form._id, cache.retrievals, cache.formTemplate, lang)
+                  case None =>
+                    BadRequest(
+                      access_code_start(
+                        cache.formTemplate,
+                        AccessCode.form.bindFromRequest().withError(AccessCode.key, "error.notfound"),
+                        lang,
+                        frontendAppConfig
+                      )
+                    )
+                }
+          }
         }
       )
-  }
+    }
 
   private def getForm(ids: Identifiers)(implicit hc: HeaderCarrier): Future[Option[Form]] =
     for {
@@ -410,19 +416,33 @@ class FormController(
             userData = UserData(formData, InProgress)
             originSection = new Origin(sections).minSectionNumber
             sectionTitle4Ga = sectionTitle4GaFactory(sections(originSection.value).title)
+            //TODO get real access code - this is stubbing "000-0000-00" until then
             result <- gformConnector
                        .updateUserData(formId, userData)
                        .map(
                          response =>
-                           Ok(
-                             views.html.hardcoded.pages
-                               .save_acknowledgement(
-                                 formId,
-                                 cache.formTemplate,
-                                 originSection,
-                                 sectionTitle4Ga,
-                                 lang,
-                                 frontendAppConfig)))
+                           (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
+                             case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
+                               Ok(
+                                 save_with_access_code(
+                                   formId,
+                                   cache.formTemplate,
+                                   originSection,
+                                   sectionTitle4Ga,
+                                   lang,
+                                   frontendAppConfig,
+                                   accessCode = "000-0000-00"))
+                             case _ =>
+                               Ok(
+                                 save_acknowledgement(
+                                   formId,
+                                   cache.formTemplate,
+                                   originSection,
+                                   sectionTitle4Ga,
+                                   lang,
+                                   frontendAppConfig))
+                         }
+                       )
           } yield result
 
         def processBack(userId: UserId, form: Form, sn: SectionNumber): Future[Result] =
