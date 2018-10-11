@@ -20,6 +20,7 @@ import cats.implicits._
 import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -81,6 +82,72 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     res match {
       case Left(NoTopologicalOrder(_, _)) => succeed
       case otherwise                      => fail
+    }
+  }
+
+  it should "handle AuthCtx" in {
+
+    val inputData = mkData()
+
+    val sections =
+      mkSection(
+        mkFormComponent("a", AuthCtx(PayeNino)) :: Nil
+      ) :: Nil
+
+    val res = recalculation.recalculateFormData(
+      inputData,
+      mkFormTemplate(sections),
+      ExampleData.authContext.copy(
+        enrolments =
+          Enrolments(Set(Enrolment("NINO").copy(identifiers = List(EnrolmentIdentifier("NINO", "AA111111A"))))))
+    )
+
+    res match {
+      case Right(formDataRecalculated) =>
+        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("AA111111A")))
+      case otherwise => fail
+    }
+  }
+
+  it should "handle EeiitCtx" in {
+
+    val inputData = mkData()
+
+    val sections =
+      mkSection(
+        mkFormComponent("a", EeittCtx(BusinessUser)) :: Nil
+      ) :: Nil
+
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext)
+
+    res match {
+      case Right(formDataRecalculated) =>
+        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("data-returned-from-eeitt")))
+      case otherwise => fail
+    }
+  }
+
+  it should "handle UserCtx" in {
+
+    val inputData = mkData()
+
+    val sections =
+      mkSection(
+        mkFormComponent("a", UserCtx(AffinityGroup)) :: Nil
+      ) :: Nil
+
+    val res = recalculation.recalculateFormData(
+      inputData,
+      mkFormTemplate(sections),
+      ExampleData.authContext.copy(
+        affinityGroup = Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual)
+      )
+    )
+
+    res match {
+      case Right(formDataRecalculated) =>
+        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("individual")))
+      case otherwise => fail
     }
   }
 

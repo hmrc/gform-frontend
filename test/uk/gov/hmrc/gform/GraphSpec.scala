@@ -30,7 +30,7 @@ trait GraphSpec {
     eeitt: Eeitt,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    hc: HeaderCarrier): F[String] = "".pure[F]
+    hc: HeaderCarrier): F[String] = "data-returned-from-eeitt".pure[F]
 
   def evaluator[F[_]: Monad]: Evaluator[F] = new Evaluator[F](eeittPrepop[F])
   def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F](evaluator)
