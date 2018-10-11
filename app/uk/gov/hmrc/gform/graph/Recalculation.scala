@@ -184,7 +184,7 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[Either[GraphException, Data]] =
     Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup)).traverse { fc =>
-      if (fc.editable && hasData(fc, dataLookup)) dataLookup.pure[F]
+      if ((fc.editable || fc.derived) && hasData(fc, dataLookup)) dataLookup.pure[F]
       else
         fc match {
           case IsText(_) | IsTextArea(_) =>
