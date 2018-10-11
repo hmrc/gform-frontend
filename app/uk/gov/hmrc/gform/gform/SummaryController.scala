@@ -30,6 +30,7 @@ import play.api.mvc.{ Action, AnyContent, Request }
 import play.api.http.HttpEntity
 import play.api.mvc._
 import play.twirl.api.Html
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -47,7 +48,7 @@ import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.http.HeaderCarrier
 
