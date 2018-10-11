@@ -38,8 +38,9 @@ object DependencyGraph {
 
     def edges(fc: FormComponent): List[DiEdge[GraphNode]] = {
       def fcIds(fc: FormComponent): List[FormComponentId] = fc match {
-        case HasExpr(SingleExpr(expr)) => eval(expr)
-        case _                         => List.empty
+        case HasExpr(SingleExpr(AuthCtx(_) | EeittCtx(_) | UserCtx(_))) => fc.id :: Nil
+        case HasExpr(SingleExpr(expr))                                  => eval(expr)
+        case _                                                          => List.empty
       }
       fcIds(fc).map(fcId => SimpleGN(fc.id) ~> SimpleGN(fcId))
     }

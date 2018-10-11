@@ -36,6 +36,19 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
     )
   }
 
+  it should "handle AuthCtx EeittCtx and UserCtx" in {
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", AuthCtx(GG)),
+          mkFormComponent("b", EeittCtx(BusinessUser)),
+          mkFormComponent("c", UserCtx(AffinityGroup))))
+    )
+    layers(sections) shouldBe List(
+      (0, List("a", "b", "c"))
+    )
+  }
+
   it should "handle long chain of dependencies" in {
 
     val sections = List(
