@@ -43,13 +43,14 @@ object ValueClassBinder {
 
   implicit def optionAccessCodeBinder(implicit stringBinder: PathBindable[String]): PathBindable[Option[AccessCodeId]] =
     new PathBindable[Option[AccessCodeId]] {
-      override def bind(key: String, value: String): Either[String, Option[AccessCodeId]] = stringBinder.bind(key, value).right.flatMap(parseString[String]).right.map {
-        case "-" => None
-        case a => Some(AccessCodeId(a))
-      }
+      override def bind(key: String, value: String): Either[String, Option[AccessCodeId]] =
+        stringBinder.bind(key, value).right.flatMap(parseString[String]).right.map {
+          case "-" => None
+          case a   => Some(AccessCodeId(a))
+        }
 
       override def unbind(key: String, maybeAccessCodeId: Option[AccessCodeId]): String =
-      // TODO None should be empty string, but Play does not route the POST with //0, p[erhaps we
+        // TODO None should be empty string, but Play does not route the POST with //0, p[erhaps we
         maybeAccessCodeId.fold("-")(a => a.value)
     }
 

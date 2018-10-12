@@ -1,0 +1,98 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@(warning: String)
+<style>
+    .govuk-warning-text {
+      font-family: "nta",Arial,sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 1.25;
+      color: #0b0c0c;
+      position: relative;
+      margin-bottom: 20px;
+      padding: 10px 0;
+    }
+
+    @@media (min-width: 40.0625em) {
+      .govuk-warning-text {
+        font-size: 19px;
+        line-height: 1.31579;
+      }
+    }
+
+    @@media (min-width: 40.0625em) {
+      .govuk-warning-text {
+        margin-bottom: 30px;
+      }
+    }
+
+    .govuk-warning-text__icon {
+      font-family: "nta",Arial,sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-weight: 700;
+      display: inline-block;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      min-width: 32px;
+      min-height: 29px;
+      margin-top: -20px;
+      padding-top: 3px;
+      border: 3px solid #0b0c0c;
+      border-radius: 50%;
+      color: #fff;
+      background: #0b0c0c;
+      font-size: 1.6em;
+      line-height: 29px;
+      text-align: center;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .govuk-warning-text__assistive {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      -webkit-clip-path: inset(50%);
+      clip-path: inset(50%);
+      border: 0;
+      white-space: nowrap;
+    }
+
+    .govuk-warning-text__text {
+      display: block;
+      margin-left: -15px;
+      padding-left: 65px;
+    }
+</style>
+
+<div class="govuk-warning-text">
+  <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+  <strong class="govuk-warning-text__text">
+    <span class="govuk-warning-text__assistive">@uk.gov.hmrc.gform.views.html.localisation("Warning")</span>
+    @warning
+  </strong>
+</div>
