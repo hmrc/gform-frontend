@@ -16,13 +16,14 @@
 
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
+@import uk.gov.hmrc.gform.sharedmodel.{AccessCodeId, UserFormTemplateId}
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-    formId: FormId,
+    userFormTemplateId: UserFormTemplateId,
     formTemplate: FormTemplate,
     originSectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
@@ -51,12 +52,12 @@
 <p>You can:</p>
 <ul class = "bullets">
    <li>
-      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formId, formTemplate._id.to4Ga, originSectionNumber, sectionTitle4Ga, lang)">return</a>
+      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(userFormTemplateId, None, formTemplate._id.to4Ga, originSectionNumber, sectionTitle4Ga, lang)">return</a>
      to your form
    </li>
    <li>
      delete and
-      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id.to4Ga, formId, lang)">
+      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id.to4Ga, userFormTemplateId, None, lang)">
         start again
       </a>
    </li>

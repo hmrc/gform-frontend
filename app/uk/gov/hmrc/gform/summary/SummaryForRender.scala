@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -40,7 +41,8 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     validatedType: ValidatedType,
     formFields: FormDataRecalculated,
-    formId: FormId,
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
     envelope: Envelope,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
@@ -48,14 +50,23 @@ object SummaryRenderingService {
     implicit
     request: Request[_],
     messages: Messages): Html = {
-    val sfr = summaryForRender(validatedType, formFields, formId, formTemplate, envelope, lang)
-    summary(formTemplate, sfr, formId, formTemplate.formCategory.getOrElse(Default), lang, frontendAppConfig)
+    val sfr =
+      summaryForRender(validatedType, formFields, userFormTemplateId, maybeAccessCodeId, formTemplate, envelope, lang)
+    summary(
+      formTemplate,
+      sfr,
+      userFormTemplateId,
+      maybeAccessCodeId,
+      formTemplate.formCategory.getOrElse(Default),
+      lang,
+      frontendAppConfig)
   }
 
   def summaryForRender(
     validatedType: ValidatedType,
     data: FormDataRecalculated,
-    formId: FormId,
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
     formTemplate: FormTemplate,
     envelope: Envelope,
     lang: Option[String]
@@ -73,7 +84,8 @@ object SummaryRenderingService {
       def valueToHtml(
         fieldValue: FormComponent,
         formTemplateId4Ga: FormTemplateId4Ga,
-        formId: FormId,
+        userFormTemplateId: UserFormTemplateId,
+        maybeAccessCodeId: Option[AccessCodeId],
         title: String,
         sectionNumber: SectionNumber,
         sectionTitle4Ga: SectionTitle4Ga,
@@ -81,7 +93,8 @@ object SummaryRenderingService {
 
         val changeButton = change_button(
           formTemplateId4Ga,
-          formId,
+          userFormTemplateId,
+          maybeAccessCodeId,
           title,
           sectionNumber,
           sectionTitle4Ga,
@@ -127,7 +140,8 @@ object SummaryRenderingService {
                 valueToHtml(
                   fv,
                   formTemplateId4Ga,
-                  formId,
+                  userFormTemplateId,
+                  maybeAccessCodeId,
                   title,
                   sectionNumber,
                   sectionTitle4Ga,
@@ -140,7 +154,8 @@ object SummaryRenderingService {
               valueToHtml(
                 fieldValue,
                 formTemplateId4Ga,
-                formId,
+                userFormTemplateId,
+                maybeAccessCodeId,
                 title,
                 sectionNumber,
                 sectionTitle4Ga,
@@ -187,12 +202,13 @@ object SummaryRenderingService {
             val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title)
             val begin = begin_section(
               formTemplate._id.to4Ga,
-              formId,
+              userFormTemplateId,
+              maybeAccessCodeId,
               section.shortName.getOrElse(section.title),
               SectionNumber(index),
               sectionTitle4Ga,
               lang)
-            val end = end_section(formTemplate._id, formId, section.title, index)
+            val end = end_section(formTemplate._id, userFormTemplateId, maybeAccessCodeId, section.title, index)
 
             val middle =
               section.fields
@@ -201,7 +217,8 @@ object SummaryRenderingService {
                   valueToHtml(
                     _,
                     formTemplate._id.to4Ga,
-                    formId,
+                    userFormTemplateId,
+                    maybeAccessCodeId,
                     section.shortName.getOrElse(section.title),
                     SectionNumber(index),
                     sectionTitle4Ga,

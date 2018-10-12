@@ -30,6 +30,7 @@ import play.api.mvc.{ Action, AnyContent, Request }
 import play.api.http.HttpEntity
 import play.api.mvc._
 import play.twirl.api.Html
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -40,6 +41,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -47,7 +49,7 @@ import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.save_acknowledgement
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -67,16 +69,27 @@ class SummaryController(
 
   import i18nSupport._
 
-  def summaryById(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]): Action[AnyContent] =
-    auth.async(formId) { implicit request => cache =>
+  def summaryById(
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
+    formTemplateId4Ga: FormTemplateId4Ga,
+    lang: Option[String]
+  ): Action[AnyContent] =
+    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
       cache.form.status match {
-        case Summary | Validated | Signed => getSummaryHTML(formId, cache, lang).map(Ok(_))
-        case _                            => errResponder.notFound(request, "Summary was hit before status was changed.")
+        case Summary | Validated | Signed =>
+          getSummaryHTML(userFormTemplateId, maybeAccessCodeId, cache, lang).map(Ok(_))
+        case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
       }
     }
 
-  def submit(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]) =
-    auth.async(formId) { implicit request => cache =>
+  def submit(
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
+    formTemplateId4Ga: FormTemplateId4Ga,
+    lang: Option[String]
+  ) =
+    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
@@ -88,11 +101,14 @@ class SummaryController(
         val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
         lazy val redirectToDeclaration = gformConnector
-          .updateUserData(formId, UserData(cache.form.formData, Validated))
+          .updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), UserData(cache.form.formData, Validated))
           .map { _ =>
-            Redirect(routes.DeclarationController.showDeclaration(formId, formTemplateId4Ga, lang))
+            Redirect(
+              routes.DeclarationController
+                .showDeclaration(userFormTemplateId, maybeAccessCodeId, formTemplateId4Ga, lang))
           }
-        lazy val redirectToSummary = Redirect(routes.SummaryController.summaryById(formId, formTemplateId4Ga, lang))
+        lazy val redirectToSummary =
+          Redirect(routes.SummaryController.summaryById(userFormTemplateId, maybeAccessCodeId, formTemplateId4Ga, lang))
         lazy val handleDeclaration = for {
           result <- isFormValidF.ifM(
                      redirectToDeclaration,
@@ -103,14 +119,27 @@ class SummaryController(
         lazy val handleExit = {
           val originSection = new Origin(cache.formTemplate.sections).minSectionNumber
           val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
-          Ok(
-            save_acknowledgement(
-              formId,
-              cache.formTemplate,
-              originSection,
-              originSectionTitle4Ga,
-              lang,
-              frontendAppConfig))
+          // TODO Alistair - is this the right thing to do here in Summary, like it is in Form?
+          maybeAccessCodeId match {
+            case (Some(accessCodeId)) =>
+              Ok(
+                save_with_access_code(
+                  accessCodeId,
+                  cache.formTemplate,
+                  originSection,
+                  originSectionTitle4Ga,
+                  lang,
+                  frontendAppConfig))
+            case _ =>
+              Ok(
+                save_acknowledgement(
+                  userFormTemplateId,
+                  cache.formTemplate,
+                  originSection,
+                  originSectionTitle4Ga,
+                  lang,
+                  frontendAppConfig))
+          }
         }
 
         get(data, FormComponentId("save")) match {
@@ -121,12 +150,17 @@ class SummaryController(
       }
     }
 
-  def downloadPDF(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]): Action[AnyContent] =
-    auth.async(formId) { implicit request => cache =>
+  def downloadPDF(
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
+    formTemplateId4Ga: FormTemplateId4Ga,
+    lang: Option[String]
+  ): Action[AnyContent] =
+    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
       cache.form.status match {
         case InProgress | Summary =>
           for {
-            summaryHml <- getSummaryHTML(formId, cache, lang)
+            summaryHml <- getSummaryHTML(userFormTemplateId, maybeAccessCodeId, cache, lang)
             htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = false)
             pdfStream <- pdfService.generatePDF(htmlForPDF)
           } yield
@@ -165,8 +199,12 @@ class SummaryController(
 
   }
 
-  def getSummaryHTML(formId: FormId, cache: AuthCacheWithForm, lang: Option[String])(
-    implicit request: Request[_]): Future[Html] = {
+  def getSummaryHTML(
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
+    cache: AuthCacheWithForm,
+    lang: Option[String]
+  )(implicit request: Request[_]): Future[Html] = {
     val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
@@ -176,7 +214,15 @@ class SummaryController(
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield
       SummaryRenderingService
-        .renderSummary(cache.formTemplate, v, data, formId, envelope, lang, frontendAppConfig)
+        .renderSummary(
+          cache.formTemplate,
+          v,
+          data,
+          userFormTemplateId,
+          maybeAccessCodeId,
+          envelope,
+          lang,
+          frontendAppConfig)
 
   }
 }

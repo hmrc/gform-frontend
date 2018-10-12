@@ -4,3 +4,16 @@ global.error.InternalServerError500.heading=We’re experiencing technical diffi
 global.error.InternalServerError500.message=Try signing in again in a few minutes.
 ## Landfill Tax Form ##
 lt.ltDetails.telephoneHint                  = A telephone number must be longer than 3 digits.
+
+error.summary.heading=There are errors on this page
+
+# Access code form field errors
+accessOption.error.required=Select whether you would like to access an existing {0} or start a new one
+accessCode.error.required=Enter a temporary access key. For example, A12-B456-8ZZ
+accessCode.error.pattern=Temporary access keys must be 12 characters (including letters, numbers and hyphens). For example, A12-B456-8ZZ
+accessCode.error.notfound=Temporary access key not found. It may have expired or been entered incorrectly. Check it and try again
+
+# User recruitment banner
+user.recruitment.title=Help us improve {0} forms
+user.recruitment.link.text=Sign up to participate in our research activities
+user.recruitment.dismiss=No thanks

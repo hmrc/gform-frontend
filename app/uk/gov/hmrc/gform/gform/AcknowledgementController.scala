@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
@@ -51,31 +52,45 @@ class AcknowledgementController(
 
   import i18nSupport._
 
-  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String], eventId: String) =
-    auth.async(formId) { implicit request => cache =>
+  def showAcknowledgement(
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
+    formTemplateId4Ga: FormTemplateId4Ga,
+    lang: Option[String],
+    eventId: String
+  ) =
+    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
       cache.form.status match {
         case Submitted =>
           renderer
-            .renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang, eventId)
+            .renderAcknowledgementSection(
+              userFormTemplateId,
+              maybeAccessCodeId,
+              cache.formTemplate,
+              cache.retrievals,
+              lang,
+              eventId)
             .map(Ok(_))
         case _ => Future.successful(BadRequest)
       }
     }
 
   def downloadPDF(
-    formId: FormId,
+    userFormTemplateId: UserFormTemplateId,
+    maybeAccessCodeId: Option[AccessCodeId],
     formTemplateId4Ga: FormTemplateId4Ga,
     lang: Option[String],
-    eventId: String): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
-    cache.form.status match {
-      case Submitted =>
-        // format: OFF
+    eventId: String): Action[AnyContent] = auth.async(userFormTemplateId, maybeAccessCodeId) {
+    implicit request => cache =>
+      cache.form.status match {
+        case Submitted =>
+          // format: OFF
         for {
-          summaryHml  <- summaryController.getSummaryHTML(formId, cache, lang)
+          summaryHml  <- summaryController.getSummaryHTML(userFormTemplateId, maybeAccessCodeId, cache, lang)
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
-          submission  <- gformConnector.submissionStatus(formId)
+          submission  <- gformConnector.submissionStatus(FormId(userFormTemplateId, maybeAccessCodeId))
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
           htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)
@@ -85,8 +100,8 @@ class AcknowledgementController(
           body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
         )
       // format: ON
-      case _ => Future.successful(BadRequest)
-    }
+        case _ => Future.successful(BadRequest)
+      }
   }
 
   private def addExtraDataToHTML(
