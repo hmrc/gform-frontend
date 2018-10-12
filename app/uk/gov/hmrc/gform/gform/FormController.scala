@@ -186,7 +186,8 @@ class FormController(
 
   //true - it got the form, false - new form was created
   private def getOrStartForm(formTemplateId: FormTemplateId, userId: UserId, maybeAccessCodeId: Option[AccessCodeId])(
-    implicit hc: HeaderCarrier): Future[(Option[AccessCodeId], Boolean)] =for {
+    implicit hc: HeaderCarrier): Future[(Option[AccessCodeId], Boolean)] =
+    for {
       maybeForm <- gformConnector.maybeForm(FormId(UserFormTemplateId(userId, formTemplateId), None))
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
       maybeNoAccessCode = maybeFormExceptSubmitted.map(_ => None.pure[Future])

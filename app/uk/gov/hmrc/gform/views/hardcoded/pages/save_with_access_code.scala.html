@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
 
 @(
         accessCodeId: AccessCodeId,
@@ -67,9 +68,7 @@
     @localisation(s"It is valid for 28 days. Once you have submitted your $formCat the temporary access key will expire.")
   </p>
 
-  <div class="panel-indent panel-indent--gutter bold-small">
-    @localisation(s"For us to consider your $formCat, you’ll need to submit it.")
-  </div>
+  @govuk_warning_text(localisation(s"For us to consider your $formCat, you’ll need to submit it."))
 
   <p>You can:</p>
 
