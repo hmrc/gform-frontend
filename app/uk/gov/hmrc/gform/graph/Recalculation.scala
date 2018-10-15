@@ -201,26 +201,11 @@ class Recalculation[F[_]: Monad, E](
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[String] =
     fc match {
       case HasExpr(SingleExpr(expr)) =>
-        booleanExprEval.evaluator.eval(visSet, fc.id, expr, dataLookup, retrievals, formTemplate) match {
-          case NonConvertible(x)   => x
-          case MaybeConvertible(x) => x
-          case Converted(bigDecimalF) =>
-            bigDecimalF.map {
-              case NonComputable => ""
-              case Computed(bigDecimal) =>
-                defaultFormat(roundTo(fc)) // TODO JoVl use Convertible.round
-                  .format(bigDecimal)
-                  .replaceAll(",", "") // Format number to have required number of decimal places, but do not keep commas
-            }
-        }
+        val conv: Convertible[F] =
+          booleanExprEval.evaluator.eval(visSet, fc.id, expr, dataLookup, retrievals, formTemplate)
+        Convertible.round(conv, roundTo(fc))
       case _ => "".pure[F]
     }
-
-  def defaultFormat(i: Int) = {
-    val formatter = NumberFormat.getInstance(Locale.UK)
-    formatter.setMaximumFractionDigits(i)
-    formatter
-  }
 }
 
 class Evaluator[F[_]: Monad](
@@ -313,20 +298,20 @@ sealed trait Convertible[F[_]]
 
 object Convertible {
   def asString[F[_]: Functor](convertible: Convertible[F]): F[String] = convertible match {
-    case Converted(bigDecimal) => bigDecimal.map(NumberFormatUtil.defaultFormat.format)
+    case Converted(computable) =>
+      computable.map {
+        case NonComputable => ""
+        case Computed(bd)  => NumberFormatUtil.defaultFormat.format(bd)
+      }
     case MaybeConvertible(str) => str
     case NonConvertible(str)   => str
   }
 
-  def round[F[_]: Monad](convertible: Convertible[F], scale: Option[Int]): F[String] = convertible match {
+  def round[F[_]: Monad](convertible: Convertible[F], scale: Int): F[String] = convertible match {
     case IsConverted(eff) =>
       eff.flatMap {
-        case None => Convertible.asString(convertible)
-        case Some(bigDecimal) =>
-          scale
-            .fold(bigDecimal)(s => bigDecimal.setScale(s, RoundingMode.FLOOR))
-            .pure[F]
-            .map(NumberFormatUtil.defaultFormat.format)
+        case None     => Convertible.asString(convertible)
+        case Some(bd) => NumberFormatUtil.defaultFormat(scale).format(bd).pure[F]
       }
     case _ => Convertible.asString(convertible)
   }
@@ -339,7 +324,8 @@ case class Converted[F[_]](computable: F[Computable]) extends Convertible[F]
 object IsConverted {
   def unapply[F[_]: Functor](convertible: Convertible[F]): Option[F[Option[BigDecimal]]] =
     convertible match {
-      case Converted(bigDecimal) => Some(bigDecimal.map { case NonComputable => None; case Computed(bd) => Some(bd) })
+      case Converted(computable) =>
+        Some(computable.map { case NonComputable => None; case Computed(bd) => Some(bd) })
       case MaybeConvertible(str) => Some(str.map(BigDecimalUtil.toBigDecimalSafe))
       case NonConvertible(_)     => None
     }
