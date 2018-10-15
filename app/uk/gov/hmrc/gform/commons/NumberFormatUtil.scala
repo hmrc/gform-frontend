@@ -18,8 +18,15 @@ package uk.gov.hmrc.gform.commons
 
 import java.text.NumberFormat
 import java.util.Locale
+import java.math.RoundingMode
 
 object NumberFormatUtil {
   val defaultFormat = NumberFormat.getInstance(Locale.UK)
+  def defaultFormat(i: Int) = {
+    val formatter = NumberFormat.getInstance(Locale.UK)
+    formatter.setMaximumFractionDigits(i)
+    formatter.setRoundingMode(RoundingMode.FLOOR)
+    formatter
+  }
   val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 }
