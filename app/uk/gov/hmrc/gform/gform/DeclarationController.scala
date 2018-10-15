@@ -122,11 +122,13 @@ class DeclarationController(
           case FormField(id, value) => id -> (value :: Nil)
         }.toMap
 
+        val declarationData = FormDataRecalculated(Set.empty, dataRaw)
+
         get(dataRaw, FormComponentId("save")) match {
           case "Continue" :: Nil =>
             for {
-              data <- recalculation.recalculateFormData(dataRaw, cacheOrig.formTemplate, cacheOrig.retrievals)
-              invisibleSections = cacheOrig.formTemplate.sections.filter(data.isVisible)
+              data <- recalculation.recalculateFormData(formData, cacheOrig.formTemplate, cacheOrig.retrievals)
+              invisibleSections = cacheOrig.formTemplate.sections.filterNot(data.isVisible)
 
               invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
 
@@ -140,14 +142,13 @@ class DeclarationController(
 
               valRes <- validationService.validateComponents(
                          getAllDeclarationFields(cache.formTemplate.declarationSection.fields),
-                         data,
+                         declarationData,
                          cache.form.envelopeId,
                          cache.retrievals,
                          cacheOrig.formTemplate
                        )
 
-              response <- isValid(valRes, formId, cache, data, formTemplateId4Ga, lang)
-
+              response <- isValid(valRes, formId, cache, declarationData, formTemplateId4Ga, lang)
             } yield response
 
           case _ =>
