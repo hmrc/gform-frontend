@@ -28,7 +28,7 @@ object FormId {
   def apply(userDetails: UserDetails, formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): FormId = {
     val userId = userDetails.groupIdentifier
     val ac = maybeAccessCode.map("-" + _.value).getOrElse("")
-    new FormId(s"$userId-$formTemplateId$ac")
+    new FormId(s"$userId-${formTemplateId.value}$ac")
   }
 
   implicit val format: OFormat[FormId] = ValueClassFormat.oformat("_id", FormId.apply, _.value)
