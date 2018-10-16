@@ -403,8 +403,6 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
 
 trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
-//  def userId = UserId("James007")
-
   def userId = UserId("James007")
 
   def formId =

@@ -23,7 +23,6 @@ import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.SpecWithFakeApp
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.Data

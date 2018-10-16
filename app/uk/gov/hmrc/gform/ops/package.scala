@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Sterling, Text, TextArea }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Sterling, Text, TextArea }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 package object ops {

@@ -30,7 +30,6 @@ import play.api.mvc.{ Action, AnyContent, Request }
 import play.api.http.HttpEntity
 import play.api.mvc._
 import play.twirl.api.Html
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -41,7 +40,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -72,8 +71,7 @@ class SummaryController(
   def summaryById(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    lang: Option[String]
-  ): Action[AnyContent] =
+    lang: Option[String]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Summary | Validated | Signed =>
@@ -82,11 +80,7 @@ class SummaryController(
       }
     }
 
-  def submit(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    lang: Option[String]
-  ) =
+  def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
@@ -119,7 +113,6 @@ class SummaryController(
         lazy val handleExit = {
           val originSection = new Origin(cache.formTemplate.sections).minSectionNumber
           val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
-          // TODO Alistair - is this the right thing to do here in Summary, like it is in Form?
           maybeAccessCode match {
             case (Some(accessCode)) =>
               Ok(
@@ -147,8 +140,7 @@ class SummaryController(
   def downloadPDF(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
-    lang: Option[String]
-  ): Action[AnyContent] =
+    lang: Option[String]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case InProgress | Summary =>
@@ -196,8 +188,7 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    lang: Option[String]
-  )(implicit request: Request[_]): Future[Html] = {
+    lang: Option[String])(implicit request: Request[_]): Future[Html] = {
     val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 

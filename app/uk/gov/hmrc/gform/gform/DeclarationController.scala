@@ -59,31 +59,28 @@ class DeclarationController(
 
   import i18nSupport._
 
-  def showDeclaration(
-    maybeAccessCode: Option[AccessCode],
-    formTemplateId: FormTemplateId,
-    lang: Option[String]
-  ) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
-    cache.form.status match {
-      case Validated =>
-        Future.successful {
-          Ok {
-            renderer
-              .renderDeclarationSection(
-                maybeAccessCode,
-                cache.form,
-                cache.formTemplate,
-                cache.retrievals,
-                Valid(()),
-                FormDataRecalculated.empty,
-                Nil,
-                lang)
+  def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId, lang: Option[String]) =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+      cache.form.status match {
+        case Validated =>
+          Future.successful {
+            Ok {
+              renderer
+                .renderDeclarationSection(
+                  maybeAccessCode,
+                  cache.form,
+                  cache.formTemplate,
+                  cache.retrievals,
+                  Valid(()),
+                  FormDataRecalculated.empty,
+                  Nil,
+                  lang)
+            }
           }
-        }
 
-      case _ => Future.successful(BadRequest)
+        case _ => Future.successful(BadRequest)
+      }
     }
-  }
   //todo try and refactor the two addExtraDataToHTML into one method
   private def addExtraDataToHTML(
     html: String,
@@ -120,11 +117,7 @@ class DeclarationController(
     doc.html
   }
 
-  def submitDeclaration(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    lang: Option[String]
-  ) =
+  def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => cacheOrig =>
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val formData: Map[FormComponentId, List[String]] = cacheOrig.form.formData.fields.map {

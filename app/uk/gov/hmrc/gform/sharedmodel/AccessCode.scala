@@ -16,7 +16,4 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-// Not necessarily an identifier, per se
-// TODO need a good name for this case class
-
 case class AccessCode(value: String)

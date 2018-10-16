@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, Request, Result }
+import play.api.mvc.{ Request, Result }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.auth.{ Identifier, Verifier, _ }
 import uk.gov.hmrc.gform.config.AppConfig
