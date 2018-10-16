@@ -157,7 +157,7 @@ class DeclarationController(
                          cacheOrig.formTemplate
                        )
 
-              response <- isValid(valRes, userFormTemplateId, maybeAccessCodeId, cache, declarationData, formTemplateId4Ga, lang)
+              response <- isValid(valRes, form.formTemplateId, maybeAccessCode, cache, declarationData, lang)
 
             } yield response
 
