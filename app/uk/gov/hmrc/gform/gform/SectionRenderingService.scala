@@ -364,7 +364,7 @@ class SectionRenderingService(
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
     val maybeAccessCode = None
-    // TODO ExtraInfo needs to lose maybeAccessCode
+    // This is only used for a file upload component, which should not appear in an enrollment section
     val ei = ExtraInfo(
       maybeAccessCode,
       SectionNumber(0),
