@@ -17,8 +17,7 @@
 @import helper._
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.models.{AgentAccessCode, _}
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
@@ -55,7 +54,7 @@
 	    <p>Existing forms are protected with a unique access code which you received when you started the form. To continue an existing form, enter your access code.</p>
 
             <div class="form-group">
-                @input(accessCodeForm(AccessCode.key), '_label -> "Access Code", '_inputClass -> "input--medium input--cleared")
+                @input(accessCodeForm(AgentAccessCode.key), '_label -> "Access Code", '_inputClass -> "input--medium input--cleared")
             </div>
         </fieldset>
 

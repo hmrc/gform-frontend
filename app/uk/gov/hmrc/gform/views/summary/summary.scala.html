@@ -14,20 +14,18 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.{AccessCodeId, UserFormTemplateId}
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form.FormId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormCategory}
 @import uk.gov.hmrc.gform.views.html.localisation
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 
 @(
     formTemplate: FormTemplate,
     snippets: List[Html],
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
+    maybeAccessCode: Option[AccessCode],
     formCategory: FormCategory,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
@@ -62,7 +60,7 @@
       </p>
     </div>
 
-    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(userFormTemplateId, maybeAccessCodeId, formTemplate._id.to4Ga, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
+    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
         @CSRF.formField
       	@snippets
@@ -77,7 +75,7 @@
             You can print this summary page then come back later to complete your @{formCategory.getString}.
           </p>
           <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(userFormTemplateId, maybeAccessCodeId, formTemplate._id.to4Ga, lang).url">Print this summary page</a>
+            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode, lang).url">Print this summary page</a>
           </p>
         </div>
 

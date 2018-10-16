@@ -17,8 +17,7 @@
 @import helper._
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.models.{AgentAccessCode, _}
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.views.html._
@@ -39,10 +38,10 @@
 @formCat = @{formCategory(formTemplate)}
 @heading = @{localisation(s"Start a new $formCat or continue with one you've already started?")}
 @hasErrors = @{accessCodeForm.hasGlobalErrors | accessCodeForm.hasErrors}
-@optionValue = @{accessCodeForm(AccessCode.optionKey).value.getOrElse("")}
-@accessCodeValue = @{accessCodeForm(AccessCode.key).value.getOrElse("")}
-@optionError = @{accessCodeForm.error(AccessCode.optionKey)}
-@accessCodeError = @{accessCodeForm.error(AccessCode.key)}
+@optionValue = @{accessCodeForm(AgentAccessCode.optionKey).value.getOrElse("")}
+@accessCodeValue = @{accessCodeForm(AgentAccessCode.key).value.getOrElse("")}
+@optionError = @{accessCodeForm.error(AgentAccessCode.optionKey)}
+@accessCodeError = @{accessCodeForm.error(AgentAccessCode.key)}
 
 
 
@@ -62,7 +61,7 @@
 
     @{CSRF.formField}
 
-    <fieldset id="@{AccessCode.optionKey}-fieldset">
+    <fieldset id="@{AgentAccessCode.optionKey}-fieldset">
 
       <legend>
         <h1>
@@ -72,62 +71,62 @@
 
       <div class="form-group@if(optionError.nonEmpty){ form-group-error}">
 
-        @if(accessCodeForm.error(AccessCode.optionKey).nonEmpty){
-          <span class="error-message" id="@{AccessCode.optionKey}-inline-error">
+        @if(accessCodeForm.error(AgentAccessCode.optionKey).nonEmpty){
+          <span class="error-message" id="@{AgentAccessCode.optionKey}-inline-error">
             @Messages(s"${optionError.get.key}.${optionError.get.message}", formCat)
           </span>
         }
 
         <div class="multiple-choice group">
           <input
-          id="@{AccessCode.optionKey}-@{AccessCode.optionNew}"
+          id="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionNew}"
           class="form-control@if(optionError.nonEmpty){ form-control-error}"
           type="radio"
-          name="@{AccessCode.optionKey}"
-          value="@{AccessCode.optionNew}"
-            @if(accessCodeValue == AccessCode.optionNew){
+          name="@{AgentAccessCode.optionKey}"
+          value="@{AgentAccessCode.optionNew}"
+            @if(accessCodeValue == AgentAccessCode.optionNew){
               checked="checked"
               }
           >
-          <label for="@{AccessCode.optionKey}-@{AccessCode.optionNew}">
+          <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionNew}">
           @localisation(s"Start a new $formCat")
           </label>
         </div>
 
-        <div class="multiple-choice group" data-target="@{AccessCode.key}-container">
+        <div class="multiple-choice group" data-target="@{AgentAccessCode.key}-container">
           <input
-            id="@{AccessCode.optionKey}-@{AccessCode.optionAccess}"
+            id="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}"
             class="form-control"
             type="radio"
-            name="@{AccessCode.optionKey}"
-            value="@{AccessCode.optionAccess}"
+            name="@{AgentAccessCode.optionKey}"
+            value="@{AgentAccessCode.optionAccess}"
             required="required"
-            @if(optionValue == AccessCode.optionAccess){
+            @if(optionValue == AgentAccessCode.optionAccess){
               checked="checked"
             }
           >
-          <label for="@{AccessCode.optionKey}-@{AccessCode.optionAccess}">
+          <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}">
             @localisation(s"Continue with a $formCat you've already started")
           </label>
 
         </div>
-        <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AccessCode.key}-container">
+        <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AgentAccessCode.key}-container">
           <div class="form-group">
-            <label for="@{AccessCode.key}" class="form-label">
+            <label for="@{AgentAccessCode.key}" class="form-label">
             @localisation("Enter temporary access key")
             </label>
             <span class="form-hint">
             @localisation("For example, A12-B456-8ZZ")
             </span>
             @if(accessCodeError.nonEmpty) {
-              <span class="error-message" id="@{AccessCode.key}-inline-error">
+              <span class="error-message" id="@{AgentAccessCode.key}-inline-error">
               @Messages(s"${accessCodeError.get.key}.${accessCodeError.get.message}")
               </span>
             }
             <input
             type="text"
-            name="@{AccessCode.key}"
-            id="@{AccessCode.key}"
+            name="@{AgentAccessCode.key}"
+            id="@{AgentAccessCode.key}"
             value="@accessCodeValue"
             class="form-control form-control-1-2@if(accessCodeError.nonEmpty){ form-control-error}">
           </div>

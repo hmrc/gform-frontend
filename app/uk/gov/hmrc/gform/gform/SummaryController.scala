@@ -41,7 +41,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -70,26 +70,24 @@ class SummaryController(
   import i18nSupport._
 
   def summaryById(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
-    formTemplateId4Ga: FormTemplateId4Ga,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     lang: Option[String]
   ): Action[AnyContent] =
-    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Summary | Validated | Signed =>
-          getSummaryHTML(userFormTemplateId, maybeAccessCodeId, cache, lang).map(Ok(_))
+          getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang).map(Ok(_))
         case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
       }
     }
 
   def submit(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
-    formTemplateId4Ga: FormTemplateId4Ga,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     lang: Option[String]
   ) =
-    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
@@ -101,14 +99,16 @@ class SummaryController(
         val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
         lazy val redirectToDeclaration = gformConnector
-          .updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), UserData(cache.form.formData, Validated))
+          .updateUserData(
+            FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),
+            UserData(cache.form.formData, Validated))
           .map { _ =>
             Redirect(
               routes.DeclarationController
-                .showDeclaration(userFormTemplateId, maybeAccessCodeId, formTemplateId4Ga, lang))
+                .showDeclaration(maybeAccessCode, formTemplateId, lang))
           }
         lazy val redirectToSummary =
-          Redirect(routes.SummaryController.summaryById(userFormTemplateId, maybeAccessCodeId, formTemplateId4Ga, lang))
+          Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, lang))
         lazy val handleDeclaration = for {
           result <- isFormValidF.ifM(
                      redirectToDeclaration,
@@ -120,11 +120,11 @@ class SummaryController(
           val originSection = new Origin(cache.formTemplate.sections).minSectionNumber
           val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
           // TODO Alistair - is this the right thing to do here in Summary, like it is in Form?
-          maybeAccessCodeId match {
-            case (Some(accessCodeId)) =>
+          maybeAccessCode match {
+            case (Some(accessCode)) =>
               Ok(
                 save_with_access_code(
-                  accessCodeId,
+                  accessCode,
                   cache.formTemplate,
                   originSection,
                   originSectionTitle4Ga,
@@ -132,13 +132,7 @@ class SummaryController(
                   frontendAppConfig))
             case _ =>
               Ok(
-                save_acknowledgement(
-                  userFormTemplateId,
-                  cache.formTemplate,
-                  originSection,
-                  originSectionTitle4Ga,
-                  lang,
-                  frontendAppConfig))
+                save_acknowledgement(cache.formTemplate, originSection, originSectionTitle4Ga, lang, frontendAppConfig))
           }
         }
 
@@ -151,16 +145,15 @@ class SummaryController(
     }
 
   def downloadPDF(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
-    formTemplateId4Ga: FormTemplateId4Ga,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     lang: Option[String]
   ): Action[AnyContent] =
-    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case InProgress | Summary =>
           for {
-            summaryHml <- getSummaryHTML(userFormTemplateId, maybeAccessCodeId, cache, lang)
+            summaryHml <- getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
             htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = false)
             pdfStream <- pdfService.generatePDF(htmlForPDF)
           } yield
@@ -200,8 +193,8 @@ class SummaryController(
   }
 
   def getSummaryHTML(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     lang: Option[String]
   )(implicit request: Request[_]): Future[Html] = {
@@ -214,15 +207,7 @@ class SummaryController(
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield
       SummaryRenderingService
-        .renderSummary(
-          cache.formTemplate,
-          v,
-          data,
-          userFormTemplateId,
-          maybeAccessCodeId,
-          envelope,
-          lang,
-          frontendAppConfig)
+        .renderSummary(cache.formTemplate, v, data, maybeAccessCode, envelope, lang, frontendAppConfig)
 
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.{AccessCodeId, UserFormTemplateId}
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.gform.routes
@@ -24,9 +24,9 @@
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
 @(
-userFormTemplateId: UserFormTemplateId,
-maybeAccessCodeId: Option[AccessCodeId],
-formTemplateId4Ga: FormTemplateId4Ga,
+formId: FormId,
+maybeAccessCode: Option[AccessCode],
+formTemplateId: FormTemplateId,
 sectionNumber: SectionNumber,
 sectionTitle4Ga: SectionTitle4Ga,
 fieldValue: FormComponent,
@@ -56,7 +56,7 @@ lang: Option[String]
     <div
       class="file-uploader"
       @*TODO is data-form id right, just what is it used for?*@
-      data-form-id="@{FormId(userFormTemplateId, maybeAccessCodeId).value}"
+      data-form-id="@{formId}"
       data-file-id="@{fieldValue.id.value}"
       data-upload-text="@{defaultLabel}"
       data-change-text="@{defaultChangeLabel}"
@@ -73,9 +73,8 @@ lang: Option[String]
           <li class="file-upload__file-list-item">
             <a class="file-upload__file-list-item-link" href=@{
                 routes.FormController.fileUploadPage(
-                  userFormTemplateId,
-                  maybeAccessCodeId,
-                  formTemplateId4Ga,
+                  formTemplateId,
+                  maybeAccessCode,
                   sectionNumber,
                   sectionTitle4Ga,
                   FileId(fieldValue.id.value).value,

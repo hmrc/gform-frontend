@@ -20,16 +20,15 @@ import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ PathBindable, QueryStringBindable }
 import uk.gov.hmrc.gform.binders.ValueClassBinder.parseString
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId, UserId }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, SectionNumber, SectionTitle4Ga }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SectionTitle4Ga }
 
 import scala.util.Try
 object ValueClassBinder {
 
   //You need to name it somethingBinder, or else play can't find them
   implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
-  implicit val formTemplateId4GaBinder: PathBindable[FormTemplateId4Ga] = valueClassBinder(_.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
   implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
@@ -38,24 +37,19 @@ object ValueClassBinder {
       Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
-  implicit val userIdBinder: PathBindable[UserId] = valueClassBinder(_.value)
-  implicit val userFormTemplateIdBinder: PathBindable[UserFormTemplateId] = valueClassBinder(_.value)
-
-  implicit def optionAccessCodeBinder(implicit stringBinder: PathBindable[String]): PathBindable[Option[AccessCodeId]] =
-    new PathBindable[Option[AccessCodeId]] {
-      override def bind(key: String, value: String): Either[String, Option[AccessCodeId]] =
+  implicit def optionAccessCodeBinder(implicit stringBinder: PathBindable[String]): PathBindable[Option[AccessCode]] =
+    new PathBindable[Option[AccessCode]] {
+      override def bind(key: String, value: String): Either[String, Option[AccessCode]] =
         stringBinder.bind(key, value).right.flatMap(parseString[String]).right.map {
           case "-" => None
-          case a   => Some(AccessCodeId(a))
+          case a   => Some(AccessCode(a))
         }
 
-      override def unbind(key: String, maybeAccessCodeId: Option[AccessCodeId]): String =
-        // TODO None should be empty string, but Play does not route the POST with //0, p[erhaps we
-        maybeAccessCodeId.fold("-")(a => a.value)
+      override def unbind(key: String, maybeAccessCode: Option[AccessCode]): String =
+        maybeAccessCode.fold("-")(a => a.value)
     }
 
   implicit val formIdQueryBinder: QueryStringBindable[FormId] = valueClassQueryBinder(_.value)
-  implicit val userFormTemplateIdQueryBinder: QueryStringBindable[UserFormTemplateId] = valueClassQueryBinder(_.value)
 
   implicit val sectionNumberQueryBinder: QueryStringBindable[SectionNumber] = new QueryStringBindable[SectionNumber] {
 
@@ -70,15 +64,15 @@ object ValueClassBinder {
       s"""$key=${sectionNumber.value.toString}"""
   }
 
-  implicit val optionAccessCodeIdBinder: QueryStringBindable[Option[AccessCodeId]] =
-    new QueryStringBindable[Option[AccessCodeId]] {
-      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Option[AccessCodeId]]] =
+  implicit val optionAccessCodeBinder: QueryStringBindable[Option[AccessCode]] =
+    new QueryStringBindable[Option[AccessCode]] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Option[AccessCode]]] =
         if (params.contains(key))
-          params.get(key).flatMap(_.headOption).map(value => Right(Some(AccessCodeId(value))))
+          params.get(key).flatMap(_.headOption).map(value => Right(Some(AccessCode(value))))
         else Some(Right(None))
 
-      override def unbind(key: String, maybeAccessCodeId: Option[AccessCodeId]): String =
-        maybeAccessCodeId match {
+      override def unbind(key: String, maybeAccessCode: Option[AccessCode]): String =
+        maybeAccessCode match {
           case Some(a) => s"""$key=${a.value}"""
           case None    => ""
         }

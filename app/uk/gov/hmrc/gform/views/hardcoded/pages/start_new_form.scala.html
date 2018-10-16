@@ -17,14 +17,14 @@
 @import helper._
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.models.AgentAccessCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
         formTemplate: FormTemplate,
-        accessCode: AccessCode,
+        accessCode: AgentAccessCode,
         lang: Option[String],
         frontendAppConfig: FrontendAppConfig
 )(
@@ -74,8 +74,8 @@
 
   <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang)}" method="POST">
     @{CSRF.formField}
-    <input type="hidden" name="@{AccessCode.key}" value="@{accessCode.value}">
-    <input type="hidden" name="@{AccessCode.optionKey}" value="@{AccessCode.optionAccess}">
+    <input type="hidden" name="@{AgentAccessCode.key}" value="@{accessCode.value}">
+    <input type="hidden" name="@{AgentAccessCode.optionKey}" value="@{AgentAccessCode.optionAccess}">
     <div class="form-group">
       <input type="submit" class="button" value="@localisation("Continue")" />
     </div>

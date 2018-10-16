@@ -34,9 +34,9 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve._
 import cats.implicits._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
@@ -72,30 +72,33 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
-  def async(userFormTemplateId: UserFormTemplateId, maybeAccessCodeId: Option[AccessCodeId])(
+  def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
     f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       for {
-        form         <- gformConnector.getForm(FormId(userFormTemplateId, maybeAccessCodeId))
-        formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
+        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request.uri, ggAuthorised(authFormUser(form)))
+                       .authenticateAndAuthorise(
+                         formTemplate,
+                         request.uri,
+                         ggAuthorised(AuthSuccessful(_).pure[Future]))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals => f(newRequest)(AuthCacheWithForm(retrievals, form, formTemplate))
+                   onSuccess = withForm(f(newRequest))(maybeAccessCode, formTemplate)
                  )
       } yield result
     }
 
-  private def authFormUser(form: Form)(retrievals: MaterialisedRetrievals)(
-    implicit ec: ExecutionContext): Future[AuthResult] =
-    (if (form.userId.value == retrievals.userDetails.groupIdentifier)
-       AuthSuccessful(retrievals)
-     else
-       AuthForbidden("You cannot access this page")).pure[Future]
+  private def withForm(f: AuthCacheWithForm => Future[Result])(
+    maybeAccessCode: Option[AccessCode],
+    formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
+    for {
+      form   <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
+      result <- f(AuthCacheWithForm(retrievals, form, formTemplate))
+    } yield result
 
   private def authUserWhitelist(retrievals: MaterialisedRetrievals)(
     implicit

@@ -20,6 +20,7 @@ import cats.instances.future._
 import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, Request, Result }
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.auth.{ Identifier, Verifier, _ }
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
@@ -49,25 +50,27 @@ class EnrolmentController(
 
   import i18nSupport._
 
-  def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = Action.async { implicit request =>
-    gformConnector.getFormTemplate(formTemplateId).map { formTemplate =>
-      formTemplate.authConfig match {
-        case authConfig: AuthConfigWithEnrolment =>
-          Ok {
-            renderer
-              .renderEnrolmentSection(
-                formTemplate,
-                authConfig.enrolmentSection,
-                FormDataRecalculated.empty,
-                Nil,
-                Valid(()),
-                lang)
-          }
-        case _ =>
-          Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
-            .flashing("formTitle" -> formTemplate.formName)
+  def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+    implicit request => cache =>
+      gformConnector.getFormTemplate(formTemplateId).map { formTemplate =>
+        formTemplate.authConfig match {
+          case authConfig: AuthConfigWithEnrolment =>
+            Ok {
+              renderer
+                .renderEnrolmentSection(
+                  formTemplate,
+                  cache.retrievals,
+                  authConfig.enrolmentSection,
+                  FormDataRecalculated.empty,
+                  Nil,
+                  Valid(()),
+                  lang)
+            }
+          case _ =>
+            Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
+              .flashing("formTitle" -> formTemplate.formName)
+        }
       }
-    }
   }
 
   def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
@@ -87,7 +90,7 @@ class EnrolmentController(
                                          EnvelopeId(""),
                                          cache.retrievals,
                                          cache.formTemplate)
-                    res <- processValidation(formTemplate, authConfig, data, lang)(validationResult)
+                    res <- processValidation(formTemplate, cache.retrievals, authConfig, data, lang)(validationResult)
                   } yield res
 
                 case _ =>
@@ -105,6 +108,7 @@ class EnrolmentController(
 
   private def processValidation(
     formTemplate: FormTemplate,
+    retrievals: MaterialisedRetrievals,
     authConfig: AuthConfigWithEnrolment,
     data: FormDataRecalculated,
     lang: Option[String]
@@ -125,7 +129,8 @@ class EnrolmentController(
           .recoverWith(handleEnrolmentException(authConfig, formTemplate, lang))
 
       case validationResult @ Invalid(_) =>
-        Future.successful(displayEnrolmentSectionWithErrors(validationResult, data, authConfig, formTemplate, lang))
+        Future.successful(
+          displayEnrolmentSectionWithErrors(validationResult, data, authConfig, formTemplate, retrievals, lang))
     }
 
   private def getErrorMap(
@@ -175,13 +180,21 @@ class EnrolmentController(
     data: FormDataRecalculated,
     authConfig: AuthConfigWithEnrolment,
     formTemplate: FormTemplate,
+    retrievals: MaterialisedRetrievals,
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_]): Result = {
 
     val errorMap = getErrorMap(validationResult, data, authConfig)
 
     val html =
-      renderer.renderEnrolmentSection(formTemplate, authConfig.enrolmentSection, data, errorMap, validationResult, lang)
+      renderer.renderEnrolmentSection(
+        formTemplate,
+        retrievals,
+        authConfig.enrolmentSection,
+        data,
+        errorMap,
+        validationResult,
+        lang)
     Ok(html)
   }
 

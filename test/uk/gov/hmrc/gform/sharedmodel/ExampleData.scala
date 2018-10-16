@@ -403,13 +403,17 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
 
 trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
+//  def userId = UserId("James007")
+
   def userId = UserId("James007")
 
-  def formId = FormId(UserFormTemplateId(userId, formTemplateId), None)
+  def formId =
+    FormId(
+      UserDetails(None, None, name = "Bond", affinityGroup = AffinityGroup.Individual, groupIdentifier = userId.value),
+      formTemplateId,
+      None)
 
-  def userFormTemplateId = UserFormTemplateId(userId, FormTemplateId("form-for-tests"))
-
-  def accessCodeId = AccessCodeId("1234-0000-ABCD")
+  def accessCode = AccessCode("1234-0000-ABCD")
 
   def formFields: Seq[FormField] = data.values.toSeq
 

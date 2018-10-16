@@ -16,14 +16,10 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateId4Ga, Sterling, Text, TextArea }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Sterling, Text, TextArea }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 package object ops {
-
-  implicit class FormTemplateIdSyntax(formTemplateId: FormTemplateId) {
-    def to4Ga: FormTemplateId4Ga = FormTemplateId4Ga(formTemplateId.value)
-  }
 
   implicit class FormComponentOps(formComponent: FormComponent) {
     def isSterling = formComponent.`type` match {

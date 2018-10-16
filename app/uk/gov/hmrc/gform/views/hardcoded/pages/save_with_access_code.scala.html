@@ -15,8 +15,7 @@
  *@
 
 @import play.api.i18n.Messages.Implicits._
-@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
-@import uk.gov.hmrc.gform.sharedmodel.{AccessCodeId, UserFormTemplateId}
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -25,7 +24,7 @@
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
 
 @(
-        accessCodeId: AccessCodeId,
+        accessCode: AccessCode,
         formTemplate: FormTemplate,
         originSectionNumber: SectionNumber,
         sectionTitle4Ga: SectionTitle4Ga,
@@ -50,7 +49,7 @@
     <span class="h1-heading">
       @localisation("Make a note of your temporary access key:")
       <br>
-      @accessCodeId.value
+      @accessCode.value
     </span>
   </div>
 
@@ -59,7 +58,7 @@
   <div class="panel panel-border-wide">
     <p>
       @localisation("Keep a note of this temporary access key:")
-      <strong>@accessCodeId.value</strong>.
+      <strong>@accessCode.value</strong>.
       @localisation(s"You will be asked for it each time you come back to continue working on this $formCat.")
     </p>
   </div>

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCodeId, UserFormTemplateId, ValueClassFormat }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ValueClassFormat }
 
 case class FormTemplateId(value: String) extends AnyVal
 
@@ -30,15 +30,5 @@ object FormTemplateId {
   val vformat: Format[FormTemplateId] =
     ValueClassFormat.vformat("formTemplateId", FormTemplateId.apply, x => JsString(x.value))
   val oformat: OFormat[FormTemplateId] = ValueClassFormat.oformat("formTemplateId", FormTemplateId.apply, _.value)
-
-}
-
-// For Google Analytics only. Sole purpose of this value is to be present in URLs.
-case class FormTemplateId4Ga(value: String) extends AnyVal
-
-object FormTemplateId4Ga {
-
-  implicit val format: Format[FormTemplateId4Ga] =
-    uk.gov.hmrc.gform.models.ValueClassFormat.format(FormTemplateId4Ga.apply)(_.value)
 
 }

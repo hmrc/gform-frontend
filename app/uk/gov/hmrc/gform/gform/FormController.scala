@@ -23,7 +23,7 @@ import cats.syntax.semigroup._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
@@ -32,8 +32,8 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.models.AgentAccessCode
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.FormData._
@@ -66,8 +66,7 @@ class FormController(
   import i18nSupport._
 
   private def redirectOrigin(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
+    maybeAccessCode: Option[AccessCode],
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     lang: Option[String]): Result = {
@@ -77,35 +76,34 @@ class FormController(
     val sectionTitle4Ga = sectionTitle4GaFactory(formTemplate.sections(originSection.value).title)
     Redirect(
       routes.FormController
-        .form(userFormTemplateId, maybeAccessCodeId, formTemplate._id.to4Ga, originSection, sectionTitle4Ga, lang))
+        .form(formTemplate._id, maybeAccessCode, originSection, sectionTitle4Ga, lang))
   }
 
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
     implicit request => cache =>
       (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
         case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
-          Future.successful(Ok(access_code_start(cache.formTemplate, AccessCode.form, lang, frontendAppConfig)))
+          Future.successful(Ok(access_code_start(cache.formTemplate, AgentAccessCode.form, lang, frontendAppConfig)))
         case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
       }
   }
 
   def newFormAgent(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
     implicit request => cache =>
-      val accessCode = AccessCode.random
-      val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
-      val accessCodeId = AccessCodeId(accessCode.value)
+      val accessCode = AccessCode(AgentAccessCode.random.value)
       for {
-        _ <- startForm(formTemplateId, userId, Some(accessCodeId))
+        _ <- startForm(formTemplateId, cache.retrievals.userDetails, Some(accessCode))
       } yield
         Redirect(routes.FormController.showAccessCode(formTemplateId, lang))
-          .flashing(AccessCode.key -> accessCode.value)
+          .flashing(AgentAccessCode.key -> accessCode.value)
   }
 
   def showAccessCode(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
     implicit request => cache =>
-      request.flash.get(AccessCode.key) match {
+      request.flash.get(AgentAccessCode.key) match {
         case Some(accessCode) =>
-          Future.successful(Ok(start_new_form(cache.formTemplate, AccessCode(accessCode), lang, frontendAppConfig)))
+          Future.successful(
+            Ok(start_new_form(cache.formTemplate, AgentAccessCode(accessCode), lang, frontendAppConfig)))
         case None => Future.successful(Redirect(routes.FormController.dashboard(formTemplateId, lang)))
       }
   }
@@ -113,41 +111,37 @@ class FormController(
   def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
     implicit request => cache =>
       {
-        val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
-        val userFormTemplateId = UserFormTemplateId(userId, formTemplateId)
         for {
-          (maybeAccessCodeId, wasFormFound) <- getOrStartForm(formTemplateId, userId, None)
+          (maybeAccessCode, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals.userDetails, None)
         } yield
           if (wasFormFound) {
-            Ok(continue_form_page(cache.formTemplate, userFormTemplateId, maybeAccessCodeId, lang, frontendAppConfig))
-          } else redirectOrigin(userFormTemplateId, maybeAccessCodeId, cache.retrievals, cache.formTemplate, lang)
+            Ok(continue_form_page(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig))
+          } else redirectOrigin(maybeAccessCode, cache.retrievals, cache.formTemplate, lang)
       }
   }
 
   def newFormPost(formTemplateId: FormTemplateId, lang: Option[String]): Action[AnyContent] =
     auth.async(formTemplateId) { implicit request => cache =>
-      AccessCode.form.bindFromRequest.fold(
+      AgentAccessCode.form.bindFromRequest.fold(
         hasErrors =>
           Future.successful(BadRequest(access_code_start(cache.formTemplate, hasErrors, lang, frontendAppConfig))),
         accessCodeF => {
           accessCodeF.accessOption match {
-            case AccessCode.optionNew =>
+            case AgentAccessCode.optionNew =>
               Future.successful(Redirect(routes.FormController.newFormAgent(formTemplateId, lang)))
-            case AccessCode.optionAccess => {
-              val userFormTempateId =
-                UserFormTemplateId(UserId(cache.retrievals.userDetails.groupIdentifier), cache.formTemplate._id)
-              val maybeAccessCodeId: Option[AccessCodeId] = accessCodeF.accessCode.map(a => AccessCodeId(a))
+            case AgentAccessCode.optionAccess => {
+              val maybeAccessCode: Option[AccessCode] = accessCodeF.accessCode.map(a => AccessCode(a))
               for {
-                maybeForm <- getForm(userFormTempateId, maybeAccessCodeId)
+                maybeForm <- getForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
               } yield
                 maybeForm match {
                   case Some(_) =>
-                    redirectOrigin(userFormTempateId, maybeAccessCodeId, cache.retrievals, cache.formTemplate, lang)
+                    redirectOrigin(maybeAccessCode, cache.retrievals, cache.formTemplate, lang)
                   case None =>
                     BadRequest(
                       access_code_start(
                         cache.formTemplate,
-                        AccessCode.form.bindFromRequest().withError(AccessCode.key, "error.notfound"),
+                        AgentAccessCode.form.bindFromRequest().withError(AgentAccessCode.key, "error.notfound"),
                         lang,
                         frontendAppConfig
                       )
@@ -159,40 +153,42 @@ class FormController(
       )
     }
 
-  private def getForm(userFormTemplateId: UserFormTemplateId, maybeAccessCodeId: Option[AccessCodeId])(
-    implicit hc: HeaderCarrier): Future[Option[Form]] =
+  private def getForm(formId: FormId)(implicit hc: HeaderCarrier): Future[Option[Form]] =
     for {
-      maybeForm <- gformConnector.maybeForm(FormId(userFormTemplateId, maybeAccessCodeId))
+      maybeForm <- gformConnector.maybeForm(formId)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
     } yield maybeFormExceptSubmitted
 
-  private def startFreshForm(formTemplateId: FormTemplateId, userId: UserId, maybeAccessCodeId: Option[AccessCodeId])(
-    implicit hc: HeaderCarrier): Future[Option[AccessCodeId]] =
+  private def startFreshForm(
+    formTemplateId: FormTemplateId,
+    userDetails: UserDetails,
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Option[AccessCode]] =
     for {
-      // TODO should pass formId to gform
-      _ <- gformConnector.newForm(formTemplateId, userId, maybeAccessCodeId.map(a => AccessCode(a.value)))
-    } yield maybeAccessCodeId
+      _ <- gformConnector.newForm(formTemplateId, UserId(userDetails.groupIdentifier), maybeAccessCode)
+    } yield maybeAccessCode
 
-  private def startForm(formTemplateId: FormTemplateId, userId: UserId, maybeAccessCodeId: Option[AccessCodeId])(
-    implicit hc: HeaderCarrier): Future[Option[AccessCodeId]] = {
-    val formId = FormId(UserFormTemplateId(userId, formTemplateId), None)
+  private def startForm(formTemplateId: FormTemplateId, userDetails: UserDetails, maybeAccessCode: Option[AccessCode])(
+    implicit hc: HeaderCarrier): Future[Option[AccessCode]] = {
+    val formId = FormId(userDetails, formTemplateId, None)
     def formIdAlreadyExists = Future.failed(new Exception(s"Form $formId already exists"))
     for {
       maybeForm <- gformConnector.maybeForm(formId)
-      mayBeAccessCodeIdResult <- if (maybeForm.isDefined) formIdAlreadyExists
-                                else startFreshForm(formTemplateId, userId, maybeAccessCodeId)
-    } yield mayBeAccessCodeIdResult
+      maybeAccessCodeResult <- if (maybeForm.isDefined) formIdAlreadyExists
+                              else startFreshForm(formTemplateId, userDetails, maybeAccessCode)
+    } yield maybeAccessCodeResult
   }
 
   //true - it got the form, false - new form was created
-  private def getOrStartForm(formTemplateId: FormTemplateId, userId: UserId, maybeAccessCodeId: Option[AccessCodeId])(
-    implicit hc: HeaderCarrier): Future[(Option[AccessCodeId], Boolean)] =
+  private def getOrStartForm(
+    formTemplateId: FormTemplateId,
+    userDetails: UserDetails,
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(Option[AccessCode], Boolean)] =
     for {
-      maybeForm <- gformConnector.maybeForm(FormId(UserFormTemplateId(userId, formTemplateId), None))
+      maybeForm <- gformConnector.maybeForm(FormId(userDetails, formTemplateId, None))
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
       maybeNoAccessCode = maybeFormExceptSubmitted.map(_ => None.pure[Future])
-      maybeAccessCodeIdResult <- maybeNoAccessCode.getOrElse(startFreshForm(formTemplateId, userId, maybeAccessCodeId))
-    } yield (maybeAccessCodeIdResult, maybeFormExceptSubmitted.isDefined)
+      maybeAccessCodeResult <- maybeNoAccessCode.getOrElse(startFreshForm(formTemplateId, userDetails, maybeAccessCode))
+    } yield (maybeAccessCodeResult, maybeFormExceptSubmitted.isDefined)
 
   private type Validator = (
     FormDataRecalculated,
@@ -204,13 +200,12 @@ class FormController(
     FormTemplate) => Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType, Envelope)]
 
   private def renderSection(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
-    formTemplateId4Ga: FormTemplateId4Ga,
+    maybeAccessCode: Option[AccessCode],
+    formTemplateId: FormTemplateId,
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     lang: Option[String],
-    validator: Validator) = auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+    validator: Validator) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
     val formTemplate = cache.formTemplate
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
@@ -228,8 +223,7 @@ class FormController(
                                 implicitly,
                                 cache.formTemplate)
       html = renderer.renderSection(
-        userFormTemplateId,
-        maybeAccessCodeId,
+        maybeAccessCode,
         cache.form,
         sectionNumber,
         data,
@@ -248,59 +242,41 @@ class FormController(
   }
 
   def form(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
-    formTemplateId4Ga: FormTemplateId4Ga,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     lang: Option[String]) =
-    renderSection(
-      userFormTemplateId,
-      maybeAccessCodeId,
-      formTemplateId4Ga,
-      sectionNumber,
-      sectionTitle4Ga,
-      lang,
-      doNotValidate)
+    renderSection(maybeAccessCode, formTemplateId, sectionNumber, sectionTitle4Ga, lang, doNotValidate)
 
   def formError(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
-    formTemplateId4Ga: FormTemplateId4Ga,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     lang: Option[String]) =
-    renderSection(
-      userFormTemplateId,
-      maybeAccessCodeId,
-      formTemplateId4Ga,
-      sectionNumber,
-      sectionTitle4Ga,
-      lang,
-      validate)
+    renderSection(maybeAccessCode, formTemplateId, sectionNumber, sectionTitle4Ga, lang, validate)
 
   def fileUploadPage(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
-    formTemplateId4Ga: FormTemplateId4Ga,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     fId: String,
-    lang: Option[String]) = auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+    lang: Option[String]) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
     val fileId = FileId(fId)
 
     val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController
-      .form(userFormTemplateId, maybeAccessCodeId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang)
+      .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang)
     val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController
-      .form(userFormTemplateId, maybeAccessCodeId, formTemplateId4Ga, sectionNumber, sectionTitle4Ga, lang)
+      .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang)
 
     def actionUrl(envelopeId: EnvelopeId) =
       s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`.toString}&redirect-error-url=${`redirect-error-url`.toString}"
 
     Ok(
       snippets.file_upload_page(
-        userFormTemplateId,
-        maybeAccessCodeId,
+        maybeAccessCode,
         sectionNumber,
         sectionTitle4Ga,
         fileId,
@@ -318,19 +294,16 @@ class FormController(
 
   def decision(
     formTemplateId: FormTemplateId,
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
+    maybeAccessCode: Option[AccessCode],
     lang: Option[String]): Action[AnyContent] =
-    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       choice.bindFromRequest
         .fold(
-          _ =>
-            BadRequest(
-              continue_form_page(cache.formTemplate, userFormTemplateId, maybeAccessCodeId, lang, frontendAppConfig)), {
+          _ => BadRequest(continue_form_page(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)), {
             case "continue" =>
-              redirectOrigin(userFormTemplateId, maybeAccessCodeId, cache.retrievals, cache.formTemplate, lang)
+              redirectOrigin(maybeAccessCode, cache.retrievals, cache.formTemplate, lang)
             case "delete" =>
-              Ok(confirm_delete(cache.formTemplate, userFormTemplateId, maybeAccessCodeId, lang, frontendAppConfig))
+              Ok(confirm_delete(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig))
             case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
           }
         )
@@ -338,14 +311,13 @@ class FormController(
     }
 
   def delete(
-    formTemplateId4Ga: FormTemplateId4Ga,
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     lang: Option[String]): Action[AnyContent] =
-    auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       gformConnector
-        .deleteForm(FormId(userFormTemplateId, maybeAccessCodeId))
-        .map(_ => Redirect(routes.FormController.newForm(cache.formTemplate._id, lang)))
+        .deleteForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
+        .map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
     }
 
   val deleteOnExit = delete _
@@ -389,11 +361,11 @@ class FormController(
   }
 
   def updateFormData(
-    userFormTemplateId: UserFormTemplateId,
-    maybeAccessCodeId: Option[AccessCodeId],
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     lang: Option[String]
-  ) = auth.async(userFormTemplateId, maybeAccessCodeId) { implicit request => cache =>
+  ) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
     processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
       val envelopeId = cache.form.envelopeId
       val retrievals = cache.retrievals
@@ -418,69 +390,56 @@ class FormController(
                        }
         } yield formData
 
-      def processSaveAndContinue(userId: UserId, form: Form, sn: SectionNumber)(
+      def processSaveAndContinue(userDetails: UserDetails, form: Form, sn: SectionNumber)(
         implicit hc: HeaderCarrier): Future[Result] =
         for {
           (_, sections)           <- dataAndSections
           (isFormValid, formData) <- validateForm
           _ <- gformConnector
-                .updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), UserData(formData, InProgress))
+                .updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), UserData(formData, InProgress))
         } yield {
           val sectionTitle4Ga = sectionTitle4GaFactory(sections(sn.value).title)
           val gotoForm = routes.FormController
-            .form(userFormTemplateId, maybeAccessCodeId, cache.formTemplate._id.to4Ga, sn, sectionTitle4Ga, lang)
+            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, lang)
           val gotoFormError = routes.FormController
-            .formError(
-              userFormTemplateId,
-              maybeAccessCodeId,
-              cache.formTemplate._id.to4Ga,
-              sectionNumber,
-              sectionTitle4Ga,
-              lang)
+            .formError(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang)
 
           Redirect(if (isFormValid) gotoForm else gotoFormError)
         }
 
-      def processSaveAndSummary(userId: UserId, form: Form)(implicit hc: HeaderCarrier): Future[Result] =
+      def processSaveAndSummary(userDetails: UserDetails, form: Form)(implicit hc: HeaderCarrier): Future[Result] =
         for {
           (_, sections)           <- dataAndSections
           (isFormValid, formData) <- validateForm
           userData = UserData(formData, Summary)
-          _ <- gformConnector.updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), userData)
+          _ <- gformConnector.updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
         } yield {
 
           val sectionTitle4Ga = sectionTitle4GaFactory(sections(sectionNumber.value).title)
           val gotoSummary = routes.SummaryController
-            .summaryById(userFormTemplateId, maybeAccessCodeId, cache.formTemplate._id.to4Ga, lang)
+            .summaryById(formTemplateId, maybeAccessCode, lang)
           val gotoFormError = routes.FormController
-            .formError(
-              userFormTemplateId,
-              maybeAccessCodeId,
-              cache.formTemplate._id.to4Ga,
-              sectionNumber,
-              sectionTitle4Ga,
-              lang)
+            .formError(cache.formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang)
 
           Redirect(if (isFormValid) gotoSummary else gotoFormError)
         }
 
-      def processSaveAndExit(userId: UserId, form: Form, envelopeId: EnvelopeId): Future[Result] =
+      def processSaveAndExit(userDetails: UserDetails, form: Form, envelopeId: EnvelopeId): Future[Result] =
         for {
           (_, sections) <- dataAndSections
           (_, formData) <- validateForm
           userData = UserData(formData, InProgress)
           originSection = new Origin(sections).minSectionNumber
           sectionTitle4Ga = sectionTitle4GaFactory(sections(originSection.value).title)
-          //TODO get real access code - this is stubbing "000-0000-00" until then
           result <- gformConnector
-                     .updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), userData)
+                     .updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
                      .map(
                        response =>
-                         maybeAccessCodeId match {
-                           case (Some(accessCodeId)) =>
+                         maybeAccessCode match {
+                           case (Some(accessCode)) =>
                              Ok(
                                save_with_access_code(
-                                 accessCodeId,
+                                 accessCode,
                                  cache.formTemplate,
                                  originSection,
                                  sectionTitle4Ga,
@@ -489,7 +448,6 @@ class FormController(
                            case _ =>
                              Ok(
                                save_acknowledgement(
-                                 userFormTemplateId,
                                  cache.formTemplate,
                                  originSection,
                                  sectionTitle4Ga,
@@ -499,24 +457,16 @@ class FormController(
                      )
         } yield result
 
-      def processBack(userId: UserId, form: Form, sn: SectionNumber): Future[Result] =
+      def processBack(userDetails: UserDetails, form: Form, sn: SectionNumber): Future[Result] =
         for {
           (_, sections) <- dataAndSections
           (_, formData) <- validateForm
           userData = UserData(formData, InProgress)
           sectionTitle4Ga = sectionTitle4GaFactory(sections(sn.value).title)
           result <- gformConnector
-                     .updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), userData)
-                     .map(
-                       response =>
-                         Redirect(
-                           routes.FormController.form(
-                             userFormTemplateId,
-                             maybeAccessCodeId,
-                             cache.formTemplate._id.to4Ga,
-                             sn,
-                             sectionTitle4Ga,
-                             lang)))
+                     .updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
+                     .map(response =>
+                       Redirect(routes.FormController.form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, lang)))
         } yield result
 
       def processAddGroup(groupId: String): Future[Result] = {
@@ -528,18 +478,13 @@ class FormController(
           (_, formData) <- validateForm
           (groupFormData, anchor) = addNextGroup(findFormComponent(groupComponentId, sections), formData)
           userData = UserData(formData |+| groupFormData, InProgress)
-          _ <- gformConnector.updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), userData)
+          _ <- gformConnector
+                .updateUserData(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode), userData)
           sectionTitle4Ga = sectionTitle4GaFactory(sections(sectionNumber.value).title)
         } yield
           Redirect(
             routes.FormController
-              .form(
-                userFormTemplateId,
-                maybeAccessCodeId,
-                cache.formTemplate._id.to4Ga,
-                sectionNumber,
-                sectionTitle4Ga,
-                lang)
+              .form(cache.formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang)
               .url + anchor.map("#" + _).getOrElse(""))
       }
 
@@ -560,32 +505,27 @@ class FormController(
                              cache.formTemplate)
           formData = FormData(errors.toMap.values.toSeq.flatMap(_.toFormField))
           userData = UserData(formData, InProgress)
-          _ <- gformConnector.updateUserData(FormId(userFormTemplateId, maybeAccessCodeId), userData)
+          _ <- gformConnector
+                .updateUserData(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode), userData)
           sectionTitle4Ga = sectionTitle4GaFactory(sections(sectionNumber.value).title)
         } yield
           Redirect(
             routes.FormController
-              .form(
-                userFormTemplateId,
-                maybeAccessCodeId,
-                cache.formTemplate._id.to4Ga,
-                sectionNumber,
-                sectionTitle4Ga,
-                lang)
+              .form(cache.formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang)
               .url
           )
 
-      val userId = UserId(cache.retrievals.userDetails.groupIdentifier)
+      val userDetails = cache.retrievals.userDetails
       val navigationF: Future[Direction] = for {
         (data, sections) <- dataAndSections
       } yield new Navigator(sectionNumber, sections, data).navigate
 
       navigationF.flatMap {
-        case SaveAndContinue(sn)       => processSaveAndContinue(userId, cache.form, sn)
-        case SaveAndExit               => processSaveAndExit(userId, cache.form, cache.form.envelopeId)
-        case Back(sn)                  => processBack(userId, cache.form, sn)
-        case SaveAndSummary            => processSaveAndSummary(userId, cache.form)
-        case BackToSummary             => processSaveAndSummary(userId, cache.form)
+        case SaveAndContinue(sn)       => processSaveAndContinue(userDetails, cache.form, sn)
+        case SaveAndExit               => processSaveAndExit(userDetails, cache.form, cache.form.envelopeId)
+        case Back(sn)                  => processBack(userDetails, cache.form, sn)
+        case SaveAndSummary            => processSaveAndSummary(userDetails, cache.form)
+        case BackToSummary             => processSaveAndSummary(userDetails, cache.form)
         case AddGroup(groupId)         => processAddGroup(groupId)
         case RemoveGroup(idx, groupId) => processRemoveGroup(idx, groupId)
       }
