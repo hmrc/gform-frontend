@@ -137,8 +137,14 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       FormField(FormComponentId("2_d"), "")
     )
 
-    addNextGroup(Some(group), FormData(formData1)) shouldBe ((FormData(expected1), Some("1_a")))
-    addNextGroup(Some(group), FormData(formData2)) shouldBe ((FormData(expected2), Some("2_a")))
+    addNextGroup(Some(group), FormData(formData1), FormDataRecalculated.empty) shouldBe (
+      (
+        FormData(expected1),
+        Some("1_a")))
+    addNextGroup(Some(group), FormData(formData2), FormDataRecalculated.empty) shouldBe (
+      (
+        FormData(expected2),
+        Some("2_a")))
 
   }
 
@@ -161,8 +167,14 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       FormField(FormComponentId("2_a-year"), "")
     )
 
-    addNextGroup(Some(group), FormData(formData1)) shouldBe ((FormData(expected1), Some("1_a-day")))
-    addNextGroup(Some(group), FormData(formData2)) shouldBe ((FormData(expected2), Some("2_a-day")))
+    addNextGroup(Some(group), FormData(formData1), FormDataRecalculated.empty) shouldBe (
+      (
+        FormData(expected1),
+        Some("1_a-day")))
+    addNextGroup(Some(group), FormData(formData2), FormDataRecalculated.empty) shouldBe (
+      (
+        FormData(expected2),
+        Some("2_a-day")))
 
   }
 

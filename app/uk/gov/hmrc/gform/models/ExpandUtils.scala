@@ -48,7 +48,7 @@ object ExpandUtils {
 
     val fieldsInGroups: List[A] = groups.flatMap(_.fields).collect(pf)
 
-    val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent.expandedFC)
+    val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent(data.data).expandedFC)
     val filtered = formComponents.filter(fc => pf.lift(fc).isDefined)
 
     val fcIds: Set[FormComponentId] = data.data.keys.toSet
@@ -133,7 +133,10 @@ object ExpandUtils {
     res.size / ids.size
   }
 
-  def addNextGroup(maybeGroupFc: Option[FormComponent], formData: FormData): (FormData, Option[String]) =
+  def addNextGroup(
+    maybeGroupFc: Option[FormComponent],
+    formData: FormData,
+    data: FormDataRecalculated): (FormData, Option[String]) =
     maybeGroupFc match {
       case Some(groupFC @ IsGroup(group)) =>
         // We do not have and an index we are adding. We need to derive it from data
@@ -143,10 +146,7 @@ object ExpandUtils {
           existingData / group.fields.size
         }
 
-        val formDataFields =
-          groupFC.expandFormComponent.allIds.collect {
-            case fcId if hasPrefix(index, fcId) => FormField(fcId, "")
-          }
+        val formDataFields = groupIndex(index + 1, group).map(FormField(_, ""))
 
         val anchor = group.fields
           .dropWhile {
@@ -173,7 +173,7 @@ object ExpandUtils {
     maybeGroupFc match {
       case None => data
       case Some(groupFC @ IsGroup(group)) =>
-        val allGroupFcIds: Set[FormComponentId] = groupFC.expandFormComponent.allIds.toSet
+        val allGroupFcIds: Set[FormComponentId] = groupFC.expandFormComponent(data.data).allIds.toSet
         val groupIdToRemove = groupIndex(idx, group)
 
         val updatedData: Map[FormComponentId, Seq[String]] = data.data -- groupIdToRemove
@@ -185,7 +185,7 @@ object ExpandUtils {
         }
 
         val noGaps: List[FormComponentId] =
-          groupFcWithoutLast.expandFormComponent.allIds.map(appendZeroPrefix).sortBy(_.value)
+          groupFcWithoutLast.expandFormComponent(data.data).allIds.map(appendZeroPrefix).sortBy(_.value)
 
         val sortedIntersect: List[FormComponentId] = remainingGroupIds.toList.map(appendZeroPrefix).sortBy(_.value)
 
@@ -197,7 +197,6 @@ object ExpandUtils {
                 (stripZeroPrefix(targetFcId), updatedData.get(stripZeroPrefix(sourceFcId)).getOrElse(Seq.empty[String]))
             }
             .toMap
-
         val newData = (updatedData -- allGroupFcIds) ++ updatedMap
 
         data.copy(data = newData)
@@ -209,10 +208,15 @@ object ExpandUtils {
     val gFCIds: List[FormComponentId] = group.fields.map(_.id)
     val gFC: Set[FormComponentId] = gFCIds.toSet
 
-    val presentOnPage: List[FormComponent] = submittedFCs(data, topFieldValue.expandFormComponent.expandedFC)
+    val presentOnPage: List[FormComponent] = submittedFCs(data, topFieldValue.expandFormComponent(data.data).expandedFC)
+
+    val baseFieldPresentOnPage = {
+      val alreadyPresent = presentOnPage.map(_.id).toSet
+      group.fields.filterNot(field => alreadyPresent.contains(field.id))
+    }
 
     val grouped: Map[Option[FormComponentId], List[FormComponent]] =
-      presentOnPage.groupBy(fc => gFC.find(id => stripAnyPrefix(fc.id) == id))
+      (baseFieldPresentOnPage ++ presentOnPage).groupBy(fc => gFC.find(id => stripAnyPrefix(fc.id) == id))
 
     grouped.values.toList.transpose.map(componentList => sortGroupList(componentList, gFCIds))
   }

@@ -214,7 +214,7 @@ object SummaryRenderingService {
 
     val sections = RepeatingComponentService.getAllSections(formTemplate, data)
 
-    val fields = sections.flatMap(RepeatingComponentService.atomicFields)
+    val fields = sections.flatMap(RepeatingComponentService.atomicFields(_, data.data))
 
     renderHtmls(sections, fields)
   }

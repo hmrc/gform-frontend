@@ -20,6 +20,7 @@ import cats.instances.either._
 import cats.syntax.functor._
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 sealed trait GraphNode
@@ -30,7 +31,10 @@ object DependencyGraph {
 
   val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
 
-  def toGraph(formTemplate: FormTemplate): Graph[GraphNode, DiEdge] = graphFrom(formTemplate.expandFormTemplate)
+  def toGraph(formTemplate: FormTemplate, data: Data): Graph[GraphNode, DiEdge] =
+    graphFrom(formTemplate.expandFormTemplate(data))
+  def toGraphFull(formTemplate: FormTemplate): Graph[GraphNode, DiEdge] =
+    graphFrom(formTemplate.expandFormTemplateFull)
 
   private def graphFrom(expandedFT: ExpandedFormTemplate): Graph[GraphNode, DiEdge] = {
 

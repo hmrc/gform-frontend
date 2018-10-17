@@ -33,6 +33,7 @@ import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
+import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, IncludeIfGN, SimpleGN }
@@ -71,9 +72,9 @@ class Recalculation[F[_]: Monad, E](
   private def recalculateFormData_(data: Data, formTemplate: FormTemplate, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier): EitherT[F, GraphException, FormDataRecalculated] = {
 
-    val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate)
+    val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate, data)
 
-    val fcLookup: Map[FormComponentId, FormComponent] = formTemplate.expandFormTemplate.fcsLookup
+    val fcLookup: Map[FormComponentId, FormComponent] = formTemplate.expandFormTemplate(data).fcsLookup(data)
 
     val orderedGraph: Either[GraphException, graph.LayeredTopologicalOrder[graph.NodeT]] = DependencyGraph
       .constructDepencyGraph(graph)
@@ -188,7 +189,10 @@ class Recalculation[F[_]: Monad, E](
       else
         fc match {
           case IsText(_) | IsTextArea(_) =>
-            recalculate(fc, visSet, dataLookup, retrievals, formTemplate).map(a => dataLookup + (fcId -> Seq(a)))
+            recalculate(fc, visSet, dataLookup, retrievals, formTemplate).map { recalculatedValue =>
+              if (recalculatedValue.isEmpty) dataLookup
+              else dataLookup + (fcId -> Seq(recalculatedValue))
+            }
           case _ => dataLookup.pure[F] // Nothing to recompute on non-text components
         }
     }
@@ -212,8 +216,7 @@ class Evaluator[F[_]: Monad](
   eeittPrepop: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => F[String]
 ) {
 
-  val default = "0"
-  val defaultF = default.pure[F]
+  val defaultF = "0".pure[F]
   val nothingF = "".pure[F]
 
   def eval(
@@ -224,14 +227,14 @@ class Evaluator[F[_]: Monad](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Convertible[F] =
     expr match {
-      case Value           => MaybeConvertible(dataLookup.get(fcId).flatMap(_.headOption).getOrElse("").pure[F])
+      case Value           => getSubmissionData(dataLookup, fcId)
       case UserCtx(_)      => NonConvertible(affinityGroupNameO(retrievals.affinityGroup).pure[F])
       case AuthCtx(value)  => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
       case EeittCtx(eeitt) => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
       case Constant(fc)    => MaybeConvertible(fc.pure[F])
       case fc @ FormCtx(_) =>
         if (isHidden(fc.toFieldId, visSet)) MaybeConvertible(defaultF)
-        else MaybeConvertible(dataLookup.get(fc.toFieldId).flatMap(_.headOption).getOrElse(default).pure[F])
+        else getSubmissionData(dataLookup, fc.toFieldId)
       case Sum(FormCtx(fc)) =>
         if (isHidden(fcId, visSet)) MaybeConvertible(defaultF)
         else sum(visSet, fcId, fc, dataLookup, retrievals, formTemplate)
@@ -239,6 +242,12 @@ class Evaluator[F[_]: Monad](
       case Add(f1, f2)         => Converted(makeCalc(visSet, fcId, dataLookup, _ + _, f1, f2, retrievals, formTemplate))
       case Subtraction(f1, f2) => Converted(makeCalc(visSet, fcId, dataLookup, _ - _, f1, f2, retrievals, formTemplate))
       case Multiply(f1, f2)    => Converted(makeCalc(visSet, fcId, dataLookup, _ * _, f1, f2, retrievals, formTemplate))
+    }
+
+  private def getSubmissionData(dataLookup: Data, fcId: FormComponentId): Convertible[F] =
+    dataLookup.get(fcId).flatMap(_.headOption) match {
+      case None        => Converted((NonComputable: Computable).pure[F])
+      case Some(value) => MaybeConvertible(value.pure[F])
     }
 
   private def sum(

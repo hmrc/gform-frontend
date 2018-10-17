@@ -35,9 +35,7 @@ trait Navigation {
 }
 
 // TODO: Origin should not be in controllers, but Navigator probably should!
-case class Origin(sections: List[Section]) extends Navigation {
-  val data: FormDataRecalculated = FormDataRecalculated.empty
-}
+case class Origin(sections: List[Section], val data: FormDataRecalculated) extends Navigation
 
 sealed trait Direction
 

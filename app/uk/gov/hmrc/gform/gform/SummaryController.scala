@@ -82,7 +82,7 @@ class SummaryController(
 
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
-      processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
+      processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
         val formFieldValidationResultsF = for {
@@ -110,27 +110,33 @@ class SummaryController(
                    )
         } yield result
 
-        lazy val handleExit = {
-          val originSection = new Origin(cache.formTemplate.sections).minSectionNumber
-          val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
-          maybeAccessCode match {
-            case (Some(accessCode)) =>
-              Ok(
-                save_with_access_code(
-                  accessCode,
-                  cache.formTemplate,
-                  originSection,
-                  originSectionTitle4Ga,
-                  lang,
-                  frontendAppConfig))
-            case _ =>
-              Ok(
-                save_acknowledgement(cache.formTemplate, originSection, originSectionTitle4Ga, lang, frontendAppConfig))
-          }
+        lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
+          data =>
+            val originSection = new Origin(cache.formTemplate.sections, data).minSectionNumber
+            val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
+            maybeAccessCode match {
+              case (Some(accessCode)) =>
+                Ok(
+                  save_with_access_code(
+                    accessCode,
+                    cache.formTemplate,
+                    originSection,
+                    originSectionTitle4Ga,
+                    lang,
+                    frontendAppConfig))
+              case _ =>
+                Ok(
+                  save_acknowledgement(
+                    cache.formTemplate,
+                    originSection,
+                    originSectionTitle4Ga,
+                    lang,
+                    frontendAppConfig))
+            }
         }
 
-        get(data, FormComponentId("save")) match {
-          case "Exit" :: Nil        => handleExit.pure[Future]
+        get(dataRaw, FormComponentId("save")) match {
+          case "Exit" :: Nil        => handleExit
           case "Declaration" :: Nil => handleDeclaration
           case _                    => BadRequest("Cannot determine action").pure[Future]
         }
@@ -170,7 +176,7 @@ class SummaryController(
       data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals)
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
-      allFields = submittedFCs(data, sections.flatMap(_.expandSection.allFCs))
+      allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
 
       v1 <- sections
              .traverse(

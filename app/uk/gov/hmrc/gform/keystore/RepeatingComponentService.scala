@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.keystore
 
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.RepeatFormComponentIds
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
@@ -30,8 +31,7 @@ object RepeatingComponentService {
     RepeatFormComponentIds(fcId => fcs.filter(_.id.value.endsWith(fcId.value)).map(_.id))
 
   def sumFunctionality(field: FormCtx, formTemplate: FormTemplate, data: FormDataRecalculated): BigDecimal = {
-    val atomicFields: List[FormComponent] = formTemplate.sections.flatMap(_.fields)
-    val repeatFormComponentIds = getRepeatFormComponentIds(formTemplate.expandFormTemplate.allFCs)
+    val repeatFormComponentIds = getRepeatFormComponentIds(formTemplate.expandFormTemplate(data.data).allFCs)
     val fcIds: List[FormComponentId] = repeatFormComponentIds.op(FormComponentId(field.value))
     fcIds.map(id => data.data.get(id).flatMap(_.headOption).fold(0: BigDecimal)(toBigDecimalDefault)).sum
   }
@@ -186,7 +186,7 @@ object RepeatingComponentService {
     formTemplate.sections.flatMap(section => findRepeatingGroups(None, section.fields)).toSet
   }
 
-  def atomicFields(section: BaseSection): List[FormComponent] = {
+  def atomicFields(section: BaseSection, data: Data): List[FormComponent] = {
     def loop(fields: List[FormComponent]): List[FormComponent] =
       fields
         .flatMap { fv =>
@@ -201,8 +201,12 @@ object RepeatingComponentService {
         }
 
     section match {
-      case s: Section => s.expandSection.expandedFCs.flatMap(_.expandedFC)
+      case s: Section => s.expandSection(data).expandedFCs.flatMap(_.expandedFC)
       case _          => loop(section.fields)
     }
   }
+
+  def atomicFieldsFull(section: Section): List[FormComponent] =
+    section.expandSectionFull.expandedFCs.flatMap(_.expandedFC)
+
 }

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
 import scala.collection.immutable.List
@@ -44,8 +45,10 @@ case class Section(
   fields: List[FormComponent],
   continueLabel: Option[String]
 ) extends BaseSection {
-  val expandSection
-    : ExpandedSection = ExpandedSection(fields.map(_.expandFormComponent), includeIf) // TODO expand sections
+  def expandSection(data: Data): ExpandedSection =
+    ExpandedSection(fields.map(_.expandFormComponent(data)), includeIf) // TODO expand sections
+  val expandSectionFull: ExpandedSection =
+    ExpandedSection(fields.map(_.expandFormComponentFull), includeIf) // TODO expand sections
 }
 
 object Section {

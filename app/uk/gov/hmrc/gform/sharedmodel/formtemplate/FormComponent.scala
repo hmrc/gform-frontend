@@ -17,6 +17,8 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.graph.Data
+import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 
 case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal {
@@ -45,28 +47,46 @@ case class FormComponent(
   presentationHint: Option[List[PresentationHint]] = None
 ) {
 
-  private def updateField(i: Int, fc: FormComponent): FormComponent =
-    fc.copy(
-      label = LabelHelper.buildRepeatingLabel(fc, i),
-      shortName = LabelHelper.buildRepeatingLabel(fc.shortName, i))
+  private def addFieldIndex(field: FormComponent, index: Int) = {
+    val fieldToUpdate = if (index == 0) field else field.copy(id = FormComponentId(index + "_" + field.id.value))
+    val i = index + 1
+    fieldToUpdate.copy(
+      label = LabelHelper.buildRepeatingLabel(field, i),
+      shortName = LabelHelper.buildRepeatingLabel(field.shortName, i))
+  }
 
-  private def loop(fc: FormComponent): List[FormComponent] =
+  private def expandByData(fc: FormComponent, data: Data): List[FormComponent] =
+    expand(
+      fc,
+      fields =>
+        group =>
+          index => {
+            val ids: List[FormComponentId] = groupIndex(index + 1, group)
+            val toExpand: Boolean = ids.forall(data.contains)
+            if (index == 0 || toExpand) {
+              fields.map(addFieldIndex(_, index))
+            } else Nil
+      }
+    )
+
+  private def expandAll(fc: FormComponent): List[FormComponent] =
+    expand(fc, fields => _ => index => fields.map(addFieldIndex(_, index)))
+
+  private def expand(
+    fc: FormComponent,
+    f: List[FormComponent] => Group => Int => List[FormComponent]): List[FormComponent] =
     fc.`type` match {
-      case Group(fields, _, max, _, _, _) =>
+      case g @ Group(fields, _, max, _, _, _) =>
         val expandedFields: List[FormComponent] =
-          (0 until max.getOrElse(1)).toList.flatMap { i =>
-            fields.map { field =>
-              val fieldToUpdate = if (i == 0) field else field.copy(id = FormComponentId(i + "_" + field.id.value))
-              updateField(i + 1, fieldToUpdate)
-            }
-          }
-
-        expandedFields.flatMap(loop) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
+          (0 until max.getOrElse(1)).toList.flatMap(f(fields)(g))
+        expandedFields.flatMap(expand(_, f)) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
 
       case _ => fc :: Nil
     }
 
-  val expandFormComponent: ExpandedFormComponent = ExpandedFormComponent(loop(this))
+  def expandFormComponent(data: Data): ExpandedFormComponent = ExpandedFormComponent(expandByData(this, data))
+
+  val expandFormComponentFull: ExpandedFormComponent = ExpandedFormComponent(expandAll(this))
 
 }
 
