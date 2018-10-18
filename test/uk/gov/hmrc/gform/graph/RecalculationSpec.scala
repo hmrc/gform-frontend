@@ -61,7 +61,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
   }
 
-  it should "handle group poklop" in {
+  it should "handle group component" in {
 
     val formComponentIds = Table(
       // format: off
