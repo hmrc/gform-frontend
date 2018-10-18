@@ -23,7 +23,6 @@ import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.SpecWithFakeApp
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.Data
@@ -42,13 +41,14 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
       tags = fakeRequest.tags + ("CSRF_TOKEN_NAME" -> "csrfToken") + ("CSRF_TOKEN" -> "o'ight mate?"))
   }
   implicit val messages = mock[play.api.i18n.Messages]
-  val retrievals = mock[MaterialisedRetrievals]
+  val retrievals = authContext
 
   val testService = new SectionRenderingService(frontendAppConfig)
 
   "SectionRenderingService" should "generate first page" in {
     val generatedHtml = testService
       .renderSection(
+        Some(accessCode),
         form,
         SectionNumber.firstSection,
         mkFormDataRecalculated(
@@ -92,6 +92,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   "SectionRenderingService" should "set a field to hidden if is onlyShowOnSummary is set to true" in {
     val generatedHtml = testService
       .renderSection(
+        Some(accessCode),
         form,
         SectionNumber.firstSection,
         mkFormDataRecalculated(
@@ -136,6 +137,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   "SectionRenderingService" should "add in progress indicator if it is defined" in {
     val generatedHtml = testService
       .renderSection(
+        Some(accessCode),
         form,
         SectionNumber.firstSection,
         FormDataRecalculated.empty,
@@ -160,6 +162,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   it should "generate second page" in {
     val generatedHtml = testService
       .renderSection(
+        Some(accessCode),
         form,
         SectionNumber(1),
         mkFormDataRecalculated(
@@ -256,6 +259,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
     val generatedHtml = testService
       .renderSection(
+        Some(accessCode),
         form,
         SectionNumber(0),
         FormDataRecalculated.empty,
@@ -308,6 +312,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
     val generatedHtml = testService
       .renderSection(
+        Some(accessCode),
         form,
         SectionNumber(0),
         FormDataRecalculated.empty,
@@ -353,6 +358,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
     val generatedHtml = thisTestService
       .renderSection(
+        Some(accessCode),
         form,
         SectionNumber(0),
         mkFormDataRecalculated(
@@ -385,6 +391,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   it should "generate declaration page" in {
     val generatedHtml = testService
       .renderDeclarationSection(
+        Some(accessCode),
         form,
         formTemplate,
         retrievals,
@@ -408,6 +415,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   it should "generate declaration page with submit claim button" in {
     val generatedHtml = testService
       .renderDeclarationSection(
+        Some(accessCode),
         form,
         formTemplate.copy(formCategory = Some(HMRCClaimForm)),
         retrievals,
@@ -431,6 +439,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
   it should "generate declaration page with submit return button" in {
     val generatedHtml = testService
       .renderDeclarationSection(
+        Some(accessCode),
         form,
         formTemplate.copy(formCategory = Some(HMRCReturnForm)),
         retrievals,

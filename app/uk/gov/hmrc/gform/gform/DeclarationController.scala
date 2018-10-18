@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -58,14 +59,15 @@ class DeclarationController(
 
   import i18nSupport._
 
-  def showDeclaration(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String]) = auth.async(formId) {
-    implicit request => cache =>
+  def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId, lang: Option[String]) =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Validated =>
           Future.successful {
             Ok {
               renderer
                 .renderDeclarationSection(
+                  maybeAccessCode,
                   cache.form,
                   cache.formTemplate,
                   cache.retrievals,
@@ -78,7 +80,7 @@ class DeclarationController(
 
         case _ => Future.successful(BadRequest)
       }
-  }
+    }
   //todo try and refactor the two addExtraDataToHTML into one method
   private def addExtraDataToHTML(
     html: String,
@@ -115,8 +117,8 @@ class DeclarationController(
     doc.html
   }
 
-  def submitDeclaration(formTemplateId4Ga: FormTemplateId4Ga, formId: FormId, lang: Option[String]) =
-    auth.async(formId) { implicit request => cacheOrig =>
+  def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cacheOrig =>
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val formData: Map[FormComponentId, List[String]] = cacheOrig.form.formData.fields.map {
           case FormField(id, value) => id -> (value :: Nil)
@@ -148,7 +150,8 @@ class DeclarationController(
                          cacheOrig.formTemplate
                        )
 
-              response <- isValid(valRes, formId, cache, declarationData, formTemplateId4Ga, lang)
+              response <- isValid(valRes, form.formTemplateId, maybeAccessCode, cache, declarationData, lang)
+
             } yield response
 
           case _ =>
@@ -159,10 +162,10 @@ class DeclarationController(
 
   def isValid(
     valType: ValidatedType,
-    formId: FormId,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    formTemplateId4Ga: FormTemplateId4Ga,
     lang: Option[String]
   )(implicit request: Request[_]): Future[Result] = valType match {
 
@@ -176,7 +179,7 @@ class DeclarationController(
                        formDataMap(updatedForm.formData))
         _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, Signed))
         //todo perhaps not make these calls at all if the feature flag is false?
-        summaryHml <- summaryController.getSummaryHTML(formId, cache, lang)
+        summaryHml <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
         cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)
         htmlForPDF = addExtraDataToHTML(
           cleanHtml,
@@ -186,8 +189,18 @@ class DeclarationController(
           cache.formTemplate,
           data)
         _ <- if (config.sendPdfWithSubmission)
-              gformConnector.submitFormWithPdf(formId, customerId, htmlForPDF, cache.retrievals.affinityGroup)
-            else { gformConnector.submitForm(formId, customerId, cache.retrievals.affinityGroup) }
+              gformConnector.submitFormWithPdf(
+                FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),
+                customerId,
+                htmlForPDF,
+                cache.retrievals.affinityGroup)
+            else {
+              gformConnector
+                .submitForm(
+                  FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),
+                  customerId,
+                  cache.retrievals.affinityGroup)
+            }
       } yield {
         if (customerId.isEmpty)
           Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
@@ -198,12 +211,13 @@ class DeclarationController(
           customerId)
         Redirect(
           uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-            .showAcknowledgement(formId, formTemplateId4Ga, lang, submissionEventId))
+            .showAcknowledgement(maybeAccessCode, formTemplateId, lang, submissionEventId))
       }
     case validationResult @ Invalid(_) =>
       val errorMap: List[(FormComponent, FormFieldValidationResult)] =
         getErrorMap(validationResult, data, cache.formTemplate)
       val html = renderer.renderDeclarationSection(
+        maybeAccessCode,
         cache.form,
         cache.formTemplate,
         cache.retrievals,

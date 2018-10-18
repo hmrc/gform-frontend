@@ -16,35 +16,4 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import cats.data.State
-import play.api.libs.json._
-import uk.gov.hmrc.gform.typeclasses.Rnd
-
-case class AccessCode(value: String) extends AnyVal
-
-object AccessCode {
-
-  val key = "accessCode"
-
-  implicit val mongoVformat: Format[AccessCode] =
-    ValueClassFormat.vformat("_id", AccessCode.apply, x => JsString(x.value))
-
-  def random(implicit rnd: Rnd[Int]): AccessCode = {
-
-    def getChars(i: Int) = State[Rnd[Int], String](r => (r, alphanumeric(r).take(i).toList.mkString))
-
-    val refGen = for {
-      a <- getChars(3)
-      b <- getChars(4)
-      c <- getChars(3)
-    } yield AccessCode(a + "-" + b + "-" + c)
-
-    refGen.runA(rnd).value
-  }
-
-  private def alphanumeric(rnd: Rnd[Int]): Stream[Char] = {
-    val chars = ('A' to 'Z') ++ ('0' to '9').toList
-    def nextAlphaNum: Char = chars.charAt(rnd.random(chars.length))
-    Stream continually nextAlphaNum
-  }
-}
+case class AccessCode(value: String)

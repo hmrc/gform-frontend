@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
@@ -51,31 +52,36 @@ class AcknowledgementController(
 
   import i18nSupport._
 
-  def showAcknowledgement(formId: FormId, formTemplateId4Ga: FormTemplateId4Ga, lang: Option[String], eventId: String) =
-    auth.async(formId) { implicit request => cache =>
+  def showAcknowledgement(
+    maybeAccessCode: Option[AccessCode],
+    formTemplateId: FormTemplateId,
+    lang: Option[String],
+    eventId: String
+  ) =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Submitted =>
           renderer
-            .renderAcknowledgementSection(cache.form, cache.formTemplate, cache.retrievals, lang, eventId)
+            .renderAcknowledgementSection(maybeAccessCode, cache.formTemplate, cache.retrievals, lang, eventId)
             .map(Ok(_))
         case _ => Future.successful(BadRequest)
       }
     }
 
   def downloadPDF(
-    formId: FormId,
-    formTemplateId4Ga: FormTemplateId4Ga,
+    maybeAccessCode: Option[AccessCode],
+    formTemplateId: FormTemplateId,
     lang: Option[String],
-    eventId: String): Action[AnyContent] = auth.async(formId) { implicit request => cache =>
+    eventId: String): Action[AnyContent] = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
     cache.form.status match {
       case Submitted =>
         // format: OFF
         for {
-          summaryHml  <- summaryController.getSummaryHTML(formId, cache, lang)
+          summaryHml  <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
-          submission  <- gformConnector.submissionStatus(formId)
+          submission  <- gformConnector.submissionStatus(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
           htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)

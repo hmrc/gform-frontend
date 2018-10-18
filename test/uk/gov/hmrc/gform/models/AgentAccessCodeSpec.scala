@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel
+package uk.gov.hmrc.gform.models
 
 import org.scalatest.{ FlatSpec, Matchers }
-import scala.util.Random
 import uk.gov.hmrc.gform.typeclasses.Rnd
 
-class AccessCodeSpec extends FlatSpec with Matchers {
+import scala.util.Random
+
+class AgentAccessCodeSpec extends FlatSpec with Matchers {
 
   "AccessCode" should "generate access code" in {
     implicit object FixedRandomInt extends Rnd[Int] {
       val r = new Random(12)
       def random(i: Int) = r.nextInt(i)
     }
-    AccessCode.random should be(AccessCode("46Q-Z2HW-XIB"))
+    AgentAccessCode.random should be(AgentAccessCode("46Q-Z2HW-XIB"))
   }
 
   it should "generate unique access codes" in {
-    val codeA = AccessCode.random
-    val codeB = AccessCode.random
+    val codeA = AgentAccessCode.random
+    val codeB = AgentAccessCode.random
     codeA shouldNot be(codeB)
   }
 }

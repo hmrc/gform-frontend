@@ -32,13 +32,3 @@ object FormTemplateId {
   val oformat: OFormat[FormTemplateId] = ValueClassFormat.oformat("formTemplateId", FormTemplateId.apply, _.value)
 
 }
-
-// For Google Analytics only. Sole purpose of this value is to be present in URLs.
-case class FormTemplateId4Ga(value: String) extends AnyVal
-
-object FormTemplateId4Ga {
-
-  implicit val format: Format[FormTemplateId4Ga] =
-    uk.gov.hmrc.gform.models.ValueClassFormat.format(FormTemplateId4Ga.apply)(_.value)
-
-}

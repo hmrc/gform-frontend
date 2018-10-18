@@ -16,16 +16,16 @@
 
 @import helper._
 @import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 
 @(
         formTemplate: FormTemplate,
-        formId: FormId,
+        maybeAccessCode: Option[AccessCode],
         lang: Option[String],
         frontendAppConfig: FrontendAppConfig
 )(
@@ -47,7 +47,7 @@
     <a href="@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplate._id, lang)" class="link-back" value="Back">Back</a>
 </div>
 
-<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id.to4Ga, formId, lang)" method="POST">
+<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id, maybeAccessCode, lang)" method="POST">
     <h1>@heading</h1>
 
     @{CSRF.formField}

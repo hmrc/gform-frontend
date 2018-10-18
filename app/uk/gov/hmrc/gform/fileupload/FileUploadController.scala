@@ -18,7 +18,9 @@ package uk.gov.hmrc.gform.fileupload
 
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 class FileUploadController(
@@ -27,9 +29,13 @@ class FileUploadController(
   gformConnector: GformConnector
 ) extends FrontendController {
 
-  def deleteFile(formId: FormId, fileId: FileId) = auth.async(formId) { implicit request => cache =>
+  def deleteFile(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    fileId: FileId
+  ) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
     for {
-      form <- gformConnector.getForm(formId)
+      form <- gformConnector.getForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
       _    <- fileUploadService.deleteFile(form.envelopeId, fileId)
     } yield NoContent
   }

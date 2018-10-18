@@ -15,17 +15,17 @@
  *@
 
 @import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.gform.routes
-@import uk.gov.hmrc.gform.ops.FormTemplateIdSyntax
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 
 @(
-        formId: FormId,
+        maybeAccessCode: Option[AccessCode],
         sectionNumber: SectionNumber,
         sectionTitle4Ga: SectionTitle4Ga,
         fileId: FileId,
@@ -62,5 +62,5 @@
       </div>
     </form>
 
-    <a href="@{routes.FormController.form(formId, formTemplate._id.to4Ga, sectionNumber, sectionTitle4Ga, lang)}">back to form</a>
+    <a href="@{routes.FormController.form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang)}">back to form</a>
 }

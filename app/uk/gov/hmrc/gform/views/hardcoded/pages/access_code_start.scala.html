@@ -1,0 +1,189 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import helper._
+@import play.api.i18n.Messages.Implicits._
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.models.{AgentAccessCode, _}
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
+@import uk.gov.hmrc.gform.views.html._
+@import uk.gov.hmrc.gform.views.html.form.errors._
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
+
+@(
+        formTemplate: FormTemplate,
+        accessCodeForm: play.api.data.Form[uk.gov.hmrc.gform.gform.AccessCodeForm],
+        lang: Option[String],
+        frontendAppConfig: FrontendAppConfig
+)(
+        implicit
+        request: Request[_],
+        messages: Messages
+)
+
+@formCat = @{formCategory(formTemplate)}
+@heading = @{localisation(s"Start a new $formCat or continue with one you've already started?")}
+@hasErrors = @{accessCodeForm.hasGlobalErrors | accessCodeForm.hasErrors}
+@optionValue = @{accessCodeForm(AgentAccessCode.optionKey).value.getOrElse("")}
+@accessCodeValue = @{accessCodeForm(AgentAccessCode.key).value.getOrElse("")}
+@optionError = @{accessCodeForm.error(AgentAccessCode.optionKey)}
+@accessCodeError = @{accessCodeForm.error(AgentAccessCode.key)}
+
+
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = heading,
+    serviceName = formTemplate.formName,
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+    frontendAppConfig = frontendAppConfig,
+    containsErrors = hasErrors
+) {
+
+  @if(hasErrors) {
+    @error_summary(accessCodeForm, formCat)
+  }
+
+  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang)}" method="POST" novalidate="novalidate">
+
+    @{CSRF.formField}
+
+    <fieldset id="@{AgentAccessCode.optionKey}-fieldset">
+
+      <legend>
+        <h1>
+          @heading
+        </h1>
+      </legend>
+
+      <div class="form-group@if(optionError.nonEmpty){ form-group-error}">
+
+        @if(accessCodeForm.error(AgentAccessCode.optionKey).nonEmpty){
+          <span class="error-message" id="@{AgentAccessCode.optionKey}-inline-error">
+            @Messages(s"${optionError.get.key}.${optionError.get.message}", formCat)
+          </span>
+        }
+
+        <div class="multiple-choice group">
+          <input
+          id="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionNew}"
+          class="form-control@if(optionError.nonEmpty){ form-control-error}"
+          type="radio"
+          name="@{AgentAccessCode.optionKey}"
+          value="@{AgentAccessCode.optionNew}"
+            @if(accessCodeValue == AgentAccessCode.optionNew){
+              checked="checked"
+              }
+          >
+          <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionNew}">
+          @localisation(s"Start a new $formCat")
+          </label>
+        </div>
+
+        <div class="multiple-choice group" data-target="@{AgentAccessCode.key}-container">
+          <input
+            id="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}"
+            class="form-control"
+            type="radio"
+            name="@{AgentAccessCode.optionKey}"
+            value="@{AgentAccessCode.optionAccess}"
+            required="required"
+            @if(optionValue == AgentAccessCode.optionAccess){
+              checked="checked"
+            }
+          >
+          <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}">
+            @localisation(s"Continue with a $formCat you've already started")
+          </label>
+
+        </div>
+        <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AgentAccessCode.key}-container">
+          <div class="form-group">
+            <label for="@{AgentAccessCode.key}" class="form-label">
+            @localisation("Enter temporary access key")
+            </label>
+            <span class="form-hint">
+            @localisation("For example, A12-B456-8ZZ")
+            </span>
+            @if(accessCodeError.nonEmpty) {
+              <span class="error-message" id="@{AgentAccessCode.key}-inline-error">
+              @Messages(s"${accessCodeError.get.key}.${accessCodeError.get.message}")
+              </span>
+            }
+            <input
+            type="text"
+            name="@{AgentAccessCode.key}"
+            id="@{AgentAccessCode.key}"
+            value="@accessCodeValue"
+            class="form-control form-control-1-2@if(accessCodeError.nonEmpty){ form-control-error}">
+          </div>
+
+          <details class="details" role="group">
+            <summary class="summary">
+              <span>@localisation("My access key is not working")</span>
+            </summary>
+            <div class="panel-indent">
+              @localisation(s"A temporary access key is valid for 28 days. It cannot be used to access a submitted $formCat. If your access key is not working you'll need to ")
+              <a href="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormAgent(formTemplate._id, lang)}">
+              @localisation(s"start a new $formCat.")
+              </a>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+    </fieldset>
+
+    <div class="form-group">
+      <details class="details" role="group">
+        <summary class="summary">
+          <span>@localisation("Can't find my temporary access key")</span>
+        </summary>
+        <div class="details__inner" aria-hidden="true">
+          <div class="panel panel-border-narrow">
+            <p>@localisation(s"You were given this when you previously started or saved a $formCat for '${formTemplate.formName}'").
+            <p>@localisation("It has 12 characters including: letters, numbers and hyphens. For example, A12-B456-8ZZ.")</p>
+            <p>
+              @localisation(s"You will need to")
+              <a href="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormAgent(formTemplate._id, lang)}">
+              @localisation(s"start a new $formCat")
+              </a>
+              @localisation("if you’ve lost your temporary access key.")
+            </p>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel panel-border-wide">
+      <p>@localisation(s"You'll be given a temporary access key each time you start a new $formCat for '${formTemplate.formName}'.")</p>
+      <p>@localisation(s"You can use a temporary access key to continue working on a $formCat that you’ve previously saved but not yet submitted.")</p>
+    </div>
+
+    <p>
+      @localisation(s"You can start and save multiple ${formCat}s. You'll be given a unique temporary access key for each one.")
+    </p>
+    <p>
+      @localisation(s"Being able to save multiple draft ${formCat}s is a new feature we are trialling for this service and is not currently available across all services.")
+    </p>
+
+    <div class="form-group">
+      <input type="submit" class="button" value="@localisation("Continue")" />
+    </div>
+
+  </form>
+}
