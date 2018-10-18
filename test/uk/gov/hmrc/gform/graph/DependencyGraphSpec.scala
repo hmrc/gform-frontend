@@ -211,7 +211,7 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
   }
 
   private def layers(sections: List[Section])(implicit position: Position): List[(Int, List[String])] =
-    constructDepencyGraph(toGraph(mkFormTemplate(sections))) match {
+    constructDepencyGraph(toGraphFull(mkFormTemplate(sections))) match {
       case Left(e) => fail
       case Right(topOrder) =>
         topOrder.toList.map {

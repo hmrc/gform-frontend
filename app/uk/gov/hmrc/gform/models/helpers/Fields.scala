@@ -161,7 +161,7 @@ object Fields {
     dynamicSections: List[Section],
     data: FormDataRecalculated): (List[FormComponent], FormDataRecalculated) = {
     val renderList: List[Section] = dynamicSections.filterNot(_ == section)
-    val sectionAtomicFields: List[FormComponent] = renderList.flatMap(_.expandSection.allFCs)
+    val sectionAtomicFields: List[FormComponent] = renderList.flatMap(_.expandSection(data.data).allFCs)
 
     val submitted = submittedFCs(data, sectionAtomicFields)
     val alwaysEmptyHiddenGroup = getAlwaysEmptyHiddenGroup(data, section)

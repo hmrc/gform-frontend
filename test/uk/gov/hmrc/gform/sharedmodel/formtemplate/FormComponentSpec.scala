@@ -62,7 +62,7 @@ class FormComponentSpec extends FlatSpec with Matchers {
         "Short name for $n."
       )
 
-    val result = fc.expandFormComponent.expandedFC
+    val result = fc.expandFormComponentFull.expandedFC
 
     val expected = List(
       mkFormComponent("text-id", exprText, "1. Some label", "Short name for 1."),
@@ -102,7 +102,7 @@ class FormComponentSpec extends FlatSpec with Matchers {
       "Group label",
       "Group short name"
     )
-    val result = fc.expandFormComponent.expandedFC
+    val result = fc.expandFormComponentFull.expandedFC
 
     val expected = List(
       mkFormComponent("text-id", exprText, "1. Some label", "Short name for 1."),
@@ -169,7 +169,7 @@ class FormComponentSpec extends FlatSpec with Matchers {
       "Group short name outer"
     )
 
-    val result = fc.expandFormComponent.expandedFC
+    val result = fc.expandFormComponentFull.expandedFC
 
     // This is not correct, but we can take it from here if ever Group in Group functionality would be required
     val expected = List(
@@ -188,7 +188,7 @@ class FormComponentSpec extends FlatSpec with Matchers {
 
   private def notExpand(ct: ComponentType)(implicit position: Position) = {
     val fc = mkFormComponent("some-component", ct, "$n. Some label", "Short name for $n.")
-    fc.expandFormComponent.expandedFC should be(fc :: Nil)
+    fc.expandFormComponentFull.expandedFC should be(fc :: Nil)
   }
 
   private def mkFormComponent(fcId: String, ct: ComponentType, label: String, shortName: String) =

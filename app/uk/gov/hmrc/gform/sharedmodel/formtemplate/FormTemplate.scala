@@ -17,13 +17,14 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
   val allFCs: List[FormComponent] = expandedSection.flatMap(_.expandedFCs.flatMap(_.expandedFC))
   val allFcIds: List[FormComponentId] = expandedSection.flatMap(_.expandedFCs.flatMap(_.allIds))
-  val fcsLookup: Map[FormComponentId, FormComponent] =
-    allFCs.flatMap(fc => fc.expandFormComponent.allIds.map(_ -> fc)).toMap
+  def fcsLookup(data: Data): Map[FormComponentId, FormComponent] =
+    allFCs.flatMap(fc => fc.expandFormComponent(data).allIds.map(_ -> fc)).toMap
   val allIncludeIfs: List[(List[ExpandedFormComponent], IncludeIf, Int)] = expandedSection.zipWithIndex.collect {
     case (ExpandedSection(expandedFCs, Some(includeIf)), index) => (expandedFCs, includeIf, index)
   }
@@ -46,7 +47,8 @@ case class FormTemplate(
   acknowledgementSection: AcknowledgementSection,
   declarationSection: DeclarationSection
 ) {
-  val expandFormTemplate: ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSection))
+  def expandFormTemplate(data: Data): ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSection(data)))
+  val expandFormTemplateFull: ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSectionFull))
 }
 
 object FormTemplate {

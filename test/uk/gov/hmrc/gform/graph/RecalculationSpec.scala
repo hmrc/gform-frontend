@@ -61,6 +61,32 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
   }
 
+  it should "handle group component" in {
+
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData(), mkData()),
+      (mkData("a" -> "2"),                                                     mkData("a" -> "2", "b" -> "2")),
+      (mkData("a" -> "2", "b" -> "",                "c" -> ""),                mkData("a" -> "2", "b" -> "2",               "c" -> "")),
+      (mkData("a" -> "2", "b" -> "",  "1_b" -> "",  "c" -> "",  "1_c" -> ""),  mkData("a" -> "2", "b" -> "2", "1_b" -> "2", "c" -> "", "1_c" -> "")),
+      (mkData("a" -> "2", "b" -> "2", "1_b" -> "2", "c" -> "3", "1_c" -> "3"), mkData("a" -> "2", "b" -> "2", "1_b" -> "2", "c" -> "3", "1_c" -> "3"))
+      // format: on
+    )
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", Value),
+          mkFormComponent("group", mkGroup(5, List(mkFormComponent("b", FormCtx("a")), mkFormComponent("c", Value))))
+        )
+      )
+    )
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+  }
+
   it should "detect cycle in dependencies (graph cannot be sorted)" in {
 
     val inputData = mkData(
@@ -175,10 +201,14 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     }
   }
 
-  it should "missing submission data is treated as if submission has been empty string" in {
+  it should "not recompute values with missing submission data" in {
 
-    val inputData = mkData(
-      "b" -> "2"
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "1", "b" -> "2"), mkData("a" -> "1", "b" -> "1")),
+      (mkData(            "b" -> "2"), mkData(            "b" -> "2"))
+      // format: on
     )
 
     val sections = List(
@@ -190,12 +220,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       )
     )
 
-    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext)
-
-    res match {
-      case Right(formDataRecalculated) =>
-        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("")), (FormComponentId("b"), Seq("")))
-      case otherwise => fail
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
     }
   }
 
@@ -331,9 +357,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     )
 
     val expectedOutputData = mkData(
-      "a" -> "1",
-      "b" -> "",
-      "c" -> ""
+      "a" -> "1"
     )
 
     val sections =
@@ -350,7 +374,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     val formComponentIds = Table(
       // format: off
       ("input", "output"),
-      (mkData("a" -> "1"),                           mkData("a" -> "1", "b" -> "",   "c" -> "")),
+      (mkData("a" -> "1"),                           mkData("a" -> "1")),
       (mkData("a" -> "1", "b" -> "",   "c" -> ""  ), mkData("a" -> "1", "b" -> "",   "c" -> "")),
       (mkData("a" -> "1", "b" -> "10"             ), mkData("a" -> "1", "b" -> "10", "c" -> "11")),
       (mkData("a" -> "1", "b" -> "10", "c" -> "12"), mkData("a" -> "1", "b" -> "10", "c" -> "11"))
@@ -372,7 +396,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     val formComponentIds = Table(
       // format: off
       ("input", "output"),
-      (mkData("a" -> "1"),                           mkData("a" -> "1", "b" -> "",   "c" -> "")),
+      (mkData("a" -> "1"),                           mkData("a" -> "1")),
       (mkData("a" -> "1", "b" -> "",   "c" -> ""  ), mkData("a" -> "1", "b" -> "",   "c" -> "")),
       (mkData("a" -> "1", "b" -> "10"             ), mkData("a" -> "1", "b" -> "10", "c" -> "11")),
       (mkData("a" -> "1", "b" -> "10", "c" -> "12"), mkData("a" -> "1", "b" -> "10", "c" -> "12"))
@@ -393,9 +417,9 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     val formComponentIds = Table(
       // format: off
       ("input", "output"),
-      (mkData("a" -> "1"),                           mkData("a" -> "1", "b" -> "",  "c" -> "",  "d" -> "")),
-      (mkData("a" -> "0"),                           mkData("a" -> "0", "b" -> "",  "c" -> "",  "d" -> "")),
-      (mkData("a" -> "0", "b" -> "1"),               mkData("a" -> "0", "b" -> "1", "c" -> "",  "d" -> "1")),
+      (mkData("a" -> "1"),                           mkData("a" -> "1")),
+      (mkData("a" -> "0"),                           mkData("a" -> "0")),
+      (mkData("a" -> "0", "b" -> "1"),               mkData("a" -> "0", "b" -> "1"            , "d" -> "1")),
       (mkData("a" -> "0", "b" -> "1", "c" -> "1"),   mkData("a" -> "0", "b" -> "1", "c" -> "1", "d" -> "1")),
       (mkData("a" -> "0", "b" -> "0", "c" -> "1"),   mkData("a" -> "0", "b" -> "0", "c" -> "1", "d" -> "1"))
       // format: on
@@ -419,7 +443,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     val formComponentIds = Table(
       // format: off
       ("input", "output"),
-      (mkData("a" -> "0", "b" -> "1", "bb" -> "10",               "d" -> "10"), mkData("a" -> "0", "b" -> "1", "bb" -> "10", "cc" -> "",   "d" -> "10")),
+      (mkData("a" -> "0", "b" -> "1", "bb" -> "10",               "d" -> "10"), mkData("a" -> "0", "b" -> "1", "bb" -> "10",               "d" -> "10")),
       (mkData("a" -> "0", "b" -> "0", "bb" -> "10", "cc" -> "10", "d" -> "10"), mkData("a" -> "0", "b" -> "0", "bb" -> "10", "cc" -> "10", "d" -> "20")),
       (mkData("a" -> "0", "b" -> "1", "bb" -> "10", "cc" -> "10", "d" -> "10"), mkData("a" -> "0", "b" -> "1", "bb" -> "10", "cc" -> "10", "d" -> "10"))
       // format: on
@@ -445,7 +469,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       // format: off
       ("input", "output"),
       (mkData("a" -> "1", "b" -> "2", "bb" -> "10",                           "d" -> "10"             ),
-       mkData("a" -> "1", "b" -> "2", "bb" -> "10", "c" -> "",  "cc" -> "",   "d" -> "10", "e" -> "0" )),
+       mkData("a" -> "1", "b" -> "2", "bb" -> "10",                           "d" -> "10", "e" -> "0" )),
       (mkData("a" -> "1", "b" -> "0", "bb" -> "10", "c" -> "0", "cc" -> "10", "d" -> "10"             ),
        mkData("a" -> "1", "b" -> "0", "bb" -> "10", "c" -> "0", "cc" -> "10", "d" -> "10", "e" -> "0" )),
       (mkData("a" -> "1", "b" -> "1", "bb" -> "10", "c" -> "0", "cc" -> "10", "d" -> "10"             ),
