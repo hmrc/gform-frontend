@@ -13,13 +13,13 @@ object FrontendBuild extends Build with MicroService {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "frontend-bootstrap" % "10.6.0",
-    "uk.gov.hmrc" %% "auth-client" % "2.6.0",
+    "uk.gov.hmrc" %% "frontend-bootstrap" % "10.7.0",
+    "uk.gov.hmrc" %% "auth-client" % "2.16.0-play-25",
     "uk.gov.hmrc" %% "domain" % "5.2.0",
     "uk.gov.hmrc" %% "play-partials" % "6.1.0",
     "org.julienrf" %% "play-json-derived-codecs" % "3.3",
     "org.typelevel" %% "cats-core" % "1.4.0",
-    "com.github.pureconfig" %% "pureconfig" % "0.9.1",
+    "com.github.pureconfig" %% "pureconfig" % "0.9.2",
     "org.jetbrains" % "markdown" % "0.1.31",
     "com.chuusai" %% "shapeless" % "2.3.3",
     "uk.gov.hmrc" %% "http-caching-client" % "7.1.0",
