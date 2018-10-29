@@ -42,8 +42,8 @@ sealed trait Direction
 case class SaveAndContinue(sectionNumber: SectionNumber) extends Direction
 case class Back(sectionNumber: SectionNumber) extends Direction
 object SaveAndExit extends Direction
-object SaveAndSummary extends Direction
-object BackToSummary extends Direction
+case class SaveAndSummary(navigation: Navigation) extends Direction
+case class BackToSummary(navigation: Navigation) extends Direction
 case class AddGroup(groupId: String) extends Direction
 case class RemoveGroup(idx: Int, groupId: String) extends Direction
 
@@ -63,10 +63,10 @@ case class Navigator(
 
   def navigate: Direction = actionValue match {
     case "Save"                             => SaveAndExit
-    case "Continue" if isLastSectionNumber  => SaveAndSummary
+    case "Continue" if isLastSectionNumber  => SaveAndSummary(this)
     case "Continue" if !isLastSectionNumber => SaveAndContinue(nextSectionNumber)
     case "Back"                             => Back(previousOrCurrentSectionNumber)
-    case "BackToSummary"                    => BackToSummary
+    case "BackToSummary"                    => BackToSummary(this)
     case x if x.startsWith("AddGroup")      => AddGroup(x)
     case RemoveGroupR(idx, x)               => RemoveGroup(idx.toInt, x)
     case other                              => throw new BadRequestException(s"Invalid action: $other")

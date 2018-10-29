@@ -48,16 +48,16 @@ class SaveSpec extends Spec {
     override def data = super.data + (`fieldId - save` -> `formField - Continue`)
     new Navigator(sectionNumber0, allSections, formDataRecalculated).navigate shouldBe SaveAndContinue(sectionNumber1)
     new Navigator(sectionNumber1, allSections, formDataRecalculated).navigate shouldBe SaveAndContinue(sectionNumber2)
-    new Navigator(sectionNumber2, allSections, formDataRecalculated).navigate shouldBe SaveAndSummary
-
+    val nav = new Navigator(sectionNumber2, allSections, formDataRecalculated)
+    nav.navigate shouldBe SaveAndSummary(nav)
   }
 
   it should "mid section is excluded" in new FixtureExcludedMidSection {
     override def data = super.data + (`fieldId - save` -> `formField - Continue`)
-
     new Navigator(sectionNumber0, allSections, formDataRecalculated).navigate shouldBe SaveAndContinue(sectionNumber2)
     new Navigator(sectionNumber1, allSections, formDataRecalculated).navigate shouldBe SaveAndContinue(sectionNumber2)
-    new Navigator(sectionNumber2, allSections, formDataRecalculated).navigate shouldBe SaveAndSummary
+    val nav = new Navigator(sectionNumber2, allSections, formDataRecalculated)
+    nav.navigate shouldBe SaveAndSummary(nav)
   }
 
   behavior of "navigate - Back"

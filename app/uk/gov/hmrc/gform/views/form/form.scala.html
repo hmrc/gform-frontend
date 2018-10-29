@@ -38,6 +38,8 @@
 
 @heading = @{localisation(page.sectionTitle)}
 
+@submitAction = @{if (shouldDisplayBackToSummary) "BackToSummary" else "Continue"}
+
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
     serviceName = localisation(formTemplate.formName),
@@ -77,7 +79,7 @@
         <input type="hidden" id="gform-action" name="save" value="Continue" />
 
         <div class="form-group">
-            <button type="submit" class="button" value="Continue">@page.continueLabel</button>
+            <button type="submit" class="button" value="@submitAction">@page.continueLabel</button>
         </div>
         <div class="js-visible">
           @if(page.renderComeBackLater) {
@@ -85,13 +87,6 @@
               <a href="#" id="saveComeBackLater">Save and come back later</a>
           </div>
           }
-
-          @if(shouldDisplayBackToSummary){
-            <div class="form-group">
-              <a href="#" class="link-back" id="BackToSummary">Back to summary</a>
-            </div>
-          }
-
         </div>
     </form>
 
