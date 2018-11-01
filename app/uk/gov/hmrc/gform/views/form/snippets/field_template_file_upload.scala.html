@@ -55,8 +55,8 @@ lang: Option[String]
 <div class="form-group@if(hasErrors) { form-group-error}">
     <div
       class="file-uploader"
-      @*TODO is data-form id right, just what is it used for?*@
-      data-form-id="@{formId}"
+      data-form-template-id="@{formTemplateId.value}"
+      data-access-code="@{maybeAccessCode.getOrElse("-")}"
       data-file-id="@{fieldValue.id.value}"
       data-upload-text="@{defaultLabel}"
       data-change-text="@{defaultChangeLabel}"

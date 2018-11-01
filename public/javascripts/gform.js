@@ -52,8 +52,9 @@ var ERROR_CODES = {
   FILE_TOO_LARGE: 413
 };
 var FORM_ERROR_CLASS = 'form-field-group--error';
+// TODO replace hardcoded urls by Javascript Routing (https://www.playframework.com/documentation/2.6.x/ScalaJavascriptRouting)
 var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
-var FILE_DELETE_URL = '/submissions/api/forms/{{formId}}/deleteFile/{{fileId}}';
+var FILE_DELETE_URL = '/submissions/api/forms/{{formTemplateId}}/{{accessCode}}/deleteFile/{{fileId}}';
 var gfForm = $('#gf-form');
 var gfFormAction = $('#gform-action');
 
@@ -75,7 +76,8 @@ var showHideContent = new GOVUK.ShowHideContent();
 
 var uploader = function(el) {
   // variables
-  var formId = el.data('form-id');
+  var formTemplateId = el.data('form-template-id');
+  var accessCode = el.data('access-code');
   var fileId = el.data('file-id');
 
   var config = $.extend({}, uploaderDefaults, {
@@ -114,7 +116,8 @@ var uploader = function(el) {
 
     var currentFile = uploadedFileEl.clone();
     var deleteFileUrl = FILE_DELETE_URL
-      .replace('{{formId}}', formId)
+      .replace('{{formTemplateId}}', formTemplateId)
+      .replace('{{accessCode}}', accessCode)
       .replace('{{fileId}}', fileId);
 
     if (!fileId) {
@@ -375,4 +378,3 @@ function toggleAddressLabels(e) {
 }
 
 $('input[data-address-choice]').on('click', toggleAddressLabels);
-
