@@ -339,8 +339,10 @@ class FormController(
     formTemplate: FormTemplate
   ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType, Envelope)] = {
     val section = sections(sectionNumber.value)
-    val allFC = submittedFCs(formDataRecalculated, sections.flatMap(_.expandSection(formDataRecalculated.data).allFCs))
-    val sectionFields = submittedFCs(formDataRecalculated, section.expandSection(formDataRecalculated.data).allFCs)
+    val nonSubmittedYet = nonSubmittedFCsOfNonGroup(formDataRecalculated, section)
+    val allFC = submittedFCs(formDataRecalculated, sections.flatMap(_.expandSection(formDataRecalculated.data).allFCs)) ++ nonSubmittedYet
+    val sectionFields = submittedFCs(formDataRecalculated, section.expandSection(formDataRecalculated.data).allFCs) ++ nonSubmittedYet
+
     implicit val hc = headerCarrier
     for {
       envelope <- envelopeF(envelopeId)

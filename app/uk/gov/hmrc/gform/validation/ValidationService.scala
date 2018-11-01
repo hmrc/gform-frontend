@@ -308,8 +308,11 @@ class ComponentsValidator(
 
   private def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
     data: FormDataRecalculated): ValidatedType = {
-    val textData = data.data.get(fieldValue.id).toList.flatten
-    (fieldValue.mandatory, textData.filterNot(_.isEmpty()), constraint) match {
+    val textData = data.data.get(fieldValue.id) match {
+      case Some(s) => s.filterNot(_.isEmpty()).toList
+      case None    => Nil
+    }
+    (fieldValue.mandatory, textData, constraint) match {
       case (true, Nil, _)                                    => getError(fieldValue, "must be entered")
       case (_, _, AnyText)                                   => ().valid
       case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
