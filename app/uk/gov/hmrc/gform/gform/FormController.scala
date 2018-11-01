@@ -431,28 +431,25 @@ class FormController(
               }
           }
 
-        for {
-          (_, formData) <- validateForm(data, sections, sectionNumber)
-          userData = UserData(formData, Summary)
-          _             <- gformConnector.updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
-          failedSection <- fastForwardValidate
-        } yield {
-
-          val sectionTitle4Ga = sectionTitle4GaFactory(sections(sectionNumber.value).title)
-
-          Redirect {
-            failedSection match {
-              case Some(sn) =>
-                routes.FormController
-                  .formError(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, lang)
-
-              case None =>
-                routes.SummaryController
-                  .summaryById(formTemplateId, maybeAccessCode, lang)
-
-            }
+        fastForwardValidate
+          .map {
+            case Some(sn) =>
+              val sectionTitle4Ga = sectionTitle4GaFactory(sections(sectionNumber.value).title)
+              val route =
+                routes.FormController.formError(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, lang)
+              (route, InProgress)
+            case None =>
+              val route = routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, lang)
+              (route, Summary)
           }
-        }
+          .flatMap {
+            case (url, status) =>
+              for {
+                (_, formData) <- validateForm(data, sections, sectionNumber)
+                userData = UserData(formData, status)
+                _ <- gformConnector.updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
+              } yield Redirect(url)
+          }
       }
 
       def processSaveAndExit(
