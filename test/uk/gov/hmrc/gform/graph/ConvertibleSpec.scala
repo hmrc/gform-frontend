@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.graph
 import cats.instances.option._
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import FormTemplateBuilder._
 
 class ConvertibleSpec extends FlatSpec with Matchers {
 
@@ -34,7 +35,7 @@ class ConvertibleSpec extends FlatSpec with Matchers {
     )
 
     forAll(formComponentIds) { (computable, scale, expectedOutput) ⇒
-      val converted = Convertible.round(Converted[Option](Some(computable)), scale)
+      val converted = Convertible.round(Converted[Option](Some(computable)), scale, mkFormTemplate(List.empty))
       converted shouldBe Some(expectedOutput)
     }
   }

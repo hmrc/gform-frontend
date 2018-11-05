@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.graph
 
+import cats.data.NonEmptyList
 import cats.implicits._
 import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
@@ -326,6 +327,40 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
     verify(inputData, expectedOutputData, sections)
 
+  }
+
+  it should "not recalculate sections which are invisible based on choice component" in {
+
+    val text = Text(AnyText, Value)
+    val choice = Choice(YesNo, NonEmptyList.of("yes", "no"), Vertical, List.empty, None)
+
+    val formComponentIds = Table(
+      // format: off
+      ("component", "input", "output"),
+      (choice, mkData("a" -> "0", "b" -> "0", "c" -> "100", "d" -> "200"), mkData("a" -> "0", "b" -> "0", "c" -> "0",   "d" -> "0")),
+      (choice, mkData("a" -> "0", "b" -> "1", "c" -> "100", "d" -> "200"), mkData("a" -> "0", "b" -> "1", "c" -> "1",   "d" -> "1")),
+      (choice, mkData("a" -> "1", "b" -> "0", "c" -> "100", "d" -> "200"), mkData("a" -> "1", "b" -> "0", "c" -> "100", "d" -> "200")),
+      (choice, mkData("a" -> "1", "b" -> "1", "c" -> "100", "d" -> "200"), mkData("a" -> "1", "b" -> "1", "c" -> "100", "d" -> "200")),
+      (text,   mkData("a" -> "0", "b" -> "0", "c" -> "100", "d" -> "200"), mkData("a" -> "0", "b" -> "0", "c" -> "0",   "d" -> "0")),
+      (text,   mkData("a" -> "0", "b" -> "1", "c" -> "100", "d" -> "200"), mkData("a" -> "0", "b" -> "1", "c" -> "1",   "d" -> "1")),
+      (text,   mkData("a" -> "1", "b" -> "0", "c" -> "100", "d" -> "200"), mkData("a" -> "1", "b" -> "0", "c" -> "1",   "d" -> "1")),
+      (text,   mkData("a" -> "1", "b" -> "1", "c" -> "100", "d" -> "200"), mkData("a" -> "1", "b" -> "1", "c" -> "1",   "d" -> "1"))
+      // format: on
+    )
+
+    val includeIf1 = IncludeIf(Equals(FormCtx("a"), Constant("0")))
+    val includeIf2 = IncludeIf(Equals(FormCtx("b"), Constant("0")))
+    val includeIf3 = IncludeIf(Equals(FormCtx("b"), Constant("1")))
+
+    forAll(formComponentIds) { (component, input, expectedOutput) ⇒
+      val sections =
+        mkSection(List(mkFormComponent("a", component))) ::
+          mkSectionIncludeIf(List(mkFormComponent("b", component)), includeIf1) ::
+          mkSectionIncludeIf(List(mkFormComponent("c", Add(FormCtx("a"), FormCtx("b")))), includeIf2) ::
+          mkSectionIncludeIf(List(mkFormComponent("d", Add(FormCtx("a"), FormCtx("b")))), includeIf3) :: Nil
+
+      verify(input, expectedOutput, sections)
+    }
   }
 
   it should "do not disregard when no invisible parts" in {
