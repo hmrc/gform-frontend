@@ -24,7 +24,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, IsConverted }
+import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -57,50 +57,40 @@ class BooleanExprEval[F[_]: Monad](
 
     def loop(expr: BooleanExpr): F[Boolean] = isTrue(expr, data, retrievals, visSet, formTemplate)
 
-    def decimalValue(expr: Expr, formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Convertible[F] =
-      evaluator
-        .eval(visSet, FormComponentId("dummy"), expr, data, retrievals, formTemplate)
-
     def compare(
       leftField: Expr,
+      rightField: Expr,
       bigDecimalRelation: (BigDecimal, BigDecimal) => Boolean,
       stringRelation: (String, String) => Boolean,
-      rightField: Expr,
       formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[Boolean] = {
 
-      val left: Convertible[F] = decimalValue(leftField, formTemplate)
-      val right: Convertible[F] = decimalValue(rightField, formTemplate)
-
-      def compareByStringRel(l: Convertible[F], r: Convertible[F]): F[Boolean] =
-        for {
-          convLeft  <- Convertible.asString(l)
-          convRight <- Convertible.asString(r)
-        } yield stringRelation(convLeft, convRight)
-
-      def compareMaybeBigDecimal(maybeBdA: Option[BigDecimal], maybeBdB: Option[BigDecimal]): F[Boolean] =
-        (maybeBdA, maybeBdB) match {
+      def doComparison(left: Convertible[F], right: Convertible[F])(
+        maybeBigDecimalA: Option[BigDecimal],
+        maybeBigDecimalB: Option[BigDecimal]): F[Boolean] =
+        (maybeBigDecimalA, maybeBigDecimalB) match {
           case (Some(bdA), Some(bdB)) => bigDecimalRelation(bdA, bdB).pure[F]
-          case (_, _)                 => compareByStringRel(left, right)
+          case (_, _) =>
+            for {
+              maybeStringA <- Convertible.asString(left, formTemplate)
+              maybeStringB <- Convertible.asString(right, formTemplate)
+            } yield
+              (maybeStringA, maybeStringB) match {
+                case (Some(strA), Some(strB)) => stringRelation(strA, strB)
+                case (_, _)                   => false
+              }
         }
 
-      (left, right) match {
-        case (IsConverted(maybeConvLeftF), IsConverted(maybeConvRightF)) =>
-          for {
-            maybeConvLeft  <- maybeConvLeftF
-            maybeConvRight <- maybeConvRightF
-            res            <- compareMaybeBigDecimal(maybeConvLeft, maybeConvRight)
-          } yield res
-        case (l, r) => compareByStringRel(l, r)
-      }
+      val fcId = FormComponentId("dummy")
+      evaluator.makeCalc(visSet, fcId, data, leftField, rightField, retrievals, formTemplate, doComparison)
     }
 
     expr match {
-      case Equals(field1, field2)              => compare(field1, _ == _, _ == _, field2, formTemplate)
-      case NotEquals(field1, field2)           => compare(field1, _ != _, _ != _, field2, formTemplate)
-      case GreaterThan(field1, field2)         => compare(field1, _ > _, _ > _, field2, formTemplate)
-      case GreaterThanOrEquals(field1, field2) => compare(field1, _ >= _, _ >= _, field2, formTemplate)
-      case LessThan(field1, field2)            => compare(field1, _ < _, _ < _, field2, formTemplate)
-      case LessThanOrEquals(field1, field2)    => compare(field1, _ <= _, _ <= _, field2, formTemplate)
+      case Equals(field1, field2)              => compare(field1, field2, _ == _, _ == _, formTemplate)
+      case NotEquals(field1, field2)           => compare(field1, field2, _ != _, _ != _, formTemplate)
+      case GreaterThan(field1, field2)         => compare(field1, field2, _ > _, _ > _, formTemplate)
+      case GreaterThanOrEquals(field1, field2) => compare(field1, field2, _ >= _, _ >= _, formTemplate)
+      case LessThan(field1, field2)            => compare(field1, field2, _ < _, _ < _, formTemplate)
+      case LessThanOrEquals(field1, field2)    => compare(field1, field2, _ <= _, _ <= _, formTemplate)
       case Not(expr)                           => loop(expr).map(!_)
       case Or(expr1, expr2)                    => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 | e2
       case And(expr1, expr2)                   => for { e1 <- loop(expr1); e2 <- loop(expr2) } yield e1 & e2

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.{ Functor, Monad, MonadError }
+import cats.{ Applicative, Monad, MonadError }
 import cats.syntax.eq._
 import cats.syntax.either._
 import cats.syntax.functor._
@@ -207,7 +207,7 @@ class Recalculation[F[_]: Monad, E](
       case HasExpr(SingleExpr(expr)) =>
         val conv: Convertible[F] =
           booleanExprEval.evaluator.eval(visSet, fc.id, expr, dataLookup, retrievals, formTemplate)
-        Convertible.round(conv, roundTo(fc))
+        Convertible.round(conv, roundTo(fc), formTemplate)
       case _ => "".pure[F]
     }
 }
@@ -233,15 +233,18 @@ class Evaluator[F[_]: Monad](
       case EeittCtx(eeitt) => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
       case Constant(fc)    => MaybeConvertible(fc.pure[F])
       case fc @ FormCtx(_) =>
-        if (isHidden(fc.toFieldId, visSet)) MaybeConvertible(defaultF)
+        if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
         else getSubmissionData(dataLookup, fc.toFieldId)
-      case Sum(FormCtx(fc)) =>
-        if (isHidden(fcId, visSet)) MaybeConvertible(defaultF)
-        else sum(visSet, fcId, fc, dataLookup, retrievals, formTemplate)
-      case Sum(_)              => NonConvertible(nothingF)
-      case Add(f1, f2)         => Converted(makeCalc(visSet, fcId, dataLookup, _ + _, f1, f2, retrievals, formTemplate))
-      case Subtraction(f1, f2) => Converted(makeCalc(visSet, fcId, dataLookup, _ - _, f1, f2, retrievals, formTemplate))
-      case Multiply(f1, f2)    => Converted(makeCalc(visSet, fcId, dataLookup, _ * _, f1, f2, retrievals, formTemplate))
+      case Sum(fc @ FormCtx(value)) =>
+        if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
+        else sum(visSet, fcId, value, dataLookup, retrievals, formTemplate)
+      case Sum(_) => NonConvertible(nothingF)
+      case Add(f1, f2) =>
+        Converted(makeCalc(visSet, fcId, dataLookup, f1, f2, retrievals, formTemplate, (_, _) => doComputation(_ + _)))
+      case Subtraction(f1, f2) =>
+        Converted(makeCalc(visSet, fcId, dataLookup, f1, f2, retrievals, formTemplate, (_, _) => doComputation(_ - _)))
+      case Multiply(f1, f2) =>
+        Converted(makeCalc(visSet, fcId, dataLookup, f1, f2, retrievals, formTemplate, (_, _) => doComputation(_ * _)))
     }
 
   private def getSubmissionData(dataLookup: Data, fcId: FormComponentId): Convertible[F] =
@@ -270,72 +273,89 @@ class Evaluator[F[_]: Monad](
       case IncludeIfGN(fcId_, _) => fcId === fcId_
     }
 
-  private def makeCalc(
+  private def doComputation(operator: (BigDecimal, BigDecimal) => BigDecimal)(
+    maybeBigDecimalA: Option[BigDecimal],
+    maybeBigDecimalB: Option[BigDecimal]): F[Computable] =
+    ((maybeBigDecimalA, maybeBigDecimalB) match {
+      case (Some(bdA), Some(bdB)) => Computed(operator(bdA, bdB))
+      case (_, _)                 => NonComputable
+    }).pure[F]
+
+  def makeCalc[A](
     visSet: Set[GraphNode],
     fcId: FormComponentId,
     dataLookup: Data,
-    operator: (BigDecimal, BigDecimal) => BigDecimal,
     xExpr: Expr,
     yExpr: Expr,
     retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate
-  )(implicit hc: HeaderCarrier): F[Computable] = {
+    formTemplate: FormTemplate,
+    f: (Convertible[F], Convertible[F]) => (Option[BigDecimal], Option[BigDecimal]) => F[A]
+  )(implicit hc: HeaderCarrier): F[A] = {
     def calc(expr: Expr): Convertible[F] =
       eval(visSet, fcId, expr, dataLookup, retrievals, formTemplate)
-    (calc(xExpr), calc(yExpr)) match {
-      case (IsConverted(maybeConvLeftF), IsConverted(maybeConvRightF)) =>
-        for {
-          maybeConvLeft  <- maybeConvLeftF
-          maybeConvRight <- maybeConvRightF
-        } yield {
-          (maybeConvLeft, maybeConvRight) match {
-            case (Some(l), Some(r)) => Computed(operator(l, r))
-            case (_, _)             => NonComputable
-          }
-        }
 
-      case (_, _) => (NonComputable: Computable).pure[F]
-    }
+    val x = calc(xExpr)
+    val y = calc(yExpr)
+
+    for {
+      maybeBigDecimalA <- Convertible.convert(x, formTemplate)
+      maybeBigDecimalB <- Convertible.convert(y, formTemplate)
+      a                <- f(x, y)(maybeBigDecimalA, maybeBigDecimalB)
+    } yield a
+
   }
 }
 
-sealed trait Computable
+sealed trait Computable extends Product with Serializable
 case class Computed(x: BigDecimal) extends Computable
 case object NonComputable extends Computable
 
 sealed trait Convertible[F[_]]
 
 object Convertible {
-  def asString[F[_]: Functor](convertible: Convertible[F]): F[String] = convertible match {
-    case Converted(computable) =>
-      computable.map {
-        case NonComputable => ""
-        case Computed(bd)  => NumberFormatUtil.defaultFormat.format(bd)
-      }
-    case MaybeConvertible(str) => str
-    case NonConvertible(str)   => str
-  }
-
-  def round[F[_]: Monad](convertible: Convertible[F], scale: Int): F[String] = convertible match {
-    case IsConverted(eff) =>
-      eff.flatMap {
-        case None     => Convertible.asString(convertible)
-        case Some(bd) => NumberFormatUtil.defaultFormat(scale).format(bd).pure[F]
-      }
-    case _ => Convertible.asString(convertible)
-  }
-}
-
-case class NonConvertible[F[_]](str: F[String]) extends Convertible[F]
-case class MaybeConvertible[F[_]](str: F[String]) extends Convertible[F]
-case class Converted[F[_]](computable: F[Computable]) extends Convertible[F]
-
-object IsConverted {
-  def unapply[F[_]: Functor](convertible: Convertible[F]): Option[F[Option[BigDecimal]]] =
+  def asString[F[_]: Applicative](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[String]] = {
+    val lookup = formTemplate.expandFormTemplateFull.fcsLookupFull
     convertible match {
       case Converted(computable) =>
-        Some(computable.map { case NonComputable => None; case Computed(bd) => Some(bd) })
-      case MaybeConvertible(str) => Some(str.map(BigDecimalUtil.toBigDecimalSafe))
-      case NonConvertible(_)     => None
+        computable.map {
+          case NonComputable => Some("")
+          case Computed(bd)  => Some(NumberFormatUtil.defaultFormat.format(bd))
+        }
+      case MaybeConvertible(str)            => str.map(Some.apply)
+      case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, Some.apply)
+      case NonConvertible(str)              => str.map(Some.apply)
     }
+  }
+
+  def convert[F[_]: Applicative](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[BigDecimal]] = {
+    val lookup = formTemplate.expandFormTemplateFull.fcsLookupFull
+    convertible match {
+      case Converted(computable) =>
+        computable.map { case NonComputable => None; case Computed(bd) => Some(bd) }
+      case MaybeConvertible(str)            => str.map(BigDecimalUtil.toBigDecimalSafe)
+      case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, BigDecimalUtil.toBigDecimalSafe)
+      case NonConvertible(_)                => Option.empty.pure[F]
+    }
+  }
+
+  def round[F[_]: Monad](convertible: Convertible[F], scale: Int, formTemplate: FormTemplate): F[String] =
+    convert(convertible, formTemplate).flatMap {
+      case None     => Convertible.asString(convertible, formTemplate).map(_.getOrElse(""))
+      case Some(bd) => NumberFormatUtil.defaultFormat(scale).format(bd).pure[F]
+    }
+}
+
+case class Converted[F[_]](computable: F[Computable]) extends Convertible[F]
+case class NonConvertible[F[_]](str: F[String]) extends Convertible[F]
+case class MaybeConvertible[F[_]](str: F[String]) extends Convertible[F]
+case class MaybeConvertibleHidden[F[_]: Applicative](str: F[String], fcId: FormComponentId) extends Convertible[F] {
+  def visible[A](formTemplate: FormTemplate, f: String => Option[A]): F[Option[A]] = {
+    val lookup = formTemplate.expandFormTemplateFull.fcsLookupFull
+    val maybeFc: Option[FormComponent] = lookup.get(fcId).filter {
+      case IsChoice(_) => false
+      case _           => true
+    }
+    val fNone: F[Option[A]] = (None: Option[A]).pure[F]
+    maybeFc.fold(fNone)(Function.const(str.map(f)))
+  }
 }

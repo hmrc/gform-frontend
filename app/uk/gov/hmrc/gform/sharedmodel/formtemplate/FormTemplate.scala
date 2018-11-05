@@ -25,6 +25,8 @@ case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
   val allFcIds: List[FormComponentId] = expandedSection.flatMap(_.expandedFCs.flatMap(_.allIds))
   def fcsLookup(data: Data): Map[FormComponentId, FormComponent] =
     allFCs.flatMap(fc => fc.expandFormComponent(data).allIds.map(_ -> fc)).toMap
+  def fcsLookupFull: Map[FormComponentId, FormComponent] =
+    allFCs.flatMap(fc => fc.expandFormComponentFull.allIds.map(_ -> fc)).toMap
   val allIncludeIfs: List[(List[ExpandedFormComponent], IncludeIf, Int)] = expandedSection.zipWithIndex.collect {
     case (ExpandedSection(expandedFCs, Some(includeIf)), index) => (expandedFCs, includeIf, index)
   }
