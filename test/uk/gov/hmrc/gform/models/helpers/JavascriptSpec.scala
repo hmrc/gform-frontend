@@ -34,7 +34,7 @@ class JavascriptSpec extends Spec {
     rfcIds: RepeatFormComponentIds = RepeatFormComponentIds(const(List.empty[FormComponentId]))) = {
     val fields = List(formComponent("thisSection"), field)
     Javascript.fieldJavascript(
-      sectionFields = fields,
+      sectionFields = fields.map(FormComponentSimple.apply),
       allFields = formComponent("otherSection") :: fields,
       repeatFormComponentIds = rfcIds,
       dependencies = Dependecies(List.empty)

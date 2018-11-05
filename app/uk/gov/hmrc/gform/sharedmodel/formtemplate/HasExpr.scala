@@ -32,3 +32,10 @@ object HasExpr {
       case _                            => None
     }
 }
+
+object HasExprCtx {
+  def unapply(fc: FormComponentWithCtx): Option[ExprCardinality] = fc match {
+    case FormComponentWithGroup(fc, _) => HasExpr.unapply(fc.`type`)
+    case FormComponentSimple(fc)       => HasExpr.unapply(fc.`type`)
+  }
+}

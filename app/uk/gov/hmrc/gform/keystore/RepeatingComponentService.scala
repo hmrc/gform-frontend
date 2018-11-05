@@ -209,4 +209,7 @@ object RepeatingComponentService {
   def atomicFieldsFull(section: Section): List[FormComponent] =
     section.expandSectionFull.expandedFCs.flatMap(_.expandedFC)
 
+  def atomicFieldsFullWithCtx(section: Section): List[FormComponentWithCtx] =
+    section.expandSectionFullWithCtx
+
 }
