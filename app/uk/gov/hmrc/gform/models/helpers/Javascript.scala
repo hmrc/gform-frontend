@@ -30,7 +30,7 @@ case class RepeatFormComponentIds(op: FormComponentId => List[FormComponentId]) 
 object Javascript {
 
   def fieldJavascript(
-    sectionFields: List[FormComponent],
+    sectionFields: List[FormComponentWithCtx],
     allFields: List[FormComponent],
     repeatFormComponentIds: RepeatFormComponentIds,
     dependencies: Dependecies): String = {
@@ -46,13 +46,20 @@ object Javascript {
       case otherwise                   => false
     }
 
-    val fieldIdWithExpr: List[(FormComponent, Expr)] =
+    val fieldIdWithExpr: List[(FormComponentWithCtx, Expr)] =
       sectionFields.collect {
-        case formComponent @ HasExpr(SingleExpr(expr)) if isDynamic(expr) => (formComponent, expr)
+        case formComponent @ HasExprCtx(SingleExpr(expr)) if isDynamic(expr) => (formComponent, expr)
+      }
+
+    val groupFoldButtons: List[(FormComponentId, FormComponentWithGroup)] =
+      sectionFields.collect {
+        case wg @ FormComponentWithGroup(fc, parent)
+            if parent.presentationHint.fold(false)(_.exists(_ == CollapseGroupUnderLabel)) =>
+          fc.id -> wg
       }
 
     fieldIdWithExpr
-      .map(x => toJavascriptFn(x._1, x._2, repeatFormComponentIds, dependencies.toLookup))
+      .map(x => toJavascriptFn(x._1, x._2, repeatFormComponentIds, dependencies.toLookup, groupFoldButtons.toMap))
       .mkString("\n") +
       """|function getValue(elementId, identity) {
          |   var el = document.getElementById(elementId);
@@ -83,16 +90,17 @@ object Javascript {
          |  return new Big(a).times(new Big(b));
          |};
          |function displaySterling(result) {
-         |return result < 0 ? result.replace("-", "-£") : '£' + result
+         |  return result < 0 ? result.replace("-", "-£") : '£' + result
          |};
          |""".stripMargin
   }
 
   private def toJavascriptFn(
-    field: FormComponent,
+    field: FormComponentWithCtx,
     expr: Expr,
     repeatFormComponentIds: RepeatFormComponentIds,
-    dependenciesLookup: Map[FormComponentId, List[FormComponentId]]): String = {
+    dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
+    groupFoldButtonLookup: Map[FormComponentId, FormComponentWithGroup]): String = {
 
     import Expr._
 
@@ -119,6 +127,17 @@ object Javascript {
     }
 
     def listeners(functionName: JsFunction) = {
+
+      def hasFoldButton(id: FormComponentId) =
+        groupFoldButtonLookup.get(id) match {
+          case None => ""
+          case Some(FormComponentWithGroup(_, parent)) =>
+            val id = parent.id
+            s"""|var element$id = document.getElementById("$id")
+                |element$id.addEventListener("change",$functionName);
+                |""".stripMargin
+        }
+
       val windowEl = s"""window.addEventListener("load", $functionName);"""
 
       val componentEls =
@@ -127,7 +146,8 @@ object Javascript {
           case Some(deps) =>
             deps
               .map { id =>
-                s"""|var element$id = document.getElementById("$id")
+                s"""|${hasFoldButton(id)}
+                    |var element$id = document.getElementById("$id")
                     |if (element$id) {
                     |  element$id.addEventListener("change",$functionName);
                     |  element$id.addEventListener("keyup",$functionName);
@@ -143,7 +163,7 @@ object Javascript {
     val functionName = JsFunction("compute" + elementId)
 
     s"""|function $functionName() {
-        |  var result = ${computeExpr(expr, additionIdentity)}.toFixed(${roundTo(field)}, 0);
+        |  var result = ${computeExpr(expr, additionIdentity)}.toFixed(${roundToCtx(field)}, 0);
         |  document.getElementById("$elementId").value = result;
         |  var total = document.getElementById("$elementId-total");
         |  if(total) total.innerHTML = ${if (field.isSterling) "displaySterling(result)" else "result"};
@@ -151,6 +171,11 @@ object Javascript {
         |${listeners(functionName)}
         |""".stripMargin
 
+  }
+
+  def roundToCtx(fc: FormComponentWithCtx) = fc match {
+    case FormComponentWithGroup(fc, _) => roundTo(fc)
+    case FormComponentSimple(fc)       => roundTo(fc)
   }
 
   def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) =

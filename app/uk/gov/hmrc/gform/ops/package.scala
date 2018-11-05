@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Sterling, Text, TextArea }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup }
 
 package object ops {
 
@@ -26,6 +26,13 @@ package object ops {
       case Text(Sterling, _, _)     => true
       case TextArea(Sterling, _, _) => true
       case _                        => false
+    }
+  }
+
+  implicit class FormComponentWithCtxOps(formComponent: FormComponentWithCtx) {
+    def isSterling = formComponent match {
+      case FormComponentWithGroup(fc, _) => fc.isSterling
+      case FormComponentSimple(fc)       => fc.isSterling
     }
   }
 

@@ -146,7 +146,7 @@ class SectionRenderingService(
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, lang)
     val listResult = errors.map { case (_, validationResult) => validationResult }
 
-    val sectionAtomicFields = RepeatingComponentService.atomicFieldsFull(section)
+    val sectionAtomicFields = RepeatingComponentService.atomicFieldsFullWithCtx(section)
     val allAtomicFields = dynamicSections.flatMap(RepeatingComponentService.atomicFieldsFull)
     val javascript =
       createJavascript(dynamicSections.flatMap(_.fields), sectionAtomicFields, allAtomicFields, dependencies)
@@ -411,7 +411,7 @@ class SectionRenderingService(
 
   private def createJavascript(
     fieldList: List[FormComponent],
-    sectionAtomicFields: List[FormComponent],
+    sectionAtomicFields: List[FormComponentWithCtx],
     allAtomicFields: List[FormComponent],
     dependencies: Dependecies): String = {
     val groups: List[(FormComponentId, Group)] = fieldList

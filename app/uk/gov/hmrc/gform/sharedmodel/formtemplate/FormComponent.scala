@@ -21,6 +21,16 @@ import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 
+sealed trait FormComponentWithCtx {
+  def id: FormComponentId = this match {
+    case FormComponentWithGroup(fc, _) => fc.id
+    case FormComponentSimple(fc)       => fc.id
+  }
+}
+
+case class FormComponentWithGroup(fc: FormComponent, parent: FormComponent) extends FormComponentWithCtx
+case class FormComponentSimple(fc: FormComponent) extends FormComponentWithCtx
+
 case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal {
   def allIds: List[FormComponentId] =
     expandedFC.map {
@@ -84,9 +94,19 @@ case class FormComponent(
       case _ => fc :: Nil
     }
 
+  private def expandWithCtx(fc: FormComponent): List[FormComponentWithCtx] =
+    fc.`type` match {
+      case Group(fields, _, max, _, _, _) =>
+        (0 until max.getOrElse(1)).toList.flatMap(index =>
+          fields.map(field => FormComponentWithGroup(addFieldIndex(field, index), fc)))
+      case _ => FormComponentSimple(fc) :: Nil
+    }
+
   def expandFormComponent(data: Data): ExpandedFormComponent = ExpandedFormComponent(expandByData(this, data))
 
   val expandFormComponentFull: ExpandedFormComponent = ExpandedFormComponent(expandAll(this))
+
+  val expandFormComponentFullWithCtx: List[FormComponentWithCtx] = expandWithCtx(this)
 
 }
 

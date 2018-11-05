@@ -49,6 +49,7 @@ case class Section(
     ExpandedSection(fields.map(_.expandFormComponent(data)), includeIf) // TODO expand sections
   val expandSectionFull: ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponentFull), includeIf) // TODO expand sections
+  val expandSectionFullWithCtx: List[FormComponentWithCtx] = fields.flatMap(_.expandFormComponentFullWithCtx)
 }
 
 object Section {
