@@ -36,7 +36,7 @@
 )
 
 @formCat = @{formCategory(formTemplate)}
-@heading = @{localisation(s"Start a new $formCat or continue with one you've already started?")}
+@heading = @{localisation(formTemplate.formName)}
 @hasErrors = @{accessCodeForm.hasGlobalErrors | accessCodeForm.hasErrors}
 @optionValue = @{accessCodeForm(AgentAccessCode.optionKey).value.getOrElse("")}
 @accessCodeValue = @{accessCodeForm(AgentAccessCode.key).value.getOrElse("")}
@@ -57,6 +57,14 @@
     @error_summary(accessCodeForm, formCat)
   }
 
+  <h1>
+    @heading
+  </h1>
+
+  <p>@localisation(s"Each time you start a new​ ​$formCat for this service​ you’ll be given a temporary access key.")</p>
+
+  <p>@localisation(s"You can start and save one or more ​${formCat}s and come back to work on them later. You’ll be asked for a temporary access key when you come back to work on a ​$formCat you’ve saved.")</p>
+
   <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang)}" method="POST" novalidate="novalidate">
 
     @{CSRF.formField}
@@ -64,9 +72,9 @@
     <fieldset id="@{AgentAccessCode.optionKey}-fieldset">
 
       <legend>
-        <h1>
-          @heading
-        </h1>
+        <h2>
+          @localisation(s"Do you want to start a new ​​$formCat or continue working on a saved ​​$formCat (if you have one)?")
+        </h2>
       </legend>
 
       <div class="form-group@if(optionError.nonEmpty){ form-group-error}">
@@ -106,7 +114,7 @@
             }
           >
           <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}">
-            @localisation(s"Continue with a $formCat you've already started")
+            @localisation(s"Continue working on a saved $formCat")
           </label>
 
         </div>
@@ -133,13 +141,18 @@
 
           <details class="details" role="group">
             <summary class="summary">
-              <span>@localisation("My access key is not working")</span>
+              <span>@localisation("Help with temporary access key")</span>
             </summary>
             <div class="panel-indent">
-              @localisation(s"A temporary access key is valid for 28 days. It cannot be used to access a submitted $formCat. If your access key is not working you'll need to ")
-              <a href="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormAgent(formTemplate._id, lang)}">
-              @localisation(s"start a new $formCat.")
-              </a>
+              <p>
+                @localisation(s"This is the 12-digit temporary access key you received when you previously started or saved a ​​$formCat for this service. You can use this to continue working on a ​​$formCat that you’ve saved.")
+              </p>
+              <p>
+                @localisation(s"A temporary access key is valid for 28 days and cannot be used to access a submitted ​$formCat.")
+              </p>
+              <p>
+                @localisation(s"If you've lost your temporary access key, you’ll need to start your ​$formCat again.")
+              </p>
             </div>
           </details>
         </div>
@@ -147,39 +160,6 @@
       </div>
 
     </fieldset>
-
-    <div class="form-group">
-      <details class="details" role="group">
-        <summary class="summary">
-          <span>@localisation("Can't find my temporary access key")</span>
-        </summary>
-        <div class="details__inner" aria-hidden="true">
-          <div class="panel panel-border-narrow">
-            <p>@localisation(s"You were given this when you previously started or saved a $formCat for '${formTemplate.formName}'").
-            <p>@localisation("It has 12 characters including: letters, numbers and hyphens. For example, A12-B456-8ZZ.")</p>
-            <p>
-              @localisation(s"You will need to")
-              <a href="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormAgent(formTemplate._id, lang)}">
-              @localisation(s"start a new $formCat")
-              </a>
-              @localisation("if you’ve lost your temporary access key.")
-            </p>
-          </div>
-        </div>
-      </details>
-    </div>
-
-    <div class="panel panel-border-wide">
-      <p>@localisation(s"You'll be given a temporary access key each time you start a new $formCat for '${formTemplate.formName}'.")</p>
-      <p>@localisation(s"You can use a temporary access key to continue working on a $formCat that you’ve previously saved but not yet submitted.")</p>
-    </div>
-
-    <p>
-      @localisation(s"You can start and save multiple ${formCat}s. You'll be given a unique temporary access key for each one.")
-    </p>
-    <p>
-      @localisation(s"Being able to save multiple draft ${formCat}s is a new feature we are trialling for this service and is not currently available across all services.")
-    </p>
 
     <div class="form-group">
       <input type="submit" class="button" value="@localisation("Continue")" />
