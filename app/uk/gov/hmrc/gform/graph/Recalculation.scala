@@ -227,7 +227,11 @@ class Evaluator[F[_]: Monad](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Convertible[F] =
     expr match {
-      case Value           => getSubmissionData(dataLookup, fcId)
+      case Value => getSubmissionData(dataLookup, fcId)
+      case UserCtx(Enrolment(ServiceName(sn), IdentifierName(in))) =>
+        NonConvertible {
+          retrievals.enrolments.getEnrolment(sn).flatMap(_.getIdentifier(in)).map(_.value).getOrElse("").pure[F]
+        }
       case UserCtx(_)      => NonConvertible(affinityGroupNameO(retrievals.affinityGroup).pure[F])
       case AuthCtx(value)  => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
       case EeittCtx(eeitt) => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
