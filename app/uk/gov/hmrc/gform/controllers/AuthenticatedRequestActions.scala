@@ -72,6 +72,25 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
+  def asyncGGAuth(formTemplateId: FormTemplateId)(
+    f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
+    implicit request =>
+      val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+
+      for {
+        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+        authResult <- ggAuthorised(AuthSuccessful(_).pure[Future])(
+                       predicate,
+                       formTemplate.authConfig,
+                       formTemplate,
+                       request)
+        result <- authResult match {
+                   case AuthSuccessful(retrievals) => f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
+                   case _                          => errResponder.forbidden(request, "Access denied")
+                 }
+      } yield result
+  }
+
   def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
     f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
