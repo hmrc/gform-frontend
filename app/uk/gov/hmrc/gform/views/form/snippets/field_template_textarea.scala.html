@@ -28,7 +28,7 @@
 
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }

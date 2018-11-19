@@ -29,6 +29,7 @@
         page: SectionRenderingInformation,
         shouldDisplayBack: Boolean,
         shouldDisplayBackToSummary: Boolean,
+        shouldDisplayHeading: Boolean,
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
@@ -58,7 +59,10 @@
 
     @pageLevelError.render
 
-    <h1 class="h1-heading form-title">@heading</h1>
+    @if(shouldDisplayHeading) {
+      <h1 class="h1-heading form-title">@heading</h1>
+    }
+
     @if(page.sectionDescription.isDefined){
     <p class="page-description">@localisation(page.sectionDescription.get)</p>
     }

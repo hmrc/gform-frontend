@@ -24,7 +24,7 @@
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
-@(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int)
+@(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, formLevelHeading: Boolean)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)

@@ -23,7 +23,7 @@
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int, formLevelHeading: Boolean)
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).toString

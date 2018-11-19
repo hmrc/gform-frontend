@@ -27,7 +27,7 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -59,18 +59,16 @@
   }
 }
 
+@label = {
+  @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) { @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) } else { @sectionTitle }
+}
+
 <div class="form-group @if(hasErrors) {form-group-error}">
-    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-      <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-        @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-        @sterlingHelp
-      </label>
-    } else {
-      <label for="@{fieldValue.id}" class="visuallyhidden">
-        @sectionTitle
-        @sterlingHelp
-      </label>
-    }
+
+    <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
+      @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
+      @sterlingHelp
+    </label>
 
     @if(fieldValue.helpText.isDefined) {
       <span class="form-hint @if(fieldValue.derived){js-hidden}">

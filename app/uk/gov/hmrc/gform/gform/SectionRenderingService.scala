@@ -89,7 +89,8 @@ class SectionRenderingService(
     dynamicSections: List[BaseSection],
     formMaxAttachmentSizeMB: Int,
     section: BaseSection,
-    retrievals: MaterialisedRetrievals
+    retrievals: MaterialisedRetrievals,
+    formLevelHeading: Boolean
   )
 
   def renderSection(
@@ -110,6 +111,7 @@ class SectionRenderingService(
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
+    val formLevelHeading = shouldDisplayHeading(section.fields.size)
 
     val graph = DependencyGraph.toGraphFull(formTemplate)
 
@@ -141,7 +143,8 @@ class SectionRenderingService(
       dynamicSections,
       formMaxAttachmentSizeMB,
       section,
-      retrievals)
+      retrievals,
+      formLevelHeading)
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, lang)
     val listResult = errors.map { case (_, validationResult) => validationResult }
@@ -192,6 +195,7 @@ class SectionRenderingService(
       renderingInfo,
       shouldDisplayBack = sectionNumber > originSection,
       shouldDisplayBackToSummary = shouldDisplayBackToSummary(form),
+      shouldDisplayHeading = formLevelHeading,
       frontendAppConfig
     )
 
@@ -264,7 +268,8 @@ class SectionRenderingService(
       List(formTemplate.declarationSection),
       0,
       formTemplate.declarationSection,
-      retrievals
+      retrievals,
+      formLevelHeading = true
     )
 
     val confirm = formTemplate.formCategory match {
@@ -301,6 +306,7 @@ class SectionRenderingService(
       renderingInfo,
       shouldDisplayBack = false,
       shouldDisplayBackToSummary = false,
+      shouldDisplayHeading = true,
       frontendAppConfig)
   }
 
@@ -320,7 +326,8 @@ class SectionRenderingService(
       List(formTemplate.acknowledgementSection),
       0,
       formTemplate.declarationSection,
-      retrievals
+      retrievals,
+      formLevelHeading = false
     )
 
     val formCategory = formTemplate.formCategory.getOrElse(Default)
@@ -384,7 +391,8 @@ class SectionRenderingService(
       List(enrolmentSection),
       0,
       enrolmentSection,
-      emptyRetrievals)
+      emptyRetrievals,
+      formLevelHeading = true)
     val listResult = errors.map { case (_, validationResult) => validationResult }
     val snippets =
       enrolmentSection.fields.map(fieldValue =>
@@ -406,7 +414,7 @@ class SectionRenderingService(
       0,
       Nil
     )
-    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, false, frontendAppConfig)
+    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, false, true, frontendAppConfig)
   }
 
   private def createJavascript(
@@ -554,7 +562,9 @@ class SectionRenderingService(
           validatedValue,
           optionalHelpTextMarkDown,
           index,
-          ei.section.title)
+          ei.section.title,
+          ei.formLevelHeading
+        )
       case Checkbox =>
         html.form.snippets.choice(
           "checkbox",
@@ -565,7 +575,8 @@ class SectionRenderingService(
           validatedValue,
           optionalHelpTextMarkDown,
           index,
-          ei.section.title)
+          ei.section.title,
+          ei.formLevelHeading)
       case Inline =>
         html.form.snippets.choiceInline(
           fieldValue,
@@ -579,7 +590,7 @@ class SectionRenderingService(
   }
 
   private type RenderTemplate[T] =
-    (FormComponent, T, Option[String], Option[FormFieldValidationResult], Int, String) => Html
+    (FormComponent, T, Option[String], Option[FormFieldValidationResult], Int, String, Boolean) => Html
 
   private def renderTextArea =
     renderField[TextArea](
@@ -613,9 +624,9 @@ class SectionRenderingService(
     else {
       fieldValue.presentationHint match {
         case Some(xs) if xs.contains(TotalValue) =>
-          asTotalValue(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+          asTotalValue(fieldValue, t, prepopValue, validatedValue, index, ei.section.title, ei.formLevelHeading)
         case _ =>
-          asStandard(fieldValue, t, prepopValue, validatedValue, index, ei.section.title)
+          asStandard(fieldValue, t, prepopValue, validatedValue, index, ei.section.title, ei.formLevelHeading)
       }
     }
   }
@@ -635,7 +646,9 @@ class SectionRenderingService(
     if (isHidden)
       html.form.snippets
         .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue)))
-    else html.form.snippets.field_template_sort_code(fieldValue, sC, prepopValue, validatedValue, index)
+    else
+      html.form.snippets
+        .field_template_sort_code(fieldValue, sC, prepopValue, validatedValue, index, ei.formLevelHeading)
 
   }
 
@@ -647,7 +660,8 @@ class SectionRenderingService(
     ei: ExtraInfo,
     data: FormDataRecalculated) = {
     val fieldValues = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    html.form.snippets.field_template_address(international, fieldValue, fieldValues, index, ei.section.title)
+    html.form.snippets
+      .field_template_address(international, fieldValue, fieldValues, index, ei.section.title, ei.formLevelHeading)
   }
 
   private def htmlForDate(
@@ -680,7 +694,7 @@ class SectionRenderingService(
       )
     } else {
       val fieldValues = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-      html.form.snippets.field_template_date(fieldValue, fieldValues, prepopValues, index)
+      html.form.snippets.field_template_date(fieldValue, fieldValues, prepopValues, index, ei.formLevelHeading)
     }
   }
 
@@ -818,4 +832,5 @@ class SectionRenderingService(
   )
 
   private def shouldDisplayBackToSummary(form: Form): Boolean = form.status == Summary
+  private def shouldDisplayHeading(fieldCount: Int): Boolean = fieldCount > 1
 }

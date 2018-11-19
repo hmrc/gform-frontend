@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
 
-@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
 
 @safeId(id: String) = @{
   fieldValue.id.withSuffix(id).toString
