@@ -60,21 +60,21 @@
 }
 
 @label = {
-  @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) { @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) } else { @sectionTitle }
-}
+  <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
+    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) { @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) } else { @sectionTitle }
+    @sterlingHelp
+  </label>
+  }
 
 <div class="form-group @if(hasErrors) {form-group-error}">
 
-    <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-      @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
-      @sterlingHelp
-    </label>
+  @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
 
-    @if(fieldValue.helpText.isDefined) {
-      <span class="form-hint @if(fieldValue.derived){js-hidden}">
-        @{fieldValue.helpText}
-      </span>
-    }
+  @if(fieldValue.helpText.nonEmpty) {
+    <span class="form-hint @if(fieldValue.derived){js-hidden}">
+      @{fieldValue.helpText}
+    </span>
+  }
 
     @inline_error_map(fieldValue, validationResult)
 

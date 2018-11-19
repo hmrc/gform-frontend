@@ -38,12 +38,17 @@
   validationResult.map(_.getCurrentValue(safeId("uk"))).contains("false")
 }
 
+
+@label = {
+  @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) { @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) } else { @sectionTitle }
+}
+
+
 <fieldset>
-    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-      <legend class="h3-heading">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</legend>
-    } else {
-      <legend class="visuallyhidden">@sectionTitle</legend>
-    }
+
+    <legend class="h3-heading">
+      @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
+    </legend>
 
     @if(international) {
       <div class="form-group">
