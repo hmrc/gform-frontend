@@ -111,7 +111,7 @@ class SectionRenderingService(
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
-    val formLevelHeading = shouldDisplayHeading(section.fields.size)
+    val formLevelHeading = shouldDisplayHeading(section)
 
     val graph = DependencyGraph.toGraphFull(formTemplate)
 
@@ -832,5 +832,11 @@ class SectionRenderingService(
   )
 
   private def shouldDisplayBackToSummary(form: Form): Boolean = form.status == Summary
-  private def shouldDisplayHeading(fieldCount: Int): Boolean = fieldCount > 1
+  private def shouldDisplayHeading(section: Section): Boolean =
+    section.fields
+      .filter {
+        case IsGroup(g) => false
+        case _          => true
+      }
+      .count(field => field.editable) != 1
 }

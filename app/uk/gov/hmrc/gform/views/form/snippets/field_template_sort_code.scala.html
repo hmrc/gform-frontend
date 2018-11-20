@@ -32,14 +32,17 @@
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 
+@label = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+
 <div class="form-group @if(hasErrors) { form-group-error }">
   <fieldset>
     <legend>
-      @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-      @if(fieldValue.helpText) {
-        <span class="form-hint">@{fieldValue.helpText}</span>
-      }
+     @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
     </legend>
+
+    @if(fieldValue.helpText.nonEmpty) {
+      <span class="form-hint">@{fieldValue.helpText}</span>
+    }
 
     @inline_error_map(fieldValue, validationResult)
     
