@@ -33,22 +33,33 @@
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 
 <div class="form-group @if(hasErrors) { form-group-error }">
-  <label for="@{fieldValue.id}">
-    @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-    @if(fieldValue.helpText) {
-      <span class="form-hint">@{fieldValue.helpText}</span>
+  <fieldset>
+    <legend>
+      @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+      @if(fieldValue.helpText) {
+        <span class="form-hint">@{fieldValue.helpText}</span>
+      }
+    </legend>
+
+    @inline_error_map(fieldValue, validationResult)
+    
+    @UkSortCode.fields(fieldValue.id).zipWithIndex.map{ case (fieldId, index) =>
+      @defining(index + 1){ fieldNumber =>
+        <div class="form-date">
+            <div class="form-group push">
+              <label
+                for="@fieldId"
+                class="visuallyhidden">Sort code part @fieldNumber</label>
+              <input
+                type="number"
+                name="@fieldId"
+                @if(!fieldValue.editable) { readonly="" }
+                id="@fieldId"
+                value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
+                class="@inputClasses input--xxsmall @if(fieldNumber == 1){push--left}">
+            </div>
+          </div>
+      }
     }
-  </label>
-
-  @inline_error_map(fieldValue, validationResult)
-
-  @UkSortCode.fields(fieldValue.id).map{ fieldId =>
-    <input
-      type="text"
-      name="@fieldId"
-      @if(!fieldValue.editable) { readonly="" }
-      id="@fieldId"
-      value="@validationResult.flatMap(_.getOptionalCurrentValue(fieldId.toString)).getOrElse("")"
-      class="@inputClasses input--xxsmall @if(fieldId.toString.last == '1'){push--left}"> @if(fieldId.toString.last != '3') { - }
-  }
+  </fieldset>
 </div>
