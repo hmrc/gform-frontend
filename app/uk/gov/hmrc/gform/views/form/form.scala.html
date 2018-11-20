@@ -61,10 +61,9 @@
 
     @if(shouldDisplayHeading) {
       <h1 class="h1-heading form-title">@heading</h1>
-    }
-
-    @if(page.sectionDescription.isDefined){
-    <p class="page-description">@localisation(page.sectionDescription.get)</p>
+      @if(page.sectionDescription.isDefined){
+        <p class="page-description">@localisation(page.sectionDescription.get)</p>
+      }
     }
 
     <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
