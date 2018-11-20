@@ -48,195 +48,126 @@
   GOVUK.ShowHideContent=ShowHideContent
   global.GOVUK=GOVUK})(window);
 
-var ERROR_CODES = {
-  FILE_TOO_LARGE: 413
-};
-var FORM_ERROR_CLASS = 'form-field-group--error';
-// TODO replace hardcoded urls by Javascript Routing (https://www.playframework.com/documentation/2.6.x/ScalaJavascriptRouting)
-var FILE_URL = '/file-upload/upload/envelopes/{{envelopeId}}/files/{{fileId}}';
-var FILE_DELETE_URL = '/submissions/api/forms/{{formTemplateId}}/{{accessCode}}/deleteFile/{{fileId}}';
 var gfForm = $('#gf-form');
 var gfFormAction = $('#gform-action');
 
 var gform = window.gform || {};
 var formMaxAttachmentSizeMB = parseInt(window.gform.formMaxAttachmentSizeMB || 1, 10);
 
-var uploaderDefaults = {
-  uploadText: 'Browse',
-  changeText: 'Change',
-  maxFileSize: formMaxAttachmentSizeMB * 1024 * 1024,
-  uploaderLabel: 'Your uploaded file will appear here',
-  maxFileSizeError: 'File exceeds max size allowed',
-  contentTypes: window.gform.contentTypes
-};
-
 var details = $('details');
 
 var showHideContent = new GOVUK.ShowHideContent();
 
-var uploader = function(el) {
-  // variables
-  var formTemplateId = el.data('form-template-id');
-  var accessCode = el.data('access-code');
-  var fileId = el.data('file-id');
 
-  var config = $.extend({}, uploaderDefaults, {
-    uploadText: el.data('uploadText'),
-    changeText: el.data('changeText'),
-    maxFileSize: parseInt(el.data('maxFileSize'), 10),
-    fileSizeError: el.data('fileSizeError'),
-    initialText: el.data('initialText'),
-    defaultUploaderLabel: el.data('default-label')
-  });
 
-  // DOM elements
-  var uploadedFileEl = el.find('.file-upload__file-list-item').eq(0);
-  var fileLinks = uploadedFileEl.find('.file-upload__file-list-item-link');
-  var uploadErrorsEl = el.find('.file-upload__errors').eq(0);
-  var uploaderBtn = $('<label for="' + fileId + '" class="file-upload__file-label form-label">' + config.initialText + '</label>');
-  var uploaderEl = $('<input id="' + fileId + '" type="file" class="file-upload__file" accept="'+config.contentTypes+'"/>');
-  var deleteBtnEl = $('<a href="#" class="gf-delete" data-file-id="' + fileId + '">Delete</a>');
 
-  var handleError = function(text) {
-    var errorEl = '<span class="error-notification error-message" role="alert">' + text + '</span>';
+// ERROR HANDLING
+var handleError = function($input, msg) {
+  var errorEl = '<span class="error-message file-upload-error" role="alert">' + msg + '</span>';
+  $(errorEl).insertBefore($input)
 
-    uploaderBtn.html(config.uploadText);
-    uploadedFileEl.empty();
-    uploadErrorsEl.empty().append(errorEl);
-    el.addClass(FORM_ERROR_CLASS);
-    uploaderEl.prop('disabled', false);
-  };
+};
 
-  var isEmptyEl = function(el) {
-    return el.html().trim() === '';
+
+// UPLOAD
+function handleFileUpload(e) {
+  $('.file-upload-error').remove();
+  
+  var file = e.target.files[0];
+  var $input = $(e.currentTarget);
+  var formTemplateId = $input[0].dataset.formTemplateId;
+  accessCode = $input[0].dataset.accessCode;
+  var maxFileSize = parseInt($input.data('maxFileSizeMB') || window.gform.formMaxAttachmentSizeMB, 10);
+
+  $input.attr('aria-busy', true);
+
+  if (window.gform.contentTypes.indexOf(file.type) === -1) {
+    return handleFileUploadError($input, 'The file type ' + file.type + ' is not permitted. You can only upload ' + window.gform.contentTypes);
   }
 
-  el.on('click', '.gf-delete', function(evt) {
-    evt.preventDefault();
-
-    var currentFile = uploadedFileEl.clone();
-    var deleteFileUrl = FILE_DELETE_URL
-      .replace('{{formTemplateId}}', formTemplateId)
-      .replace('{{accessCode}}', accessCode)
-      .replace('{{fileId}}', fileId);
-
-    if (!fileId) {
-      handleError('Could not delete file, file is invalid');
-      return;
-    }
-
-    // Show loading text and disable upload
-    uploaderEl.prop('disabled', true);
-    uploadedFileEl.html('Deleting file...');
-
-    // Perform DELETE request
-    $.ajax({
-      url: deleteFileUrl,
-      type: 'DELETE',
-      success: function(response) {
-        uploaderBtn.html(config.uploadText);
-        uploadErrorsEl.empty();
-        uploadedFileEl.empty();
-        el.removeClass(FORM_ERROR_CLASS);
-        uploaderEl.prop('disabled', false);
-      },
-      error: function(err) {
-        var errorMsg = err.responseJSON && err.responseJSON.message
-          ? err.responseJSON.message
-          : 'An unexpected error occurred';
-
-        handleError(errorMsg);
-
-        // Revert DOM to display previous file, as it was not deleted
-        uploadedFileEl.html(currentFile);
-      }
-    });
-  });
-
-  // Upload the file when a new one is selected
-  uploaderEl.on('change', function(evt) {
-    // Get the file
-    var file = evt.target.files[0];
-    var formData = new FormData();
-    var fileUrl = FILE_URL
-      .replace('{{envelopeId}}', window.gform.envelopeId)
-      .replace('{{fileId}}', fileId);
-
-    // Handle file upload cancel
-    if (!file) return;
-
-    // Show loading text and disable upload
-    uploaderEl.prop('disabled', true);
-    uploadedFileEl.html('Loading...');
-
-    // Display error if file size is too big and don't upload it
-    if (file.size > config.maxFileSize) {
-      handleError(config.fileSizeError);
-      return;
-    }
-
-    // Create a form data object with the file to upload
-    formData.append(fileId, file, file.name.replace(/\\/g,'/').replace(/.*\//, ''));
-
-    // Perform POST request
-    $.ajax({
-      url: fileUrl,
-      type: 'POST',
-      data: formData,
-      processData: false,
-      contentType: false,
-      success: function(response) {
-        uploaderBtn.html(config.changeText);
-        uploadErrorsEl.empty();
-        uploadedFileEl.html('<span>' + file.name + '</span>');
-        uploadedFileEl.append(deleteBtnEl);
-        el.removeClass(FORM_ERROR_CLASS);
-        uploaderEl.prop('disabled', false);
-      },
-      error: function(err) {
-        if (err.responseJSON && err.responseJSON.message)  {
-          handleError(err.responseJSON.message);
-          return;
-        }
-
-        switch(err.status) {
-          case ERROR_CODES.FILE_TOO_LARGE:
-            handleError(config.fileSizeError);
-            break;
-          default:
-            handleError('An unexpected error occurred, your file could not be uploaded');
-            break;
-        }
-
-      }
-    });
-  });
-
-  // Append the upload input and button to the DOM
-  el.append(uploaderBtn).append(uploaderEl);
-
-  // Convert uploaded file links to plain text
-  if (fileLinks.length) {
-    fileLinks.text(function() {
-      return $.trim($(this).text());
-    }).contents().unwrap().wrap('<span>');
+  if (file.size > (maxFileSize * 1024 * 1024)) {
+    return handleFileUploadError($input, 'This file is larger than the maximum file size of ' + maxFileSize + 'MB');
   }
-
-  // Template changes the label if an error on load (need to keep for non-js version)
-  // so we are going to have to update the label in this situation
-  if (uploadedFileEl.text().trim() === config.defaultUploaderLabel) {
-    uploadedFileEl.empty();
-  } else {
-    uploadedFileEl.append(deleteBtnEl);
-  }
+  
+  return uploadFile(file, $input.attr('id'))
+    .then(function (response) {
+      fileUploadSuccess(response, $input.attr('id'), file.name, formTemplateId, $input);
+    }, function (err) {
+      $input.removeAttr('aria-busy')
+      handleFileUploadError($input, err.statusText)
+    })
 }
 
-// Only use file uploader if browser supports it
-if (window.File && window.FileList && window.FormData) {
-  $('.file-uploader').each(function () {
-    uploader($(this));
+function fileUploadSuccess(response, fileId, name, formTemplateId, input) {
+  input.removeAttr('aria-busy')
+
+  $('#' + fileId + '-files')
+    .addClass('subsection')
+    .empty()
+    .append(makeFileEntry(name, fileId, formTemplateId, accessCode))
+    .attr('tabIndex', '-1')
+    .trigger('focus');
+}
+
+function makeFileEntry(name, fileId, formTemplateId, accessCode) {
+  return $('<span>' + name + '</span> <a href="#" class="delete-file" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">Delete</span><span class="visuallyhidden">Delete ' + name + '</span></a>')
+}
+
+function uploadFile(file, fileId) {
+  var formData = new FormData();
+  formData.append(fileId, file, file.name.replace(/\\/g,'/').replace(/.*\//, ''));
+  return $.ajax({
+    url: '/file-upload/upload/envelopes/' + window.gform.envelopeId + '/files/' + fileId,
+    type: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false
   });
 }
+
+
+
+// DELETE
+function handleFileDelete(e) {
+  e.preventDefault();
+
+  var t = $(e.currentTarget);
+  var d = e.currentTarget.dataset;
+
+  t.attr('aria-busy', 'true');
+
+  if (!d.fileId) {
+    handleError($('#' + d.formId), 'Could not delete file, file is invalid');
+  }
+
+  var deleteUrl = '/submissions/api/forms/' + d.formId + '/' + d.accessCode + '/deleteFile/' + d.fileId + '';
+
+  return fileDelete(deleteUrl)
+  .then(function(response) {
+    fileDeleteSuccess(d.fileId, t)
+  }, function (err) {
+    t.removeAttr('aria-busy')
+    handleError($('#' + d.fileId), err.responseJSON && err.responseJSON.message ? err.responseJSON.message : 'An unexpected error occurred');
+  })
+}
+
+function fileDelete(deleteUrl) {
+  return $.ajax({
+    url: deleteUrl,
+    type: 'DELETE',
+  });
+}
+
+function fileDeleteSuccess(fileId, deleteLink) {  
+  $('#' + fileId + '-files').empty();
+  $('#' + fileId).val('');
+}
+
+$('.file-upload').on('change', handleFileUpload);
+$('.uploaded-files').on('click', '.delete-file', handleFileDelete);
+
+
+
 
 // Add `aria-hidden` attribute to hidden content to ensure screen readers can 'see' the content
 details.on('click', function(evt) {

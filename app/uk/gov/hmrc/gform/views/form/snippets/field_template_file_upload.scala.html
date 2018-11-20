@@ -24,70 +24,73 @@
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
 @(
-formId: FormId,
-maybeAccessCode: Option[AccessCode],
-formTemplateId: FormTemplateId,
-sectionNumber: SectionNumber,
-sectionTitle4Ga: SectionTitle4Ga,
-fieldValue: FormComponent,
-validationResult: Option[FormFieldValidationResult],
-index: Int,
-formMaxAttachmentSizeMB: Int,
-lang: Option[String]
+  formId: FormId,
+  maybeAccessCode: Option[AccessCode],
+  formTemplateId: FormTemplateId,
+  sectionNumber: SectionNumber,
+  sectionTitle4Ga: SectionTitle4Ga,
+  fieldValue: FormComponent,
+  validationResult: Option[FormFieldValidationResult],
+  index: Int,
+  formMaxAttachmentSizeMB: Int,
+  lang: Option[String]
 )
 
-@defaultLabel = @{"Upload a file"}
-@defaultChangeLabel = @{"Change file"}
+@label = @{
+  if (fieldValue.label.nonEmpty) { fieldValue.label } else { "Upload a file" }
+}
 
 @currentValue = @{
-    val v = for {
+    for {
         vr <- validationResult
         cv <- vr.getCurrentValue
     } yield cv
-
-    v.getOrElse(defaultLabel)
 }
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
 
-<div class="form-group@if(hasErrors) { form-group-error}">
-    <div
-      class="file-uploader"
-      data-form-template-id="@{formTemplateId.value}"
-      data-access-code="@{maybeAccessCode.getOrElse("-")}"
-      data-file-id="@{fieldValue.id.value}"
-      data-upload-text="@{defaultLabel}"
-      data-change-text="@{defaultChangeLabel}"
-      data-max-file-size="@{formMaxAttachmentSizeMB * 1024 * 1024}"
-      data-label="@LabelHelper.buildRepeatingLabel(fieldValue, index)"
-      data-file-size-error="This file may not exceed @{formMaxAttachmentSizeMB}MB"
-      data-initial-text="@if(currentValue.isEmpty || currentValue == defaultLabel) {@{defaultLabel}} else {@{defaultChangeLabel}}"
-      data-default-label="@{defaultLabel}">
-        <div class="file-upload__errors">
-          @inline_error_map(fieldValue, validationResult)
-        </div>
+@defining(fieldValue.id.value,formTemplateId.value, maybeAccessCode.getOrElse("-")){ case (fileId, templateId, accessCode) =>
+  <div class="form-group@if(hasErrors) { form-group-error}">
 
-        <ul class="file-upload__file-list">
-          <li class="file-upload__file-list-item">
-            <a class="file-upload__file-list-item-link" href=@{
-                routes.FormController.fileUploadPage(
-                  formTemplateId,
-                  maybeAccessCode,
-                  sectionNumber,
-                  sectionTitle4Ga,
-                  FileId(fieldValue.id.value).value,
-                  lang
-                )
-            }>
-                @if(currentValue.nonEmpty) {
-                    @{currentValue}
-                } else {
-                    @defaultLabel
-                }
-            </a>
-          </li>
-        </ul>
-    </div>
-</div>
+    <label class="form-label" for="@fileId">
+      @label
+    </label>
+
+    @if(fieldValue.helpText.nonEmpty) {
+      <span class="form-hint">
+        @{fieldValue.helpText}
+      </span>
+    }
+
+    @if(hasErrors) {
+      @inline_error_map(fieldValue, validationResult)
+    }
+
+    <input
+      type="file"
+      class="file-upload"
+      id="@fileId"
+      name="@fileId"
+      data-form-template-id="@templateId"
+      data-max-file-size-MB="@{formMaxAttachmentSizeMB}"
+      data-access-code="@accessCode" />
+
+  </div>
+
+  <div id="@fileId-files" class="@{"uploaded-files" + {if(currentValue.nonEmpty) " subsection" else "" }}">
+    @if(currentValue.nonEmpty) {
+      <span href="#">@{currentValue.get}</span>
+      <a 
+        href="#"
+        id="file-delete"
+        data-file-id="@fileId"
+        data-form-id="@templateId"
+        data-access-code="@accessCode">
+        <span aria-hidden="true">Delete</span>
+        <span class="visuallyhidden">Delete @{currentValue.get}</span>
+      </a>
+    }
+  </div>
+  }
