@@ -56,7 +56,7 @@ formLevelHeading: Boolean
           }
         </legend>
 
-        @if(fieldValue.helpText) {
+        @if(fieldValue.helpText.nonEmpty) {
           <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
         }
 
@@ -88,7 +88,7 @@ formLevelHeading: Boolean
 
           @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
               @if(optionHelpText(index).body.nonEmpty){
-              <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-border-narrow js-hidden" aria-hidden="true">
+              <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-indent js-hidden" aria-hidden="true">
                   @Html(optionHelpText(index).body)
               </div>
               }

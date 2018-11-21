@@ -835,8 +835,9 @@ class SectionRenderingService(
   private def shouldDisplayHeading(section: Section): Boolean =
     section.fields
       .filter {
-        case IsGroup(g) => false
-        case _          => true
+        case IsGroup(g)     => false
+        case IsFileUpload() => false
+        case _              => true
       }
       .count(field => field.editable) != 1
 }
