@@ -19,9 +19,10 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Request, Result }
+import play.api.mvc.{ AnyContent, Request, Result }
+import uk.gov.hmrc.gform.auth.models.{ AuthResult, AuthSuccessful }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.auth.{ Identifier, Verifier, _ }
+import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
@@ -32,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -50,7 +52,7 @@ class EnrolmentController(
 
   import i18nSupport._
 
-  def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+  def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.asyncGGAuth(formTemplateId) {
     implicit request => cache =>
       gformConnector.getFormTemplate(formTemplateId).map { formTemplate =>
         formTemplate.authConfig match {
@@ -73,7 +75,7 @@ class EnrolmentController(
       }
   }
 
-  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.asyncGGAuth(formTemplateId) {
     implicit request => cache =>
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
@@ -112,21 +114,28 @@ class EnrolmentController(
     authConfig: AuthConfigWithEnrolment,
     data: FormDataRecalculated,
     lang: Option[String]
-  )(validationResult: ValidatedType)(implicit hc: HeaderCarrier, request: Request[_]): Future[Result] =
+  )(validationResult: ValidatedType)(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[Result] =
     validationResult match {
       case Valid(()) =>
         val (identifiers, verifiers) = extractIdentifiersAndVerifiers(authConfig, data)
+        implicit val hc: HeaderCarrier =
+          HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+        (for {
+          _       <- enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers)
+          authRes <- auth.checkEnrolment(formTemplate, identifiers)
+        } yield {
+          authRes match {
+            case AuthSuccessful(_) => Redirect(routes.FormController.dashboard(formTemplate._id, lang).url)
+            case _ =>
+              val newPageUrl = routes.FormController.dashboard(formTemplate._id, lang).url
+              val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
+              val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
+              val redirectUrl = s"$ggLoginUrl?continue=$continueUrl"
+              Redirect(redirectUrl)
 
-        enrolmentService
-          .enrolUser(authConfig.serviceId, identifiers, verifiers)
-          .map { _ =>
-            val newPageUrl = routes.FormController.dashboard(formTemplate._id, lang).url
-            val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
-            val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-            val redirectUrl = s"$ggLoginUrl?continue=$continueUrl"
-            Redirect(redirectUrl)
           }
-          .recoverWith(handleEnrolmentException(authConfig, formTemplate, lang))
+
+        }).recoverWith(handleEnrolmentException(authConfig, formTemplate, lang))
 
       case validationResult @ Invalid(_) =>
         Future.successful(
