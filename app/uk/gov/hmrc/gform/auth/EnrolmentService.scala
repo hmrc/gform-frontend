@@ -33,7 +33,7 @@ class EnrolmentService(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext) =
     if (useTaxEnrolments) {
-      val request = buildTaxEnrolmentsRequest(serviceId, identifiers, verifiers)
+      val request = buildTaxEnrolmentsRequest(identifiers, verifiers)
       taxEnrolmentConnector.enrolGGUser(request, serviceId)
     } else {
       val request = buildGGEnrolmentRequest(serviceId, serviceId.value, identifiers, verifiers)
@@ -46,23 +46,17 @@ class EnrolmentService(
     identifiers: List[Identifier],
     knownFacts: List[Verifier]) =
     GGEnrolmentRequest(
-      portalId = this.portalId,
+      portalId = portalId,
       serviceName = serviceId.value,
       friendlyName = friendlyName,
       knownFacts = identifiers.map(_.value) ++ knownFacts.map(_.value)
     )
 
-  private def buildTaxEnrolmentsRequest(
-    serviceId: ServiceId,
-    identifiers: List[Identifier],
-    verifiers: List[Verifier]) = {
-    val taxEnrolment = TaxEnrolment(
-      key = serviceId,
+  private def buildTaxEnrolmentsRequest(identifiers: List[Identifier], verifiers: List[Verifier]) =
+    TaxEnrolment(
       identifiers = identifiers,
       verifiers = verifiers
     )
-    TaxEnrolmentRequest(List(taxEnrolment))
-  }
 }
 
 case class Identifier(key: String, value: String)

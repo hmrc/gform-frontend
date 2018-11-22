@@ -36,10 +36,10 @@ class AuthService(
   eeittService: EeittService
 ) {
 
-  def authenticateAndAuthorise(
+  def authenticateAndAuthorise[A: HasAuthResult](
     formTemplate: FormTemplate,
     requestUri: String,
-    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[AuthResult])(
+    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A])(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent]): Future[AuthResult] =
     formTemplate.authConfig match {
@@ -47,14 +47,15 @@ class AuthService(
       case authConfig                  => performHMRCAuth(authConfig, formTemplate, requestUri, ggAuthorised)
     }
 
-  private def performEEITTAuth(
+  private def performEEITTAuth[A: HasAuthResult](
     authConfig: EEITTAuthConfig,
     formTemplate: FormTemplate,
     requestUri: String,
-    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[AuthResult]
+    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A]
   )(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[AuthResult] =
     ggAuthorised
       .apply(AuthProviders(AuthProvider.GovernmentGateway), authConfig, formTemplate, request)
+      .map(implicitly[HasAuthResult[A]].getAuthResult)
       .flatMap {
         case ggSuccessfulAuth @ AuthSuccessful(retrievals) =>
           eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails, requestUri).map {
@@ -64,11 +65,11 @@ class AuthService(
         case otherAuthResults => otherAuthResults.pure[Future]
       }
 
-  private def performHMRCAuth(
+  private def performHMRCAuth[A: HasAuthResult](
     authConfig: AuthConfig,
     formTemplate: FormTemplate,
     requestUri: String,
-    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[AuthResult])(
+    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A])(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent]): Future[AuthResult] = {
     val predicate = authConfig match {
@@ -78,7 +79,7 @@ class AuthService(
     }
 
     val eventualGGAuthorised: Future[AuthResult] =
-      ggAuthorised.apply(predicate, authConfig, formTemplate, request)
+      ggAuthorised.apply(predicate, authConfig, formTemplate, request).map(implicitly[HasAuthResult[A]].getAuthResult)
 
     authConfig match {
       case config: AuthConfigWithAgentAccess if config.agentAccess.isDefined => {
@@ -90,7 +91,6 @@ class AuthService(
               case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
               case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
             }
-
           case otherAuthResults => otherAuthResults
         }
       }

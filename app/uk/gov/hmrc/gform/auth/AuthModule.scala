@@ -46,7 +46,7 @@ class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBa
   )
 
   val enrolmentService: EnrolmentService = new EnrolmentService(
-    configModule.serviceConfig.getConfBool("enrolment-service.use-tax-enrolments", false),
+    configModule.typesafeConfig.getBoolean("enrolment-service.use-tax-enrolments"),
     configModule.serviceConfig.getConfString("gg.enrol.portalId", ""),
     ggConnector,
     taxEnrolmentsConnector

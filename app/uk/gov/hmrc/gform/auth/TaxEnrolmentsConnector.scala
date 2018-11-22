@@ -23,24 +23,14 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class TaxEnrolment(key: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])
+case class TaxEnrolment(identifiers: List[Identifier], verifiers: List[Verifier])
 
 object TaxEnrolment {
   implicit val format = Json.format[TaxEnrolment]
 }
 
-case class TaxEnrolmentRequest(enrolments: List[TaxEnrolment])
-
-object TaxEnrolmentRequest {
-  implicit val format = Json.format[TaxEnrolmentRequest]
-}
-
 class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
-
-  // TODO: This tax-enrolments endpoint is not ready yet, once it is available, this connector will need to be
-  //       updated to reflect the final design. For now, the GovernmentGatewayConnector is used for this operation.
-
-  def enrolGGUser(request: TaxEnrolmentRequest, service: ServiceId)(
+  def enrolGGUser(request: TaxEnrolment, service: ServiceId)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[HttpResponse] =
     http.PUT(s"$baseUrl/tax-enrolments/service/${service.value}/enrolment", request)
