@@ -49,13 +49,4 @@ class AgentEnrolmentController(
             .agent_enrolment_prologue(formWithoutData.formTemplate, frontendAppConfig, agentSubscribeUrl(continueUrl)))
       )
     }
-
-  def epilogue(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
-    implicit request => cache =>
-      Future.successful(
-        Ok(
-          uk.gov.hmrc.gform.views.html.hardcoded.pages
-            .agent_enrolment_epilogue(cache.formTemplate, lang, frontendAppConfig))
-      )
-  }
 }
