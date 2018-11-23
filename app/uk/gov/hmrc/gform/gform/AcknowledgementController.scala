@@ -58,7 +58,7 @@ class AcknowledgementController(
     lang: Option[String],
     eventId: String
   ) =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Submitted =>
           renderer
@@ -72,10 +72,11 @@ class AcknowledgementController(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
     lang: Option[String],
-    eventId: String): Action[AnyContent] = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
-    cache.form.status match {
-      case Submitted =>
-        // format: OFF
+    eventId: String): Action[AnyContent] = auth.async(formTemplateId, lang, maybeAccessCode) {
+    implicit request => cache =>
+      cache.form.status match {
+        case Submitted =>
+          // format: OFF
         for {
           summaryHml  <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
@@ -91,8 +92,8 @@ class AcknowledgementController(
           body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
         )
       // format: ON
-      case _ => Future.successful(BadRequest)
-    }
+        case _ => Future.successful(BadRequest)
+      }
   }
 
   private def addExtraDataToHTML(

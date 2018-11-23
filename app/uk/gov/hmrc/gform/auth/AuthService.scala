@@ -38,13 +38,14 @@ class AuthService(
 
   def authenticateAndAuthorise[A: HasAuthResult](
     formTemplate: FormTemplate,
+    lang: Option[String],
     requestUri: String,
     ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A])(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent]): Future[AuthResult] =
     formTemplate.authConfig match {
       case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, requestUri, ggAuthorised)
-      case authConfig                  => performHMRCAuth(authConfig, formTemplate, requestUri, ggAuthorised)
+      case authConfig                  => performHMRCAuth(authConfig, formTemplate, requestUri, lang, ggAuthorised)
     }
 
   private def performEEITTAuth[A: HasAuthResult](
@@ -69,6 +70,7 @@ class AuthService(
     authConfig: AuthConfig,
     formTemplate: FormTemplate,
     requestUri: String,
+    lang: Option[String],
     ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A])(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent]): Future[AuthResult] = {
@@ -86,7 +88,7 @@ class AuthService(
         eventualGGAuthorised.map {
           case ggSuccessfulAuth @ AuthSuccessful(retrievals)
               if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
-            ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments, requestUri) match {
+            ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments, formTemplate, lang) match {
               case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
               case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
               case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
@@ -104,8 +106,11 @@ class AuthService(
     s"$baseUrl/agent-subscription/check-business-type?continue=$continueUrl"
   }
 
-  private def ggAgentAuthorise(agentAccess: AgentAccess, enrolments: Enrolments, requestUri: String)(
-    implicit request: Request[AnyContent]): HMRCAgentAuthorisation =
+  private def ggAgentAuthorise(
+    agentAccess: AgentAccess,
+    enrolments: Enrolments,
+    formTemplate: FormTemplate,
+    lang: Option[String])(implicit request: Request[AnyContent]): HMRCAgentAuthorisation =
     agentAccess match {
       case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
         HMRCAgentAuthorisationSuccessful
@@ -114,7 +119,8 @@ class AuthService(
       case AllowAnyAgentAffinityUser =>
         HMRCAgentAuthorisationSuccessful
       case _ =>
-        HMRCAgentAuthorisationFailed(agentSubscribeUrl(requestUri))
+        HMRCAgentAuthorisationFailed(
+          routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName, lang).url)
     }
 
   def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String = retrievals.userDetails.affinityGroup match {

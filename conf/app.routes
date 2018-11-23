@@ -26,7 +26,9 @@ POST          /summary/:formTemplateId/:maybeAccessCode                         
 GET           /error/insufficient-enrolments                                                                     uk.gov.hmrc.gform.auth.ErrorController.insufficientEnrolments()
 GET           /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.showEnrolment(formTemplateId: FormTemplateId, lang: Option[String])
 POST          /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String])
+GET           /agent-enrolment/prologue/:formTemplateId                                                          uk.gov.hmrc.gform.auth.AgentEnrolmentController.prologue(formTemplateId: FormTemplateId, f: String, lang: Option[String])
+GET           /agent-enrolment/epilogue/:formTemplateId                                                          uk.gov.hmrc.gform.auth.AgentEnrolmentController.epilogue(formTemplateId: FormTemplateId, lang: Option[String])
 
 GET           /assets/*file                                                                                      controllers.Assets.versioned(path="/public", file: Asset)
 
-DELETE        /api/forms/:formTemplateId/:maybeAccessCode/deleteFile/:fileId                                     uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileId: FileId)
+DELETE        /api/forms/:formTemplateId/:maybeAccessCode/deleteFile/:fileId                                     uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formTemplateId: FormTemplateId, lang:Option[String], maybeAccessCode: Option[AccessCode], fileId: FileId)

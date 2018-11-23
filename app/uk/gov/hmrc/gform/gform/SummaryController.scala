@@ -72,7 +72,7 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     lang: Option[String]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Summary | Validated | Signed =>
           getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang).map(Ok(_))
@@ -81,7 +81,7 @@ class SummaryController(
     }
 
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
@@ -147,7 +147,7 @@ class SummaryController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     lang: Option[String]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case InProgress | Summary =>
           for {

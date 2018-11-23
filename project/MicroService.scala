@@ -45,6 +45,7 @@ trait MicroService {
         "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
         "uk.gov.hmrc.gform.sharedmodel.form._",
         "uk.gov.hmrc.gform.sharedmodel._",
+        "uk.gov.hmrc.gform.auth._",
         "uk.gov.hmrc.gform.models._"
       )
 //TODO enable it and fix errors in code!!!

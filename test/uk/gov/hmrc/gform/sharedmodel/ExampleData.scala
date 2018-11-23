@@ -360,6 +360,8 @@ trait ExampleFormTemplate {
       acknowledgementSection = acknowledgementSection,
       declarationSection = DeclarationSection("Declaration", None, None, Nil)
     )
+
+  def lang: Option[String] = None
 }
 
 trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>

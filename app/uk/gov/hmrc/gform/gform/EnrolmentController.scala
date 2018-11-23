@@ -122,7 +122,7 @@ class EnrolmentController(
           HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
         (for {
           _       <- enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers)
-          authRes <- auth.checkEnrolment(formTemplate, identifiers)
+          authRes <- auth.checkEnrolment(formTemplate, identifiers, lang)
         } yield {
           authRes match {
             case AuthSuccessful(_) => Redirect(routes.FormController.dashboard(formTemplate._id, lang).url)
