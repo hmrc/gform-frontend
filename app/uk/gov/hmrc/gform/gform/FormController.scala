@@ -79,7 +79,7 @@ class FormController(
         .form(formTemplate._id, maybeAccessCode, originSection, sectionTitle4Ga, lang))
   }
 
-  def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+  def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
       (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
         case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
@@ -88,7 +88,7 @@ class FormController(
       }
   }
 
-  def newFormAgent(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+  def newFormAgent(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
       val accessCode = AccessCode(AgentAccessCode.random.value)
       for {
@@ -98,7 +98,7 @@ class FormController(
           .flashing(AgentAccessCode.key -> accessCode.value)
   }
 
-  def showAccessCode(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+  def showAccessCode(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
       request.flash.get(AgentAccessCode.key) match {
         case Some(accessCode) =>
@@ -108,7 +108,7 @@ class FormController(
       }
   }
 
-  def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId) {
+  def newForm(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
       {
         for {
@@ -122,7 +122,7 @@ class FormController(
   }
 
   def newFormPost(formTemplateId: FormTemplateId, lang: Option[String]): Action[AnyContent] =
-    auth.async(formTemplateId) { implicit request => cache =>
+    auth.async(formTemplateId, lang) { implicit request => cache =>
       AgentAccessCode.form.bindFromRequest.fold(
         hasErrors =>
           Future.successful(BadRequest(access_code_start(cache.formTemplate, hasErrors, lang, frontendAppConfig))),
@@ -207,7 +207,7 @@ class FormController(
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     lang: Option[String],
-    validator: Validator) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    validator: Validator) = auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
     val formTemplate = cache.formTemplate
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
@@ -265,7 +265,7 @@ class FormController(
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
     fId: String,
-    lang: Option[String]) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    lang: Option[String]) = auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
     val fileId = FileId(fId)
 
     val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController
@@ -298,7 +298,7 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     lang: Option[String]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       choice.bindFromRequest
         .fold(
           _ =>
@@ -318,7 +318,7 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     lang: Option[String]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       gformConnector
         .deleteForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
         .map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
@@ -371,7 +371,7 @@ class FormController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     lang: Option[String]
-  ) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+  ) = auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
     processResponseDataFromBody(request) { (data: Map[FormComponentId, Seq[String]]) =>
       val envelopeId = cache.form.envelopeId
       val retrievals = cache.retrievals

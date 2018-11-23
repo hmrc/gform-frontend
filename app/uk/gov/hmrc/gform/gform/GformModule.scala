@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.gform.auditing.AuditingModule
-import uk.gov.hmrc.gform.auth.{ AuthModule, ErrorController }
+import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
@@ -96,6 +96,13 @@ class GformModule(
   val errorController = new ErrorController(
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport
+  )
+
+  val agentEnrolmentController = new AgentEnrolmentController(
+    configModule.appConfig,
+    configModule.frontendAppConfig,
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions
   )
 
   val declarationController = new DeclarationController(

@@ -60,7 +60,7 @@ class DeclarationController(
   import i18nSupport._
 
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId, lang: Option[String]) =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Validated =>
           Future.successful {
@@ -118,7 +118,7 @@ class DeclarationController(
   }
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => cacheOrig =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cacheOrig =>
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val formData: Map[FormComponentId, List[String]] = cacheOrig.form.formData.fields.map {
           case FormField(id, value) => id -> (value :: Nil)

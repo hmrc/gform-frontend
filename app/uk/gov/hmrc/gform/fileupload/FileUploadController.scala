@@ -31,9 +31,10 @@ class FileUploadController(
 
   def deleteFile(
     formTemplateId: FormTemplateId,
+    lang: Option[String],
     maybeAccessCode: Option[AccessCode],
     fileId: FileId
-  ) = auth.async(formTemplateId, maybeAccessCode) { implicit request => cache =>
+  ) = auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
     for {
       form <- gformConnector.getForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
       _    <- fileUploadService.deleteFile(form.envelopeId, fileId)

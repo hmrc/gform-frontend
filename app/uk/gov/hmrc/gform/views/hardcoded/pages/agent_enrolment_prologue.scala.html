@@ -1,0 +1,56 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
+
+@(
+        formTemplate: FormTemplate,
+        frontendAppConfig: FrontendAppConfig,
+        url: String
+)(
+        implicit
+        messages: Messages
+)
+
+@heading = @{"Create an agent services account to access this service"}
+@formCat = @{formCategory(formTemplate)}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = heading,
+    serviceName = formTemplate.formName,
+    bodyClasses = None,
+    frontendAppConfig = frontendAppConfig
+) {
+
+  <h1>
+    @heading
+  </h1>
+  <p>
+    Before you can start your @formCat for '@{formTemplate.formName}' you will need to create an agent services account. You can do this now.
+  </p>
+  <p class="panel">
+    You need to be the person responsible for your firm’s administrative matters. The account gives you administrative control over your firm's access to new HMRC online services.
+  </p>
+  <p>
+    Once you have created your agent services account, you can carry on with your @formCat.
+  </p>
+  <p>
+    <a class="button" role="button" href="@url">Create an agent services account</a>
+  </p>
+
+}

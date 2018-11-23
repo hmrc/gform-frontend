@@ -55,12 +55,13 @@ class AuthenticatedRequestActions(
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-  def checkEnrolment(formTemplate: FormTemplate, identifiers: List[Identifier])(
+  def checkEnrolment(formTemplate: FormTemplate, identifiers: List[Identifier], lang: Option[String])(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent]): Future[AuthResult] =
     for {
       authResult <- authService.authenticateAndAuthorise(
                      formTemplate,
+                     lang,
                      request.uri,
                      ggAuthorised(checkIdentifiers(identifiers)(_).pure[Future]))
     } yield authResult
@@ -77,13 +78,13 @@ class AuthenticatedRequestActions(
       EnrolmentFailed
   }
 
-  def async(formTemplateId: FormTemplateId)(
+  def async(formTemplateId: FormTemplateId, lang: Option[String])(
     f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request.uri, ggAuthorised(authUserWhitelist(_)))
+                       .authenticateAndAuthorise(formTemplate, lang, request.uri, ggAuthorised(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -113,7 +114,7 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
-  def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
+  def async(formTemplateId: FormTemplateId, lang: Option[String], maybeAccessCode: Option[AccessCode])(
     f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       for {
@@ -121,6 +122,7 @@ class AuthenticatedRequestActions(
         authResult <- authService
                        .authenticateAndAuthorise(
                          formTemplate,
+                         lang,
                          request.uri,
                          ggAuthorised[AuthResult](AuthSuccessful(_).pure[Future]))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
