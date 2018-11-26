@@ -839,5 +839,5 @@ class SectionRenderingService(
         case IsFileUpload() => false
         case _              => true
       }
-      .count(field => field.editable) != 1
+      .count(field => field.editable && field.label == section.title) != 1
 }
