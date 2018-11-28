@@ -82,11 +82,11 @@ function handleFileUpload(e) {
   $input.attr('aria-busy', true);
 
   if (window.gform.contentTypes.indexOf(file.type) === -1) {
-    return handleFileUploadError($input, 'The file type ' + file.type + ' is not permitted. You can only upload ' + window.gform.contentTypes);
+    return handleError($input, 'The file type ' + file.type + ' is not permitted. You can only upload ' + window.gform.contentTypes);
   }
 
   if (file.size > (maxFileSize * 1024 * 1024)) {
-    return handleFileUploadError($input, 'This file is larger than the maximum file size of ' + maxFileSize + 'MB');
+    return handleError($input, 'This file is larger than the maximum file size of ' + maxFileSize + 'MB');
   }
   
   return uploadFile(file, $input.attr('id'))
@@ -94,7 +94,7 @@ function handleFileUpload(e) {
       fileUploadSuccess(response, $input.attr('id'), file.name, formTemplateId, $input);
     }, function (err) {
       $input.removeAttr('aria-busy')
-      handleFileUploadError($input, err.statusText)
+      handleError($input, err.statusText)
     })
 }
 
