@@ -66,7 +66,9 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       signOutUrl = typesafeConfig.getString("signout-url"),
       betaFeedbackUrlNoAuth = s"/contact/beta-feedback-unauthenticated?service=$contactFormServiceIdentifier",
       whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
-      sendPdfWithSubmission = typesafeConfig.getString("send-pdf-with-submission").toBoolean
+      sendPdfWithSubmission = typesafeConfig.getString("send-pdf-with-submission").toBoolean,
+      googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,
+      googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id")
     )
   }
 }
