@@ -32,7 +32,8 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve._
+import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
+import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 
@@ -50,30 +51,40 @@ class AuthenticatedRequestActions(
   errResponder: ErrResponder
 ) extends AuthorisedFunctions {
 
+  def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
+    Function.const {
+
+      val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+
+      authorised(predicate)
+        .retrieve(Retrievals.affinityGroup) {
+          case affinityGroup => Future.successful(affinityGroup)
+        }
+    }
+
   import i18nSupport._
 
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-  def checkEnrolment(formTemplate: FormTemplate, identifiers: List[Identifier], lang: Option[String])(
-    implicit hc: HeaderCarrier,
-    request: Request[AnyContent]): Future[AuthResult] =
-    for {
-      authResult <- authService.authenticateAndAuthorise(
-                     formTemplate,
-                     lang,
-                     request.uri,
-                     ggAuthorised(checkIdentifiers(identifiers)(_).pure[Future]))
-    } yield authResult
+  def checkEnrolment(serviceId: ServiceId, identifiers: List[Identifier])(
+    implicit hc: HeaderCarrier): Future[CheckEnrolmentsResult] = {
+
+    val predicate = Enrolment(serviceId.value)
+
+    authorised(predicate)
+      .retrieve(Retrievals.allEnrolments) {
+        case enrolments => checkIdentifiers(identifiers)(enrolments).pure[Future]
+      }
+  }
 
   private def toIdentifier(ei: EnrolmentIdentifier): Identifier = Identifier(ei.key, ei.value)
 
-  private def checkIdentifiers(identifiers: List[Identifier])(
-    retrievals: MaterialisedRetrievals): CheckEnrolmentsResult = {
+  private def checkIdentifiers(identifiers: List[Identifier])(enrolments: Enrolments): CheckEnrolmentsResult = {
 
-    val matIdentifiers: Set[Identifier] = retrievals.enrolments.enrolments.flatMap(_.identifiers).map(toIdentifier)
+    val matIdentifiers: Set[Identifier] = enrolments.enrolments.flatMap(_.identifiers).map(toIdentifier)
     if (identifiers.toSet.subsetOf(matIdentifiers))
-      EnrolmentSuccessful(retrievals)
+      EnrolmentSuccessful
     else
       EnrolmentFailed
   }
@@ -84,7 +95,12 @@ class AuthenticatedRequestActions(
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, lang, request.uri, ggAuthorised(authUserWhitelist(_)))
+                       .authenticateAndAuthorise(
+                         formTemplate,
+                         lang,
+                         request.uri,
+                         getAffinityGroup,
+                         ggAuthorised(formTemplate, request)(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -102,11 +118,8 @@ class AuthenticatedRequestActions(
 
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult <- ggAuthorised[AuthResult](AuthSuccessful(_).pure[Future])(
-                       predicate,
-                       formTemplate.authConfig,
-                       formTemplate,
-                       request)
+        authResult <- ggAuthorised(formTemplate, request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(
+                       predicate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) => f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
                    case _                          => errResponder.forbidden(request, "Access denied")
@@ -124,7 +137,8 @@ class AuthenticatedRequestActions(
                          formTemplate,
                          lang,
                          request.uri,
-                         ggAuthorised[AuthResult](AuthSuccessful(_).pure[Future]))
+                         getAffinityGroup,
+                         ggAuthorised(formTemplate, request)(AuthSuccessful(_).pure[Future]))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -192,13 +206,13 @@ class AuthenticatedRequestActions(
     // is this needed for new form and existing form?
     def updateFor(authBy: String): Option[MaterialisedRetrievals] =
       request.session.get(authBy).map { regNum =>
-        val newEnrolment = Enrolment(AuthConfig.eeittAuth).withIdentifier(authBy, regNum)
+        val newEnrolment = Enrolment(EEITTAuthConfig.eeittAuth).withIdentifier(authBy, regNum)
         val newEnrolments = Enrolments(retrievals.enrolments.enrolments + newEnrolment)
         retrievals.copy(enrolments = newEnrolments)
       }
 
     authConfig match {
-      case _: EEITTAuthConfig =>
+      case EeittModule(_) =>
         updateFor(EEITTAuthConfig.nonAgentIdName)
           .orElse(updateFor(EEITTAuthConfig.agentIdName))
           .getOrElse(retrievals)
@@ -214,7 +228,7 @@ class AuthenticatedRequestActions(
     // a bit of session clean up due to the session's size restrictions.
     // The registrationNumber/arn passed by eeitt-auth in the session is saved in the user's enrolments field after
     // successful authentication, in which case there is no need to keep it in the session anymore
-    case _: EEITTAuthConfig =>
+    case EeittModule(_) =>
       val sessionCookie =
         Session.encodeAsCookie(request.session - EEITTAuthConfig.nonAgentIdName - EEITTAuthConfig.agentIdName)
       val updatedCookies = request.cookies
@@ -230,11 +244,16 @@ class AuthenticatedRequestActions(
     Retrievals.externalId and Retrievals.userDetailsUri and
     Retrievals.credentialStrength and Retrievals.agentCode
 
-  private def ggAuthorised[A: HasAuthResult](authGivenRetrievals: MaterialisedRetrievals => Future[A])(
-    predicate: Predicate,
-    authConfig: AuthConfig,
+  private def ggAuthorised(
     formTemplate: FormTemplate,
-    request: Request[AnyContent]): Future[A] = {
+    request: Request[AnyContent]
+  )(
+    authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
+  )(
+    recoverPF: FormTemplate => PartialFunction[Throwable, AuthResult]
+  )(
+    predicate: Predicate
+  ): Future[AuthResult] = {
     import uk.gov.hmrc.auth.core.retrieve.~
 
     implicit val hc: HeaderCarrier =
@@ -257,7 +276,7 @@ class AuthenticatedRequestActions(
             result <- authGivenRetrievals(retrievals)
           } yield result
       }
-      .recover(implicitly[HasAuthResult[A]].errorHandler(request, authConfig, appConfig, formTemplate))
+      .recover(recoverPF(formTemplate) orElse RecoverAuthResult.basicRecover(request, appConfig))
   }
 
   def idForLog(id: LegacyCredentials) = id match {

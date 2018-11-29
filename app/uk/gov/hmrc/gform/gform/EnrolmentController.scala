@@ -20,8 +20,7 @@ import cats.instances.future._
 import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ AnyContent, Request, Result }
-import uk.gov.hmrc.gform.auth.models.{ AuthResult, AuthSuccessful }
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
@@ -56,13 +55,13 @@ class EnrolmentController(
     implicit request => cache =>
       gformConnector.getFormTemplate(formTemplateId).map { formTemplate =>
         formTemplate.authConfig match {
-          case authConfig: AuthConfigWithEnrolment =>
+          case HasEnrolmentSection((_, enrolmentSection)) =>
             Ok {
               renderer
                 .renderEnrolmentSection(
                   formTemplate,
                   cache.retrievals,
-                  authConfig.enrolmentSection,
+                  enrolmentSection,
                   FormDataRecalculated.empty,
                   Nil,
                   Valid(()),
@@ -80,8 +79,8 @@ class EnrolmentController(
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         gformConnector.getFormTemplate(formTemplateId).flatMap { formTemplate =>
           formTemplate.authConfig match {
-            case authConfig: AuthConfigWithEnrolment =>
-              val allFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
+            case HasEnrolmentSection((serviceId, enrolmentSection)) =>
+              val allFields = getAllEnrolmentFields(enrolmentSection.fields)
               get(dataRaw, FormComponentId("save")) match {
                 case "Continue" :: Nil =>
                   for {
@@ -92,7 +91,8 @@ class EnrolmentController(
                                          EnvelopeId(""),
                                          cache.retrievals,
                                          cache.formTemplate)
-                    res <- processValidation(formTemplate, cache.retrievals, authConfig, data, lang)(validationResult)
+                    res <- processValidation(formTemplate, cache.retrievals, serviceId, enrolmentSection, data, lang)(
+                            validationResult)
                   } yield res
 
                 case _ =>
@@ -111,22 +111,23 @@ class EnrolmentController(
   private def processValidation(
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    authConfig: AuthConfigWithEnrolment,
+    serviceId: ServiceId,
+    enrolmentSection: EnrolmentSection,
     data: FormDataRecalculated,
     lang: Option[String]
   )(validationResult: ValidatedType)(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[Result] =
     validationResult match {
       case Valid(()) =>
-        val (identifiers, verifiers) = extractIdentifiersAndVerifiers(authConfig, data)
+        val (identifiers, verifiers) = extractIdentifiersAndVerifiers(enrolmentSection, data)
         implicit val hc: HeaderCarrier =
           HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
         (for {
-          _       <- enrolmentService.enrolUser(authConfig.serviceId, identifiers, verifiers)
-          authRes <- auth.checkEnrolment(formTemplate, identifiers, lang)
+          _       <- enrolmentService.enrolUser(serviceId, identifiers, verifiers)
+          authRes <- auth.checkEnrolment(serviceId, identifiers)
         } yield {
           authRes match {
-            case AuthSuccessful(_) => Redirect(routes.FormController.dashboard(formTemplate._id, lang).url)
-            case _ =>
+            case EnrolmentSuccessful => Redirect(routes.FormController.dashboard(formTemplate._id, lang).url)
+            case EnrolmentFailed =>
               val newPageUrl = routes.FormController.dashboard(formTemplate._id, lang).url
               val continueUrl = java.net.URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
               val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
@@ -135,19 +136,19 @@ class EnrolmentController(
 
           }
 
-        }).recoverWith(handleEnrolmentException(authConfig, formTemplate, lang))
+        }).recoverWith(handleEnrolmentException(formTemplate, lang))
 
       case validationResult @ Invalid(_) =>
         Future.successful(
-          displayEnrolmentSectionWithErrors(validationResult, data, authConfig, formTemplate, retrievals, lang))
+          displayEnrolmentSectionWithErrors(validationResult, data, enrolmentSection, formTemplate, retrievals, lang))
     }
 
   private def getErrorMap(
     validationResult: ValidatedType,
     data: FormDataRecalculated,
-    authConfig: AuthConfigWithEnrolment
+    enrolmentSection: EnrolmentSection
   ): List[(FormComponent, FormFieldValidationResult)] = {
-    val enrolmentFields = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
+    val enrolmentFields = getAllEnrolmentFields(enrolmentSection.fields)
     validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
   }
 
@@ -160,7 +161,7 @@ class EnrolmentController(
     }
 
   private def extractIdentifiersAndVerifiers(
-    authConfig: AuthConfigWithEnrolment,
+    enrolmentSection: EnrolmentSection,
     data: FormDataRecalculated
   ): (List[Identifier], List[Verifier]) = {
 
@@ -173,7 +174,7 @@ class EnrolmentController(
     val identifierPattern = "identifier_(.*)".r
     val verifierPattern = "verifier_(.*)".r
 
-    val (allIdentifiers, allVerifiers) = getAllEnrolmentFields(authConfig.enrolmentSection.fields)
+    val (allIdentifiers, allVerifiers) = getAllEnrolmentFields(enrolmentSection.fields)
       .foldLeft((List.empty[Identifier], List.empty[Verifier])) { (result, fieldValue) =>
         fieldValue.id.value match {
           case identifierPattern(identifier) => (result._1 :+ Identifier(identifier, getValue(fieldValue)), result._2)
@@ -187,28 +188,21 @@ class EnrolmentController(
   private def displayEnrolmentSectionWithErrors(
     validationResult: ValidatedType,
     data: FormDataRecalculated,
-    authConfig: AuthConfigWithEnrolment,
+    enrolmentSection: EnrolmentSection,
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_]): Result = {
 
-    val errorMap = getErrorMap(validationResult, data, authConfig)
+    val errorMap = getErrorMap(validationResult, data, enrolmentSection)
 
     val html =
-      renderer.renderEnrolmentSection(
-        formTemplate,
-        retrievals,
-        authConfig.enrolmentSection,
-        data,
-        errorMap,
-        validationResult,
-        lang)
+      renderer
+        .renderEnrolmentSection(formTemplate, retrievals, enrolmentSection, data, errorMap, validationResult, lang)
     Ok(html)
   }
 
   private def handleEnrolmentException(
-    authConfig: AuthConfigWithEnrolment,
     formTemplate: FormTemplate,
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_]): PartialFunction[Throwable, Future[Result]] = {

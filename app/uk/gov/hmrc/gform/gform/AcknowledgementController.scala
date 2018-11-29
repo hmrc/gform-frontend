@@ -111,13 +111,12 @@ class AcknowledgementController(
     val formattedTime =
       s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
 
-    // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_, Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
-      case (_: EEITTAuthConfig, None) => Future.successful(authService.eeitReferenceNumber(retrievals))
-      case (_, None) => Future.successful(getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals))
+      case (_, Some(textExpression)) =>
+        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
+      case (EeittModule(_), None) => Future.successful(authService.eeitReferenceNumber(retrievals))
+      case (_, None)              => Future.successful(getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals))
     }
-    // format: ON
 
     referenceNumber.map { ref =>
       // TODO: Add Submission mark when it's implemented for the submission auditing event

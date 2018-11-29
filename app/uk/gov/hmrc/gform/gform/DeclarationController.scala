@@ -90,13 +90,12 @@ class DeclarationController(
     formTemplate: FormTemplate,
     data: FormDataRecalculated
   )(implicit hc: HeaderCarrier): String = {
-    // format: OFF
     val referenceNumber = (authConfig, submissionReference) match {
-      case (_,                  Some(textExpression)) => authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data.data)
-      case (_: EEITTAuthConfig, None)                 => authService.eeitReferenceNumber(retrievals)
-      case (_,                  None)                 => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
+      case (_, Some(textExpression)) =>
+        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data.data)
+      case (EeittModule(_), None) => authService.eeitReferenceNumber(retrievals)
+      case (_, None)              => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
     }
-    // format: ON
 
     val extraData =
       s"""

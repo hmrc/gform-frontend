@@ -31,8 +31,9 @@ class EeittService(eeittConnector: EeittConnector) {
   def getValue(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate)(
     implicit hc: HeaderCarrier) = {
     val regimeId = formTemplate.authConfig match {
-      case EEITTAuthConfig(_, rId) => rId
-      case _                       => RegimeId("")
+      case EeittModule(regimeId)                                                         => regimeId
+      case HmrcEnrolmentModule(EnrolmentAuth(_, DoCheck(_, _, RegimeIdCheck(regimeId)))) => regimeId
+      case _                                                                             => RegimeId("")
     }
     for {
       prepopData <- (eeitt, retrievals.affinityGroup) match {

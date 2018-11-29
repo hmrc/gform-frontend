@@ -16,19 +16,19 @@
 
 package uk.gov.hmrc.gform.auth
 
+import cats.implicits._
 import play.api.mvc._
-import uk.gov.hmrc._
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
-import gform.auth.models._
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import cats.implicits._
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 class AuthService(
   appConfig: AppConfig,
@@ -36,69 +36,110 @@ class AuthService(
   eeittService: EeittService
 ) {
 
-  def authenticateAndAuthorise[A: HasAuthResult](
+  def authenticateAndAuthorise(
     formTemplate: FormTemplate,
     lang: Option[String],
     requestUri: String,
-    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A])(
-    implicit hc: HeaderCarrier,
-    request: Request[AnyContent]): Future[AuthResult] =
+    getAffinityGroup: Unit => Future[Option[AffinityGroup]],
+    ggAuthorised: (FormTemplate => PartialFunction[Throwable, AuthResult]) => Predicate => Future[AuthResult]
+  )(
+    implicit hc: HeaderCarrier
+  ): Future[AuthResult] =
     formTemplate.authConfig match {
-      case authConfig: EEITTAuthConfig => performEEITTAuth(authConfig, formTemplate, requestUri, ggAuthorised)
-      case authConfig                  => performHMRCAuth(authConfig, formTemplate, requestUri, lang, ggAuthorised)
+      case EeittModule(regimeId)              => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
+      case HmrcSimpleModule                   => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
+      case HmrcEnrolmentModule(enrolmentAuth) => performEnrolment(enrolmentAuth, getAffinityGroup, ggAuthorised)
+      case HmrcAgentModule(agentAccess) =>
+        performAgent(agentAccess, formTemplate, lang, ggAuthorised(RecoverAuthResult.noop), Future.successful(_))
+      case HmrcAgentWithEnrolmentModule(agentAccess, enrolmentAuth) =>
+        def ifSuccessPerformEnrolment(authResult: AuthResult) = authResult match {
+          case AuthSuccessful(_) => performEnrolment(enrolmentAuth, getAffinityGroup, ggAuthorised)
+          case authUnsuccessful  => Future.successful(authUnsuccessful)
+        }
+        performAgent(agentAccess, formTemplate, lang, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
     }
 
-  private def performEEITTAuth[A: HasAuthResult](
-    authConfig: EEITTAuthConfig,
+  private def performEnrolment(
+    enrolmentAuth: EnrolmentAuth,
+    getAffinityGroup: Unit => Future[Option[AffinityGroup]],
+    ggAuthorised: (FormTemplate => PartialFunction[Throwable, AuthResult]) => Predicate => Future[AuthResult]
+  )(
+    implicit hc: HeaderCarrier
+  ): Future[AuthResult] =
+    enrolmentAuth.enrolmentCheck match {
+      case DoCheck(enrolmentCheckPredicate, needEnrolment, enrolmentPostCheck) =>
+        val predicateF: Future[Predicate] = {
+
+          val ggOnlyPredicate = AuthProviders(AuthProvider.GovernmentGateway)
+          val ggAndEnrolmentPredicate = ggOnlyPredicate and Enrolment(enrolmentAuth.serviceId.value)
+
+          enrolmentCheckPredicate match {
+            case Always => Future.successful(ggAndEnrolmentPredicate)
+            case ForNonAgents =>
+              getAffinityGroup(()).map {
+                case Some(AffinityGroup.Organisation) | Some(AffinityGroup.Individual) => ggAndEnrolmentPredicate
+                case _                                                                 => ggOnlyPredicate
+              }
+          }
+        }
+
+        val recoverFn = needEnrolment match {
+          case RequireEnrolment(enrolmentSection) => RecoverAuthResult.redirectToEnrolmentSection _
+          case RejectAccess                       => RecoverAuthResult.rejectInsufficientEnrolments _
+        }
+        for {
+          predicate <- predicateF
+          result <- ggAuthorised(recoverFn)(predicate).map { authResult =>
+                     enrolmentPostCheck match {
+                       case NoCheck                 => authResult
+                       case RegimeIdCheck(regimeId) => authResult // TODO implement regimeId check
+                     }
+                   }
+        } yield result
+      case Never =>
+        // From the spec 'never' seems to be the same as not providing ServiceId in the first place.
+        performGGAuth(ggAuthorised(RecoverAuthResult.noop))
+    }
+
+  private def performGGAuth(ggAuthorised: Predicate => Future[AuthResult])(
+    implicit hc: HeaderCarrier): Future[AuthResult] = {
+    val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+    ggAuthorised(predicate)
+  }
+
+  private def performAgent(
+    agentAccess: AgentAccess,
     formTemplate: FormTemplate,
+    lang: Option[String],
+    ggAuthorised: Predicate => Future[AuthResult],
+    continuation: AuthResult => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] =
+    performGGAuth(ggAuthorised)
+      .map {
+        case ggSuccessfulAuth @ AuthSuccessful(retrievals) if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
+          ggAgentAuthorise(agentAccess, formTemplate, retrievals.enrolments, lang) match {
+            case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
+            case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
+            case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
+          }
+
+        case otherAuthResults => otherAuthResults
+      }
+      .flatMap(continuation)
+
+  private def performEEITTAuth(
+    regimeId: RegimeId,
     requestUri: String,
-    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A]
-  )(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[AuthResult] =
-    ggAuthorised
-      .apply(AuthProviders(AuthProvider.GovernmentGateway), authConfig, formTemplate, request)
-      .map(implicitly[HasAuthResult[A]].getAuthResult)
+    ggAuthorised: Predicate => Future[AuthResult]
+  )(implicit hc: HeaderCarrier): Future[AuthResult] =
+    performGGAuth(ggAuthorised)
       .flatMap {
         case ggSuccessfulAuth @ AuthSuccessful(retrievals) =>
-          eeittDelegate.authenticate(authConfig.regimeId, retrievals.userDetails, requestUri).map {
+          eeittDelegate.authenticate(regimeId, retrievals.userDetails, requestUri).map {
             case EeittAuthorisationSuccessful            => ggSuccessfulAuth
             case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormName(eeittLoginUrl)
           }
         case otherAuthResults => otherAuthResults.pure[Future]
       }
-
-  private def performHMRCAuth[A: HasAuthResult](
-    authConfig: AuthConfig,
-    formTemplate: FormTemplate,
-    requestUri: String,
-    lang: Option[String],
-    ggAuthorised: (Predicate, AuthConfig, FormTemplate, Request[AnyContent]) => Future[A])(
-    implicit hc: HeaderCarrier,
-    request: Request[AnyContent]): Future[AuthResult] = {
-    val predicate = authConfig match {
-      case config: AuthConfigWithEnrolment =>
-        AuthProviders(AuthProvider.GovernmentGateway) and Enrolment(config.serviceId.value)
-      case _ => AuthProviders(AuthProvider.GovernmentGateway)
-    }
-
-    val eventualGGAuthorised: Future[AuthResult] =
-      ggAuthorised.apply(predicate, authConfig, formTemplate, request).map(implicitly[HasAuthResult[A]].getAuthResult)
-
-    authConfig match {
-      case config: AuthConfigWithAgentAccess if config.agentAccess.isDefined => {
-        eventualGGAuthorised.map {
-          case ggSuccessfulAuth @ AuthSuccessful(retrievals)
-              if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
-            ggAgentAuthorise(config.agentAccess.get, retrievals.enrolments, formTemplate, lang) match {
-              case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
-              case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
-              case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
-            }
-          case otherAuthResults => otherAuthResults
-        }
-      }
-      case _ => eventualGGAuthorised
-    }
-  }
 
   private def agentSubscribeUrl(requestUri: String): String = {
     val continueUrl = java.net.URLEncoder.encode(requestUri, "UTF-8")
@@ -108,30 +149,30 @@ class AuthService(
 
   private def ggAgentAuthorise(
     agentAccess: AgentAccess,
-    enrolments: Enrolments,
     formTemplate: FormTemplate,
-    lang: Option[String])(implicit request: Request[AnyContent]): HMRCAgentAuthorisation =
+    enrolments: Enrolments,
+    lang: Option[String]): HMRCAgentAuthorisation =
     agentAccess match {
       case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
         HMRCAgentAuthorisationSuccessful
-      case DenyAnyAgentAffinityUser =>
-        HMRCAgentAuthorisationDenied
-      case AllowAnyAgentAffinityUser =>
-        HMRCAgentAuthorisationSuccessful
+      case DenyAnyAgentAffinityUser  => HMRCAgentAuthorisationDenied
+      case AllowAnyAgentAffinityUser => HMRCAgentAuthorisationSuccessful
       case _ =>
         HMRCAgentAuthorisationFailed(
           routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName, lang).url)
     }
 
-  def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String = retrievals.userDetails.affinityGroup match {
-    case AffinityGroup.Agent =>
-      retrievals.enrolments
-        .getEnrolment(AuthConfig.eeittAuth)
-        .fold("")(_.getIdentifier(EEITTAuthConfig.agentIdName).fold("")(_.value))
-    case _ =>
-      retrievals.enrolments
-        .getEnrolment(AuthConfig.eeittAuth)
-        .fold("")(_.getIdentifier(EEITTAuthConfig.nonAgentIdName).fold("")(_.value))
+  def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String = {
+
+    val identifier = retrievals.userDetails.affinityGroup match {
+      case AffinityGroup.Agent => EEITTAuthConfig.agentIdName
+      case _                   => EEITTAuthConfig.nonAgentIdName
+    }
+
+    retrievals.enrolments
+      .getEnrolment(EEITTAuthConfig.eeittAuth)
+      .flatMap(_.getIdentifier(identifier))
+      .fold("")(_.value)
   }
 
   def evaluateSubmissionReference(

@@ -16,33 +16,7 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.mvc.Request
-import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig
+sealed trait CheckEnrolmentsResult extends Product with Serializable
 
-sealed trait CheckEnrolmentsResult extends Product with Serializable {
-  def toAuthResult: AuthResult = this match {
-    case EnrolmentSuccessful(retrievals) => AuthSuccessful(retrievals)
-    case EnrolmentFailed                 => AuthForbidden("Enrolment unsuccessful")
-  }
-}
-
-object CheckEnrolmentsResult {
-  implicit object hasAuthResult extends HasAuthResult[CheckEnrolmentsResult] {
-
-    def getAuthResult(cer: CheckEnrolmentsResult): AuthResult = cer.toAuthResult
-
-    def errorHandler(
-      request: Request[AnyContent],
-      authConfig: AuthConfig,
-      appConfig: AppConfig,
-      formTemplate: FormTemplate): PartialFunction[Throwable, CheckEnrolmentsResult] = {
-      case _ => EnrolmentFailed
-    }
-  }
-}
-
-case class EnrolmentSuccessful(retrievals: MaterialisedRetrievals) extends CheckEnrolmentsResult
+case object EnrolmentSuccessful extends CheckEnrolmentsResult
 case object EnrolmentFailed extends CheckEnrolmentsResult
