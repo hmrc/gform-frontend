@@ -37,8 +37,6 @@ trait ExampleData
 
 trait ExampleAuthConfig {
 
-  def authConfigModule = AuthConfigModule("hmrc")
-
   def dmsSubmission =
     DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "BT-NRU-Environmental", "FinanceOpsCorpT")
 
@@ -46,7 +44,10 @@ trait ExampleAuthConfig {
 
   def serviceId = ServiceId("TestServiceId")
 
-  def authConfig = HMRCAuthConfigWithRegimeId(authConfigModule, Some(AllowAnyAgentAffinityUser), serviceId, regimeId)
+  def authConfig =
+    HmrcAgentWithEnrolmentModule(
+      AllowAnyAgentAffinityUser,
+      EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, RegimeIdCheck(regimeId))))
 }
 
 trait ExampleFieldId {

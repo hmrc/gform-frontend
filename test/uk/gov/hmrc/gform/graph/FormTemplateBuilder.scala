@@ -106,7 +106,7 @@ object FormTemplateBuilder {
     None,
     None,
     DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
-    HMRCAuthConfigWithAuthModule(AuthConfigModule("hmrc"), Some(AllowAnyAgentAffinityUser)),
+    HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
     "http://www.google.co.uk",
     "http://www.yahoo.co.uk",
