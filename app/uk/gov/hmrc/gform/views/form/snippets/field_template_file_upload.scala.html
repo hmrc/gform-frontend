@@ -80,8 +80,8 @@
   </div>
 
   <div id="@fileId-files" class="@{"uploaded-files" + {if(currentValue.nonEmpty) " subsection" else "" }}">
-    @if(currentValue.nonEmpty) {
-      <span href="#">@{currentValue.get}</span>
+    @currentValue.map{cv =>
+      <span href="#">@cv</span>
       <a 
         href="#"
         id="file-delete"
@@ -89,8 +89,8 @@
         data-form-id="@templateId"
         data-access-code="@accessCode">
         <span aria-hidden="true">Delete</span>
-        <span class="visuallyhidden">Delete @{currentValue.get}</span>
+        <span class="visuallyhidden">Delete @cv</span>
       </a>
-    }
+    }.getOrElse("")
   </div>
   }
