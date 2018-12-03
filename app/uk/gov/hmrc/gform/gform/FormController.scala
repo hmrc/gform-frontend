@@ -81,11 +81,15 @@ class FormController(
 
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
-      (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
-        case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
-          Future.successful(Ok(access_code_start(cache.formTemplate, AgentAccessCode.form, lang, frontendAppConfig)))
-        case _ => Future.successful(Redirect(routes.FormController.newForm(formTemplateId, lang)))
-      }
+      val formId = FormId(cache.retrievals.userDetails, formTemplateId, None)
+      for {
+        maybeForm <- gformConnector.maybeForm(formId)
+      } yield
+        (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup, maybeForm.isDefined) match {
+          case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent), false) =>
+            Ok(access_code_start(cache.formTemplate, AgentAccessCode.form, lang, frontendAppConfig))
+          case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
+        }
   }
 
   def newFormAgent(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
@@ -321,7 +325,12 @@ class FormController(
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       gformConnector
         .deleteForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
-        .map(_ => Redirect(routes.FormController.newForm(formTemplateId, lang)))
+        .map(_ =>
+          (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
+            case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
+              Redirect(routes.FormController.newFormAgent(formTemplateId, lang))
+            case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
+        })
     }
 
   val deleteOnExit = delete _
