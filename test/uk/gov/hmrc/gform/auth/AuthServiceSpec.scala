@@ -122,7 +122,7 @@ class AuthServiceSpec extends Spec with ExampleData {
 
   val requestUri = "/submissions/test"
 
-  private def factory[A](a: A): (FormTemplate => PartialFunction[Throwable, AuthResult]) => Predicate => Future[A] =
+  private def factory[A](a: A): PartialFunction[Throwable, AuthResult] => Predicate => Future[A] =
     const(const(Future.successful(a)))
 
   val ggAuthorisedSuccessful = factory(AuthSuccessful(materialisedRetrievals))

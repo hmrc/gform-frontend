@@ -100,7 +100,7 @@ class AuthenticatedRequestActions(
                          lang,
                          request.uri,
                          getAffinityGroup,
-                         ggAuthorised(formTemplate, request)(authUserWhitelist(_)))
+                         ggAuthorised(request)(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -118,8 +118,7 @@ class AuthenticatedRequestActions(
 
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult <- ggAuthorised(formTemplate, request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(
-                       predicate)
+        authResult   <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) => f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
                    case _                          => errResponder.forbidden(request, "Access denied")
@@ -138,7 +137,7 @@ class AuthenticatedRequestActions(
                          lang,
                          request.uri,
                          getAffinityGroup,
-                         ggAuthorised(formTemplate, request)(AuthSuccessful(_).pure[Future]))
+                         ggAuthorised(request)(AuthSuccessful(_).pure[Future]))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -245,12 +244,11 @@ class AuthenticatedRequestActions(
     Retrievals.credentialStrength and Retrievals.agentCode
 
   private def ggAuthorised(
-    formTemplate: FormTemplate,
     request: Request[AnyContent]
   )(
     authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
   )(
-    recoverPF: FormTemplate => PartialFunction[Throwable, AuthResult]
+    recoverPF: PartialFunction[Throwable, AuthResult]
   )(
     predicate: Predicate
   ): Future[AuthResult] = {
@@ -276,7 +274,7 @@ class AuthenticatedRequestActions(
             result <- authGivenRetrievals(retrievals)
           } yield result
       }
-      .recover(recoverPF(formTemplate) orElse RecoverAuthResult.basicRecover(request, appConfig))
+      .recover(recoverPF orElse RecoverAuthResult.basicRecover(request, appConfig))
   }
 
   def idForLog(id: LegacyCredentials) = id match {
