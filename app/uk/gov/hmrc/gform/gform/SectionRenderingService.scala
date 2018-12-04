@@ -111,7 +111,7 @@ class SectionRenderingService(
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
-    val formLevelHeading = shouldDisplayHeading(section)
+    val formLevelHeading = shouldDisplayHeading(section, formTemplate.GFC579Ready.getOrElse("false"))
 
     val graph = DependencyGraph.toGraphFull(formTemplate)
 
@@ -832,12 +832,12 @@ class SectionRenderingService(
   )
 
   private def shouldDisplayBackToSummary(form: Form): Boolean = form.status == Summary
-  private def shouldDisplayHeading(section: Section): Boolean =
+  private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean =
     section.fields
       .filter {
         case IsGroup(g)     => false
         case IsFileUpload() => false
         case _              => true
       }
-      .count(field => field.editable && field.label == section.title) != 1
+      .count(field => field.editable && field.label == section.title) != 1 || GFC579Ready == "false"
 }

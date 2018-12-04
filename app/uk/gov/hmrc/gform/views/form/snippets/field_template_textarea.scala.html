@@ -49,7 +49,7 @@
 
 @label = {
   <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) { @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) } else { @sectionTitle }
+    @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
   </label>
 }
 

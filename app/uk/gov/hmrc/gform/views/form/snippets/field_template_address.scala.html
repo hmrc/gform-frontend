@@ -40,9 +40,8 @@
 
 
 @label = {
-  @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) { @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)) } else { @sectionTitle }
+  @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
 }
-
 
 <fieldset>
 

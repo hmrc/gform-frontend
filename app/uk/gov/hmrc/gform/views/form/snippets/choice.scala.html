@@ -43,7 +43,7 @@ formLevelHeading: Boolean
 }
 
 @label = @{
-  if(fieldValue.label.nonEmpty) LabelHelper.buildRepeatingLabel(fieldValue, index) else sectionTitle
+  LabelHelper.buildRepeatingLabel(fieldValue, index)
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
