@@ -85,8 +85,8 @@ class FormController(
       for {
         maybeForm <- gformConnector.maybeForm(formId)
       } yield
-        (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup, maybeForm.isDefined) match {
-          case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent), false) =>
+        (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup, maybeForm) match {
+          case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent), None) =>
             Ok(access_code_start(cache.formTemplate, AgentAccessCode.form, lang, frontendAppConfig))
           case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
         }
