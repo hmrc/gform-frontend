@@ -46,7 +46,7 @@ sectionTitle: String
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
-    <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" id=@{fieldValue.id}>
+    <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
         <legend class="@if(fieldValue.label.nonEmpty) {form-label} else {visuallyhidden}">
           @label
         </legend>
@@ -73,7 +73,6 @@ sectionTitle: String
                      }
                      @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
                      index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
-                     role="@inputType"
               />
 
               <label for="@{fieldValue.id.appendIndex(index)}">
