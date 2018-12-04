@@ -24,15 +24,15 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 
 object RecoverAuthResult {
 
-  val noop: FormTemplate => PartialFunction[Throwable, AuthResult] = Function.const(PartialFunction.empty)
+  val noop: PartialFunction[Throwable, AuthResult] = PartialFunction.empty
 
-  def redirectToEnrolmentSection(formTemplate: FormTemplate): PartialFunction[Throwable, AuthResult] = {
+  def redirectToEnrolmentSection(authRedirect: AuthRedirect): PartialFunction[Throwable, AuthResult] = {
     case _: InsufficientEnrolments =>
       Logger.debug("Enrolment required")
-      AuthRedirect(uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, None).url)
+      authRedirect
   }
 
-  def rejectInsufficientEnrolments(formTemplate: FormTemplate): PartialFunction[Throwable, AuthResult] = {
+  val rejectInsufficientEnrolments: PartialFunction[Throwable, AuthResult] = {
     case _: InsufficientEnrolments =>
       Logger.debug("Auth Failed")
       AuthRedirectFlashingFormName(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments().url)

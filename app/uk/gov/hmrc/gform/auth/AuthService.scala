@@ -41,28 +41,31 @@ class AuthService(
     lang: Option[String],
     requestUri: String,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
-    ggAuthorised: (FormTemplate => PartialFunction[Throwable, AuthResult]) => Predicate => Future[AuthResult]
+    ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult]
   )(
     implicit hc: HeaderCarrier
   ): Future[AuthResult] =
     formTemplate.authConfig match {
-      case EeittModule(regimeId)              => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
-      case HmrcSimpleModule                   => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
-      case HmrcEnrolmentModule(enrolmentAuth) => performEnrolment(enrolmentAuth, getAffinityGroup, ggAuthorised)
+      case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
+      case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
+      case HmrcEnrolmentModule(enrolmentAuth) =>
+        performEnrolment(formTemplate, lang, enrolmentAuth, getAffinityGroup, ggAuthorised)
       case HmrcAgentModule(agentAccess) =>
         performAgent(agentAccess, formTemplate, lang, ggAuthorised(RecoverAuthResult.noop), Future.successful(_))
       case HmrcAgentWithEnrolmentModule(agentAccess, enrolmentAuth) =>
         def ifSuccessPerformEnrolment(authResult: AuthResult) = authResult match {
-          case AuthSuccessful(_) => performEnrolment(enrolmentAuth, getAffinityGroup, ggAuthorised)
+          case AuthSuccessful(_) => performEnrolment(formTemplate, lang, enrolmentAuth, getAffinityGroup, ggAuthorised)
           case authUnsuccessful  => Future.successful(authUnsuccessful)
         }
         performAgent(agentAccess, formTemplate, lang, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
     }
 
   private def performEnrolment(
+    formTemplate: FormTemplate,
+    lang: Option[String],
     enrolmentAuth: EnrolmentAuth,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
-    ggAuthorised: (FormTemplate => PartialFunction[Throwable, AuthResult]) => Predicate => Future[AuthResult]
+    ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult]
   )(
     implicit hc: HeaderCarrier
   ): Future[AuthResult] =
@@ -83,16 +86,36 @@ class AuthService(
           }
         }
 
-        val recoverFn = needEnrolment match {
-          case RequireEnrolment(enrolmentSection) => RecoverAuthResult.redirectToEnrolmentSection _
-          case RejectAccess                       => RecoverAuthResult.rejectInsufficientEnrolments _
+        val showEnrolment = AuthRedirect(
+          uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, lang).url)
+
+        val recoverPF = needEnrolment match {
+          case RequireEnrolment(enrolmentSection) => RecoverAuthResult.redirectToEnrolmentSection(showEnrolment)
+          case RejectAccess                       => RecoverAuthResult.rejectInsufficientEnrolments
         }
         for {
           predicate <- predicateF
-          result <- ggAuthorised(recoverFn)(predicate).map { authResult =>
-                     enrolmentPostCheck match {
-                       case NoCheck                 => authResult
-                       case RegimeIdCheck(regimeId) => authResult // TODO implement regimeId check
+          result <- ggAuthorised(recoverPF)(predicate).map { authResult =>
+                     (authResult, enrolmentPostCheck) match {
+                       case (AuthSuccessful(retrievals), RegimeIdCheck(regimeId)) =>
+                         enrolmentCheckPredicate match {
+                           case ForNonAgents if retrievals.affinityGroup.contains(AffinityGroup.Agent) => authResult
+                           case ForNonAgents | Always =>
+                             val serviceEnrolments =
+                               retrievals.enrolments.enrolments.filter(_.key === enrolmentAuth.serviceId.value)
+                             val enrolmentIdentifiers = serviceEnrolments.flatMap(_.identifiers.map(_.key))
+                             val regimedIdsToCheck = enrolmentIdentifiers.map(_.drop(2).take(regimeId.value.size))
+                             val isRegimeIdEnrolled = regimedIdsToCheck.forall(_ === regimeId.value)
+
+                             if (isRegimeIdEnrolled) authResult
+                             else
+                               needEnrolment match {
+                                 case RequireEnrolment(_) => showEnrolment
+                                 case RejectAccess =>
+                                   AuthBlocked(s"Enrolment for regimeId: ${regimeId.value} required.")
+                               }
+                         }
+                       case _ => authResult
                      }
                    }
         } yield result
