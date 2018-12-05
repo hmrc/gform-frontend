@@ -11,12 +11,16 @@ object FrontendBuild extends Build with MicroService {
 
   override lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
+  val parsebackVersion = "0.3"
+
   val compile = Seq(
     ws,
     "uk.gov.hmrc" %% "frontend-bootstrap" % "10.7.0",
     "uk.gov.hmrc" %% "auth-client" % "2.16.0-play-25",
     "uk.gov.hmrc" %% "domain" % "5.2.0",
     "uk.gov.hmrc" %% "play-partials" % "6.1.0",
+    "com.codecommit" %% "parseback-core" % parsebackVersion,
+    "com.codecommit" %% "parseback-cats" % parsebackVersion,
     "org.julienrf" %% "play-json-derived-codecs" % "3.3",
     "org.typelevel" %% "cats-core" % "1.4.0",
     "com.github.pureconfig" %% "pureconfig" % "0.9.2",

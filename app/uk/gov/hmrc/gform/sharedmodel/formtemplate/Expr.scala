@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import uk.gov.hmrc.gform.core.parsers.ExprParsers
 
 sealed trait Expr
 final case class Add(field1: Expr, field2: Expr) extends Expr
@@ -34,7 +36,27 @@ final case class Constant(value: String) extends Expr
 final case object Value extends Expr
 
 object FormCtx {
-  implicit val format: OFormat[FormCtx] = derived.oformat[FormCtx]
+
+  private lazy val writesFormCtx = Json.writes[FormCtx]
+  private lazy val reads: Reads[FormCtx] = readsForTemplateJson | readsForMongoJson
+
+  private lazy val readsForMongoJson: Reads[FormCtx] = Json.reads[FormCtx]
+
+  lazy val readsForTemplateJson: Reads[FormCtx] = Reads { json =>
+    exprParser(json)
+  }
+
+  private def exprParser(json: JsValue): JsResult[FormCtx] =
+    json match {
+      case JsString(exprAsStr) => parse(exprAsStr)
+      case otherwise           => JsError(s"Invalid expression. Expected String, got $otherwise")
+    }
+
+  private def parse(exprAsStr: String): JsResult[FormCtx] =
+    ExprParsers.validateFormCtx(exprAsStr) fold (error => JsError(error.toString),
+    expr => JsSuccess(expr))
+
+  implicit val format: OFormat[FormCtx] = OFormat(reads, writesFormCtx)
 }
 
 object Expr {
