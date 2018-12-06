@@ -73,6 +73,10 @@ trait MicroService {
         Resolver.bintrayRepo("jetbrains","markdown"),
         Resolver.jcenterRepo
       ))
+    .settings(resolvers ++= Seq(
+      Resolver.jcenterRepo,
+      "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven"
+    ))
 }
 
 private object TestPhases {
