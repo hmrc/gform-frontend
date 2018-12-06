@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
@@ -26,8 +25,6 @@ sealed trait Validator {
 }
 
 case object Validator {
-  private val basic: OFormat[Validator] = derived.oformat
-
   private val templateReads: Reads[Validator] = Reads { json =>
     (json \ "validatorName").as[String] match {
       case "hmrcUTRPostcodeCheck"    => json.validate[HMRCUTRPostcodeCheckValidator]
@@ -35,10 +32,7 @@ case object Validator {
       case unsupported               => JsError("Unsupported '" + unsupported + "' kind of validator.")
     }
   }
-
-  private val reads = (basic: Reads[Validator]) | templateReads
-
-  implicit val format: OFormat[Validator] = OFormat(reads, basic)
+  implicit val format: OFormat[Validator] = OFormatWithTemplateReadFallback(templateReads)
 }
 
 case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, postcode: FormCtx) extends Validator {
