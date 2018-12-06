@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
 import uk.gov.hmrc.gform.core.parsers.ExprParsers
 
 sealed trait Expr
@@ -36,26 +35,13 @@ final case class Constant(value: String) extends Expr
 final case object Value extends Expr
 
 object FormCtx {
-
-  private val genFormat: OFormat[FormCtx] = derived.oformat
-
-  lazy val readsForTemplateJson: Reads[FormCtx] = Reads { json =>
-    exprParser(json)
+  lazy val readsForTemplateJson: Reads[FormCtx] = Reads {
+    case JsString(exprAsStr) =>
+      ExprParsers.validateFormCtx(exprAsStr).fold(error => JsError(error.toString), JsSuccess(_))
+    case otherwise => JsError(s"Invalid expression. Expected String, got $otherwise")
   }
 
-  private lazy val reads: Reads[FormCtx] = (genFormat: Reads[FormCtx]) | readsForTemplateJson
-
-  private def exprParser(json: JsValue): JsResult[FormCtx] =
-    json match {
-      case JsString(exprAsStr) => parse(exprAsStr)
-      case otherwise           => JsError(s"Invalid expression. Expected String, got $otherwise")
-    }
-
-  private def parse(exprAsStr: String): JsResult[FormCtx] =
-    ExprParsers.validateFormCtx(exprAsStr) fold (error => JsError(error.toString),
-    expr => JsSuccess(expr))
-
-  implicit val format: OFormat[FormCtx] = OFormat(reads, genFormat)
+  implicit val format: OFormat[FormCtx] = OFormatWithTemplateReadFallback(readsForTemplateJson)
 }
 
 object Expr {
