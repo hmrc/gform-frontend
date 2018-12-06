@@ -47,7 +47,8 @@ case class FormTemplate(
   submitErrorUrl: String,
   sections: List[Section],
   acknowledgementSection: AcknowledgementSection,
-  declarationSection: DeclarationSection
+  declarationSection: DeclarationSection,
+  GFC579Ready: Option[String] = Some("false")
 ) {
   def expandFormTemplate(data: Data): ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSection(data)))
   val expandFormTemplateFull: ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSectionFull))

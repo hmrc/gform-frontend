@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
 
-@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
 
 @safeId(id: String) = @{
   fieldValue.id.withSuffix(id).toString
@@ -38,12 +38,16 @@
   validationResult.map(_.getCurrentValue(safeId("uk"))).contains("false")
 }
 
+
+@label = {
+  @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+}
+
 <fieldset>
-    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-      <legend class="h3-heading">@localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))</legend>
-    } else {
-      <legend class="visuallyhidden">@sectionTitle</legend>
-    }
+
+    <legend class="h3-heading">
+      @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
+    </legend>
 
     @if(international) {
       <div class="form-group">

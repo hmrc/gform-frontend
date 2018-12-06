@@ -23,7 +23,7 @@
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int)
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int, formLevelHeading: Boolean)
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).toString
@@ -37,14 +37,21 @@ fieldValue.id.withSuffix(id).toString
 @makeSelector(value: String) = @{
   value.toLowerCase().replace(" ", "-")
 }
+
   <div class="form-group @if(hasErrors) { form-group-error }">
       <fieldset>
-          <legend>
-            <span class="form-label-bold">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</span>
-            @if(fieldValue.helpText) {
-              <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
-            }
-          </legend>
+
+        <legend>
+          @if(!formLevelHeading) {
+            <h1>@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</h1>
+          } else {
+            @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+          }
+        </legend>
+
+        @if(fieldValue.helpText.nonEmpty) {
+          <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+        }
 
           @inline_error_map(fieldValue, validationResult)
 

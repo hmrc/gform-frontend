@@ -259,7 +259,7 @@ function labelText($errorLink) {
   if ($label.length) {
     return $label.text().trim();
   }
-  var $legend = $('fieldset#' + fieldId).find('legend.form-label').first();
+  var $legend = $('fieldset#' + fieldId).find('legend').first();
   if ($legend.length) {
     return $legend.text().trim()
   }

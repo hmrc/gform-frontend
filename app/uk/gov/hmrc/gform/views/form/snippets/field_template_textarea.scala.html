@@ -28,7 +28,7 @@
 
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
@@ -47,24 +47,23 @@
   }
 }
 
-<div class="form-group @if(hasErrors) {form-group-error}">
-    @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-      <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-        @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-        @if(fieldValue.helpText) {
-          <span class="form-hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</span>
-        }
-      </label>
-    } else {
-      <label for="@{fieldValue.id}" class="visuallyhidden">
-        @sectionTitle
-        @if(fieldValue.helpText) {
-          <span class="form-hint @if(fieldValue.derived){js-hidden}">@{fieldValue.helpText}</span>
-        }
-      </label>
-    }
+@label = {
+  <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
+    @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+  </label>
+}
 
-    @inline_error_map(fieldValue, validationResult)
+<div class="form-group @if(hasErrors) {form-group-error}">
+
+  @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
+
+  @if(fieldValue.helpText.nonEmpty) {
+    <span class="form-hint @if(fieldValue.derived){js-hidden}">
+      @{fieldValue.helpText}
+    </span>
+  }
+
+  @inline_error_map(fieldValue, validationResult)
 
     @if(!fieldValue.isSterling) {
       <textarea

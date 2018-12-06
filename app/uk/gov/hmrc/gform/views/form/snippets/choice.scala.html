@@ -34,7 +34,8 @@ prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 optionHelpText: List[Html],
 index: Int,
-sectionTitle: String
+sectionTitle: String,
+formLevelHeading: Boolean
 )
 
 @hasErrors = @{
@@ -42,16 +43,20 @@ sectionTitle: String
 }
 
 @label = @{
-  if(fieldValue.label.nonEmpty) LabelHelper.buildRepeatingLabel(fieldValue, index) else sectionTitle
+  LabelHelper.buildRepeatingLabel(fieldValue, index)
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
-    <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" id=@{fieldValue.id}>
-        <legend class="@if(fieldValue.label.nonEmpty) {form-label} else {visuallyhidden}">
-          @label
+    <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
+        <legend class="form-label">
+          @if(!formLevelHeading) {
+            <h1>@label</h1>
+          } else {
+            @label
+          }
         </legend>
 
-        @if(fieldValue.helpText) {
+        @if(fieldValue.helpText.nonEmpty) {
           <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
         }
 
@@ -83,7 +88,7 @@ sectionTitle: String
 
           @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
               @if(optionHelpText(index).body.nonEmpty){
-              <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-border-narrow js-hidden" aria-hidden="true">
+              <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-indent js-hidden" aria-hidden="true">
                   @Html(optionHelpText(index).body)
               </div>
               }

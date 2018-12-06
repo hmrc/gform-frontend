@@ -31,7 +31,7 @@
 @import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 
-@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String)
+@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
 @validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
 @validatedSterling = @{
     val currentSter = toBigDecimalDefault(validatedValue)
