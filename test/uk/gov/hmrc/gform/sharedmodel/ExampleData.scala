@@ -31,8 +31,8 @@ import scala.collection.immutable.List
 object ExampleData extends ExampleData
 
 trait ExampleData
-    extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleSection
-    with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
+    extends ExampleFormTemplate with ExampleFieldId with ExampleFieldValue with ExampleFormField with ExampleValidator
+    with ExampleSection with ExampleSectionNumber with ExampleForm with ExampleAuthConfig with ExampleFrontendAppConfig
     with ExampleAuthContext
 
 trait ExampleAuthConfig {
@@ -320,6 +320,18 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     `section - about you`,
     `section - businessDetails`
   )
+}
+
+trait ExampleValidator {
+  def defaultValidator = hMRCUTRPostcodeCheckValidator
+  def hMRCUTRPostcodeCheckValidator =
+    HMRCUTRPostcodeCheckValidator(
+      "The UTR could not be foundor the postcode did not match. | <Welsh...>",
+      FormCtx("utrToCheck"),
+      FormCtx("postcodeToCheck"))
+  def bankAccoutnModulusCheckValidator =
+    BankAccoutnModulusCheck("This is an error message for Bank", FormCtx("accountNumber"), FormCtx("sortCode"))
+  //todo other example validators
 }
 
 trait ExampleFormTemplate {

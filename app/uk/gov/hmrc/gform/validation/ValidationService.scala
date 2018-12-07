@@ -96,7 +96,7 @@ class ValidationService(
       .evaluateValidationResult(fields, v, data, envelope)
       .map(v => v.fieldValue -> v)
 
-  private def validateUsingSectionValidators(v: SectionValidator, data: FormDataRecalculated)(
+  private def validateUsingSectionValidators(v: Validator, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier): Future[ValidatedType] = {
     def dataGetter(fieldId: FormComponentId): String =
       data.data.get(fieldId).toList.flatten.headOption.getOrElse("")
