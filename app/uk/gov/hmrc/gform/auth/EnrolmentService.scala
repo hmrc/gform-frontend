@@ -16,45 +16,56 @@
 
 package uk.gov.hmrc.gform.auth
 
+import cats.data.NonEmptyList
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.HttpResponse
 
-import scala.concurrent.ExecutionContext
+trait EnrolmentConnect[F[_]] {
+  def enrolGGUser(request: TaxEnrolment, service: ServiceId): F[HttpResponse]
+}
+
+trait GGConnect[F[_]] {
+  def enrolGGUser(request: GGEnrolmentRequest): F[HttpResponse]
+}
 
 class EnrolmentService(
   useTaxEnrolments: Boolean,
-  portalId: String,
-  ggConnector: GovernmentGatewayConnector,
-  taxEnrolmentConnector: TaxEnrolmentsConnector
+  portalId: String
 ) {
 
-  def enrolUser(serviceId: ServiceId, identifiers: List[Identifier], verifiers: List[Verifier])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext) =
+  def enrolUser[F[_]](
+    serviceId: ServiceId,
+    identifiers: NonEmptyList[Identifier],
+    verifiers: List[Verifier]
+  )(
+    implicit
+    EC: EnrolmentConnect[F],
+    GGC: GGConnect[F]
+  ): F[HttpResponse] =
     if (useTaxEnrolments) {
       val request = buildTaxEnrolmentsRequest(identifiers, verifiers)
-      taxEnrolmentConnector.enrolGGUser(request, serviceId)
+      EC.enrolGGUser(request, serviceId)
     } else {
       val request = buildGGEnrolmentRequest(serviceId, serviceId.value, identifiers, verifiers)
-      ggConnector.enrolGGUser(request)
+      GGC.enrolGGUser(request)
     }
 
   private def buildGGEnrolmentRequest(
     serviceId: ServiceId,
     friendlyName: String,
-    identifiers: List[Identifier],
+    identifiers: NonEmptyList[Identifier],
     knownFacts: List[Verifier]) =
     GGEnrolmentRequest(
       portalId = portalId,
       serviceName = serviceId.value,
       friendlyName = friendlyName,
-      knownFacts = identifiers.map(_.value) ++ knownFacts.map(_.value)
+      knownFacts = identifiers.map(_.value).toList ++ knownFacts.map(_.value)
     )
 
-  private def buildTaxEnrolmentsRequest(identifiers: List[Identifier], verifiers: List[Verifier]) =
+  private def buildTaxEnrolmentsRequest(identifiers: NonEmptyList[Identifier], verifiers: List[Verifier]) =
     TaxEnrolment(
-      identifiers = identifiers,
+      identifiers = identifiers.toList,
       verifiers = verifiers
     )
 }

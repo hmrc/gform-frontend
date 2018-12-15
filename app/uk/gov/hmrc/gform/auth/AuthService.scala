@@ -103,9 +103,8 @@ class AuthService(
                            case ForNonAgents | Always =>
                              val serviceEnrolments =
                                retrievals.enrolments.enrolments.filter(_.key === enrolmentAuth.serviceId.value)
-                             val enrolmentIdentifiers = serviceEnrolments.flatMap(_.identifiers.map(_.key))
-                             val regimedIdsToCheck = enrolmentIdentifiers.map(_.drop(2).take(regimeId.value.size))
-                             val isRegimeIdEnrolled = regimedIdsToCheck.forall(_ === regimeId.value)
+                             val enrolmentIdentifiers = serviceEnrolments.flatMap(_.identifiers.map(_.value))
+                             val isRegimeIdEnrolled = enrolmentIdentifiers.forall(_.drop(2).startsWith(regimeId.value))
 
                              if (isRegimeIdEnrolled) authResult
                              else

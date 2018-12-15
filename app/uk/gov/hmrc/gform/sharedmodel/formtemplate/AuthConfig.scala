@@ -129,10 +129,11 @@ case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
 case class HmrcAgentWithEnrolmentModule(agentAccess: AgentAccess, enrolmentAuth: EnrolmentAuth) extends AuthConfig
 
 object HasEnrolmentSection {
-  def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection)] = ac match {
-    case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), _))) => Some((serviceId, es))
-    case HmrcAgentWithEnrolmentModule(_, EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), _))) =>
-      Some((serviceId, es))
+  def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck)] = ac match {
+    case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check))) =>
+      Some((serviceId, es, check))
+    case HmrcAgentWithEnrolmentModule(_, EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check))) =>
+      Some((serviceId, es, check))
     case _ => None
   }
 }

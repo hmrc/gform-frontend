@@ -157,7 +157,7 @@ class SectionRenderingService(
     val hiddenSnippets = Fields
       .toFormField(fieldDataUpd, hiddenTemplateFields)
       .map(formField => html.form.snippets.hidden_field(formField))
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
+    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
 
     val originSection = new Origin(formTemplate.sections, fieldData).minSectionNumber
     val snippetsForFields = section.fields.map(
@@ -201,14 +201,17 @@ class SectionRenderingService(
 
   }
 
-  def generatePageLevelErrorHtml(listValidation: List[FormFieldValidationResult]): HasErrors = {
+  private def generatePageLevelErrorHtml(
+    listValidation: List[FormFieldValidationResult],
+    globalErrors: List[Html]
+  ): HasErrors = {
 
     val allValidationResults = listValidation.flatMap {
       case componentField: ComponentField => parseFormFieldValidationResult(componentField)
       case others                         => List(others)
     }
 
-    val errorsHtml: List[Html] = allValidationResults
+    val errorsHtml: List[Html] = globalErrors ++ allValidationResults
       .filter(_.isNotOk)
       .flatMap { validationResult =>
         validationResult.fieldErrors
@@ -282,7 +285,7 @@ class SectionRenderingService(
 
     val snippets = formTemplate.declarationSection.fields.map(fieldValue =>
       htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, retrievals.userDetails, validatedType, lang))
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
+    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -376,6 +379,7 @@ class SectionRenderingService(
     enrolmentSection: EnrolmentSection,
     fieldData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
+    globalErrors: List[Html],
     validatedType: ValidatedType,
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
@@ -397,7 +401,7 @@ class SectionRenderingService(
     val snippets =
       enrolmentSection.fields.map(fieldValue =>
         htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, retrievals.userDetails, validatedType, lang))
-    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult)
+    val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
