@@ -213,7 +213,7 @@ class Recalculation[F[_]: Monad, E](
 }
 
 class Evaluator[F[_]: Monad](
-  eeittPrepop: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => F[String]
+  val eeittPrepop: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => F[String]
 ) {
 
   val defaultF = "0".pure[F]
@@ -317,8 +317,7 @@ case object NonComputable extends Computable
 sealed trait Convertible[F[_]]
 
 object Convertible {
-  def asString[F[_]: Applicative](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[String]] = {
-    val lookup = formTemplate.expandFormTemplateFull.fcsLookupFull
+  def asString[F[_]: Applicative](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[String]] =
     convertible match {
       case Converted(computable) =>
         computable.map {
@@ -329,10 +328,8 @@ object Convertible {
       case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, Some.apply)
       case NonConvertible(str)              => str.map(Some.apply)
     }
-  }
 
-  def convert[F[_]: Applicative](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[BigDecimal]] = {
-    val lookup = formTemplate.expandFormTemplateFull.fcsLookupFull
+  def convert[F[_]: Applicative](convertible: Convertible[F], formTemplate: FormTemplate): F[Option[BigDecimal]] =
     convertible match {
       case Converted(computable) =>
         computable.map { case NonComputable => None; case Computed(bd) => Some(bd) }
@@ -340,7 +337,6 @@ object Convertible {
       case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, BigDecimalUtil.toBigDecimalSafe)
       case NonConvertible(_)                => Option.empty.pure[F]
     }
-  }
 
   def round[F[_]: Monad](convertible: Convertible[F], scale: Int, formTemplate: FormTemplate): F[String] =
     convert(convertible, formTemplate).flatMap {

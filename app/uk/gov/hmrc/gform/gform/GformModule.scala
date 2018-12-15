@@ -52,10 +52,11 @@ class GformModule(
     controllersModule.authenticatedRequestActions,
     sectionRenderingService,
     validationModule.validationService,
-    gformBackendModule.gformConnector,
     authModule.enrolmentService,
     configModule.appConfig,
-    graphModule.recalculation
+    graphModule.recalculation,
+    authModule.taxEnrolmentsConnector,
+    authModule.ggConnector
   )
 
   val formController: FormController = new FormController(

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform
 package controllers
 
+import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import play.api.Logger
@@ -67,7 +68,7 @@ class AuthenticatedRequestActions(
   implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-  def checkEnrolment(serviceId: ServiceId, identifiers: List[Identifier])(
+  def checkEnrolment(serviceId: ServiceId, identifiers: NonEmptyList[Identifier])(
     implicit hc: HeaderCarrier): Future[CheckEnrolmentsResult] = {
 
     val predicate = Enrolment(serviceId.value)
@@ -80,10 +81,10 @@ class AuthenticatedRequestActions(
 
   private def toIdentifier(ei: EnrolmentIdentifier): Identifier = Identifier(ei.key, ei.value)
 
-  private def checkIdentifiers(identifiers: List[Identifier])(enrolments: Enrolments): CheckEnrolmentsResult = {
+  private def checkIdentifiers(identifiers: NonEmptyList[Identifier])(enrolments: Enrolments): CheckEnrolmentsResult = {
 
     val matIdentifiers: Set[Identifier] = enrolments.enrolments.flatMap(_.identifiers).map(toIdentifier)
-    if (identifiers.toSet.subsetOf(matIdentifiers))
+    if (identifiers.toList.toSet.subsetOf(matIdentifiers))
       EnrolmentSuccessful
     else
       EnrolmentFailed
