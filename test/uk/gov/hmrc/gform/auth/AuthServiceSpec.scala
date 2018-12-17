@@ -42,6 +42,7 @@ class AuthServiceSpec extends Spec with ExampleData {
   val appConfig = AppConfig(
     appName = "appName",
     `google-analytics` = null,
+    `google-tag-manager` = null,
     `government-gateway-sign-in-url` = "government-gateway-sign-in-url",
     `gform-frontend-base-url` = "gform-frontend-base-url",
     `agent-subscription-frontend-base-url` = "agent-subscription-frontend-base-url",
