@@ -24,7 +24,7 @@ import uk.gov.hmrc.auth.core.{ Enrolment, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, GoogleTagManager }
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.gform.EeittService
@@ -42,6 +42,7 @@ class AuthServiceSpec extends Spec with ExampleData {
   val appConfig = AppConfig(
     appName = "appName",
     `google-analytics` = null,
+    `google-tag-manager` = null,
     `government-gateway-sign-in-url` = "government-gateway-sign-in-url",
     `gform-frontend-base-url` = "gform-frontend-base-url",
     `agent-subscription-frontend-base-url` = "agent-subscription-frontend-base-url",

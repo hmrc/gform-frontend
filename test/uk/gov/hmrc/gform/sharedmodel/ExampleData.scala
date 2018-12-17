@@ -507,6 +507,8 @@ trait ExampleFrontendAppConfig {
     betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth",
     signOutUrl = "http://localhost:9025/loggedout",
     whitelistEnabled = true,
-    sendPdfWithSubmission = true
+    sendPdfWithSubmission = true,
+    googleTagManagerIdAvailable = false,
+    googleTagManagerId = ""
   )
 }
