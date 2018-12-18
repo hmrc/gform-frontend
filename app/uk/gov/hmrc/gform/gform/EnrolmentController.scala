@@ -54,7 +54,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 sealed trait SubmitEnrolmentError
 private case object NoIdentifierProvided extends SubmitEnrolmentError
 private case class RegimeIdNotMatch(identifier: IdentifierRecipe) extends SubmitEnrolmentError
-private case class EnrolmentFormNotValid(errorss: GformError) extends SubmitEnrolmentError
+private case class EnrolmentFormNotValid(errors: GformError) extends SubmitEnrolmentError
 
 case class Env(formTemplate: FormTemplate, retrievals: MaterialisedRetrievals, data: FormDataRecalculated)
 
@@ -73,23 +73,25 @@ class EnrolmentController(
   type Ctx[A] = ReaderT[Future, Env, A]
   type EnrolM[A] = EitherT[Ctx, SubmitEnrolmentError, A]
 
+  private def liftEM[A](a: Future[A]): EnrolM[A] = EitherT.liftF(Kleisli(Function.const(a)))
+
   private val evaluator: Evaluator[EnrolM] = {
     val eeittPrepop
       : (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => EitherT[Ctx, SubmitEnrolmentError, String] =
-      (e, mr, ft, hc) => EitherT.liftF(Kleisli(_ => recalculation.booleanExprEval.evaluator.eeittPrepop(e, mr, ft, hc)))
+      (e, mr, ft, hc) => liftEM(recalculation.booleanExprEval.evaluator.eeittPrepop(e, mr, ft, hc))
     new Evaluator(eeittPrepop)
   }
 
   private def enrolmentConnect(implicit hc: HeaderCarrier, ec: ExecutionContext): EnrolmentConnect[EnrolM] =
     new EnrolmentConnect[EnrolM] {
       def enrolGGUser(request: TaxEnrolment, service: ServiceId): EnrolM[HttpResponse] =
-        EitherT.liftF(Kleisli(_ => taxEnrolmentConnector.enrolGGUser(request, service)))
+        liftEM(taxEnrolmentConnector.enrolGGUser(request, service))
     }
 
   private def ggConnect(implicit hc: HeaderCarrier, ec: ExecutionContext): GGConnect[EnrolM] =
     new GGConnect[EnrolM] {
       def enrolGGUser(request: GGEnrolmentRequest): EnrolM[HttpResponse] =
-        EitherT.liftF(Kleisli(_ => ggConnector.enrolGGUser(request)))
+        liftEM(ggConnector.enrolGGUser(request))
     }
 
   import i18nSupport._
