@@ -38,14 +38,16 @@ fieldValue.id.withSuffix(id).toString
   value.toLowerCase().replace(" ", "-")
 }
 
+@fieldLabel = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+
   <div class="form-group @if(hasErrors) { form-group-error }">
       <fieldset>
 
         <legend>
           @if(!formLevelHeading) {
-            <h1>@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</h1>
+            <h1>@fieldLabel</h1>
           } else {
-            @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+            @fieldLabel
           }
         </legend>
 
@@ -57,7 +59,7 @@ fieldValue.id.withSuffix(id).toString
 
           <div class="form-date">
               <div class="form-group">
-                  <label class="form-label" for="@{fieldValue.id}-day">Day</label>
+                  <label class="form-label" for="@{fieldValue.id}-day" data-context-label="@fieldLabel day">Day</label>
 
                   <input type="text"
                          name="@{fieldValue.id}-day"
@@ -68,7 +70,7 @@ fieldValue.id.withSuffix(id).toString
               </div>
 
               <div class="form-group">
-                  <label class="form-label" for="@{fieldValue.id}-month">Month</label>
+                  <label class="form-label" for="@{fieldValue.id}-month" data-context="@fieldLabel month">Month</label>
 
                   <input type="text"
                          name="@{fieldValue.id}-month"
@@ -79,7 +81,7 @@ fieldValue.id.withSuffix(id).toString
               </div>
 
               <div class="form-group form-group-year">
-                  <label class="form-label" for="@{fieldValue.id}-year">Year</label>
+                  <label class="form-label" for="@{fieldValue.id}-year" data-context="@fieldLabel year">Year</label>
 
                   <input type="text"
                          name="@{fieldValue.id}-year"
