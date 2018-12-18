@@ -131,6 +131,10 @@ button.button--secondary:active{
   border: 3px solid #FFBF47;
 }
 
+.button.button--link[disabled], .button.button--link[disabled]:hover {
+  background: transparent;
+}
+
 /* Render number inputs differently to niormal text boxes */
 @media (min-width: 641px) {
   .inline .form-group {
