@@ -20,11 +20,14 @@
         var fieldId = $errorLink.attr('data-focuses');
         var $label = $('label[for="' + fieldId + '"]');
         if ($label.length) {
-        return $label.text().trim();
+          if ($label.attr('data-context')) {
+            return $label.attr('data-context').trim()
+          }
+          return $label.text().trim();
         }
         var $legend = $('fieldset#' + fieldId).find('legend.form-label').first();
         if ($legend.length) {
-        return $legend.text().trim()
+          return $legend.text().trim()
         }
 
         return $('h1').text().trim();

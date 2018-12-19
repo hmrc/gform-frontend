@@ -640,14 +640,18 @@ class ComponentsValidator(
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val d = isNumeric(day, messagePrefix(fieldValue) + " " + localisation("day"))
-      .andThen(y => isWithinBounds(y, 31))
+    val dayLabel = messagePrefix(fieldValue) + " " + localisation("day")
+    val monthLabel = messagePrefix(fieldValue) + " " + localisation("month")
+    val yearLabel = messagePrefix(fieldValue) + " " + localisation("year")
+
+    val d = isNumeric(day, dayLabel)
+      .andThen(y => isWithinBounds(y, 31, dayLabel))
       .leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
-    val m = isNumeric(month, messagePrefix(fieldValue) + " " + localisation("month"))
-      .andThen(y => isWithinBounds(y, 12))
+    val m = isNumeric(month, monthLabel)
+      .andThen(y => isWithinBounds(y, 12, monthLabel))
       .leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
-    val y = isNumeric(year, messagePrefix(fieldValue) + " " + localisation("year"))
-      .andThen(y => hasValidNumberOfDigits(y, 4))
+    val y = isNumeric(year, yearLabel)
+      .andThen(y => hasValidNumberOfDigits(y, 4, yearLabel))
       .leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
@@ -659,16 +663,16 @@ class ComponentsValidator(
       case Failure(_) => Invalid(s"$label must be numeric")
     }
 
-  def isWithinBounds(number: Int, dayOrMonth: Int): ValidatedNumeric =
+  def isWithinBounds(number: Int, dayOrMonth: Int, label: String): ValidatedNumeric =
     number match {
       case x if number <= dayOrMonth => Valid(number)
-      case y if number > dayOrMonth  => Invalid(s"entered is greater than $dayOrMonth")
+      case y if number > dayOrMonth  => Invalid(s"$label must not be greater than $dayOrMonth")
     }
 
-  def hasValidNumberOfDigits(number: Int, digits: Int): ValidatedNumeric =
+  def hasValidNumberOfDigits(number: Int, digits: Int, label: String): ValidatedNumeric =
     number.toString.length match {
       case x if x == digits => Valid(number)
-      case y if y != digits => Invalid(s"is not a $digits digit number")
+      case y if y != digits => Invalid(s"$label must be a $digits digit number")
     }
 
   def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
