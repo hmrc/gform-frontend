@@ -483,7 +483,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id.withSuffix("day") -> Set(s"entered is greater than 31")))
+    result.toEither should beLeft(
+      Map(fieldValue.id.withSuffix("day") -> Set(s"sample label day must not be greater than 31")))
   }
 
   "Date 15-5-222017" should "Invalid number of digits" in {
@@ -522,7 +523,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id.withSuffix("year") -> Set(s"is not a 4 digit number")))
+    result.toEither should beLeft(
+      Map(fieldValue.id.withSuffix("year") -> Set(s"sample label year must be a 4 digit number")))
   }
 
   /**
