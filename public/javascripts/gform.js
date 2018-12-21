@@ -20,8 +20,4 @@
   gformGAEvents.init();
 
   GOVUK.gformSessionTimeout({})
-})()
-
-
-
-
+})();

@@ -21,6 +21,7 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.semigroup._
 import play.api.i18n.I18nSupport
+import play.api.mvc.Results.Ok
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
@@ -78,6 +79,8 @@ class FormController(
       routes.FormController
         .form(formTemplate._id, maybeAccessCode, originSection, sectionTitle4Ga, lang))
   }
+
+  def keepAlive() = auth.keepAlive()
 
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
