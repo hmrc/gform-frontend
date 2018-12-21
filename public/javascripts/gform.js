@@ -19,7 +19,7 @@
   var gformGAEvents = new GOVUK.GformGAEvents();
   gformGAEvents.init();
 
-  GOVUK.gformSessionTimeout({timeout: 30, countdown: 15})
+  GOVUK.gformSessionTimeout({})
 })()
 
 
