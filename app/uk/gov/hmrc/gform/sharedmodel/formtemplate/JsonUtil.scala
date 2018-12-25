@@ -19,12 +19,13 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{ Format, Reads, Writes }
+import play.api.libs.json._
+
 import scala.reflect.runtime.universe.TypeTag
 
 trait JsonUtils {
 
-  //the NonEmptyList play-json (de)serialisation below is from:
+  //the NonEmptyList play-json (de)serialisation below is from (except minor change):
   //https://gist.github.com/ferhtaydn/c879e5bc89cc4f61b38802ad6d762222
   def reads[T: Reads: TypeTag]: Reads[NonEmptyList[T]] =
     Reads
@@ -40,6 +41,16 @@ trait JsonUtils {
   implicit def nelFormat[T: Format: TypeTag]: Format[NonEmptyList[T]] =
     Format(reads, writes)
 
+  def valueClassReads[C, V](construct: V => C)(implicit vReads: Reads[V]): Reads[C] = new Reads[C] {
+    override def reads(json: JsValue): JsResult[C] = vReads.reads(json).map(construct)
+  }
+
+  def valueClassWrites[C, V](extract: C => V)(implicit vWrites: Writes[V]): Writes[C] = new Writes[C] {
+    override def writes(o: C): JsValue = vWrites.writes(extract(o))
+  }
+
+  def valueClassFormat[C, V: Format](construct: V => C, extract: C => V): Format[C] =
+    Format(valueClassReads(construct), valueClassWrites(extract))
 }
 
 object JsonUtils extends JsonUtils

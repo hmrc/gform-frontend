@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext
 trait Spec
     extends FlatSpecLike with Matchers with EitherMatchers with DiagrammedAssertions with TryValues with EitherValues
     with OptionValues with AppendedClues with ScalaFutures with StreamlinedXml with JsResultMatcher with Inside
-    with Eventually with PropertyChecks with ExampleData {
+    with Eventually with ExampleData with PropertyChecks {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
@@ -44,6 +44,8 @@ trait JsResultMatcher { self: Spec =>
 
   def jsError[E]: BeMatcher[JsResult[E]] = new IsJsErrorMatcher[E]
 
+  def beJsError[E](message: String): Matcher[JsResult[E]] = new BeJsError[E](message)
+
   final private class BeJsSuccess[E](element: E) extends Matcher[JsResult[E]] {
     def apply(jsResult: JsResult[E]): MatchResult =
       MatchResult(
@@ -53,6 +55,14 @@ trait JsResultMatcher { self: Spec =>
       )
   }
 
+  final private class BeJsError[E](message: String) extends Matcher[JsResult[E]] {
+    def apply(jsResult: JsResult[E]): MatchResult =
+      MatchResult(
+        jsResult.fold(_.exists(_._2.exists(_.messages.exists(_ == message))), _ => false),
+        s"'$jsResult' was not an error with a message matching '$message'.",
+        s"'$jsResult' contained an error with a message matching '$message', but should not have."
+      )
+  }
   final private class IsJsErrorMatcher[E] extends BeMatcher[JsResult[E]] {
     def apply(jsResult: JsResult[E]): MatchResult =
       MatchResult(

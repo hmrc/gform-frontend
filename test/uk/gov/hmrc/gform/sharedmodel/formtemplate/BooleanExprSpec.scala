@@ -21,10 +21,15 @@ import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.BooleanExprGen
 import uk.gov.hmrc.http.HeaderCarrier
 
 class BooleanExprSpec extends Spec with GraphSpec {
-
+  "BooleanExpr" should "round trip derived JSON" in {
+    forAll(BooleanExprGen.booleanExprGen()) { obj =>
+      BooleanExpr.format.reads(BooleanExpr.format.writes(obj)) should beJsSuccess(obj)
+    }
+  }
   implicit val hc = HeaderCarrier()
 
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]

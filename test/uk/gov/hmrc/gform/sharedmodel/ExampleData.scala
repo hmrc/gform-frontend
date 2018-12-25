@@ -25,6 +25,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
 import scala.collection.immutable.List
 
@@ -358,7 +359,7 @@ trait ExampleFormTemplate {
       List(`fieldValue - info`))
 
   def formTemplate =
-    FormTemplate(
+    FormTemplate.withDeprecatedDmsSubmission(
       _id = formTemplateId,
       formName = formName,
       description = formDescription,

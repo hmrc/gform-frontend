@@ -23,7 +23,7 @@ object FrontendBuild extends Build with MicroService {
     "com.codecommit" %% "parseback-cats" % parsebackVersion,
     "org.julienrf" %% "play-json-derived-codecs" % "3.3",
     "org.typelevel" %% "cats-core" % "1.4.0",
-    "org.typelevel" %% "cats-mtl-core" % "0.4.0",
+    "org.typelevel" %% "cats-mtl-core" % "0.4.0" exclude("org.scalacheck", "scalacheck_2.11"),
     "com.github.pureconfig" %% "pureconfig" % "0.9.2",
     "org.jetbrains" % "markdown" % "0.1.31",
     "com.chuusai" %% "shapeless" % "2.3.3",

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.graph
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
 object FormTemplateBuilder {
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
@@ -97,7 +98,7 @@ object FormTemplateBuilder {
   def mkFormComponentEditable(fcId: String, expr: Expr): FormComponent =
     mkFormComponentEditable(fcId, Text(AnyText, expr))
 
-  def mkFormTemplate(sections: List[Section]) = FormTemplate(
+  def mkFormTemplate(sections: List[Section]) = FormTemplate.withDeprecatedDmsSubmission(
     FormTemplateId("tst1"),
     "Dependecy heavy experiment",
     "",

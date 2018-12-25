@@ -16,17 +16,23 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.json.Json
+import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.AuthConfigGen
 
-case class DmsSubmission(
-  dmsFormId: String,
-  customerId: TextExpression,
-  classificationType: String,
-  businessArea: String,
-  // TODO dataXml should be a gform boolean expression
-  dataXml: Option[Boolean] = None
-)
+class AgentAccessSpec extends Spec {
+  "Default read and write" should "round trip derived JSON" in {
+    forAll(AuthConfigGen.agentAccessGen) { access =>
+      verifyRoundTrip(access)
+    }
+  }
 
-object DmsSubmission {
-  implicit val format = Json.format[DmsSubmission]
+  "read" should "correctly parse named valid types" in {
+    forAll(AuthConfigGen.agentAccessGen) { access =>
+      verifyRead(access, s""""${AgentAccess.asString(access)}"""")
+    }
+  }
+
+  it should "parse an empty string as RequireMTDAgentEnrolment" in {
+    verifyRead[AgentAccess](RequireMTDAgentEnrolment, s"""""""")
+  }
 }

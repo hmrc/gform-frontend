@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType

@@ -18,10 +18,10 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
 import org.scalactic.source.Position
-import org.scalatest.{ FlatSpec, Matchers }
+import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
 
-class FormComponentSpec extends FlatSpec with Matchers {
-
+class FormComponentSpec extends Spec {
   private val exprText = Text(AnyText, Add(Constant("1"), FormCtx("other-field-id")))
   private val exprTextArea = TextArea(AnyText, Value)
   private val exprAddress = Address(international = false)
@@ -34,7 +34,13 @@ class FormComponentSpec extends FlatSpec with Matchers {
   private val labelNoCounter = "Label no counter"
   private val shortNameNoCounter = "Short name no counter."
 
-  "FormComponent" should "not expand Text, TextArea, UkSortCode, Data, Address, Choice, InformationMessage, FileUpload" in {
+  "FormComponent" should "round trip derived JSON" in {
+    forAll(FormComponentGen.formComponentGen()) { value =>
+      FormComponent.format.reads(FormComponent.format.writes(value)) should beJsSuccess(value)
+    }
+  }
+
+  it should "not expand Text, TextArea, UkSortCode, Data, Address, Choice, InformationMessage, FileUpload" in {
     notExpand(exprText)
     notExpand(exprTextArea)
     notExpand(exprUKSortCode)
