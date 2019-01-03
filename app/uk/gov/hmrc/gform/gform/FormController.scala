@@ -21,7 +21,6 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import cats.syntax.semigroup._
 import play.api.i18n.I18nSupport
-import play.api.mvc.Results.Ok
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
