@@ -15,11 +15,12 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel
-import org.scalatest.Assertion
-import play.api.libs.json._
-import uk.gov.hmrc.gform.Spec
 
-package object formtemplate extends Spec {
+import org.scalatest.{ Assertion, Matchers }
+import play.api.libs.json._
+import uk.gov.hmrc.gform.JsResultMatcher
+
+package object formtemplate extends Matchers with JsResultMatcher {
   def verifyRead[T: Reads](expected: T, json: String): Assertion =
     parseWithMargin(json) should beJsSuccess(expected)
 

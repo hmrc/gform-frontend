@@ -33,6 +33,6 @@ class AgentAccessSpec extends Spec {
   }
 
   it should "parse an empty string as RequireMTDAgentEnrolment" in {
-    verifyRead[AgentAccess](RequireMTDAgentEnrolment, s"""""""")
+    verifyRead[AgentAccess](RequireMTDAgentEnrolment, """""""")
   }
 }
