@@ -30,7 +30,7 @@
           .on('click', '#backButton', handleFormSubmit('Back', true))
           .on('click', '#BackToSummary', handleFormSubmit('BackToSummary', true))
           .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
-          .on('click', '#saveComBackLaterExit', handleFormSubmit('Exit', true));
+          .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));
       }
       
       self.GformFormActionHandlers = function () {
