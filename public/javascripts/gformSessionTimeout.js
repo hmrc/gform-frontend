@@ -6,13 +6,13 @@
   GOVUK.gformSessionTimeout = function(options) {
 
     var settings = {
-      timeout: 900,
-      countdown: 120,
+      timeout: 30,
+      countdown: 15,
       time: 'minutes',
       title: 'You’re about to be signed out',
       message: 'For security reasons, you will be signed out of this service in',
       keep_alive_url: '/submissions/keep-alive',
-      logout_url: 'https://www.tax.service.gov.uk/gg/sign-out',
+      logout_url: '/loggedout',
       restart_on_yes: true,
       dialog_width: 340,
       close_on_escape: true,
