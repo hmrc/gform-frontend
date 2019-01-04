@@ -80,7 +80,7 @@ object ValidationUtil {
           }
         }
       case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _) |
-          TextArea(_, _, _) =>
+          TextArea(_, _, _) | HmrcTaxPeriod(_, _, _) =>
         List.empty[(FormComponentId, FormFieldValidationResult)]
     }
 
@@ -182,6 +182,20 @@ object ValidationUtil {
           }
         }
         case InformationMessage(_, infoText) => FieldOk(fieldValue, "")
+        case HmrcTaxPeriod(_, _, _) =>
+          gFormErrors.get(fieldValue.id) match {
+            case Some(errors) =>
+              FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
+            case None =>
+              val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
+                selectedValue.map { index =>
+                  fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+                }.toMap
+
+              }
+
+              ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
+          }
       }
 
     }

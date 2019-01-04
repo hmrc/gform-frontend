@@ -186,6 +186,14 @@ object IsInformationMessage {
     }
 }
 
+object IsHmrcTaxPeriod {
+  def unapply(fc: FormComponent): Option[HmrcTaxPeriod] =
+    fc.`type` match {
+      case i @ HmrcTaxPeriod(_, _, _) => Some(i)
+      case _                          => None
+    }
+}
+
 object IsFileUpload {
   def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
