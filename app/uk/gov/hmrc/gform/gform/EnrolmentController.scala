@@ -30,6 +30,7 @@ import cats.syntax.traverse._
 import cats.mtl.{ ApplicativeAsk, FunctorRaise }
 import cats.mtl.implicits._
 import java.net.URLEncoder
+
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ AnyContent, Request, Result }
 import play.twirl.api.Html
@@ -40,6 +41,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, Recalculation }
+import uk.gov.hmrc.gform.sharedmodel.TaxPeriods
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
@@ -110,7 +112,8 @@ class EnrolmentController(
                 Nil,
                 Nil,
                 Valid(()),
-                lang)
+                lang,
+                cache.obligations)
           ).pure[Future]
         case _ =>
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
@@ -124,7 +127,9 @@ class EnrolmentController(
     retrievals: MaterialisedRetrievals,
     enrolmentSection: EnrolmentSection,
     data: FormDataRecalculated,
-    lang: Option[String])(implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
+    lang: Option[String],
+    obligations: Map[HmrcTaxPeriod, TaxPeriods])(
+    implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
 
     def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType, List[Html]) = see match {
       case RegimeIdNotMatch(identifierRecipe) =>
@@ -148,7 +153,8 @@ class EnrolmentController(
         errorMap,
         globalErrors,
         validationResult,
-        lang
+        lang,
+        obligations
       )
     )
   }
@@ -192,7 +198,13 @@ class EnrolmentController(
                         checkEnrolment(serviceId),
                         validationResult)
                         .fold(
-                          recoverEnrolmentError(formTemplate, retrievals, enrolmentSection, data, lang),
+                          recoverEnrolmentError(
+                            formTemplate,
+                            retrievals,
+                            enrolmentSection,
+                            data,
+                            lang,
+                            cache.obligations),
                           processEnrolmentResult(formTemplate, lang))
                         .run(Env(formTemplate, retrievals, data))
                         .recoverWith(handleEnrolmentException(formTemplate, lang))

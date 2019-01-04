@@ -36,7 +36,8 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.obligation.ObligationService
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriods }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,7 +50,8 @@ class AuthenticatedRequestActions(
   frontendAppConfig: FrontendAppConfig,
   val authConnector: AuthConnector,
   i18nSupport: I18nSupport,
-  errResponder: ErrResponder
+  errResponder: ErrResponder,
+  obligationService: ObligationService
 ) extends AuthorisedFunctions {
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
@@ -114,11 +116,12 @@ class AuthenticatedRequestActions(
                          getAffinityGroup,
                          ggAuthorised(request)(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
+        obligations <- obligationService.lookupObligations(formTemplate)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
+                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))
                  )
       } yield result
   }
@@ -131,9 +134,11 @@ class AuthenticatedRequestActions(
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
+        obligations  <- obligationService.lookupObligations(formTemplate)
         result <- authResult match {
-                   case AuthSuccessful(retrievals) => f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
-                   case _                          => errResponder.forbidden(request, "Access denied")
+                   case AuthSuccessful(retrievals) =>
+                     f(request)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))
+                   case _ => errResponder.forbidden(request, "Access denied")
                  }
       } yield result
   }
@@ -164,8 +169,9 @@ class AuthenticatedRequestActions(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
-      form   <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
-      result <- f(AuthCacheWithForm(retrievals, form, formTemplate))
+      form        <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
+      obligations <- obligationService.lookupObligationsMultiple(formTemplate)
+      result      <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
     } yield result
 
   private def authUserWhitelist(retrievals: MaterialisedRetrievals)(
@@ -305,12 +311,14 @@ sealed trait AuthCache {
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
-  formTemplate: FormTemplate
+  formTemplate: FormTemplate,
+  obligations: Map[HmrcTaxPeriod, TaxPeriods]
 ) extends AuthCache
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate
+  obligations: Map[HmrcTaxPeriod, TaxPeriods]
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) = AuthCacheWithForm(retrievals, form, formTemplate)
 }
