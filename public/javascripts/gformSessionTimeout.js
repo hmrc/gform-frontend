@@ -1,4 +1,4 @@
-;(function (global) {
+;(function (global, document) {
   'use strict';
   var $ = global.jQuery;
   var GOVUK = global.GOVUK || {};
@@ -6,8 +6,8 @@
   GOVUK.gformSessionTimeout = function(options) {
 
     var settings = {
-      timeout: 30,
-      countdown: 15,
+      timeout: 900,
+      countdown: 120,
       time: 'minutes',
       title: 'You’re about to be signed out',
       message: 'For security reasons, you will be signed out of this service in',
@@ -215,4 +215,4 @@
 
     init()
   };
-})(window);
+})(window, document);
