@@ -474,6 +474,7 @@ class SectionRenderingService(
         htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, userDetails, maybeValidated, lang)
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
+      case HmrcTaxPeriod(_, _, _) => html.form.snippets.hmrc_Tax_Period()
     }
 
   private def htmlForInformationMessage(

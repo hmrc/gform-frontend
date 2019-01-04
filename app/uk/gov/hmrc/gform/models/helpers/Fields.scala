@@ -150,6 +150,7 @@ object Fields {
         case Text(_, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
         case FileUpload()                                              => List(getFieldData(fv.id))
         case InformationMessage(_, _)                                  => List(getFieldData(fv.id))
+        case HmrcTaxPeriod(_, _, _)                                    => List()
       }
     }
 
