@@ -1,7 +1,7 @@
 ;(function (global) {
-  'use strict'
-  var $ = global.jQuery
-  var GOVUK = global.GOVUK || {}
+  'use strict';
+  var $ = global.jQuery;
+  var GOVUK = global.GOVUK || {};
 
   GOVUK.gformSessionTimeout = function(options) {
 
@@ -58,21 +58,21 @@
     function setupDialogTimer() {
       dialogOpen = false
       settings.signout_time = getDateNow() + settings.timeout * 1000;
-      timeoutInterval = window.setInterval(checkTimeElapsed, 1000)
+      timeoutInterval = global.setInterval(checkTimeElapsed, 1000)
     }
 
     function checkTimeElapsed() {
       if (expired()) {
         signOut()
       } else if (withinCountdown()) {
-        window.clearInterval(timeoutInterval);
+        global.clearInterval(timeoutInterval);
         setupDialog()
       }
     }
 
     function setupDialog() {
       dialogOpen = true;
-      startTime = Math.round(getDateNow() / 1000, 0);
+      startTime = Math.round(getDateNow() / 1000);
       currentMin = Math.ceil(settings.timeout / 60);
       destroyDialog();
       if (settings.background_no_scroll) {
@@ -172,7 +172,7 @@
 
       function handleFocus () {
         if (dialogOpen) {
-          window.clearInterval(countdown);
+          global.clearInterval(countdown);
           var expiredSeconds = (Math.round(Date.now() / 1000)) - startTime;
           var currentCounter = settings.countdown - expiredSeconds;
           updateUI(currentCounter);
@@ -181,14 +181,14 @@
       }
 
       if (navigator.userAgent.match(/MSIE 8/) == null) {
-        $(window)
+        $(global)
           .off('focus', handleFocus)
           .on('focus', handleFocus)
       }
     }
 
     function startCountdown(counter) {
-      window.countdown = window.setInterval(function () {
+      global.countdown = global.setInterval(function () {
         counter -= 1;
         updateUI(counter);
         if (counter <= 0) {
@@ -199,7 +199,7 @@
 
     function keepAlive() {
       destroyDialog();
-      window.clearInterval(window.countdown);
+      global.clearInterval(global.countdown);
       $.get(settings.keep_alive_url, function () {
         if (settings.restart_on_yes) {
           setupDialogTimer()
@@ -210,7 +210,7 @@
     }
 
     function signOut() {
-      window.location = settings.logout_url
+      global.location = settings.logout_url
     }
 
     init()
