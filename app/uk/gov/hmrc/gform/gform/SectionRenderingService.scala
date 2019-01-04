@@ -537,39 +537,15 @@ class SectionRenderingService(
     }
 
     val taxPeriodOptions = taxPeriodList
-      .map(
-        i =>
-          new OptionParams(
-            i.periodKey,
-            formatDate(i.inboundCorrespondenceFromDate),
-            formatDate(i.inboundCorrespondenceToDate),
-            false))
-    val dummyFormComponent = FormComponent(
-      new FormComponentId(""),
-      FileUpload(),
-      "",
-      None,
-      None,
-      None,
-      false,
-      false,
-      false,
-      false,
-      false,
-      None)
+      .map(i => (formatDate(i.inboundCorrespondenceFromDate), formatDate(i.inboundCorrespondenceToDate), i.periodKey))
+      .map(i => new OptionParams(i._3, i._1, i._2, false))
+
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val mapOfResultsOption: FormFieldValidationResult = validatedValue match {
-      case Some(x) => x
-      case None    => FieldOk(dummyFormComponent, "")
-    }
-    val mapOfResults = mapOfResultsOption match {
-      case ComponentField(a, b) => b
-      case _                    => Map[String, FormFieldValidationResult]()
-    }
+    val mapOfResultsOption = validatedValue match { case Some(x)            => x }
+    val mapOfResults = mapOfResultsOption match { case ComponentField(a, b) => b }
     val setValue = mapOfResults.values.toList match {
       case a if a.size < 2 => ""
-      case b: List[_]      => TextFormatter.formatText(Some(b(1))).dropRight(1)
-      case _               => ""
+      case b               => TextFormatter.formatText(Some(b(1))).dropRight(1)
     }
 
     html.form.snippets

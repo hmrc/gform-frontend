@@ -116,7 +116,7 @@ class AuthenticatedRequestActions(
                          getAffinityGroup,
                          ggAuthorised(request)(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
-        obligations <- obligationService.lookupObligationsMultiple(formTemplate)
+        obligations <- obligationService.lookupObligations(formTemplate)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
@@ -134,7 +134,7 @@ class AuthenticatedRequestActions(
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
-        obligations  <- obligationService.lookupObligationsMultiple(formTemplate)
+        obligations  <- obligationService.lookupObligations(formTemplate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) =>
                      f(request)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))
@@ -317,7 +317,7 @@ case class AuthCacheWithForm(
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
-  formTemplate: FormTemplate,
+  formTemplate: FormTemplate
   obligations: Map[HmrcTaxPeriod, TaxPeriods]
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) = AuthCacheWithForm(retrievals, form, formTemplate, obligations)
