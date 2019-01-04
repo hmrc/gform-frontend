@@ -196,6 +196,7 @@ class SectionRenderingService(
       shouldDisplayBack = sectionNumber > originSection,
       shouldDisplayBackToSummary = shouldDisplayBackToSummary(form),
       shouldDisplayHeading = formLevelHeading,
+      shouldDisplayContinue = !section.continueIf.contains(Stop),
       frontendAppConfig
     )
 
@@ -310,7 +311,9 @@ class SectionRenderingService(
       shouldDisplayBack = false,
       shouldDisplayBackToSummary = false,
       shouldDisplayHeading = true,
-      frontendAppConfig)
+      shouldDisplayContinue = true,
+      frontendAppConfig
+    )
   }
 
   def renderAcknowledgementSection(
@@ -418,7 +421,7 @@ class SectionRenderingService(
       0,
       Nil
     )
-    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, false, true, frontendAppConfig)
+    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, false, true, true, frontendAppConfig)
   }
 
   private def createJavascript(

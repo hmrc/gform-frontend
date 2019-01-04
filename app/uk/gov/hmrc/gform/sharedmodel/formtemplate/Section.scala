@@ -44,7 +44,8 @@ case class Section(
   repeatsMin: Option[TextExpression],
   validators: Option[Validator], //TODO List instead of Option
   fields: List[FormComponent],
-  continueLabel: Option[String]
+  continueLabel: Option[String],
+  continueIf: Option[ContinueIf]
 ) extends BaseSection {
   def expandSection(data: Data): ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponent(data)), includeIf) // TODO expand sections

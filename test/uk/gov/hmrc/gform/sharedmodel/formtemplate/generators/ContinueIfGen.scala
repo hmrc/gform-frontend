@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate
+package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Conditional, Continue, ContinueIf, Stop }
 
-case class ValidIf(expr: BooleanExpr)
-object ValidIf {
-  implicit val format: OFormat[ValidIf] = derived.oformat
+trait ContinueIfGen {
+  def continueIfGen: Gen[ContinueIf] =
+    Gen.oneOf(Gen.const(Continue), Gen.const(Stop), BooleanExprGen.booleanExprGen().map(Conditional.apply))
 }
+
+object ContinueIfGen extends ContinueIfGen

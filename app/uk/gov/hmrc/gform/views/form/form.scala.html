@@ -30,6 +30,7 @@
         shouldDisplayBack: Boolean,
         shouldDisplayBackToSummary: Boolean,
         shouldDisplayHeading: Boolean,
+        shouldDisplayContinue: Boolean,
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
@@ -81,9 +82,12 @@
 
         <input type="hidden" id="gform-action" name="save" value="Continue" />
 
-        <div class="form-group">
-            <button type="submit" class="button" value="@submitAction">@page.continueLabel</button>
-        </div>
+
+        @if(shouldDisplayContinue) {
+          <div class="form-group">
+              <button type="submit" class="button" value="@submitAction">@page.continueLabel</button>
+          </div>
+	}
         <div class="js-visible">
           @if(page.renderComeBackLater) {
           <div class="form-group">

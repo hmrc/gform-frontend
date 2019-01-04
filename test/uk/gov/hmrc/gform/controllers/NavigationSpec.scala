@@ -57,7 +57,8 @@ class NavitagionSpec extends Spec with GraphSpec {
     repeatsMin = None,
     validators = None,
     fields = formComponent :: Nil,
-    continueLabel = None
+    continueLabel = None,
+    continueIf = None
   )
 
   def getAvailableSectionNumbers(sectionsData: List[Section], formData: Map[FormComponentId, String]) = {
