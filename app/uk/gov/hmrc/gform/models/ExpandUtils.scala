@@ -167,11 +167,12 @@ object ExpandUtils {
           }
           .headOption
           .flatMap {
-            case fc @ IsDate(_)       => Date.fields(fc.id).headOption
-            case fc @ IsAddress(_)    => Address.fields(fc.id).headOption
-            case fc @ IsUkSortCode(_) => UkSortCode.fields(fc.id).headOption
-            case fc @ IsChoice(_)     => Some(fc.id.appendIndex(0))
-            case fc                   => Some(fc.id)
+            case fc @ IsDate(_)          => Date.fields(fc.id).headOption
+            case fc @ IsAddress(_)       => Address.fields(fc.id).headOption
+            case fc @ IsUkSortCode(_)    => UkSortCode.fields(fc.id).headOption
+            case fc @ IsChoice(_)        => Some(fc.id.appendIndex(0))
+            case fc @ IsHmrcTaxPeriod(_) => Some(fc.id)
+            case fc                      => Some(fc.id)
           } map (fcId => index + "_" + fcId.value)
 
         (data.copy(data = newData), anchor)

@@ -51,7 +51,7 @@ object Fields {
           }
         }
       case FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _) | TextArea(_, _, _) |
-          Choice(_, _, _, _, _) =>
+          Choice(_, _, _, _, _) | HmrcTaxPeriod(_, _, _) =>
         List[(FormComponentId, FormFieldValidationResult)]()
     }
   }
@@ -109,6 +109,7 @@ object Fields {
               FieldError(fieldValue, fileName, errors))
         }
       case InformationMessage(_, _) => None
+      case HmrcTaxPeriod(_, _, _)   => evalChoice(fieldValue, gformErrors)(dataGetter)
     }
   }
 
@@ -144,12 +145,13 @@ object Fields {
         case Group(_, _, _, _, _, _) =>
           require(true, "There shouldn't be Group fields here")
           Nil // For completion, there shouldn't be Groups here
-        case Address(_)                                                => Address.fields(fv.id).map(getFieldData)
-        case Date(_, _, _)                                             => Date.fields(fv.id).map(getFieldData)
-        case UkSortCode(_)                                             => UkSortCode.fields(fv.id).map(getFieldData)
-        case Text(_, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) => List(getFieldData(fv.id))
-        case FileUpload()                                              => List(getFieldData(fv.id))
-        case InformationMessage(_, _)                                  => List(getFieldData(fv.id))
+        case Address(_)    => Address.fields(fv.id).map(getFieldData)
+        case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
+        case UkSortCode(_) => UkSortCode.fields(fv.id).map(getFieldData)
+        case Text(_, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) | HmrcTaxPeriod(_, _, _) =>
+          List(getFieldData(fv.id))
+        case FileUpload()             => List(getFieldData(fv.id))
+        case InformationMessage(_, _) => List(getFieldData(fv.id))
       }
     }
 
