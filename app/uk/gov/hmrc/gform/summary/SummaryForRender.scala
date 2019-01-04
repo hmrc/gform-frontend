@@ -170,6 +170,7 @@ object SummaryRenderingService {
           case f @ FileUpload()         => file_upload(fieldValue, f, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
+          case HmrcTaxPeriod(_, _, _)   => hmrc_tax_period(fieldValue, validate(fieldValue), changeButton)
         }
       }
 

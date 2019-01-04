@@ -301,6 +301,7 @@ class FormController(
     val formTemplate = cache.formTemplate
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
+    val obligations = cache.obligations
     val dataRaw: Data = FormDataHelpers.formDataMap(cache.form.formData)
 
     for {
@@ -324,7 +325,8 @@ class FormController(
         formMaxAttachmentSizeMB,
         contentTypes,
         retrievals,
-        lang
+        lang,
+        obligations
       )
     } yield Ok(html)
   }

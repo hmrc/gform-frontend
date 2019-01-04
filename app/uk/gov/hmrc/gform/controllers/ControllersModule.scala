@@ -20,6 +20,7 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class ControllersModule(
@@ -29,6 +30,10 @@ class ControllersModule(
   playBuiltInsModule: PlayBuiltInsModule,
   auditingModule: AuditingModule
 ) {
+
+  val obligationService: ObligationService = new ObligationService(
+    gformBackendModule.gformConnector
+  )
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
@@ -50,6 +55,7 @@ class ControllersModule(
     configModule.frontendAppConfig,
     authModule.authConnector,
     playBuiltInsModule.i18nSupport,
-    errResponder
+    errResponder,
+    obligationService
   )
 }
