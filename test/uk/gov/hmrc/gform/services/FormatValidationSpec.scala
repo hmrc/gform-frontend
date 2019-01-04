@@ -161,16 +161,14 @@ class FormatValidationSpec extends Spec with GraphSpec {
     "sample label is not a valid VRN")
   "UkVrn" should "return invalid if too short" in createFailTest("GB123", UkVrn, "sample label is not a valid VRN")
 
-  "CompanyRegistrationNumber" should "return valid EnglandAndWales" in createSuccessTest(
-    "01234567",
+  "CompanyRegistrationNumber" should "return valid CRN with 8 digits" in createSuccessTest(
+    "12345678",
     CompanyRegistrationNumber)
-  "CompanyRegistrationNumber" should "return valid Scotland" in createSuccessTest("SC123456", CompanyRegistrationNumber)
-  "CompanyRegistrationNumber" should "return valid LLP" in createSuccessTest("OC123456", CompanyRegistrationNumber)
-  "CompanyRegistrationNumber" should "return valid ScotlandLLP" in createSuccessTest(
-    "SO123456",
+  "CompanyRegistrationNumber" should "return valid CRN with 2 letters followed by 6 digits" in createSuccessTest(
+    "SC123456",
     CompanyRegistrationNumber)
   "CompanyRegistrationNumber" should "return invalid without one of the previous conditions" in createFailTest(
-    "98765432",
+    "K8765432",
     CompanyRegistrationNumber,
     "sample label is not a valid CRN")
   "CompanyRegistrationNumber" should "return invalid if too short" in createFailTest(
@@ -179,6 +177,10 @@ class FormatValidationSpec extends Spec with GraphSpec {
     "sample label is not a valid CRN")
   "CompanyRegistrationNumber" should "return invalid if too long" in createFailTest(
     "SO1234567890",
+    CompanyRegistrationNumber,
+    "sample label is not a valid CRN")
+  "CompanyRegistrationNumber" should "return invalid if too many letters at the start" in createFailTest(
+    "BNR12345",
     CompanyRegistrationNumber,
     "sample label is not a valid CRN")
 
