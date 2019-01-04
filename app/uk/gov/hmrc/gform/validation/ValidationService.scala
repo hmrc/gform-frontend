@@ -357,13 +357,13 @@ class ComponentsValidator(
   }
 
   private def checkCrn(fieldValue: FormComponent, value: String) = {
-    val ValidDigitCRN = "[A-Z]{2}[0-9]{6}".r
-    val ValidLetterCRN = "[0-9]{8}".r
+    val ValidAlphaNumeric = "[A-Z]{2}[0-9]{6}".r
+    val ValidNumeric = "[0-9]{8}".r
     val str = value.replace(" ", "")
     str match {
-      case ValidDigitCRN()  => ().valid
-      case ValidLetterCRN() => ().valid
-      case _                => getError(fieldValue, "is not a valid CRN")
+      case ValidAlphaNumeric() => ().valid
+      case ValidNumeric()      => ().valid
+      case _                   => getError(fieldValue, "is not a valid CRN")
     }
   }
 
