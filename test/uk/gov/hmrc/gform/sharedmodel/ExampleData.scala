@@ -281,6 +281,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         `fieldValue - surname`,
         `fieldValue - facePhoto`
       ),
+      None,
       None)
 
   def `section - businessDetails` =
@@ -298,6 +299,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
         `fieldValue - startDate`,
         `fieldValue - iptRegNum`
       ),
+      None,
       None)
 
   def `repeating section` = Section(
@@ -312,6 +314,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     List(
       `fieldValue - surname`
     ),
+    None,
     None
   )
 

@@ -434,7 +434,10 @@ class FormController(
                   case Some(sn) => Future.successful(Some(sn))
                   case None =>
                     validateForm(data, sections, currentSn).map {
-                      case (isValid, _) => if (isValid) None else Some(currentSn)
+                      case (isValid, _) =>
+                        val section = sections(currentSn.value)
+                        val stop = section.continueIf.contains(Stop)
+                        if (isValid && !stop) None else Some(currentSn)
                     }
                 }
               }

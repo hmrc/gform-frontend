@@ -65,6 +65,7 @@ class SummarySpec extends Spec {
             false,
             false,
             None)),
+        None,
         None
       )
     def section1 =
@@ -91,6 +92,7 @@ class SummarySpec extends Spec {
             false,
             false,
             None)),
+        None,
         None
       )
     def section2 =
@@ -117,6 +119,7 @@ class SummarySpec extends Spec {
             false,
             false,
             None)),
+        None,
         None
       )
 
@@ -234,6 +237,7 @@ class SummarySpec extends Spec {
           false,
           None)
       ),
+      None,
       None
     )
 
@@ -532,7 +536,7 @@ class SummarySpec extends Spec {
       false,
       None
     )
-    override def section0 = Section("", None, None, None, None, None, None, None, List(groupFieldValue), None)
+    override def section0 = Section("", None, None, None, None, None, None, None, List(groupFieldValue), None, None)
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     val render0 =
       SummaryRenderingService
@@ -550,6 +554,7 @@ class SummarySpec extends Spec {
           None,
           None,
           List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test"))),
+          None,
           None))
     )
 

@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import play.api.libs.json._
 import julienrf.json.derived
-import play.api.libs.json.OFormat
 
-case class ValidIf(expr: BooleanExpr)
-object ValidIf {
-  implicit val format: OFormat[ValidIf] = derived.oformat
+sealed trait ContinueIf
+case object Continue extends ContinueIf
+case object Stop extends ContinueIf
+case class Conditional(expr: BooleanExpr) extends ContinueIf
+
+object ContinueIf {
+  implicit val format: OFormat[ContinueIf] = derived.oformat
 }
