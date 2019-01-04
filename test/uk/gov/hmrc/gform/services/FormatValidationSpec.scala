@@ -160,6 +160,28 @@ class FormatValidationSpec extends Spec with GraphSpec {
     UkVrn,
     "sample label is not a valid VRN")
   "UkVrn" should "return invalid if too short" in createFailTest("GB123", UkVrn, "sample label is not a valid VRN")
+
+  "CompanyRegistrationNumber" should "return valid EnglandAndWales" in createSuccessTest(
+    "01234567",
+    CompanyRegistrationNumber)
+  "CompanyRegistrationNumber" should "return valid Scotland" in createSuccessTest("SC123456", CompanyRegistrationNumber)
+  "CompanyRegistrationNumber" should "return valid LLP" in createSuccessTest("OC123456", CompanyRegistrationNumber)
+  "CompanyRegistrationNumber" should "return valid ScotlandLLP" in createSuccessTest(
+    "SO123456",
+    CompanyRegistrationNumber)
+  "CompanyRegistrationNumber" should "return invalid without one of the previous conditions" in createFailTest(
+    "98765432",
+    CompanyRegistrationNumber,
+    "sample label is not a valid CRN")
+  "CompanyRegistrationNumber" should "return invalid if too short" in createFailTest(
+    "SO1234",
+    CompanyRegistrationNumber,
+    "sample label is not a valid CRN")
+  "CompanyRegistrationNumber" should "return invalid if too long" in createFailTest(
+    "SO1234567890",
+    CompanyRegistrationNumber,
+    "sample label is not a valid CRN")
+
   "NonUkCountryCode" should "return valid" in createSuccessTest("US", NonUkCountryCode)
   "NonUkCountryCode" should "return invalid if code is UK" in createFailTest(
     "UK",

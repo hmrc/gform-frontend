@@ -146,8 +146,9 @@ object ValidationUtil {
 
         case IsTextOrTextArea(constraint) =>
           val data = constraint match {
-            case UkVrn => dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
-            case _     => dataGetter(fieldValue.id).headOption.getOrElse("")
+            case UkVrn | CompanyRegistrationNumber =>
+              dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
+            case _ => dataGetter(fieldValue.id).headOption.getOrElse("")
           }
           gFormErrors
             .get(fieldValue.id)
