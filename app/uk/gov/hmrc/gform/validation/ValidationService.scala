@@ -325,7 +325,7 @@ class ComponentsValidator(
       case (_, value :: Nil, UTR)                       => checkId(fieldValue, value)
       case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
-      case (_, value :: Nil, CompanyRegistrationNumber) => checkCrn(fieldValue, value)
+      case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
@@ -356,14 +356,14 @@ class ComponentsValidator(
     }
   }
 
-  private def checkCrn(fieldValue: FormComponent, value: String) = {
+  private def checkCompanyRegistrationNumber(fieldValue: FormComponent, value: String) = {
     val ValidAlphaNumeric = "[A-Z]{2}[0-9]{6}".r
     val ValidNumeric = "[0-9]{8}".r
     val str = value.replace(" ", "")
     str match {
       case ValidAlphaNumeric() => ().valid
       case ValidNumeric()      => ().valid
-      case _                   => getError(fieldValue, "is not a valid CRN")
+      case _                   => getError(fieldValue, "is not a valid Company Registration Number")
     }
   }
 
