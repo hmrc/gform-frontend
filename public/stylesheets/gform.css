@@ -135,7 +135,11 @@ button.button--secondary:active{
   background: transparent;
 }
 
-/* Render number inputs differently to niormal text boxes */
+/* Render number inputs differently to normal text boxes */
+.input-currency .form-control {
+  padding-left: 19px;
+}
+
 @media (min-width: 641px) {
   .inline .form-group {
     width: 50%;
@@ -147,7 +151,6 @@ button.button--secondary:active{
     width: 100%;
   }
   .input-currency .form-control {
-    padding-left: 1em;
     width: 160px;
   }
   .panel-indent .form-control--numeric,
