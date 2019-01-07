@@ -503,7 +503,7 @@ class ComponentsValidator(
       case value :: Nil =>
         Map(fieldId -> errors(fieldValue, "must not be entered")).invalid
       case value :: rest =>
-        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yet
+        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yetcompile
     }
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
@@ -522,15 +522,12 @@ class ComponentsValidator(
     }
   }
 
-  private def postcodeValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
-    xs: Seq[String]): ValidatedType ={
+  private def postcodeValidation(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType =
     (xs.filterNot(_.isEmpty), fieldId) match {
-      case (Nil,_) =>         Map(fieldId -> errors(fieldValue, s"no postcode entered")).invalid
-      case (value::Nil, _) if value.length > ValidationValues.postcodeLimit =>
+      case (value :: Nil, _) if value.length > ValidationValues.postcodeLimit =>
         Map(fieldId -> errors(fieldValue, s"postcode is longer than ${ValidationValues.postcodeLimit} characters")).invalid
       case _ => ().valid
     }
-  }
 
   private def validateChoice(fieldValue: FormComponent)(data: FormDataRecalculated): ValidatedType = {
     val choiceValue = data.data.get(fieldValue.id).toList.flatten.headOption
@@ -558,7 +555,7 @@ class ComponentsValidator(
 
     def lengthValidation(value: String) = addressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
-    def postcodeLengthValidation(value:String) = postcodeValidation(fieldValue,fieldValue.id.withSuffix(value)) _
+    def postcodeLengthValidation(value: String) = postcodeValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
@@ -570,9 +567,9 @@ class ComponentsValidator(
           lengthValidation("street2")(addressValueOf("street2")),
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
-          validateRequiredField("postcode", localisation("Country"))(addressValueOf("postcode")),
-          postcodeLengthValidation("postcode")(addressValueOf("postcode")),
-          validateForbiddenField("country")(addressValueOf("country"))
+          validateRequiredField("postcode", localisation("postcode"))(addressValueOf("postcode")),
+          validateForbiddenField("country")(addressValueOf("country")),
+          postcodeLengthValidation("postcode")(addressValueOf("postcode"))
         )
       case _ =>
         List(

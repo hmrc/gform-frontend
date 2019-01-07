@@ -88,6 +88,33 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
     result.value should be(())
   }
 
+  "non-international" should "should return invalid for uk, street1, street2, street3, street4 but an invalid postcode" in {
+    val address = Address(international = false)
+
+    val speccedAddress =
+      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+
+    val data = mkFormDataRecalculated(
+      Map(
+        FormComponentId("x-uk")       -> Seq("true"),
+        FormComponentId("x-street1")  -> Seq("S1"),
+        FormComponentId("x-street2")  -> Seq("S2"),
+        FormComponentId("x-street3")  -> Seq("S3"),
+        FormComponentId("x-street4")  -> Seq("S4"),
+        FormComponentId("x-postcode") -> Seq("BN11 7YHP")
+      ))
+    val result: ValidatedType = new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ExampleData.formTemplate).validate(speccedAddress).futureValue
+
+    result.toEither should beLeft(
+      Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode is longer than 8 characters")))
+  }
+
   "non-international" should "return invalid for postcode, but no street1" in {
     val address = Address(international = false)
 
