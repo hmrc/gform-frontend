@@ -154,7 +154,10 @@ class AcknowledgementController(
     }
   }
 
-  def exitSurvey(formTemplateId: FormTemplateId, lang: Option[String], maybeAccessCode: Option[AccessCode]) =
+  def exitSurvey(
+    formTemplateId: FormTemplateId,
+    lang: Option[String],
+    maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     Action.async { implicit request =>
       Future.successful(Redirect(s"/feedback/${formTemplateId.value}").withNewSession)
     }
