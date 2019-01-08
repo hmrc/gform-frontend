@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import java.time.format.DateTimeFormatter
 
+import cats.data.Validated.Valid
 import org.jsoup.Jsoup
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
@@ -30,7 +31,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormId, Submitted, Validated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -153,4 +154,10 @@ class AcknowledgementController(
       doc.html.replace("£", "&pound;")
     }
   }
+
+  def exitSurvey(formTemplateId: FormTemplateId, lang: Option[String], maybeAccessCode: Option[AccessCode]) =
+    Action.async { implicit request =>
+      Future.successful(Redirect(s"/feedback/${formTemplateId.value}").withNewSession)
+    }
+
 }
