@@ -322,11 +322,12 @@ class ComponentsValidator(
         validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
       case (_, value :: Nil, UkBankAccountNumber) =>
         checkLength(fieldValue, value, ValidationValues.bankAccountLength)
-      case (_, value :: Nil, UTR)              => checkId(fieldValue, value)
-      case (_, value :: Nil, NINO)             => checkId(fieldValue, value)
-      case (_, value :: Nil, UkVrn)            => checkVrn(fieldValue, value)
-      case (_, value :: Nil, NonUkCountryCode) => checkNonUkCountryCode(fieldValue, value)
-      case (_, value :: Nil, CountryCode)      => checkCountryCode(fieldValue, value)
+      case (_, value :: Nil, UTR)                       => checkId(fieldValue, value)
+      case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
+      case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
+      case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
+      case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
+      case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
         textValidator(fieldValue, value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
       case (_, value :: Nil, Email) =>
@@ -352,6 +353,15 @@ class ComponentsValidator(
       case Government() => ().valid
       case Health()     => ().valid
       case _            => getError(fieldValue, "is not a valid VRN")
+    }
+  }
+
+  private def checkCompanyRegistrationNumber(fieldValue: FormComponent, value: String) = {
+    val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
+    val str = value.replace(" ", "")
+    str match {
+      case ValidCRN() => ().valid
+      case _          => getError(fieldValue, "is not a valid Company Registration Number")
     }
   }
 

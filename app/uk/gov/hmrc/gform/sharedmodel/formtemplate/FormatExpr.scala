@@ -99,6 +99,7 @@ case object NINO extends TextConstraint
 case object UkVrn extends TextConstraint
 case object CountryCode extends TextConstraint
 case object NonUkCountryCode extends TextConstraint
+case object CompanyRegistrationNumber extends TextConstraint
 
 object TextConstraint {
   val defaultWholeDigits = 11
