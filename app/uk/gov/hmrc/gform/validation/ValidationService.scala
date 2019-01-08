@@ -503,7 +503,7 @@ class ComponentsValidator(
       case value :: Nil =>
         Map(fieldId -> errors(fieldValue, "must not be entered")).invalid
       case value :: rest =>
-        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yetcompile
+        Map(fieldId -> errors(fieldValue, "must not be entered")).invalid // we don't support multiple values yet
     }
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
@@ -523,8 +523,8 @@ class ComponentsValidator(
   }
 
   private def postcodeValidation(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType =
-    (xs.filterNot(_.isEmpty), fieldId) match {
-      case (value :: Nil, _) if value.length > ValidationValues.postcodeLimit =>
+    xs.filterNot(_.isEmpty) match {
+      case value :: Nil if value.length > ValidationValues.postcodeLimit =>
         Map(fieldId -> errors(fieldValue, s"postcode is longer than ${ValidationValues.postcodeLimit} characters")).invalid
       case _ => ().valid
     }
