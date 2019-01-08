@@ -357,13 +357,11 @@ class ComponentsValidator(
   }
 
   private def checkCompanyRegistrationNumber(fieldValue: FormComponent, value: String) = {
-    val ValidAlphaNumeric = "[A-Z]{2}[0-9]{6}".r
-    val ValidNumeric = "[0-9]{8}".r
+    val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
     val str = value.replace(" ", "")
     str match {
-      case ValidAlphaNumeric() => ().valid
-      case ValidNumeric()      => ().valid
-      case _                   => getError(fieldValue, "is not a valid Company Registration Number")
+      case ValidCRN() => ().valid
+      case _          => getError(fieldValue, "is not a valid Company Registration Number")
     }
   }
 
