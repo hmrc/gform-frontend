@@ -52,7 +52,7 @@
 }
 
 @defining(fieldValue.id.value,formTemplateId.value, maybeAccessCode.getOrElse("-"), currentValue.getOrElse("")){ case (fileId, templateId, accessCode, cv) =>
-  <div class="form-group@if(hasErrors) { form-group-error}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fileId}-hint" }>
+  <div class="form-group@if(hasErrors) { form-group-error}">
 
     <label class="form-label" for="@fileId">
       @label
@@ -75,7 +75,8 @@
       name="@fileId"
       data-form-template-id="@templateId"
       data-max-file-size-MB="@{formMaxAttachmentSizeMB}"
-      data-access-code="@accessCode" />
+      data-access-code="@accessCode"
+      @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fileId}-hint" } />
 
   </div>
 

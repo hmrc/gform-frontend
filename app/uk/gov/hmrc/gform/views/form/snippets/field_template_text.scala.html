@@ -66,7 +66,7 @@
   </label>
   }
 
-<div class="form-group @if(hasErrors) {form-group-error}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
+<div class="form-group @if(hasErrors) {form-group-error}">
 
   @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
 
@@ -85,7 +85,8 @@
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
         value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
-        class="@inputClasses @sizeClasses @inputBoxSize@if(fieldValue.derived){ js-hidden}">  @TextFormatter.appendUnit(text.constraint)
+        class="@inputClasses @sizeClasses @inputBoxSize@if(fieldValue.derived){ js-hidden}"
+        @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>  @TextFormatter.appendUnit(text.constraint)
     } else {
     <span class="input-currency">
         <input
@@ -94,7 +95,8 @@
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
             value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
-            class="@inputClasses @sizeClasses @inputBoxSize input--left-padding">
+            class="@inputClasses @sizeClasses @inputBoxSize input--left-padding"
+            @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
     </span>
     }
 </div>
