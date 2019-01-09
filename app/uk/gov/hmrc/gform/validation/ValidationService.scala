@@ -150,7 +150,7 @@ class ComponentsValidator(
       case address @ Address(_)          => validIf(validateAddress(fieldValue, address)(data))
       case c @ Choice(_, _, _, _, _)     => validIf(validateChoice(fieldValue)(data))
       case Group(_, _, _, _, _, _)       => validF //a group is read-only
-      case FileUpload()                  => validateFileUpload(fieldValue)
+      case FileUpload()                  => validateFileUpload(data, fieldValue)
       case InformationMessage(_, _)      => validF
     }
   }
@@ -287,7 +287,8 @@ class ComponentsValidator(
   }
 
   //TODO: this will be called many times per one form. Maybe there is a way to optimise it?
-  private def validateFileUpload(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+  private def validateFileUpload(data: FormDataRecalculated, fieldValue: FormComponent)(
+    implicit hc: HeaderCarrier): Future[ValidatedType] =
     fileUploadService
       .getEnvelope(envelopeId)
       .map { envelope =>
@@ -302,7 +303,7 @@ class ComponentsValidator(
             getError(fieldValue, "has a virus detected")
           case Some(File(fileId, _, _))     => ().valid
           case None if fieldValue.mandatory => getError(fieldValue, "must be uploaded")
-          case None                         => ().valid
+          case None                         => errorIfNotVisited(data, fieldValue)
         }
       }
 
@@ -336,9 +337,32 @@ class ComponentsValidator(
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, true)
-      case (false, Nil, _)       => ().valid
+      case (false, Nil, _)       => errorIfNotVisited(data, fieldValue)
       case (_, value :: rest, _) => ().valid // we don't support multiple values yet
     }
+  }
+
+  private def errorIfNotVisited(data: FormDataRecalculated, fc: FormComponent): ValidatedType = {
+
+    val fcIds = fc.`type` match {
+      case Address(_)                                                => Address.fields(fc.id)
+      case Date(_, _, _)                                             => Date.fields(fc.id)
+      case UkSortCode(_)                                             => UkSortCode.fields(fc.id)
+      case Text(_, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) => List(fc.id)
+      case FileUpload()                                              => List(fc.id)
+      case _                                                         => Nil
+    }
+
+    /**
+      * Fast forward needs to be able to stop on sections which has not been visited before and which have all fields optional.
+      * Such sections are recognized by not having any entries for 'FormComponentId' keys in 'data.data' Map.
+      * If section with all fields optional has already been visited (and user didn't enter any data) such section will have
+      * empty strings for 'FormComponentId' keys in 'data.data' Map.
+      *
+      * Empty error message in 'getError(fc, "")' is exploiting behaviour when first landing on a page is not showing errors.
+      */
+    if (fcIds.forall(data.data.isDefinedAt)) ().valid else getError(fc, "")
+
   }
 
   private def checkVrn(fieldValue: FormComponent, value: String) = {
@@ -452,7 +476,7 @@ class ComponentsValidator(
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
               getError(fieldValue, "values must be two digit numbers")
-            case (Nil, false)      => ().valid
+            case (Nil, false)      => errorIfNotVisited(data, fieldValue)
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
           }
         }
@@ -545,7 +569,7 @@ class ComponentsValidator(
     (fieldValue.mandatory, choiceValue) match {
       case (true, None | Some("")) =>
         getError(fieldValue, "must be selected")
-      case _ => ().valid
+      case _ => errorIfNotVisited(data, fieldValue)
     }
   }
 

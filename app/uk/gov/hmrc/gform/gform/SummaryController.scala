@@ -112,26 +112,12 @@ class SummaryController(
 
         lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
           data =>
-            val originSection = new Origin(cache.formTemplate.sections, data).minSectionNumber
-            val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
             maybeAccessCode match {
               case (Some(accessCode)) =>
-                Ok(
-                  save_with_access_code(
-                    accessCode,
-                    cache.formTemplate,
-                    originSection,
-                    originSectionTitle4Ga,
-                    lang,
-                    frontendAppConfig))
+                Ok(save_with_access_code(accessCode, cache.formTemplate, lang, frontendAppConfig))
               case _ =>
-                Ok(
-                  save_acknowledgement(
-                    cache.formTemplate,
-                    originSection,
-                    originSectionTitle4Ga,
-                    lang,
-                    frontendAppConfig))
+                val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, lang)
+                Ok(save_acknowledgement(cache.formTemplate, call, lang, frontendAppConfig))
             }
         }
 

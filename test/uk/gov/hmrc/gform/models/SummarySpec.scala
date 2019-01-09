@@ -160,10 +160,10 @@ class SummarySpec extends Spec {
     val expectedResult = List(
       callUrlEscaped(
         routes.FormController
-          .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), None)),
+          .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), None, SeYes)),
       callUrlEscaped(
         routes.FormController
-          .form(formTemplate._id, Some(accessCode), SectionNumber(1), SectionTitle4Ga("About-you"), None))
+          .form(formTemplate._id, Some(accessCode), SectionNumber(1), SectionTitle4Ga("About-you"), None, SeYes))
     )
 
     testStringValues(0) should startWith(expectedResult(0))
@@ -595,7 +595,7 @@ class SummarySpec extends Spec {
       val doc = Jsoup.parse(htmlAheadOfSection0.toString)
       val urlOfHrefToSection0 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
-        .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), None)
+        .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), None, SeYes)
         .url + s"#iptRegNum"
       urlOfHrefToSection0 shouldBe targetUrl
     }
@@ -604,7 +604,7 @@ class SummarySpec extends Spec {
       val doc = Jsoup.parse(htmlAheadOfSection2.toString)
       val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
-        .form(formTemplate._id, Some(accessCode), SectionNumber(2), SectionTitle4Ga("Business-details"), None)
+        .form(formTemplate._id, Some(accessCode), SectionNumber(2), SectionTitle4Ga("Business-details"), None, SeYes)
         .url + s"#nameOfBusiness"
       urlOfHrefToSection2 shouldBe targetUrl
     }

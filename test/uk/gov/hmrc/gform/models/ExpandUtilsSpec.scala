@@ -120,62 +120,42 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val groupIds = "a" :: "b" :: "c" :: "d" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("HA"), mkGroup(groupIds))
 
-    val formData1 = "a" :: "b" :: "c" :: "d" :: Nil map (fcId => FormField(FormComponentId(fcId), "dummy"))
+    val formData1 = "a" :: "b" :: "c" :: "d" :: Nil map (fcId => (FormComponentId(fcId), Seq("dummy"))) toMap
     val formData2 = "a" :: "b" :: "c" :: "d" :: "1_a" :: "1_b" :: "1_c" :: "1_d" :: Nil map (fcId =>
-      FormField(FormComponentId(fcId), "dummy"))
+      (FormComponentId(fcId), Seq("dummy"))) toMap
 
-    val expected1 = List(
-      FormField(FormComponentId("1_a"), ""),
-      FormField(FormComponentId("1_b"), ""),
-      FormField(FormComponentId("1_c"), ""),
-      FormField(FormComponentId("1_d"), "")
-    )
-    val expected2 = List(
-      FormField(FormComponentId("2_a"), ""),
-      FormField(FormComponentId("2_b"), ""),
-      FormField(FormComponentId("2_c"), ""),
-      FormField(FormComponentId("2_d"), "")
-    )
+    val expected1 = "1_a" :: "1_b" :: "1_c" :: "1_d" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
+    val expected2 = "2_a" :: "2_b" :: "2_c" :: "2_d" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
 
-    addNextGroup(Some(group), FormData(formData1), FormDataRecalculated.empty) shouldBe (
-      (
-        FormData(expected1),
-        Some("1_a")))
-    addNextGroup(Some(group), FormData(formData2), FormDataRecalculated.empty) shouldBe (
-      (
-        FormData(expected2),
-        Some("2_a")))
+    val data1 = FormDataRecalculated.empty.copy(data = formData1)
+    val data2 = FormDataRecalculated.empty.copy(data = formData2)
 
+    val data1Expected = FormDataRecalculated.empty.copy(data = formData1 ++ expected1)
+    val data2Expected = FormDataRecalculated.empty.copy(data = formData2 ++ expected2)
+
+    addNextGroup(Some(group), data1) shouldBe ((data1Expected, Some("1_a")))
+    addNextGroup(Some(group), data2) shouldBe ((data2Expected, Some("2_a")))
   }
 
   it should "add group containing Date component" in {
     val groupIds = "a" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("HA"), mkGroupWithDate(groupIds))
 
-    val formData1 = "a-day" :: "a-month" :: "a-year" :: Nil map (fcId => FormField(FormComponentId(fcId), "dummy"))
+    val formData1 = "a-day" :: "a-month" :: "a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq("dummy"))) toMap
     val formData2 = "a-day" :: "a-month" :: "a-year" :: "1_a-day" :: "1_a-month" :: "1_a-year" :: Nil map (fcId =>
-      FormField(FormComponentId(fcId), "dummy"))
+      (FormComponentId(fcId), Seq("dummy"))) toMap
 
-    val expected1 = List(
-      FormField(FormComponentId("1_a-day"), ""),
-      FormField(FormComponentId("1_a-month"), ""),
-      FormField(FormComponentId("1_a-year"), "")
-    )
-    val expected2 = List(
-      FormField(FormComponentId("2_a-day"), ""),
-      FormField(FormComponentId("2_a-month"), ""),
-      FormField(FormComponentId("2_a-year"), "")
-    )
+    val expected1 = "1_a-day" :: "1_a-month" :: "1_a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
+    val expected2 = "2_a-day" :: "2_a-month" :: "2_a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
 
-    addNextGroup(Some(group), FormData(formData1), FormDataRecalculated.empty) shouldBe (
-      (
-        FormData(expected1),
-        Some("1_a-day")))
-    addNextGroup(Some(group), FormData(formData2), FormDataRecalculated.empty) shouldBe (
-      (
-        FormData(expected2),
-        Some("2_a-day")))
+    val data1 = FormDataRecalculated.empty.copy(data = formData1)
+    val data2 = FormDataRecalculated.empty.copy(data = formData2)
 
+    val data1Expected = FormDataRecalculated.empty.copy(data = formData1 ++ expected1)
+    val data2Expected = FormDataRecalculated.empty.copy(data = formData2 ++ expected2)
+
+    addNextGroup(Some(group), data1) shouldBe ((data1Expected, Some("1_a-day")))
+    addNextGroup(Some(group), data2) shouldBe ((data2Expected, Some("2_a-day")))
   }
 
   "removeGroupFromData" should "remove group fields at particular index from data, and keep unrelated fields untouched" in {

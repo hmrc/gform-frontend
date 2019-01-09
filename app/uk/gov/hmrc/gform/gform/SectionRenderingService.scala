@@ -157,6 +157,7 @@ class SectionRenderingService(
     val hiddenSnippets = Fields
       .toFormField(fieldDataUpd, hiddenTemplateFields)
       .map(formField => html.form.snippets.hidden_field(formField))
+
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
 
     val originSection = new Origin(formTemplate.sections, fieldData).minSectionNumber
@@ -194,7 +195,6 @@ class SectionRenderingService(
       pageLevelErrorHtml,
       renderingInfo,
       shouldDisplayBack = sectionNumber > originSection,
-      shouldDisplayBackToSummary = shouldDisplayBackToSummary(form),
       shouldDisplayHeading = formLevelHeading,
       shouldDisplayContinue = !section.continueIf.contains(Stop),
       frontendAppConfig
@@ -309,7 +309,6 @@ class SectionRenderingService(
       pageLevelErrorHtml,
       renderingInfo,
       shouldDisplayBack = false,
-      shouldDisplayBackToSummary = false,
       shouldDisplayHeading = true,
       shouldDisplayContinue = true,
       frontendAppConfig
@@ -421,7 +420,7 @@ class SectionRenderingService(
       0,
       Nil
     )
-    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, false, true, true, frontendAppConfig)
+    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig)
   }
 
   private def createJavascript(
@@ -838,7 +837,6 @@ class SectionRenderingService(
     agentCode = None
   )
 
-  private def shouldDisplayBackToSummary(form: Form): Boolean = form.status == Summary
   private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean =
     section.fields
       .filter {
