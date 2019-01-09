@@ -24,6 +24,14 @@ PUT           /submissions/test-only/proxy-to-file-upload/*path        uk.gov.hm
 PATCH         /submissions/test-only/proxy-to-file-upload/*path        uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToFileUpload(path: String)
 DELETE        /submissions/test-only/proxy-to-file-upload/*path        uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToFileUpload(path: String)
 
+GET           /submissions/test-only/proxy-to-save4later/*path         uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToSave4later(path: String)
+POST          /submissions/test-only/proxy-to-save4later/*path         uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToSave4later(path: String)
+PUT           /submissions/test-only/proxy-to-save4later/*path         uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToSave4later(path: String)
+PATCH         /submissions/test-only/proxy-to-save4later/*path         uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToSave4later(path: String)
+DELETE        /submissions/test-only/proxy-to-save4later/*path         uk.gov.hmrc.gform.testonly.TestOnlyController.proxyToSave4later(path: String)
+
+
+
 GET           /submissions/test-only/whats-in-session                  uk.gov.hmrc.gform.testonly.TestOnlyController.whatsInSession()
 GET           /submissions/test-only/clear-session                     uk.gov.hmrc.gform.testonly.TestOnlyController.clearSession()
 
