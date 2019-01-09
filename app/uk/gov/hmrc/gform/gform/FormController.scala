@@ -163,6 +163,7 @@ class FormController(
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
+      v <- gformConnector.getTaxPeriods("a", "a", "a")
     } yield maybeFormExceptSubmitted
 
   private def startFreshForm(
@@ -216,7 +217,6 @@ class FormController(
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
     val dataRaw: Map[FormComponentId, Seq[String]] = FormDataHelpers.formDataMap(cache.form.formData)
-
     for {
       data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals)
       sections = RepeatingComponentService.getAllSections(formTemplate, data)

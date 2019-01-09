@@ -146,8 +146,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
           .recover { case e: NotFoundException => None }
     )
 
-
   /****** Tax Period ******/
-  def getTaxPeriods(idType: String, idNumber: String, regimeType: String)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def getTaxPeriods(idType: String, idNumber: String, regimeType: String)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext) =
     ws.GET[JsValue](s"$baseUrl/obligation/tax-period/$idType/$idNumber/$regimeType")
+
 }

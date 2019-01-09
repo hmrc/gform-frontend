@@ -20,6 +20,8 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
@@ -28,6 +30,9 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import play.api.i18n.Messages
+import play.api.libs.json.JsValue
+import play.api.libs.ws.WSRequest
+import play.api.libs.ws.ahc.AhcWSClient
 import play.api.mvc.Request
 import play.twirl.api.Html
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
@@ -474,8 +479,40 @@ class SectionRenderingService(
         htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, userDetails, maybeValidated, lang)
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
-      case HmrcTaxPeriod(_, _, _) => html.form.snippets.hmrc_Tax_Period()
+//      case HmrcTaxPeriod(_, _, _) => html.form.snippets.hmrc_Tax_Period()
+      case HmrcTaxPeriod(a, b, c) => htmlForHmrcTaxPeriod(fieldValue, index, ei, a, b, c)
     }
+
+  private def htmlForHmrcTaxPeriod(
+    fieldValue: FormComponent,
+    index: Int,
+    ei: ExtraInfo,
+    idType: String,
+    idNumber: String,
+    regimeType: String) = {
+
+
+    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, idType, idNumber, regimeType)
+
+//    val prepopValues = ei.fieldData.data.get(fieldValue.id) match {
+//      case None    => selections.map(_.toString).toSet
+//      case Some(_) => Set.empty[String] // Don't prepop something we already submitted
+//    }
+
+//    html.form.snippets.choice(
+    ////      "radio",
+    ////      fieldValue,
+    ////      options,
+    ////      orientation,
+    ////      prepopValues,
+    ////      validatedValue,
+    ////      optionalHelpTextMarkDown,
+    ////      index,
+    ////      ei.section.title,
+    ////      ei.formLevelHeading
+    ////    )
+
+  }
 
   private def htmlForInformationMessage(
     fieldValue: FormComponent,

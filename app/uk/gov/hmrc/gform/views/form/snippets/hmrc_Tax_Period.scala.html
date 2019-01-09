@@ -26,30 +26,20 @@
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import play.twirl.api.Html
 
-
+@(inputType: String,
+fieldValue: FormComponent,
+index: Int,
+idType: String,
+idNumber: String,
+regimeType: String
+)
 
 <div>
-    hdgrthyjjkl
+    @idType
 
  <div
          class="multiple-choice {inline}"
  >
- <input id="1"
-        name="safdg"
-        value="1"
-        type="radio"
- role="radio"
- />
 
-
- <div
-         class="multiple-choice {inline}"
-
- >
- <input id="2"
-        name="sdfg"
-        value="2"
-        type="radio"
- role="radio"
- />
 </div>
+ </div>
