@@ -28,7 +28,6 @@
           .on('click', '[type="submit"]', setAction)
           .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
           .on('click', '#backButton', handleFormSubmit('Back', true))
-          .on('click', '#BackToSummary', handleFormSubmit('BackToSummary', true))
           .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
           .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));
       }

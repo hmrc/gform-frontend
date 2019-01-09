@@ -20,7 +20,7 @@ import cats.implicits._
 import play.api.libs.json.{ JsError, JsString, JsSuccess, Reads }
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateRawId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateRawId, SeNo, SeYes, SectionNumber, SuppressErrors }
 
 import scala.util.Try
 
@@ -36,6 +36,18 @@ object ValueClassBinder {
     override def bind(key: String, value: String): Either[String, SectionNumber] =
       Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
+  }
+
+  implicit val suppressErrorsBinder: PathBindable[SuppressErrors] = new PathBindable[SuppressErrors] {
+    override def bind(key: String, value: String): Either[String, SuppressErrors] = value match {
+      case SuppressErrors.seYes => SeYes.asRight
+      case SuppressErrors.seNo  => SeNo.asRight
+      case _                    => s"No valid value in path $key: $value".asLeft
+    }
+    override def unbind(key: String, suppressErrors: SuppressErrors): String = suppressErrors match {
+      case SeYes => SuppressErrors.seYes
+      case SeNo  => SuppressErrors.seNo
+    }
   }
 
   def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) = {

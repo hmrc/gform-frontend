@@ -39,11 +39,9 @@ case class Origin(sections: List[Section], val data: FormDataRecalculated) exten
 
 sealed trait Direction
 
-case class SaveAndContinue(sectionNumber: SectionNumber) extends Direction
+case object SaveAndContinue extends Direction
 case class Back(sectionNumber: SectionNumber) extends Direction
-object SaveAndExit extends Direction
-case class SaveAndSummary(navigation: Navigation) extends Direction
-case class BackToSummary(navigation: Navigation) extends Direction
+case object SaveAndExit extends Direction
 case class AddGroup(groupId: String) extends Direction
 case class RemoveGroup(idx: Int, groupId: String) extends Direction
 
@@ -62,14 +60,12 @@ case class Navigator(
   val RemoveGroupR = "RemoveGroup-(\\d*)_(.*)".r.unanchored
 
   def navigate: Direction = actionValue match {
-    case "Save"                             => SaveAndExit
-    case "Continue" if isLastSectionNumber  => SaveAndSummary(this)
-    case "Continue" if !isLastSectionNumber => SaveAndContinue(nextSectionNumber)
-    case "Back"                             => Back(previousOrCurrentSectionNumber)
-    case "BackToSummary"                    => BackToSummary(this)
-    case x if x.startsWith("AddGroup")      => AddGroup(x)
-    case RemoveGroupR(idx, x)               => RemoveGroup(idx.toInt, x)
-    case other                              => throw new BadRequestException(s"Invalid action: $other")
+    case "Save"                        => SaveAndExit
+    case "Continue"                    => SaveAndContinue
+    case "Back"                        => Back(previousOrCurrentSectionNumber)
+    case x if x.startsWith("AddGroup") => AddGroup(x)
+    case RemoveGroupR(idx, x)          => RemoveGroup(idx.toInt, x)
+    case other                         => throw new BadRequestException(s"Invalid action: $other")
   }
 
   private def actionValue: String = {
@@ -83,12 +79,6 @@ case class Navigator(
   }
 
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
-  private lazy val isLastSectionNumber: Boolean = sectionNumber == maxSectionNumber
-
-  private lazy val nextSectionNumber: SectionNumber =
-    availableSectionNumbers
-      .find(_ > sectionNumber)
-      .get //This supposed to be called only if the section is findable
 
   private val previousOrCurrentSectionNumber: SectionNumber =
     availableSectionNumbers.reverse

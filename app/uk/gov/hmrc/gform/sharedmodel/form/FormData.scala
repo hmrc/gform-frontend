@@ -19,11 +19,12 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.Semigroup
 import cats.syntax.eq._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphNode, IncludeIfGN, SimpleGN }
 
 case class FormData(fields: Seq[FormField]) extends AnyVal
-case class FormDataRecalculated(invisible: Set[GraphNode], data: Map[FormComponentId, Seq[String]]) {
+case class FormDataRecalculated(invisible: Set[GraphNode], data: Data) {
   def isVisible(section: Section): Boolean =
     !invisible.exists {
       case SimpleGN(fcId)               => false
