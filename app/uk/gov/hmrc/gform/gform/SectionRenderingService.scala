@@ -21,6 +21,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.actor.ActorSystem
+import akka.actor.Status.{ Failure, Success }
 import akka.stream.ActorMaterializer
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
@@ -34,7 +35,7 @@ import play.api.libs.json.JsValue
 import play.api.libs.ws.WSRequest
 import play.api.libs.ws.ahc.AhcWSClient
 import play.api.mvc.Request
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
@@ -43,6 +44,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
@@ -59,8 +61,10 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 sealed trait HasErrors {
@@ -112,7 +116,8 @@ class SectionRenderingService(
     formMaxAttachmentSizeMB: Int,
     contentTypes: List[ContentType],
     retrievals: MaterialisedRetrievals,
-    lang: Option[String]
+    lang: Option[String],
+    gformConnector: Option[GformConnector] = None
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
@@ -176,7 +181,8 @@ class SectionRenderingService(
           retrievals.userDetails,
           validatedType,
           lang,
-          fieldValue.onlyShowOnSummary))
+          fieldValue.onlyShowOnSummary,
+          gformConnector))
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -452,7 +458,8 @@ class SectionRenderingService(
     userDetails: UserDetails,
     maybeValidated: ValidatedType,
     lang: Option[String],
-    isHidden: Boolean = false)(implicit request: Request[_], messages: Messages): Html =
+    isHidden: Boolean = false,
+    gformConnector: Option[GformConnector] = None)(implicit request: Request[_], messages: Messages): Html =
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(fieldValue, sortCode, expr, fieldValue.id, index, maybeValidated, ei, data, isHidden)
@@ -480,39 +487,41 @@ class SectionRenderingService(
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
 //      case HmrcTaxPeriod(_, _, _) => html.form.snippets.hmrc_Tax_Period()
-      case HmrcTaxPeriod(a, b, c) => htmlForHmrcTaxPeriod(fieldValue, index, ei, a, b, c)
+      case HmrcTaxPeriod(a, b, c) => htmlForHmrcTaxPeriod(fieldValue, index, ei, gformConnector, a, b, c)
     }
 
   private def htmlForHmrcTaxPeriod(
     fieldValue: FormComponent,
     index: Int,
     ei: ExtraInfo,
+    gformConnector: Option[GformConnector],
     idType: String,
     idNumber: String,
     regimeType: String) = {
-
-
-    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, idType, idNumber, regimeType)
-
+    implicit val hc: HeaderCarrier = new HeaderCarrier
+    def r =
+      for {
+        a <- gformConnector.get.getTaxPeriods(idType, idNumber, regimeType)
+      } yield a
+    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, r)
+  }
 //    val prepopValues = ei.fieldData.data.get(fieldValue.id) match {
 //      case None    => selections.map(_.toString).toSet
 //      case Some(_) => Set.empty[String] // Don't prepop something we already submitted
 //    }
 
 //    html.form.snippets.choice(
-    ////      "radio",
-    ////      fieldValue,
-    ////      options,
-    ////      orientation,
-    ////      prepopValues,
-    ////      validatedValue,
-    ////      optionalHelpTextMarkDown,
-    ////      index,
-    ////      ei.section.title,
-    ////      ei.formLevelHeading
-    ////    )
-
-  }
+  ////      "radio",
+  ////      fieldValue,
+  ////      options,
+  ////      orientation,
+  ////      prepopValues,
+  ////      validatedValue,
+  ////      optionalHelpTextMarkDown,
+  ////      index,
+  ////      ei.section.title,
+  ////      ei.formLevelHeading
+  ////    )
 
   private def htmlForInformationMessage(
     fieldValue: FormComponent,

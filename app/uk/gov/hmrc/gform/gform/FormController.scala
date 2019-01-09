@@ -242,7 +242,8 @@ class FormController(
         formMaxAttachmentSizeMB,
         contentTypes,
         retrievals,
-        lang
+        lang,
+        Some(gformConnector)
       )
     } yield Ok(html)
   }
