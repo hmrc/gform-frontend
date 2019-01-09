@@ -18,7 +18,7 @@
 @import layouts.{govuk_template => hmrcGovUkTemplate}
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase, LiveBanner, ResearchBanner, BetaBanner}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase, LiveBanner, ResearchBanner, BetaBanner, AlphaBanner}
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -94,27 +94,26 @@
 @footerLinks = {}
 
 @betaBanner = {
-@developmentPhase match {
-case LiveBanner =>{}
-case x if(x == BetaBanner || x == ResearchBanner) =>{
-<div class="beta-banner {beta-banner--borderless}">
-    <p>
-        <strong class="phase-tag">@x.banner</strong>
-        @if(x.equals(BetaBanner)){
-        <span>
-            @Messages("label.beta.newservice")
-            @Messages("label.beta.yours") @defining(appConfig.betaFeedbackUrlNoAuth) { linkUrl =>
-        <a id="feedback-link"
-           href="@linkUrl"
-           data-sso="false"
-           data-journey-click="other-global:Click:Feedback">@Messages("label.beta.feedback")</a> @Messages("label.beta.improve")}
-        </span>
-        }
-    </p>
-</div>
-}
-case _ => {}
-}
+  @developmentPhase match {
+    case x if x == BetaBanner || x == ResearchBanner || x == AlphaBanner => {
+      <div class="@{x.banner}-banner">
+          <p>
+              <strong class="phase-tag">@x.banner</strong>
+              @if(x.equals(BetaBanner) || x.equals(AlphaBanner)){
+                <span>
+                  @Messages("label.beta.newservice")
+                  @Messages("label.beta.yours")
+                  <a id="feedback-link"
+                     href="@{appConfig.betaFeedbackUrlNoAuth}"
+                     data-sso="false"
+                     data-journey-click="other-global:Click:Feedback">@Messages("label.beta.feedback")</a> @Messages("label.beta.improve")
+                </span>
+              }
+          </p>
+      </div>
+      }
+    case _ => {}
+  }
 }
 
 
