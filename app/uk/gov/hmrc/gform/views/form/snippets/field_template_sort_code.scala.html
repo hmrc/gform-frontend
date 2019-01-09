@@ -35,13 +35,13 @@
 @label = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
 
 <div class="form-group @if(hasErrors) { form-group-error }">
-  <fieldset>
+  <fieldset role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
     <legend>
      @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
     </legend>
 
     @if(fieldValue.helpText.nonEmpty) {
-      <span class="form-hint">@{fieldValue.helpText}</span>
+      <span class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText}</span>
     }
 
     @inline_error_map(fieldValue, validationResult)

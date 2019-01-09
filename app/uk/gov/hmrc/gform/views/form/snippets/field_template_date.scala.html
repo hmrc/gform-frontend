@@ -41,7 +41,7 @@ fieldValue.id.withSuffix(id).toString
 @fieldLabel = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
 
   <div class="form-group @if(hasErrors) { form-group-error }">
-      <fieldset>
+      <fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id}-hint" } role="group">
 
         <legend>
           @if(!formLevelHeading) {
@@ -52,7 +52,7 @@ fieldValue.id.withSuffix(id).toString
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+          <span class="form-hint" id="@{fieldValue.id}-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
         }
 
           @inline_error_map(fieldValue, validationResult)

@@ -52,14 +52,14 @@
 }
 
 @defining(fieldValue.id.value,formTemplateId.value, maybeAccessCode.getOrElse("-"), currentValue.getOrElse("")){ case (fileId, templateId, accessCode, cv) =>
-  <div class="form-group@if(hasErrors) { form-group-error}">
+  <div class="form-group@if(hasErrors) { form-group-error}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fileId}-hint" }>
 
     <label class="form-label" for="@fileId">
       @label
     </label>
 
     @if(fieldValue.helpText.nonEmpty) {
-      <span class="form-hint">
+      <span class="form-hint" id="@{fileId}-hint">
         @{fieldValue.helpText}
       </span>
     }

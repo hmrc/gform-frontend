@@ -47,7 +47,7 @@ formLevelHeading: Boolean
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
-    <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}">
+    <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
         <legend class="form-label">
           @if(!formLevelHeading) {
             <h1>@label</h1>
@@ -57,7 +57,7 @@ formLevelHeading: Boolean
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
         }
 
         @inline_error_map(fieldValue, validationResult)
@@ -74,11 +74,9 @@ formLevelHeading: Boolean
                      type="@inputType"
                      @if(optionHelpText(index).body.nonEmpty) {
                      aria-controls="helptext-@{fieldValue.id.appendIndex(index)}"
-                     aria-expanded="false"
                      }
                      @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
                      index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
-                     role="@inputType"
               />
 
               <label for="@{fieldValue.id.appendIndex(index)}">
