@@ -18,9 +18,8 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.libs.json.{ JsBoolean, JsObject }
 import play.api.mvc.{ AnyContent, Request }
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.{ Enrolment, Enrolments }
+import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
@@ -121,6 +120,20 @@ class AuthServiceSpec extends Spec with ExampleData {
       None,
       None)
 
+  val materialisedRetrievalsEnrolment =
+    MaterialisedRetrievals(
+      legacyCredentials,
+      Enrolments(
+        Set(Enrolment("HMRC-ORG-OBTDS").copy(
+          identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890"))))),
+      Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual),
+      None,
+      None,
+      userDetails,
+      None,
+      None
+    )
+
   val requestUri = "/submissions/test"
 
   private def factory[A](a: A): PartialFunction[Throwable, AuthResult] => Predicate => Future[A] =
@@ -132,17 +145,23 @@ class AuthServiceSpec extends Spec with ExampleData {
   val ggAuthorisedSuccessfulAgent = factory(AuthSuccessful(materialisedRetrievalsAgent))
   val ggAuthorisedSuccessfulEnrolledAgent = factory(AuthSuccessful(materialisedRetrievalsEnrolledAgent))
   val ggAuthorisedRedirect = factory(AuthRedirect(""))
+  val ggAuthorisedEnrolment = factory(AuthSuccessful(materialisedRetrievalsEnrolment))
 
-  val enrolmentAuth = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, RegimeIdCheck(regimeId)))
+  val enrolmentAuthNoCheck = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck))
+  val enrolmentAuthCheck =
+    EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB"))))
 
-  val authConfigAgentDenied = HmrcAgentWithEnrolmentModule(DenyAnyAgentAffinityUser, enrolmentAuth)
+  val authConfigAgentDenied = HmrcAgentWithEnrolmentModule(DenyAnyAgentAffinityUser, enrolmentAuthNoCheck)
   val formTemplateAgentDenied = formTemplate.copy(authConfig = authConfigAgentDenied)
 
-  val authConfigAnyAgentAllowed = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
+  val authConfigAnyAgentAllowed = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuthNoCheck)
   val formTemplateAnyAgentAllowed = formTemplate.copy(authConfig = authConfigAnyAgentAllowed)
 
-  val authConfigRequireMTDAgentEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuth)
+  val authConfigRequireMTDAgentEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthNoCheck)
   val formTemplateRequireMTDAgentEnrolment = formTemplate.copy(authConfig = authConfigRequireMTDAgentEnrolment)
+
+  val authConfigEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthCheck)
+  val formTemplateEnrolment = formTemplate.copy(authConfig = authConfigEnrolment)
 
   val authEeitt = EeittModule(RegimeId("TT"))
   val formTemplateEeitt = formTemplate.copy(authConfig = authEeitt)
@@ -215,6 +234,13 @@ class AuthServiceSpec extends Spec with ExampleData {
           getAffinityGroup,
           ggAuthorisedSuccessfulEnrolledAgent)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent))
+  }
+
+  it should "authorise a gg authentication with enrolment" in {
+    val result =
+      authService
+        .authenticateAndAuthorise(formTemplateEnrolment, lang, requestUri, getAffinityGroup, ggAuthorisedEnrolment)
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolment))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
