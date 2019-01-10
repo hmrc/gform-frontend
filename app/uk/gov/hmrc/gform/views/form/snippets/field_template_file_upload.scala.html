@@ -59,7 +59,7 @@
     </label>
 
     @if(fieldValue.helpText.nonEmpty) {
-      <span class="form-hint">
+      <span class="form-hint" id="@{fileId}-hint">
         @{fieldValue.helpText}
       </span>
     }
@@ -75,7 +75,8 @@
       name="@fileId"
       data-form-template-id="@templateId"
       data-max-file-size-MB="@{formMaxAttachmentSizeMB}"
-      data-access-code="@accessCode" />
+      data-access-code="@accessCode"
+      @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fileId}-hint" } />
 
   </div>
 

@@ -71,7 +71,7 @@
   @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
 
   @if(fieldValue.helpText.nonEmpty) {
-    <span class="form-hint @if(fieldValue.derived){js-hidden}">
+    <span class="form-hint @if(fieldValue.derived){js-hidden}" id="@{fieldValue.id.value}-hint">
       @{fieldValue.helpText}
     </span>
   }
@@ -85,7 +85,8 @@
         @if(!fieldValue.editable) { readonly="" }
         id="@fieldValue.id"
         value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
-        class="@inputClasses @sizeClasses @inputBoxSize@if(fieldValue.derived){ js-hidden}">  @TextFormatter.appendUnit(text.constraint)
+        class="@inputClasses @sizeClasses @inputBoxSize@if(fieldValue.derived){ js-hidden}"
+        @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>  @TextFormatter.appendUnit(text.constraint)
     } else {
     <span class="input-currency">
         <input
@@ -94,7 +95,8 @@
             @if(!fieldValue.editable) { readonly="" }
             id="@fieldValue.id"
             value="@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")"
-            class="@inputClasses @sizeClasses @inputBoxSize input--left-padding">
+            class="@inputClasses @sizeClasses @inputBoxSize input--left-padding"
+            @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
     </span>
     }
 </div>

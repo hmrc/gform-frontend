@@ -58,7 +58,7 @@
   @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
 
   @if(fieldValue.helpText.nonEmpty) {
-    <span class="form-hint @if(fieldValue.derived){js-hidden}">
+    <span class="form-hint @if(fieldValue.derived){js-hidden}" id="@{fieldValue.id.value}-hint">
       @{fieldValue.helpText}
     </span>
   }
@@ -72,7 +72,8 @@
         cols="30"
         @if(!fieldValue.editable) { readonly="" }
         class="@inputClasses @sizeClasses @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}"
-        id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea> @TextFormatter.appendUnit(textArea.constraint)
+        id="@fieldValue.id"
+        @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea> @TextFormatter.appendUnit(textArea.constraint)
     } else {
     <span class="input-currency">
         <textarea

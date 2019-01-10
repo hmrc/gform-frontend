@@ -43,7 +43,7 @@
   @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
 }
 
-<fieldset>
+<fieldset role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
 
     <legend class="h3-heading">
       @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
@@ -94,7 +94,7 @@
 
 
       @if(fieldValue.helpText.nonEmpty) {
-      <div class="form-hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+      <div class="form-hint" id="@{fieldValue.id.value}-hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
       }
 
       @safeError(suffix : String) = @{
