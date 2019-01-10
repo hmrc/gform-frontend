@@ -163,7 +163,6 @@ class FormController(
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
-      v <- gformConnector.getTaxPeriods("a", "a", "a")
     } yield maybeFormExceptSubmitted
 
   private def startFreshForm(
@@ -172,7 +171,12 @@ class FormController(
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Option[AccessCode]] =
     for {
       _ <- gformConnector.newForm(formTemplateId, UserId(userDetails.groupIdentifier), maybeAccessCode)
-    } yield maybeAccessCode
+      v <- gformConnector.getTaxPeriods("nino", "PB910220A", "IFTA")
+    } yield {
+      val vv = v
+      val x = 1
+      maybeAccessCode
+    }
 
   private def startForm(formTemplateId: FormTemplateId, userDetails: UserDetails, maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier): Future[Option[AccessCode]] = {

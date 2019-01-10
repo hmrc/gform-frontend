@@ -25,18 +25,19 @@ import play.api.http.HeaderNames
 import play.api.i18n.I18nSupport
 import play.api.mvc.Results._
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
+import uk.gov.hmrc.auth.core.{AuthConnector => _, _}
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.{AppConfig, FrontendAppConfig}
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Enrolment => _, _}
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
+import uk.gov.hmrc.auth.core.retrieve.{GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid}
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.obligation.{HmrcTaxPeriodIdentifier, ObligationService}
+import uk.gov.hmrc.gform.sharedmodel.{AccessCode, TaxPeriods}
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,7 +50,8 @@ class AuthenticatedRequestActions(
   frontendAppConfig: FrontendAppConfig,
   val authConnector: AuthConnector,
   i18nSupport: I18nSupport,
-  errResponder: ErrResponder
+  errResponder: ErrResponder,
+  obligationService: ObligationService
 ) extends AuthorisedFunctions {
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
@@ -154,7 +156,8 @@ class AuthenticatedRequestActions(
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
       form   <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
-      result <- f(AuthCacheWithForm(retrievals, form, formTemplate))
+      obligations <- obligationService.lookupObligations(formTemplate, retrievals)
+      result <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
     } yield result
 
   private def authUserWhitelist(retrievals: MaterialisedRetrievals)(
@@ -294,7 +297,8 @@ sealed trait AuthCache {
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
-  formTemplate: FormTemplate
+  formTemplate: FormTemplate,
+  obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
 ) extends AuthCache
 
 case class AuthCacheWithoutForm(

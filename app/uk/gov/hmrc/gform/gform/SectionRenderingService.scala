@@ -499,29 +499,13 @@ class SectionRenderingService(
     idNumber: String,
     regimeType: String) = {
     implicit val hc: HeaderCarrier = new HeaderCarrier
-    def r =
-      for {
-        a <- gformConnector.get.getTaxPeriods(idType, idNumber, regimeType)
-      } yield a
-    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, r)
-  }
-//    val prepopValues = ei.fieldData.data.get(fieldValue.id) match {
-//      case None    => selections.map(_.toString).toSet
-//      case Some(_) => Set.empty[String] // Don't prepop something we already submitted
-//    }
 
-//    html.form.snippets.choice(
-  ////      "radio",
-  ////      fieldValue,
-  ////      options,
-  ////      orientation,
-  ////      prepopValues,
-  ////      validatedValue,
-  ////      optionalHelpTextMarkDown,
-  ////      index,
-  ////      ei.section.title,
-  ////      ei.formLevelHeading
-  ////    )
+    val r = for {
+      a <- gformConnector.get.getTaxPeriods(idType, idNumber, regimeType)
+    } yield a
+    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, r)
+
+  }
 
   private def htmlForInformationMessage(
     fieldValue: FormComponent,

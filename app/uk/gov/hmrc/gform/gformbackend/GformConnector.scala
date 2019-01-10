@@ -17,18 +17,19 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
-import play.api.libs.json.{ JsValue }
+import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
+import uk.gov.hmrc.gform.obligation.HmrcTaxPeriodIdentifier
+import uk.gov.hmrc.gform.sharedmodel.config.{ContentType, ExposedConfig}
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Account, UserId, ValAddress }
+import uk.gov.hmrc.gform.sharedmodel.{AccessCode, Account, TaxPeriods, UserId, ValAddress}
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 
-import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse, NotFoundException}
 
 /**
   * This connector originates in GFORM project.
@@ -147,9 +148,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     )
 
   /****** Tax Period ******/
-  def getTaxPeriods(idType: String, idNumber: String, regimeType: String)(
+  def getTaxPeriods(htpi: HmrcTaxPeriodIdentifier)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext) =
-    ws.GET[JsValue](s"$baseUrl/obligation/tax-period/$idType/$idNumber/$regimeType")
+    ws.GET[TaxPeriods](s"$baseUrl/test-only/obligation/tax-period/${htpi.idType}/${htpi.idNumber}/${htpi.regimeType}")
 
 }
