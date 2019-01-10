@@ -122,7 +122,6 @@ class DeclarationController(
         val formData: Map[FormComponentId, List[String]] = cacheOrig.form.formData.fields.map {
           case FormField(id, value) => id -> (value :: Nil)
         }.toMap
-
         val declarationData = FormDataRecalculated(Set.empty, dataRaw)
 
         get(dataRaw, FormComponentId("save")) match {
