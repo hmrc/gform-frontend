@@ -171,12 +171,8 @@ class FormController(
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Option[AccessCode]] =
     for {
       _ <- gformConnector.newForm(formTemplateId, UserId(userDetails.groupIdentifier), maybeAccessCode)
-      v <- gformConnector.getTaxPeriods("nino", "PB910220A", "IFTA")
-    } yield {
-      val vv = v
-      val x = 1
-      maybeAccessCode
-    }
+    } yield maybeAccessCode
+
 
   private def startForm(formTemplateId: FormTemplateId, userDetails: UserDetails, maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier): Future[Option[AccessCode]] = {
