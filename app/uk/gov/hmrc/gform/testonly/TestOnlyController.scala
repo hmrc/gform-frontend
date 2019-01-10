@@ -35,7 +35,7 @@ class TestOnlyController(
 
   def proxyToFileUpload(path: String): Action[Source[ByteString, _]] = proxy(fileUploadBaseUrl)(path)
 
-  def proxyToSave4later(path: String): Action[Source[ByteString, _]] = proxy(save4Later)(path)
+  def proxyToSave4Later(path: String): Action[Source[ByteString, _]] = proxy(save4Later)(path)
 
   def whatsInSession(): Action[AnyContent] = Action { implicit request =>
     Ok(Json.toJson(request.session.data))
