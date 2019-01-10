@@ -50,24 +50,31 @@
     frontendAppConfig = frontendAppConfig
 ) {
 
-<div class="govuk-box-highlight">
-  <h1 class="bold-medium ack-header">@heading</h1>
+  <div class="govuk-box-highlight">
+    <h1 class="bold-medium ack-header">@heading</h1>
 
-  <p class="ack-subheader">@timeMessage</p>
-</div>
+    <p class="ack-subheader">@timeMessage</p>
+  </div>
 
-<p>We have sent you a confirmation email.</p>
+  <p>
+    We have sent you a confirmation email.
+  </p>
 
-<p>
-    <a
-      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, lang, eventId).url"
-      class="print-link print-hidden js-visible">
-        Print your @{formCategory.getString}
-    </a>
-</p>
-<h2 class="heading-medium">What happens next</h2>
+  <p>
+      <a
+        href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, lang, eventId).url"
+        class="print-link print-hidden js-visible">
+          Print your @{formCategory.getString}
+      </a>
+  </p>
+  <h2 class="heading-medium">What happens next</h2>
 
 @{
     supportContents.snippets
 }
+
+  <h2 class="heading-medium">Before you go</h2>
+  <p>
+    We use feedback to make our services better. Please take the <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">feedback survey</a> now.
+  </p>
 }
