@@ -532,6 +532,13 @@ class ComponentsValidator(
     }
   }
 
+  private def postcodeValidation(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType =
+    xs.filterNot(_.isEmpty) match {
+      case value :: Nil if value.length > ValidationValues.postcodeLimit =>
+        Map(fieldId -> errors(fieldValue, s"postcode is longer than ${ValidationValues.postcodeLimit} characters")).invalid
+      case _ => ().valid
+    }
+
   private def validateChoice(fieldValue: FormComponent)(data: FormDataRecalculated): ValidatedType = {
     val choiceValue = data.data.get(fieldValue.id).toList.flatten.headOption
 
@@ -558,6 +565,8 @@ class ComponentsValidator(
 
     def lengthValidation(value: String) = addressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
+    def postcodeLengthValidation(value: String) = postcodeValidation(fieldValue, fieldValue.id.withSuffix(value)) _
+
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
@@ -569,7 +578,8 @@ class ComponentsValidator(
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
           validateRequiredField("postcode", localisation("postcode"))(addressValueOf("postcode")),
-          validateForbiddenField("country")(addressValueOf("country"))
+          validateForbiddenField("country")(addressValueOf("country")),
+          postcodeLengthValidation("postcode")(addressValueOf("postcode"))
         )
       case _ =>
         List(
@@ -710,4 +720,5 @@ object ValidationValues {
   val addressLine = 35
   val addressLine4 = 27
   val emailLimit = 241
+  val postcodeLimit = 8
 }
