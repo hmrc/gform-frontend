@@ -62,6 +62,7 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
                     name="@{fieldValue.id.value}"
                     value="@{option.value}"
                     type="radio"
+                    @if(option.selected) { checked="checked" }
             />
 
             <label for="@{fieldValue.id.value}-@{option.value}">

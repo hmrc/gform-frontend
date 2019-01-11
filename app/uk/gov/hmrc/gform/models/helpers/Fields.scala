@@ -109,6 +109,7 @@ object Fields {
               FieldError(fieldValue, fileName, errors))
         }
       case InformationMessage(_, _) => None
+      case HmrcTaxPeriod(_, _, _)   => evalChoice(fieldValue, gformErrors)(dataGetter)
     }
   }
 

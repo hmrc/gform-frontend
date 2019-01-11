@@ -60,6 +60,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, SimpleGN }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
+import uk.gov.hmrc.gform.views.form.OptionParams
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -118,7 +119,7 @@ class SectionRenderingService(
     contentTypes: List[ContentType],
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods] = Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
@@ -490,28 +491,33 @@ class SectionRenderingService(
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
 //      case HmrcTaxPeriod(_, _, _) => html.form.snippets.hmrc_Tax_Period()
-      case HmrcTaxPeriod(a, b, c) => htmlForHmrcTaxPeriod(fieldValue, index, ei, obligations, a, b, c)
+      case HmrcTaxPeriod(a, b, c) =>
+        htmlForHmrcTaxPeriod(fieldValue, index, ei, maybeValidated, data, obligations, a, b, c)
     }
 
   private def htmlForHmrcTaxPeriod(
     fieldValue: FormComponent,
     index: Int,
     ei: ExtraInfo,
+    validatedType: ValidatedType,
+    data: FormDataRecalculated,
     obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods],
     idType: String,
     idNumber: String,
     regimeType: String) = {
     implicit val hc: HeaderCarrier = new HeaderCarrier
 
-    val abc = obligations.filter(i => i._1 == HmrcTaxPeriodIdentifier(idType, idNumber, regimeType))
-    val b = abc.get(HmrcTaxPeriodIdentifier(idType, idNumber, regimeType)) match {
+    val taxPeriodList = obligations
+      .filter(i => i._1 == HmrcTaxPeriodIdentifier(idType, idNumber, regimeType))
+      .get(HmrcTaxPeriodIdentifier(idType, idNumber, regimeType)) match {
       case Some(c) => c.taxPeriods
       case _       => List[TaxPeriod]()
     }
-
-    val d = b.map(i => (i.inboundCorrespondenceFromDate + " - " + i.inboundCorrespondenceToDate, i.periodKey))
-    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, d)
-
+    val taxPeriodOptions = taxPeriodList
+      .map(i => (i.inboundCorrespondenceFromDate + " - " + i.inboundCorrespondenceToDate, i.periodKey))
+      .map(i => new OptionParams(i._2, i._1, false))
+    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
+    html.form.snippets.radio_group(fieldValue, taxPeriodOptions, Set[String](), validatedValue, index, true)
   }
 
   private def htmlForInformationMessage(
