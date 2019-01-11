@@ -173,7 +173,6 @@ class FormController(
       _ <- gformConnector.newForm(formTemplateId, UserId(userDetails.groupIdentifier), maybeAccessCode)
     } yield maybeAccessCode
 
-
   private def startForm(formTemplateId: FormTemplateId, userDetails: UserDetails, maybeAccessCode: Option[AccessCode])(
     implicit hc: HeaderCarrier): Future[Option[AccessCode]] = {
     val formId = FormId(userDetails, formTemplateId, None)
@@ -216,6 +215,7 @@ class FormController(
     val formTemplate = cache.formTemplate
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
+    val obligations = cache.obligations
     val dataRaw: Map[FormComponentId, Seq[String]] = FormDataHelpers.formDataMap(cache.form.formData)
     for {
       data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals)
@@ -243,7 +243,7 @@ class FormController(
         contentTypes,
         retrievals,
         lang,
-        Some(gformConnector)
+        obligations
       )
     } yield Ok(html)
   }

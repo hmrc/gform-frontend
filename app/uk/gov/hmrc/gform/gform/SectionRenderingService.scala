@@ -21,10 +21,10 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.actor.ActorSystem
-import akka.actor.Status.{Failure, Success}
+import akka.actor.Status.{ Failure, Success }
 import akka.stream.ActorMaterializer
 import cats.data.NonEmptyList
-import cats.data.Validated.{Invalid, Valid}
+import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
@@ -35,11 +35,11 @@ import play.api.libs.json.JsValue
 import play.api.libs.ws.WSRequest
 import play.api.libs.ws.ahc.AhcWSClient
 import play.api.mvc.Request
-import play.twirl.api.{Html, HtmlFormat}
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{MaterialisedRetrievals, UserDetails}
+import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -50,22 +50,22 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
-import uk.gov.hmrc.gform.models.{DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation}
+import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
 import uk.gov.hmrc.gform.obligation.HmrcTaxPeriodIdentifier
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriod, TaxPeriods }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{DependencyGraph, SimpleGN}
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, SimpleGN }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, _}
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 
 sealed trait HasErrors {
@@ -118,7 +118,7 @@ class SectionRenderingService(
     contentTypes: List[ContentType],
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
-    gformConnector: Option[GformConnector] = None
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
@@ -183,7 +183,7 @@ class SectionRenderingService(
           validatedType,
           lang,
           fieldValue.onlyShowOnSummary,
-          gformConnector))
+          obligations))
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -460,7 +460,9 @@ class SectionRenderingService(
     maybeValidated: ValidatedType,
     lang: Option[String],
     isHidden: Boolean = false,
-    gformConnector: Option[GformConnector] = None)(implicit request: Request[_], messages: Messages): Html =
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods] = Map.empty[HmrcTaxPeriodIdentifier, TaxPeriods])(
+    implicit request: Request[_],
+    messages: Messages): Html =
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(fieldValue, sortCode, expr, fieldValue.id, index, maybeValidated, ei, data, isHidden)
@@ -488,23 +490,25 @@ class SectionRenderingService(
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
 //      case HmrcTaxPeriod(_, _, _) => html.form.snippets.hmrc_Tax_Period()
-      case HmrcTaxPeriod(a, b, c) => htmlForHmrcTaxPeriod(fieldValue, index, ei, gformConnector, a, b, c)
+      case HmrcTaxPeriod(a, b, c) => htmlForHmrcTaxPeriod(fieldValue, index, ei, obligations, a, b, c)
     }
 
   private def htmlForHmrcTaxPeriod(
     fieldValue: FormComponent,
     index: Int,
     ei: ExtraInfo,
-    gformConnector: Option[GformConnector],
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods],
     idType: String,
     idNumber: String,
     regimeType: String) = {
     implicit val hc: HeaderCarrier = new HeaderCarrier
 
-    val r = for {
-      a <- gformConnector.get.getTaxPeriods(new HmrcTaxPeriodIdentifier(idType, idNumber, regimeType))
-    } yield a
-    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, r)
+    val abc = obligations.filter(i => i._1 == HmrcTaxPeriodIdentifier(idType, idNumber, regimeType))
+    val b = abc.get(HmrcTaxPeriodIdentifier(idType, idNumber, regimeType)) match {
+      case Some(c) => c.taxPeriods
+      case _       => List[TaxPeriod]()
+    }
+    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, b)
 
   }
 
