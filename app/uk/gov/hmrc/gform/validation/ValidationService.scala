@@ -152,6 +152,7 @@ class ComponentsValidator(
       case Group(_, _, _, _, _, _)       => validF //a group is read-only
       case FileUpload()                  => validateFileUpload(fieldValue)
       case InformationMessage(_, _)      => validF
+      case HmrcTaxPeriod(_, _, _)        => validIf(validateChoice(fieldValue)(data))
     }
   }
 

@@ -514,10 +514,10 @@ class SectionRenderingService(
       case _       => List[TaxPeriod]()
     }
     val taxPeriodOptions = taxPeriodList
-      .map(i => (i.inboundCorrespondenceFromDate + " - " + i.inboundCorrespondenceToDate, i.periodKey))
+      .map(i => ("From " + i.inboundCorrespondenceFromDate + " until  " + i.inboundCorrespondenceToDate, i.periodKey))
       .map(i => new OptionParams(i._2, i._1, false))
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    html.form.snippets.radio_group(fieldValue, taxPeriodOptions, Set[String](), validatedValue, index, true)
+    html.form.snippets.radio_group("radio", fieldValue, taxPeriodOptions, Set[String](), validatedValue, index, true)
   }
 
   private def htmlForInformationMessage(

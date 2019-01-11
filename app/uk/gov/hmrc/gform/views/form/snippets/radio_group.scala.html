@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
-@(
+@(inputType: String,
 fieldValue: FormComponent,
 options: List[uk.gov.hmrc.gform.views.form.OptionParams],
 prepop: Set[String],
@@ -63,6 +63,9 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
                     value="@{option.value}"
                     type="radio"
                     @if(option.selected) { checked="checked" }
+                    @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
+                    index.toString))
+                    role="@inputType"
             />
 
             <label for="@{fieldValue.id.value}-@{option.value}">
