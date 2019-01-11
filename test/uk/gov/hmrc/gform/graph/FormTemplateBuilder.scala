@@ -113,7 +113,7 @@ object FormTemplateBuilder {
     DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
-    List("fullName", "landfill_tax_reference"),
+    List(EmailParameter("fullName", "john smith"), EmailParameter("email", "test@test.com")),
     "http://www.google.co.uk",
     "http://www.yahoo.co.uk",
     sections,
