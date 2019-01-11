@@ -508,7 +508,9 @@ class SectionRenderingService(
       case Some(c) => c.taxPeriods
       case _       => List[TaxPeriod]()
     }
-    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, b)
+
+    val d = b.map(i => (i.inboundCorrespondenceFromDate + " - " + i.inboundCorrespondenceToDate, i.periodKey))
+    html.form.snippets.hmrc_Tax_Period("radio", fieldValue, index, d)
 
   }
 
