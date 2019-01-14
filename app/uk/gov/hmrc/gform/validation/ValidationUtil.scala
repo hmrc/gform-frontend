@@ -80,7 +80,7 @@ object ValidationUtil {
           }
         }
       case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _) |
-          TextArea(_, _, _) =>
+          TextArea(_, _, _) | HmrcTaxPeriod(_, _, _) =>
         List.empty[(FormComponentId, FormFieldValidationResult)]
     }
 
@@ -188,7 +188,7 @@ object ValidationUtil {
             case None =>
               val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
                 selectedValue.map { index =>
-                  fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+                  fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
                 }.toMap
 
               }
