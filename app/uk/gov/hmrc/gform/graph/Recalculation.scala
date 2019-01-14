@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, IncludeIfGN, SimpleGN }
-import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.roundTo
+import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -207,7 +207,13 @@ class Recalculation[F[_]: Monad, E](
       case HasExpr(SingleExpr(expr)) =>
         val conv: Convertible[F] =
           booleanExprEval.evaluator.eval(visSet, fc.id, expr, dataLookup, retrievals, formTemplate)
-        Convertible.round(conv, roundTo(fc), formTemplate)
+        val maxFractionDigitsAndRoundingMode = extractMaxFractionalDigits(fc)
+
+        Convertible.round(
+          conv,
+          maxFractionDigitsAndRoundingMode.maxDigits,
+          maxFractionDigitsAndRoundingMode.roundingMode,
+          formTemplate)
       case _ => "".pure[F]
     }
 }
@@ -338,10 +344,14 @@ object Convertible {
       case NonConvertible(_)                => Option.empty.pure[F]
     }
 
-  def round[F[_]: Monad](convertible: Convertible[F], scale: Int, formTemplate: FormTemplate): F[String] =
+  def round[F[_]: Monad](
+    convertible: Convertible[F],
+    scale: Int,
+    roundingMode: RoundingMode,
+    formTemplate: FormTemplate): F[String] =
     convert(convertible, formTemplate).flatMap {
       case None     => Convertible.asString(convertible, formTemplate).map(_.getOrElse(""))
-      case Some(bd) => NumberFormatUtil.defaultFormat(scale).format(bd).pure[F]
+      case Some(bd) => NumberFormatUtil.defaultFormat(scale, roundingMode).format(bd).pure[F]
     }
 }
 

@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.models.Dependecies
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import FormComponentHelper.roundTo
+import FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.ops._
 
 case class JsFunction(name: String) extends AnyVal {
@@ -174,8 +174,8 @@ object Javascript {
   }
 
   def roundToCtx(fc: FormComponentWithCtx) = fc match {
-    case FormComponentWithGroup(fc, _) => roundTo(fc)
-    case FormComponentSimple(fc)       => roundTo(fc)
+    case FormComponentWithGroup(fc, _) => extractMaxFractionalDigits(fc).maxDigits
+    case FormComponentSimple(fc)       => extractMaxFractionalDigits(fc).maxDigits
   }
 
   def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) =

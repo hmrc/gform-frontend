@@ -34,9 +34,9 @@ object TextFormatter {
         currentValue
       } else {
         text.constraint match {
-          case PositiveNumber(_, _, Some(unit)) => currentValue + " " + unit
-          case Number(_, _, Some(unit))         => currentValue + " " + unit
-          case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
+          case PositiveNumber(_, _, _, Some(unit)) => currentValue + " " + unit
+          case Number(_, _, _, Some(unit))         => currentValue + " " + unit
+          case PositiveNumber(_, _, _, None) | Number(_, _, _, None) | Sterling =>
             val poundOrComma = "[£,]".r
             val valueWithoutPoundsOrCommas: String = poundOrComma.replaceAllIn(currentValue, "")
             val maybeBigDecimal = toBigDecimalSafe(valueWithoutPoundsOrCommas)
@@ -63,13 +63,13 @@ object TextFormatter {
   }
 
   def appendUnit(constraint: TextConstraint): String = constraint match {
-    case PositiveNumber(_, _, Some(unit)) => unit
-    case Number(_, _, Some(unit))         => unit
-    case _                                => ""
+    case PositiveNumber(_, _, _, Some(unit)) => unit
+    case Number(_, _, _, Some(unit))         => unit
+    case _                                   => ""
   }
 
   def isNumber(formComponent: FormComponent) = formComponent.`type` match {
-    case Text(Number(_, _, _), _, _) | Text(PositiveNumber(_, _, _), _, _) => true
-    case _                                                                 => false
+    case Text(Number(_, _, _, _), _, _) | Text(PositiveNumber(_, _, _, _), _, _) => true
+    case _                                                                       => false
   }
 }
