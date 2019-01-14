@@ -79,6 +79,9 @@ class FormController(
         .form(formTemplate._id, maybeAccessCode, originSection, sectionTitle4Ga, lang))
   }
 
+  // TODO: this method should really be in the SignOutController which does not yet exist
+  def keepAlive() = auth.keepAlive()
+
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
       val formId = FormId(cache.retrievals.userDetails, formTemplateId, None)
