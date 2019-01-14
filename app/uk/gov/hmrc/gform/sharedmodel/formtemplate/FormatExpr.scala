@@ -70,6 +70,30 @@ object OffsetDate {
   implicit val formatExpr: OFormat[OffsetDate] = Json.format[OffsetDate]
 }
 
+sealed trait RoundingMode
+
+object RoundingMode {
+  case object Up extends RoundingMode
+  case object Down extends RoundingMode
+  case object Ceiling extends RoundingMode
+  case object Floor extends RoundingMode
+  case object HalfUp extends RoundingMode
+  case object HalfDown extends RoundingMode
+  case object HalfEven extends RoundingMode
+
+  val defaultRoundingMode: RoundingMode = Down
+
+  implicit val format: Format[RoundingMode] = ADTFormat.formatEnumeration(
+    "Up"       -> Up,
+    "Down"     -> Down,
+    "Ceiling"  -> Ceiling,
+    "Floor"    -> Floor,
+    "HalfUp"   -> HalfUp,
+    "HalfDown" -> HalfDown,
+    "HalfEven" -> HalfEven
+  )
+}
+
 sealed trait TextConstraint
 
 final case object AnyText extends TextConstraint
@@ -77,19 +101,21 @@ final case object AnyText extends TextConstraint
 final case class Number(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
+  roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[String] = None)
     extends TextConstraint
 
 final case class PositiveNumber(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
+  roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[String] = None)
     extends TextConstraint
 
 case object BasicText extends TextConstraint
 case object ShortText extends TextConstraint
 case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
-final case object Sterling extends TextConstraint
+final case class Sterling(roundingMode: RoundingMode) extends TextConstraint
 final case object UkBankAccountNumber extends TextConstraint
 final case object UkSortCodeFormat extends TextConstraint
 case object TelephoneNumber extends TextConstraint
@@ -101,6 +127,10 @@ case object CountryCode extends TextConstraint
 case object NonUkCountryCode extends TextConstraint
 case object CompanyRegistrationNumber extends TextConstraint
 case object EORI extends TextConstraint
+
+object Sterling {
+  val defaultRounding = Sterling(RoundingMode.defaultRoundingMode)
+}
 
 object TextConstraint {
   val defaultWholeDigits = 11

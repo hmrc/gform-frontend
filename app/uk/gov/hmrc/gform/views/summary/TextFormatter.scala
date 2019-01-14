@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.views.summary
 
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
+import uk.gov.hmrc.gform.commons.{ NumberFormatUtil, NumberSetScale }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.commons.NumberFormatUtil._
@@ -34,24 +35,25 @@ object TextFormatter {
         currentValue
       } else {
         text.constraint match {
-          case PositiveNumber(_, _, Some(unit)) => currentValue + " " + unit
-          case Number(_, _, Some(unit))         => currentValue + " " + unit
-          case PositiveNumber(_, _, None) | Number(_, _, None) | Sterling =>
-            val poundOrComma = "[£,]".r
-            val valueWithoutPoundsOrCommas: String = poundOrComma.replaceAllIn(currentValue, "")
-            val maybeBigDecimal = toBigDecimalSafe(valueWithoutPoundsOrCommas)
-            maybeBigDecimal match {
-              case Some(bd) =>
-                if (text.constraint == Sterling)
-                  currencyFormat.format(bd)
-                else
-                  defaultFormat.format(bd)
-              case None => currentValue
-            }
+          case PositiveNumber(_, _, _, Some(unit)) => currentValue + " " + unit
+          case Number(_, _, _, Some(unit))         => currentValue + " " + unit
+          case PositiveNumber(_, _, rm, None) =>
+            getNumberConstraint(bd => NumberFormatUtil.roundAndFormat(bd, bd.scale, rm))
+          case Number(_, _, rm, None) =>
+            getNumberConstraint(bd => NumberFormatUtil.roundAndFormat(bd, bd.scale, rm))
+          case Sterling(rm) =>
+            getNumberConstraint(bd => currencyFormat.format(NumberSetScale.setScale(bd, 2, rm)))
           case _ =>
             currentValue
         }
       }
+    def getNumberConstraint(f: BigDecimal => String): String = {
+      val poundOrComma = "[£,]".r
+      val valueWithoutPoundsOrCommas: String = poundOrComma.replaceAllIn(currentValue, "")
+      val maybeBigDecimal = toBigDecimalSafe(valueWithoutPoundsOrCommas)
+      maybeBigDecimal.fold(currentValue)(f)
+    }
+
     def getValue(componentType: ComponentType): String = componentType match {
       case x: Text => componentText(x)
       case _       => currentValue
@@ -63,13 +65,13 @@ object TextFormatter {
   }
 
   def appendUnit(constraint: TextConstraint): String = constraint match {
-    case PositiveNumber(_, _, Some(unit)) => unit
-    case Number(_, _, Some(unit))         => unit
-    case _                                => ""
+    case PositiveNumber(_, _, _, Some(unit)) => unit
+    case Number(_, _, _, Some(unit))         => unit
+    case _                                   => ""
   }
 
   def isNumber(formComponent: FormComponent) = formComponent.`type` match {
-    case Text(Number(_, _, _), _, _) | Text(PositiveNumber(_, _, _), _, _) => true
-    case _                                                                 => false
+    case Text(Number(_, _, _, _), _, _) | Text(PositiveNumber(_, _, _, _), _, _) => true
+    case _                                                                       => false
   }
 }

@@ -88,7 +88,7 @@ class TextFormatterSpec extends Spec {
     def formatForConstraint(constraint: TextConstraint) =
       TextFormatter.formatText(Some(FieldOk(getComponent(constraint), input)))
 
-    formatForConstraint(Sterling) shouldBe expectedSterling
+    formatForConstraint(Sterling.defaultRounding) shouldBe expectedSterling
     formatForConstraint(Number()) shouldBe expectedNumber
     formatForConstraint(PositiveNumber()) shouldBe expectedNumber
   }

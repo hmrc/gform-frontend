@@ -34,7 +34,7 @@
 }
 @inputBoxSize = @{
     fieldValue.`type` match {
-        case Text(TextWithRestrictions(_, max),_, _) if  max<5 => "input--xsmall"
+        case Text(TextWithRestrictions(_, max), _, _) if  max<5 => "input--xsmall"
         case _ => ""
     }
 }
