@@ -21,11 +21,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 object HasDigits {
   def unapply(expr: ComponentType): Option[Int] =
     expr match {
-      case Text(Number(_, digits, _), _, _)             => Some(digits)
-      case Text(PositiveNumber(_, digits, _), _, _)     => Some(digits)
-      case TextArea(Number(_, digits, _), _, _)         => Some(digits)
-      case TextArea(PositiveNumber(_, digits, _), _, _) => Some(digits)
-      case _                                            => None
+      case Text(Number(_, digits, _, _), _, _)             => Some(digits)
+      case Text(PositiveNumber(_, digits, _, _), _, _)     => Some(digits)
+      case TextArea(Number(_, digits, _, _), _, _)         => Some(digits)
+      case TextArea(PositiveNumber(_, digits, _, _), _, _) => Some(digits)
+      case _                                               => None
     }
 }
 

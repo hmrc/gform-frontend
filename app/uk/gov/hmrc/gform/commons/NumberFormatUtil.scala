@@ -22,11 +22,24 @@ import java.math.RoundingMode
 
 object NumberFormatUtil {
   val defaultFormat = NumberFormat.getInstance(Locale.UK)
-  def defaultFormat(i: Int) = {
+  def defaultFormat(i: Int, roundingMode: RoundingMode) =
+    RoundingModeUtil.RoundingFormat(i, roundingMode)
+  val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
+}
+
+object RoundingModeUtil {
+  def RoundingFormat(digits: Int, roundingMode: RoundingMode) = {
     val formatter = NumberFormat.getInstance(Locale.UK)
-    formatter.setMaximumFractionDigits(i)
-    formatter.setRoundingMode(RoundingMode.FLOOR)
+    formatter.setMaximumFractionDigits(digits)
+    roundingMode match {
+      case RoundingMode.UP        => formatter.setRoundingMode(RoundingMode.UP)
+      case RoundingMode.DOWN      => formatter.setRoundingMode(RoundingMode.DOWN)
+      case RoundingMode.CEILING   => formatter.setRoundingMode(RoundingMode.CEILING)
+      case RoundingMode.FLOOR     => formatter.setRoundingMode(RoundingMode.FLOOR)
+      case RoundingMode.HALF_DOWN => formatter.setRoundingMode(RoundingMode.HALF_DOWN)
+      case RoundingMode.HALF_UP   => formatter.setRoundingMode(RoundingMode.HALF_UP)
+      case _                      => formatter.setRoundingMode(RoundingMode.HALF_EVEN)
+    }
     formatter
   }
-  val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 }
