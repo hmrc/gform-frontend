@@ -303,7 +303,7 @@ class ComponentsValidator(
             getError(fieldValue, "has a virus detected")
           case Some(File(fileId, _, _))     => ().valid
           case None if fieldValue.mandatory => getError(fieldValue, "must be uploaded")
-          case None                         => errorIfNotVisited(data, fieldValue)
+          case None                         => ().valid
         }
       }
 
@@ -337,32 +337,9 @@ class ComponentsValidator(
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, true)
-      case (false, Nil, _)       => errorIfNotVisited(data, fieldValue)
+      case (false, Nil, _)       => ().valid
       case (_, value :: rest, _) => ().valid // we don't support multiple values yet
     }
-  }
-
-  private def errorIfNotVisited(data: FormDataRecalculated, fc: FormComponent): ValidatedType = {
-
-    val fcIds = fc.`type` match {
-      case Address(_)                                                => Address.fields(fc.id)
-      case Date(_, _, _)                                             => Date.fields(fc.id)
-      case UkSortCode(_)                                             => UkSortCode.fields(fc.id)
-      case Text(_, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) => List(fc.id)
-      case FileUpload()                                              => List(fc.id)
-      case _                                                         => Nil
-    }
-
-    /**
-      * Fast forward needs to be able to stop on sections which has not been visited before and which have all fields optional.
-      * Such sections are recognized by not having any entries for 'FormComponentId' keys in 'data.data' Map.
-      * If section with all fields optional has already been visited (and user didn't enter any data) such section will have
-      * empty strings for 'FormComponentId' keys in 'data.data' Map.
-      *
-      * Empty error message in 'getError(fc, "")' is exploiting behaviour when first landing on a page is not showing errors.
-      */
-    if (fcIds.forall(data.data.isDefinedAt)) ().valid else getError(fc, "")
-
   }
 
   private def checkVrn(fieldValue: FormComponent, value: String) = {
@@ -476,7 +453,7 @@ class ComponentsValidator(
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
               getError(fieldValue, "values must be two digit numbers")
-            case (Nil, false)      => errorIfNotVisited(data, fieldValue)
+            case (Nil, false)      => ().valid
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
           }
         }
@@ -569,7 +546,7 @@ class ComponentsValidator(
     (fieldValue.mandatory, choiceValue) match {
       case (true, None | Some("")) =>
         getError(fieldValue, "must be selected")
-      case _ => errorIfNotVisited(data, fieldValue)
+      case _ => ().valid
     }
   }
 
