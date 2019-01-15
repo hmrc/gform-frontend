@@ -60,7 +60,7 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
             <input
                     id="@{fieldValue.id.value}-@{option.value}"
                     name="@{fieldValue.id.value}"
-                    value="@{option.value}"
+                    value="@{Map(option.label -> option.value)}"
                     type="radio"
                     @if(option.selected) { checked="checked" }
                     @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
