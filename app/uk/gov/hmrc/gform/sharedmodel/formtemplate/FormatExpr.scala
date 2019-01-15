@@ -72,20 +72,23 @@ object OffsetDate {
 
 sealed trait RoundingMode
 
-case object Up extends RoundingMode
-case object Down extends RoundingMode
-case object Ceiling extends RoundingMode
-case object Floor extends RoundingMode
-case object HalfUp extends RoundingMode
-case object HalfDown extends RoundingMode
-case object HalfEven extends RoundingMode
 object RoundingMode {
+  case object Up extends RoundingMode
+  case object Down extends RoundingMode
+  case object Ceiling extends RoundingMode
+  case object Floor extends RoundingMode
+  case object HalfUp extends RoundingMode
+  case object HalfDown extends RoundingMode
+  case object HalfEven extends RoundingMode
+
+  val defaultRoundingMode: RoundingMode = HalfUp
+
   implicit val format: Format[RoundingMode] = ADTFormat.formatEnumeration(
-    "Up" -> Up,
-    "Down" -> Down,
-    "Ceiling" -> Ceiling,
-    "Floor" -> Floor,
-    "HalfUp" -> HalfUp,
+    "Up"       -> Up,
+    "Down"     -> Down,
+    "Ceiling"  -> Ceiling,
+    "Floor"    -> Floor,
+    "HalfUp"   -> HalfUp,
     "HalfDown" -> HalfDown,
     "HalfEven" -> HalfEven
   )
@@ -98,14 +101,14 @@ final case object AnyText extends TextConstraint
 final case class Number(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
-  roundingMode: RoundingMode = HalfEven,
+  roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[String] = None)
     extends TextConstraint
 
 final case class PositiveNumber(
   maxWholeDigits: Int = TextConstraint.defaultWholeDigits,
   maxFractionalDigits: Int = TextConstraint.defaultFactionalDigits,
-  roundingMode: RoundingMode = HalfEven,
+  roundingMode: RoundingMode = RoundingMode.defaultRoundingMode,
   unit: Option[String] = None)
     extends TextConstraint
 
@@ -127,6 +130,15 @@ object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
 
+  object JsonExtensions{
+    def withDefault[A](key:String, default:A)(implicit writes:Writes[A]) = __.json.update((__ \ key).json.copyFrom((__ \ key).json.pick orElse Reads.pure(Json.toJson(default))))
+  }
+  implicit val numberRead: OFormat[Number] = new OFormat[Number]{
+    val base = Json.format[Number]
+    def reads(json: JsValue): JsResult[Number] = throw new Exception
+
+    override def writes(o: Number): JsObject = base.writes(o)
+  }
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))

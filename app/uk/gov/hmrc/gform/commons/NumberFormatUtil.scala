@@ -20,25 +20,27 @@ import java.text.NumberFormat
 import java.util.Locale
 import java.math.RoundingMode
 
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RoundingMode => GformRoundingMode }
+
 object NumberFormatUtil {
   val defaultFormat = NumberFormat.getInstance(Locale.UK)
-  def defaultFormat(i: Int, roundingMode: RoundingMode) =
+  def defaultFormat(i: Int, roundingMode: GformRoundingMode) =
     RoundingModeUtil.RoundingFormat(i, roundingMode)
   val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 }
 
 object RoundingModeUtil {
-  def RoundingFormat(digits: Int, roundingMode: RoundingMode) = {
+  def RoundingFormat(digits: Int, roundingMode: GformRoundingMode) = {
     val formatter = NumberFormat.getInstance(Locale.UK)
     formatter.setMaximumFractionDigits(digits)
     roundingMode match {
-      case RoundingMode.UP        => formatter.setRoundingMode(RoundingMode.UP)
-      case RoundingMode.DOWN      => formatter.setRoundingMode(RoundingMode.DOWN)
-      case RoundingMode.CEILING   => formatter.setRoundingMode(RoundingMode.CEILING)
-      case RoundingMode.FLOOR     => formatter.setRoundingMode(RoundingMode.FLOOR)
-      case RoundingMode.HALF_DOWN => formatter.setRoundingMode(RoundingMode.HALF_DOWN)
-      case RoundingMode.HALF_UP   => formatter.setRoundingMode(RoundingMode.HALF_UP)
-      case _                      => formatter.setRoundingMode(RoundingMode.HALF_EVEN)
+      case GformRoundingMode.Up       => formatter.setRoundingMode(RoundingMode.UP)
+      case GformRoundingMode.Down     => formatter.setRoundingMode(RoundingMode.DOWN)
+      case GformRoundingMode.Ceiling  => formatter.setRoundingMode(RoundingMode.CEILING)
+      case GformRoundingMode.Floor    => formatter.setRoundingMode(RoundingMode.FLOOR)
+      case GformRoundingMode.HalfDown => formatter.setRoundingMode(RoundingMode.HALF_DOWN)
+      case GformRoundingMode.HalfUp   => formatter.setRoundingMode(RoundingMode.HALF_UP)
+      case _                          => formatter.setRoundingMode(RoundingMode.HALF_EVEN)
     }
     formatter
   }

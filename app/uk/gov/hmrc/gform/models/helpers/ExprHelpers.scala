@@ -18,30 +18,32 @@ package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
+case class MaxDigitsAndRoundingMode(maxDigits: Int, roundingMode: RoundingMode)
+
 object HasDigits {
-  def unapply(expr: ComponentType): Option[Int] =
+  def unapply(expr: ComponentType): Option[MaxDigitsAndRoundingMode] =
     expr match {
-      case Text(Number(_, digits, _, _), _, _)             => Some(digits)
-      case Text(PositiveNumber(_, digits, _, _), _, _)     => Some(digits)
-      case TextArea(Number(_, digits, _, _), _, _)         => Some(digits)
-      case TextArea(PositiveNumber(_, digits, _, _), _, _) => Some(digits)
-      case _                                               => None
+      case Text(Number(_, digits, rm, _), _, _)             => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case Text(PositiveNumber(_, digits, rm, _), _, _)     => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case TextArea(Number(_, digits, rm, _), _, _)         => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case TextArea(PositiveNumber(_, digits, rm, _), _, _) => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case _                                                => None
     }
 }
 
 object HasSterling {
-  def unapply(expr: ComponentType): Option[Int] =
+  def unapply(expr: ComponentType): Option[MaxDigitsAndRoundingMode] =
     expr match {
-      case Text(Sterling, _, _)     => Some(2)
-      case TextArea(Sterling, _, _) => Some(2)
+      case Text(Sterling, _, _)     => Some(MaxDigitsAndRoundingMode(2, RoundingMode.defaultRoundingMode))
+      case TextArea(Sterling, _, _) => Some(MaxDigitsAndRoundingMode(2, RoundingMode.defaultRoundingMode))
       case _                        => None
     }
 }
 
 object FormComponentHelper {
-  def roundTo(fc: FormComponent) = fc.`type` match {
+  def extractMaxFractionalDigits(fc: FormComponent): MaxDigitsAndRoundingMode = fc.`type` match {
     case HasDigits(digits)   => digits
     case HasSterling(digits) => digits
-    case _                   => TextConstraint.defaultFactionalDigits
+    case _                   => MaxDigitsAndRoundingMode(TextConstraint.defaultFactionalDigits, RoundingMode.defaultRoundingMode)
   }
 }
