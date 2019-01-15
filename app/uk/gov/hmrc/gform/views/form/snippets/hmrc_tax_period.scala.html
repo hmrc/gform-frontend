@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 
 @(inputType: String,
 fieldValue: FormComponent,
@@ -26,7 +27,8 @@ options: List[uk.gov.hmrc.gform.views.form.OptionParams],
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 index: Int,
-formLevelHeading: Boolean
+formLevelHeading: Boolean,
+setValue: String
 )
 
 @hasErrors = @{
@@ -37,6 +39,8 @@ validationResult.exists(_.isNotOk)
 LabelHelper.buildRepeatingLabel(fieldValue, index)
 }
 
+
+
 <div class="form-group@if(hasErrors) { form-group-error}">
     <fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
         <legend class="form-label">
@@ -44,6 +48,7 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
             <h1>@legend</h1>
             } else {
             @legend
+
             }
         </legend>
 
@@ -62,9 +67,9 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
                     name="@{fieldValue.id.value}"
                     value="@{Map(option.label -> option.value)}"
                     type="radio"
-                    @if(option.selected) { checked="checked" }
+                    @if(option.value == setValue) { checked="checked" }
                     @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
-                    index.toString))
+                    index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
                     role="@inputType"
             />
 

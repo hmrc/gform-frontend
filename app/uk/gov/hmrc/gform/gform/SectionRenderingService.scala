@@ -57,6 +57,8 @@ import uk.gov.hmrc.gform.views.form.OptionParams
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
+import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -505,10 +507,14 @@ class SectionRenderingService(
       case _       => List[TaxPeriod]()
     }
     val taxPeriodOptions = taxPeriodList
-      .map(i => ("From " + i.inboundCorrespondenceFromDate + " until  " + i.inboundCorrespondenceToDate, i.periodKey))
+      .map(i => ("From " + i.inboundCorrespondenceFromDate + " until " + i.inboundCorrespondenceToDate, i.periodKey))
       .map(i => new OptionParams(i._2, i._1, false))
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    html.form.snippets.radio_group("radio", fieldValue, taxPeriodOptions, Set[String](), validatedValue, index, true)
+    val mapOfResults = validatedValue.get match { case ComponentField(a, b) => b }
+    val setValue = TextFormatter.formatText(Some(mapOfResults.values.toList(1))).dropRight(1)
+
+    html.form.snippets
+      .hmrc_tax_period("radio", fieldValue, taxPeriodOptions, Set[String](), validatedValue, index, true, setValue)
   }
 
   private def htmlForInformationMessage(
