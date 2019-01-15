@@ -311,4 +311,6 @@ case class AuthCacheWithForm(
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate
-) extends AuthCache
+) extends AuthCache {
+  def toAuthCacheWithForm(form: Form) = AuthCacheWithForm(retrievals, form, formTemplate)
+}
