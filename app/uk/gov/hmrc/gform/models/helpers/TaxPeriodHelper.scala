@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models.helpers
 import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 
 object TaxPeriodHelper {
 
@@ -28,6 +29,12 @@ object TaxPeriodHelper {
   def formatTaxPeriodOutput2(valResult: Option[FormFieldValidationResult]) = {
     val mapOfResults = valResult.get match { case ComponentField(a, b) => b }
     TextFormatter.formatText(Some(mapOfResults.values.toList(0))).drop(1)
+  }
+
+  def formatDate(date: String) = {
+    val splitDate = date.split("-")
+    splitDate(2) + " " + getMonthValue(Some(splitDate(1))).getOrElse("") + " " + splitDate(0)
+
   }
 
 }
