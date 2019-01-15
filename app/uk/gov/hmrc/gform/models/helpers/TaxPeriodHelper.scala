@@ -20,12 +20,12 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 object TaxPeriodHelper {
 
-  def formatOutput(valResult: Option[FormFieldValidationResult]) = {
+  def formatTaxPeriodOutput(valResult: Option[FormFieldValidationResult]) = {
     val mapOfResults = valResult.get match { case ComponentField(a, b) => b }
     mapOfResults.keySet.toString.split('(')(2).split(',')(0)
   }
 
-  def formatOutput2(valResult: Option[FormFieldValidationResult]) = {
+  def formatTaxPeriodOutput2(valResult: Option[FormFieldValidationResult]) = {
     val mapOfResults = valResult.get match { case ComponentField(a, b) => b }
     TextFormatter.formatText(Some(mapOfResults.values.toList(0))).drop(1)
   }

@@ -20,9 +20,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import akka.actor.ActorSystem
-import akka.actor.Status.{ Failure, Success }
-import akka.stream.ActorMaterializer
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
@@ -31,11 +28,8 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import play.api.i18n.Messages
-import play.api.libs.json.JsValue
-import play.api.libs.ws.WSRequest
-import play.api.libs.ws.ahc.AhcWSClient
 import play.api.mvc.Request
-import play.twirl.api.{ Html, HtmlFormat }
+import play.twirl.api.Html
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
@@ -44,7 +38,6 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
@@ -65,8 +58,7 @@ import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 sealed trait HasErrors {
