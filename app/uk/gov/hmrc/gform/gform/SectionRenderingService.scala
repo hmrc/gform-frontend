@@ -506,6 +506,7 @@ class SectionRenderingService(
       case Some(c) => c.taxPeriods
       case _       => List[TaxPeriod]()
     }
+
     val taxPeriodOptions = taxPeriodList
       .map(
         i =>
@@ -513,6 +514,7 @@ class SectionRenderingService(
             "From " + formatDate(i.inboundCorrespondenceFromDate) + " to " + formatDate(i.inboundCorrespondenceToDate),
             i.periodKey))
       .map(i => new OptionParams(i._2, i._1, false))
+
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val mapOfResults = validatedValue.get match { case ComponentField(a, b) => b }
     val setValue = mapOfResults.values.toList match {
