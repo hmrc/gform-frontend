@@ -15,26 +15,21 @@
  */
 
 package uk.gov.hmrc.gform.models.helpers
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
-import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 
 object TaxPeriodHelper {
 
   def formatTaxPeriodOutput(valResult: Option[FormFieldValidationResult]) = {
-    val mapOfResults = valResult.get match { case ComponentField(a, b) => b }
-    mapOfResults.keySet.toString.split('(')(2).split(',')(0)
+    val a = valResult match { case Some(x)      => x }
+    val b = a match { case ComponentField(a, b) => b }
+    TextFormatter.formatText(b.values.headOption).drop(1)
   }
 
-  def formatTaxPeriodOutput2(valResult: Option[FormFieldValidationResult]) = {
-    val mapOfResults = valResult.get match { case ComponentField(a, b) => b }
-    TextFormatter.formatText(Some(mapOfResults.values.toList(0))).drop(1)
-  }
-
-  def formatDate(date: String) = {
-    val splitDate = date.split("-")
-    splitDate(2) + " " + getMonthValue(Some(splitDate(1))).getOrElse("") + " " + splitDate(0)
-
-  }
+  def formatDate(date: Date) =
+    new SimpleDateFormat("dd MMMMM yyyy").format(date)
 
 }
