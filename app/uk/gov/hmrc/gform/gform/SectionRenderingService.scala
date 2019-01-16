@@ -54,7 +54,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, SimpleGN }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
-import uk.gov.hmrc.gform.views.form.OptionParams
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -81,7 +80,7 @@ case object NoErrors extends HasErrors
 case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
-
+case class OptionParams(value: String, label: String, selected: Boolean)
 class SectionRenderingService(
   frontendAppConfig: FrontendAppConfig
 ) {

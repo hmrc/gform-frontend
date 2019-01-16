@@ -21,10 +21,10 @@
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 @import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
-
+@import uk.gov.hmrc.gform.gform.OptionParams
 @(inputType: String,
 fieldValue: FormComponent,
-options: List[uk.gov.hmrc.gform.views.form.OptionParams],
+options: List[OptionParams],
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 index: Int,
