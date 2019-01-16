@@ -68,8 +68,6 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
                     value="@{Map(option.label -> option.value)}"
                     type="radio"
                     @if(option.value == setValue) { checked="checked" }
-                    @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
-                    index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
                     role="@inputType"
             />
 
