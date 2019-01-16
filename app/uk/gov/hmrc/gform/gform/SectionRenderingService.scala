@@ -20,6 +20,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+import akka.japi
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
@@ -501,11 +502,11 @@ class SectionRenderingService(
     implicit val hc: HeaderCarrier = new HeaderCarrier
 
     val taxPeriodList = obligations
-      .filter(i => i._1 == HmrcTaxPeriodIdentifier(idType, idNumber, regimeType))
       .get(HmrcTaxPeriodIdentifier(idType, idNumber, regimeType)) match {
       case Some(c) => c.taxPeriods
       case _       => List[TaxPeriod]()
     }
+
     val taxPeriodOptions = taxPeriodList
       .map(
         i =>
