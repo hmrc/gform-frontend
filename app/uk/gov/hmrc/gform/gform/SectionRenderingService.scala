@@ -113,7 +113,7 @@ class SectionRenderingService(
     contentTypes: List[ContentType],
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods] = Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)

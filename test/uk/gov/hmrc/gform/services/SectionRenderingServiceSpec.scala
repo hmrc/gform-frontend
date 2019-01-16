@@ -26,7 +26,8 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.obligation.HmrcTaxPeriodIdentifier
+import uk.gov.hmrc.gform.sharedmodel.{ExampleData, TaxPeriods}
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -68,7 +69,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
-        None
+        None,
+        Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -112,7 +114,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
-        None
+        None,
+        Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -150,7 +153,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
-        None
+        None,
+        Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
       )
 
     val doc: Document = Jsoup.parse(generatedHtml.body)
@@ -180,7 +184,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
-        None
+        None,
+        Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -272,7 +277,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
-        None
+        None,
+        Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -325,7 +331,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
-        None
+        None,
+        Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -375,7 +382,8 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
-        None
+        None,
+        Map[HmrcTaxPeriodIdentifier, TaxPeriods]()
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
