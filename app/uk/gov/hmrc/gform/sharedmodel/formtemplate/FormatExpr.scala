@@ -81,7 +81,7 @@ object RoundingMode {
   case object HalfDown extends RoundingMode
   case object HalfEven extends RoundingMode
 
-  val defaultRoundingMode: RoundingMode = HalfUp
+  val defaultRoundingMode: RoundingMode = Down
 
   implicit val format: Format[RoundingMode] = ADTFormat.formatEnumeration(
     "Up"       -> Up,
@@ -130,10 +130,11 @@ object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
 
-  object JsonExtensions{
-    def withDefault[A](key:String, default:A)(implicit writes:Writes[A]) = __.json.update((__ \ key).json.copyFrom((__ \ key).json.pick orElse Reads.pure(Json.toJson(default))))
+  object JsonExtensions {
+    def withDefault[A](key: String, default: A)(implicit writes: Writes[A]) =
+      __.json.update((__ \ key).json.copyFrom((__ \ key).json.pick orElse Reads.pure(Json.toJson(default))))
   }
-  implicit val numberRead: OFormat[Number] = new OFormat[Number]{
+  implicit val numberRead: OFormat[Number] = new OFormat[Number] {
     val base = Json.format[Number]
     def reads(json: JsValue): JsResult[Number] = throw new Exception
 

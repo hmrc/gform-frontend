@@ -16,24 +16,10 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ComponentTypeGen, FormatExprGen}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ ComponentTypeGen, FormatExprGen }
 import uk.gov.hmrc.gform.Spec
 
 class FormatExprSpec extends Spec {
-  "Foo" must "bar" in {
-    forAll(ComponentTypeGen.textGen) { expected =>
-      verifyRead[ComponentType](
-        expected,
-        s"""|{
-            |  "Text" : {
-            |    "constraint": ${TextConstraint.format.writes(expected.constraint)},
-            |    "value": ${Expr.format.writes(expected.value)}
-            |  }
-            |}
-        """
-      )
-    }
-  }
 
   "Number" should "round trip derived JSON" in {
     forAll(FormatExprGen.numberGen) { (obj: TextConstraint) =>
@@ -41,39 +27,9 @@ class FormatExprSpec extends Spec {
     }
   }
 
-  it should "parse JSON without a roundingMode field" in {
-    forAll(FormatExprGen.numberGen.map(_.copy(roundingMode = RoundingMode.defaultRoundingMode, `unit` = None))) { expected =>
-      verifyRead[TextConstraint](
-        expected,
-        s"""|{
-            |  "Number" : {
-            |    "maxWholeDigits": ${expected.maxWholeDigits},
-            |    "maxFractionalDigits": ${expected.maxFractionalDigits},
-            |  }
-            |}
-        """
-      )
-    }
-  }
-
   "PositiveNumber" should "round trip derived JSON" in {
     forAll(FormatExprGen.positiveNumberGen) { (obj: TextConstraint) =>
       verifyRoundTrip(obj)
-    }
-  }
-
-  it should "parse JSON without a roundingMode field" in {
-    forAll(FormatExprGen.positiveNumberGen.map(_.copy(roundingMode = RoundingMode.defaultRoundingMode, `unit` = None))) { expected =>
-      verifyRead[TextConstraint](
-        expected,
-        s"""|{
-            |  "PositiveNumber" : {
-            |    "maxWholeDigits": ${expected.maxWholeDigits},
-            |    "maxFractionalDigits": ${expected.maxFractionalDigits},
-            |  }
-            |}
-        """
-      )
     }
   }
 }
