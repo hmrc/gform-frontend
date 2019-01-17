@@ -38,7 +38,7 @@ class ObligationService(gformConnector: GformConnector) {
     Future
       .sequence(
         hmrcTaxPeriodIdentifiers
-          .map(i => (i, gformConnector.getTaxPeriods(i)))
+          .map(i => (i, gformConnector.getTaxPeriods(i).map(j => j.obligations)))
           .map(i => i._2.map(f => (i._1, f))))
       .map(x => x.toMap)
   }

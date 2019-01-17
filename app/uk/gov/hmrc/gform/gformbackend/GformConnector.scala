@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.obligation.HmrcTaxPeriodIdentifier
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Account, TaxPeriods, UserId, ValAddress }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Account, Obligations, UserId, ValAddress }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
@@ -149,6 +149,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /****** Tax Period ******/
   def getTaxPeriods(htpi: HmrcTaxPeriodIdentifier)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
-    ws.GET[TaxPeriods](s"$baseUrl/test-only/obligation/tax-period/${htpi.idType}/${htpi.idNumber}/${htpi.regimeType}")
+    ws.GET[Obligations](s"$baseUrl/obligation/tax-period/${htpi.idType}/${htpi.idNumber}/${htpi.regimeType}")
 
 }

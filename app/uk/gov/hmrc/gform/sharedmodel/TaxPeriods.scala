@@ -31,3 +31,9 @@ case class TaxPeriod(inboundCorrespondenceFromDate: Date, inboundCorrespondenceT
 object TaxPeriod {
   implicit val format: OFormat[TaxPeriod] = Json.format[TaxPeriod]
 }
+
+case class Obligations(obligations: TaxPeriods)
+
+object Obligations {
+  implicit val format: OFormat[Obligations] = Json.format[Obligations]
+}
