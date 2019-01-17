@@ -184,7 +184,7 @@ object ValidationUtil {
         case HmrcTaxPeriod(_, _, _) =>
           gFormErrors.get(fieldValue.id) match {
             case Some(errors) =>
-              FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
+              FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
             case None =>
               val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
                 selectedValue.map { index =>
