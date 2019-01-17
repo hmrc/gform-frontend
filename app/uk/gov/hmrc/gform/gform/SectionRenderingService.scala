@@ -485,7 +485,7 @@ class SectionRenderingService(
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
       case HmrcTaxPeriod(a, b, c) =>
-        htmlForHmrcTaxPeriod(fieldValue, index, ei, maybeValidated, data, obligations, a, b, c)
+        htmlForHmrcTaxPeriod(fieldValue, index, ei, maybeValidated, data, obligations, HmrcTaxPeriodIdentifier(a, b, c))
     }
 
   private def htmlForHmrcTaxPeriod(
@@ -495,13 +495,11 @@ class SectionRenderingService(
     validatedType: ValidatedType,
     data: FormDataRecalculated,
     obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods],
-    idType: String,
-    idNumber: String,
-    regimeType: String) = {
+    HmrcTP: HmrcTaxPeriodIdentifier) = {
     implicit val hc: HeaderCarrier = new HeaderCarrier
 
     val taxPeriodList = obligations
-      .get(HmrcTaxPeriodIdentifier(idType, idNumber, regimeType)) match {
+      .get(HmrcTP) match {
       case Some(c) => c.taxPeriods
       case _       => List[TaxPeriod]()
     }
