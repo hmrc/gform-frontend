@@ -40,7 +40,7 @@ object RoundingModeUtil {
       case GformRoundingMode.Floor    => formatter.setRoundingMode(RoundingMode.FLOOR)
       case GformRoundingMode.HalfDown => formatter.setRoundingMode(RoundingMode.HALF_DOWN)
       case GformRoundingMode.HalfUp   => formatter.setRoundingMode(RoundingMode.HALF_UP)
-      case _                          => formatter.setRoundingMode(RoundingMode.HALF_EVEN)
+      case GformRoundingMode.HalfEven => formatter.setRoundingMode(RoundingMode.HALF_EVEN)
     }
     formatter
   }
