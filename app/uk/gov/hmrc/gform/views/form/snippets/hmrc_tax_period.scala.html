@@ -40,6 +40,9 @@ validationResult.exists(_.isNotOk)
 LabelHelper.buildRepeatingLabel(fieldValue, index)
 }
 
+@dateRangeLabel(fromDate:String, toDate:String)=@{
+localisation("From")+" "+fromDate+" "+localisation("to")+" "+toDate
+}
 
 
 <div class="form-group@if(hasErrors) { form-group-error}">
@@ -66,14 +69,14 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
             <input
                     id="@{fieldValue.id.value}-@{option.value}"
                     name="@{fieldValue.id.value}"
-                    value="@{Map(option.label -> option.value)}"
+                    value="@{Map(dateRangeLabel(option.fromDate, option.toDate) -> option.value)}"
                     type="radio"
                     @if(option.value == setValue) { checked="checked" }
                     role="@inputType"
             />
 
             <label for="@{fieldValue.id.value}-@{option.value}">
-                @option.label
+                @dateRangeLabel(option.fromDate, option.toDate)
             </label>
         </div>
         }

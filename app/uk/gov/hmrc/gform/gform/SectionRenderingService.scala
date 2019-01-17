@@ -80,7 +80,7 @@ case object NoErrors extends HasErrors
 case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
-case class OptionParams(value: String, label: String, selected: Boolean)
+case class OptionParams(value: String, fromDate: String, toDate: String, selected: Boolean)
 class SectionRenderingService(
   frontendAppConfig: FrontendAppConfig
 ) {
@@ -505,12 +505,8 @@ class SectionRenderingService(
     }
 
     val taxPeriodOptions = taxPeriodList
-      .map(
-        i =>
-          (
-            "From " + formatDate(i.inboundCorrespondenceFromDate) + " to " + formatDate(i.inboundCorrespondenceToDate),
-            i.periodKey))
-      .map(i => new OptionParams(i._2, i._1, false))
+      .map(i => (formatDate(i.inboundCorrespondenceFromDate), formatDate(i.inboundCorrespondenceToDate), i.periodKey))
+      .map(i => new OptionParams(i._3, i._1, i._2, false))
 
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val mapOfResults = validatedValue.get match { case ComponentField(a, b) => b }
