@@ -19,8 +19,6 @@ package uk.gov.hmrc.gform.graph
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
-import scala.collection.immutable.List
-
 object FormTemplateBuilder {
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
     Group(
@@ -113,7 +111,7 @@ object FormTemplateBuilder {
     DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
-    List(EmailParameter("fullName", "john smith"), EmailParameter("email", "test@test.com")),
+    List(EmailParameter("fullNameVariable", "fullName"), EmailParameter("emailVariable", "email")),
     "http://www.google.co.uk",
     "http://www.yahoo.co.uk",
     sections,
