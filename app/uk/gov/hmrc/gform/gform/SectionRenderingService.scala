@@ -509,7 +509,8 @@ class SectionRenderingService(
       .map(i => new OptionParams(i._3, i._1, i._2, false))
 
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val mapOfResults = validatedValue.get match { case ComponentField(a, b) => b }
+    val mapOfResultsOption = validatedValue match { case i: FormFieldValidationResult => i}
+    val mapOfResults = mapOfResultsOption match { case ComponentField(a, b) => b }
     val setValue = mapOfResults.values.toList match {
       case a if a.size < 2 => ""
       case b               => TextFormatter.formatText(Some(b(1))).dropRight(1)
