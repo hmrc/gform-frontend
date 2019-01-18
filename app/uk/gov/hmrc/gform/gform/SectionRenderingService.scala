@@ -513,7 +513,6 @@ class SectionRenderingService(
     val setValue = mapOfResults.values.toList match {
       case a if a.size < 2 => ""
       case b               => TextFormatter.formatText(Some(b(1))).dropRight(1)
-      case _               => ""
     }
 
     html.form.snippets

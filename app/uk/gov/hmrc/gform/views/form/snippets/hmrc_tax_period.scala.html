@@ -69,7 +69,7 @@ localisation("From")+" "+fromDate+" "+localisation("to")+" "+toDate
             <input
                     id="@{fieldValue.id.value}-@{option.value}"
                     name="@{fieldValue.id.value}"
-                    value="@{Map(dateRangeLabel(option.fromDate, option.toDate) -> option.value)}"
+                    value="@{option.fromDate+'|'+option.toDate+'|'+option.value}"
                     type="radio"
                     @if(option.value == setValue) { checked="checked" }
                     role="@inputType"

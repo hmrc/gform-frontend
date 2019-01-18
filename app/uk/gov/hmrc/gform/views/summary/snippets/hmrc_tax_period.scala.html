@@ -29,15 +29,19 @@
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    errorInline("summary", e, Seq())
-}}
+    errorInline("summary", e, Seq()) }}
+
+@formatTaxPeriod(taxPeriod:String) = @{
+val l =taxPeriod.split('|')
+localisation("From")+" "+l(0)+" "+localisation("to")+" "+l(1)
+}
 
 <div>
   <dt class="cya-question@if(hasErrors) { summary--error}">
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </dt>
   <dd class="cya-answer">
-    @{formatTaxPeriodOutput(validationResult)}
+    @{formatTaxPeriod(formatTaxPeriodOutput(validationResult))}
   <dd class="cya-change">
     @changeButton
   </dd>
