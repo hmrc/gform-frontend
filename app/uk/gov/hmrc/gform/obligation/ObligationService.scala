@@ -23,11 +23,20 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class ObligationService(gformConnector: GformConnector) {
 
-  def lookupObligations(formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  def lookupObligations2(formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     val hmrcTaxPeriodIdentifiers = formTemplate.sections.flatMap(i =>
       i.fields.collect {
         case IsHmrcTaxPeriod(el) => el
     })
+    Future
+      .traverse(hmrcTaxPeriodIdentifiers)(i => gformConnector.getTaxPeriods(i).map(j => (i, j.obligations)))
+      .map(x => x.toMap)
+  }
+
+  def lookupObligations(formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
+      case IsHmrcTaxPeriod(el) => el
+    }
     Future
       .traverse(hmrcTaxPeriodIdentifiers)(i => gformConnector.getTaxPeriods(i).map(j => (i, j.obligations)))
       .map(x => x.toMap)
