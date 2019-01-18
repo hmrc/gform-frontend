@@ -17,12 +17,13 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.ProfileGen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.verifyRoundTrip
 
-class DestinationSpec extends Spec {
-  "Destination" should "round trip derived JSON" in {
-    forAll(DestinationGen.destinationGen) { obj =>
-      Destination.format.reads(Destination.format.writes(obj)) should beJsSuccess(obj)
+class ProfileSpec extends Spec {
+  "Default read and write" should "round trip derived JSON" in {
+    forAll(ProfileGen.profileGen) { value =>
+      verifyRoundTrip(value)
     }
   }
 }
