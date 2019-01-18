@@ -105,11 +105,12 @@ class AuthenticatedRequestActions(
                          getAffinityGroup,
                          ggAuthorised(request)(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
+        obligations <- obligationService.lookupObligations(formTemplate)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
+                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))
                  )
       } yield result
   }
@@ -122,9 +123,11 @@ class AuthenticatedRequestActions(
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
+        obligations  <- obligationService.lookupObligations(formTemplate)
         result <- authResult match {
-                   case AuthSuccessful(retrievals) => f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
-                   case _                          => errResponder.forbidden(request, "Access denied")
+                   case AuthSuccessful(retrievals) =>
+                     f(request)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))
+                   case _ => errResponder.forbidden(request, "Access denied")
                  }
       } yield result
   }
@@ -156,7 +159,7 @@ class AuthenticatedRequestActions(
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
       form        <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
-      obligations <- obligationService.lookupObligations(formTemplate, retrievals)
+      obligations <- obligationService.lookupObligations(formTemplate)
       result      <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
     } yield result
 
@@ -303,5 +306,6 @@ case class AuthCacheWithForm(
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
-  formTemplate: FormTemplate
+  formTemplate: FormTemplate,
+  obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
 ) extends AuthCache

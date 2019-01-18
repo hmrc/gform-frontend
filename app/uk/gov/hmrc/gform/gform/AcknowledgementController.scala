@@ -62,7 +62,13 @@ class AcknowledgementController(
       cache.form.status match {
         case Submitted =>
           renderer
-            .renderAcknowledgementSection(maybeAccessCode, cache.formTemplate, cache.retrievals, lang, eventId)
+            .renderAcknowledgementSection(
+              maybeAccessCode,
+              cache.formTemplate,
+              cache.retrievals,
+              lang,
+              eventId,
+              cache.obligations)
             .map(Ok(_))
         case _ => Future.successful(BadRequest)
       }

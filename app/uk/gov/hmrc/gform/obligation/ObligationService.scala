@@ -26,9 +26,7 @@ case class HmrcTaxPeriodIdentifier(idType: String, idNumber: String, regimeType:
 
 class ObligationService(gformConnector: GformConnector) {
 
-  def lookupObligations(formTemplate: FormTemplate, retrievals: MaterialisedRetrievals)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext) = {
+  def lookupObligations(formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     val hmrcTaxPeriodIdentifiers = formTemplate.sections.flatMap(i =>
       i.fields.flatMap(j =>
         j.`type` match {

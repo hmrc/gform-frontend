@@ -266,7 +266,8 @@ class SectionRenderingService(
     validatedType: ValidatedType,
     fieldData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
-    lang: Option[String]
+    lang: Option[String],
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
     val ei = ExtraInfo(
@@ -290,8 +291,18 @@ class SectionRenderingService(
 
     val listResult = errors.map { case (_, validationResult) => validationResult }
 
-    val snippets = formTemplate.declarationSection.fields.map(fieldValue =>
-      htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, retrievals.userDetails, validatedType, lang))
+    val snippets = formTemplate.declarationSection.fields.map(
+      fieldValue =>
+        htmlFor(
+          fieldValue,
+          formTemplate._id,
+          0,
+          ei,
+          fieldData,
+          retrievals.userDetails,
+          validatedType,
+          lang,
+          obligations = obligations))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -325,7 +336,11 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
-    eventId: String)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+    eventId: String,
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(
+    implicit hc: HeaderCarrier,
+    request: Request[_],
+    messages: Messages): Future[Html] = {
 
     val ei = ExtraInfo(
       maybeAccessCode,
@@ -357,7 +372,8 @@ class SectionRenderingService(
                          FormDataRecalculated.empty,
                          retrievals.userDetails,
                          Valid(()),
-                         lang)))
+                         lang,
+                         obligations = obligations)))
       renderingInfo = SectionRenderingInformation(
         formTemplate._id,
         maybeAccessCode,
@@ -388,7 +404,8 @@ class SectionRenderingService(
     errors: List[(FormComponent, FormFieldValidationResult)],
     globalErrors: List[Html],
     validatedType: ValidatedType,
-    lang: Option[String]
+    lang: Option[String],
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
     val maybeAccessCode = None
@@ -406,8 +423,18 @@ class SectionRenderingService(
       formLevelHeading = true)
     val listResult = errors.map { case (_, validationResult) => validationResult }
     val snippets =
-      enrolmentSection.fields.map(fieldValue =>
-        htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, retrievals.userDetails, validatedType, lang))
+      enrolmentSection.fields.map(
+        fieldValue =>
+          htmlFor(
+            fieldValue,
+            formTemplate._id,
+            0,
+            ei,
+            fieldData,
+            retrievals.userDetails,
+            validatedType,
+            lang,
+            obligations = obligations))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -455,14 +482,12 @@ class SectionRenderingService(
     maybeValidated: ValidatedType,
     lang: Option[String],
     isHidden: Boolean = false,
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods] = Map.empty[HmrcTaxPeriodIdentifier, TaxPeriods])(
-    implicit request: Request[_],
-    messages: Messages): Html =
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(implicit request: Request[_], messages: Messages): Html =
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(fieldValue, sortCode, expr, fieldValue.id, index, maybeValidated, ei, data, isHidden)
       case g @ Group(_, _, _, _, _, _) =>
-        htmlForGroup(g, formTemplateId, fieldValue, index, ei, data, maybeValidated, lang)
+        htmlForGroup(g, formTemplateId, fieldValue, index, ei, data, maybeValidated, lang, obligations)
       case Date(_, offset, dateValue) =>
         htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, data, isHidden)
       case Address(international) => htmlForAddress(fieldValue, international, index, maybeValidated, ei, data)
@@ -509,7 +534,7 @@ class SectionRenderingService(
       .map(i => new OptionParams(i._3, i._1, i._2, false))
 
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val mapOfResultsOption = validatedValue match { case i: FormFieldValidationResult => i}
+    val mapOfResultsOption = validatedValue match { case Some(x)            => x }
     val mapOfResults = mapOfResultsOption match { case ComponentField(a, b) => b }
     val setValue = mapOfResults.values.toList match {
       case a if a.size < 2 => ""
@@ -754,8 +779,9 @@ class SectionRenderingService(
     ei: ExtraInfo,
     data: FormDataRecalculated,
     validatedType: ValidatedType,
-    lang: Option[String])(implicit request: Request[_], messages: Messages): Html = {
-    val grpHtml = htmlForGroup0(grp, formTemplateId, fieldValue, index, ei, data, validatedType, lang)
+    lang: Option[String],
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(implicit request: Request[_], messages: Messages): Html = {
+    val grpHtml = htmlForGroup0(grp, formTemplateId, fieldValue, index, ei, data, validatedType, lang, obligations)
 
     val isChecked = FormDataHelpers
       .dataEnteredInGroup(grp, ei.fieldData.data)
@@ -775,7 +801,8 @@ class SectionRenderingService(
     ei: ExtraInfo,
     data: FormDataRecalculated,
     validatedType: ValidatedType,
-    lang: Option[String])(implicit request: Request[_], messages: Messages) = {
+    lang: Option[String],
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(implicit request: Request[_], messages: Messages) = {
     val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
 
     val (lhtml, limitReached) =
@@ -787,7 +814,8 @@ class SectionRenderingService(
         validatedType,
         ei,
         data,
-        lang)
+        lang,
+        obligations)
 
     html.form.snippets.group(fieldValue, maybeHint, groupField, lhtml, groupField.orientation, limitReached, index)
   }
@@ -817,7 +845,10 @@ class SectionRenderingService(
     validatedType: ValidatedType,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    lang: Option[String])(implicit request: Request[_], messsages: Messages): (List[Html], Boolean) =
+    lang: Option[String],
+    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(
+    implicit request: Request[_],
+    messsages: Messages): (List[Html], Boolean) =
     if (groupField.repeatsMax.isDefined) {
       val (groupList, isLimit) = getRepeatingGroupsForRendering(fieldValue, groupField, ei.fieldData)
       val gl: List[GroupList] = groupList
@@ -825,8 +856,18 @@ class SectionRenderingService(
         .map {
           case (gl, count) =>
             val lhtml = gl.componentList
-              .map(fv =>
-                htmlFor(fv, formTemplateId, count + 1, ei, data, ei.retrievals.userDetails, validatedType, lang))
+              .map(
+                fv =>
+                  htmlFor(
+                    fv,
+                    formTemplateId,
+                    count + 1,
+                    ei,
+                    data,
+                    ei.retrievals.userDetails,
+                    validatedType,
+                    lang,
+                    obligations = obligations))
 
             val showButton = {
               groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
@@ -839,8 +880,18 @@ class SectionRenderingService(
       (htmls, isLimit)
     } else {
       val htmls =
-        groupField.fields.map(fv =>
-          htmlFor(fv, formTemplateId, 0, ei, data, ei.retrievals.userDetails, validatedType, lang))
+        groupField.fields.map(
+          fv =>
+            htmlFor(
+              fv,
+              formTemplateId,
+              0,
+              ei,
+              data,
+              ei.retrievals.userDetails,
+              validatedType,
+              lang,
+              obligations = obligations))
       (htmls, true)
     }
 
