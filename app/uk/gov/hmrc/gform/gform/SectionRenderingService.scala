@@ -521,7 +521,6 @@ class SectionRenderingService(
     data: FormDataRecalculated,
     obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods],
     HmrcTP: HmrcTaxPeriodIdentifier) = {
-    implicit val hc: HeaderCarrier = new HeaderCarrier
 
     val taxPeriodList = obligations
       .get(HmrcTP) match {
