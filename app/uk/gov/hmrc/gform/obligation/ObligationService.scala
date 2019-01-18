@@ -40,4 +40,20 @@ class ObligationService(gformConnector: GformConnector) {
           .map(i => i._2.map(f => (i._1, f))))
       .map(x => x.toMap)
   }
+
+  def lookupObligations3(formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    val hmrcTaxPeriodIdentifiers = formTemplate.sections.flatMap(i =>
+      i.fields.flatMap(j =>
+        j.`type` match {
+          case HmrcTaxPeriod(a, b, c) => Some(HmrcTaxPeriodIdentifier(a, b, c))
+          case _                      => None
+      }))
+    val a = Future
+      .sequence(
+        hmrcTaxPeriodIdentifiers
+          .map(i => (i, gformConnector.getTaxPeriods(i).map(j => j.obligations)))
+          .map(i => i._2.map(f => (i._1, f))))
+      .map(x => x.toMap)
+    a
+  }
 }

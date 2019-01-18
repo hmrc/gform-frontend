@@ -509,8 +509,8 @@ class SectionRenderingService(
         htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, userDetails, maybeValidated, lang)
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
-      case HmrcTaxPeriod(a, b, c) =>
-        htmlForHmrcTaxPeriod(fieldValue, index, ei, maybeValidated, data, obligations, HmrcTaxPeriodIdentifier(a, b, c))
+      case HmrcTaxPeriod(idType, idNumber, regimeType) =>
+        htmlForHmrcTaxPeriod(fieldValue, index, ei, maybeValidated, data, obligations, HmrcTaxPeriodIdentifier(idType, idNumber, regimeType))
     }
 
   private def htmlForHmrcTaxPeriod(
