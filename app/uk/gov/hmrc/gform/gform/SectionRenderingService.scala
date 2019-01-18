@@ -45,7 +45,6 @@ import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
-import uk.gov.hmrc.gform.obligation.HmrcTaxPeriodIdentifier
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriod, TaxPeriods }
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -113,7 +112,7 @@ class SectionRenderingService(
     contentTypes: List[ContentType],
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
+    obligations: Map[HmrcTaxPeriod, TaxPeriods]
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
@@ -267,7 +266,7 @@ class SectionRenderingService(
     fieldData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
+    obligations: Map[HmrcTaxPeriod, TaxPeriods]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
     val ei = ExtraInfo(
@@ -337,7 +336,7 @@ class SectionRenderingService(
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
     eventId: String,
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(
+    obligations: Map[HmrcTaxPeriod, TaxPeriods])(
     implicit hc: HeaderCarrier,
     request: Request[_],
     messages: Messages): Future[Html] = {
@@ -405,7 +404,7 @@ class SectionRenderingService(
     globalErrors: List[Html],
     validatedType: ValidatedType,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
+    obligations: Map[HmrcTaxPeriod, TaxPeriods]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
     val maybeAccessCode = None
@@ -482,7 +481,7 @@ class SectionRenderingService(
     maybeValidated: ValidatedType,
     lang: Option[String],
     isHidden: Boolean = false,
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(implicit request: Request[_], messages: Messages): Html =
+    obligations: Map[HmrcTaxPeriod, TaxPeriods])(implicit request: Request[_], messages: Messages): Html =
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(fieldValue, sortCode, expr, fieldValue.id, index, maybeValidated, ei, data, isHidden)
@@ -510,7 +509,14 @@ class SectionRenderingService(
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
       case HmrcTaxPeriod(idType, idNumber, regimeType) =>
-        htmlForHmrcTaxPeriod(fieldValue, index, ei, maybeValidated, data, obligations, HmrcTaxPeriodIdentifier(idType, idNumber, regimeType))
+        htmlForHmrcTaxPeriod(
+          fieldValue,
+          index,
+          ei,
+          maybeValidated,
+          data,
+          obligations,
+          HmrcTaxPeriod(idType, idNumber, regimeType))
     }
 
   private def htmlForHmrcTaxPeriod(
@@ -519,8 +525,8 @@ class SectionRenderingService(
     ei: ExtraInfo,
     validatedType: ValidatedType,
     data: FormDataRecalculated,
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods],
-    HmrcTP: HmrcTaxPeriodIdentifier) = {
+    obligations: Map[HmrcTaxPeriod, TaxPeriods],
+    HmrcTP: HmrcTaxPeriod) = {
 
     val taxPeriodList = obligations
       .get(HmrcTP) match {
@@ -779,7 +785,7 @@ class SectionRenderingService(
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(implicit request: Request[_], messages: Messages): Html = {
+    obligations: Map[HmrcTaxPeriod, TaxPeriods])(implicit request: Request[_], messages: Messages): Html = {
     val grpHtml = htmlForGroup0(grp, formTemplateId, fieldValue, index, ei, data, validatedType, lang, obligations)
 
     val isChecked = FormDataHelpers
@@ -801,7 +807,7 @@ class SectionRenderingService(
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(implicit request: Request[_], messages: Messages) = {
+    obligations: Map[HmrcTaxPeriod, TaxPeriods])(implicit request: Request[_], messages: Messages) = {
     val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
 
     val (lhtml, limitReached) =
@@ -845,7 +851,7 @@ class SectionRenderingService(
     ei: ExtraInfo,
     data: FormDataRecalculated,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(
+    obligations: Map[HmrcTaxPeriod, TaxPeriods])(
     implicit request: Request[_],
     messsages: Messages): (List[Html], Boolean) =
     if (groupField.repeatsMax.isDefined) {

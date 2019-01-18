@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gformbackend
 import akka.util.ByteString
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.obligation.HmrcTaxPeriodIdentifier
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -148,7 +147,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     )
 
   /****** Tax Period ******/
-  def getTaxPeriods(htpi: HmrcTaxPeriodIdentifier)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def getTaxPeriods(htpi: HmrcTaxPeriod)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     ws.GET[Obligations](s"$baseUrl/obligation/tax-period/${htpi.idType}/${htpi.idNumber}/${htpi.regimeType}")
 
 }

@@ -36,7 +36,7 @@ import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.gform.obligation.{ HmrcTaxPeriodIdentifier, ObligationService }
+import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriods }
 
 import scala.concurrent.Future
@@ -301,11 +301,11 @@ case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
   formTemplate: FormTemplate,
-  obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
+  obligations: Map[HmrcTaxPeriod, TaxPeriods]
 ) extends AuthCache
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate,
-  obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods]
+  obligations: Map[HmrcTaxPeriod, TaxPeriods]
 ) extends AuthCache

@@ -41,7 +41,6 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, Recalculation }
-import uk.gov.hmrc.gform.obligation.HmrcTaxPeriodIdentifier
 import uk.gov.hmrc.gform.sharedmodel.TaxPeriods
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -129,7 +128,7 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection,
     data: FormDataRecalculated,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriodIdentifier, TaxPeriods])(
+    obligations: Map[HmrcTaxPeriod, TaxPeriods])(
     implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
 
     def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType, List[Html]) = see match {
