@@ -148,6 +148,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /****** Tax Period ******/
   def getTaxPeriods(htpi: HmrcTaxPeriod)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
-    ws.GET[Obligations](s"$baseUrl/obligation/tax-period/${htpi.idType}/${htpi.idNumber}/${htpi.regimeType}")
+    ws.GET[Obligations](
+      s"$baseUrl/obligation/tax-period/${htpi.idType.value}/${htpi.idNumber.value}/${htpi.regimeType.value}")
 
 }
