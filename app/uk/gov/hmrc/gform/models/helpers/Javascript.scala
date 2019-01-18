@@ -79,15 +79,15 @@ object Javascript {
          |};
          |
          |function add(a, b) {
-         |  return new Big(a).add(new Big(b));
+         |  return new BigNumber(a).add(new BigNumber(b));
          |};
          |
          |function subtract(a, b) {
-         |  return new Big(a).minus(new Big(b));
+         |  return new BigNumber(a).minus(new BigNumber(b));
          |};
          |
          |function multiply(a, b) {
-         |  return new Big(a).times(new Big(b));
+         |  return new BigNumber(a).times(new BigNumber(b));
          |};
          |function displaySterling(result) {
          |  return result < 0 ? result.replace("-", "-£") : '£' + result
