@@ -15,14 +15,18 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
 
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
+sealed trait HttpMethod extends Product with Serializable
 
-class DestinationSpec extends Spec {
-  "Destination" should "round trip derived JSON" in {
-    forAll(DestinationGen.destinationGen) { obj =>
-      Destination.format.reads(Destination.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
+object HttpMethod {
+  case object GET extends HttpMethod
+  case object POST extends HttpMethod
+  case object PUT extends HttpMethod
+  case object HEAD extends HttpMethod
+  case object DELETE extends HttpMethod
+  case object PATCH extends HttpMethod
+
+  implicit val format = ADTFormat
+    .formatEnumeration("GET" -> GET, "POST" -> POST, "PUT" -> PUT, "HEAD" -> HEAD, "DELETE" -> DELETE, "PATCH" -> PATCH)
 }

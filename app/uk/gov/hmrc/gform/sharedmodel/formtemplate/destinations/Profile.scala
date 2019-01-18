@@ -15,14 +15,13 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
 
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
+sealed trait Profile extends Product with Serializable
 
-class DestinationSpec extends Spec {
-  "Destination" should "round trip derived JSON" in {
-    forAll(DestinationGen.destinationGen) { obj =>
-      Destination.format.reads(Destination.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
+object Profile {
+  case object DES extends Profile
+  case object MdgIntegrationFramework extends Profile
+
+  implicit val format = ADTFormat.formatEnumeration("des" -> DES, "mdgIntegrationFramework" -> MdgIntegrationFramework)
 }
