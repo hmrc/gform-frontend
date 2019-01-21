@@ -116,7 +116,7 @@ class AuthenticatedRequestActions(
                          getAffinityGroup,
                          ggAuthorised(request)(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
-        obligations <- obligationService.lookupObligations(formTemplate)
+        obligations <- obligationService.lookupObligationsMultiple(formTemplate)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
@@ -134,7 +134,7 @@ class AuthenticatedRequestActions(
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
-        obligations  <- obligationService.lookupObligations(formTemplate)
+        obligations  <- obligationService.lookupObligationsMultiple(formTemplate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) =>
                      f(request)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))

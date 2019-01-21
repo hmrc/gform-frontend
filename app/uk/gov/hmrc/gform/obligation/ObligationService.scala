@@ -28,15 +28,6 @@ class ObligationService(gformConnector: GformConnector) {
 
   val stringToDate = new SimpleDateFormat("yyyy-MM-dd")
 
-  def lookupObligations(formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
-      case IsHmrcTaxPeriod(el) => el
-    }
-    Future
-      .traverse(hmrcTaxPeriodIdentifiers)(i => gformConnector.getTaxPeriods(i).map(j => (i, j.obligations)))
-      .map(x => x.toMap)
-  }
-
   def lookupObligationsMultiple(formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
       case IsHmrcTaxPeriod(el) => el
