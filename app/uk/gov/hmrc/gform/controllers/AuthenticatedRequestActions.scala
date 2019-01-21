@@ -317,8 +317,8 @@ case class AuthCacheWithForm(
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
-  formTemplate: FormTemplate
+  formTemplate: FormTemplate,
   obligations: Map[HmrcTaxPeriod, TaxPeriods]
 ) extends AuthCache {
-  def toAuthCacheWithForm(form: Form) = AuthCacheWithForm(retrievals, form, formTemplate)
+  def toAuthCacheWithForm(form: Form) = AuthCacheWithForm(retrievals, form, formTemplate, obligations)
 }
