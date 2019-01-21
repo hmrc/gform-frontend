@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.auth
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -24,14 +25,29 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class TaxEnrolment(identifiers: List[Identifier], verifiers: List[Verifier])
+case class TaxEnrolmentPayload(verifiers: List[Verifier], `type`: String, userId: String)
+
+object TaxEnrolmentPayload {
+  implicit val format = Json.format[TaxEnrolmentPayload]
+}
 
 object TaxEnrolment {
   implicit val format = Json.format[TaxEnrolment]
 }
 
 class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
-  def enrolGGUser(request: TaxEnrolment, service: ServiceId)(
+  def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[HttpResponse] =
-    http.PUT(s"$baseUrl/tax-enrolments/service/${service.value}/enrolment", request)
+    ec: ExecutionContext): Future[HttpResponse] = {
+    val groupId = retrievals.userDetails.groupIdentifier
+    val identifiers = request.identifiers.sortBy(_.key)
+
+    val enrolmentKey = service.value + "~" + identifiers
+      .map(identifier => identifier.key + "~" + identifier.value)
+      .mkString("~")
+
+    http.POST(
+      s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
+      TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId))
+  }
 }

@@ -84,8 +84,11 @@ class EnrolmentController(
 
   private def enrolmentConnect(implicit hc: HeaderCarrier, ec: ExecutionContext): EnrolmentConnect[EnrolM] =
     new EnrolmentConnect[EnrolM] {
-      def enrolGGUser(request: TaxEnrolment, service: ServiceId): EnrolM[HttpResponse] =
-        liftEM(taxEnrolmentConnector.enrolGGUser(request, service))
+      def enrolGGUser(
+        request: TaxEnrolment,
+        service: ServiceId,
+        retrievals: MaterialisedRetrievals): EnrolM[HttpResponse] =
+        liftEM(taxEnrolmentConnector.enrolGGUser(request, service, retrievals))
     }
 
   private def ggConnect(implicit hc: HeaderCarrier, ec: ExecutionContext): GGConnect[EnrolM] =
@@ -190,7 +193,8 @@ class EnrolmentController(
                         enrolmentSection,
                         postCheck,
                         checkEnrolment(serviceId),
-                        validationResult)
+                        validationResult,
+                        retrievals)
                         .fold(
                           recoverEnrolmentError(formTemplate, retrievals, enrolmentSection, data, lang),
                           processEnrolmentResult(formTemplate, lang))
@@ -231,7 +235,8 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection,
     postCheck: EnrolmentPostCheck,
     checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
-    validationResult: ValidatedType
+    validationResult: ValidatedType,
+    retrievals: MaterialisedRetrievals
   )(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent],
@@ -245,7 +250,7 @@ class EnrolmentController(
           (identifierss, verifiers) = idenVer
           identifiers = identifierss.map(_._2)
           _       <- validateIdentifiers[F](identifierss, postCheck)
-          _       <- enrolmentService.enrolUser(serviceId, identifiers, verifiers)
+          _       <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
           authRes <- checkEnrolment(identifiers)
         } yield authRes
     }
