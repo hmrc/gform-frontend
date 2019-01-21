@@ -22,7 +22,7 @@ import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Account, Obligations, UserId, ValAddress }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
@@ -147,8 +147,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     )
 
   /****** Tax Period ******/
-  def getTaxPeriods(htpi: HmrcTaxPeriod)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def getTaxPeriods(htp: HmrcTaxPeriod)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     ws.GET[Obligations](
-      s"$baseUrl/obligation/tax-period/${htpi.idType.value}/${htpi.idNumber.value}/${htpi.regimeType.value}")
+      s"$baseUrl/obligation/tax-period/${htp.idType.value}/${htp.idNumber.value}/${htp.regimeType.value}")
+
+  def getAllTaxPeriods(htps: List[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+    ws.POST[List[HmrcTaxPeriod], List[Obligation]](s"$baseUrl/obligation/tax-period", htps)
 
 }

@@ -37,3 +37,33 @@ case class Obligations(obligations: TaxPeriods)
 object Obligations {
   implicit val format: OFormat[Obligations] = Json.format[Obligations]
 }
+
+case class Identification(incomeSourceType: String, referenceNumber: String, referenceType: String)
+
+object Identification {
+  implicit val format: OFormat[Identification] = Json.format[Identification]
+}
+
+case class ObligationDetail(
+  status: String,
+  inboundCorrespondenceFromDate: String,
+  inboundCorrespondenceToDate: String,
+  inboundCorrespondenceDateReceived: String,
+  inboundCorrespondenceDueDate: String,
+  periodKey: String)
+
+object ObligationDetail {
+  implicit val format: OFormat[ObligationDetail] = Json.format[ObligationDetail]
+}
+
+case class TaxPeriodDes(identification: Identification, obligationDetails: List[ObligationDetail])
+
+object TaxPeriodDes {
+  implicit val format: OFormat[TaxPeriodDes] = Json.format[TaxPeriodDes]
+}
+
+case class Obligation(obligations: List[TaxPeriodDes])
+
+object Obligation {
+  implicit val format: OFormat[Obligation] = Json.format[Obligation]
+}

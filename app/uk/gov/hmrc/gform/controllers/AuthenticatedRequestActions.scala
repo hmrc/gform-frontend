@@ -159,7 +159,7 @@ class AuthenticatedRequestActions(
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
       form        <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
-      obligations <- obligationService.lookupObligations(formTemplate)
+      obligations <- obligationService.lookupObligationsMultiple(formTemplate)
       result      <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
     } yield result
 
