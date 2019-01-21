@@ -184,6 +184,29 @@ class FormatValidationSpec extends Spec with GraphSpec {
     CompanyRegistrationNumber,
     "sample label is not a valid Company Registration Number")
 
+  "EORI" should "return valid EORI with 12 digits" in createSuccessTest(
+    "GB123456789123",
+    EORI)
+  "EORI" should "return valid EORI with 15 digits" in createSuccessTest(
+    "FR123456789123456",
+    EORI)
+  "EORI" should "return invalid without one of the previous conditions" in createFailTest(
+    "K8765432",
+    EORI,
+    "sample label is not a valid EORI Number")
+  "EORI" should "return invalid if too short" in createFailTest(
+    "GB12345678912",
+    EORI,
+    "sample label is not a valid EORI Number")
+  "EORI" should "return invalid if too long" in createFailTest(
+    "GB1234567891233",
+    EORI,
+    "sample label is not a valid EORI Number")
+  "EORI" should "return invalid if too long" in createFailTest(
+    "FR1234567891234563",
+    EORI,
+    "sample label is not a valid EORI Number")
+
   "NonUkCountryCode" should "return valid" in createSuccessTest("US", NonUkCountryCode)
   "NonUkCountryCode" should "return invalid if code is UK" in createFailTest(
     "UK",

@@ -327,6 +327,7 @@ class ComponentsValidator(
       case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
       case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
+      case (_, value :: Nil, EORI)                      => checkEORI(fieldValue, value)
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
@@ -363,6 +364,15 @@ class ComponentsValidator(
     str match {
       case ValidCRN() => ().valid
       case _          => getError(fieldValue, "is not a valid Company Registration Number")
+    }
+  }
+
+  private def checkEORI(fieldValue: FormComponent, value: String) = {
+    val ValidCRN = "^[A-Z]{2}[0-9]{12}|^[A-Z]{2}[0-9]{15}$".r
+    val str = value.replace(" ", "")
+    str match {
+      case ValidCRN() => ().valid
+      case _          => getError(fieldValue, "is not a valid EORI")
     }
   }
 
