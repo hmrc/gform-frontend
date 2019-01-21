@@ -18,11 +18,12 @@ package uk.gov.hmrc.gform.auth
 
 import cats.data.NonEmptyList
 import play.api.libs.json.Json
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
 import uk.gov.hmrc.http.HttpResponse
 
 trait EnrolmentConnect[F[_]] {
-  def enrolGGUser(request: TaxEnrolment, service: ServiceId): F[HttpResponse]
+  def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals): F[HttpResponse]
 }
 
 trait GGConnect[F[_]] {
@@ -37,7 +38,8 @@ class EnrolmentService(
   def enrolUser[F[_]](
     serviceId: ServiceId,
     identifiers: NonEmptyList[Identifier],
-    verifiers: List[Verifier]
+    verifiers: List[Verifier],
+    retrievals: MaterialisedRetrievals
   )(
     implicit
     EC: EnrolmentConnect[F],
@@ -45,7 +47,7 @@ class EnrolmentService(
   ): F[HttpResponse] =
     if (useTaxEnrolments) {
       val request = buildTaxEnrolmentsRequest(identifiers, verifiers)
-      EC.enrolGGUser(request, serviceId)
+      EC.enrolGGUser(request, serviceId, retrievals)
     } else {
       val request = buildGGEnrolmentRequest(serviceId, serviceId.value, identifiers, verifiers)
       GGC.enrolGGUser(request)

@@ -27,16 +27,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 object AuthContextPrepop {
   def values(value: AuthInfo, retrievals: MaterialisedRetrievals): String = value match {
-    case GG                     => getGGCredId(retrievals)
+    case GG                     => retrievals.ggCredId
     case PayeNino               => getTaxIdValue(None, "NINO", retrievals)
     case SaUtr                  => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
     case CtUtr                  => getTaxIdValue(Some("IR-CT"), "UTR", retrievals)
     case EtmpRegistrationNumber => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
-  }
-
-  private def getGGCredId(retrievals: MaterialisedRetrievals) = retrievals.authProviderId match {
-    case GGCredId(credId) => credId
-    case _                => ""
   }
 }
 
