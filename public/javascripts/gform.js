@@ -1,4 +1,4 @@
-;(function(){
+;(function(window){
   var showHideContent = new GOVUK.ShowHideContent();
   showHideContent.init();
 
@@ -19,5 +19,11 @@
   var gformGAEvents = new GOVUK.GformGAEvents();
   gformGAEvents.init();
 
-  GOVUK.gformSessionTimeout({})
-})();
+  if (window.gform.config && window.gform.config.timeoutEnabled) {
+    GOVUK.gformSessionTimeout({
+      timeout: window.gform.config.timeout,
+      countdown: window.gform.config.countdown
+    })
+  }
+
+})(window);
