@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class TaxEnrolment(identifiers: List[Identifier], verifiers: List[Verifier])
-case class TaxEnrolmentPayload(verifiers: List[Verifier], `type`: String, userId: String)
+case class TaxEnrolmentPayload(verifiers: List[Verifier], `type`: String, userId: String, friendlyName: String)
 
 object TaxEnrolmentPayload {
   implicit val format = Json.format[TaxEnrolmentPayload]
@@ -48,6 +48,7 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
 
     http.POST(
       s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
-      TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId))
+      TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment")
+    )
   }
 }
