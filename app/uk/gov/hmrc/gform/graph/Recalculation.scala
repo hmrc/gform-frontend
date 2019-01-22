@@ -204,7 +204,7 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[String] =
     fc match {
-      case HasExpr(SingleExpr(expr)) =>
+      case HasExpr(SingleExpr(expr, _)) =>
         val conv: Convertible[F] =
           booleanExprEval.evaluator.eval(visSet, fc.id, expr, dataLookup, retrievals, formTemplate)
         val maxFractionDigitsAndRoundingMode = extractMaxFractionalDigits(fc)

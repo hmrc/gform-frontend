@@ -131,16 +131,6 @@ object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
 
-  object JsonExtensions {
-    def withDefault[A](key: String, default: A)(implicit writes: Writes[A]) =
-      __.json.update((__ \ key).json.copyFrom((__ \ key).json.pick orElse Reads.pure(Json.toJson(default))))
-  }
-  implicit val numberRead: OFormat[Number] = new OFormat[Number] {
-    val base = Json.format[Number]
-    def reads(json: JsValue): JsResult[Number] = throw new Exception
-
-    override def writes(o: Number): JsObject = base.writes(o)
-  }
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
