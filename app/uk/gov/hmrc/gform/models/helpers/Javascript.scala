@@ -46,9 +46,10 @@ object Javascript {
       case otherwise                   => false
     }
 
-    val fieldIdWithExpr: List[(FormComponentWithCtx, Expr)] =
+    val fieldIdWithExpr: List[(FormComponentWithCtx, Expr, Option[RoundingMode])] =
       sectionFields.collect {
-        case formComponent @ HasExprCtx(SingleExpr(expr)) if isDynamic(expr) => (formComponent, expr)
+        case formComponent @ HasExprCtx(SingleExpr(expr, roundingMode)) if isDynamic(expr) =>
+          (formComponent, expr, roundingMode)
       }
 
     val groupFoldButtons: List[(FormComponentId, FormComponentWithGroup)] =
@@ -59,7 +60,7 @@ object Javascript {
       }
 
     fieldIdWithExpr
-      .map(x => toJavascriptFn(x._1, x._2, repeatFormComponentIds, dependencies.toLookup, groupFoldButtons.toMap))
+      .map(x => toJavascriptFn(x._1, x._2, x._3, repeatFormComponentIds, dependencies.toLookup, groupFoldButtons.toMap))
       .mkString("\n") +
       """|function getValue(elementId, identity) {
          |   var el = document.getElementById(elementId);
@@ -79,15 +80,15 @@ object Javascript {
          |};
          |
          |function add(a, b) {
-         |  return new BigNumber(a).add(new BigNumber(b));
+         |  return BigNumber(a).plus(BigNumber(b));
          |};
          |
          |function subtract(a, b) {
-         |  return new BigNumber(a).minus(new BigNumber(b));
+         |  return BigNumber(a).minus(BigNumber(b));
          |};
          |
          |function multiply(a, b) {
-         |  return new BigNumber(a).times(new BigNumber(b));
+         |  return BigNumber(a).times(BigNumber(b));
          |};
          |function displaySterling(result) {
          |  return result < 0 ? result.replace("-", "-£") : '£' + result
@@ -98,6 +99,7 @@ object Javascript {
   private def toJavascriptFn(
     field: FormComponentWithCtx,
     expr: Expr,
+    roundingMode: Option[RoundingMode],
     repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
     groupFoldButtonLookup: Map[FormComponentId, FormComponentWithGroup]): String = {
@@ -159,11 +161,22 @@ object Javascript {
       componentEls + windowEl
     }
 
+    val elementRoundingMode = roundingMode match {
+      case Some(RoundingMode.Up)       => "ROUND_UP"
+      case Some(RoundingMode.Down)     => "ROUND_DOWN"
+      case Some(RoundingMode.Ceiling)  => "ROUND_CEIL"
+      case Some(RoundingMode.Floor)    => "ROUND_FLOOR"
+      case Some(RoundingMode.HalfUp)   => "ROUND_HALF_UP"
+      case Some(RoundingMode.HalfDown) => "ROUND_HALF_DOWN"
+      case Some(RoundingMode.HalfEven) => "ROUND_HALF_EVEN"
+      case _                           => "ROUND_DOWN"
+    }
     val elementId = field.id
+    val x = field
     val functionName = JsFunction("compute" + elementId)
 
     s"""|function $functionName() {
-        |  var result = ${computeExpr(expr, additionIdentity)}.toFixed(${roundToCtx(field)}, 0);
+        |  var result = BigNumber(${computeExpr(expr, additionIdentity)}).decimalPlaces(${roundToCtx(field)}, BigNumber.$elementRoundingMode);
         |  document.getElementById("$elementId").value = result;
         |  var total = document.getElementById("$elementId-total");
         |  if(total) total.innerHTML = ${if (field.isSterling) "displaySterling(result)" else "result"};
