@@ -537,8 +537,13 @@ class SectionRenderingService(
     }
 
     val taxPeriodOptions = taxPeriodList
-      .map(i => (formatDate(i.inboundCorrespondenceFromDate), formatDate(i.inboundCorrespondenceToDate), i.periodKey))
-      .map(i => new OptionParams(i._3, i._1, i._2, false))
+      .map(
+        i =>
+          new OptionParams(
+            i.periodKey,
+            formatDate(i.inboundCorrespondenceFromDate),
+            formatDate(i.inboundCorrespondenceToDate),
+            false))
 
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val mapOfResultsOption = validatedValue match { case Some(x)            => x }
