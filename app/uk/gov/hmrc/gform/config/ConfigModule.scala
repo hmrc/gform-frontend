@@ -69,7 +69,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       sendPdfWithSubmission = typesafeConfig.getString("send-pdf-with-submission").toBoolean,
       googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,
       googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id"),
-      authModule = typesafeConfig.getAnyRef("auth-module").asInstanceOf[AuthModule]
+      authModule = typesafeConfig.getObject("auth-module").asInstanceOf[AuthModule]
     )
   }
 }
