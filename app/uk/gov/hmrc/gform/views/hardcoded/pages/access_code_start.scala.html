@@ -51,7 +51,7 @@
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig,
     containsErrors = hasErrors,
-    authConfig = formTemplate.authConfig
+    authConfig = Some(formTemplate.authConfig)
 ) {
 
   @if(hasErrors) {

@@ -40,7 +40,7 @@
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     bodyClasses = None,
     frontendAppConfig = frontendAppConfig,
-    authConfig = formTemplate.authConfig
+    authConfig = Some(formTemplate.authConfig)
 ) {
 
     <div class="pdf-only" aria-hidden="true">
