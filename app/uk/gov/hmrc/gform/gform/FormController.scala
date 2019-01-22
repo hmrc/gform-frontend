@@ -101,7 +101,7 @@ class FormController(
                   val fcIds = section
                     .expandSection(dataRaw)
                     .expandedFCs
-                    .flatMap(_.allIds)
+                    .flatMap(_.allIdsExceptInfoMessages)
 
                   val firstVisit = !fcIds.forall(dataRaw.isDefinedAt)
                   val stop = section.continueIf.contains(Stop) || firstVisit
