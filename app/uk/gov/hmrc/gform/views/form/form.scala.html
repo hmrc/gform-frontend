@@ -45,7 +45,7 @@
     containsErrors = pageLevelError.hasErrors,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig,
-    authConfig = formTemplate.authConfig
+    authConfig = Some(formTemplate.authConfig)
 ) {
     @if(page.progressIndicator.isDefined){
     <span id ="progress-indicator" class="form-hint">@localisation(page.progressIndicator.get)</span>

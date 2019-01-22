@@ -14,54 +14,52 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import helper._
 @import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.views.html._
-@import uk.gov.hmrc.gform.gform.routes
-@import views.html.helper.CSRF
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 
 @(
-        maybeAccessCode: Option[AccessCode],
-        sectionNumber: SectionNumber,
-        sectionTitle4Ga: SectionTitle4Ga,
-        fileId: FileId,
         formTemplate: FormTemplate,
-        actionUrl: String,
-        lang : Option[String],
+        maybeAccessCode: Option[AccessCode],
+        lang: Option[String],
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
+        request: RequestHeader, //required by CSRF.formField
         messages: Messages
 )
 
-@heading = @{"Upload document"}
+@heading = @{"Start your " + formCategory(formTemplate) + " again?"}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
     serviceName = formTemplate.formName,
-    developmentPhase = ResearchBanner,
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig,
     authConfig = Some(formTemplate.authConfig)
 ) {
-    <h1 class="h1-heading">@heading</h1>
 
-    <form
-      action=@actionUrl
-      enctype="multipart/form-data"
-      method="post"
-    >
-      <div class="form-group-compound">
-        <input id=@{fileId.value} name=@{fileId.value} class="input--file" type="file" />
+<div class="form-group">
+    <a href="@uk.gov.hmrc.gform.gform.routes.FormController.newForm(formTemplate._id, lang)" class="link-back" value="Back">Back</a>
+</div>
+
+<form action="@uk.gov.hmrc.gform.gform.routes.FormController.delete(formTemplate._id, maybeAccessCode, lang)" method="POST">
+    <h1>@heading</h1>
+
+    @{CSRF.formField}
+    <div class="form-group">
+      <div class="highlight-message highlight-message--light">
+          If you select 'Start again', any saved details will be deleted and cannot be retrieved
       </div>
+    </div>
 
-      <div class="form-group">
-        <button type="submit" id="upload-button">Upload</button>
-      </div>
-    </form>
-
-    <a href="@{routes.FormController.form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang, SeYes)}">back to form</a>
+    <div class="form-group">
+      <input type="submit" class="button" value="Delete and start again" />
+    </div>
+</form>
 }

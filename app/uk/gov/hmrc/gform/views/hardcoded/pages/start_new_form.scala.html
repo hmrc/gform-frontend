@@ -40,7 +40,7 @@
     serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig,
-    authConfig = formTemplate.authConfig
+    authConfig = Some(formTemplate.authConfig)
 ) {
 
   <div class = "transaction-banner--complete">

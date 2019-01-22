@@ -29,7 +29,7 @@
   mainClass: Option[String] = None,
   scriptElem: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig,
-  authConfig: AuthConfig
+  authConfig: Option[AuthConfig]
 )(mainContent: Html)(implicit messagesApi: Messages)
 
 @import uk.gov.hmrc.play.views.html.layouts

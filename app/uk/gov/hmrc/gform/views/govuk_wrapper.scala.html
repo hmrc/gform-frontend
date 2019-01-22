@@ -33,7 +33,7 @@
   mainContent: Html = HtmlFormat.empty,
   serviceInfoContent: Html = HtmlFormat.empty,
   scriptElem: Option[Html] = None,
-  authConfig: AuthConfig
+  authConfig: Option[AuthConfig]
 )(implicit messages: Messages)
 
 @scriptElement = {
@@ -48,15 +48,16 @@
 }
 
 @linkElement = {
-    <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
+  <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
+}
 
 @authTimeout = @{
-  authConfig match {
+  authConfig.map {
     case EeittModule(_) => appConfig.authModule.legacyEEITTAuth
     // case Anonymous => appConfig.authModule.anonymous
     case _ => appConfig.authModule.hmrc
   }
-}}
+}
 
 @head = {
     @uiLayouts.head(
@@ -65,14 +66,16 @@
     @if(appConfig.googleTagManagerIdAvailable) {
       <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
     }
-    <script>
-      window.gform = window.gform || {};
-      window.gform.config = {
-        timeoutEnabled: @authTimeout.timeoutEnabled,
-        timeout: @authTimeout.timeout,
-        countdown: @authTimeout.countdown
-      }
-    </script>
+    @authTimeout.foreach { authTimeout =>
+      <script>
+              window.gform = window.gform || {};
+              window.gform.config = {
+                timeoutEnabled: @authTimeout.timeoutEnabled,
+                timeout: @authTimeout.timeout,
+                countdown: @authTimeout.countdown
+              }
+      </script>
+    }
     <meta name="format-detection" content="telephone=no" />
 }
 
