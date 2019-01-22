@@ -43,8 +43,9 @@
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
     serviceName = formTemplate.formName,
-    developmentPhase = ResearchBanner,
-    frontendAppConfig = frontendAppConfig
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+    frontendAppConfig = frontendAppConfig,
+    authConfig = formTemplate.authConfig
 ) {
     <h1 class="h1-heading">@heading</h1>
 

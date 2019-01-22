@@ -41,7 +41,8 @@
     serviceName = localisation(formTemplate.formName),
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     bodyClasses = None,
-    frontendAppConfig = frontendAppConfig
+    frontendAppConfig = frontendAppConfig,
+    authConfig = formTemplate.authConfig
 ) {
 
     <div class="pdf-only" aria-hidden="true">

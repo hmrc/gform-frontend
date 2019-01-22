@@ -68,7 +68,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
       sendPdfWithSubmission = typesafeConfig.getString("send-pdf-with-submission").toBoolean,
       googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,
-      googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id")
+      googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id"),
+      authModule = typesafeConfig.getAnyRef("auth-module").asInstanceOf[AuthModule]
     )
   }
 }

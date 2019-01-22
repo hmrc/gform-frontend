@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner}
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthConfig
 
 @(title: String,
   serviceName: String,
@@ -27,7 +28,8 @@
   bodyClasses: Option[String] = None,
   mainClass: Option[String] = None,
   scriptElem: Option[Html] = None,
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  authConfig: AuthConfig
 )(mainContent: Html)(implicit messagesApi: Messages)
 
 @import uk.gov.hmrc.play.views.html.layouts
@@ -44,16 +46,18 @@
     }
 }
 
-@govuk_wrapper(appConfig = frontendAppConfig,
-               title = title,
-               serviceTitle = serviceName,
-               headTitle = headTitle,
-               developmentPhase = developmentPhase,
-               mainClass = mainClass,
-               bodyClasses = bodyClasses,
-               sidebar = sidebar,
-               contentHeader = contentHeader,
-               mainContent = layouts.article(mainContent),
-               serviceInfoContent = serviceInfoContent,
-               scriptElem = scriptElem
+@govuk_wrapper(
+  appConfig = frontendAppConfig,
+  title = title,
+  serviceTitle = serviceName,
+  headTitle = headTitle,
+  developmentPhase = developmentPhase,
+  mainClass = mainClass,
+  bodyClasses = bodyClasses,
+  sidebar = sidebar,
+  contentHeader = contentHeader,
+  mainContent = layouts.article(mainContent),
+  serviceInfoContent = serviceInfoContent,
+  scriptElem = scriptElem,
+  authConfig = authConfig
 )
