@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.config
 
-import com.typesafe.config.ConfigObject
-
 case class FrontendAppConfig(
   assetsPrefix: String,
   analyticsToken: String,

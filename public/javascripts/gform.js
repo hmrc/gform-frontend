@@ -19,7 +19,7 @@
   var gformGAEvents = new GOVUK.GformGAEvents();
   gformGAEvents.init();
 
-  if (window.gform.config && window.gform.config.timeoutEnabled) {
+  if (window.gform && window.gform.config && window.gform.config.timeoutEnabled) {
     GOVUK.gformSessionTimeout({
       timeout: window.gform.config.timeout,
       countdown: window.gform.config.countdown

@@ -58,9 +58,9 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
       JSConfig(
-        typesafeConfig.getString(s"$path.timeoutEnabled").toBoolean,
-        typesafeConfig.getString(s"$path.timeout").toInt,
-        typesafeConfig.getString(s"$path.countdown").toInt
+        typesafeConfig.getBoolean(s"$path.timeoutEnabled"),
+        typesafeConfig.getInt(s"$path.timeout"),
+        typesafeConfig.getInt(s"$path.countdown")
       )
     val contactFormServiceIdentifier = "GForm"
     FrontendAppConfig(
