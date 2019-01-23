@@ -67,7 +67,6 @@ case class AuthModule(
   hmrc: JSConfig,
   anonymous: JSConfig
 )
-
 case class JSConfig(
   timeoutEnabled: Boolean,
   timeout: Int,
