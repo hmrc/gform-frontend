@@ -128,7 +128,11 @@ class DeclarationController(
         get(dataRaw, FormComponentId("save")) match {
           case "Continue" :: Nil =>
             for {
-              data <- recalculation.recalculateFormData(formData, cacheOrig.formTemplate, cacheOrig.retrievals)
+              data <- recalculation.recalculateFormData(
+                       formData,
+                       cacheOrig.formTemplate,
+                       cacheOrig.retrievals,
+                       cacheOrig.form.envelopeId)
               invisibleSections = cacheOrig.formTemplate.sections.filterNot(data.isVisible)
 
               invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
