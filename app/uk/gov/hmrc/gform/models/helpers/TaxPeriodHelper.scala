@@ -24,9 +24,14 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 object TaxPeriodHelper {
 
   def formatTaxPeriodOutput(valResult: Option[FormFieldValidationResult]) = {
-    val a = valResult match { case Some(x)      => x }
-    val b = a match { case ComponentField(a, b) => b }
-    TextFormatter.formatText(b.values.headOption).drop(1)
+    val a = valResult match {
+      case Some(x) => x
+      case _       => ""
+    }
+    a match {
+      case ComponentField(a, b) => TextFormatter.formatText(b.values.headOption).drop(1)
+      case _                    => ""
+    }
   }
 
   def formatDate(date: Date) =
