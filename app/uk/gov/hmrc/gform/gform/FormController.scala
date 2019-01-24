@@ -251,8 +251,7 @@ class FormController(
         maybeFormExceptSubmitted match {
           case None => None.pure[Future]
           case Some(f) => {
-            val e = getEnvelope(f.envelopeId)
-            e.map {
+            getEnvelope(f.envelopeId).map {
               case Some(x) => Some(f)
               case None    => None
             }
@@ -263,7 +262,7 @@ class FormController(
 
   private def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
     for {
-      maybeEnvelope <- getMaybeEnvelopeF(envelopeId)
+      maybeEnvelope <- fileUploadService.getMaybeEnvelope(envelopeId)
       maybeFormExceptSubmitted = maybeEnvelope
     } yield maybeFormExceptSubmitted
 
@@ -409,9 +408,6 @@ class FormController(
 
   def envelopeF(envelopeId: EnvelopeId)(implicit headerCarrier: HeaderCarrier): Future[Envelope] =
     fileUploadService.getEnvelope(envelopeId)
-
-  def getMaybeEnvelopeF(envelopeId: EnvelopeId)(implicit headerCarrier: HeaderCarrier): Future[Option[Envelope]] =
-    fileUploadService.getMaybeEnvelope(envelopeId)
 
   def validate(
     formDataRecalculated: FormDataRecalculated,
