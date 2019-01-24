@@ -194,8 +194,8 @@ class ComponentsValidator(
         validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => ().valid)
       case DateConstraints(dateConstraintList) =>
         val result = dateConstraintList.map {
-          case DateConstraint(beforeOrAfter, dateConstrInfo, offsetDate) =>
-            (beforeOrAfter, dateConstrInfo, offsetDate) match {
+          case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) =>
+            (beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) match {
 
               case (Before, Today, offset) =>
                 validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
@@ -223,20 +223,22 @@ class ComponentsValidator(
                           )(isBeforeConcreteDate))
                   }
 
-              case (beforeOrAfter @ _, DateField(fieldId), offset) => {
+              case (beforeOrAfterOrPrecisely @ _, DateField(fieldId), offset) => {
 
                 lazy val validateOtherDate = validateInputDate(fieldValue, fieldId, None, data)
 
                 lazy val validatedThisDate = validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
 
-                val beforeOrAfterString = beforeOrAfter match {
-                  case After  => localisation("after")
-                  case Before => localisation("before")
+                val beforeOrAfterOrPreciselyString = beforeOrAfterOrPrecisely match {
+                  case After     => localisation("after")
+                  case Before    => localisation("before")
+                  case Precisely => localisation("precisely")
                 }
 
-                val beforeOrAfterFunction = beforeOrAfter match {
-                  case After  => isAfterConcreteDate _
-                  case Before => isBeforeConcreteDate _
+                val beforeOrAfterOrPreciselyFunction = beforeOrAfterOrPrecisely match {
+                  case After     => isAfterConcreteDate _
+                  case Before    => isBeforeConcreteDate _
+                  case Precisely => isPreciselyConcreteDate _
                 }
 
                 validateOtherDate.andThen { otherLocalDate =>
@@ -246,9 +248,12 @@ class ComponentsValidator(
                       thisLocalDate,
                       otherLocalDate,
                       offset,
-                      Map(fieldValue.id ->
-                        errors(fieldValue, s"should be $beforeOrAfterString ${dateWithOffset(otherLocalDate, offset)}"))
-                    )(beforeOrAfterFunction)
+                      Map(
+                        fieldValue.id ->
+                          errors(
+                            fieldValue,
+                            s"should be $beforeOrAfterOrPreciselyString ${dateWithOffset(otherLocalDate, offset)}"))
+                    )(beforeOrAfterOrPreciselyFunction)
                   }
                 }
               }
@@ -638,6 +643,12 @@ class ComponentsValidator(
 
   def isBeforeConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean =
     date.isBefore(concreteDay.plusDays(offset.value.toLong))
+
+  def isPreciselyToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
+    date.isEqual(now.apply().plusDays(offset.value.toLong))
+
+  def isPreciselyConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isEqual(concreteDay.plusDays(offset.value.toLong))
 
   def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedLocalDate =
     Try(LocalDate.of(concreteDate.year, concreteDate.month, concreteDate.day)) match {
