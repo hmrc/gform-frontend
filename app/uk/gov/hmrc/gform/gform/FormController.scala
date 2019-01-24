@@ -176,11 +176,8 @@ class FormController(
     implicit request => cache =>
       val noAccessCode = Option.empty[AccessCode]
       for {
-        (formId, wasFormFound, wasEnvelopeFound) <- getOrStartForm(
-                                                     formTemplateId,
-                                                     cache.retrievals.userDetails,
-                                                     noAccessCode)
-        result <- if (wasFormFound && wasEnvelopeFound) {
+        (formId, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals.userDetails, noAccessCode)
+        result <- if (wasFormFound) {
                    Ok(continue_form_page(cache.formTemplate, noAccessCode, lang, frontendAppConfig)).pure[Future]
                  } else {
                    for {
@@ -250,7 +247,18 @@ class FormController(
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
-      maybeFormExceptSubmitted
+      maybeFormExceptSubmitted <- {
+        maybeFormExceptSubmitted match {
+          case None => None.pure[Future]
+          case Some(f) => {
+            val e = getEnvelope(f.envelopeId)
+            e.map {
+              case Some(x) => Some(f)
+              case None    => None
+            }
+          }
+        }
+      }
     } yield maybeFormExceptSubmitted
 
   private def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
@@ -282,26 +290,13 @@ class FormController(
   private def getOrStartForm(
     formTemplateId: FormTemplateId,
     userDetails: UserDetails,
-    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(FormId, Boolean, Boolean)] =
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(FormId, Boolean)] =
     for {
       maybeFormExceptSubmitted <- getForm(FormId(userDetails, formTemplateId, None))
-      maybeForExceptSubmittedOrNoEnvelope <- {
-          maybeFormExceptSubmitted match {
-          case None => None.pure[Future]
-          case Some(f) => {
-            val e = getEnvelope(f.envelopeId)
-            e.map {
-              case Some(x) => Some(f)
-              case None    => None
-            }
-          }
-        }
-      }
       formId <- {
-        maybeForExceptSubmittedOrNoEnvelope.fold(startFreshForm(formTemplateId, userDetails, maybeAccessCode))(
-          _._id.pure[Future])
+        maybeFormExceptSubmitted.fold(startFreshForm(formTemplateId, userDetails, maybeAccessCode))(_._id.pure[Future])
       }
-    } yield (formId, maybeFormExceptSubmitted.isDefined, maybeForExceptSubmittedOrNoEnvelope.isDefined)
+    } yield (formId, maybeFormExceptSubmitted.isDefined)
 
   def form(
     formTemplateId: FormTemplateId,
