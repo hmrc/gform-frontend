@@ -38,10 +38,24 @@ trait DateValueGen {
       day   <- Gen.posNum[Int]
     } yield PreviousDateValue(month, day)
 
+  def firstDayValueGen: Gen[FirstDayValue] =
+    for {
+      year  <- Gen.posNum[Int]
+      month <- Gen.posNum[Int]
+    } yield FirstDayValue(year, month)
+
+  def lastDayValueGen: Gen[LastDayValue] =
+    for {
+      year  <- Gen.posNum[Int]
+      month <- Gen.posNum[Int]
+    } yield LastDayValue(year, month)
+
   def dateValueGen: Gen[DateValue] = Gen.oneOf(
     Gen.const(TodayDateValue),
     exactDateValueGen,
     nextDateValueGen,
+    firstDayValueGen,
+    lastDayValueGen,
     previousDateValueGen
   )
 }

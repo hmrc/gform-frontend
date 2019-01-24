@@ -38,18 +38,22 @@ object DateConstraintType {
   implicit val format: OFormat[DateConstraintType] = derived.oformat[DateConstraintType]
 }
 
-final case class DateConstraint(beforeOrAfter: BeforeOrAfter, dateFormat: DateConstraintInfo, offset: OffsetDate)
+final case class DateConstraint(
+  beforeAfterPrecisely: BeforeAfterPrecisely,
+  dateFormat: DateConstraintInfo,
+  offset: OffsetDate)
 
 object DateConstraint {
   implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]
 }
 
-sealed trait BeforeOrAfter
-case object After extends BeforeOrAfter
-case object Before extends BeforeOrAfter
+sealed trait BeforeAfterPrecisely
+case object After extends BeforeAfterPrecisely
+case object Before extends BeforeAfterPrecisely
+case object Precisely extends BeforeAfterPrecisely
 
-object BeforeOrAfter {
-  implicit val format: OFormat[BeforeOrAfter] = derived.oformat[BeforeOrAfter]
+object BeforeAfterPrecisely {
+  implicit val format: OFormat[BeforeAfterPrecisely] = derived.oformat[BeforeAfterPrecisely]
 }
 
 sealed trait DateConstraintInfo
