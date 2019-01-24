@@ -110,30 +110,31 @@ class SummaryController(
                    )
         } yield result
 
-        lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
-          data =>
-            val originSection = new Origin(cache.formTemplate.sections, data).minSectionNumber
-            val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
-            maybeAccessCode match {
-              case (Some(accessCode)) =>
-                Ok(
-                  save_with_access_code(
-                    accessCode,
-                    cache.formTemplate,
-                    originSection,
-                    originSectionTitle4Ga,
-                    lang,
-                    frontendAppConfig))
-              case _ =>
-                Ok(
-                  save_acknowledgement(
-                    cache.formTemplate,
-                    originSection,
-                    originSectionTitle4Ga,
-                    lang,
-                    frontendAppConfig))
-            }
-        }
+        lazy val handleExit =
+          recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId).map {
+            data =>
+              val originSection = new Origin(cache.formTemplate.sections, data).minSectionNumber
+              val originSectionTitle4Ga = sectionTitle4GaFactory(cache.formTemplate.sections(originSection.value).title)
+              maybeAccessCode match {
+                case (Some(accessCode)) =>
+                  Ok(
+                    save_with_access_code(
+                      accessCode,
+                      cache.formTemplate,
+                      originSection,
+                      originSectionTitle4Ga,
+                      lang,
+                      frontendAppConfig))
+                case _ =>
+                  Ok(
+                    save_acknowledgement(
+                      cache.formTemplate,
+                      originSection,
+                      originSectionTitle4Ga,
+                      lang,
+                      frontendAppConfig))
+              }
+          }
 
         get(dataRaw, FormComponentId("save")) match {
           case "Exit" :: Nil        => handleExit
@@ -173,7 +174,7 @@ class SummaryController(
       sections.filter(data.isVisible)
 
     for {
-      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals)
+      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, cache.form.envelopeId)
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
       allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
@@ -199,7 +200,7 @@ class SummaryController(
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
     for {
-      data     <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals)
+      data     <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
       envelope <- envelopeF
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield

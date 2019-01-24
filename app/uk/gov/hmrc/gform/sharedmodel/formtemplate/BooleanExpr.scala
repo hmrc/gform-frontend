@@ -22,9 +22,11 @@ import cats.syntax.flatMap._
 import cats.syntax.applicative._
 import julienrf.json.derived
 import play.api.libs.json._
+
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator }
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -81,7 +83,8 @@ class BooleanExprEval[F[_]: Monad](
         }
 
       val fcId = FormComponentId("dummy")
-      evaluator.makeCalc(visSet, fcId, data, leftField, rightField, retrievals, formTemplate, doComparison)
+      evaluator
+        .makeCalc(visSet, fcId, data, leftField, rightField, retrievals, formTemplate, doComparison, EnvelopeId(""))
     }
 
     expr match {

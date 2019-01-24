@@ -117,7 +117,7 @@ class FormController(
       {
         for {
           (maybeAccessCode, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals.userDetails, None)
-          data                            <- recalculation.recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals)
+          data                            <- recalculation.recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals, EnvelopeId(""))
         } yield
           if (wasFormFound) {
             Ok(continue_form_page(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig))
@@ -138,7 +138,8 @@ class FormController(
               val maybeAccessCode: Option[AccessCode] = accessCodeF.accessCode.map(a => AccessCode(a))
               for {
                 maybeForm <- getForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
-                data      <- recalculation.recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals)
+                data <- recalculation
+                         .recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals, EnvelopeId(""))
               } yield
                 maybeForm match {
                   case Some(_) =>
@@ -218,7 +219,7 @@ class FormController(
     val dataRaw: Map[FormComponentId, Seq[String]] = FormDataHelpers.formDataMap(cache.form.formData)
 
     for {
-      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals)
+      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, cache.form.envelopeId)
       sections = RepeatingComponentService.getAllSections(formTemplate, data)
       (errors, v, envelope) <- validator(
                                 data,
@@ -309,7 +310,7 @@ class FormController(
             BadRequest(continue_form_page(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)).pure[Future], {
             case "continue" =>
               recalculation
-                .recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals)
+                .recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
                 .map(data => redirectOrigin(maybeAccessCode, cache.retrievals, cache.formTemplate, data, lang))
             case "delete" =>
               Ok(confirm_delete(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)).pure[Future]
@@ -566,7 +567,8 @@ class FormController(
       val userDetails = cache.retrievals.userDetails
 
       val dataAndSections: Future[(FormDataRecalculated, List[Section])] = for {
-        formDataRecalculated <- recalculation.recalculateFormData(data, cache.formTemplate, retrievals)
+        formDataRecalculated <- recalculation
+                                 .recalculateFormData(data, cache.formTemplate, retrievals, cache.form.envelopeId)
       } yield {
         val sections = RepeatingComponentService.getAllSections(cache.formTemplate, formDataRecalculated)
         (formDataRecalculated, sections)
