@@ -223,7 +223,6 @@ class ComponentsValidator(
                   }
 
               case (beforeOrAfterOrPrecisely @ _, DateField(fieldId), offset) => {
-
                 lazy val validateOtherDate = validateInputDate(fieldValue, fieldId, None, data)
 
                 lazy val validatedThisDate = validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
@@ -284,6 +283,35 @@ class ComponentsValidator(
                                 s"should be after ${dateWithOffset(concreteDate, offset)}"))
                           )(isAfterConcreteDate))
                   }
+
+              case (Precisely, Today, offset) =>
+                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+                  .andThen(
+                    inputDate =>
+                      validateToday(
+                        fieldValue,
+                        inputDate,
+                        offset,
+                        Map(fieldValue.id -> errors(fieldValue, "should be precisely today")))(isPreciselyToday))
+
+              case (Precisely, concreteDate: ConcreteDate, offset) =>
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
+                  .andThen { concreteDate =>
+                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+                      .andThen(
+                        inputDate =>
+                          validateConcreteDate(
+                            fieldValue,
+                            inputDate,
+                            concreteDate,
+                            offset,
+                            Map(
+                              fieldValue.id -> errors(
+                                fieldValue,
+                                s"should be precisely ${dateWithOffset(concreteDate, offset)}"))
+                          )(isPreciselyConcreteDate))
+                  }
+
             }
 
         }
@@ -647,6 +675,9 @@ class ComponentsValidator(
     date.isEqual(now.apply().plusDays(offset.value.toLong))
 
   def isPreciselyConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isEqual(concreteDay.plusDays(offset.value.toLong))
+
+  def isPreciselyLast(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean =
     date.isEqual(concreteDay.plusDays(offset.value.toLong))
 
   def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedLocalDate =
