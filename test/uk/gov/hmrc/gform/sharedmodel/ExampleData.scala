@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import java.time.{ LocalDate, LocalDateTime }
+
 import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
@@ -448,13 +450,16 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def envelope = Envelope(Nil)
 
+  def envelopeExpiryDate = Some(EnvelopeExpiryDate(LocalDateTime.now.plusDays(1).withNano(0)))
+
   def form = Form(
     formId,
     envelopeId,
     userId,
     formTemplateId,
     formData,
-    InProgress
+    InProgress,
+    envelopeExpiryDate
   )
 
 }

@@ -23,6 +23,7 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
+envelopeExpiryDate: String,
     formTemplate: FormTemplate,
     call: Call,
     lang: Option[String],
@@ -40,7 +41,7 @@
 ) {
 <div class = "transaction-banner--complete">
     <h1 class ="transaction-banner__heading">@heading</h1>
-    <p>Your information is held for 30 days in a secured environment.</p>
+    <p>Your information is held </br> @envelopeExpiryDate in a secured environment.</p>
 </div>
 
 <p>You’ll need to log in to the sign-in page to retrieve your @formCategory(formTemplate).</p>
