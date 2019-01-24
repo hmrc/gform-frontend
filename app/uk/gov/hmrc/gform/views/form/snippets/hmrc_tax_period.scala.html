@@ -63,7 +63,7 @@ localisation("From")+" "+fromDate+" "+localisation("to")+" "+toDate
         }
 
         @inline_error_map(fieldValue, validationResult)
-
+        @if(options.size < 1){<div>There are no options to display for this user</div>}
         @for(option <- options) {
         <div class="multiple-choice">
             <input
