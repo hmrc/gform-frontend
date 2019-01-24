@@ -29,12 +29,13 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
 
 import scala.concurrent.Future
 
@@ -103,7 +104,8 @@ class AcknowledgementController(
     retrievals: MaterialisedRetrievals,
     hashedValue: String,
     formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]
+    data: Map[FormComponentId, Seq[String]],
+    envelopeId: Option[EnvelopeId]
   )(implicit hc: HeaderCarrier): Future[String] = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -134,7 +136,7 @@ class AcknowledgementController(
            |    <dt class="cya-question">
            |      Submission reference
            |    </dt>
-           |    <dd class="cya-answer">$ref</dd>
+           |    <dd class="cya-answer">${getSubmissionReference(envelopeId)}</dd>
            |    <dd></dd>
            |  </div>
            |  <div>

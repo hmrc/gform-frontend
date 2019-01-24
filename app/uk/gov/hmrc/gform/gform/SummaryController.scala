@@ -158,7 +158,7 @@ class SummaryController(
       sections.filter(data.isVisible)
 
     for {
-      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals)
+      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, Some(cache.form.envelopeId))
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
       allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
@@ -184,7 +184,8 @@ class SummaryController(
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
     for {
-      data     <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals)
+      data <- recalculation
+               .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, Some(cache.form.envelopeId))
       envelope <- envelopeF
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield

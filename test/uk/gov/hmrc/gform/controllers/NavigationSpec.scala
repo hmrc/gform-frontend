@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -65,7 +65,8 @@ class NavitagionSpec extends Spec with GraphSpec {
     val res = recalculation.recalculateFormData(
       formData.map { case (k, v) => k -> Seq(v) },
       mkFormTemplate(sectionsData),
-      ExampleData.authContext
+      ExampleData.authContext,
+      None
     )
     new Navigation {
       val sections: List[Section] = sectionsData
