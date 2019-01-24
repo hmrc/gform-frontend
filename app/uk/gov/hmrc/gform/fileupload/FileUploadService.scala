@@ -26,6 +26,9 @@ class FileUploadService(fileUploadConnector: FileUploadConnector) {
   def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Envelope] =
     fileUploadConnector.getEnvelope(envelopeId)
 
+  def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
+    fileUploadConnector.getMaybeEnvelope(envelopeId)
+
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier) =
     fileUploadConnector.deleteFile(envelopeId, fileId)
 

@@ -45,6 +45,7 @@ import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.fileupload.Available
 
 import scala.concurrent.Future
 
@@ -175,8 +176,11 @@ class FormController(
     implicit request => cache =>
       val noAccessCode = Option.empty[AccessCode]
       for {
-        (formId, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals.userDetails, noAccessCode)
-        result <- if (wasFormFound) {
+        (formId, wasFormFound, wasEnvelopeFound) <- getOrStartForm(
+                                                     formTemplateId,
+                                                     cache.retrievals.userDetails,
+                                                     noAccessCode)
+        result <- if (wasFormFound && wasEnvelopeFound) {
                    Ok(continue_form_page(cache.formTemplate, noAccessCode, lang, frontendAppConfig)).pure[Future]
                  } else {
                    for {
@@ -246,6 +250,13 @@ class FormController(
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
+      maybeFormExceptSubmitted
+    } yield maybeFormExceptSubmitted
+
+  private def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
+    for {
+      maybeEnvelope <- getMaybeEnvelopeF(envelopeId)
+      maybeFormExceptSubmitted = maybeEnvelope
     } yield maybeFormExceptSubmitted
 
   private def startFreshForm(
@@ -271,12 +282,26 @@ class FormController(
   private def getOrStartForm(
     formTemplateId: FormTemplateId,
     userDetails: UserDetails,
-    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(FormId, Boolean)] =
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(FormId, Boolean, Boolean)] =
     for {
       maybeFormExceptSubmitted <- getForm(FormId(userDetails, formTemplateId, None))
-      formId <- maybeFormExceptSubmitted.fold(startFreshForm(formTemplateId, userDetails, maybeAccessCode))(
-                 _._id.pure[Future])
-    } yield (formId, maybeFormExceptSubmitted.isDefined)
+      maybeForExceptSubmittedOrNoEnvelope <- {
+          maybeFormExceptSubmitted match {
+          case None => None.pure[Future]
+          case Some(f) => {
+            val e = getEnvelope(f.envelopeId)
+            e.map {
+              case Some(x) => Some(f)
+              case None    => None
+            }
+          }
+        }
+      }
+      formId <- {
+        maybeForExceptSubmittedOrNoEnvelope.fold(startFreshForm(formTemplateId, userDetails, maybeAccessCode))(
+          _._id.pure[Future])
+      }
+    } yield (formId, maybeFormExceptSubmitted.isDefined, maybeForExceptSubmittedOrNoEnvelope.isDefined)
 
   def form(
     formTemplateId: FormTemplateId,
@@ -389,6 +414,9 @@ class FormController(
 
   def envelopeF(envelopeId: EnvelopeId)(implicit headerCarrier: HeaderCarrier): Future[Envelope] =
     fileUploadService.getEnvelope(envelopeId)
+
+  def getMaybeEnvelopeF(envelopeId: EnvelopeId)(implicit headerCarrier: HeaderCarrier): Future[Option[Envelope]] =
+    fileUploadService.getMaybeEnvelope(envelopeId)
 
   def validate(
     formDataRecalculated: FormDataRecalculated,
