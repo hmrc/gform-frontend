@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gformbackend
 import akka.util.ByteString
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -135,15 +136,19 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /*** White Listing ***/ //TODO remove once internal Users have been through system.
   def whiteList(
-    currentUserEmail: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[String]] =
-    currentUserEmail.fold(
-      Future.successful(Option.empty[String])
-    )(
-      email =>
-        ws.POST[String, String](s"$baseUrl/white-list/users", email)
-          .map(Some(_))
-          .recover { case e: NotFoundException => None }
-    )
+    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[String]] =
+    retrievals match {
+      case AnonymousRetrievals(_) => Future.successful(Option.empty[String])
+      case mr: AuthenticatedRetrievals =>
+        mr.userDetails.email.fold(
+          Future.successful(Option.empty[String])
+        )(
+          email =>
+            ws.POST[String, String](s"$baseUrl/white-list/users", email)
+              .map(Some(_))
+              .recover { case e: NotFoundException => None }
+        )
+    }
 
   /****** Tax Period ******/
   def getAllTaxPeriods(htps: List[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =

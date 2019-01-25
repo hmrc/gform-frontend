@@ -110,6 +110,7 @@ object AuthModule {
 }
 
 sealed trait AuthConfig extends Product with Serializable
+case object Anonymous extends AuthConfig
 case class EeittModule(regimeId: RegimeId) extends AuthConfig
 case object HmrcSimpleModule extends AuthConfig
 case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig

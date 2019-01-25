@@ -31,10 +31,11 @@ import scala.language.higherKinds
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.models.ExpandUtils
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, IncludeIfGN, SimpleGN }
@@ -237,9 +238,13 @@ class Evaluator[F[_]: Monad](
       case Value => getSubmissionData(dataLookup, fcId)
       case UserCtx(Enrolment(ServiceName(sn), IdentifierName(in))) =>
         NonConvertible {
-          retrievals.enrolments.getEnrolment(sn).flatMap(_.getIdentifier(in)).map(_.value).getOrElse("").pure[F]
+          retrievals match {
+            case AnonymousRetrievals(_) => "".pure[F]
+            case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _) =>
+              enrolments.getEnrolment(sn).flatMap(_.getIdentifier(in)).map(_.value).getOrElse("").pure[F]
+          }
         }
-      case UserCtx(_)      => NonConvertible(affinityGroupNameO(retrievals.affinityGroup).pure[F])
+      case UserCtx(_)      => NonConvertible(affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)).pure[F])
       case AuthCtx(value)  => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
       case EeittCtx(eeitt) => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
       case Constant(fc)    => MaybeConvertible(fc.pure[F])

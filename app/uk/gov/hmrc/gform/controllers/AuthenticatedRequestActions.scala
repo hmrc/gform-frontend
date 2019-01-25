@@ -20,6 +20,7 @@ package controllers
 import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
+import java.util.UUID
 import play.api.Logger
 import play.api.http.HeaderNames
 import play.api.i18n.I18nSupport
@@ -32,6 +33,8 @@ import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
+import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
 import uk.gov.hmrc.auth.core.retrieve.v2._
@@ -40,8 +43,6 @@ import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriods }
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
 
 class AuthenticatedRequestActions(
   gformConnector: GformConnector,
@@ -55,7 +56,7 @@ class AuthenticatedRequestActions(
 ) extends AuthorisedFunctions {
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
-    Function.const {
+    _ => {
 
       val predicate = AuthProviders(AuthProvider.GovernmentGateway)
 
@@ -192,7 +193,7 @@ class AuthenticatedRequestActions(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
-      form        <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
+      form        <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
       obligations <- obligationService.lookupObligationsMultiple(formTemplate)
       result      <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
     } yield result
@@ -201,16 +202,16 @@ class AuthenticatedRequestActions(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
-      form   <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
+      form   <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
       result <- f(AuthCacheWithFormWithoutObligations(retrievals, form, formTemplate))
     } yield result
 
-  private def authUserWhitelist(retrievals: MaterialisedRetrievals)(
+  private def authUserWhitelist(retrievals: AuthenticatedRetrievals)(
     implicit
     hc: HeaderCarrier): Future[AuthResult] =
     if (frontendAppConfig.whitelistEnabled) {
       for {
-        isValid <- gformConnector.whiteList(retrievals.userDetails.email)
+        isValid <- gformConnector.whiteList(retrievals)
       } yield
         isValid match {
           case Some(idx) =>
@@ -231,8 +232,15 @@ class AuthenticatedRequestActions(
     implicit
     hc: HeaderCarrier): Future[Result] =
     result match {
-      case AuthSuccessful(retrievals)       => onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))
+      case AuthSuccessful(retrievals @ AnonymousRetrievals(_)) =>
+        onSuccess(retrievals)
+      case AuthSuccessful(retrievals @ AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _)) =>
+        onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
+      case AuthAnonymousSession(redirectUrl) =>
+        Redirect(redirectUrl)
+          .withSession(SessionKeys.sessionId -> s"anonymous-session-${UUID.randomUUID()}")
+          .pure[Future]
       case AuthRedirectFlashingFormName(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName).pure[Future]
       case AuthBlocked(message) =>
@@ -248,11 +256,11 @@ class AuthenticatedRequestActions(
 
   private def updateEnrolments(
     authConfig: AuthConfig,
-    retrievals: MaterialisedRetrievals,
-    request: Request[_]): MaterialisedRetrievals = {
+    retrievals: AuthenticatedRetrievals,
+    request: Request[_]): AuthenticatedRetrievals = {
     // the registrationNumber will be stored in the session by eeittAuth
     // is this needed for new form and existing form?
-    def updateFor(authBy: String): Option[MaterialisedRetrievals] =
+    def updateFor(authBy: String): Option[AuthenticatedRetrievals] =
       request.session.get(authBy).map { regNum =>
         val newEnrolment = Enrolment(EEITTAuthConfig.eeittAuth).withIdentifier(authBy, regNum)
         val newEnrolments = Enrolments(retrievals.enrolments.enrolments + newEnrolment)
@@ -295,7 +303,7 @@ class AuthenticatedRequestActions(
   private def ggAuthorised(
     request: Request[AnyContent]
   )(
-    authGivenRetrievals: MaterialisedRetrievals => Future[AuthResult]
+    authGivenRetrievals: AuthenticatedRetrievals => Future[AuthResult]
   )(
     recoverPF: PartialFunction[Throwable, AuthResult]
   )(
@@ -311,7 +319,7 @@ class AuthenticatedRequestActions(
         case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
           for {
             userDetails <- authConnector.getUserDetails(userDetailsUri.get)
-            retrievals = MaterialisedRetrievals(
+            retrievals = AuthenticatedRetrievals(
               authProviderId,
               enrolments,
               affinityGroup,

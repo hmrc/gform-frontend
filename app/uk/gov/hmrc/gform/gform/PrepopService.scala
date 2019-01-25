@@ -19,8 +19,7 @@ package uk.gov.hmrc.gform.gform
 import play.api.Logger
 import scala.util.control.NonFatal
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals._
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,10 +27,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 object AuthContextPrepop {
   def values(value: AuthInfo, retrievals: MaterialisedRetrievals): String = value match {
     case GG                     => retrievals.ggCredId
-    case PayeNino               => getTaxIdValue(None, "NINO", retrievals)
-    case SaUtr                  => getTaxIdValue(Some("IR-SA"), "UTR", retrievals)
-    case CtUtr                  => getTaxIdValue(Some("IR-CT"), "UTR", retrievals)
-    case EtmpRegistrationNumber => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
+    case PayeNino               => retrievals.getTaxIdValue(None, "NINO")
+    case SaUtr                  => retrievals.getTaxIdValue(Some("IR-SA"), "UTR")
+    case CtUtr                  => retrievals.getTaxIdValue(Some("IR-CT"), "UTR")
+    case EtmpRegistrationNumber => retrievals.getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber")
   }
 }
 

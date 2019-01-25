@@ -20,8 +20,46 @@ import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.LegacyCredentials
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
+import uk.gov.hmrc.http.logging.SessionId
 
-case class MaterialisedRetrievals(
+sealed trait MaterialisedRetrievals extends Product with Serializable {
+  def groupId = this match {
+    case AnonymousRetrievals(sessionId)                            => sessionId.value
+    case AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _) => userDetails.groupIdentifier
+  }
+
+  def ggCredId = this match {
+    case AuthenticatedRetrievals(GGCredId(credId), _, _, _, _, _, _, _) => credId
+    case _                                                              => ""
+  }
+
+  def renderSaveAndComeBackLater = this match {
+    case AnonymousRetrievals(_) => false
+    case _                      => true
+  }
+
+  def continueLabel = this match {
+    case AnonymousRetrievals(_) => "Continue"
+    case _                      => "Save and continue"
+  }
+
+  def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String) = this match {
+    case AnonymousRetrievals(_) => ""
+    case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _) =>
+      val maybeEnrolmentIdentifier = maybeEnrolment match {
+        case Some(enrolment) => enrolments.getEnrolment(enrolment).flatMap(_.getIdentifier(taxIdName))
+        case None            => enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(taxIdName))
+      }
+
+      maybeEnrolmentIdentifier match {
+        case Some(enrolmentId) => enrolmentId.value
+        case None              => ""
+      }
+  }
+}
+
+case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
+case class AuthenticatedRetrievals(
   authProviderId: LegacyCredentials,
   enrolments: Enrolments,
   affinityGroup: Option[AffinityGroup],
@@ -30,26 +68,13 @@ case class MaterialisedRetrievals(
   userDetails: UserDetails,
   credentialStrength: Option[String],
   agentCode: Option[String]
-) {
+) extends MaterialisedRetrievals {
   val affinityGroupName: String = affinityGroupNameO(affinityGroup)
-
-  val ggCredId = authProviderId match {
-    case GGCredId(credId) => credId
-    case _                => ""
-  }
 }
 
-object MaterialisedRetrievals {
-  def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String, retrievals: MaterialisedRetrievals) = {
-
-    val maybeEnrolmentIdentifier = maybeEnrolment match {
-      case Some(enrolment) => retrievals.enrolments.getEnrolment(enrolment).flatMap(_.getIdentifier(taxIdName))
-      case None            => retrievals.enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(taxIdName))
-    }
-
-    maybeEnrolmentIdentifier match {
-      case Some(enrolmentId) => enrolmentId.value
-      case None              => ""
-    }
+object IsAgent {
+  def unapply(materialisedRetrievals: MaterialisedRetrievals): Boolean = materialisedRetrievals match {
+    case AuthenticatedRetrievals(_, _, Some(AffinityGroup.Agent), _, _, _, _, _) => true
+    case _                                                                       => false
   }
 }
