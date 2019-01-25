@@ -70,7 +70,8 @@ case class AuthModule(
 case class JSConfig(
   timeoutEnabled: Boolean,
   timeout: Int,
-  countdown: Int
+  countdown: Int,
+  keepAliveUrl: String
 )
 
 case class FeatureToggle(emailEnabled: Boolean, concurrentAgentAccess: Boolean)
