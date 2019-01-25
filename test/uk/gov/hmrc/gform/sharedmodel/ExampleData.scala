@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -424,11 +424,14 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def userId = UserId("James007")
 
-  def formId =
-    FormId(
-      UserDetails(None, None, name = "Bond", affinityGroup = AffinityGroup.Individual, groupIdentifier = userId.value),
-      formTemplateId,
-      None)
+  def materialisedRetrievals = {
+    val legacyCredentials = OneTimeLogin
+    val userDetails =
+      UserDetails(None, None, name = "Bond", affinityGroup = AffinityGroup.Individual, groupIdentifier = userId.value)
+    AuthenticatedRetrievals(legacyCredentials, Enrolments(Set()), None, None, None, userDetails, None, None)
+  }
+
+  def formId = FormId(materialisedRetrievals, formTemplateId, None)
 
   def accessCode = AccessCode("1234-0000-ABCD")
 
@@ -456,7 +459,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 trait ExampleAuthContext {
 
   def authContext =
-    MaterialisedRetrievals(
+    AuthenticatedRetrievals(
       authProviderId = authProviderId,
       enrolments = enrolments,
       affinityGroup = affinityGroup,

@@ -17,10 +17,13 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 
 case class UserId(value: String)
 
 object UserId {
+
+  def apply(materialisedRetrievals: MaterialisedRetrievals): UserId = UserId(materialisedRetrievals.groupId)
 
   val oformat: OFormat[UserId] = ValueClassFormat.oformat("userId", UserId.apply, _.value)
   implicit val vformat: OFormat[UserId] = ValueClassFormat.oformat("userId", UserId.apply, _.value)

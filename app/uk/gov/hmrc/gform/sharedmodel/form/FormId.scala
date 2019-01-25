@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.auth.models.UserDetails
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
@@ -25,8 +25,13 @@ case class FormId(value: String)
 
 object FormId {
 
-  def apply(userDetails: UserDetails, formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): FormId = {
-    val userId = userDetails.groupIdentifier
+  def apply(
+    retrievals: MaterialisedRetrievals,
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]): FormId =
+    apply(retrievals.groupId, formTemplateId, maybeAccessCode)
+
+  def apply(userId: String, formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): FormId = {
     val ac = maybeAccessCode.map("-" + _.value).getOrElse("")
     new FormId(s"$userId-${formTemplateId.value}$ac")
   }

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -36,14 +36,14 @@ class EeittService(eeittConnector: EeittConnector) {
       case _                                                                             => RegimeId("")
     }
     for {
-      prepopData <- (eeitt, retrievals.affinityGroup) match {
-                     case (Agent, Some(AffinityGroup.Agent)) | (UserId, Some(AffinityGroup.Agent)) =>
-                       eeittConnector.prepopulationAgent(GroupId(retrievals.userDetails.groupIdentifier)).map(_.arn)
-                     case (BusinessUser, Some(AffinityGroup.Agent)) =>
+      prepopData <- (eeitt, retrievals) match {
+                     case (Agent, IsAgent()) | (UserId, IsAgent()) =>
+                       eeittConnector.prepopulationAgent(GroupId(retrievals)).map(_.arn)
+                     case (BusinessUser, IsAgent()) =>
                        Future.successful("")
                      case (BusinessUser, _) | (UserId, _) =>
                        eeittConnector
-                         .prepopulationBusinessUser(GroupId(retrievals.userDetails.groupIdentifier), regimeId)
+                         .prepopulationBusinessUser(GroupId(retrievals), regimeId)
                          .map(_.registrationNumber)
                      case _ =>
                        Future.successful("")

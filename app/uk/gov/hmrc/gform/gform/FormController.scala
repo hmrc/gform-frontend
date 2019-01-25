@@ -23,7 +23,7 @@ import cats.syntax.semigroup._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
@@ -81,12 +81,12 @@ class FormController(
 
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
-      val formId = FormId(cache.retrievals.userDetails, formTemplateId, None)
+      val formId = FormId(cache.retrievals, formTemplateId, None)
       for {
         maybeForm <- gformConnector.maybeForm(formId)
       } yield
-        (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup, maybeForm) match {
-          case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent), None) =>
+        (cache.formTemplate.draftRetrievalMethod, cache.retrievals, maybeForm) match {
+          case (Some(FormAccessCodeForAgents), IsAgent(), None) =>
             Ok(access_code_start(cache.formTemplate, AgentAccessCode.form, lang, frontendAppConfig))
           case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
         }
@@ -96,7 +96,7 @@ class FormController(
     implicit request => cache =>
       val accessCode = AccessCode(AgentAccessCode.random.value)
       for {
-        _ <- startForm(formTemplateId, cache.retrievals.userDetails, Some(accessCode))
+        _ <- startForm(formTemplateId, cache.retrievals, Some(accessCode))
       } yield
         Redirect(routes.FormController.showAccessCode(formTemplateId, lang))
           .flashing(AgentAccessCode.key -> accessCode.value)
@@ -116,7 +116,7 @@ class FormController(
     implicit request => cache =>
       {
         for {
-          (maybeAccessCode, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals.userDetails, None)
+          (maybeAccessCode, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals, None)
           data                            <- recalculation.recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals)
         } yield
           if (wasFormFound) {
@@ -137,7 +137,7 @@ class FormController(
             case AgentAccessCode.optionAccess => {
               val maybeAccessCode: Option[AccessCode] = accessCodeF.accessCode.map(a => AccessCode(a))
               for {
-                maybeForm <- getForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
+                maybeForm <- getForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
                 data      <- recalculation.recalculateFormData(Map.empty, cache.formTemplate, cache.retrievals)
               } yield
                 maybeForm match {
@@ -167,33 +167,35 @@ class FormController(
 
   private def startFreshForm(
     formTemplateId: FormTemplateId,
-    userDetails: UserDetails,
+    retrievals: MaterialisedRetrievals,
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Option[AccessCode]] =
     for {
-      _ <- gformConnector.newForm(formTemplateId, UserId(userDetails.groupIdentifier), maybeAccessCode)
+      _ <- gformConnector.newForm(formTemplateId, UserId(retrievals), maybeAccessCode)
     } yield maybeAccessCode
 
-  private def startForm(formTemplateId: FormTemplateId, userDetails: UserDetails, maybeAccessCode: Option[AccessCode])(
-    implicit hc: HeaderCarrier): Future[Option[AccessCode]] = {
-    val formId = FormId(userDetails, formTemplateId, None)
+  private def startForm(
+    formTemplateId: FormTemplateId,
+    retrievals: MaterialisedRetrievals,
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Option[AccessCode]] = {
+    val formId = FormId(retrievals, formTemplateId, None)
     def formIdAlreadyExists = Future.failed(new Exception(s"Form $formId already exists"))
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       maybeAccessCodeResult <- if (maybeForm.isDefined) formIdAlreadyExists
-                              else startFreshForm(formTemplateId, userDetails, maybeAccessCode)
+                              else startFreshForm(formTemplateId, retrievals, maybeAccessCode)
     } yield maybeAccessCodeResult
   }
 
   //true - it got the form, false - new form was created
   private def getOrStartForm(
     formTemplateId: FormTemplateId,
-    userDetails: UserDetails,
+    retrievals: MaterialisedRetrievals,
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(Option[AccessCode], Boolean)] =
     for {
-      maybeForm <- gformConnector.maybeForm(FormId(userDetails, formTemplateId, None))
+      maybeForm <- gformConnector.maybeForm(FormId(retrievals, formTemplateId, None))
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
       maybeNoAccessCode = maybeFormExceptSubmitted.map(_ => None.pure[Future])
-      maybeAccessCodeResult <- maybeNoAccessCode.getOrElse(startFreshForm(formTemplateId, userDetails, maybeAccessCode))
+      maybeAccessCodeResult <- maybeNoAccessCode.getOrElse(startFreshForm(formTemplateId, retrievals, maybeAccessCode))
     } yield (maybeAccessCodeResult, maybeFormExceptSubmitted.isDefined)
 
   private type Validator = (
@@ -324,10 +326,10 @@ class FormController(
     lang: Option[String]): Action[AnyContent] =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       gformConnector
-        .deleteForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
+        .deleteForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
         .map(_ =>
-          (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
-            case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
+          (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+            case (Some(FormAccessCodeForAgents), IsAgent()) =>
               Redirect(routes.FormController.newFormAgent(formTemplateId, lang))
             case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
         })
@@ -399,16 +401,14 @@ class FormController(
                        }
         } yield formData
 
-      def processSaveAndContinue(
-        data: FormDataRecalculated,
-        sections: List[Section],
-        userDetails: UserDetails,
-        form: Form,
-        sn: SectionNumber)(implicit hc: HeaderCarrier): Future[Result] =
+      def processSaveAndContinue(data: FormDataRecalculated, sections: List[Section], form: Form, sn: SectionNumber)(
+        implicit hc: HeaderCarrier): Future[Result] =
         for {
           (isFormValid, formData) <- validateForm(data, sections, sectionNumber)
           _ <- gformConnector
-                .updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), UserData(formData, InProgress))
+                .updateUserData(
+                  FormId(cache.retrievals, formTemplateId, maybeAccessCode),
+                  UserData(formData, InProgress))
         } yield {
           val sectionTitle4Ga = sectionTitle4GaFactory(sections(sn.value).title)
           val gotoForm = routes.FormController
@@ -423,7 +423,6 @@ class FormController(
         data: FormDataRecalculated,
         sections: List[Section],
         navigation: Navigation,
-        userDetails: UserDetails,
         form: Form)(implicit hc: HeaderCarrier): Future[Result] = {
 
         val fastForwardValidate: Future[Option[SectionNumber]] =
@@ -459,7 +458,7 @@ class FormController(
               for {
                 (_, formData) <- validateForm(data, sections, sectionNumber)
                 userData = UserData(formData, status)
-                _ <- gformConnector.updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
+                _ <- gformConnector.updateUserData(FormId(cache.retrievals, formTemplateId, maybeAccessCode), userData)
               } yield Redirect(url)
           }
       }
@@ -467,7 +466,6 @@ class FormController(
       def processSaveAndExit(
         data: FormDataRecalculated,
         sections: List[Section],
-        userDetails: UserDetails,
         form: Form,
         envelopeId: EnvelopeId): Future[Result] =
         for {
@@ -476,7 +474,7 @@ class FormController(
           originSection = new Origin(sections, data).minSectionNumber
           sectionTitle4Ga = sectionTitle4GaFactory(sections(originSection.value).title)
           result <- gformConnector
-                     .updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
+                     .updateUserData(FormId(cache.retrievals, formTemplateId, maybeAccessCode), userData)
                      .map(
                        response =>
                          maybeAccessCode match {
@@ -501,18 +499,13 @@ class FormController(
                      )
         } yield result
 
-      def processBack(
-        data: FormDataRecalculated,
-        sections: List[Section],
-        userDetails: UserDetails,
-        form: Form,
-        sn: SectionNumber): Future[Result] =
+      def processBack(data: FormDataRecalculated, sections: List[Section], sn: SectionNumber): Future[Result] =
         for {
           (_, formData) <- validateForm(data, sections, sectionNumber)
           userData = UserData(formData, InProgress)
           sectionTitle4Ga = sectionTitle4GaFactory(sections(sn.value).title)
           result <- gformConnector
-                     .updateUserData(FormId(userDetails, formTemplateId, maybeAccessCode), userData)
+                     .updateUserData(FormId(cache.retrievals, formTemplateId, maybeAccessCode), userData)
                      .map(response =>
                        Redirect(routes.FormController.form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, lang)))
         } yield result
@@ -526,7 +519,7 @@ class FormController(
           (groupFormData, anchor) = addNextGroup(findFormComponent(groupComponentId, sections), formData, data)
           userData = UserData(formData |+| groupFormData, InProgress)
           _ <- gformConnector
-                .updateUserData(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode), userData)
+                .updateUserData(FormId(cache.retrievals, formTemplateId, maybeAccessCode), userData)
           sectionTitle4Ga = sectionTitle4GaFactory(sections(sectionNumber.value).title)
         } yield
           Redirect(
@@ -556,7 +549,7 @@ class FormController(
           formData = FormData(errors.toMap.values.toSeq.flatMap(_.toFormField))
           userData = UserData(formData, InProgress)
           _ <- gformConnector
-                .updateUserData(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode), userData)
+                .updateUserData(FormId(cache.retrievals, formTemplateId, maybeAccessCode), userData)
           sectionTitle4Ga = sectionTitle4GaFactory(sections(sectionNumber.value).title)
         } yield
           Redirect(
@@ -565,8 +558,6 @@ class FormController(
               .url
           )
       }
-
-      val userDetails = cache.retrievals.userDetails
 
       val dataAndSections: Future[(FormDataRecalculated, List[Section])] = for {
         formDataRecalculated <- recalculation.recalculateFormData(data, cache.formTemplate, retrievals)
@@ -579,13 +570,13 @@ class FormController(
         (data, sections) <- dataAndSections
         nav = new Navigator(sectionNumber, sections, data).navigate
         res <- nav match {
-                case SaveAndContinue(sn) => processSaveAndContinue(data, sections, userDetails, cache.form, sn)
-                case SaveAndExit         => processSaveAndExit(data, sections, userDetails, cache.form, cache.form.envelopeId)
-                case Back(sn)            => processBack(data, sections, userDetails, cache.form, sn)
+                case SaveAndContinue(sn) => processSaveAndContinue(data, sections, cache.form, sn)
+                case SaveAndExit         => processSaveAndExit(data, sections, cache.form, cache.form.envelopeId)
+                case Back(sn)            => processBack(data, sections, sn)
                 case SaveAndSummary(navigation) =>
-                  processSaveAndSummary(data, sections, navigation, userDetails, cache.form)
+                  processSaveAndSummary(data, sections, navigation, cache.form)
                 case BackToSummary(navigation) =>
-                  processSaveAndSummary(data, sections, navigation, userDetails, cache.form)
+                  processSaveAndSummary(data, sections, navigation, cache.form)
                 case AddGroup(groupId)         => processAddGroup(data, sections, groupId)
                 case RemoveGroup(idx, groupId) => processRemoveGroup(data, sections, idx, groupId)
               }

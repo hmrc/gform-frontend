@@ -28,6 +28,8 @@
     maybeAccessCode: Option[AccessCode],
     formCategory: FormCategory,
     lang: Option[String],
+    renderComeBackLater: Boolean,
+    continueLabel: String,
     frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_],
         messages: Messages
@@ -81,12 +83,14 @@
 
         <div class="print-hidden">
             <div class="form-group">
-                <button type="submit" class="button" value="Declaration">Save and continue</button>
+                <button type="submit" class="button" value="Declaration">@continueLabel</button>
             </div>
             <div class="js-visible">
-                <div class="form-group">
-                    <a href="#" id="saveComeBackLaterExit">Save and come back later</a>
-                </div>
+		@if(renderComeBackLater) {
+		  <div class="form-group">
+		    <a href="#" id="saveComeBackLaterExit">Save and come back later</a>
+                  </div>
+		}
             </div>
         </div>
     </form>
