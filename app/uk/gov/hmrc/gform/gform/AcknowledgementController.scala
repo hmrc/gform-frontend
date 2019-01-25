@@ -24,7 +24,6 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals.getTaxIdValue
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -82,11 +81,11 @@ class AcknowledgementController(
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
-          submission  <- gformConnector.submissionStatus(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
+          submission  <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
-          htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)
-          pdfStream <- pdfService.generatePDF(htmlForPDF)
+          htmlForPDF  <- addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)
+          pdfStream   <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
           body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
@@ -115,7 +114,7 @@ class AcknowledgementController(
       case (_, Some(textExpression)) =>
         authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
       case (EeittModule(_), None) => Future.successful(authService.eeitReferenceNumber(retrievals))
-      case (_, None)              => Future.successful(getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals))
+      case (_, None)              => Future.successful(retrievals.getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber"))
     }
 
     referenceNumber.map { ref =>

@@ -22,9 +22,11 @@ import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.cache.client.NoSessionException
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
@@ -46,6 +48,11 @@ class AuthService(
     implicit hc: HeaderCarrier
   ): Future[AuthResult] =
     formTemplate.authConfig match {
+      case Anonymous =>
+        hc.sessionId
+          .fold[AuthResult](AuthAnonymousSession(gform.routes.FormController.dashboard(formTemplate._id, lang)))(
+            sessionId => AuthSuccessful(AnonymousRetrievals(sessionId)))
+          .pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
       case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -86,8 +93,7 @@ class AuthService(
           }
         }
 
-        val showEnrolment = AuthRedirect(
-          uk.gov.hmrc.gform.gform.routes.EnrolmentController.showEnrolment(formTemplate._id, lang).url)
+        val showEnrolment = AuthRedirect(gform.routes.EnrolmentController.showEnrolment(formTemplate._id, lang).url)
 
         val recoverPF = needEnrolment match {
           case RequireEnrolment(enrolmentSection) => RecoverAuthResult.redirectToEnrolmentSection(showEnrolment)
@@ -97,7 +103,7 @@ class AuthService(
           predicate <- predicateF
           result <- ggAuthorised(recoverPF)(predicate).map { authResult =>
                      (authResult, enrolmentPostCheck) match {
-                       case (AuthSuccessful(retrievals), RegimeIdCheck(regimeId)) =>
+                       case (AuthSuccessful(retrievals: AuthenticatedRetrievals), RegimeIdCheck(regimeId)) =>
                          enrolmentCheckPredicate match {
                            case ForNonAgents if retrievals.affinityGroup.contains(AffinityGroup.Agent) => authResult
                            case ForNonAgents | Always =>
@@ -137,8 +143,9 @@ class AuthService(
     continuation: AuthResult => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
-        case ggSuccessfulAuth @ AuthSuccessful(retrievals) if retrievals.affinityGroup.contains(AffinityGroup.Agent) =>
-          ggAgentAuthorise(agentAccess, formTemplate, retrievals.enrolments, lang) match {
+        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, enrolments, affinityGroup, _, _, _, _, _))
+            if affinityGroup.contains(AffinityGroup.Agent) =>
+          ggAgentAuthorise(agentAccess, formTemplate, enrolments, lang) match {
             case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
             case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
             case HMRCAgentAuthorisationFailed(agentSubscribeUrl) => AuthRedirect(agentSubscribeUrl)
@@ -155,8 +162,8 @@ class AuthService(
   )(implicit hc: HeaderCarrier): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .flatMap {
-        case ggSuccessfulAuth @ AuthSuccessful(retrievals) =>
-          eeittDelegate.authenticate(regimeId, retrievals.userDetails, requestUri).map {
+        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _)) =>
+          eeittDelegate.authenticate(regimeId, userDetails, requestUri).map {
             case EeittAuthorisationSuccessful            => ggSuccessfulAuth
             case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormName(eeittLoginUrl)
           }
@@ -184,18 +191,21 @@ class AuthService(
           routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName, lang).url)
     }
 
-  def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String = {
+  def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String =
+    retrievals match {
+      case AnonymousRetrievals(_) => ""
+      case AuthenticatedRetrievals(_, enrolments, _, _, _, userDetails, _, _) =>
+        val identifier = userDetails.affinityGroup match {
+          case AffinityGroup.Agent => EEITTAuthConfig.agentIdName
+          case _                   => EEITTAuthConfig.nonAgentIdName
+        }
 
-    val identifier = retrievals.userDetails.affinityGroup match {
-      case AffinityGroup.Agent => EEITTAuthConfig.agentIdName
-      case _                   => EEITTAuthConfig.nonAgentIdName
+        enrolments
+          .getEnrolment(EEITTAuthConfig.eeittAuth)
+          .flatMap(_.getIdentifier(identifier))
+          .fold("")(_.value)
+
     }
-
-    retrievals.enrolments
-      .getEnrolment(EEITTAuthConfig.eeittAuth)
-      .flatMap(_.getIdentifier(identifier))
-      .fold("")(_.value)
-  }
 
   def evaluateSubmissionReference(
     expression: TextExpression,

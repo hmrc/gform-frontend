@@ -72,13 +72,10 @@ class AuthServiceSpec extends Spec with ExampleData {
 
   val legacyCredentials = OneTimeLogin
 
-  val materialisedRetrievals =
-    MaterialisedRetrievals(legacyCredentials, enrolments, None, None, None, userDetails, None, None)
-
   val getAffinityGroup: Unit => Future[Option[AffinityGroup]] = const(Future.successful(None))
 
   val materialisedRetrievalsAgent =
-    MaterialisedRetrievals(
+    AuthenticatedRetrievals(
       legacyCredentials,
       enrolments,
       Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent),
@@ -89,7 +86,7 @@ class AuthServiceSpec extends Spec with ExampleData {
       None)
 
   val materialisedRetrievalsEnrolledAgent =
-    MaterialisedRetrievals(
+    AuthenticatedRetrievals(
       legacyCredentials,
       Enrolments(Set(Enrolment("HMRC-AS-AGENT"))),
       Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent),
@@ -100,7 +97,7 @@ class AuthServiceSpec extends Spec with ExampleData {
       None)
 
   val materialisedRetrievalsOrganisation =
-    MaterialisedRetrievals(
+    AuthenticatedRetrievals(
       legacyCredentials,
       enrolments,
       Some(uk.gov.hmrc.auth.core.AffinityGroup.Organisation),
@@ -111,7 +108,7 @@ class AuthServiceSpec extends Spec with ExampleData {
       None)
 
   val materialisedRetrievalsIndividual =
-    MaterialisedRetrievals(
+    AuthenticatedRetrievals(
       legacyCredentials,
       enrolments,
       Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual),

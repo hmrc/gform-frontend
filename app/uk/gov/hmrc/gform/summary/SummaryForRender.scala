@@ -20,6 +20,7 @@ import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -43,6 +44,7 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     envelope: Envelope,
     lang: Option[String],
+    retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig
   )(
     implicit
@@ -50,7 +52,16 @@ object SummaryRenderingService {
     messages: Messages): Html = {
     val sfr =
       summaryForRender(validatedType, formFields, maybeAccessCode, formTemplate, envelope, lang)
-    summary(formTemplate, sfr, maybeAccessCode, formTemplate.formCategory.getOrElse(Default), lang, frontendAppConfig)
+    summary(
+      formTemplate,
+      sfr,
+      maybeAccessCode,
+      formTemplate.formCategory.getOrElse(Default),
+      lang,
+      retrievals.renderSaveAndComeBackLater,
+      retrievals.continueLabel,
+      frontendAppConfig
+    )
   }
 
   def summaryForRender(

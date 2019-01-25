@@ -33,7 +33,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -160,18 +160,8 @@ class SectionRenderingService(
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
 
     val originSection = new Origin(formTemplate.sections, fieldData).minSectionNumber
-    val snippetsForFields = section.fields.map(
-      fieldValue =>
-        htmlFor(
-          fieldValue,
-          formTemplate._id,
-          0,
-          ei,
-          fieldData,
-          retrievals.userDetails,
-          validatedType,
-          lang,
-          fieldValue.onlyShowOnSummary))
+    val snippetsForFields = section.fields.map(fieldValue =>
+      htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, validatedType, lang, fieldValue.onlyShowOnSummary))
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
       maybeAccessCode,
@@ -183,8 +173,8 @@ class SectionRenderingService(
       javascript,
       envelopeId,
       actionForm,
-      true,
-      section.continueLabel.getOrElse("Save and continue"),
+      retrievals.renderSaveAndComeBackLater,
+      section.continueLabel.getOrElse(retrievals.continueLabel),
       formMaxAttachmentSizeMB,
       contentTypes,
       section.progressIndicator
@@ -285,7 +275,7 @@ class SectionRenderingService(
     val listResult = errors.map { case (_, validationResult) => validationResult }
 
     val snippets = formTemplate.declarationSection.fields.map(fieldValue =>
-      htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, retrievals.userDetails, validatedType, lang))
+      htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, validatedType, lang))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -345,15 +335,7 @@ class SectionRenderingService(
       snippets <- Future.traverse(formTemplate.acknowledgementSection.fields)(
                    fieldValue =>
                      Future.successful(
-                       htmlFor(
-                         fieldValue,
-                         formTemplate._id,
-                         0,
-                         ei,
-                         FormDataRecalculated.empty,
-                         retrievals.userDetails,
-                         Valid(()),
-                         lang)))
+                       htmlFor(fieldValue, formTemplate._id, 0, ei, FormDataRecalculated.empty, Valid(()), lang)))
       renderingInfo = SectionRenderingInformation(
         formTemplate._id,
         maybeAccessCode,
@@ -403,7 +385,7 @@ class SectionRenderingService(
     val listResult = errors.map { case (_, validationResult) => validationResult }
     val snippets =
       enrolmentSection.fields.map(fieldValue =>
-        htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, retrievals.userDetails, validatedType, lang))
+        htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, validatedType, lang))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -447,7 +429,6 @@ class SectionRenderingService(
     index: Int,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    userDetails: UserDetails,
     maybeValidated: ValidatedType,
     lang: Option[String],
     isHidden: Boolean = false)(implicit request: Request[_], messages: Messages): Html =
@@ -474,7 +455,7 @@ class SectionRenderingService(
           ei,
           data)
       case FileUpload() =>
-        htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, userDetails, maybeValidated, lang)
+        htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, ei.retrievals, maybeValidated, lang)
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
     }
@@ -495,13 +476,13 @@ class SectionRenderingService(
     index: Int,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    userDetails: UserDetails,
+    materialisedRetrievals: MaterialisedRetrievals,
     validatedType: ValidatedType,
     lang: Option[String]) = {
     val validationResult = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
 
     html.form.snippets.field_template_file_upload(
-      FormId(userDetails, formTemplateId, ei.maybeAccessCode),
+      FormId(materialisedRetrievals, formTemplateId, ei.maybeAccessCode),
       ei.maybeAccessCode,
       formTemplateId,
       ei.sectionNumber,
@@ -784,8 +765,7 @@ class SectionRenderingService(
         .map {
           case (gl, count) =>
             val lhtml = gl.componentList
-              .map(fv =>
-                htmlFor(fv, formTemplateId, count + 1, ei, data, ei.retrievals.userDetails, validatedType, lang))
+              .map(fv => htmlFor(fv, formTemplateId, count + 1, ei, data, validatedType, lang))
 
             val showButton = {
               groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
@@ -798,8 +778,7 @@ class SectionRenderingService(
       (htmls, isLimit)
     } else {
       val htmls =
-        groupField.fields.map(fv =>
-          htmlFor(fv, formTemplateId, 0, ei, data, ei.retrievals.userDetails, validatedType, lang))
+        groupField.fields.map(fv => htmlFor(fv, formTemplateId, 0, ei, data, validatedType, lang))
       (htmls, true)
     }
 
@@ -821,7 +800,7 @@ class SectionRenderingService(
     Fields.getValidationResult(ei.fieldData, fieldValues, ei.envelope, gformErrors)(fieldValue)
   }
 
-  private def emptyRetrievals = MaterialisedRetrievals(
+  private def emptyRetrievals = AuthenticatedRetrievals(
     authProviderId = OneTimeLogin,
     enrolments = Enrolments(Set.empty),
     affinityGroup = None,
