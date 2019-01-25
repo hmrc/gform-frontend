@@ -71,7 +71,8 @@ case class JSConfig(
   timeoutEnabled: Boolean,
   timeout: Int,
   countdown: Int,
-  keepAliveUrl: String
+  keepAliveUrl: String,
+  signOutUrl: String
 )
 
 case class FeatureToggle(emailEnabled: Boolean, concurrentAgentAccess: Boolean)

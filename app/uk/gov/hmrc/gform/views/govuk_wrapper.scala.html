@@ -19,8 +19,8 @@
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule }
-
 @import uk.gov.hmrc.gform.config.JSConfig
+
 @(appConfig: FrontendAppConfig,
   title: String,
   serviceTitle: String,
@@ -57,7 +57,7 @@
     case Some(EeittModule(_)) => appConfig.authModule.legacyEEITTAuth
     // case Anonymous => appConfig.authModule.anonymous
     case Some(_) => appConfig.authModule.hmrc
-    case None => JSConfig(false, 0, 0)
+    case None => JSConfig(timeoutEnabled = false, 0, 0, "")
   }
 }
 
@@ -75,7 +75,8 @@
                 timeoutEnabled: @authTimeout.timeoutEnabled,
                 timeout: @authTimeout.timeout,
                 countdown: @authTimeout.countdown,
-                keep_alive_url: @authTimeout.keepAliveUrl
+                keep_alive_url: @authTimeout.keepAliveUrl,
+                logout_url: @authTimeout.signOutUrl
               }
       </script>
     }
@@ -84,7 +85,11 @@
 }
 
 @navLinks = {
-<li><a href="@{appConfig.signOutUrl}" id="signOut">Sign out</a></li>
+  @if(authTimeout.signOutUrl == "") {
+    @Html("")
+  } else {
+    <li><a href="@{authTimeout.signOutUrl}" id="signOut">Sign out</a></li>
+  }
 }
 
 @insideHeader = {
@@ -92,7 +97,7 @@
       navTitle = Some(serviceTitle),
       navTitleLink = None,
       showBetaLink = false,
-      navLinks = Some(navLinks))
+      navLinks = Some(navLinks)
 }
 
 @afterHeader = {
