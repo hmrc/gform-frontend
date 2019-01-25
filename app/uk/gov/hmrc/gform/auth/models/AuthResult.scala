@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.gform.auth.models
 
+import play.api.mvc.Call
+
 sealed trait AuthResult
 final case class AuthSuccessful(retrievals: MaterialisedRetrievals) extends AuthResult
 final case class AuthRedirect(loginUrl: String, flashing: Seq[(String, String)] = Seq.empty) extends AuthResult
+final case class AuthAnonymousSession(redirectUrl: Call) extends AuthResult
 final case class AuthRedirectFlashingFormName(loginUrl: String) extends AuthResult
 final case class AuthBlocked(message: String) extends AuthResult
 final case class AuthForbidden(message: String) extends AuthResult

@@ -34,7 +34,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -176,7 +176,6 @@ class SectionRenderingService(
           0,
           ei,
           fieldData,
-          retrievals.userDetails,
           validatedType,
           lang,
           fieldValue.onlyShowOnSummary,
@@ -192,8 +191,8 @@ class SectionRenderingService(
       javascript,
       envelopeId,
       actionForm,
-      true,
-      section.continueLabel.getOrElse("Save and continue"),
+      retrievals.renderSaveAndComeBackLater,
+      section.continueLabel.getOrElse(retrievals.continueLabel),
       formMaxAttachmentSizeMB,
       contentTypes,
       section.progressIndicator
@@ -300,7 +299,6 @@ class SectionRenderingService(
           0,
           ei,
           fieldData,
-          retrievals.userDetails,
           validatedType,
           lang,
           obligations = Map[HmrcTaxPeriod, TaxPeriods]()))
@@ -368,7 +366,6 @@ class SectionRenderingService(
                          0,
                          ei,
                          FormDataRecalculated.empty,
-                         retrievals.userDetails,
                          Valid(()),
                          lang,
                          obligations = Map[HmrcTaxPeriod, TaxPeriods]())))
@@ -428,7 +425,6 @@ class SectionRenderingService(
             0,
             ei,
             fieldData,
-            retrievals.userDetails,
             validatedType,
             lang,
             obligations = Map[HmrcTaxPeriod, TaxPeriods]()))
@@ -475,7 +471,6 @@ class SectionRenderingService(
     index: Int,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    userDetails: UserDetails,
     maybeValidated: ValidatedType,
     lang: Option[String],
     isHidden: Boolean = false,
@@ -503,7 +498,7 @@ class SectionRenderingService(
           ei,
           data)
       case FileUpload() =>
-        htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, userDetails, maybeValidated, lang)
+        htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, ei.retrievals, maybeValidated, lang)
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
       case HmrcTaxPeriod(idType, idNumber, regimeType) =>
@@ -566,13 +561,13 @@ class SectionRenderingService(
     index: Int,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    userDetails: UserDetails,
+    materialisedRetrievals: MaterialisedRetrievals,
     validatedType: ValidatedType,
     lang: Option[String]) = {
     val validationResult = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
 
     html.form.snippets.field_template_file_upload(
-      FormId(userDetails, formTemplateId, ei.maybeAccessCode),
+      FormId(materialisedRetrievals, formTemplateId, ei.maybeAccessCode),
       ei.maybeAccessCode,
       formTemplateId,
       ei.sectionNumber,
@@ -866,18 +861,8 @@ class SectionRenderingService(
         .map {
           case (gl, count) =>
             val lhtml = gl.componentList
-              .map(
-                fv =>
-                  htmlFor(
-                    fv,
-                    formTemplateId,
-                    count + 1,
-                    ei,
-                    data,
-                    ei.retrievals.userDetails,
-                    validatedType,
-                    lang,
-                    obligations = obligations))
+              .map(fv =>
+                htmlFor(fv, formTemplateId, count + 1, ei, data, validatedType, lang, obligations = obligations))
 
             val showButton = {
               groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
@@ -890,18 +875,8 @@ class SectionRenderingService(
       (htmls, isLimit)
     } else {
       val htmls =
-        groupField.fields.map(
-          fv =>
-            htmlFor(
-              fv,
-              formTemplateId,
-              0,
-              ei,
-              data,
-              ei.retrievals.userDetails,
-              validatedType,
-              lang,
-              obligations = obligations))
+        groupField.fields.map(fv =>
+          htmlFor(fv, formTemplateId, 0, ei, data, validatedType, lang, obligations = obligations))
       (htmls, true)
     }
 
@@ -923,7 +898,7 @@ class SectionRenderingService(
     Fields.getValidationResult(ei.fieldData, fieldValues, ei.envelope, gformErrors)(fieldValue)
   }
 
-  private def emptyRetrievals = MaterialisedRetrievals(
+  private def emptyRetrievals = AuthenticatedRetrievals(
     authProviderId = OneTimeLogin,
     enrolments = Enrolments(Set.empty),
     affinityGroup = None,

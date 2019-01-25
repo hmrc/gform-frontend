@@ -39,7 +39,7 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
   def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[HttpResponse] = {
-    val groupId = retrievals.userDetails.groupIdentifier
+    val groupId = retrievals.groupId
     val identifiers = request.identifiers.sortBy(_.key)
 
     val enrolmentKey = service.value + "~" + identifiers

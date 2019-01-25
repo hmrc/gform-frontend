@@ -93,7 +93,7 @@ class SummaryController(
 
         lazy val redirectToDeclaration = gformConnector
           .updateUserData(
-            FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),
+            FormId(cache.retrievals, formTemplateId, maybeAccessCode),
             UserData(cache.form.formData, Validated, cache.form.visitsIndex))
           .map { _ =>
             Redirect(
@@ -189,7 +189,15 @@ class SummaryController(
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield
       SummaryRenderingService
-        .renderSummary(cache.formTemplate, v, data, maybeAccessCode, envelope, lang, frontendAppConfig)
+        .renderSummary(
+          cache.formTemplate,
+          v,
+          data,
+          maybeAccessCode,
+          envelope,
+          lang,
+          cache.retrievals,
+          frontendAppConfig)
 
   }
 }

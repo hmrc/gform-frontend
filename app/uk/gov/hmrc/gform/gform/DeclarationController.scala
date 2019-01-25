@@ -25,7 +25,6 @@ import play.api.mvc.{ Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals.getTaxIdValue
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
@@ -33,6 +32,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -94,7 +94,7 @@ class DeclarationController(
       case (_, Some(textExpression)) =>
         authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data.data)
       case (EeittModule(_), None) => authService.eeitReferenceNumber(retrievals)
-      case (_, None)              => getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber", retrievals)
+      case (_, None)              => retrievals.getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber")
     }
 
     val extraData =
@@ -188,16 +188,16 @@ class DeclarationController(
           data)
         _ <- if (config.sendPdfWithSubmission)
               gformConnector.submitFormWithPdf(
-                FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),
+                FormId(cache.retrievals, formTemplateId, maybeAccessCode),
                 customerId,
                 htmlForPDF,
-                cache.retrievals.affinityGroup)
+                AffinityGroupUtil.fromRetrievals(cache.retrievals))
             else {
               gformConnector
                 .submitForm(
-                  FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),
+                  FormId(cache.retrievals, formTemplateId, maybeAccessCode),
                   customerId,
-                  cache.retrievals.affinityGroup)
+                  AffinityGroupUtil.fromRetrievals(cache.retrievals))
             }
       } yield {
         if (customerId.isEmpty)

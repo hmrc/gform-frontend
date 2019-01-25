@@ -22,7 +22,7 @@ import cats.syntax.applicative._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
@@ -132,12 +132,12 @@ class FormController(
 
   def dashboard(formTemplateId: FormTemplateId, lang: Option[String]) = auth.async(formTemplateId, lang) {
     implicit request => cache =>
-      val formId = FormId(cache.retrievals.userDetails, formTemplateId, None)
+      val formId = FormId(cache.retrievals, formTemplateId, None)
       for {
         maybeForm <- gformConnector.maybeForm(formId)
       } yield
-        (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup, maybeForm) match {
-          case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent), None) =>
+        (cache.formTemplate.draftRetrievalMethod, cache.retrievals, maybeForm) match {
+          case (Some(FormAccessCodeForAgents), IsAgent(), None) =>
             Ok(access_code_start(cache.formTemplate, AgentAccessCode.form, lang, frontendAppConfig))
           case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
         }
@@ -147,7 +147,7 @@ class FormController(
     implicit request => cache =>
       val accessCode = AccessCode(AgentAccessCode.random.value)
       for {
-        _ <- startForm(formTemplateId, cache.retrievals.userDetails, Some(accessCode))
+        _ <- startForm(formTemplateId, cache.retrievals, Some(accessCode))
       } yield
         Redirect(routes.FormController.showAccessCode(formTemplateId, lang))
           .flashing(AgentAccessCode.key -> accessCode.value)
@@ -167,7 +167,7 @@ class FormController(
     implicit request => cache =>
       val noAccessCode = Option.empty[AccessCode]
       for {
-        (formId, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals.userDetails, noAccessCode)
+        (formId, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals, noAccessCode)
         result <- if (wasFormFound) {
                    Ok(continue_form_page(cache.formTemplate, noAccessCode, lang, frontendAppConfig)).pure[Future]
                  } else {
@@ -214,7 +214,7 @@ class FormController(
             case AgentAccessCode.optionAccess => {
               val maybeAccessCode: Option[AccessCode] = accessCodeF.accessCode.map(a => AccessCode(a))
               for {
-                maybeForm <- getForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
+                maybeForm <- getForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
                 res <- maybeForm match {
                         case Some(form) => redirectFromEmpty(cache, form, maybeAccessCode, lang)
                         case None =>
@@ -256,33 +256,34 @@ class FormController(
 
   private def startFreshForm(
     formTemplateId: FormTemplateId,
-    userDetails: UserDetails,
+    retrievals: MaterialisedRetrievals,
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[FormId] =
     for {
-      formId <- gformConnector.newForm(formTemplateId, UserId(userDetails.groupIdentifier), maybeAccessCode)
+      formId <- gformConnector.newForm(formTemplateId, UserId(retrievals), maybeAccessCode)
     } yield formId
 
-  private def startForm(formTemplateId: FormTemplateId, userDetails: UserDetails, maybeAccessCode: Option[AccessCode])(
-    implicit hc: HeaderCarrier): Future[FormId] = {
-    val formId = FormId(userDetails, formTemplateId, None)
+  private def startForm(
+    formTemplateId: FormTemplateId,
+    retrievals: MaterialisedRetrievals,
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[FormId] = {
+    val formId = FormId(retrievals, formTemplateId, None)
     def formIdAlreadyExists = Future.failed(new Exception(s"Form $formId already exists"))
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       formId <- if (maybeForm.isDefined) formIdAlreadyExists
-               else startFreshForm(formTemplateId, userDetails, maybeAccessCode)
+               else startFreshForm(formTemplateId, retrievals, maybeAccessCode)
     } yield formId
   }
 
   //true - it got the form, false - new form was created
   private def getOrStartForm(
     formTemplateId: FormTemplateId,
-    userDetails: UserDetails,
+    retrievals: MaterialisedRetrievals,
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(FormId, Boolean)] =
     for {
-      maybeFormExceptSubmitted <- getForm(FormId(userDetails, formTemplateId, None))
-      formId <- {
-        maybeFormExceptSubmitted.fold(startFreshForm(formTemplateId, userDetails, maybeAccessCode))(_._id.pure[Future])
-      }
+      maybeFormExceptSubmitted <- getForm(FormId(retrievals, formTemplateId, None))
+      formId <- maybeFormExceptSubmitted.fold(startFreshForm(formTemplateId, retrievals, maybeAccessCode))(
+                 _._id.pure[Future])
     } yield (formId, maybeFormExceptSubmitted.isDefined)
 
   def form(
@@ -389,10 +390,10 @@ class FormController(
     lang: Option[String]): Action[AnyContent] =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       gformConnector
-        .deleteForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
+        .deleteForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
         .map(_ =>
-          (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
-            case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
+          (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+            case (Some(FormAccessCodeForAgents), IsAgent()) =>
               Redirect(routes.FormController.newFormAgent(formTemplateId, lang))
             case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
         })
@@ -435,9 +436,8 @@ class FormController(
       val form: Form = cache.form
       val envelopeId = form.envelopeId
       val retrievals = cache.retrievals
-      val userDetails = retrievals.userDetails
 
-      val formId = FormId(userDetails, formTemplateId, maybeAccessCode)
+      val formId = FormId(retrievals, formTemplateId, maybeAccessCode)
 
       def validateAndUpdateData(processData: ProcessData)(result: Option[SectionNumber] => Result): Future[Result] =
         for {

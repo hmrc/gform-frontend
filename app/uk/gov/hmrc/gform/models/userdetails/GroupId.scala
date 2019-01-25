@@ -17,10 +17,14 @@
 package uk.gov.hmrc.gform.models.userdetails
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.models.ValueClassFormat
 
 case class GroupId(value: String) extends AnyVal
 
 object GroupId {
+
+  def apply(materialisedRetrievals: MaterialisedRetrievals): GroupId = GroupId(materialisedRetrievals.groupId)
+
   implicit val format: Format[GroupId] = ValueClassFormat.format(GroupId.apply)(_.value)
 }

@@ -42,11 +42,6 @@ trait WSHttp
     with Hooks with AppName
 object WSHttp extends WSHttp
 
-object MicroserviceAuthConnector extends AuthConnector with ServicesConfig with WSHttp {
-  override def http = WSHttp
-  override val serviceUrl: String = baseUrl("auth")
-}
-
 //class WSHttp extends uk.gov.hmrc.play.http.ws.WSHttp {
 //
 //  override val hooks: Seq[HttpHook] = Nil
