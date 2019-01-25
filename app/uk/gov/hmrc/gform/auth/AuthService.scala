@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
 
 import scala.concurrent.Future
 
@@ -208,6 +209,8 @@ class AuthService(
       case EeittCtx(value) => eeittService.getValue(value, retrievals, formTemplate)
 
       case id: FormCtx => (data.get(id.toFieldId).map(_.head).getOrElse("")).pure[Future]
+
+      //case SubmissionReference => getSubmissionReference()
 
       case _ => "".pure[Future] //TODO change this to AuthExpr.
     }
