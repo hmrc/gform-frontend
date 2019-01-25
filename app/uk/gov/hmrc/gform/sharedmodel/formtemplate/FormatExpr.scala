@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import java.time.LocalDate
+
 import julienrf.json.derived
 import play.api.libs.json._
 
@@ -61,8 +63,17 @@ case object Today extends DateConstraintInfo
 case class ConcreteDate(year: Int, month: Int, day: Int) extends DateConstraintInfo
 case class NextDate(month: Int, day: Int) extends DateConstraintInfo
 case class PreviousDate(month: Int, day: Int) extends DateConstraintInfo
-case class FirstDay(year: Int, month: Int) extends DateConstraintInfo
-case class LastDay(year: Int, month: Int) extends DateConstraintInfo
+case class FirstDay(year: Int, month: Int) extends DateConstraintInfo {
+  val day = 1
+}
+case class LastDay(year: Int, month: Int) extends DateConstraintInfo {
+
+  private val isLeapYear = (year: Int) =>
+    ((year % 4) == 0) && !(((year % 100) == 0) &&
+      !((year % 400) == 0))
+
+  val day: Int = LocalDate.of(year, month, 1).getMonth.length(isLeapYear(year))
+}
 case class AnyWord(value: String) extends DateConstraintInfo
 case class DateField(value: FormComponentId) extends DateConstraintInfo
 
