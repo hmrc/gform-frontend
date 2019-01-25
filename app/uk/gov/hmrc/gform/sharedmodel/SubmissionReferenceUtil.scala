@@ -22,11 +22,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 object SubmissionReferenceUtil {
 
   def getSubmissionReference(envelopeId: EnvelopeId) = {
-    val md = MessageDigest.getInstance("MD5")
-    val digest = md.digest(envelopeId.value.getBytes)
-    val bigInt = new BigInteger(1, digest)
-    val hashedString = bigInt.toString(16)
-    val correctLength = hashedString.take(12).toUpperCase
-    correctLength.take(4) + "-" + correctLength.substring(4, 8) + "-" + correctLength.takeRight(4)
+    val digest = MessageDigest.getInstance("SHA-256").digest(envelopeId.value.getBytes).take(11)
+    val getCheck = (digest.sum * -1).toByte
+    val bigInt = new BigInteger(1, digest :+ getCheck).toString(36).toUpperCase
+    bigInt.take(4) + "-" + bigInt.substring(4, 8) + "-" + bigInt.takeRight(4)
   }
 }
