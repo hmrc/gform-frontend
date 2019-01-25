@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.graph
 
+import java.math.MathContext
+
 import cats.instances.option._
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
@@ -33,7 +35,14 @@ class ConvertibleSpec extends FlatSpec with Matchers {
       (Computed(1.239), 2, RoundingMode.Floor, "1.23"),
       (Computed(1.2), 2, RoundingMode.Floor, "1.2"),
       (Computed(12), 2, RoundingMode.Floor, "12"),
-      (Computed(1.239), 2, RoundingMode.Ceiling, "1.24")
+      (Computed(1.239), 2, RoundingMode.Ceiling, "1.24"),
+      (Computed(1.239), 2, RoundingMode.Floor, "1.23"),
+      (Computed(1.239), 2, RoundingMode.Up, "1.24"),
+      (Computed(1.239), 2, RoundingMode.Down, "1.23"),
+      (Computed(1.235), 2, RoundingMode.HalfEven, "1.24"),
+      (Computed(1.245), 2, RoundingMode.HalfEven, "1.24"),
+      (Computed(1.235), 2, RoundingMode.HalfUp, "1.24"),
+      (Computed(1.235), 2, RoundingMode.HalfDown, "1.23")
     )
 
     forAll(formComponentIds) { (computable, scale, roundingMode, expectedOutput) ⇒

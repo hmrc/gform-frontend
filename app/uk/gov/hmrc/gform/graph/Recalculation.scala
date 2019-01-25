@@ -26,12 +26,13 @@ import cats.syntax.traverse._
 import cats.data.EitherT
 import java.text.NumberFormat
 import java.util.Locale
-import scala.math.BigDecimal.RoundingMode
+
 import scala.language.higherKinds
 import scalax.collection.Graph
-import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
+import scalax.collection.GraphPredef._
+import scalax.collection.GraphEdge._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
+import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil, NumberSetScale }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
@@ -350,8 +351,9 @@ object Convertible {
     roundingMode: RoundingMode,
     formTemplate: FormTemplate): F[String] =
     convert(convertible, formTemplate).flatMap {
-      case None     => Convertible.asString(convertible, formTemplate).map(_.getOrElse(""))
-      case Some(bd) => NumberFormatUtil.defaultFormat(scale, roundingMode).format(bd).pure[F]
+      case Some(bd) =>
+        NumberFormatUtil.defaultFormat(scale).format(NumberSetScale.setScale(bd, scale, roundingMode)).pure[F]
+      case None => Convertible.asString(convertible, formTemplate).map(_.getOrElse(""))
     }
 }
 

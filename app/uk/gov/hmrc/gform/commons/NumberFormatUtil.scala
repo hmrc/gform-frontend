@@ -24,24 +24,41 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RoundingMode => GformRoundin
 
 object NumberFormatUtil {
   val defaultFormat = NumberFormat.getInstance(Locale.UK)
-  def defaultFormat(i: Int, roundingMode: GformRoundingMode) =
-    RoundingModeUtil.RoundingFormat(i, roundingMode)
-  val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
-}
-
-object RoundingModeUtil {
-  def RoundingFormat(digits: Int, roundingMode: GformRoundingMode) = {
+  def defaultFormat(i: Int) = {
     val formatter = NumberFormat.getInstance(Locale.UK)
-    formatter.setMaximumFractionDigits(digits)
-    roundingMode match {
-      case GformRoundingMode.Up       => formatter.setRoundingMode(RoundingMode.UP)
-      case GformRoundingMode.Down     => formatter.setRoundingMode(RoundingMode.DOWN)
-      case GformRoundingMode.Ceiling  => formatter.setRoundingMode(RoundingMode.CEILING)
-      case GformRoundingMode.Floor    => formatter.setRoundingMode(RoundingMode.FLOOR)
-      case GformRoundingMode.HalfDown => formatter.setRoundingMode(RoundingMode.HALF_DOWN)
-      case GformRoundingMode.HalfUp   => formatter.setRoundingMode(RoundingMode.HALF_UP)
-      case GformRoundingMode.HalfEven => formatter.setRoundingMode(RoundingMode.HALF_EVEN)
-    }
+    formatter.setMaximumFractionDigits(i)
+    formatter.setRoundingMode(RoundingMode.FLOOR)
     formatter
   }
+  val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
+}
+object RoundingModeJavaUtil {
+  def RoundingFormat(roundingMode: GformRoundingMode) =
+    roundingMode match {
+      case GformRoundingMode.Up       => RoundingMode.UP
+      case GformRoundingMode.Down     => RoundingMode.DOWN
+      case GformRoundingMode.Ceiling  => RoundingMode.CEILING
+      case GformRoundingMode.Floor    => RoundingMode.FLOOR
+      case GformRoundingMode.HalfDown => RoundingMode.HALF_DOWN
+      case GformRoundingMode.HalfUp   => RoundingMode.HALF_UP
+      case GformRoundingMode.HalfEven => RoundingMode.HALF_EVEN
+    }
+}
+
+object RoundingModeBigDecimalUtil {
+  def RoundingFormat(roundingMode: GformRoundingMode) =
+    roundingMode match {
+      case GformRoundingMode.Up       => BigDecimal.RoundingMode.UP
+      case GformRoundingMode.Down     => BigDecimal.RoundingMode.DOWN
+      case GformRoundingMode.Ceiling  => BigDecimal.RoundingMode.CEILING
+      case GformRoundingMode.Floor    => BigDecimal.RoundingMode.FLOOR
+      case GformRoundingMode.HalfDown => BigDecimal.RoundingMode.HALF_DOWN
+      case GformRoundingMode.HalfUp   => BigDecimal.RoundingMode.HALF_UP
+      case GformRoundingMode.HalfEven => BigDecimal.RoundingMode.HALF_EVEN
+    }
+}
+
+object NumberSetScale {
+  def setScale(bigDecimal: BigDecimal, decimalPlaces: Int, roundingMode: GformRoundingMode) =
+    bigDecimal.setScale(decimalPlaces, RoundingModeBigDecimalUtil.RoundingFormat(roundingMode))
 }
