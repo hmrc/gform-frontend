@@ -63,16 +63,23 @@ case object Today extends DateConstraintInfo
 case class ConcreteDate(year: Int, month: Int, day: Int) extends DateConstraintInfo
 case class NextDate(month: Int, day: Int) extends DateConstraintInfo
 case class PreviousDate(month: Int, day: Int) extends DateConstraintInfo
-case class FirstDay(year: Int, month: Int) extends DateConstraintInfo {
+
+case class FirstDay(year: String, month: String) extends DateConstraintInfo {
   val day = 1
+
 }
-case class LastDay(year: Int, month: Int) extends DateConstraintInfo {
+case class LastDay(year: String, month: String) extends DateConstraintInfo {
 
   private val isLeapYear = (year: Int) =>
     ((year % 4) == 0) && !(((year % 100) == 0) &&
       !((year % 400) == 0))
 
-  val day: Int = LocalDate.of(year, month, 1).getMonth.length(isLeapYear(year))
+  val day: Option[Int] = try {
+    Some(LocalDate.of(year.toInt, month.toInt, 1).getMonth.length(isLeapYear(year.toInt)))
+  } catch {
+    case _: NumberFormatException => None
+  }
+
 }
 case class AnyWord(value: String) extends DateConstraintInfo
 case class DateField(value: FormComponentId) extends DateConstraintInfo

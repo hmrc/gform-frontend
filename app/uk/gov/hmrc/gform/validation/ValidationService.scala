@@ -225,7 +225,7 @@ class ComponentsValidator(
 
               case (Before, firstDay: FirstDay, offset) =>
                 validateFirstOrLastDay(firstDay, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-                  .andThen { concreteDate =>
+                  .andThen { firstDay =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
                         inputDate =>
@@ -237,13 +237,13 @@ class ComponentsValidator(
                             Map(fieldValue.id ->
                               errors(
                                 fieldValue,
-                                s"must be before the first day of the month, for example: ${dateWithOffset(concreteDate, offset)}"))
+                                s"must be before the first day of the month, for example: ${dateWithOffset(firstDay, offset)}"))
                           )(isBeforeFirstDay))
                   }
 
               case (Before, lastDay: LastDay, offset) =>
                 validateFirstOrLastDay(lastDay, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-                  .andThen { concreteDate =>
+                  .andThen { lastDay =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
                         inputDate =>
@@ -255,7 +255,7 @@ class ComponentsValidator(
                             Map(fieldValue.id ->
                               errors(
                                 fieldValue,
-                                s"must be before the last day of the month, for example: ${dateWithOffset(concreteDate, offset)}"))
+                                s"must be before the last day of the month, for example: ${dateWithOffset(lastDay, offset)}"))
                           )(isBeforeLastDay))
                   }
 
@@ -323,7 +323,7 @@ class ComponentsValidator(
 
               case (After, firstDay: FirstDay, offset) =>
                 validateFirstOrLastDay(firstDay, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-                  .andThen { concreteDate =>
+                  .andThen { firstDay =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
                         inputDate =>
@@ -335,13 +335,13 @@ class ComponentsValidator(
                             Map(fieldValue.id ->
                               errors(
                                 fieldValue,
-                                s"must be after the first day of the month, for example: ${dateWithOffset(concreteDate, offset)}"))
+                                s"must be after the first day of the month, for example: ${dateWithOffset(firstDay, offset)}"))
                           )(isAfterFirstDay))
                   }
 
               case (After, lastDay: LastDay, offset) =>
                 validateFirstOrLastDay(lastDay, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-                  .andThen { concreteDate =>
+                  .andThen { lastDay =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
                         inputDate =>
@@ -353,8 +353,62 @@ class ComponentsValidator(
                             Map(fieldValue.id ->
                               errors(
                                 fieldValue,
-                                s"must be after the last day of the month, for example: ${dateWithOffset(concreteDate, offset)}"))
+                                s"must be after the last day of the month, for example: ${dateWithOffset(lastDay, offset)}"))
                           )(isAfterLastDay))
+                  }
+
+              case (Precisely, firstDay: FirstDay, offset) if firstDay == FirstDay("YYYY", "MM") =>
+                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+                  .andThen(
+                    inputDate =>
+                      validateFirstOrLastDay(
+                        fieldValue,
+                        inputDate,
+                        firstDay,
+                        offset,
+                        Map(
+                          fieldValue.id ->
+                            errors(
+                              fieldValue,
+                              s"must be the first day of the month, for example: " +
+                                s"${dateWithOffset(LocalDate.of(inputDate.getYear, inputDate.getMonthValue, FirstDay(inputDate.getYear.toString, inputDate.getMonthValue.toString).day), offset)}"
+                            ))
+                      )(isFirstDay))
+
+              case (Precisely, lastDay: LastDay, offset) if lastDay == LastDay("YYYY", "MM") =>
+                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+                  .andThen(
+                    inputDate =>
+                      validateFirstOrLastDay(
+                        fieldValue,
+                        inputDate,
+                        lastDay,
+                        offset,
+                        Map(
+                          fieldValue.id ->
+                            errors(
+                              fieldValue,
+                              s"must be the last day of the month, for example: " +
+                                s"${dateWithOffset(LocalDate.of(inputDate.getYear, inputDate.getMonthValue, LastDay(inputDate.getYear.toString, inputDate.getMonthValue.toString).day.get), offset)}"
+                            ))
+                      )(isLastDay))
+
+              case (Precisely, concreteDate: ConcreteDate, offset) =>
+                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
+                  .andThen { concreteDate =>
+                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+                      .andThen(
+                        inputDate =>
+                          validateConcreteDate(
+                            fieldValue,
+                            inputDate,
+                            concreteDate,
+                            offset,
+                            Map(
+                              fieldValue.id -> errors(
+                                fieldValue,
+                                s"must be precisely ${dateWithOffset(concreteDate, offset)}"))
+                          )(isPreciselyConcreteDate))
                   }
 
               case (Precisely, Today, offset) =>
@@ -387,7 +441,7 @@ class ComponentsValidator(
 
               case (Precisely, firstDay: FirstDay, offset) =>
                 validateFirstOrLastDay(firstDay, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-                  .andThen { concreteDate =>
+                  .andThen { firstDay =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
                         inputDate =>
@@ -399,13 +453,14 @@ class ComponentsValidator(
                             Map(fieldValue.id ->
                               errors(
                                 fieldValue,
-                                s"must be the first day of the month, for example: ${dateWithOffset(concreteDate, offset)}"))
+                                s"must be the first day of the month, for example: ${dateWithOffset(firstDay, offset)}"))
                           )(isPreciselyFirstDay))
                   }
 
-              case (Precisely, lastDay: LastDay, offset) =>
+              case (Precisely, lastDay: LastDay, offset) => {
+                println("findmedude" + lastDay)
                 validateFirstOrLastDay(lastDay, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-                  .andThen { concreteDate =>
+                  .andThen { lastDay =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                       .andThen(
                         inputDate =>
@@ -417,9 +472,10 @@ class ComponentsValidator(
                             Map(fieldValue.id ->
                               errors(
                                 fieldValue,
-                                s"must be the last day of the month, for example: ${dateWithOffset(concreteDate, offset)}"))
+                                s"must be the last day of the month, for example: ${dateWithOffset(lastDay, offset)}"))
                           )(isPreciselyLastDay))
                   }
+              }
 
             }
 
@@ -785,11 +841,13 @@ class ComponentsValidator(
   def isAfterConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean =
     date.isAfter(concreteDay.plusDays(offset.value.toLong))
 
-  def isAfterFirstDay(date: LocalDate, firstDay: FirstDay, offset: OffsetDate): Boolean =
-    date.isAfter(LocalDate.of(firstDay.year, firstDay.month, firstDay.day).plusDays(offset.value.toLong))
+  def isAfterFirstDay(date: LocalDate, firstDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isAfter(
+      LocalDate.of(firstDay.getYear, firstDay.getMonthValue, firstDay.getDayOfMonth).plusDays(offset.value.toLong))
 
-  def isAfterLastDay(date: LocalDate, lastDay: LastDay, offset: OffsetDate): Boolean =
-    date.isAfter(LocalDate.of(lastDay.year, lastDay.month, lastDay.day).plusDays(offset.value.toLong))
+  def isAfterLastDay(date: LocalDate, lastDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isAfter(
+      LocalDate.of(lastDay.getYear, lastDay.getMonthValue, lastDay.getDayOfMonth).plusDays(offset.value.toLong))
 
   def isBeforeToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
     date.isBefore(now.apply().plusDays(offset.value.toLong))
@@ -797,11 +855,13 @@ class ComponentsValidator(
   def isBeforeConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean =
     date.isBefore(concreteDay.plusDays(offset.value.toLong))
 
-  def isBeforeFirstDay(date: LocalDate, firstDay: FirstDay, offset: OffsetDate): Boolean =
-    date.isBefore(LocalDate.of(firstDay.year, firstDay.month, firstDay.day).plusDays(offset.value.toLong))
+  def isBeforeFirstDay(date: LocalDate, firstDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isBefore(
+      LocalDate.of(firstDay.getYear, firstDay.getMonthValue, firstDay.getDayOfMonth).plusDays(offset.value.toLong))
 
-  def isBeforeLastDay(date: LocalDate, lastDay: LastDay, offset: OffsetDate): Boolean =
-    date.isBefore(LocalDate.of(lastDay.year, lastDay.month, lastDay.day).plusDays(offset.value.toLong))
+  def isBeforeLastDay(date: LocalDate, lastDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isBefore(
+      LocalDate.of(lastDay.getYear, lastDay.getMonthValue, lastDay.getDayOfMonth).plusDays(offset.value.toLong))
 
   def isPreciselyToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
     date.isEqual(now.apply().plusDays(offset.value.toLong))
@@ -809,11 +869,19 @@ class ComponentsValidator(
   def isPreciselyConcreteDate(date: LocalDate, concreteDay: LocalDate, offset: OffsetDate): Boolean =
     date.isEqual(concreteDay.plusDays(offset.value.toLong))
 
-  def isPreciselyFirstDay(date: LocalDate, firstDay: FirstDay, offset: OffsetDate): Boolean =
-    date.isEqual(LocalDate.of(firstDay.year, firstDay.month, firstDay.day).plusDays(offset.value.toLong))
+  def isPreciselyFirstDay(date: LocalDate, firstDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isEqual(
+      LocalDate.of(firstDay.getYear, firstDay.getMonthValue, firstDay.getDayOfMonth).plusDays(offset.value.toLong))
 
-  def isPreciselyLastDay(date: LocalDate, lastDay: LastDay, offset: OffsetDate): Boolean =
-    date.isEqual(LocalDate.of(lastDay.year, lastDay.month, lastDay.day).plusDays(offset.value.toLong))
+  def isPreciselyLastDay(date: LocalDate, lastDay: LocalDate, offset: OffsetDate): Boolean =
+    date.isEqual(
+      LocalDate.of(lastDay.getYear, lastDay.getMonthValue, lastDay.getDayOfMonth).plusDays(offset.value.toLong))
+
+  def isLastDay(date: LocalDate, lastDay: LastDay, offset: OffsetDate): Boolean =
+    date.getDayOfMonth == LastDay(date.getYear.toString, date.getMonthValue.toString).day.get
+
+  def isFirstDay(date: LocalDate, firstDay: FirstDay, offset: OffsetDate): Boolean =
+    date.getDayOfMonth == 1
 
   def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedLocalDate =
     Try(LocalDate.of(concreteDate.year, concreteDate.month, concreteDate.day)) match {
@@ -824,15 +892,13 @@ class ComponentsValidator(
   def validateFirstOrLastDay[T](firstOrLastDay: T, dateError: GformError): ValidatedLocalDate = {
 
     val day = firstOrLastDay match {
-      case FirstDay(year, month) => Try(LocalDate.of(year, month, FirstDay(year, month).day))
-      case LastDay(year, month)  => Try(LocalDate.of(year, month, LastDay(year, month).day))
+      case FirstDay(year, month) => Try(LocalDate.of(year.toInt, month.toInt, FirstDay(year, month).day))
+      case LastDay(year, month) => Try(LocalDate.of(year.toInt, month.toInt, LastDay(year, month).day.get))
     }
 
-    println("findme2" + day)
-
     day match {
-      case Success(date) => Valid(date)
-      case Failure(ex)   => dateError.invalid
+      case Success(date: LocalDate) => Valid(date)
+      case Failure(ex)              => dateError.invalid
     }
   }
 

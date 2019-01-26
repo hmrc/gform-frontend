@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ After, AnyDate, AnyText, AnyWord, BasicText, Before, BeforeAfterPrecisely, CompanyRegistrationNumber, ConcreteDate, CountryCode, DateConstraint, DateConstraintInfo, DateConstraintType, DateConstraints, DateField, EORI, Email, FirstDay, LastDay, NINO, NextDate, NonUkCountryCode, Number, OffsetDate, PositiveNumber, Precisely, PreviousDate, ShortText, Sterling, TelephoneNumber, TextConstraint, TextExpression, TextWithRestrictions, Today, UTR, UkBankAccountNumber, UkSortCodeFormat, UkVrn }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ After, AnyDate, AnyText, AnyWord, BasicText, Before, BeforeAfterPrecisely, CompanyRegistrationNumber, ConcreteDate, CountryCode, DateConstraint, DateConstraintInfo, DateConstraintType, DateConstraints, DateField, EORI, Email, NINO, NextDate, NonUkCountryCode, Number, OffsetDate, PositiveNumber, PreviousDate, ShortText, Sterling, TelephoneNumber, TextConstraint, TextExpression, TextWithRestrictions, Today, UTR, UkBankAccountNumber, UkSortCodeFormat, UkVrn }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ After, AnyDate, AnyText, AnyWord, BasicText, Before, BeforeOrAfter, CompanyRegistrationNumber, ConcreteDate, CountryCode, DateConstraint, DateConstraintInfo, DateConstraintType, DateConstraints, DateField, EORI, Email, NINO, NextDate, NonUkCountryCode, Number, OffsetDate, PositiveNumber, PreviousDate, RoundingMode, ShortText, Sterling, TelephoneNumber, TextConstraint, TextExpression, TextWithRestrictions, Today, UTR, UkBankAccountNumber, UkSortCodeFormat, UkVrn }
 
@@ -65,7 +66,7 @@ trait FormatExprGen {
 
   def textExpressionGen: Gen[TextExpression] = ExprGen.exprGen().map(TextExpression(_))
 
-  def beforeOrAfterGen: Gen[BeforeAfterPrecisely] = Gen.oneOf(Before, After)
+  def beforeAfterPreciselyGen: Gen[BeforeAfterPrecisely] = Gen.oneOf(Before, After, Precisely)
 
   def concreteDateGen: Gen[ConcreteDate] =
     for {
@@ -86,6 +87,18 @@ trait FormatExprGen {
       day   <- Gen.posNum[Int]
     } yield PreviousDate(month, day)
 
+  def firstDayGen: Gen[FirstDay] =
+    for {
+      year  <- Gen.chooseNum(1000, 9999)
+      month <- Gen.chooseNum(1, 12)
+    } yield FirstDay(year.toString, month.toString)
+
+  def lastDayGen: Gen[LastDay] =
+    for {
+      year  <- Gen.chooseNum(1000, 9999)
+      month <- Gen.chooseNum(1, 12)
+    } yield LastDay(year.toString, month.toString)
+
   def anyWordGen: Gen[AnyWord] = Gen.alphaNumStr.map(AnyWord)
 
   def dateFieldGen: Gen[DateField] = FormComponentGen.formComponentIdGen.map(DateField)
@@ -97,16 +110,18 @@ trait FormatExprGen {
     concreteDateGen,
     nextDateGen,
     previousDateGen,
+    firstDayGen,
+    lastDayGen,
     anyWordGen,
     dateFieldGen
   )
 
   def dateConstraintGen: Gen[DateConstraint] =
     for {
-      beforeOrAfter <- beforeOrAfterGen
-      format        <- dateConstraintInfoGen
-      offset        <- offsetDateGen
-    } yield DateConstraint(beforeOrAfter, format, offset)
+      beforeAfterPrecisely <- beforeAfterPreciselyGen
+      format               <- dateConstraintInfoGen
+      offset               <- offsetDateGen
+    } yield DateConstraint(beforeAfterPrecisely, format, offset)
 
   def dateConstraintTypeGen: Gen[DateConstraintType] = Gen.oneOf(
     Gen.const(AnyDate),
