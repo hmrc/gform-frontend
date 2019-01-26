@@ -353,11 +353,9 @@ class ComponentsValidator(
                 validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                   .andThen(
                     inputDate =>
-                      validateFirstOrLastDay(
+                      validateAbstractFirstOrLastDay(
                         fieldValue,
                         inputDate,
-                        firstDay,
-                        offset,
                         Map(
                           fieldValue.id ->
                             errors(
@@ -371,11 +369,9 @@ class ComponentsValidator(
                 validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
                   .andThen(
                     inputDate =>
-                      validateFirstOrLastDay(
+                      validateAbstractFirstOrLastDay(
                         fieldValue,
                         inputDate,
-                        lastDay,
-                        offset,
                         Map(
                           fieldValue.id ->
                             errors(
@@ -819,6 +815,15 @@ class ComponentsValidator(
       case false => dateError.invalid
     }
 
+  def validateAbstractFirstOrLastDay[T]( // YYYY-MM Format
+    fieldValue: FormComponent,
+    localDate: LocalDate,
+    dateError: GformError)(func: LocalDate => Boolean): ValidatedType =
+    func(localDate) match {
+      case true  => ().valid
+      case false => dateError.invalid
+    }
+
   def isAfterToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
     date.isAfter(now.apply().plusDays(offset.value.toLong))
 
@@ -861,10 +866,10 @@ class ComponentsValidator(
     date.isEqual(
       LocalDate.of(lastDay.getYear, lastDay.getMonthValue, lastDay.getDayOfMonth).plusDays(offset.value.toLong))
 
-  def isLastDay(date: LocalDate, lastDay: LastDay, offset: OffsetDate): Boolean =
+  def isLastDay(date: LocalDate): Boolean =
     date.getDayOfMonth == LastDay(date.getYear.toString, date.getMonthValue.toString).day.get
 
-  def isFirstDay(date: LocalDate, firstDay: FirstDay, offset: OffsetDate): Boolean =
+  def isFirstDay(date: LocalDate): Boolean =
     date.getDayOfMonth == 1
 
   def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedLocalDate =
