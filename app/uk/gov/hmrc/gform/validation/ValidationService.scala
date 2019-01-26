@@ -235,9 +235,7 @@ class ComponentsValidator(
                             firstDay,
                             offset,
                             Map(fieldValue.id ->
-                              errors(
-                                fieldValue,
-                                s"must be before the first day of the month, for example: ${dateWithOffset(firstDay, offset)}"))
+                              errors(fieldValue, s"must be before ${dateWithOffset(firstDay, offset)}"))
                           )(isBeforeFirstDay))
                   }
 
@@ -253,9 +251,7 @@ class ComponentsValidator(
                             lastDay,
                             offset,
                             Map(fieldValue.id ->
-                              errors(
-                                fieldValue,
-                                s"must be before the last day of the month, for example: ${dateWithOffset(lastDay, offset)}"))
+                              errors(fieldValue, s"must be before ${dateWithOffset(lastDay, offset)}"))
                           )(isBeforeLastDay))
                   }
 
@@ -333,9 +329,7 @@ class ComponentsValidator(
                             firstDay,
                             offset,
                             Map(fieldValue.id ->
-                              errors(
-                                fieldValue,
-                                s"must be after the first day of the month, for example: ${dateWithOffset(firstDay, offset)}"))
+                              errors(fieldValue, s"must be after ${dateWithOffset(firstDay, offset)}"))
                           )(isAfterFirstDay))
                   }
 
@@ -351,9 +345,7 @@ class ComponentsValidator(
                             lastDay,
                             offset,
                             Map(fieldValue.id ->
-                              errors(
-                                fieldValue,
-                                s"must be after the last day of the month, for example: ${dateWithOffset(lastDay, offset)}"))
+                              errors(fieldValue, s"must be after ${dateWithOffset(lastDay, offset)}"))
                           )(isAfterLastDay))
                   }
 
@@ -419,7 +411,7 @@ class ComponentsValidator(
                         fieldValue,
                         inputDate,
                         offset,
-                        Map(fieldValue.id -> errors(fieldValue, "must be precisely today")))(isPreciselyToday))
+                        Map(fieldValue.id -> errors(fieldValue, "must be today")))(isPreciselyToday))
 
               case (Precisely, concreteDate: ConcreteDate, offset) =>
                 validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
@@ -432,10 +424,7 @@ class ComponentsValidator(
                             inputDate,
                             concreteDate,
                             offset,
-                            Map(
-                              fieldValue.id -> errors(
-                                fieldValue,
-                                s"must be precisely ${dateWithOffset(concreteDate, offset)}"))
+                            Map(fieldValue.id -> errors(fieldValue, s"must be ${dateWithOffset(concreteDate, offset)}"))
                           )(isPreciselyConcreteDate))
                   }
 
@@ -451,14 +440,11 @@ class ComponentsValidator(
                             firstDay,
                             offset,
                             Map(fieldValue.id ->
-                              errors(
-                                fieldValue,
-                                s"must be the first day of the month, for example: ${dateWithOffset(firstDay, offset)}"))
+                              errors(fieldValue, s"must be ${dateWithOffset(firstDay, offset)}"))
                           )(isPreciselyFirstDay))
                   }
 
-              case (Precisely, lastDay: LastDay, offset) => {
-                println("findmedude" + lastDay)
+              case (Precisely, lastDay: LastDay, offset) =>
                 validateFirstOrLastDay(lastDay, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
                   .andThen { lastDay =>
                     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
@@ -470,12 +456,10 @@ class ComponentsValidator(
                             lastDay,
                             offset,
                             Map(fieldValue.id ->
-                              errors(
-                                fieldValue,
-                                s"must be the last day of the month, for example: ${dateWithOffset(lastDay, offset)}"))
+                              errors(fieldValue, s"must be ${dateWithOffset(lastDay, offset)}"))
                           )(isPreciselyLastDay))
+
                   }
-              }
 
             }
 
@@ -893,7 +877,7 @@ class ComponentsValidator(
 
     val day = firstOrLastDay match {
       case FirstDay(year, month) => Try(LocalDate.of(year.toInt, month.toInt, FirstDay(year, month).day))
-      case LastDay(year, month) => Try(LocalDate.of(year.toInt, month.toInt, LastDay(year, month).day.get))
+      case LastDay(year, month)  => Try(LocalDate.of(year.toInt, month.toInt, LastDay(year, month).day.get))
     }
 
     day match {
