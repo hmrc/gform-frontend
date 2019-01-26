@@ -40,15 +40,15 @@ trait DateValueGen {
 
   def firstDayValueGen: Gen[FirstDayValue] =
     for {
-      year  <- Gen.posNum[Int]
-      month <- Gen.posNum[Int]
-    } yield FirstDayValue(year, month)
+      year  <- Gen.chooseNum(1000, 9999)
+      month <- Gen.chooseNum(1, 12)
+    } yield FirstDayValue(year.toString, month.toString)
 
   def lastDayValueGen: Gen[LastDayValue] =
     for {
-      year  <- Gen.posNum[Int]
-      month <- Gen.posNum[Int]
-    } yield LastDayValue(year, month)
+      year  <- Gen.chooseNum(1000, 9999)
+      month <- Gen.chooseNum(1, 12)
+    } yield LastDayValue(year.toString, month.toString)
 
   def dateValueGen: Gen[DateValue] = Gen.oneOf(
     Gen.const(TodayDateValue),

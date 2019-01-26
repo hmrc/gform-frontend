@@ -31,8 +31,7 @@ object DateExpr {
     case ExactDateValue(year, month, day) => DateExpr(year, month, day)
     case n @ NextDateValue(_, _)          => nextDateExpr(n)
     case p @ PreviousDateValue(_, _)      => previousDateExpr(p)
-    case f @ FirstDayValue(_, _)          => firstDayExpr(f)
-    case l @ LastDayValue(_, _)           => lastDayExpr(l)
+
   }
 
   private def nextDateExpr(nextDate: NextDateValue)(implicit now: Now[LocalDate]): DateExpr = {
@@ -57,21 +56,6 @@ object DateExpr {
     val dateArray = splitBy(dateToStr)
 
     DateExpr(dateArray(0).toInt, dateArray(1).toInt, dateArray(2).toInt)
-  }
-
-  private def firstDayExpr(firstDay: FirstDayValue)(implicit now: Now[LocalDate]): DateExpr = {
-
-    import firstDay._
-
-    DateExpr(year, month, 1)
-  }
-
-  private def lastDayExpr(lastDay: LastDayValue)(implicit now: Now[LocalDate]): DateExpr = {
-
-    import lastDay._
-
-    DateExpr(year, month, now.apply().lengthOfMonth())
-
   }
 
   def withOffset(offset: Offset, dateExpr: DateExpr): DateExpr = offset.value match {
