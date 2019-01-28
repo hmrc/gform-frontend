@@ -32,18 +32,6 @@ object NumberFormatUtil {
   }
   val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
 }
-object RoundingModeJavaUtil {
-  def RoundingFormat(roundingMode: GformRoundingMode) =
-    roundingMode match {
-      case GformRoundingMode.Up       => RoundingMode.UP
-      case GformRoundingMode.Down     => RoundingMode.DOWN
-      case GformRoundingMode.Ceiling  => RoundingMode.CEILING
-      case GformRoundingMode.Floor    => RoundingMode.FLOOR
-      case GformRoundingMode.HalfDown => RoundingMode.HALF_DOWN
-      case GformRoundingMode.HalfUp   => RoundingMode.HALF_UP
-      case GformRoundingMode.HalfEven => RoundingMode.HALF_EVEN
-    }
-}
 
 object RoundingModeBigDecimalUtil {
   def RoundingFormat(roundingMode: GformRoundingMode) =
