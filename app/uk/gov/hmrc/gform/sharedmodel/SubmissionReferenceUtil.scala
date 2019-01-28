@@ -44,19 +44,18 @@ object SubmissionReferenceUtil {
 
     val d11 = (((d0 + d2 + d4 + d6 + d8 + d10) * 3) + (d1 + d3 + d5 + d7 + d9)) % 36
 
-    val c0 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d0.toInt)
-    val c1 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d1.toInt)
-    val c2 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d2.toInt)
-    val c3 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d3.toInt)
-    val c4 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d4.toInt)
-    val c5 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d5.toInt)
-    val c6 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d6.toInt)
-    val c7 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d7.toInt)
-    val c8 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d8.toInt)
-    val c9 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d9.toInt)
-    val c10 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d10.toInt)
-
-    val c11 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d11.toInt)
+//    val c0 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d0.toInt)
+//    val c1 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d1.toInt)
+//    val c2 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d2.toInt)
+//    val c3 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d3.toInt)
+//    val c4 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d4.toInt)
+//    val c5 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d5.toInt)
+//    val c6 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d6.toInt)
+//    val c7 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d7.toInt)
+//    val c8 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d8.toInt)
+//    val c9 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d9.toInt)
+//    val c10 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d10.toInt)
+//    val c11 = "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(d11.toInt)
 
     val getCheck = (digest.sum * -1).toByte
     val bigInt = new BigInteger(1, digest :+ getCheck).toString(36).toUpperCase
@@ -67,9 +66,11 @@ object SubmissionReferenceUtil {
 
   def findDigits(source: Long, no: Int, digits: Array[Long]): Array[Long] =
     if (no == 0) {
-      digits :+ (source % 36)
+      (source % 36) +: digits
+    } else if (no == 1) {
+      findDigits(source, no - 1, ((source / 36) % 36) +: digits)
     } else {
-      findDigits(source, no - 1, digits :+ (source / pow(36, no)).toLong % 36)
+      findDigits(source, no - 1, ((source / pow(36L, no)) % 36).toLong +: digits)
     }
 
 }
