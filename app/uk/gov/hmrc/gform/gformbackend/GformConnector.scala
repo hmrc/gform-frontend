@@ -129,8 +129,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[Account, HttpResponse](s"$baseUrl/validate/bank", Account(sortCode, accountNumber)).map(_ => true).recover {
       case _: NotFoundException => false
     }
-  import scala.io.Source
-  def fileToByteStr(filename: String): ByteString = ByteString(Source.fromFile(filename).mkString)
+
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
 

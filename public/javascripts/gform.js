@@ -18,8 +18,6 @@
 
   var gformGAEvents = new GOVUK.GformGAEvents();
   gformGAEvents.init();
-})()
 
-
-
-
+  GOVUK.gformSessionTimeout({})
+})();

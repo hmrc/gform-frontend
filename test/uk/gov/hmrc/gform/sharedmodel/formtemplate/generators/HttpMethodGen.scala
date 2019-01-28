@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.HttpMethod
 
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
-
-class DestinationSpec extends Spec {
-  "Destination" should "round trip derived JSON" in {
-    forAll(DestinationGen.destinationGen) { obj =>
-      Destination.format.reads(Destination.format.writes(obj)) should beJsSuccess(obj)
-    }
-  }
+trait HttpMethodGen {
+  def httpMethodGen: Gen[HttpMethod] =
+    Gen.oneOf(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH, HttpMethod.HEAD)
 }
+
+object HttpMethodGen extends HttpMethodGen

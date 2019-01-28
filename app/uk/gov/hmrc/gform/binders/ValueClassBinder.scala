@@ -21,7 +21,7 @@ import play.api.libs.json._
 import play.api.mvc.{ PathBindable, QueryStringBindable }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SectionNumber, SectionTitle4Ga }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SeNo, SeYes, SectionNumber, SectionTitle4Ga, SuppressErrors }
 
 import scala.util.Try
 object ValueClassBinder {
@@ -62,6 +62,22 @@ object ValueClassBinder {
     override def unbind(key: String, sectionNumber: SectionNumber): String =
       s"""$key=${sectionNumber.value.toString}"""
   }
+
+  implicit val suppressErrorsQueryBinder: QueryStringBindable[SuppressErrors] =
+    new QueryStringBindable[SuppressErrors] {
+
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SuppressErrors]] =
+        params.get(key).flatMap(_.headOption).map { value =>
+          value match {
+            case SuppressErrors.seYes => SeYes.asRight
+            case SuppressErrors.seNo  => SeNo.asRight
+            case _                    => s"No valid value in path $key: $value".asLeft
+          }
+        }
+
+      override def unbind(key: String, suppressErrors: SuppressErrors): String =
+        s"""$key=${suppressErrors.asString}"""
+    }
 
   implicit val optionAccessCodeBinder: QueryStringBindable[Option[AccessCode]] =
     new QueryStringBindable[Option[AccessCode]] {

@@ -90,6 +90,17 @@ class AuthenticatedRequestActions(
       EnrolmentFailed
   }
 
+  def keepAlive(): Action[AnyContent] = Action.async { implicit request =>
+    val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+    for {
+      authResult <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
+      result <- authResult match {
+                 case AuthSuccessful(retrievals) => Future.successful(Ok("success"))
+                 case _                          => errResponder.forbidden(request, "Access denied")
+               }
+    } yield result
+  }
+
   def async(formTemplateId: FormTemplateId, lang: Option[String])(
     f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
@@ -300,4 +311,6 @@ case class AuthCacheWithForm(
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
   formTemplate: FormTemplate
-) extends AuthCache
+) extends AuthCache {
+  def toAuthCacheWithForm(form: Form) = AuthCacheWithForm(retrievals, form, formTemplate)
+}

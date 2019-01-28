@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.DestinationGen
-
-class DestinationSpec extends Spec {
-  "Destination" should "round trip derived JSON" in {
-    forAll(DestinationGen.destinationGen) { obj =>
-      Destination.format.reads(Destination.format.writes(obj)) should beJsSuccess(obj)
-    }
+sealed trait SuppressErrors extends Product with Serializable {
+  def asString: String = this match {
+    case SeYes => SuppressErrors.seYes
+    case SeNo  => SuppressErrors.seNo
   }
+}
+
+case object SeYes extends SuppressErrors
+case object SeNo extends SuppressErrors
+
+object SuppressErrors {
+
+  val seYes = "t"
+  val seNo = "f"
+
+  def apply(b: Boolean) = if (b) SeYes else SeNo
+
 }

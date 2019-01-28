@@ -33,12 +33,20 @@ case class FormComponentSimple(fc: FormComponent) extends FormComponentWithCtx
 
 case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal {
   def allIds: List[FormComponentId] =
-    expandedFC.map {
+    expandedFC.flatMap {
       case fc @ IsDate(_)       => Date.fields(fc.id)
       case fc @ IsAddress(_)    => Address.fields(fc.id)
       case fc @ IsUkSortCode(_) => UkSortCode.fields(fc.id)
       case fc                   => List(fc.id)
-    }.flatten
+    }
+
+  def allInfoMessageId: List[FormComponentId] =
+    expandedFC.flatMap {
+      case fc @ IsInformationMessage(_) => List(fc.id)
+      case _                            => Nil
+    }
+
+  def allIdsExceptInfoMessages: Set[FormComponentId] = allIds.toSet -- allInfoMessageId.toSet
 }
 
 case class FormComponent(

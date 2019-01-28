@@ -150,7 +150,7 @@ class ComponentsValidator(
       case address @ Address(_)          => validIf(validateAddress(fieldValue, address)(data))
       case c @ Choice(_, _, _, _, _)     => validIf(validateChoice(fieldValue)(data))
       case Group(_, _, _, _, _, _)       => validF //a group is read-only
-      case FileUpload()                  => validateFileUpload(fieldValue)
+      case FileUpload()                  => validateFileUpload(data, fieldValue)
       case InformationMessage(_, _)      => validF
     }
   }
@@ -287,7 +287,8 @@ class ComponentsValidator(
   }
 
   //TODO: this will be called many times per one form. Maybe there is a way to optimise it?
-  private def validateFileUpload(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType] =
+  private def validateFileUpload(data: FormDataRecalculated, fieldValue: FormComponent)(
+    implicit hc: HeaderCarrier): Future[ValidatedType] =
     fileUploadService
       .getEnvelope(envelopeId)
       .map { envelope =>
@@ -326,6 +327,7 @@ class ComponentsValidator(
       case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
       case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
+      case (_, value :: Nil, EORI)                      => checkEORI(fieldValue, value)
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
@@ -362,6 +364,15 @@ class ComponentsValidator(
     str match {
       case ValidCRN() => ().valid
       case _          => getError(fieldValue, "is not a valid Company Registration Number")
+    }
+  }
+
+  private def checkEORI(fieldValue: FormComponent, value: String) = {
+    val ValidCRN = "^[A-Z]{2}[0-9]{12}|[A-Z]{2}[0-9]{15}$".r
+    val str = value.replace(" ", "")
+    str match {
+      case ValidCRN() => ().valid
+      case _          => getError(fieldValue, "is not a valid EORI")
     }
   }
 
@@ -532,6 +543,13 @@ class ComponentsValidator(
     }
   }
 
+  private def postcodeValidation(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType =
+    xs.filterNot(_.isEmpty) match {
+      case value :: Nil if value.length > ValidationValues.postcodeLimit =>
+        Map(fieldId -> errors(fieldValue, s"postcode is longer than ${ValidationValues.postcodeLimit} characters")).invalid
+      case _ => ().valid
+    }
+
   private def validateChoice(fieldValue: FormComponent)(data: FormDataRecalculated): ValidatedType = {
     val choiceValue = data.data.get(fieldValue.id).toList.flatten.headOption
 
@@ -558,6 +576,8 @@ class ComponentsValidator(
 
     def lengthValidation(value: String) = addressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
+    def postcodeLengthValidation(value: String) = postcodeValidation(fieldValue, fieldValue.id.withSuffix(value)) _
+
     val validatedResult: List[ValidatedType] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
@@ -569,7 +589,8 @@ class ComponentsValidator(
           lengthValidation("street3")(addressValueOf("street3")),
           lengthValidation("street4")(addressValueOf("street4")),
           validateRequiredField("postcode", localisation("postcode"))(addressValueOf("postcode")),
-          validateForbiddenField("country")(addressValueOf("country"))
+          validateForbiddenField("country")(addressValueOf("country")),
+          postcodeLengthValidation("postcode")(addressValueOf("postcode"))
         )
       case _ =>
         List(
@@ -710,4 +731,5 @@ object ValidationValues {
   val addressLine = 35
   val addressLine4 = 27
   val emailLimit = 241
+  val postcodeLimit = 8
 }

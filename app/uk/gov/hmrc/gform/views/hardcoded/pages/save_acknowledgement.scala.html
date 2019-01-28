@@ -15,6 +15,7 @@
  *@
 
 @import play.api.i18n.Messages.Implicits._
+@import play.api.mvc.Call
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
@@ -23,8 +24,7 @@
 
 @(
     formTemplate: FormTemplate,
-    originSectionNumber: SectionNumber,
-    sectionTitle4Ga: SectionTitle4Ga,
+    call: Call,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
 )(implicit messages: Messages)
@@ -50,7 +50,7 @@
 <p>You can:</p>
 <ul class = "bullets">
    <li>
-      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.form(formTemplate._id, None, originSectionNumber, sectionTitle4Ga, lang)">return</a>
+      <a href="@call">return</a>
      to your form
    </li>
    <li>

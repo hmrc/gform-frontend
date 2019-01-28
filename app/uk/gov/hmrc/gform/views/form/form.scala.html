@@ -28,7 +28,6 @@
         pageLevelError: HasErrors,
         page: SectionRenderingInformation,
         shouldDisplayBack: Boolean,
-        shouldDisplayBackToSummary: Boolean,
         shouldDisplayHeading: Boolean,
         shouldDisplayContinue: Boolean,
         frontendAppConfig: FrontendAppConfig
@@ -39,8 +38,6 @@
 )
 
 @heading = @{localisation(page.sectionTitle)}
-
-@submitAction = @{if (shouldDisplayBackToSummary) "BackToSummary" else "Continue"}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -85,7 +82,7 @@
 
         @if(shouldDisplayContinue) {
           <div class="form-group">
-              <button type="submit" class="button" value="@submitAction">@page.continueLabel</button>
+              <button type="submit" class="button" value="Continue">@page.continueLabel</button>
           </div>
 	}
         <div class="js-visible">

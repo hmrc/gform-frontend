@@ -137,28 +137,28 @@ object ExpandUtils {
     }
   }
 
-  private def occurrenceCount(ids: List[FormComponentId])(formData: FormData): Int = {
-    val res = formData.fields
-      .filter { formField =>
-        ids.exists(_ == stripAnyPrefix(formField.id))
+  private def occurrenceCount(ids: List[FormComponentId])(formData: FormDataRecalculated): Int = {
+    val res = formData.data.keys
+      .filter { fcId =>
+        ids.exists(_ == stripAnyPrefix(fcId))
       }
     res.size / ids.size
   }
 
   def addNextGroup(
     maybeGroupFc: Option[FormComponent],
-    formData: FormData,
-    data: FormDataRecalculated): (FormData, Option[String]) =
+    data: FormDataRecalculated): (FormDataRecalculated, Option[String]) =
     maybeGroupFc match {
       case Some(groupFC @ IsGroup(group)) =>
         // We do not have and an index we are adding. We need to derive it from data
         val index = {
-          val fs: List[FormData => Int] = groupIds(group, fcIds => occurrenceCount(fcIds) _)
-          val existingData = fs.map(_(formData)).sum
+          val fs: List[FormDataRecalculated => Int] = groupIds(group, fcIds => occurrenceCount(fcIds) _)
+          val existingData = fs.map(_(data)).sum
           existingData / group.fields.size
         }
 
-        val formDataFields = groupIndex(index + 1, group).map(FormField(_, ""))
+        val addedGroupIds = groupIndex(index + 1, group)
+        val newData = data.data ++ addedGroupIds.map(fcId => fcId -> Seq("")).toMap
 
         val anchor = group.fields
           .dropWhile {
@@ -174,8 +174,8 @@ object ExpandUtils {
             case fc                   => Some(fc.id)
           } map (fcId => index + "_" + fcId.value)
 
-        (FormData(formDataFields), anchor)
-      case None => (FormData(List.empty[FormField]), None)
+        (data.copy(data = newData), anchor)
+      case None => (data, None)
     }
 
   def removeGroupFromData(
