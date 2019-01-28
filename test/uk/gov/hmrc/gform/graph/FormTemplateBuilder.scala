@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.graph
 
+import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
@@ -111,7 +112,7 @@ object FormTemplateBuilder {
     DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
-    Some(List(EmailParameter("fullNameVariable", "fullName"), EmailParameter("emailVariable", "email"))),
+    Some(NonEmptyList.of(EmailParameter("fullNameVariable", "fullName"), EmailParameter("emailVariable", "email"))),
     "http://www.google.co.uk",
     "http://www.yahoo.co.uk",
     sections,
