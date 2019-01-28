@@ -34,7 +34,8 @@
   mainContent: Html = HtmlFormat.empty,
   serviceInfoContent: Html = HtmlFormat.empty,
   scriptElem: Option[Html] = None,
-  authConfig: Option[AuthConfig]
+  authConfig: Option[AuthConfig],
+  navLinks: Option[Html] = None
 )(implicit messages: Messages)
 
 @scriptElement = {
@@ -57,7 +58,7 @@
     case Some(EeittModule(_)) => appConfig.authModule.legacyEEITTAuth
     // case Anonymous => appConfig.authModule.anonymous
     case Some(_) => appConfig.authModule.hmrc
-    case None => JSConfig(timeoutEnabled = false, 0, 0, "")
+    case None => JSConfig(timeoutEnabled = false, 0, 0, "", "")
   }
 }
 
@@ -75,8 +76,8 @@
                 timeoutEnabled: @authTimeout.timeoutEnabled,
                 timeout: @authTimeout.timeout,
                 countdown: @authTimeout.countdown,
-                keep_alive_url: @authTimeout.keepAliveUrl,
-                logout_url: @authTimeout.signOutUrl
+                keep_alive_url: "@authTimeout.keepAliveUrl",
+                logout_url: "@authTimeout.signOutUrl"
               }
       </script>
     }
@@ -85,10 +86,10 @@
 }
 
 @navLinks = {
-  @if(authTimeout.signOutUrl == "") {
-    @Html("")
-  } else {
+  @if(authTimeout.signOutUrl != "") {
     <li><a href="@{authTimeout.signOutUrl}" id="signOut">Sign out</a></li>
+  } else {
+    None
   }
 }
 
@@ -97,7 +98,7 @@
       navTitle = Some(serviceTitle),
       navTitleLink = None,
       showBetaLink = false,
-      navLinks = Some(navLinks)
+      navLinks = Some(navLinks))
 }
 
 @afterHeader = {

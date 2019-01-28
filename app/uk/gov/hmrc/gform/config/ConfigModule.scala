@@ -61,8 +61,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
         typesafeConfig.getBoolean(s"$path.timeoutEnabled"),
         typesafeConfig.getInt(s"$path.timeout"),
         typesafeConfig.getInt(s"$path.countdown"),
-        typesafeConfig.getString(s"$path.keep-alive-url"),
-        typesafeConfig.getString(s"$path.sign-out-url")
+        typesafeConfig.getString(s"$path.keepAliveUrl"),
+        typesafeConfig.getString(s"$path.signOutUrl")
       )
     val contactFormServiceIdentifier = "GForm"
     FrontendAppConfig(
