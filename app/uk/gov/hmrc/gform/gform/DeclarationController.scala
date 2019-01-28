@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
 
 import scala.concurrent.Future
 
@@ -88,7 +89,8 @@ class DeclarationController(
     submissionReference: Option[TextExpression],
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    data: FormDataRecalculated
+    data: FormDataRecalculated,
+    envelopeId: EnvelopeId
   )(implicit hc: HeaderCarrier): String = {
     val referenceNumber = (authConfig, submissionReference) match {
       case (_, Some(textExpression)) =>
@@ -105,7 +107,7 @@ class DeclarationController(
          |    <dt class="cya-question">
          |      Submission reference
          |    </dt>
-         |    <dd class="cya-answer">$referenceNumber</dd>
+         |    <dd class="cya-answer">${getSubmissionReference(envelopeId)}</dd>
          |    <dd></dd>
          |  </div>
          |</dl>
@@ -190,7 +192,8 @@ class DeclarationController(
           cache.formTemplate.submissionReference,
           cache.retrievals,
           cache.formTemplate,
-          data)
+          data,
+          cache.form.envelopeId)
         _ <- if (config.sendPdfWithSubmission)
               gformConnector.submitFormWithPdf(
                 FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),

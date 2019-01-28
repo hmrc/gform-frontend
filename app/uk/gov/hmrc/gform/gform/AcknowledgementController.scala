@@ -30,12 +30,13 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
 
 import scala.concurrent.Future
 
@@ -85,7 +86,7 @@ class AcknowledgementController(
           submission  <- gformConnector.submissionStatus(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
-          htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)
+          htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data, cache.form.envelopeId)
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
@@ -104,7 +105,8 @@ class AcknowledgementController(
     retrievals: MaterialisedRetrievals,
     hashedValue: String,
     formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]]
+    data: Map[FormComponentId, Seq[String]],
+    envelopeId: EnvelopeId
   )(implicit hc: HeaderCarrier): Future[String] = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
@@ -135,7 +137,7 @@ class AcknowledgementController(
            |    <dt class="cya-question">
            |      Submission reference
            |    </dt>
-           |    <dd class="cya-answer">$ref</dd>
+           |    <dd class="cya-answer">${getSubmissionReference(envelopeId)}</dd>
            |    <dd></dd>
            |  </div>
            |  <div>
