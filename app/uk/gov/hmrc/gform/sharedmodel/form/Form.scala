@@ -28,7 +28,8 @@ case class Form(
   userId: UserId,
   formTemplateId: FormTemplateId,
   formData: FormData,
-  status: FormStatus
+  status: FormStatus,
+  envelopeExpiryDate: Option[EnvelopeExpiryDate]
 )
 
 object Form {
@@ -39,7 +40,8 @@ object Form {
       UserId.oformat and
       FormTemplateId.vformat and
       FormData.format and
-      FormStatus.format
+      FormStatus.format and
+      EnvelopeExpiryDate.optionFormat
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](
@@ -49,7 +51,8 @@ object Form {
         UserId.oformat.writes(form.userId) ++
         FormTemplateId.oformat.writes(form.formTemplateId) ++
         FormData.format.writes(form.formData) ++
-        FormStatus.format.writes(form.status))
+        FormStatus.format.writes(form.status) ++
+        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate))
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
 

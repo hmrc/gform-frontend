@@ -247,13 +247,15 @@ class FormController(
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
-      maybeEnvelope <- maybeFormExceptSubmitted.fold(Option.empty[Envelope].pure[Future]) { f => getEnvelope(f.envelopeId) }
-      mayBeFormExceptNoEnvelope <- (maybeFormExceptSubmitted, maybeEnvelope) match {
-        case (None, _) => None.pure[Future]
-        case (Some(f), None) => gformConnector.deleteForm(f._id).map( _ => None)
-        case (Some(_), Some(_)) => maybeFormExceptSubmitted.pure[Future]
-      }
-    } yield mayBeFormExceptNoEnvelope
+      maybeEnvelope <- maybeFormExceptSubmitted.fold(Option.empty[Envelope].pure[Future]) { f =>
+                        getEnvelope(f.envelopeId)
+                      }
+      mayBeFormExceptWithEnvelope <- (maybeFormExceptSubmitted, maybeEnvelope) match {
+                                      case (None, _)          => None.pure[Future]
+                                      case (Some(f), None)    => gformConnector.deleteForm(f._id).map(_ => None)
+                                      case (Some(_), Some(_)) => maybeFormExceptSubmitted.pure[Future]
+                                    }
+    } yield mayBeFormExceptWithEnvelope
 
   private def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
     for {
