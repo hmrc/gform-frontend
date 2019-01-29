@@ -350,7 +350,10 @@ trait ExampleFormTemplate {
 
   def emailTemplateId = "test-email-template-id"
 
-  def emailParameters = List(EmailParameter("fullNameVariable", "fullName"), EmailParameter("emailVariable", "email"))
+  def emailParameters =
+    Some(
+      NonEmptyList
+        .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email"))))
 
   def submtSuccessUrl = """http://success.com"""
 
