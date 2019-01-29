@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.obligation
 import java.text.SimpleDateFormat
 
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.{TaxPeriod, TaxPeriods}
+import uk.gov.hmrc.gform.sharedmodel.{ TaxPeriod, TaxPeriodDes, TaxPeriods }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ObligationService(gformConnector: GformConnector) {
 
@@ -32,8 +32,22 @@ class ObligationService(gformConnector: GformConnector) {
     val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
       case IsHmrcTaxPeriod(el) => el
     }
-    val abc = gformConnector.getAllTaxPeriods(hmrcTaxPeriodIdentifiers).map(h=> h.flatMap(j => j.obligations.flatMap(k => Map(new HmrcTaxPeriod(new IdType(k.identification.referenceType), new IdNumber(k.identification.referenceNumber), new RegimeType(k.identification.incomeSourceType)) ->
-      new TaxPeriods(k.obligationDetails.map(l => new TaxPeriod(stringToDate.parse(l.inboundCorrespondenceFromDate), stringToDate.parse(l.inboundCorrespondenceToDate), l.periodKey)))))))
-    abc.map(x => x.toMap)
+    val futureListOfTaxPeriodDes = gformConnector.getAllTaxPeriods(hmrcTaxPeriodIdentifiers).map(h => h.flatMap(j => j.obligations))
+    val futureListOfPairs = futureListOfTaxPeriodDes.flatMap(i => Future(i.flatMap(j => makeMap(j))))
+    futureListOfPairs.map(i => i.toMap)
   }
+
+  def makeMap(j: TaxPeriodDes) =
+    Map(
+      new HmrcTaxPeriod(
+        new IdType(j.identification.referenceType),
+        new IdNumber(j.identification.referenceNumber),
+        new RegimeType(j.identification.incomeSourceType)) ->
+        new TaxPeriods(
+          j.obligationDetails.map(
+            l =>
+              new TaxPeriod(
+                stringToDate.parse(l.inboundCorrespondenceFromDate),
+                stringToDate.parse(l.inboundCorrespondenceToDate),
+                l.periodKey))))
 }
