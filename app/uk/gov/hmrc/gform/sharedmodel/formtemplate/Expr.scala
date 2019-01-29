@@ -37,7 +37,6 @@ final case object Value extends Expr
 object FormCtx {
   lazy val readsForTemplateJson: Reads[FormCtx] = Reads {
     case JsString(exprAsStr) =>
-      println("expr as string" + exprAsStr)
       ExprParsers.validateFormCtx(exprAsStr).fold(error => JsError(error.toString), JsSuccess(_))
     case otherwise => JsError(s"Invalid expression. Expected String, got $otherwise")
   }
