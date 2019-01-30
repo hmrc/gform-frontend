@@ -740,7 +740,7 @@ class SectionRenderingService(
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String])(implicit request: Request[_], messages: Messages) = {
-    val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
+    val maybeHint = fieldValue.helpText.map(markDownParser).map(htmlBodyContents).map(Html.apply)
 
     val (lhtml, limitReached) =
       getGroupForRendering(
