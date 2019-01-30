@@ -210,8 +210,6 @@ class AuthService(
 
       case id: FormCtx => (data.get(id.toFieldId).map(_.head).getOrElse("")).pure[Future]
 
-      //case SubmissionReference => getSubmissionReference()
-
       case _ => "".pure[Future] //TODO change this to AuthExpr.
     }
 

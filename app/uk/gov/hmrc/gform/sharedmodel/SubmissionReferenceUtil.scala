@@ -26,8 +26,6 @@ object SubmissionReferenceUtil {
   def findDigits(source: Long, no: Int, digits: Array[Long]): Array[Long] =
     if (no == 0) {
       (source % 36) +: digits
-    } else if (no == 1) {
-      findDigits(source, no - 1, ((source / 36) % 36) +: digits)
     } else {
       findDigits(source, no - 1, ((source / pow(36L, no)) % 36).toLong +: digits)
     }
@@ -45,15 +43,13 @@ object SubmissionReferenceUtil {
     val c = b :+ fd11
     val d = c.map(i => "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(i.toInt)).mkString
     val addHyphens = d.take(4) + "-" + d.substring(4, 8) + "-" + d.takeRight(4)
-    val e = check(addHyphens)
     addHyphens
   }
 
   def check(reference: String) = {
     val a = reference.replace("-", "")
     val b = a.toCharArray.map(i => Integer.parseInt(i.toString, 36))
-    if ((((b(0) + b(2) + b(4) + b(6) + b(8) + b(10)) * 3) + (b(1) + b(3) + b(5) + b(7) + b(9))) % 36 == b(11)) {
-      true
-    } else { false }
+    (((b(0) + b(2) + b(4) + b(6) + b(8) + b(10)) * 3) + (b(1) + b(3) + b(5) + b(7) + b(9))) % 36 == b(11)
+
   }
 }
