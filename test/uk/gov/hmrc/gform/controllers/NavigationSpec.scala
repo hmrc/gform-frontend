@@ -66,7 +66,7 @@ class NavitagionSpec extends Spec with GraphSpec {
       formData.map { case (k, v) => k -> Seq(v) },
       mkFormTemplate(sectionsData),
       ExampleData.authContext,
-      EnvelopeId("")
+      None
     )
     new Navigation {
       val sections: List[Section] = sectionsData

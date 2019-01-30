@@ -129,7 +129,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       ExampleData.authContext.copy(
         enrolments =
           Enrolments(Set(Enrolment("NINO").copy(identifiers = List(EnrolmentIdentifier("NINO", "AA111111A")))))),
-      EnvelopeId("")
+      None
     )
 
     res match {
@@ -149,7 +149,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       ) :: Nil
 
     val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext,
-      EnvelopeId(""))
+      None)
 
     res match {
       case Right(formDataRecalculated) =>
@@ -173,7 +173,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       ExampleData.authContext.copy(
         affinityGroup = Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual)
       ),
-      EnvelopeId("")
+      None
     )
 
     res match {
@@ -249,7 +249,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     )
 
     val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext,
-      EnvelopeId(""))
+      None)
 
     res match {
       case Left(NoFormComponent(fcId, map)) =>
@@ -541,7 +541,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
   private def verify(input: Data, expectedOutput: Data, sections: List[Section])(implicit position: Position) = {
     val output = recalculation.recalculateFormData(input, mkFormTemplate(sections), ExampleData.authContext,
-      EnvelopeId(""))
+      None)
     Right(expectedOutput) shouldBe output.map(_.data)
 
   }
