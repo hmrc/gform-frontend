@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 import java.security.MessageDigest
-import java.math.BigInteger
 import scala.math.pow
 
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
@@ -30,7 +29,7 @@ object SubmissionReferenceUtil {
       findDigits(source, no - 1, ((source / pow(36L, no)) % 36).toLong +: digits)
     }
 
-  def getSubmissionReference(envelopeId: EnvelopeId) = {
+  def getSubmissionReference(envelopeId: EnvelopeId): String = {
     val digest = MessageDigest.getInstance("SHA-256").digest(envelopeId.value.getBytes()).take(8)
     def toUnsigned(x: Byte): Long = if (x < 0) 127 - x else x
     val x
@@ -38,18 +37,20 @@ object SubmissionReferenceUtil {
       digest(3)) + 256 * (toUnsigned(digest(4)) + 256 * (toUnsigned(digest(5)) + 256 * (toUnsigned(digest(6)) + 256 * (toUnsigned(
       digest(7)) % 128)))))))
 
-    val b = findDigits(x, 10, Array())
-    val fd11 = (((b(0) + b(2) + b(4) + b(6) + b(8) + b(10)) * 3) + (b(1) + b(3) + b(5) + b(7) + b(9))) % 36
-    val c = b :+ fd11
-    val d = c.map(i => "0123456789ABCDEFGHIGJLMNOPQRSTUVWXYZ".toCharArray()(i.toInt)).mkString
-    val addHyphens = d.take(4) + "-" + d.substring(4, 8) + "-" + d.takeRight(4)
-    addHyphens
+    val digitArrayWithoutCheck = findDigits(x, 10, Array())
+    val digitArray = digitArrayWithoutCheck :+ calcCheckChar(digitArrayWithoutCheck)
+    val unformattedString = digitArray.map(i => Integer.toString(i.toInt, 36)).mkString.toUpperCase
+    val formattedString = unformattedString.take(4) + "-" + unformattedString.substring(4, 8) + "-" + unformattedString.takeRight(4)
+    formattedString
   }
 
-  def check(reference: String) = {
-    val a = reference.replace("-", "")
-    val b = a.toCharArray.map(i => Integer.parseInt(i.toString, 36))
-    (((b(0) + b(2) + b(4) + b(6) + b(8) + b(10)) * 3) + (b(1) + b(3) + b(5) + b(7) + b(9))) % 36 == b(11)
+  def calcCheckChar(digits: Array[Long]): Long =
+    ((digits(0) + digits(2) + digits(4) + digits(6) + digits(8) + digits(10)) * 3) + (digits(1) + digits(3) + digits(5) + digits(
+      7) + digits(9)) % 36
 
+  def verifyCheckChar(reference: String): Boolean = {
+    val removeHyphens = reference.replace("-", "")
+    val stringToInts = removeHyphens.toCharArray.map(i => Integer.parseInt(i.toString, 36)).map(_.toLong)
+    calcCheckChar(stringToInts) == stringToInts(11)
   }
 }
