@@ -86,7 +86,7 @@ class AcknowledgementController(
           submission  <- gformConnector.submissionStatus(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
-          htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data, cache.form.envelopeId)
+          htmlForPDF  <-  addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data, Some(cache.form.envelopeId))
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
@@ -106,7 +106,7 @@ class AcknowledgementController(
     hashedValue: String,
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]],
-    envelopeId: EnvelopeId
+    envelopeId: Option[EnvelopeId]
   )(implicit hc: HeaderCarrier): Future[String] = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")

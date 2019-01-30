@@ -106,7 +106,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     )
 
     val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext,
-      EnvelopeId(""))
+      None)
 
     res match {
       case Left(NoTopologicalOrder(_, _)) => succeed

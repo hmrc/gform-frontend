@@ -68,7 +68,7 @@ class Recalculation[F[_]: Monad, E](
     data: Data,
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, me: MonadError[F, E]): F[FormDataRecalculated] =
+    envelopeId: Option[EnvelopeId])(implicit hc: HeaderCarrier, me: MonadError[F, E]): F[FormDataRecalculated] =
     recalculateFormData_(data, formTemplate, retrievals, envelopeId).value.flatMap {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd)            => fd.pure[F]
@@ -78,7 +78,7 @@ class Recalculation[F[_]: Monad, E](
     data: Data,
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): EitherT[F, GraphException, FormDataRecalculated] = {
+    envelopeId: Option[EnvelopeId])(implicit hc: HeaderCarrier): EitherT[F, GraphException, FormDataRecalculated] = {
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate, data)
 
@@ -193,7 +193,7 @@ class Recalculation[F[_]: Monad, E](
     dataLookup: Data,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Either[GraphException, Data]] =
+    envelopeId: Option[EnvelopeId])(implicit hc: HeaderCarrier): F[Either[GraphException, Data]] =
     Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup)).traverse { fc =>
       if ((fc.editable || fc.derived) && hasData(fc, dataLookup)) dataLookup.pure[F]
       else
@@ -213,7 +213,7 @@ class Recalculation[F[_]: Monad, E](
     dataLookup: Data,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[String] =
+    envelopeId: Option[EnvelopeId])(implicit hc: HeaderCarrier): F[String] =
     fc match {
       case HasExpr(SingleExpr(expr)) =>
         val conv: Convertible[F] =
@@ -237,7 +237,7 @@ class Evaluator[F[_]: Monad](
     dataLookup: Data,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Convertible[F] =
+    envelopeId: Option[EnvelopeId])(implicit hc: HeaderCarrier): Convertible[F] =
     expr match {
       case Value => getSubmissionData(dataLookup, fcId)
       case UserCtx(Enrolment(ServiceName(sn), IdentifierName(in))) =>
@@ -307,7 +307,7 @@ class Evaluator[F[_]: Monad](
     dataLookup: Data,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier) = {
+    envelopeId: Option[EnvelopeId])(implicit hc: HeaderCarrier) = {
     val results = dataLookup.collect {
       case (key, value) if key.value.endsWith(fc) => Constant(value.headOption.getOrElse(""))
     }
@@ -338,7 +338,7 @@ class Evaluator[F[_]: Monad](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     f: (Convertible[F], Convertible[F]) => (Option[BigDecimal], Option[BigDecimal]) => F[A],
-    envelopeId: EnvelopeId
+    envelopeId: Option[EnvelopeId]
   )(implicit hc: HeaderCarrier): F[A] = {
     def calc(expr: Expr): Convertible[F] =
       eval(visSet, fcId, expr, dataLookup, retrievals, formTemplate, envelopeId)

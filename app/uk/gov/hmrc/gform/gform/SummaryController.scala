@@ -111,8 +111,9 @@ class SummaryController(
         } yield result
 
         lazy val handleExit =
-          recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId).map {
-            data =>
+          recalculation
+            .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, Some(cache.form.envelopeId))
+            .map { data =>
               maybeAccessCode match {
                 case (Some(accessCode)) =>
                   Ok(save_with_access_code(accessCode, cache.formTemplate, lang, frontendAppConfig))
@@ -120,7 +121,7 @@ class SummaryController(
                   val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, lang)
                   Ok(save_acknowledgement(cache.formTemplate, call, lang, frontendAppConfig))
               }
-          }
+            }
 
         get(dataRaw, FormComponentId("save")) match {
           case "Exit" :: Nil        => handleExit
@@ -160,7 +161,7 @@ class SummaryController(
       sections.filter(data.isVisible)
 
     for {
-      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, cache.form.envelopeId)
+      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, Some(cache.form.envelopeId))
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
       allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
@@ -186,7 +187,8 @@ class SummaryController(
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
     for {
-      data     <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
+      data <- recalculation
+               .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, Some(cache.form.envelopeId))
       envelope <- envelopeF
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield

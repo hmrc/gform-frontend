@@ -520,7 +520,11 @@ class FormController(
     implicit request: Request[AnyContent]): Future[(FormDataRecalculated, List[Section])] =
     for {
       formDataRecalculated <- recalculation
-                               .recalculateFormData(data, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
+                               .recalculateFormData(
+                                 data,
+                                 cache.formTemplate,
+                                 cache.retrievals,
+                                 Some(cache.form.envelopeId))
     } yield {
       val sections = RepeatingComponentService.getAllSections(cache.formTemplate, formDataRecalculated)
       (formDataRecalculated, sections)
