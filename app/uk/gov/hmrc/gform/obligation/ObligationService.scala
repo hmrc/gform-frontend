@@ -32,7 +32,8 @@ class ObligationService(gformConnector: GformConnector) {
     val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
       case IsHmrcTaxPeriod(el) => el
     }
-    val futureListOfTaxPeriodDes = gformConnector.getAllTaxPeriods(hmrcTaxPeriodIdentifiers).map(h => h.flatMap(j => j.obligations))
+    val futureListOfTaxPeriodDes =
+      gformConnector.getAllTaxPeriods(hmrcTaxPeriodIdentifiers).map(h => h.flatMap(j => j.obligations))
     val futureListOfPairs = futureListOfTaxPeriodDes.flatMap(i => Future(i.flatMap(j => makeMap(j))))
     futureListOfPairs.map(i => i.toMap)
   }
