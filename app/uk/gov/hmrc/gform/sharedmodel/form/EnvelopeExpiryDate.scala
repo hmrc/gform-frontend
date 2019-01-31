@@ -24,16 +24,6 @@ import play.api.libs.json._
 case class EnvelopeExpiryDate(ldt: LocalDateTime)
 
 object EnvelopeExpiryDate {
-  private val dateTimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
-  implicit val localDateTimeFormat = new Format[LocalDateTime] {
-    override def reads(json: JsValue): JsResult[LocalDateTime] = json match {
-      case JsString(s) => JsSuccess(LocalDateTime.from(dateTimeFormat.parse(s)))
-      case v           => JsError(s"Expected a date time of the form yyyy-MM-dd'T'HH:mm:ss'Z'. Got $v")
-    }
-
-    override def writes(o: LocalDateTime): JsValue = JsString(dateTimeFormat.format(o))
-  }
-
   implicit val format: OFormat[EnvelopeExpiryDate] = Json.format[EnvelopeExpiryDate]
 
   implicit val optionFormat: OFormat[Option[EnvelopeExpiryDate]] = new OFormat[Option[EnvelopeExpiryDate]] {
