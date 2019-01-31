@@ -43,6 +43,7 @@ object SubmissionReferenceUtil {
       case None    => EnvelopeId("")
     }
     if (envelopeId.value.length > 1) {
+      // As 36^11 (number of combinations of 11 base 36 digits) < 2^63 (number of combinations of 63 base 2 digits) we can get full significance from this digest.
       val digest = MessageDigest.getInstance("SHA-256").digest(envelopeId.value.getBytes()).take(8)
       val abc = new BigInteger(digest).abs()
       val digitArrayWithoutCheck2 = findDigits(abc.longValue(), 10, Array())
