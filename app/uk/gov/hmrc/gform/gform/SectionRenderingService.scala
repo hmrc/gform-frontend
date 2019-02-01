@@ -544,29 +544,12 @@ class SectionRenderingService(
             formatDate(i.inboundCorrespondenceFromDate),
             formatDate(i.inboundCorrespondenceToDate),
             false))
-    val dummyFormComponent = FormComponent(
-      new FormComponentId(""),
-      FileUpload(),
-      "",
-      None,
-      None,
-      None,
-      false,
-      false,
-      false,
-      false,
-      false,
-      None)
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val mapOfResultsOption: FormFieldValidationResult = validatedValue match {
-      case Some(x) => x
-      case None    => FieldOk(dummyFormComponent, "")
+    val mapOfResultsOption = validatedValue match {
+      case Some(ComponentField(a, b)) => b
+      case None                       => Map[String, FormFieldValidationResult]()
     }
-    val mapOfResults = mapOfResultsOption match {
-      case ComponentField(a, b) => b
-      case _                    => Map[String, FormFieldValidationResult]()
-    }
-    val setValue = mapOfResults.values.toList match {
+    val setValue = mapOfResultsOption.values.toList match {
       case a if a.size < 2 => ""
       case b: List[_]      => TextFormatter.formatText(Some(b(1))).dropRight(1)
       case _               => ""
