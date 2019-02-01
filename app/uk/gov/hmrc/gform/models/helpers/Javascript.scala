@@ -46,10 +46,10 @@ object Javascript {
       case otherwise                   => false
     }
 
-    val fieldIdWithExpr: List[(FormComponentWithCtx, Expr, Option[RoundingMode])] =
+    val fieldIdWithExpr: List[(FormComponentWithCtx, Expr)] =
       sectionFields.collect {
-        case formComponent @ HasExprCtx(SingleExpr(expr, roundingMode)) if isDynamic(expr) =>
-          (formComponent, expr, roundingMode)
+        case formComponent @ HasExprCtx(SingleExpr(expr)) if isDynamic(expr) =>
+          (formComponent, expr)
       }
 
     val groupFoldButtons: List[(FormComponentId, FormComponentWithGroup)] =
@@ -60,7 +60,7 @@ object Javascript {
       }
 
     fieldIdWithExpr
-      .map(x => toJavascriptFn(x._1, x._2, x._3, repeatFormComponentIds, dependencies.toLookup, groupFoldButtons.toMap))
+      .map(x => toJavascriptFn(x._1, x._2, repeatFormComponentIds, dependencies.toLookup, groupFoldButtons.toMap))
       .mkString("\n") +
       """|function getValue(elementId, identity) {
          |   var el = document.getElementById(elementId);
@@ -99,10 +99,25 @@ object Javascript {
   private def toJavascriptFn(
     field: FormComponentWithCtx,
     expr: Expr,
-    roundingMode: Option[RoundingMode],
     repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
     groupFoldButtonLookup: Map[FormComponentId, FormComponentWithGroup]): String = {
+
+    def getRoundingMode(fc: FormComponent) =
+      fc.`type` match {
+        case Text(Number(_, _, rm, _), _, _)             => Some(rm)
+        case TextArea(Number(_, _, rm, _), _, _)         => Some(rm)
+        case Text(PositiveNumber(_, _, rm, _), _, _)     => Some(rm)
+        case TextArea(PositiveNumber(_, _, rm, _), _, _) => Some(rm)
+        case Text(Sterling(rm), _, _)                    => Some(rm)
+        case TextArea(Sterling(rm), _, _)                => Some(rm)
+        case _                                           => None
+      }
+
+    val roundingMode = field match {
+      case FormComponentWithGroup(fc, _) => getRoundingMode(fc)
+      case FormComponentSimple(fc)       => getRoundingMode(fc)
+    }
 
     import Expr._
 
@@ -172,7 +187,6 @@ object Javascript {
       case _                           => "ROUND_DOWN"
     }
     val elementId = field.id
-    val x = field
     val functionName = JsFunction("compute" + elementId)
 
     s"""|function $functionName() {

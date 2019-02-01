@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 sealed trait ExprCardinality
-case class SingleExpr(expr: Expr, roundingMode: Option[RoundingMode]) extends ExprCardinality
+case class SingleExpr(expr: Expr) extends ExprCardinality
 case class MultipleExpr(fields: List[FormComponent]) extends ExprCardinality
 
 object HasExpr {
@@ -25,17 +25,11 @@ object HasExpr {
 
   def unapply(ct: ComponentType): Option[ExprCardinality] =
     ct match {
-      case Text(Number(_, _, rm, _), expr, _)             => Some(SingleExpr(expr, Some(rm)))
-      case TextArea(Number(_, _, rm, _), expr, _)         => Some(SingleExpr(expr, Some(rm)))
-      case Text(PositiveNumber(_, _, rm, _), expr, _)     => Some(SingleExpr(expr, Some(rm)))
-      case TextArea(PositiveNumber(_, _, rm, _), expr, _) => Some(SingleExpr(expr, Some(rm)))
-      case Text(Sterling(rm), expr, _)                    => Some(SingleExpr(expr, Some(rm)))
-      case TextArea(Sterling(rm), expr, _)                => Some(SingleExpr(expr, Some(rm)))
-      case Text(_, expr, _)                               => Some(SingleExpr(expr, None))
-      case TextArea(_, expr, _)                           => Some(SingleExpr(expr, None))
-      case UkSortCode(expr)                               => Some(SingleExpr(expr, None))
-      case Group(fields, _, _, _, _, _)                   => Some(MultipleExpr(fields))
-      case _                                              => None
+      case Text(_, expr, _)             => Some(SingleExpr(expr))
+      case TextArea(_, expr, _)         => Some(SingleExpr(expr))
+      case UkSortCode(expr)             => Some(SingleExpr(expr))
+      case Group(fields, _, _, _, _, _) => Some(MultipleExpr(fields))
+      case _                            => None
     }
 }
 
