@@ -547,12 +547,11 @@ class SectionRenderingService(
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val mapOfResultsOption = validatedValue match {
       case Some(ComponentField(a, b)) => b
-      case None                       => Map[String, FormFieldValidationResult]()
+      case _                          => Map[String, FormFieldValidationResult]()
     }
     val setValue = mapOfResultsOption.values.toList match {
-      case a if a.size < 2 => ""
-      case b: List[_]      => TextFormatter.formatText(Some(b(1))).dropRight(1)
-      case _               => ""
+      case a => TextFormatter.formatText(Some(a(0))).takeRight(4)
+      case _ => ""
     }
 
     html.form.snippets
