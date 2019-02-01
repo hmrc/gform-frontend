@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.gform
 
+import java.time.format.DateTimeFormatter
+
 import cats.data.Validated.Valid
 import cats.instances.future._
 import cats.syntax.applicative._
@@ -468,6 +470,9 @@ class FormController(
       def processSaveAndExit(data: FormDataRecalculated, sections: List[Section]): Future[Result] =
         validateAndUpdateData(data, sections) { maybeSn =>
           val formTemplate = cache.formTemplate
+          val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+          val envelopeExpiryDate =
+            cache.form.envelopeExpiryDate.fold("for 30 days")("until " + _.ldt.format(formatter))
           maybeAccessCode match {
             case Some(accessCode) =>
               Ok(save_with_access_code(accessCode, formTemplate, lang, frontendAppConfig))
@@ -478,7 +483,7 @@ class FormController(
                   routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, lang, SeYes)
                 case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, lang)
               }
-              Ok(save_acknowledgement(formTemplate, call, lang, frontendAppConfig))
+              Ok(save_acknowledgement(envelopeExpiryDate, formTemplate, call, lang, frontendAppConfig))
           }
         }
 

@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.gform
 
+import java.time.format.DateTimeFormatter
+
 import cats.Monoid
 import cats.instances.future._
 import cats.instances.list._
@@ -109,7 +111,8 @@ class SummaryController(
                      redirectToSummary.pure[Future]
                    )
         } yield result
-
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+        val envelopeExpiryDate = cache.form.envelopeExpiryDate.fold("SomeString")(_.ldt.format(formatter))
         lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
           data =>
             maybeAccessCode match {
@@ -117,7 +120,7 @@ class SummaryController(
                 Ok(save_with_access_code(accessCode, cache.formTemplate, lang, frontendAppConfig))
               case _ =>
                 val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, lang)
-                Ok(save_acknowledgement(cache.formTemplate, call, lang, frontendAppConfig))
+                Ok(save_acknowledgement(envelopeExpiryDate, cache.formTemplate, call, lang, frontendAppConfig))
             }
         }
 
