@@ -5,7 +5,7 @@ global.error.InternalServerError500.message=Try signing in again in a few minute
 ## Landfill Tax Form ##
 lt.ltDetails.telephoneHint                  = A telephone number must be longer than 3 digits.
 
-error.summary.heading=There are errors on this page
+error.summary.heading=There is a problem
 
 # Access code form field errors
 accessOption.error.required=Select whether you would like to access an existing {0} or start a new one
