@@ -43,7 +43,7 @@
   @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
 }
 
-<fieldset role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
+<fieldset id="@{fieldValue.id.value}-fieldset" role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
 
     <legend class="h3-heading">
       @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
@@ -56,40 +56,40 @@
                   @localisation("Is this a UK address?")
               </legend>
 
-              <div class="multiple-choice" data-target="@groupId("address-local")">
+              <div class="multiple-choice" data-target="@groupId(s"${fieldValue.id.value}-local")">
                   <input
-                    id="@groupId("address-international-yes")"
+                    id="@groupId(s"${fieldValue.id.value}-international-yes")"
                     type="radio"
-                    name="@safeId("uk")"
+                    name="@groupId(safeId("uk"))"
                     value="true"
                     data-address-choice="uk"
-                    aria-controls="@groupId("address-local")"
+                    aria-controls="@groupId(s"${fieldValue.id.value}-local")"
                     aria-expanded="true"
                     @if(!internationalSelected) {
                         checked="checked"
                     }/>
-                  <label for="@groupId("address-international-yes")">@localisation("Yes")</label>
+                  <label for="@groupId(s"${fieldValue.id.value}-international-yes")">@localisation("Yes")</label>
               </div>
 
-              <div class="multiple-choice" data-target="@groupId("address-international")">
+              <div class="multiple-choice" data-target="@groupId(s"${fieldValue.id.value}-international")">
                   <input
-                    id="@groupId("address-international-no")"
+                    id="@groupId(s"${fieldValue.id.value}-international-no")"
                     type="radio"
-                    name="@safeId("uk")"
+                    name="@groupId(safeId("uk"))"
                     value="false"
                     data-address-choice="international"
-                    aria-controls="@groupId("address-international")"
+                    aria-controls="@groupId(s"${fieldValue.id.value}-international")"
                     aria-expanded="false"
                     @if(internationalSelected) {
                         checked="checked"
                     }/>
 
-                  <label for="@groupId("address-international-no")">@localisation("No")</label>
+                  <label for="@groupId(s"${fieldValue.id.value}-international-no")">@localisation("No")</label>
               </div>
           </fieldset>
       </div>
     } else {
-      <input type="hidden" name="@safeId("uk")" id="@safeId("uk")" value="true" />
+      <input type="hidden" name="@groupId(safeId("uk"))" id="@groupId(safeId("uk"))" value="true" />
     }
 
 
@@ -104,7 +104,7 @@
       }
 
       <div class="form-group@if(safeError("street1").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="1" for="@safeId("street1")">
+          <label class="form-label" data-address-line="1" for="@groupId(safeId("street1"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
               @localisation("Building and street")
             </span>
@@ -116,13 +116,13 @@
           @safeError("street1")
           <input type="text"
                  class="form-control@if(safeError("street1").nonEmpty){ form-control-error}"
-                 name="@safeId("street1")"
-                 id="@safeId("street1")"
-                 value="@validationResult.map(_.getCurrentValue(safeId("street1"))).getOrElse("")" />
+                 name="@groupId(safeId("street1"))"
+                 id="@groupId(safeId("street1"))"
+                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street1")))).getOrElse("")" />
       </div>
 
       <div class="form-group@if(safeError("street2").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="2" for="@safeId("street2")">
+          <label class="form-label" data-address-line="2" for="@groupId(safeId("street2"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
               <span class="visuallyhidden">@localisation("Building and street line 2")</span>
             </span>
@@ -133,13 +133,13 @@
           @safeError("street2")
           <input type="text"
                  class="form-control"
-                 name="@safeId("street2")"
-                 id="@safeId("street2")"
-                 value="@validationResult.map(_.getCurrentValue(safeId("street2"))).getOrElse("")" />
+                 name="@groupId(safeId("street2"))"
+                 id="@groupId(safeId("street2"))"
+                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street2")))).getOrElse("")" />
       </div>
 
       <div class="form-group@if(safeError("street3").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="3" for="@safeId("street3")">
+          <label class="form-label" data-address-line="3" for="@groupId(safeId("street3"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
             @localisation("Town or city")
             </span>
@@ -151,13 +151,13 @@
           @safeError("street3")
           <input type="text"
                  class="form-control"
-                 name="@safeId("street3")"
-                 id="@safeId("street3")"
-                 value="@validationResult.map(_.getCurrentValue(safeId("street3"))).getOrElse("")" />
+                 name="@groupId(safeId("street3"))"
+                 id="@groupId(safeId("street3"))"
+                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street3")))).getOrElse("")" />
       </div>
 
       <div class="form-group@if(safeError("street4").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="4" for="@safeId("street4")">
+          <label class="form-label" data-address-line="4" for="@groupId(safeId("street4"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
               @localisation("County")
             </span>
@@ -169,52 +169,52 @@
           @safeError("street4")
           <input type="text"
                  class="form-control"
-                 name="@safeId("street4")"
-                 id="@safeId("street4")"
-                 value="@validationResult.map(_.getCurrentValue(safeId("street4"))).getOrElse("")" />
+                 name="@groupId(safeId("street4"))"
+                 id="@groupId(safeId("street4"))"
+                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("street4")))).getOrElse("")" />
       </div>
 
       @if(international) {
-      <div id="@groupId("address-local")">
+      <div id="@groupId(s"${fieldValue.id.value}-local")">
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">@localisation("Postcode")</label>
+          <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">@localisation("Postcode")</label>
 
             @safeError("postcode")
           <input type="text"
                  class="form-control input--small@if(safeError("postcode").nonEmpty){ form-control-error}"
-                 name="@safeId("postcode")"
-                 id="@safeId("postcode")"
-                 value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
+                 name="@groupId(safeId("postcode"))"
+                 id="@groupId(safeId("postcode"))"
+                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("postcode")))).getOrElse("")" />
         </div>
       </div>
 
-      <div id="@groupId("address-international")">
+      <div id="@groupId(s"${fieldValue.id.value}-international")">
         <div class="form-group@if(safeError("country").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="country" for="@safeId("country")">@localisation("Country")</label>
+          <label class="form-label" data-address-line="country" for="@groupId(safeId("country"))">@localisation("Country")</label>
 
             @safeError("country")
           <input type="text"
                  class="form-control@if(safeError("country").nonEmpty){ form-control-error}"
-                 name="@safeId("country")"
-                 id="@safeId("country")"
-                 value="@validationResult.map(_.getCurrentValue(safeId("country"))).getOrElse("")" />
+                 name="@groupId(safeId("country"))"
+                 id="@groupId(safeId("country"))"
+                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("country")))).getOrElse("")" />
         </div>
       </div>
       } else {
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="postcode" for="@safeId("postcode")">@localisation("Postcode")</label>
+          <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">@localisation("Postcode")</label>
 
             @safeError("postcode")
           <input type="text"
                  class="form-control input--small@if(safeError("postcode").nonEmpty){ form-control-error}"
-                 name="@safeId("postcode")"
-                 id="@safeId("postcode")"
-                 value="@validationResult.map(_.getCurrentValue(safeId("postcode"))).getOrElse("")" />
+                 name="@groupId(safeId("postcode"))"
+                 id="@groupId(safeId("postcode"))"
+                 value="@validationResult.map(_.getCurrentValue(groupId(safeId("postcode")))).getOrElse("")" />
 
             @safeError("country")
           <input type="hidden"
-                 name="@safeId("country")"
-                 id="@safeId("country")"
+                 name="@groupId(safeId("country"))"
+                 id="@groupId(safeId("country"))"
                  value="" />
         </div>
       }
