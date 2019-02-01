@@ -319,7 +319,7 @@ class ComponentsValidator(
       case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
       case (_, value :: Nil, BasicText)                      => textValidation(fieldValue, value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(fieldValue, value, min, max)
-      case (_, value :: Nil, Sterling) =>
+      case (_, value :: Nil, Sterling(_)) =>
         validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
       case (_, value :: Nil, UkBankAccountNumber) =>
         checkLength(fieldValue, value, ValidationValues.bankAccountLength)
@@ -334,9 +334,9 @@ class ComponentsValidator(
         textValidator(fieldValue, value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
       case (_, value :: Nil, Email) =>
         Monoid.combine(email(fieldValue, value), textValidator(fieldValue, value, 0, ValidationValues.emailLimit))
-      case (_, value :: Nil, Number(maxWhole, maxFractional, _)) =>
+      case (_, value :: Nil, Number(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
-      case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _)) =>
+      case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, true)
       case (false, Nil, _)       => ().valid
       case (_, value :: rest, _) => ().valid // we don't support multiple values yet

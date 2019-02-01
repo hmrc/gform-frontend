@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.models.Dependecies
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import FormComponentHelper.roundTo
+import FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.ops._
 
 case class JsFunction(name: String) extends AnyVal {
@@ -48,7 +48,8 @@ object Javascript {
 
     val fieldIdWithExpr: List[(FormComponentWithCtx, Expr)] =
       sectionFields.collect {
-        case formComponent @ HasExprCtx(SingleExpr(expr)) if isDynamic(expr) => (formComponent, expr)
+        case formComponent @ HasExprCtx(SingleExpr(expr)) if isDynamic(expr) =>
+          (formComponent, expr)
       }
 
     val groupFoldButtons: List[(FormComponentId, FormComponentWithGroup)] =
@@ -79,15 +80,15 @@ object Javascript {
          |};
          |
          |function add(a, b) {
-         |  return new Big(a).add(new Big(b));
+         |  return BigNumber(a).plus(BigNumber(b));
          |};
          |
          |function subtract(a, b) {
-         |  return new Big(a).minus(new Big(b));
+         |  return BigNumber(a).minus(BigNumber(b));
          |};
          |
          |function multiply(a, b) {
-         |  return new Big(a).times(new Big(b));
+         |  return BigNumber(a).times(BigNumber(b));
          |};
          |function displaySterling(result) {
          |  return result < 0 ? result.replace("-", "-£") : '£' + result
@@ -101,6 +102,22 @@ object Javascript {
     repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
     groupFoldButtonLookup: Map[FormComponentId, FormComponentWithGroup]): String = {
+
+    def getRoundingMode(fc: FormComponent) =
+      fc.`type` match {
+        case Text(Number(_, _, rm, _), _, _)             => Some(rm)
+        case TextArea(Number(_, _, rm, _), _, _)         => Some(rm)
+        case Text(PositiveNumber(_, _, rm, _), _, _)     => Some(rm)
+        case TextArea(PositiveNumber(_, _, rm, _), _, _) => Some(rm)
+        case Text(Sterling(rm), _, _)                    => Some(rm)
+        case TextArea(Sterling(rm), _, _)                => Some(rm)
+        case _                                           => None
+      }
+
+    val roundingMode = field match {
+      case FormComponentWithGroup(fc, _) => getRoundingMode(fc)
+      case FormComponentSimple(fc)       => getRoundingMode(fc)
+    }
 
     import Expr._
 
@@ -159,11 +176,21 @@ object Javascript {
       componentEls + windowEl
     }
 
+    val elementRoundingMode = roundingMode match {
+      case Some(RoundingMode.Up)       => "ROUND_UP"
+      case Some(RoundingMode.Down)     => "ROUND_DOWN"
+      case Some(RoundingMode.Ceiling)  => "ROUND_CEIL"
+      case Some(RoundingMode.Floor)    => "ROUND_FLOOR"
+      case Some(RoundingMode.HalfUp)   => "ROUND_HALF_UP"
+      case Some(RoundingMode.HalfDown) => "ROUND_HALF_DOWN"
+      case Some(RoundingMode.HalfEven) => "ROUND_HALF_EVEN"
+      case _                           => "ROUND_DOWN"
+    }
     val elementId = field.id
     val functionName = JsFunction("compute" + elementId)
 
     s"""|function $functionName() {
-        |  var result = ${computeExpr(expr, additionIdentity)}.toFixed(${roundToCtx(field)}, 0);
+        |  var result = BigNumber(${computeExpr(expr, additionIdentity)}).decimalPlaces(${roundToCtx(field)}, BigNumber.$elementRoundingMode);
         |  document.getElementById("$elementId").value = result;
         |  var total = document.getElementById("$elementId-total");
         |  if(total) total.innerHTML = ${if (field.isSterling) "displaySterling(result)" else "result"};
@@ -174,8 +201,8 @@ object Javascript {
   }
 
   def roundToCtx(fc: FormComponentWithCtx) = fc match {
-    case FormComponentWithGroup(fc, _) => roundTo(fc)
-    case FormComponentSimple(fc)       => roundTo(fc)
+    case FormComponentWithGroup(fc, _) => extractMaxFractionalDigits(fc).maxDigits
+    case FormComponentSimple(fc)       => extractMaxFractionalDigits(fc).maxDigits
   }
 
   def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) =

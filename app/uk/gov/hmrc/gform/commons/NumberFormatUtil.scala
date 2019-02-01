@@ -20,6 +20,8 @@ import java.text.NumberFormat
 import java.util.Locale
 import java.math.RoundingMode
 
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ RoundingMode => GformRoundingMode }
+
 object NumberFormatUtil {
   val defaultFormat = NumberFormat.getInstance(Locale.UK)
   def defaultFormat(i: Int) = {
@@ -28,5 +30,25 @@ object NumberFormatUtil {
     formatter.setRoundingMode(RoundingMode.FLOOR)
     formatter
   }
+  def roundAndFormat(bd: BigDecimal, scale: Int, roundingMode: GformRoundingMode) =
+    NumberFormatUtil.defaultFormat(scale).format(NumberSetScale.setScale(bd, scale, roundingMode))
   val currencyFormat = NumberFormat.getCurrencyInstance(Locale.UK)
+}
+
+object RoundingModeBigDecimalUtil {
+  def RoundingFormat(roundingMode: GformRoundingMode) =
+    roundingMode match {
+      case GformRoundingMode.Up       => BigDecimal.RoundingMode.UP
+      case GformRoundingMode.Down     => BigDecimal.RoundingMode.DOWN
+      case GformRoundingMode.Ceiling  => BigDecimal.RoundingMode.CEILING
+      case GformRoundingMode.Floor    => BigDecimal.RoundingMode.FLOOR
+      case GformRoundingMode.HalfDown => BigDecimal.RoundingMode.HALF_DOWN
+      case GformRoundingMode.HalfUp   => BigDecimal.RoundingMode.HALF_UP
+      case GformRoundingMode.HalfEven => BigDecimal.RoundingMode.HALF_EVEN
+    }
+}
+
+object NumberSetScale {
+  def setScale(bigDecimal: BigDecimal, decimalPlaces: Int, roundingMode: GformRoundingMode) =
+    bigDecimal.setScale(decimalPlaces, RoundingModeBigDecimalUtil.RoundingFormat(roundingMode))
 }

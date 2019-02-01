@@ -29,8 +29,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class FormatValidationSpec extends Spec with GraphSpec {
 
-  "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest("12345678910", Sterling)
-  "Sterling Format" should "" in createFailTest("1234567891011", Sterling, "sample label must be at most 11 digits")
+  "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest(
+    "12345678910",
+    Sterling.defaultRounding)
+  "Sterling Format" should "" in createFailTest(
+    "1234567891011",
+    Sterling.defaultRounding,
+    "sample label must be at most 11 digits")
   "UkBankAccountNumber Format" should "be valid with 8 digits" in createSuccessTest("12345678", UkBankAccountNumber)
 
   "UkBankAccountNumber Format" should "be invalid with 9" in createFailTest(
