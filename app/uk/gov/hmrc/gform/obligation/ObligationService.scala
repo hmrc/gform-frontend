@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.obligation
 import java.text.SimpleDateFormat
 
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.{ TaxPeriod, TaxPeriodDes, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -33,19 +33,17 @@ class ObligationService(gformConnector: GformConnector) {
       case IsHmrcTaxPeriod(el) => el
     }
     val futureListOfTaxPeriodDes =
-      gformConnector.getAllTaxPeriods(hmrcTaxPeriodIdentifiers).map(h => h.flatMap(j => j.obligations))
-    val futureListOfPairs = futureListOfTaxPeriodDes.flatMap(i => Future(i.flatMap(j => makeMap(j))))
-    futureListOfPairs.map(i => i.toMap)
+      gformConnector
+        .getAllTaxPeriods(hmrcTaxPeriodIdentifiers)
+        .map(i => i.flatMap(j => j.obligation.obligations.flatMap(h => makeMap(j.id, h.obligationDetails))))
+    futureListOfTaxPeriodDes.map(i => i.toMap)
   }
 
-  def makeMap(j: TaxPeriodDes) =
+  def makeMap(id: HmrcTaxPeriod, obligation: List[ObligationDetail]) =
     Map(
-      new HmrcTaxPeriod(
-        new IdType(j.identification.referenceType),
-        new IdNumber(j.identification.referenceNumber),
-        new RegimeType(j.identification.incomeSourceType)) ->
+      id ->
         new TaxPeriods(
-          j.obligationDetails.map(
+          obligation.map(
             l =>
               new TaxPeriod(
                 stringToDate.parse(l.inboundCorrespondenceFromDate),
