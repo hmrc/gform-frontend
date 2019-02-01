@@ -177,9 +177,13 @@
       @if(international) {
       <div id="@groupId(s"${fieldValue.id.value}-local")">
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">@localisation("Postcode")</label>
+          <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">
+            <span data-address-label="uk">
+            @localisation("Postcode")
+            </span>
+          </label>
 
-            @safeError("postcode")
+          @safeError("postcode")
           <input type="text"
                  class="form-control input--small@if(safeError("postcode").nonEmpty){ form-control-error}"
                  name="@groupId(safeId("postcode"))"
@@ -190,7 +194,11 @@
 
       <div id="@groupId(s"${fieldValue.id.value}-international")">
         <div class="form-group@if(safeError("country").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="country" for="@groupId(safeId("country"))">@localisation("Country")</label>
+          <label class="form-label" data-address-line="country" for="@groupId(safeId("country"))">
+            <span data-address-label="international">
+              @localisation("Country")
+            </span>
+          </label>
 
             @safeError("country")
           <input type="text"
@@ -202,7 +210,11 @@
       </div>
       } else {
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
-          <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">@localisation("Postcode")</label>
+          <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">
+            <span data-address-label="uk">
+              @localisation("Postcode")
+            </span>
+          </label>
 
             @safeError("postcode")
           <input type="text"
