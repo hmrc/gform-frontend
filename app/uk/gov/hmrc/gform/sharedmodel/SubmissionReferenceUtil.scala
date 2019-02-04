@@ -49,11 +49,8 @@ object SubmissionReferenceUtil {
       val digitArrayWithoutCheck2 = findDigits(abc.longValue(), 10, Array())
       val digitArray = digitArrayWithoutCheck2 :+ (calcCheckChar(digitArrayWithoutCheck2) % 36)
       val unformattedString = digitArray.map(i => Integer.toString(i.toInt, 36)).mkString.toUpperCase
-      val test = unformattedString.take(4) + "-" + unformattedString.substring(4, 8) + "-" + unformattedString
+      unformattedString.take(4) + "-" + unformattedString.substring(4, 8) + "-" + unformattedString
         .takeRight(4)
-
-      val adf = verifyCheckChar(test)
-      test
     } else { "" }
   }
 
