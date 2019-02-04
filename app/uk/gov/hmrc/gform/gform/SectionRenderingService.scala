@@ -485,7 +485,8 @@ class SectionRenderingService(
     index: Int,
     ei: ExtraInfo) = {
     val parsedMarkdownText = markDownParser(infoText)
-    html.form.snippets.field_template_info(fieldValue, infoType, Html(parsedMarkdownText), index)
+    val parsedContent = htmlBodyContents(parsedMarkdownText)
+    html.form.snippets.field_template_info(fieldValue, infoType, Html(parsedContent), index)
   }
 
   private def htmlForFileUpload(
@@ -513,6 +514,11 @@ class SectionRenderingService(
     )
   }
 
+  private def htmlBodyContents(html: String): String = {
+    val doc = Jsoup.parse(html)
+    doc.body().html()
+  }
+
   private def markDownParser(markDownText: String): String =
     if (markDownText.nonEmpty) {
       val flavour = new GFMFlavourDescriptor
@@ -536,7 +542,7 @@ class SectionRenderingService(
     def addTargetToLinks(html: String) = {
       val doc = Jsoup.parse(html)
       doc.getElementsByTag("a").attr("target", "_blank")
-      doc.html
+      doc.body().html()
     }
 
     val prepopValues = ei.fieldData.data.get(fieldValue.id) match {
@@ -734,7 +740,7 @@ class SectionRenderingService(
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String])(implicit request: Request[_], messages: Messages) = {
-    val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
+    val maybeHint = fieldValue.helpText.map(markDownParser).map(htmlBodyContents).map(Html.apply)
 
     val (lhtml, limitReached) =
       getGroupForRendering(
