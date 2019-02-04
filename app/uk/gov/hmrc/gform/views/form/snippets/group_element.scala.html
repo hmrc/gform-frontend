@@ -14,40 +14,26 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.play.views.html.helpers._
-@import views.html.helper.CSRF
-@import scala.concurrent.Future
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Horizontal
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.views.html._
 
-
 @(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)
 
-
-@if(groupField.repeatLabel.isDefined) {
-  <h2 class="heading-small heading-section">
-      @localisation(GroupHelper.buildRepeatLabel(groupField, instance))
-  </h2>
+@label = @{
+  if(groupField.repeatLabel.isDefined) localisation(GroupHelper.buildRepeatLabel(groupField, instance)) else ""
 }
 
-<div class="section-repeating @if(groupField.repeatLabel.isDefined) { divider--top}">
-  @{
-  snippets
+<fieldset class="section-repeating">
+  @if(label.nonEmpty) {
+    <legend class="h2-heading">@label</legend>
   }
-
+  @{snippets}
   @if(!disableRemoveButton) {
-    <button
-            type="submit"
-            class="button button--link soft--left repeating-section--remove removeRepeatingSection"
-            name="save"
-            value="RemoveGroup-@{instance}_@{fieldValue.id}">
-        @localisation("Remove")
-    </button>
+    <a class="removeRepeatingSection" href="RemoveGroup-@{instance}_@{fieldValue.id}">
+      @localisation(s"Remove $label")
+    </a>
   }
-</div>
+</fieldset>
