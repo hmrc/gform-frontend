@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.generators
+package uk.gov.hmrc.gform.sharedmodel.form.generators
 
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeExpiryDate

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 import play.api.libs.json._
 

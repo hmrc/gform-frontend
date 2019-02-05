@@ -112,7 +112,7 @@ class SummaryController(
                    )
         } yield result
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
-        val envelopeExpiryDate = cache.form.envelopeExpiryDate.fold("SomeString")(_.ldt.format(formatter))
+        val envelopeExpiryDate = cache.form.envelopeExpiryDate
         lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
           data =>
             maybeAccessCode match {

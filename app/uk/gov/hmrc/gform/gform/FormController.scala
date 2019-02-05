@@ -16,12 +16,9 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.time.format.DateTimeFormatter
-
 import cats.data.Validated.Valid
 import cats.instances.future._
 import cats.syntax.applicative._
-import cats.syntax.semigroup._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
@@ -38,7 +35,6 @@ import uk.gov.hmrc.gform.models.AgentAccessCode
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.form.FormData._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -47,7 +43,6 @@ import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.fileupload.Available
 
 import scala.concurrent.Future
 
@@ -470,9 +465,7 @@ class FormController(
       def processSaveAndExit(data: FormDataRecalculated, sections: List[Section]): Future[Result] =
         validateAndUpdateData(data, sections) { maybeSn =>
           val formTemplate = cache.formTemplate
-          val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
-          val envelopeExpiryDate =
-            cache.form.envelopeExpiryDate.fold("for 30 days")("until " + _.ldt.format(formatter))
+          val envelopeExpiryDate = cache.form.envelopeExpiryDate
           maybeAccessCode match {
             case Some(accessCode) =>
               Ok(save_with_access_code(accessCode, formTemplate, lang, frontendAppConfig))
