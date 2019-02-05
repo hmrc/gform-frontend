@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.time.format.DateTimeFormatter
-
 import cats.Monoid
 import cats.instances.future._
 import cats.instances.list._
@@ -44,7 +42,6 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -111,7 +108,6 @@ class SummaryController(
                      redirectToSummary.pure[Future]
                    )
         } yield result
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
         val envelopeExpiryDate = cache.form.envelopeExpiryDate
         lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
           data =>
