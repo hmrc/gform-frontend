@@ -78,7 +78,7 @@
       }
     };
 
-    var closeDialog = function () {
+    var keepAliveAndCloseDialog = function () {
       if (dialogOpen) {
         keepAlive();
       }
@@ -169,7 +169,7 @@
       $document
         .on('touchmove', handleTouch)
         .on('keydown', escPress)
-        .on('click', '#timeout-keep-alive-btn', closeDialog)
+        .on('click', '#timeout-keep-alive-btn', keepAliveAndCloseDialog)
         .on('click', '#timeout-sign-out-btn', signOut)
         .on('focus', 'a, input, textarea, button, [tabindex!="-1"]', setFocusOnActiveDialog);
     }
@@ -178,7 +178,7 @@
       $document
         .off('touchmove', handleTouch)
         .off('keydown', escPress)
-        .off('click', '#timeout-keep-alive-btn', closeDialog)
+        .off('click', '#timeout-keep-alive-btn', keepAliveAndCloseDialog)
         .off('click', '#timeout-sign-out-btn', signOut)
         .off('focus', 'a, input, textarea, button, [tabindex!="-1"]', setFocusOnActiveDialog);
     }
