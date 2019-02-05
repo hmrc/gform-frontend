@@ -4,6 +4,152 @@
   var $ = global.jQuery
   var GOVUK = global.GOVUK || {}
 
+  var humanReadableMimeTypes = {
+
+    'application/pdf': 'PDF',
+    'image/jpeg': 'JPEG',
+    'application/zip': 'ZIP',
+
+    // Microsoft Office Mime Types
+    'application/msword': 'DOC',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.template': 'DOTX',
+    'application/vnd.ms-word.document.macroEnabled.12': 'DOCM',
+    'application/vnd.ms-word.template.macroEnabled.12': 'DOTM',
+    'application/vnd.ms-excel': 'XLS',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.template': 'XLTX',
+    'application/vnd.ms-excel.sheet.macroEnabled.12': 'XLSM',
+    'application/vnd.ms-excel.template.macroEnabled.12': 'XLTM',
+    'application/vnd.ms-excel.addin.macroEnabled.12': 'XLAM',
+    'application/vnd.ms-excel.sheet.binary.macroEnabled.12': 'XLSB',
+    'application/vnd.ms-powerpoint': 'PPT',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PPTX',
+    'application/vnd.openxmlformats-officedocument.presentationml.template': 'POTX',
+    'application/vnd.openxmlformats-officedocument.presentationml.slideshow': 'PPSX',
+    'application/vnd.ms-powerpoint.addin.macroEnabled.12': 'PPAM',
+    'application/vnd.ms-powerpoint.presentation.macroEnabled.12': 'PPTM',
+    'application/vnd.ms-powerpoint.template.macroEnabled.12': 'potm',
+    'application/vnd.ms-powerpoint.slideshow.macroEnabled.12': 'ppsm',
+    'application/vnd.ms-access': 'MDB',
+
+    // Open Office Mime Types
+    'application/vnd.oasis.opendocument.text': 'ODT',
+    'application/vnd.oasis.opendocument.text-template': 'OTT',
+    'application/vnd.oasis.opendocument.text-web': 'OTH',
+    'application/vnd.oasis.opendocument.text-master': 'ODM',
+    'application/vnd.oasis.opendocument.graphics': 'ODG',
+    'application/vnd.oasis.opendocument.graphics-template': 'OTG',
+    'application/vnd.oasis.opendocument.presentation': 'ODP',
+    'application/vnd.oasis.opendocument.presentation-template': 'OTP',
+    'application/vnd.oasis.opendocument.spreadsheet': 'ODS',
+    'application/vnd.oasis.opendocument.spreadsheet-template': 'OTS',
+    'application/vnd.oasis.opendocument.chart': 'ODC',
+    'application/vnd.oasis.opendocument.formula': 'ODF',
+    'application/vnd.oasis.opendocument.database': 'ODB',
+    'application/vnd.oasis.opendocument.image': 'ODI',
+    'application/vnd.openofficeorg.extension': 'OXT',
+
+    // Document Extensions
+    '.doc': 'DOC',
+    '.docx': 'DOCX',
+    '.dotx': 'DOTX',
+    '.docm': 'DOCM',
+    '.dotm': 'DOTM',
+    '.xls': 'XLS',
+    '.xlsx': 'XLSX',
+    '.xltx': 'XLTX',
+    '.xlsm': 'XLSM',
+    '.xltm': 'XLTM',
+    '.xlam': 'XLAM',
+    '.xlsb': 'XLSB',
+    '.ppt': 'PPT',
+    '.pptx': 'PPTX',
+    '.potx': 'POTX',
+    '.ppsx': 'PPSX',
+    '.ppam': 'PPAM',
+    '.pptm': 'PPTM',
+    '.potm': 'potm',
+    '.ppsm': 'ppsm',
+    '.mdb': 'MDB',
+
+    '.odt': 'ODT',
+    '.ott': 'OTT',
+    '.oth': 'OTH',
+    '.odm': 'ODM',
+    '.odg': 'ODG',
+    '.otg': 'OTG',
+    '.odp': 'ODP',
+    '.otp': 'OTP',
+    '.ods': 'ODS',
+    '.ots': 'OTS',
+    '.odc': 'ODC',
+    '.odf': 'ODF',
+    '.odb': 'ODB',
+    '.odi': 'ODI',
+    '.oxt': 'OXT',
+
+    // lower to upper
+    'doc': 'DOC',
+    'docx': 'DOCX',
+    'dotx': 'DOTX',
+    'docm': 'DOCM',
+    'dotm': 'DOTM',
+    'xls': 'XLS',
+    'xlsx': 'XLSX',
+    'xltx': 'XLTX',
+    'xlsm': 'XLSM',
+    'xltm': 'XLTM',
+    'xlam': 'XLAM',
+    'xlsb': 'XLSB',
+    'ppt': 'PPT',
+    'pptx': 'PPTX',
+    'potx': 'POTX',
+    'ppsx': 'PPSX',
+    'ppam': 'PPAM',
+    'pptm': 'PPTM',
+    'potm': 'potm',
+    'ppsm': 'ppsm',
+    'mdb': 'MDB',
+
+    'odt': 'ODT',
+    'ott': 'OTT',
+    'oth': 'OTH',
+    'odm': 'ODM',
+    'odg': 'ODG',
+    'otg': 'OTG',
+    'odp': 'ODP',
+    'otp': 'OTP',
+    'ods': 'ODS',
+    'ots': 'OTS',
+    'odc': 'ODC',
+    'odf': 'ODF',
+    'odb': 'ODB',
+    'odi': 'ODI',
+    'oxt': 'OXT'
+  }
+
+  function mapUserFriendlyFileTypes(array) {
+    return array
+        .split(', ')
+        .map(function(a) {
+          if (humanReadableMimeTypes.hasOwnProperty(a)) return humanReadableMimeTypes[a]
+          return a // default to mime type if no friendly value is found
+        })
+  }
+
+  function removeDuplicatesFromArray(array) {
+    return array.filter(function(item, index) {
+      return array.indexOf(item) >= index
+    })
+  }
+
+  function transformMimeTypes(mimetypes) {
+    return removeDuplicatesFromArray(mapUserFriendlyFileTypes(mimetypes)).join(', ')
+  }
+
+
+
   function GformFileUpload () {
     var self = this
 
@@ -34,7 +180,7 @@
       $input.attr('aria-busy', true);
 
       if (window.gform.contentTypes.indexOf(file.type) === -1) {
-        return handleError($input, 'The file type ' + file.type + ' is not permitted. You can only upload ' + window.gform.contentTypes);
+        return handleError($input, 'The file type ' + transformMimeTypes(file.type) + ' is not permitted. You can only upload ' + transformMimeTypes(window.gform.contentTypes));
       }
 
       if (file.size > (maxFileSize * 1024 * 1024)) {
