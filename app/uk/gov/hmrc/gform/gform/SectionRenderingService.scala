@@ -528,10 +528,10 @@ class SectionRenderingService(
     validatedType: ValidatedType,
     data: FormDataRecalculated,
     obligations: Map[HmrcTaxPeriod, TaxPeriods],
-    HmrcTP: HmrcTaxPeriod) = {
+    hmrcTP: HmrcTaxPeriod) = {
 
     val taxPeriodList = obligations
-      .get(HmrcTP) match {
+      .get(hmrcTP) match {
       case Some(c) => c.taxPeriods
       case _       => List[TaxPeriod]()
     }
@@ -550,7 +550,7 @@ class SectionRenderingService(
       case _                          => Map[String, FormFieldValidationResult]()
     }
     val setValue = mapOfResultsOption.values.toList match {
-      case a => TextFormatter.formatText(Some(a(0))).takeRight(4)
+      case a => TextFormatter.formatText(Some(a(0))).split("|")(2)
       case _ => ""
     }
 

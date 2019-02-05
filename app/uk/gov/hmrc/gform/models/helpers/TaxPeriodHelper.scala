@@ -17,9 +17,7 @@
 package uk.gov.hmrc.gform.models.helpers
 import java.text.SimpleDateFormat
 import java.util.Date
-
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileUpload, FormComponent, FormComponentId }
-import uk.gov.hmrc.gform.validation.{ ComponentField, FieldOk, FormFieldValidationResult }
+import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 object TaxPeriodHelper {
