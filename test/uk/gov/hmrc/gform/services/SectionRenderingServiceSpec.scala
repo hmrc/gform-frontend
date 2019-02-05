@@ -333,7 +333,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val addButtonValue = "AddGroup-" + `fieldValue - group`.id.value
     val fieldName = `fieldValue - firstName`.id.value
     doc
-      .getElementsByAttributeValue("value", addButtonValue)
+      .getElementsByAttributeValue("href", addButtonValue)
       .size shouldBe 1 withClue "no limit reached, add button shown"
     doc.getElementsByAttributeValue("name", fieldName).size shouldBe 1 withClue "One repeat element"
     doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 1
@@ -382,10 +382,10 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
     val addButtonValue = "AddGroup-" + `fieldValue - group`.id.value
     val fieldName = `fieldValue - firstName`.id.value
-    doc.getElementsByAttributeValue("value", addButtonValue).size shouldBe 0
+    doc.getElementsByAttributeValue("href", addButtonValue).size shouldBe 0
     doc.getElementsByAttributeValue("name", fieldName).size shouldBe 1
     doc.getElementsByAttributeValue("name", "1_" + fieldName).size shouldBe 1
-    doc.getElementsContainingOwnText("REPEAT_LABEL").size shouldBe 2
+    doc.getElementsContainingOwnText("Remove REPEAT_LABEL").size shouldBe 2
   }
 
   it should "generate declaration page" in {

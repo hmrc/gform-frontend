@@ -5,10 +5,16 @@
     var GOVUK = global.GOVUK || {}
   
     function GformFormActionHandlers () {
-      var self = this
+      var self = this;
+
+      function findAction ($el) {
+        return $el.is("button") ?
+          $el.val() : $el.is("a") ?
+            $el.attr('href') : ''
+      }
 
       function setAction (e, action, submit) {
-        action = action || $(e.target).val();
+        action = action || findAction($(e.target));
         $('#gform-action').val(action);
         if (submit) {
           e.preventDefault();

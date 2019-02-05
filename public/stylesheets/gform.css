@@ -99,10 +99,14 @@ strong {
   margin-bottom: 1.5em;
 }
 
-/* Apply appropriate padding, depending on how the repeating section is rendered */
-.section-repeating:first-child,
-.heading-section + .section-repeating {
-  padding-top: 1em;
+.section-repeating {
+  border-bottom: 1px solid #999;
+  margin-bottom: 1.5em;
+}
+
+.removeRepeatingSection {
+  display: inline-block;
+  margin-bottom: 1.25em;
 }
 
 /* Add bottom margin to collapsible panel */
@@ -163,21 +167,6 @@ button.button--secondary:active{
 /* Fix as my PR to fix this issue still has not been merged into assets frontend */
 .form-date .form-group-year {
   width: 70px;
-}
-
-/* Repeating groups with horizointal formatting */
-.repeating-section--remove {
-  display: inline-block;
-  margin-bottom: 30px;
-  vertical-align: bottom;
-}
-
-.inline .repeating-section--remove {
-  margin-left: 10px;
-}
-
-.inline .form-field-group--error .repeating-section--remove {
-  margin-bottom: 1.25em;
 }
 
 /* Total values need to be an input to submit their value, but need to look like a text value */
