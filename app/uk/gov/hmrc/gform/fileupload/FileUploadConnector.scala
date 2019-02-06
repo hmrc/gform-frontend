@@ -21,8 +21,9 @@ import uk.gov.hmrc.gform.auditing.loggingHelpers
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
 class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {
 
@@ -30,6 +31,11 @@ class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {
     Logger.info(s" get envelope, envelopeId: ${envelopeId.value}, ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
     wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}")
   }
+
+  def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
+    getEnvelope(envelopeId).map(Some(_)).recover {
+      case e: NotFoundException => None
+    }
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
     Logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers

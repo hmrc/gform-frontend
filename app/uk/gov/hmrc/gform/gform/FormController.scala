@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform
 import cats.data.Validated.Valid
 import cats.instances.future._
 import cats.syntax.applicative._
-import cats.syntax.semigroup._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AffinityGroup
@@ -36,7 +35,6 @@ import uk.gov.hmrc.gform.models.AgentAccessCode
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.form.FormData._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -246,6 +244,20 @@ class FormController(
     for {
       maybeForm <- gformConnector.maybeForm(formId)
       maybeFormExceptSubmitted = maybeForm.filter(_.status != Submitted)
+      maybeEnvelope <- maybeFormExceptSubmitted.fold(Option.empty[Envelope].pure[Future]) { f =>
+                        getEnvelope(f.envelopeId)
+                      }
+      mayBeFormExceptWithEnvelope <- (maybeFormExceptSubmitted, maybeEnvelope) match {
+                                      case (None, _)          => None.pure[Future]
+                                      case (Some(f), None)    => gformConnector.deleteForm(f._id).map(_ => None)
+                                      case (Some(_), Some(_)) => maybeFormExceptSubmitted.pure[Future]
+                                    }
+    } yield mayBeFormExceptWithEnvelope
+
+  private def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
+    for {
+      maybeEnvelope <- fileUploadService.getMaybeEnvelope(envelopeId)
+      maybeFormExceptSubmitted = maybeEnvelope
     } yield maybeFormExceptSubmitted
 
   private def startFreshForm(
@@ -274,8 +286,9 @@ class FormController(
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(FormId, Boolean)] =
     for {
       maybeFormExceptSubmitted <- getForm(FormId(userDetails, formTemplateId, None))
-      formId <- maybeFormExceptSubmitted.fold(startFreshForm(formTemplateId, userDetails, maybeAccessCode))(
-                 _._id.pure[Future])
+      formId <- {
+        maybeFormExceptSubmitted.fold(startFreshForm(formTemplateId, userDetails, maybeAccessCode))(_._id.pure[Future])
+      }
     } yield (formId, maybeFormExceptSubmitted.isDefined)
 
   def form(
@@ -452,6 +465,7 @@ class FormController(
       def processSaveAndExit(data: FormDataRecalculated, sections: List[Section]): Future[Result] =
         validateAndUpdateData(data, sections) { maybeSn =>
           val formTemplate = cache.formTemplate
+          val envelopeExpiryDate = cache.form.envelopeExpiryDate
           maybeAccessCode match {
             case Some(accessCode) =>
               Ok(save_with_access_code(accessCode, formTemplate, lang, frontendAppConfig))
@@ -462,7 +476,7 @@ class FormController(
                   routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, lang, SeYes)
                 case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, lang)
               }
-              Ok(save_acknowledgement(formTemplate, call, lang, frontendAppConfig))
+              Ok(save_acknowledgement(envelopeExpiryDate, formTemplate, call, lang, frontendAppConfig))
           }
         }
 

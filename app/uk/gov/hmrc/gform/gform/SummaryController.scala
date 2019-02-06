@@ -42,7 +42,6 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -109,7 +108,7 @@ class SummaryController(
                      redirectToSummary.pure[Future]
                    )
         } yield result
-
+        val envelopeExpiryDate = cache.form.envelopeExpiryDate
         lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
           data =>
             maybeAccessCode match {
@@ -117,7 +116,7 @@ class SummaryController(
                 Ok(save_with_access_code(accessCode, cache.formTemplate, lang, frontendAppConfig))
               case _ =>
                 val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, lang)
-                Ok(save_acknowledgement(cache.formTemplate, call, lang, frontendAppConfig))
+                Ok(save_acknowledgement(envelopeExpiryDate, cache.formTemplate, call, lang, frontendAppConfig))
             }
         }
 

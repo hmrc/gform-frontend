@@ -21,15 +21,20 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import java.time.format.DateTimeFormatter
+
 
 @(
+    envelopeExpiryDate: Option[EnvelopeExpiryDate],
     formTemplate: FormTemplate,
     call: Call,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
 )(implicit messages: Messages)
 
+@formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
 @heading = @{"Your " + formCategory(formTemplate) + " has been saved"}
+@expiryDate = @{envelopeExpiryDate.fold("for 30 days")("until " + _.ldt.format(formatter))}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -40,7 +45,7 @@
 ) {
 <div class = "transaction-banner--complete">
     <h1 class ="transaction-banner__heading">@heading</h1>
-    <p>Your information is held for 30 days in a secured environment.</p>
+    <p>Your information is held </br> @expiryDate.</p>
 </div>
 
 <p>You’ll need to log in to the sign-in page to retrieve your @formCategory(formTemplate).</p>

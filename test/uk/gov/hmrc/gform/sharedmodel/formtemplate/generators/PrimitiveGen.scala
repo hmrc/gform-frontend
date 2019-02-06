@@ -15,6 +15,8 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+import java.time.LocalDateTime
+
 import cats.data.NonEmptyList
 import org.scalacheck.Gen
 
@@ -53,6 +55,16 @@ trait PrimitiveGen {
       t2 <- gen
     } yield NonEmptyList.of(t1, t2)
   )
+
+  def localDateTimeGen: Gen[LocalDateTime] =
+    for {
+      year       <- Gen.chooseNum(1900, 2100)
+      month      <- Gen.chooseNum(1, 12)
+      dayOfMonth <- Gen.chooseNum(1, 31)
+      hour       <- Gen.chooseNum(0, 23)
+      minute     <- Gen.chooseNum(0, 59)
+      second     <- Gen.chooseNum(0, 59)
+    } yield LocalDateTime.of(year, month, dayOfMonth, hour, minute, second)
 }
 
 object PrimitiveGen extends PrimitiveGen
