@@ -48,7 +48,7 @@
 }
 
 @label = {
-  <label class="form-label @if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
+  <label class="@{if(!formLevelHeading){"h1-heading"} else {"form-label"}}@if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
     @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
   </label>
 }
