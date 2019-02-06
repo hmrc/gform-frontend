@@ -47,9 +47,9 @@ object Identification {
 
 case class ObligationDetail(
   status: String,
-  inboundCorrespondenceFromDate: String,
-  inboundCorrespondenceToDate: String,
-  inboundCorrespondenceDueDate: String,
+  inboundCorrespondenceFromDate: Date,
+  inboundCorrespondenceToDate: Date,
+  inboundCorrespondenceDueDate: Date,
   periodKey: String)
 
 object ObligationDetail {

@@ -41,11 +41,6 @@ class ObligationService(gformConnector: GformConnector) {
   def makeMap(id: HmrcTaxPeriod, obligation: List[ObligationDetail]) =
     Map(
       id ->
-        TaxPeriods(
-          obligation.map(
-            l =>
-              TaxPeriod(
-                stringToDate.parse(l.inboundCorrespondenceFromDate),
-                stringToDate.parse(l.inboundCorrespondenceToDate),
-                l.periodKey))))
+        TaxPeriods(obligation.map(l =>
+          TaxPeriod(l.inboundCorrespondenceFromDate, l.inboundCorrespondenceToDate, l.periodKey))))
 }
