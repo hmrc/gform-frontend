@@ -550,7 +550,8 @@ class SectionRenderingService(
       case _                          => Map[String, FormFieldValidationResult]()
     }
     val setValue = mapOfResultsOption.values.toList match {
-      case a => TextFormatter.formatText(Some(a(0))).split("|")(2)
+      case a if TextFormatter.formatText(Some(a(0))).contains("|") =>
+        TextFormatter.formatText(Some(a(0))).split("\\|")(2)
       case _ => ""
     }
 
