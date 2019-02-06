@@ -32,8 +32,10 @@
     errorInline("summary", e, Seq()) }}
 
 @formatTaxPeriod(taxPeriod:String) = @{
-val l =taxPeriod.split('|')
-localisation("From")+" "+l(0)+" "+localisation("to")+" "+l(1)
+taxPeriod.split("\\|").toList match {
+case from :: to :: _ => localisation("From")+" "+from+" "+localisation("to")+" "+to
+case _ => "Value Lost!"
+}
 }
 
 <div>
