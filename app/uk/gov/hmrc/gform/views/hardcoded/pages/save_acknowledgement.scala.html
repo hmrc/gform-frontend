@@ -34,7 +34,7 @@
 
 @formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
 @heading = @{"Your " + formCategory(formTemplate) + " has been saved"}
-@expiryDate = @{envelopeExpiryDate.fold("for 28 days")("until " + _.ldt.format(formatter))}
+@expiryDate = @{envelopeExpiryDate.fold("for 30 days")("until " + _.ldt.format(formatter))}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
