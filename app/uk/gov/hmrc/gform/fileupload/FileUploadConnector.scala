@@ -32,12 +32,10 @@ class FileUploadConnector(wSHttp: WSHttp, baseUrl: String) {
     wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}")
   }
 
-  def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] = {
-    Logger.info(s" get envelope, envelopeId: ${envelopeId.value}, ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
-    wSHttp.GET[Envelope](s"$baseUrl/envelopes/${envelopeId.value}").map(Some(_)).recover {
+  def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[Option[Envelope]] =
+    getEnvelope(envelopeId).map(Some(_)).recover {
       case e: NotFoundException => None
     }
-  }
 
   def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
     Logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
