@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.mappings.HMRCOBTDSORG
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId, Submitted }
@@ -116,7 +117,7 @@ class AcknowledgementController(
       case (_, Some(textExpression)) =>
         authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
       case (EeittModule(_), None) => Future.successful(authService.eeitReferenceNumber(retrievals))
-      case (_, None)              => Future.successful(retrievals.getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber"))
+      case (_, None)              => Future.successful(retrievals.getTaxIdValue(HMRCOBTDSORG()))
     }
 
     referenceNumber.map { ref =>

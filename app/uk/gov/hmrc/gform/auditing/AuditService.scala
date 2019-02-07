@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.auditing
 import play.api.libs.json.Json
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, Group, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -102,10 +103,10 @@ trait AuditService {
         case mr: AuthenticatedRetrievals =>
           Json.toJson(
             Map(
-              "nino"     -> mr.getTaxIdValue(None, "NINO"),
-              "vrn"      -> mr.getTaxIdValue(None, "VATRegNo"),
-              "saUtr"    -> mr.getTaxIdValue(Some("IR-SA"), "UTR"),
-              "ctUtr"    -> mr.getTaxIdValue(Some("IR-CT"), "UTR"),
+              "nino"     -> mr.getTaxIdValue(NINO()),
+              "vrn"      -> mr.getTaxIdValue(VATReg()),
+              "saUtr"    -> mr.getTaxIdValue(IRSA()),
+              "ctUtr"    -> mr.getTaxIdValue(IRCT()),
               "deviceId" -> hc.deviceID.getOrElse("")
             ).filter(values => values._2.nonEmpty))
         case AnonymousRetrievals(_) =>

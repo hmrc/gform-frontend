@@ -20,7 +20,7 @@ import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http._
 
 class GformConnectorSpec extends Spec {
 
@@ -42,7 +42,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getFormTemplate(formTemplateId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.NotFoundException]
+      .futureValue shouldBe an[uk.gov.hmrc.http.NotFoundException]
   }
 
   it should "it fails when gform returns 5xx" in new Fixture {
@@ -51,7 +51,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getFormTemplate(formTemplateId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.Upstream5xxResponse]
+      .futureValue shouldBe an[Upstream5xxResponse]
   }
 
   it should "it fails when gform returns BadRequest" in new Fixture {
@@ -60,7 +60,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getFormTemplate(formTemplateId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.BadRequestException]
+      .futureValue shouldBe an[BadRequestException]
   }
 
   it should "it fails when gform returns other 4xx code" in new Fixture {
@@ -69,7 +69,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getFormTemplate(formTemplateId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.Upstream4xxResponse]
+      .futureValue shouldBe an[Upstream4xxResponse]
   }
 
   behavior of "GformConnector.form - happy path"
@@ -90,7 +90,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getForm(formId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.NotFoundException]
+      .futureValue shouldBe an[NotFoundException]
   }
 
   it should "it fails when gform returns 5xx" in new Fixture {
@@ -99,7 +99,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getForm(formId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.Upstream5xxResponse]
+      .futureValue shouldBe an[Upstream5xxResponse]
   }
 
   it should "it fails when gform returns BadRequest" in new Fixture {
@@ -108,7 +108,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getForm(formId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.BadRequestException]
+      .futureValue shouldBe an[BadRequestException]
   }
 
   it should "it fails when gform returns other 4xx code" in new Fixture {
@@ -117,7 +117,7 @@ class GformConnectorSpec extends Spec {
     connector
       .getForm(formId)
       .failed
-      .futureValue shouldBe an[_root_.uk.gov.hmrc.http.Upstream4xxResponse]
+      .futureValue shouldBe an[Upstream4xxResponse]
   }
 
   trait Fixture extends ExampleData {

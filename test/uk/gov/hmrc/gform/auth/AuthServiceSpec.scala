@@ -27,9 +27,11 @@ import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.gform.EeittService
+import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
 import Function.const
@@ -74,62 +76,29 @@ class AuthServiceSpec extends Spec with ExampleData {
 
   val getAffinityGroup: Unit => Future[Option[AffinityGroup]] = const(Future.successful(None))
 
+  private def materialisedRetrievalsBuilder(affinityGroup: Option[AffinityGroup], enrolments: Enrolments) =
+    AuthenticatedRetrievals(legacyCredentials, enrolments, affinityGroup, None, None, userDetails, None, None)
+
   val materialisedRetrievalsAgent =
-    AuthenticatedRetrievals(
-      legacyCredentials,
-      enrolments,
-      Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent),
-      None,
-      None,
-      userDetails,
-      None,
-      None)
+    materialisedRetrievalsBuilder(Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent), enrolments)
 
   val materialisedRetrievalsEnrolledAgent =
-    AuthenticatedRetrievals(
-      legacyCredentials,
-      Enrolments(Set(Enrolment("HMRC-AS-AGENT"))),
+    materialisedRetrievalsBuilder(
       Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent),
-      None,
-      None,
-      userDetails,
-      None,
-      None)
+      Enrolments(Set(Enrolment("HMRC-AS-AGENT"))))
 
   val materialisedRetrievalsOrganisation =
-    AuthenticatedRetrievals(
-      legacyCredentials,
-      enrolments,
-      Some(uk.gov.hmrc.auth.core.AffinityGroup.Organisation),
-      None,
-      None,
-      userDetails,
-      None,
-      None)
+    materialisedRetrievalsBuilder(Some(uk.gov.hmrc.auth.core.AffinityGroup.Organisation), enrolments)
 
   val materialisedRetrievalsIndividual =
-    AuthenticatedRetrievals(
-      legacyCredentials,
-      enrolments,
-      Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual),
-      None,
-      None,
-      userDetails,
-      None,
-      None)
+    materialisedRetrievalsBuilder(Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual), enrolments)
 
   val materialisedRetrievalsEnrolment =
-    AuthenticatedRetrievals(
-      legacyCredentials,
+    materialisedRetrievalsBuilder(
+      Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual),
       Enrolments(
         Set(Enrolment("HMRC-ORG-OBTDS").copy(
-          identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890"))))),
-      Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual),
-      None,
-      None,
-      userDetails,
-      None,
-      None
+          identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")))))
     )
 
   val requestUri = "/submissions/test"
@@ -281,4 +250,22 @@ class AuthServiceSpec extends Spec with ExampleData {
     result.futureValue should be(AuthRedirect(""))
   }
 
+  forAll(taxTypeTable) { (enrolment, serviceName, identifiers, value) =>
+    it should s"retrieve $value for an $enrolment with $identifiers for a given $serviceName" in {
+      val retrievals =
+        materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(enrolment.copy(identifiers = identifiers))))
+      val actual = retrievals.getTaxIdValue(serviceName.asInstanceOf[ServiceNameAndTaxId])
+
+      actual should be(value)
+    }
+  }
+
+  lazy val taxTypeTable = Table(
+    ("Enrolments", "service name", "Identifier", "TaxIdValue expected"),
+    (Enrolment("IR-SA"), IRSA(), List(EnrolmentIdentifier("UTR", "321")), "321"),
+    (Enrolment("IR-CT"), IRCT(), List(EnrolmentIdentifier("UTR", "888")), "888"),
+    (Enrolment("HMRC-OBTDS-ORG"), HMRCOBTDSORG(), List(EnrolmentIdentifier("EtmpRegistrationNumber", "123")), "123"),
+    (Enrolment("NINO"), MNINO(), List(EnrolmentIdentifier("NINO", "321")), "321"),
+    (Enrolment("VATRegNo"), MVATReg(), List(EnrolmentIdentifier("VATRegNo", "888")), "888")
+  )
 }
