@@ -110,6 +110,7 @@ class SectionRenderingService(
     formMaxAttachmentSizeMB: Int,
     contentTypes: List[ContentType],
     retrievals: MaterialisedRetrievals,
+    visitsIndex: VisitIndex,
     lang: Option[String],
     obligations: Map[HmrcTaxPeriod, TaxPeriods]
   )(implicit request: Request[_], messages: Messages): Html = {
@@ -162,6 +163,8 @@ class SectionRenderingService(
       .toFormField(fieldDataUpd, hiddenTemplateFields)
       .map(formField => html.form.snippets.hidden_field(formField))
 
+    val indices = html.form.snippets.hidden_field(visitsIndex.toFormField)
+
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
 
     val originSection = new Origin(formTemplate.sections, fieldData).minSectionNumber
@@ -184,7 +187,7 @@ class SectionRenderingService(
       sectionNumber,
       section.title,
       section.description,
-      hiddenSnippets,
+      indices :: hiddenSnippets,
       snippetsForFields,
       javascript,
       envelopeId,

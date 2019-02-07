@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.instances.future._
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -23,6 +26,7 @@ import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
+import uk.gov.hmrc.gform.models.ProcessDataService
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
@@ -59,6 +63,9 @@ class GformModule(
     authModule.ggConnector
   )
 
+  val processDataService: ProcessDataService[Future, Throwable] =
+    new ProcessDataService[Future, Throwable](graphModule.recalculation)
+
   val formController: FormController = new FormController(
     configModule.appConfig,
     configModule.frontendAppConfig,
@@ -68,7 +75,7 @@ class GformModule(
     validationModule.validationService,
     sectionRenderingService,
     gformBackendModule.gformConnector,
-    graphModule.recalculation
+    processDataService
   )
 
   val summaryController: SummaryController = new SummaryController(

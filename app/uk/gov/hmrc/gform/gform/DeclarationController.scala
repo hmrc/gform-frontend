@@ -176,7 +176,8 @@ class DeclarationController(
                        cache.retrievals,
                        cache.formTemplate,
                        formDataMap(updatedForm.formData))
-        _ <- gformConnector.updateUserData(cache.form._id, UserData(updatedForm.formData, Signed))
+        _ <- gformConnector
+              .updateUserData(cache.form._id, UserData(updatedForm.formData, Signed, updatedForm.visitsIndex))
         //todo perhaps not make these calls at all if the feature flag is false?
         summaryHml <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
         cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)

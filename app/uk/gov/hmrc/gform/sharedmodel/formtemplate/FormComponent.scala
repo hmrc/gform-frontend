@@ -39,14 +39,6 @@ case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal
       case fc @ IsUkSortCode(_) => UkSortCode.fields(fc.id)
       case fc                   => List(fc.id)
     }
-
-  def allInfoMessageId: List[FormComponentId] =
-    expandedFC.flatMap {
-      case fc @ IsInformationMessage(_) => List(fc.id)
-      case _                            => Nil
-    }
-
-  def allIdsExceptInfoMessages: Set[FormComponentId] = allIds.toSet -- allInfoMessageId.toSet
 }
 
 case class FormComponent(

@@ -94,7 +94,7 @@ class SummaryController(
         lazy val redirectToDeclaration = gformConnector
           .updateUserData(
             FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode),
-            UserData(cache.form.formData, Validated))
+            UserData(cache.form.formData, Validated, cache.form.visitsIndex))
           .map { _ =>
             Redirect(
               routes.DeclarationController
