@@ -31,4 +31,12 @@ object TaxPeriodHelper {
   def formatDate(date: Date) =
     new SimpleDateFormat("dd MMMMM yyyy").format(date)
 
+  def formatDate2(date: Date) =
+    new SimpleDateFormat("yyyy-MM-dd").format(date)
+
+  val stringToDateFormatter = new SimpleDateFormat("yyyy-MM-dd")
+
+  def stringToDate(string: String) =
+    stringToDateFormatter.parse(string)
+
 }

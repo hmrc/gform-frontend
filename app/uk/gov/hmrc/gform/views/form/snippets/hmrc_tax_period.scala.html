@@ -22,6 +22,8 @@
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 @import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 @import uk.gov.hmrc.gform.gform.OptionParams
+@import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
+@import java.util.Date
 @(inputType: String,
 fieldValue: FormComponent,
 options: List[OptionParams],
@@ -40,8 +42,8 @@ validationResult.exists(_.isNotOk)
 LabelHelper.buildRepeatingLabel(fieldValue, index)
 }
 
-@dateRangeLabel(fromDate:String, toDate:String)=@{
-localisation("From")+" "+fromDate+" "+localisation("to")+" "+toDate
+@dateRangeLabel(fromDate:Date, toDate:Date)=@{
+localisation("From")+" "+formatDate(fromDate)+" "+localisation("to")+" "+formatDate(toDate)
 }
 
 
@@ -69,7 +71,7 @@ localisation("From")+" "+fromDate+" "+localisation("to")+" "+toDate
             <input
                     id="@{fieldValue.id.value}-@{option.value}"
                     name="@{fieldValue.id.value}"
-                    value="@{option.fromDate+'|'+option.toDate+'|'+option.value}"
+                    value="@{option.value+'|'+formatDate2(option.fromDate)+'|'+formatDate2(option.toDate)}"
                     type="radio"
                     @if(option.value == setValue) { checked="checked" }
                     role="@inputType"
