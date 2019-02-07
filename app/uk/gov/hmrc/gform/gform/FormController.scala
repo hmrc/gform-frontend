@@ -169,7 +169,8 @@ class FormController(
       for {
         (formId, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals, noAccessCode)
         result <- if (wasFormFound) {
-                   Ok(continue_form_page(cache.formTemplate, noAccessCode, lang, frontendAppConfig)).pure[Future]
+                   Ok(continue_form_page(cache.formTemplate, choice, noAccessCode, lang, frontendAppConfig))
+                     .pure[Future]
                  } else {
                    for {
                      maybeForm <- getForm(formId)
@@ -373,7 +374,13 @@ class FormController(
       choice.bindFromRequest
         .fold(
           _ =>
-            BadRequest(continue_form_page(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)).pure[Future], {
+            BadRequest(
+              continue_form_page(
+                cache.formTemplate,
+                choice.bindFromRequest().withError("decision", "error.required"),
+                maybeAccessCode,
+                lang,
+                frontendAppConfig)).pure[Future], {
             case "continue" =>
               val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
               redirectWithRecalculation(cache, dataRaw, maybeAccessCode, lang)

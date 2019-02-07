@@ -14,17 +14,20 @@
  * limitations under the License.
  *@
 
+@import play.api.data
 @import helper._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.views.html.form.errors._
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
         formTemplate: FormTemplate,
+        form: data.Form[_],
         maybeAccessCode: Option[AccessCode],
         lang: Option[String],
         frontendAppConfig: FrontendAppConfig
@@ -35,6 +38,8 @@
 )
 
 @heading = @{"Would you like to continue your " + formCategory(formTemplate) + " or start again?"}
+@formCat = @{formCategory(formTemplate)}
+
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -42,39 +47,43 @@
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig
 ) {
+
+@if(form.hasErrors) {
+    @error_summary(form, formCat)
+}
+
 <h1>@heading</h1>
 
 <form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, maybeAccessCode, lang) method="POST">
 
     @{CSRF.formField}
-    <div class="form-group">
-      <div class="highlight-message highlight-message--light">
-          If you select 'Start again', any saved details will be deleted and cannot be retrieved
-      </div>
-    </div>
 
-    <div class="form-group">
+    <div class="form-group @if(form.hasErrors){form-group-error}">
         <fieldset id="options">
             <legend class="visuallyhidden">
-                Would you like to continue your @formCategory(formTemplate) or start again?
+                Would you like to continue your @formCategory(formTemplate) or delete your details and start again?
             </legend>
-
+            @if(form.hasErrors) {
+              <span class="error-message" id="decision-inline-error">
+                  @Messages(s"${form.error("decision").get.key}.${form.error("decision").get.message}",formCat)
+             </span>
+            }
             <div class="multiple-choice">
                 <input id="continue" type="radio" name="decision" value="continue" />
 
-                <label for="continue">Continue your @formCategory(formTemplate)</label>
+                <label for="continue">Continue my @formCategory(formTemplate)</label>
             </div>
 
             <div class="multiple-choice">
                 <input id="delete" type="radio" name="decision" value="delete" />
 
-                <label for="delete">Start again</label>
+                <label for="delete">Delete my details and start again</label>
             </div>
         </fieldset>
     </div>
 
     <div class="form-group">
-        <input type="submit" class="button" vlaue="Continue" />
+        <input type="submit" class="button" value="Continue" />
     </div>
 </form>
 }
