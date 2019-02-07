@@ -114,7 +114,7 @@ class AuthenticatedRequestActions(
                          lang,
                          request.uri,
                          getAffinityGroup,
-                         ggAuthorised(request)(authUserWhitelist(_)))
+                         ggAuthorised(request)(AuthSuccessful(_).pure[Future]))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         obligations <- obligationService.lookupObligationsMultiple(formTemplate)
         result <- handleAuthResults(
@@ -173,23 +173,6 @@ class AuthenticatedRequestActions(
       obligations <- obligationService.lookupObligationsMultiple(formTemplate)
       result      <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
     } yield result
-
-  private def authUserWhitelist(retrievals: MaterialisedRetrievals)(
-    implicit
-    hc: HeaderCarrier): Future[AuthResult] =
-    if (frontendAppConfig.whitelistEnabled) {
-      for {
-        isValid <- gformConnector.whiteList(retrievals.userDetails.email)
-      } yield
-        isValid match {
-          case Some(idx) =>
-            Logger.info(s"Passed successful through white listing: $idx user index")
-            AuthSuccessful(retrievals)
-          case None =>
-            Logger.warn(s"User failed whitelisting and is denied access : ${idForLog(retrievals.authProviderId)}")
-            AuthBlocked("Non-whitelisted User")
-        }
-    } else Future.successful(AuthSuccessful(retrievals))
 
   private def handleAuthResults(
     result: AuthResult,
