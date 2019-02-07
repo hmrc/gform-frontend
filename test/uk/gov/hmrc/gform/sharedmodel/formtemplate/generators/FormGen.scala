@@ -40,9 +40,9 @@ trait FormGen {
       formTemplateId <- FormTemplateGen.formTemplateIdGen
       formData       <- formDataGen
       status         <- formStatusGen
+      visitIndex     <- VisitIndexGen.visitIndexGen
       expiryDate     <- Gen.option(EnvelopeExpiryDateGen.envelopeExpiryDateGen)
-
-    } yield Form(formId, envelopeId, userId, formTemplateId, formData, status, expiryDate)
+    } yield Form(formId, envelopeId, userId, formTemplateId, formData, status, visitIndex, expiryDate)
 }
 
 object FormGen extends FormGen

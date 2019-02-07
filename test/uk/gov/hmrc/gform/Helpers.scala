@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.form
+package uk.gov.hmrc.gform
 
-import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.gform.graph.Data
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-case class UserData(
-  formData: FormData,
-  formStatus: FormStatus,
-  visitsIndex: VisitIndex
-)
-
-object UserData {
-
-  implicit val format: OFormat[UserData] = Json.format[UserData]
-
+object Helpers {
+  def mkData(fields: (String, String)*): Data =
+    fields.map { case (fcId, value) => FormComponentId(fcId) -> Seq(value) }.toMap
 }

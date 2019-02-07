@@ -19,8 +19,39 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import scala.util.Try
 import uk.gov.hmrc.gform.sharedmodel.UserId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
+
+case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
+  def toFormField: FormField =
+    FormField(FormComponentId(VisitIndex.key), visitsIndex.mkString(","))
+
+  def toVisitsTuple: (FormComponentId, Seq[String]) =
+    (FormComponentId(VisitIndex.key), visitsIndex.mkString(",") :: Nil)
+
+  def visit(sectionNumber: SectionNumber): VisitIndex = VisitIndex(visitsIndex + sectionNumber.value)
+}
+
+object VisitIndex {
+
+  val key = "_visits_"
+
+  val empty = VisitIndex(Set.empty)
+
+  implicit val format: OFormat[VisitIndex] = Json.format
+
+  def fromString(s: String): VisitIndex =
+    if (s.isEmpty) VisitIndex.empty
+    else
+      VisitIndex(
+        s.split(",")
+          .toList
+          .flatMap { indexAsString =>
+            Try(indexAsString.toInt).toOption.fold(List.empty[Int])(_ :: Nil)
+          }
+          .toSet)
+}
 
 case class Form(
   _id: FormId,
@@ -29,6 +60,7 @@ case class Form(
   formTemplateId: FormTemplateId,
   formData: FormData,
   status: FormStatus,
+  visitsIndex: VisitIndex,
   envelopeExpiryDate: Option[EnvelopeExpiryDate]
 )
 
@@ -41,6 +73,7 @@ object Form {
       FormTemplateId.vformat and
       FormData.format and
       FormStatus.format and
+      VisitIndex.format and
       EnvelopeExpiryDate.optionFormat
   )(Form.apply _)
 
@@ -52,6 +85,7 @@ object Form {
         FormTemplateId.oformat.writes(form.formTemplateId) ++
         FormData.format.writes(form.formData) ++
         FormStatus.format.writes(form.status) ++
+        VisitIndex.format.writes(form.visitsIndex) ++
         EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate))
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)

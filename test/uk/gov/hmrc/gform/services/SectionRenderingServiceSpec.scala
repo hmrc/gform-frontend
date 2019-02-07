@@ -26,8 +26,8 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.{ExampleData, TaxPeriods}
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.JavaConverters
@@ -68,6 +68,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
+        VisitIndex.empty,
         None,
         Map[HmrcTaxPeriod, TaxPeriods]()
       )
@@ -80,6 +81,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     hiddenFieldNames should be(
       List(
         "csrfToken",
+        VisitIndex.key,
         "nameOfBusiness",
         "startDate-day",
         "startDate-month",
@@ -113,6 +115,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
+        VisitIndex.empty,
         None,
         Map[HmrcTaxPeriod, TaxPeriods]()
       )
@@ -127,6 +130,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         "csrfToken",
         "firstName",
         "surname",
+        VisitIndex.key,
         "nameOfBusiness",
         "startDate-day",
         "startDate-month",
@@ -152,6 +156,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
+        VisitIndex.empty,
         None,
         Map[HmrcTaxPeriod, TaxPeriods]()
       )
@@ -183,6 +188,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
+        VisitIndex.empty,
         None,
         Map[HmrcTaxPeriod, TaxPeriods]()
       )
@@ -192,7 +198,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames should be(List("csrfToken", "firstName", "surname", "facePhoto", "save"))
+    hiddenFieldNames should be(List("csrfToken", VisitIndex.key, "firstName", "surname", "facePhoto", "save"))
     visibleFields should be(List("nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum"))
   }
 
@@ -276,6 +282,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
+        VisitIndex.empty,
         None,
         Map[HmrcTaxPeriod, TaxPeriods]()
       )
@@ -330,6 +337,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
+        VisitIndex.empty,
         None,
         Map[HmrcTaxPeriod, TaxPeriods]()
       )
@@ -381,6 +389,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         0,
         Nil,
         retrievals,
+        VisitIndex.empty,
         None,
         Map[HmrcTaxPeriod, TaxPeriods]()
       )

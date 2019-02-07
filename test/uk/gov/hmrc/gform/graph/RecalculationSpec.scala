@@ -23,6 +23,7 @@ import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.GraphSpec
+import uk.gov.hmrc.gform.Helpers.mkData
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import FormTemplateBuilder._
@@ -538,8 +539,4 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     Right(expectedOutput) shouldBe output.map(_.data)
 
   }
-
-  private def mkData(fields: (String, String)*): Data =
-    fields.map { case (fcId, value) => FormComponentId(fcId) -> Seq(value) }.toMap
-
 }
