@@ -385,7 +385,16 @@ class FormController(
               val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
               redirectWithRecalculation(cache, dataRaw, maybeAccessCode, lang)
             case "delete" =>
-              Ok(confirm_delete(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)).pure[Future]
+              //Ok(confirm_delete(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)).pure[Future]
+              gformConnector
+                .deleteForm(FormId(cache.retrievals.userDetails, formTemplateId, maybeAccessCode))
+                .map(_ =>
+                  (cache.formTemplate.draftRetrievalMethod, cache.retrievals.affinityGroup) match {
+                    case (Some(FormAccessCodeForAgents), Some(AffinityGroup.Agent)) =>
+                      Redirect(routes.FormController.newFormAgent(formTemplateId, lang))
+                    case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
+                })
+
             case _ => Redirect(routes.FormController.newForm(formTemplateId, lang)).pure[Future]
           }
         )
