@@ -116,12 +116,11 @@ class AuthenticatedRequestActions(
                          getAffinityGroup,
                          ggAuthorised(request)(authUserWhitelist(_)))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
-        obligations <- obligationService.lookupObligationsMultiple(formTemplate)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))
+                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
                  )
       } yield result
   }
@@ -134,10 +133,9 @@ class AuthenticatedRequestActions(
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
-        obligations  <- obligationService.lookupObligationsMultiple(formTemplate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) =>
-                     f(request)(AuthCacheWithoutForm(retrievals, formTemplate, obligations))
+                     f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
                    case _ => errResponder.forbidden(request, "Access denied")
                  }
       } yield result
@@ -317,8 +315,8 @@ case class AuthCacheWithForm(
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
-  formTemplate: FormTemplate,
-  obligations: Map[HmrcTaxPeriod, TaxPeriods]
+  formTemplate: FormTemplate
 ) extends AuthCache {
-  def toAuthCacheWithForm(form: Form) = AuthCacheWithForm(retrievals, form, formTemplate, obligations)
+  def toAuthCacheWithForm(form: Form) =
+    AuthCacheWithForm(retrievals, form, formTemplate, Map[HmrcTaxPeriod, TaxPeriods]())
 }

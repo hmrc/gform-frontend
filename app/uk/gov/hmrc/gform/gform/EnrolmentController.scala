@@ -115,8 +115,7 @@ class EnrolmentController(
                 Nil,
                 Nil,
                 Valid(()),
-                lang,
-                cache.obligations)
+                lang)
           ).pure[Future]
         case _ =>
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
@@ -130,9 +129,7 @@ class EnrolmentController(
     retrievals: MaterialisedRetrievals,
     enrolmentSection: EnrolmentSection,
     data: FormDataRecalculated,
-    lang: Option[String],
-    obligations: Map[HmrcTaxPeriod, TaxPeriods])(
-    implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
+    lang: Option[String])(implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
 
     def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType, List[Html]) = see match {
       case RegimeIdNotMatch(identifierRecipe) =>
@@ -156,8 +153,7 @@ class EnrolmentController(
         errorMap,
         globalErrors,
         validationResult,
-        lang,
-        obligations
+        lang
       )
     )
   }
@@ -202,13 +198,7 @@ class EnrolmentController(
                         validationResult,
                         retrievals)
                         .fold(
-                          recoverEnrolmentError(
-                            formTemplate,
-                            retrievals,
-                            enrolmentSection,
-                            data,
-                            lang,
-                            cache.obligations),
+                          recoverEnrolmentError(formTemplate, retrievals, enrolmentSection, data, lang),
                           processEnrolmentResult(formTemplate, lang))
                         .run(Env(formTemplate, retrievals, data))
                         .recoverWith(handleEnrolmentException(formTemplate, lang))
