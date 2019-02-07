@@ -134,22 +134,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   //TODO other formTemplate endpoints
   //TODO move this file to gform and make it's origin there
 
-  /*** White Listing ***/ //TODO remove once internal Users have been through system.
-  def whiteList(
-    retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[String]] =
-    retrievals match {
-      case AnonymousRetrievals(_) => Future.successful(Option.empty[String])
-      case mr: AuthenticatedRetrievals =>
-        mr.userDetails.email.fold(
-          Future.successful(Option.empty[String])
-        )(
-          email =>
-            ws.POST[String, String](s"$baseUrl/white-list/users", email)
-              .map(Some(_))
-              .recover { case e: NotFoundException => None }
-        )
-    }
-
   /****** Tax Period ******/
   def getAllTaxPeriods(htps: List[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     ws.POST[List[HmrcTaxPeriod], List[TaxResponse]](s"$baseUrl/obligation/tax-period", htps)

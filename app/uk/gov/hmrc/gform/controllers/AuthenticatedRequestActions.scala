@@ -43,6 +43,8 @@ import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriods }
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.HeaderCarrierConverter
 
 class AuthenticatedRequestActions(
   gformConnector: GformConnector,
@@ -96,7 +98,7 @@ class AuthenticatedRequestActions(
   def keepAlive(): Action[AnyContent] = Action.async { implicit request =>
     val predicate = AuthProviders(AuthProvider.GovernmentGateway)
     for {
-      authResult <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
+      authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
       result <- authResult match {
                  case AuthSuccessful(retrievals) => Future.successful(Ok("success"))
                  case _                          => errResponder.forbidden(request, "Access denied")
@@ -115,7 +117,7 @@ class AuthenticatedRequestActions(
                          lang,
                          request.uri,
                          getAffinityGroup,
-                         ggAuthorised(request)(authUserWhitelist(_)))
+                         ggAuthorised(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -133,7 +135,7 @@ class AuthenticatedRequestActions(
 
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult   <- ggAuthorised(request)(AuthSuccessful(_).pure[Future])(RecoverAuthResult.noop)(predicate)
+        authResult   <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) =>
                      f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
@@ -153,7 +155,7 @@ class AuthenticatedRequestActions(
                          lang,
                          request.uri,
                          getAffinityGroup,
-                         ggAuthorised(request)(AuthSuccessful(_).pure[Future]))
+                         ggAuthorised(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -178,7 +180,7 @@ class AuthenticatedRequestActions(
                          lang,
                          request.uri,
                          getAffinityGroup,
-                         ggAuthorised(request)(AuthSuccessful(_).pure[Future]))
+                         ggAuthorised(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -205,23 +207,6 @@ class AuthenticatedRequestActions(
       form   <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
       result <- f(AuthCacheWithFormWithoutObligations(retrievals, form, formTemplate))
     } yield result
-
-  private def authUserWhitelist(retrievals: AuthenticatedRetrievals)(
-    implicit
-    hc: HeaderCarrier): Future[AuthResult] =
-    if (frontendAppConfig.whitelistEnabled) {
-      for {
-        isValid <- gformConnector.whiteList(retrievals)
-      } yield
-        isValid match {
-          case Some(idx) =>
-            Logger.info(s"Passed successful through white listing: $idx user index")
-            AuthSuccessful(retrievals)
-          case None =>
-            Logger.warn(s"User failed whitelisting and is denied access : ${idForLog(retrievals.authProviderId)}")
-            AuthBlocked("Non-whitelisted User")
-        }
-    } else Future.successful(AuthSuccessful(retrievals))
 
   private def handleAuthResults(
     result: AuthResult,
@@ -303,8 +288,6 @@ class AuthenticatedRequestActions(
   private def ggAuthorised(
     request: Request[AnyContent]
   )(
-    authGivenRetrievals: AuthenticatedRetrievals => Future[AuthResult]
-  )(
     recoverPF: PartialFunction[Throwable, AuthResult]
   )(
     predicate: Predicate
@@ -328,7 +311,7 @@ class AuthenticatedRequestActions(
               userDetails,
               credentialStrength,
               agentCode)
-            result <- authGivenRetrievals(retrievals)
+            result <- AuthSuccessful(retrievals).pure[Future]
           } yield result
       }
       .recover(recoverPF orElse RecoverAuthResult.basicRecover(request, appConfig))
