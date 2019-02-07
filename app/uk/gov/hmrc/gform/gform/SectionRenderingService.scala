@@ -56,7 +56,6 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 import scala.concurrent.Future
@@ -79,7 +78,7 @@ case object NoErrors extends HasErrors
 case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
-case class OptionParams(value: String, fromDate: String, toDate: String, selected: Boolean)
+case class OptionParams(value: String, fromDate: java.util.Date, toDate: java.util.Date, selected: Boolean)
 class SectionRenderingService(
   frontendAppConfig: FrontendAppConfig
 ) {
@@ -537,13 +536,7 @@ class SectionRenderingService(
     }
 
     val taxPeriodOptions = taxPeriodList
-      .map(
-        i =>
-          new OptionParams(
-            i.periodKey,
-            formatDate(i.inboundCorrespondenceFromDate),
-            formatDate(i.inboundCorrespondenceToDate),
-            false))
+      .map(i => new OptionParams(i.periodKey, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, false))
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val mapOfResultsOption = validatedValue match {
       case Some(ComponentField(a, b)) => b
@@ -551,7 +544,7 @@ class SectionRenderingService(
     }
     val setValue = mapOfResultsOption.values.toList match {
       case a :: _ if TextFormatter.formatText(Some(a)).contains("|") =>
-        TextFormatter.formatText(Some(a)).split("\\|")(2)
+        TextFormatter.formatText(Some(a)).split("\\|")(0)
       case _ => ""
     }
 

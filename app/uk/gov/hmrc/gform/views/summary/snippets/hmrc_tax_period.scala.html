@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
+@import java.util.Date
 
 @(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
@@ -33,7 +34,7 @@
 
 @formatTaxPeriod(taxPeriod:String) = @{
 taxPeriod.split("\\|").toList match {
-case from :: to :: _ => localisation("From")+" "+from+" "+localisation("to")+" "+to
+case _ :: from :: to :: _ => localisation("From")+" "+formatDate(stringToDate(from))+" "+localisation("to")+" "+formatDate(stringToDate(to))
 case _ => "Value Lost!"
 }
 }
