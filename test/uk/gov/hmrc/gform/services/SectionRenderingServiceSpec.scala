@@ -405,8 +405,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Valid(()),
         FormDataRecalculated.empty,
         Nil,
-        None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -430,8 +429,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Valid(()),
         FormDataRecalculated.empty,
         Nil,
-        None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -455,8 +453,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Valid(()),
         FormDataRecalculated.empty,
         Nil,
-        None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
