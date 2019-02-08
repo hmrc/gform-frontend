@@ -265,8 +265,7 @@ class SectionRenderingService(
     validatedType: ValidatedType,
     fieldData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
-    lang: Option[String],
-    obligations: Map[HmrcTaxPeriod, TaxPeriods]
+    lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
     val ei = ExtraInfo(
@@ -301,7 +300,7 @@ class SectionRenderingService(
           retrievals.userDetails,
           validatedType,
           lang,
-          obligations = obligations))
+          obligations = Map[HmrcTaxPeriod, TaxPeriods]()))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -336,11 +335,7 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
-    eventId: String,
-    obligations: Map[HmrcTaxPeriod, TaxPeriods])(
-    implicit hc: HeaderCarrier,
-    request: Request[_],
-    messages: Messages): Future[Html] = {
+    eventId: String)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
     val ei = ExtraInfo(
       maybeAccessCode,
@@ -373,7 +368,7 @@ class SectionRenderingService(
                          retrievals.userDetails,
                          Valid(()),
                          lang,
-                         obligations = obligations)))
+                         obligations = Map[HmrcTaxPeriod, TaxPeriods]())))
       renderingInfo = SectionRenderingInformation(
         formTemplate._id,
         maybeAccessCode,

@@ -61,7 +61,6 @@ class DeclarationController(
 
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId, lang: Option[String]) =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
-      val obligations = cache.obligations
       cache.form.status match {
         case Validated =>
           Future.successful {
@@ -75,8 +74,7 @@ class DeclarationController(
                   Valid(()),
                   FormDataRecalculated.empty,
                   Nil,
-                  lang,
-                  obligations)
+                  lang)
             }
           }
 
@@ -223,8 +221,7 @@ class DeclarationController(
         validationResult,
         data,
         errorMap,
-        lang,
-        cache.obligations)
+        lang)
       Future.successful(Ok(html))
   }
 

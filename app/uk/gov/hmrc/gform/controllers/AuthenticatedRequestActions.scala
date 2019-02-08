@@ -163,6 +163,31 @@ class AuthenticatedRequestActions(
       } yield result
     }
 
+  def asyncWithoutObligations(
+    formTemplateId: FormTemplateId,
+    lang: Option[String],
+    maybeAccessCode: Option[AccessCode])(
+    f: Request[AnyContent] => AuthCacheWithFormWithoutObligations => Future[Result]): Action[AnyContent] =
+    Action.async { implicit request =>
+      for {
+        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+        authResult <- authService
+                       .authenticateAndAuthorise(
+                         formTemplate,
+                         lang,
+                         request.uri,
+                         getAffinityGroup,
+                         ggAuthorised(request)(AuthSuccessful(_).pure[Future]))
+        newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
+        result <- handleAuthResults(
+                   authResult,
+                   formTemplate,
+                   request,
+                   onSuccess = withFormWithoutObligations(f(newRequest))(maybeAccessCode, formTemplate)
+                 )
+      } yield result
+    }
+
   private def withForm(f: AuthCacheWithForm => Future[Result])(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
@@ -170,6 +195,14 @@ class AuthenticatedRequestActions(
       form        <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
       obligations <- obligationService.lookupObligationsMultiple(formTemplate)
       result      <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
+    } yield result
+
+  private def withFormWithoutObligations(f: AuthCacheWithFormWithoutObligations => Future[Result])(
+    maybeAccessCode: Option[AccessCode],
+    formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
+    for {
+      form   <- gformConnector.getForm(FormId(retrievals.userDetails, formTemplate._id, maybeAccessCode))
+      result <- f(AuthCacheWithFormWithoutObligations(retrievals, form, formTemplate))
     } yield result
 
   private def authUserWhitelist(retrievals: MaterialisedRetrievals)(
@@ -311,6 +344,12 @@ case class AuthCacheWithForm(
   form: Form,
   formTemplate: FormTemplate,
   obligations: Map[HmrcTaxPeriod, TaxPeriods]
+) extends AuthCache
+
+case class AuthCacheWithFormWithoutObligations(
+  retrievals: MaterialisedRetrievals,
+  form: Form,
+  formTemplate: FormTemplate
 ) extends AuthCache
 
 case class AuthCacheWithoutForm(
