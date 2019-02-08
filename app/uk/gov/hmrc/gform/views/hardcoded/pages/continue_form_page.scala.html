@@ -37,9 +37,8 @@
         messages: Messages
 )
 
-@heading = @{"Would you like to continue your " + formCategory(formTemplate) + " or start again?"}
 @formCat = @{formCategory(formTemplate)}
-
+@heading = @{"Would you like to continue your " + @formCat + " or start again?"}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -61,7 +60,7 @@
     <div class="form-group @if(form.hasErrors){form-group-error}">
         <fieldset id="options">
             <legend class="visuallyhidden">
-                Would you like to continue your @formCategory(formTemplate) or delete your details and start again?
+                Would you like to continue your @formCat or delete your details and start again?
             </legend>
             @if(form.hasErrors) {
               <span class="error-message" id="decision-inline-error">
@@ -71,7 +70,7 @@
             <div class="multiple-choice">
                 <input id="continue" type="radio" name="decision" value="continue" />
 
-                <label for="continue">Continue my @formCategory(formTemplate)</label>
+                <label for="continue">Continue my @formCat</label>
             </div>
 
             <div class="multiple-choice">
