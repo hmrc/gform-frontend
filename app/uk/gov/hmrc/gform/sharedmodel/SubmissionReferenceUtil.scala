@@ -46,16 +46,23 @@ object SubmissionReferenceUtil {
       // As 36^11 (number of combinations of 11 base 36 digits) < 2^63 (number of combinations of 63 base 2 digits) we can get full significance from this digest.
       val digest = MessageDigest.getInstance("SHA-256").digest(envelopeId.value.getBytes()).take(8)
       val abc = new BigInteger(digest).abs()
+
       val digitArrayWithoutCheck2 = findDigits(abc.longValue(), 10, Array())
       val digitArray = digitArrayWithoutCheck2 :+ (calcCheckChar(digitArrayWithoutCheck2) % 36)
       val unformattedString = digitArray.map(i => Integer.toString(i.toInt, 36)).mkString.toUpperCase
-      unformattedString.take(4) + "-" + unformattedString.substring(4, 8) + "-" + unformattedString
-        .takeRight(4)
+//      unformattedString.take(4) + "-" + unformattedString.substring(4, 8) + "-" + unformattedString
+//        .takeRight(4)
+//
+      unformattedString.grouped(4).mkString("-")
     } else { "" }
   }
 
-  def calcCheckChar(digits: Array[Long]): Long =
-    ((digits(0) + digits(2) + digits(4) + digits(6) + digits(8) + digits(10)) * 3) + (digits(1) + digits(3) + digits(5) + digits(
-      7) + digits(9))
+  def calcCheckChar(digits: Array[Long]): Long = {
+    val a = ((digits(0) + digits(2) + digits(4) + digits(6) + digits(8) + digits(10)) * 3) + (digits(1) + digits(3) + digits(
+      5) + digits(7) + digits(9))
+    val b = digits.foldLeft(0)((acc, a) => if (a % 2 == 0) ((acc + a)).toInt else acc) + digits.foldLeft(0)((acc, a) =>
+      if (a                                      % 2 == 1) ((acc + a)).toInt else acc) * 3
+    a
+  }
 
 }

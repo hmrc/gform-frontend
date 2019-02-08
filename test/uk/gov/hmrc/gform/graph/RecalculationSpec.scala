@@ -19,9 +19,9 @@ package uk.gov.hmrc.gform.graph
 import cats.data.NonEmptyList
 import cats.implicits._
 import org.scalactic.source.Position
-import org.scalatest.{FlatSpec, Matchers}
-import org.scalatest.prop.TableDrivenPropertyChecks.{Table, forAll}
-import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
+import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -105,8 +105,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       )
     )
 
-    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext,
-      None)
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, None)
 
     res match {
       case Left(NoTopologicalOrder(_, _)) => succeed
@@ -148,8 +147,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkFormComponent("a", EeittCtx(BusinessUser)) :: Nil
       ) :: Nil
 
-    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext,
-      None)
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, None)
 
     res match {
       case Right(formDataRecalculated) =>
@@ -248,8 +246,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       )
     )
 
-    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext,
-      None)
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, None)
 
     res match {
       case Left(NoFormComponent(fcId, map)) =>
@@ -540,8 +537,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
   }
 
   private def verify(input: Data, expectedOutput: Data, sections: List[Section])(implicit position: Position) = {
-    val output = recalculation.recalculateFormData(input, mkFormTemplate(sections), ExampleData.authContext,
-      None)
+    val output = recalculation.recalculateFormData(input, mkFormTemplate(sections), ExampleData.authContext, None)
     Right(expectedOutput) shouldBe output.map(_.data)
 
   }
