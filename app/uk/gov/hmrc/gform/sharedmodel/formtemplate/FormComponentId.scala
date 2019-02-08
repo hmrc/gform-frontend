@@ -39,10 +39,10 @@ object FormComponentId {
 
   val oformat: OFormat[FormComponentId] = ValueClassFormat.oformat("id", FormComponentId.apply, _.value)
 
-  private val validationRegex: Regex = "^[_a-zA-Z][_a-zA-Z0-9]*$".r
+  val idValidation: Regex = """[_a-zA-Z]\w*""".r
 
   private def validate(s: String): JsResult[FormComponentId] =
-    if (validationRegex.findFirstIn(s).isDefined) JsSuccess(FormComponentId(s))
+    if (idValidation.anchored.findFirstIn(s).isDefined) JsSuccess(FormComponentId(s))
     else
       JsError(
         "Form Component Ids cannot contain any special characters other than an underscore. They also must not start " +

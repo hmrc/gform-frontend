@@ -19,13 +19,13 @@ package uk.gov.hmrc.gform.core.parsers
 import parseback._
 import uk.gov.hmrc.gform.core.Opt
 import uk.gov.hmrc.gform.core.parsers.BasicParsers.validateWithParser
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCtx
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormComponentId, FormCtx}
 
 object ExprParsers {
 
   def validateFormCtx(expression: String): Opt[FormCtx] = validateWithParser(expression, expr)
 
-  lazy val expr: Parser[FormCtx] = "${" ~ """\w+""".r ~ "}" ^^ { (_, _, field, _) =>
+  lazy val expr: Parser[FormCtx] = "${" ~ FormComponentId.idValidation ~ "}" ^^ { (loc, _, field, _) =>
     FormCtx(field)
   }
 }
