@@ -18,7 +18,7 @@
 @import layouts.{govuk_template => hmrcGovUkTemplate}
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous }
 @import uk.gov.hmrc.gform.config.JSConfig
 
 @(appConfig: FrontendAppConfig,
@@ -56,7 +56,7 @@
 @authTimeout = @{
   authConfig match {
     case Some(EeittModule(_)) => appConfig.authModule.legacyEEITTAuth
-    // case Anonymous => appConfig.authModule.anonymous
+    case Some(Anonymous) => appConfig.authModule.anonymous
     case Some(_) => appConfig.authModule.hmrc
     case None => JSConfig(timeoutEnabled = false, 0, 0, "", "")
   }
