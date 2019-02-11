@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Today
+import java.text.DateFormatSymbols
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
@@ -186,7 +187,7 @@ class ComponentsValidator(
   private def messagePrefix(fieldValue: FormComponent) =
     localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
-  private def validateDateImpl(fieldValue: FormComponent, date: Date)(data: FormDataRecalculated): ValidatedType = {
+  private def validateDateImpl(fieldValue: FormComponent, date: Date)(data: FormDataRecalculated): ValidatedType =
     date.constraintType match {
       case AnyDate =>
         validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => ().valid)
@@ -261,14 +262,13 @@ class ComponentsValidator(
         }
         Monoid[ValidatedType].combineAll(result)
     }
-  }
 
   def exactParameterListToString(parameters: List[DateParameters]): String =
     parameters
       .map {
         case ExactYear(year)   => year.toString
-        case ExactMonth(month) => LocalDate.of(1000, month, 1).getMonth.toString.toLowerCase.capitalize
-        case ExactDay(day)     => day.toString
+        case ExactMonth(month) => new DateFormatSymbols().getMonths.toList(month - 1)
+        case ExactDay(day)     => "day"
       }
       .mkString(" ")
 
@@ -281,15 +281,20 @@ class ComponentsValidator(
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
       localDate.plusDays(offset.value.toLong).format(govDateFormat)
 
+    val month = concreteDate.month match {
+      case ExactMonth(m) => new DateFormatSymbols().getMonths.toList(m - 1)
+      case _             => "the month"
+    }
+
     val beforeOrAfterOrPreciselyString = beforeAfterPrecisely.toString.toLowerCase
 
     concreteDate match {
-      case date if date.day == FirstDay => s"must be the first day of the month"
-      case date if date.day == LastDay  => s"must be the last day of the month"
-      case _ if getExactParameters(concreteDate).length == 1 || getExactParameters(concreteDate).length == 2 =>
-        s"must be $beforeOrAfterOrPreciselyString ${exactParameterListToString(getExactParameters(concreteDate))}"
       case date if date.isExact =>
         s"must be $beforeOrAfterOrPreciselyString ${dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate)}"
+      case date if date.day == FirstDay => s"must be the first day of $month"
+      case date if date.day == LastDay  => s"must be the last day of $month"
+      case _ if concreteDate.getExactParameters.length == 1 || concreteDate.getExactParameters.length == 2 =>
+        s"must be: $beforeOrAfterOrPreciselyString ${exactParameterListToString(concreteDate.getExactParameters)}"
 
     }
   }
@@ -638,8 +643,8 @@ class ComponentsValidator(
     date: LocalDate,
     concreteDate: ConcreteDate,
     offset: OffsetDate): Boolean = {
-    println(getExactParameters(concreteDate) + "findmde")
-    val parametersLength = getExactParameters(concreteDate).length
+    println(concreteDate.getExactParameters + "findmde")
+    val parametersLength = concreteDate.getExactParameters.length
     beforeAfterPrecisely match {
       case Before => isBeforeConcreteDate(date, concreteDate, offset)
       case After  => isAfterConcreteDate(date, concreteDate, offset)
@@ -698,8 +703,10 @@ class ComponentsValidator(
 
   def getExactParameters(concreteDate: ConcreteDate): List[DateParameters] = {
     val dateItems = concreteDate.day :: concreteDate.month :: concreteDate.year :: Nil
-    dateItems.filter(item =>
-      item.isInstanceOf[ExactYear] || item.isInstanceOf[ExactMonth] || item.isInstanceOf[ExactDay])
+    dateItems.filter(
+      item =>
+        item.isInstanceOf[ExactYear] || item.isInstanceOf[ExactMonth] || item
+          .isInstanceOf[ExactDay])
   }
 
   def isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate): Boolean = //TODO unit tests
@@ -719,10 +726,8 @@ class ComponentsValidator(
 
   def isNotExactDay(day: Day): Boolean = List(FirstDay, LastDay, AnyDay).contains(day)
 
-  def validateConcreteDate(
-    concreteDate: ConcreteDate,
-    dateError: GformError): Validated[GformError, ConcreteDate] = {
-    val exactParams = getExactParameters(concreteDate).map {
+  def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): Validated[GformError, ConcreteDate] = {
+    val exactParams = concreteDate.getExactParameters.map {
       case ExactYear(year) =>
         if (year.toString.length == 4) "validYear" -> year
         else "invalidYear"                         -> 0

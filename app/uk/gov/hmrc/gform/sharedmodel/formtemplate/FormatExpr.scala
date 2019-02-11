@@ -94,6 +94,14 @@ case class ConcreteDate(year: Year, month: Month, day: Day) extends DateConstrai
   val isExact: Boolean = year.isInstanceOf[ExactYear] && month
     .isInstanceOf[ExactMonth] && (day == FirstDay || day == LastDay || day.isInstanceOf[ExactDay])
 
+  def getExactParameters: List[DateParameters] = {
+    val dateItems = day :: month :: year :: Nil
+    dateItems.filter(
+      item =>
+        item.isInstanceOf[ExactYear] || item.isInstanceOf[ExactMonth] || item
+          .isInstanceOf[ExactDay])
+  }
+
 }
 
 object ConcreteDate {
