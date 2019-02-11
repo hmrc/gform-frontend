@@ -187,9 +187,6 @@ class ComponentsValidator(
     localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date)(data: FormDataRecalculated): ValidatedType = {
-    val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
-    val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
-      localDate.plusDays(offset.value.toLong).format(govDateFormat)
     date.constraintType match {
       case AnyDate =>
         validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => ().valid)
@@ -199,138 +196,6 @@ class ComponentsValidator(
         val result = dateConstraintList.map {
           case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) =>
             (beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) match {
-
-//              case (Before, Today, offset) =>
-//                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//                  .andThen(
-//                    inputDate =>
-//                      validateToday(
-//                        fieldValue,
-//                        inputDate,
-//                        offset,
-//                        Map(fieldValue.id -> errors(fieldValue, "should be before Today")))(isBeforeToday))
-//
-//              case (Before, concreteDate: ConcreteDate, offset) =>
-//                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-//                  .andThen { concreteDate =>
-//                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//                      .andThen(
-//                        inputDate =>
-//                          validateConcreteDate(
-//                            fieldValue,
-//                            inputDate,
-//                            concreteDate,
-//                            offset,
-//                            Map(fieldValue.id ->
-//                              errors(fieldValue, s"should be before ${dateWithOffset(concreteDate, offset)}"))
-//                          )(isBeforeConcreteDate))
-//                  }
-
-//              case (beforeOrAfterOrPrecisely @ _, DateField(fieldId), offset) => {
-//                lazy val validateOtherDate = validateInputDate(fieldValue, fieldId, None, data)
-//
-//                lazy val validatedThisDate = validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//
-//                val beforeOrAfterOrPreciselyString = beforeOrAfterOrPrecisely match {
-//                  case After     => localisation("after")
-//                  case Before    => localisation("before")
-//                  case Precisely => localisation("precisely")
-//                }
-//
-//                val beforeOrAfterOrPreciselyFunction = beforeOrAfterOrPrecisely match {
-//                  case After     => isAfterConcreteDate _
-//                  case Before    => isBeforeConcreteDate _
-//                  case Precisely => isPreciselyConcreteDate _
-//                }
-//
-//                validateOtherDate.andThen { otherLocalDate =>
-//                  validatedThisDate.andThen { thisLocalDate =>
-//                    validateConcreteDate(
-//                      fieldValue,
-//                      thisLocalDate,
-//                      otherLocalDate,
-//                      offset,
-//                      Map(
-//                        fieldValue.id ->
-//                          errors(
-//                            fieldValue,
-//                            s"should be $beforeOrAfterOrPreciselyString ${dateWithOffset(otherLocalDate, offset)}"))
-//                    )(beforeOrAfterOrPreciselyFunction)
-//                  }
-//                }
-//              }
-
-//              case (After, Today, offset) =>
-//                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//                  .andThen(
-//                    inputDate =>
-//                      validateToday(
-//                        fieldValue,
-//                        inputDate,
-//                        offset,
-//                        Map(fieldValue.id -> errors(fieldValue, "should be after today")))(isAfterToday))
-//
-//              case (After, concreteDate: ConcreteDate, offset) =>
-//                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
-//                  .andThen { concreteDate =>
-//                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//                      .andThen(
-//                        inputDate =>
-//                          validateConcreteDate(
-//                            fieldValue,
-//                            inputDate,
-//                            concreteDate,
-//                            offset,
-//                            Map(
-//                              fieldValue.id -> errors(
-//                                fieldValue,
-//                                s"should be after ${dateWithOffset(concreteDate, offset)}"))
-//                          )(isAfterConcreteDate))
-//                  }
-//
-//              case (Precisely, concreteDate: ConcreteDate, offset) =>
-//
-//                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
-//                  .andThen { concreteDate =>
-//                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//                      .andThen(
-//                        inputDate =>
-//                          validateConcreteDate(
-//                            fieldValue,
-//                            inputDate,
-//                            concreteDate,
-//                            offset,
-//                            Map(
-//                              fieldValue.id -> errors(
-//                                fieldValue,
-//                                s"must be precisely ${dateWithOffset(concreteDate, offset)}"))
-//                          )(isPreciselyConcreteDate))
-//                  }
-//
-//              case (Precisely, Today, offset) =>
-//                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//                  .andThen(
-//                    inputDate =>
-//                      validateToday(
-//                        fieldValue,
-//                        inputDate,
-//                        offset,
-//                        Map(fieldValue.id -> errors(fieldValue, "must be today")))(isPreciselyToday))
-//
-//              case (Precisely, concreteDate: ConcreteDate, offset) =>
-//                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
-//                  .andThen { concreteDate =>
-//                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-//                      .andThen(
-//                        inputDate =>
-//                          validateConcreteDate(
-//                            fieldValue,
-//                            inputDate,
-//                            concreteDate,
-//                            offset,
-//                            Map(fieldValue.id -> errors(fieldValue, s"must be ${dateWithOffset(concreteDate, offset)}"))
-//                          )(isPreciselyConcreteDate))
-//                  }
 
               case (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset)
                   if concreteDate.isExact => {
@@ -346,9 +211,10 @@ class ComponentsValidator(
                             inputDate,
                             concreteDate,
                             offset,
-                            Map(fieldValue.id -> errors(
-                              fieldValue,
-                              s"must be ${beforeAfterPrecisely.toString.toLowerCase} ${dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offset)}"))
+                            Map(
+                              fieldValue.id -> errors(
+                                fieldValue,
+                                incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset)))
                           )(concreteDateFunctionMatch(beforeAfterPrecisely)))
                   }
 
@@ -356,7 +222,7 @@ class ComponentsValidator(
 
               case (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset)
                   if !concreteDate.isExact => {
-                println("findmeman: " + concreteDate)
+                println("findmeman1: " + concreteDate)
 
                 validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
                   .andThen { date =>
@@ -371,7 +237,7 @@ class ComponentsValidator(
                             Map(
                               fieldValue.id -> errors(
                                 fieldValue,
-                                s"must be ${beforeAfterPrecisely.toString.toLowerCase} ")) //TODO add message matcher
+                                incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset))) //TODO add message matcher
                           )(concreteDateFunctionMatch(beforeAfterPrecisely)))
                   }
 
@@ -397,12 +263,36 @@ class ComponentsValidator(
     }
   }
 
-//  def validationString(beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offsetDate: OffsetDate) = {
-//    concreteDate match {
-//      case date if date.isExact => s"must be $beforeAfterPrecisely "
-//    }
-//  }
-//
+  def exactParameterListToString(parameters: List[DateParameters]): String =
+    parameters
+      .map {
+        case ExactYear(year)   => year.toString
+        case ExactMonth(month) => LocalDate.of(1000, month, 1).getMonth.toString.toLowerCase.capitalize
+        case ExactDay(day)     => day.toString
+      }
+      .mkString(" ")
+
+  def incorrectDateMessage(
+    beforeAfterPrecisely: BeforeAfterPrecisely,
+    concreteDate: ConcreteDate,
+    offsetDate: OffsetDate): String = {
+
+    val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+    val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
+      localDate.plusDays(offset.value.toLong).format(govDateFormat)
+
+    val beforeOrAfterOrPreciselyString = beforeAfterPrecisely.toString.toLowerCase
+
+    concreteDate match {
+      case date if date.day == FirstDay => s"must be the first day of the month"
+      case date if date.day == LastDay  => s"must be the last day of the month"
+      case _ if getExactParameters(concreteDate).length == 1 || getExactParameters(concreteDate).length == 2 =>
+        s"must be $beforeOrAfterOrPreciselyString ${exactParameterListToString(getExactParameters(concreteDate))}"
+      case date if date.isExact =>
+        s"must be $beforeOrAfterOrPreciselyString ${dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate)}"
+
+    }
+  }
 
   //TODO: this will be called many times per one form. Maybe there is a way to optimise it?
   private def validateFileUpload(data: FormDataRecalculated, fieldValue: FormComponent)(
@@ -748,6 +638,7 @@ class ComponentsValidator(
     date: LocalDate,
     concreteDate: ConcreteDate,
     offset: OffsetDate): Boolean = {
+    println(getExactParameters(concreteDate) + "findmde")
     val parametersLength = getExactParameters(concreteDate).length
     beforeAfterPrecisely match {
       case Before => isBeforeConcreteDate(date, concreteDate, offset)
@@ -758,7 +649,6 @@ class ComponentsValidator(
         } else {
           concreteDate match {
             case concreteDate: ConcreteDate if concreteDate.day == FirstDay || concreteDate.day == LastDay =>
-              println("findme33")
               isFirstOrLastDay(date, concreteDate)
             case concreteDate: ConcreteDate if parametersLength == 1 || parametersLength == 2 =>
               isSameAbstractDate(date, concreteDate)
@@ -829,64 +719,39 @@ class ComponentsValidator(
 
   def isNotExactDay(day: Day): Boolean = List(FirstDay, LastDay, AnyDay).contains(day)
 
-  def validateConcreteDate(date: ConcreteDate, dateError: GformError): Validated[GformError, ConcreteDate] =
-    date match {
+  def validateConcreteDate(
+    concreteDate: ConcreteDate,
+    dateError: GformError): Validated[GformError, ConcreteDate] = {
+    val exactParams = getExactParameters(concreteDate).map {
+      case ExactYear(year) =>
+        if (year.toString.length == 4) "validYear" -> year
+        else "invalidYear"                         -> 0
+      case ExactMonth(month) =>
+        if (month <= 12 && month > 0) "validMonth" -> month
+        else
+          "invalidMonth" -> 0
+      case ExactDay(day) =>
+        if (day <= 31 && day > 0) "validDay" -> day
+        else
+          "invalidDay" -> 0
+    }.toMap
 
-      case concreteDate: ConcreteDate if concreteDate.isExact =>
-        Try(exactConcreteDateToLocalDate(concreteDate)) match {
-          case Success(date) => Valid(ConcreteDate(date.getYear, date.getMonthValue, date.getDayOfMonth))
-          case Failure(ex)   => dateError.invalid
-        }
+    println("find me 1" + exactParams)
 
-      case ConcreteDate(AnyYear, AnyMonth, ExactDay(day)) =>
-        day match {
-          case _ if day <= 31 && day > 0 => Valid(ConcreteDate(AnyYear, AnyMonth, ExactDay(day)))
-          case _                         => dateError.invalid
-        }
+    val isValid = exactParams.get("invalidYear").isEmpty && exactParams.get("invalidYear").isEmpty && exactParams
+      .get("invalidYear")
+      .isEmpty
 
-      case ConcreteDate(AnyYear, AnyMonth, LastDay) => Valid(ConcreteDate(AnyYear, AnyMonth, LastDay))
+    println(isValid)
 
-      case ConcreteDate(AnyYear, AnyMonth, FirstDay) => Valid(ConcreteDate(AnyYear, AnyMonth, FirstDay))
+    if (isValid) {
+      Valid(ConcreteDate(concreteDate.year, concreteDate.month, concreteDate.day))
 
-      case ConcreteDate(AnyYear, ExactMonth(month), day) if isNotExactDay(day) =>
-        month match {
-          case _ if month <= 12 && month > 0 => Valid(ConcreteDate(AnyYear, ExactMonth(month), day))
-          case _                             => dateError.invalid
-        }
-
-      case ConcreteDate(ExactYear(year), AnyMonth, day) if isNotExactDay(day) =>
-        year match {
-          case _ if year.toString.length == 4 => Valid(ConcreteDate(ExactYear(year), AnyMonth, day))
-          case _                              => dateError.invalid
-        }
-
+    } else {
+      dateError.invalid
     }
 
-//  def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedConcreteDate =
-//    concreteDate match {
-//      case ConcreteDate(ExactYear(year), ExactMonth(month), ExactDay(day)) =>
-//        tryLocalDate(LocalDate.of(year, month, day), dateError)
-//      case ConcreteDate(ExactYear(year), ExactMonth(month), FirstDay) =>
-//        tryLocalDate(LocalDate.of(year, month, 1), dateError)
-//      case ConcreteDate(ExactYear(year), ExactMonth(month), LastDay) =>
-//        tryLocalDate(LocalDate.of(year, month, LocalDate.of(year, month, 1).lengthOfMonth), dateError)
-//    }
-
-//  def validateAbstractConcreteDate(concreteDate: ConcreteDate, dateError: GformError): ValidatedNumeric = {
-//
-//    def isNotExactDay(day: Day): Boolean = List(FirstDay, LastDay, AnyDay).contains(day)
-//
-//    concreteDate match {
-//      case ConcreteDate(AnyYear, AnyMonth, ExactDay(day)) => isWithinBounds(day, 31, "day")
-//
-//      case ConcreteDate(AnyYear, ExactMonth(month), day) if isNotExactDay(day) =>
-//        isWithinBounds(month, 12, "month")
-//
-//      case ConcreteDate(ExactYear(year), AnyMonth, day) if isNotExactDay(day) =>
-//        hasValidNumberOfDigits(year, 4, "year")
-//
-//    }
-//  }
+  }
 
   def validateInputDate(
     fieldValue: FormComponent,
@@ -894,7 +759,6 @@ class ComponentsValidator(
     errorMsg: Option[String],
     data: FormDataRecalculated): ValidatedLocalDate = {
     val fieldIdList = Date.fields(fieldId).map(fId => data.data.get(fId))
-    println("fieldid: " + fieldIdList)
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
