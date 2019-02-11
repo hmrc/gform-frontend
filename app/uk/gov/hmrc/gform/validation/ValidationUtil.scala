@@ -34,8 +34,6 @@ object ValidationUtil {
   type ValidatedLocalDate = Validated[GformError, LocalDate]
   type ValidatedNumeric = Validated[String, Int]
   type ValidatedConcreteDate = Validated[GformError, ConcreteDate]
-  type ValidatedFirstDay = Validated[GformError, LastDay]
-  type ValidatedLastDay = Validated[GformError, FirstDay]
 
   type ValidatedType = Validated[GformError, Unit]
 

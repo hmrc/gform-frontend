@@ -27,6 +27,8 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, TaxPeriods }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
