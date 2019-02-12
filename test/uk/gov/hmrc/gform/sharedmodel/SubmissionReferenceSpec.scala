@@ -21,23 +21,24 @@ import uk.gov.hmrc.gform._
 import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil._
 import java.math.BigInteger
 
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import org.scalatest.prop.TableDrivenPropertyChecks.{Table, forAll}
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 class SubmissionReferenceSpec extends Spec {
 
   "A valid EnvelopeID" should "return a 12 digit alphanumeric string separated with hyphens" in {
-    val res: String = getSubmissionReference(Some(envelopeId))
+    val res: String = getSubmissionReference(envelopeId)
     res should fullyMatch regex "[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"
   }
 
   "A missing EnvelopeID" should "return an empty string" in {
-    val res: String = getSubmissionReference(None)
+    val res: String = getSubmissionReference(EnvelopeId(""))
     res should be("")
   }
 
   "A Submission Reference" should "Have it's last digit be derived from the previous eleven" in {
-    val res: Boolean = verifyCheckChar(getSubmissionReference(Some(envelopeId)))
+    val res: Boolean = verifyCheckChar(getSubmissionReference(envelopeId))
     res should be(true)
   }
 

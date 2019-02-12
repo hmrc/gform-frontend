@@ -32,11 +32,7 @@ object SubmissionReferenceUtil {
       case _       => false
     }
 
-  def getSubmissionReference(maybeEnvelopeId: Option[EnvelopeId]): String = {
-    val envelopeId = maybeEnvelopeId match {
-      case Some(x) => x
-      case None    => EnvelopeId("")
-    }
+  def getSubmissionReference(envelopeId: EnvelopeId): String =
     if (!envelopeId.value.isEmpty) {
       // As 36^11 (number of combinations of 11 base 36 digits) < 2^63 (number of combinations of 63 base 2 digits) we can get full significance from this digest.
       val digest = MessageDigest.getInstance("SHA-256").digest(envelopeId.value.getBytes()).take(8)
@@ -44,7 +40,6 @@ object SubmissionReferenceUtil {
       val unformattedString = calculate(initialValue, radix, digits, comb)
       unformattedString.grouped(4).mkString("-").toUpperCase
     } else { "" }
-  }
 
   def calculate(value: BigInteger, radix: Int, digits: Int, comb: Stream[Int]): String = {
     val modulus: BigInteger = BigInteger.valueOf(pow(radix, digits).toLong)
@@ -58,7 +53,6 @@ object SubmissionReferenceUtil {
     stringToInts.zip(comb).map(i => i._1 * i._2).sum % radix
   }
 
-  def verify(reference: String, radix: Int, comb: Stream[Int]): Boolean = {
-  calculateCheckCharacter(reference.tail, radix, comb) == Integer.parseInt(reference.head.toString, radix)
-  }
+  def verify(reference: String, radix: Int, comb: Stream[Int]): Boolean =
+    calculateCheckCharacter(reference.tail, radix, comb) == Integer.parseInt(reference.head.toString, radix)
 }

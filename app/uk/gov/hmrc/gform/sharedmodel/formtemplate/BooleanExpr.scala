@@ -84,7 +84,7 @@ class BooleanExprEval[F[_]: Monad](
 
       val fcId = FormComponentId("dummy")
       evaluator
-        .makeCalc(visSet, fcId, data, leftField, rightField, retrievals, formTemplate, doComparison, None)
+        .makeCalc(visSet, fcId, data, leftField, rightField, retrievals, formTemplate, doComparison, EnvelopeId(""))
     }
 
     expr match {

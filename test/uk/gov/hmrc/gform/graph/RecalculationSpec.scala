@@ -106,7 +106,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       )
     )
 
-    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, None)
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, EnvelopeId(""))
 
     res match {
       case Left(NoTopologicalOrder(_, _)) => succeed
@@ -129,7 +129,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       ExampleData.authContext.copy(
         enrolments =
           Enrolments(Set(Enrolment("NINO").copy(identifiers = List(EnrolmentIdentifier("NINO", "AA111111A")))))),
-      None
+      EnvelopeId("")
     )
 
     res match {
@@ -148,7 +148,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkFormComponent("a", EeittCtx(BusinessUser)) :: Nil
       ) :: Nil
 
-    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, None)
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, EnvelopeId(""))
 
     res match {
       case Right(formDataRecalculated) =>
@@ -172,7 +172,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       ExampleData.authContext.copy(
         affinityGroup = Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual)
       ),
-      None
+      EnvelopeId("")
     )
 
     res match {
@@ -247,7 +247,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       )
     )
 
-    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, None)
+    val res = recalculation.recalculateFormData(inputData, mkFormTemplate(sections), ExampleData.authContext, EnvelopeId(""))
 
     res match {
       case Left(NoFormComponent(fcId, map)) =>
@@ -538,7 +538,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
   }
 
   private def verify(input: Data, expectedOutput: Data, sections: List[Section])(implicit position: Position) = {
-    val output = recalculation.recalculateFormData(input, mkFormTemplate(sections), ExampleData.authContext, None)
+    val output = recalculation.recalculateFormData(input, mkFormTemplate(sections), ExampleData.authContext, EnvelopeId(""))
     Right(expectedOutput) shouldBe output.map(_.data)
 
   }
