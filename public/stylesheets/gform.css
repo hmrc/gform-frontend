@@ -287,10 +287,13 @@ legend > h2, legend > h1 {
 }
 
 /* providing missing full width style - new DS has one */
-textarea.form-control.form-control-full {
+textarea.form-control.form-control-full,
+.form-control-full{
   width: 100%;
 }
-
+.char-counter [data-char-field] {
+    height: auto;
+}
 .pdf-only {
   display: none;
 }
