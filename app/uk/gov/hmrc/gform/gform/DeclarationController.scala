@@ -90,7 +90,7 @@ class DeclarationController(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     data: FormDataRecalculated,
-    envelopeId: Option[EnvelopeId]
+    envelopeId: EnvelopeId
   )(implicit hc: HeaderCarrier): String = {
     val referenceNumber = (authConfig, submissionReference) match {
       case (_, Some(textExpression)) =>
@@ -133,7 +133,7 @@ class DeclarationController(
                        formData,
                        cacheOrig.formTemplate,
                        cacheOrig.retrievals,
-                       Some(cacheOrig.form.envelopeId))
+                       cacheOrig.form.envelopeId)
               invisibleSections = cacheOrig.formTemplate.sections.filterNot(data.isVisible)
 
               invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
@@ -192,7 +192,7 @@ class DeclarationController(
           cache.retrievals,
           cache.formTemplate,
           data,
-          Some(cache.form.envelopeId))
+          cache.form.envelopeId)
         _ <- if (config.sendPdfWithSubmission)
               gformConnector.submitFormWithPdf(
                 FormId(cache.retrievals, formTemplateId, maybeAccessCode),

@@ -187,7 +187,7 @@ class EnrolmentController(
 
               val allFields = getAllEnrolmentFields(enrolmentSection.fields)
               for {
-                data <- recalculation.recalculateFormData(dataRaw, formTemplate, retrievals, None)
+                data <- recalculation.recalculateFormData(dataRaw, formTemplate, retrievals, EnvelopeId(""))
                 validationResult <- validationService
                                      .validateComponents(allFields, data, EnvelopeId(""), retrievals, formTemplate)
                 res <- processValidation(
@@ -297,7 +297,7 @@ class EnrolmentController(
         res <- xs.traverse { x =>
                 val fcId = FormComponentId("dummy")
                 val convertible: Convertible[F] =
-                  evaluator.eval(Set.empty, fcId, g(x), env.data.data, env.retrievals, env.formTemplate, None)
+                  evaluator.eval(Set.empty, fcId, g(x), env.data.data, env.retrievals, env.formTemplate, EnvelopeId(""))
                 Convertible
                   .asString(convertible, env.formTemplate)
                   .map(value => f(x)(value.getOrElse("")))

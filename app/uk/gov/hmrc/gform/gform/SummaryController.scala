@@ -110,7 +110,7 @@ class SummaryController(
         } yield result
         val envelopeExpiryDate = cache.form.envelopeExpiryDate
         lazy val handleExit = recalculation
-          .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, Some(cache.form.envelopeId))
+          .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
           .map { data =>
             maybeAccessCode match {
               case (Some(accessCode)) =>
@@ -159,7 +159,7 @@ class SummaryController(
       sections.filter(data.isVisible)
 
     for {
-      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, Some(cache.form.envelopeId))
+      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, cache.form.envelopeId)
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
       allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
@@ -186,7 +186,7 @@ class SummaryController(
 
     for {
       data <- recalculation
-               .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, Some(cache.form.envelopeId))
+               .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
       envelope <- envelopeF
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield
