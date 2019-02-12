@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.gform.config
 
-import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
+import java.nio.channels.NonWritableChannelException
+
+import com.typesafe.config.{ ConfigFactory, ConfigObject, Config => TypeSafeConfig }
 import net.ceedubs.ficus.Ficus._
 import play.api.Configuration
 import play.api.Mode.Mode
@@ -54,6 +56,14 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
   }
 
   val frontendAppConfig: FrontendAppConfig = {
+    def getJSConfig(path: String) =
+      JSConfig(
+        typesafeConfig.getBoolean(s"$path.timeoutEnabled"),
+        typesafeConfig.getInt(s"$path.timeout"),
+        typesafeConfig.getInt(s"$path.countdown"),
+        typesafeConfig.getString(s"$path.keepAliveUrl"),
+        typesafeConfig.getString(s"$path.signOutUrl")
+      )
     val contactFormServiceIdentifier = "GForm"
     FrontendAppConfig(
       assetsPrefix = typesafeConfig.getString(s"assets.url") + typesafeConfig.getString(s"assets.version"),
@@ -68,7 +78,11 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       whitelistEnabled = typesafeConfig.getString("whitelisting-enabled").toBoolean,
       sendPdfWithSubmission = typesafeConfig.getString("send-pdf-with-submission").toBoolean,
       googleTagManagerIdAvailable = typesafeConfig.getString("google-tag-manager.id-available").toBoolean,
-      googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id")
+      googleTagManagerId = typesafeConfig.getString(s"google-tag-manager.id"),
+      authModule = AuthModule(
+        getJSConfig("auth-module.legacyEEITTAuth"),
+        getJSConfig("auth-module.hmrc"),
+        getJSConfig("auth-module.anonymous"))
     )
   }
 }

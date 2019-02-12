@@ -29,5 +29,6 @@ case class FrontendAppConfig(
   whitelistEnabled: Boolean,
   sendPdfWithSubmission: Boolean,
   googleTagManagerIdAvailable: Boolean,
-  googleTagManagerId: String
+  googleTagManagerId: String,
+  authModule: AuthModule
 )
