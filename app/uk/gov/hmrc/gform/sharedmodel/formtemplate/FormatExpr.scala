@@ -61,6 +61,8 @@ object BeforeAfterPrecisely {
 sealed trait DateParameters
 
 sealed trait Year extends DateParameters
+case object Next extends Year
+case object Previous extends Year
 case object AnyYear extends Year
 case class ExactYear(year: Int) extends Year
 
@@ -91,7 +93,7 @@ case object Today extends DateConstraintInfo
 
 case class ConcreteDate(year: Year, month: Month, day: Day) extends DateConstraintInfo {
 
-  val isExact: Boolean = year.isInstanceOf[ExactYear] && month
+  val isExact: Boolean = (year.isInstanceOf[ExactYear] || year == Next || year == Previous) && month
     .isInstanceOf[ExactMonth] && (day == FirstDay || day == LastDay || day.isInstanceOf[ExactDay])
 
   def getExactParameters: List[DateParameters] = {

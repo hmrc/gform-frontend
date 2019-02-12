@@ -198,7 +198,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label should be after 21 June 2017")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be after 21 June 2017")))
   }
 
   "After Today -1" should "accepts today and dates in future" in {
