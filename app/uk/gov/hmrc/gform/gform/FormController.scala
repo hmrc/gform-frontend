@@ -169,7 +169,8 @@ class FormController(
       for {
         (formId, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals, noAccessCode)
         result <- if (wasFormFound) {
-                   Ok(continue_form_page(cache.formTemplate, noAccessCode, lang, frontendAppConfig)).pure[Future]
+                   Ok(continue_form_page(cache.formTemplate, choice, noAccessCode, lang, frontendAppConfig))
+                     .pure[Future]
                  } else {
                    for {
                      maybeForm <- getForm(formId)
@@ -373,30 +374,41 @@ class FormController(
       choice.bindFromRequest
         .fold(
           _ =>
-            BadRequest(continue_form_page(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)).pure[Future], {
+            BadRequest(
+              continue_form_page(
+                cache.formTemplate,
+                choice.bindFromRequest().withError("decision", "error.required"),
+                maybeAccessCode,
+                lang,
+                frontendAppConfig)).pure[Future], {
             case "continue" =>
               val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
               redirectWithRecalculation(cache, dataRaw, maybeAccessCode, lang)
             case "delete" =>
-              Ok(confirm_delete(cache.formTemplate, maybeAccessCode, lang, frontendAppConfig)).pure[Future]
+              deleteForm(maybeAccessCode, lang, cache)
             case _ => Redirect(routes.FormController.newForm(formTemplateId, lang)).pure[Future]
           }
         )
     }
 
+  def deleteForm(maybeAccessCode: Option[AccessCode], lang: Option[String], cache: AuthCacheWithForm)(
+    implicit hc: HeaderCarrier): Future[Result] = {
+    val formTemplateId = cache.formTemplate._id
+    gformConnector
+      .deleteForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
+      .map(_ =>
+        (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+          case (Some(FormAccessCodeForAgents), IsAgent()) =>
+            Redirect(routes.FormController.newFormAgent(formTemplateId, lang))
+          case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
+      })
+  }
   def delete(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     lang: Option[String]): Action[AnyContent] =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
-      gformConnector
-        .deleteForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-        .map(_ =>
-          (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-            case (Some(FormAccessCodeForAgents), IsAgent()) =>
-              Redirect(routes.FormController.newFormAgent(formTemplateId, lang))
-            case _ => Redirect(routes.FormController.newForm(formTemplateId, lang))
-        })
+      deleteForm(maybeAccessCode, lang, cache)
     }
 
   val deleteOnExit = delete _

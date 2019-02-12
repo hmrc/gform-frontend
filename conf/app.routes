@@ -10,7 +10,6 @@ GET           /form/:formTemplateId/:sectionTitle4Ga/file-upload-page/:fileId   
 GET           /form/:formTemplateId/:sectionTitle4Ga                                                             uk.gov.hmrc.gform.gform.FormController.form(formTemplateId: FormTemplateId, a: Option[AccessCode], n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, lang: Option[String], se: SuppressErrors)
 
 POST          /form/:formTemplateId/:maybeAccessCode/decision                                                    uk.gov.hmrc.gform.gform.FormController.decision(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String])
-POST          /form/:formTemplateId/:maybeAccessCode/delete                                                      uk.gov.hmrc.gform.gform.FormController.delete(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String])
 POST          /form/:formTemplateId/:maybeAccessCode/:sectionNumber                                              uk.gov.hmrc.gform.gform.FormController.updateFormData(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber, lang: Option[String])
 
 GET           /delete/:formTemplateId                                                                            uk.gov.hmrc.gform.gform.FormController.deleteOnExit(formTemplateId: FormTemplateId, a: Option[AccessCode], lang: Option[String])

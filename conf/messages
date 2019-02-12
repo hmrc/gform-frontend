@@ -17,3 +17,6 @@ accessCode.error.notfound=Temporary access key not found. It may have expired or
 user.recruitment.title=Help us improve {0} forms
 user.recruitment.link.text=Sign up to participate in our research activities
 user.recruitment.dismiss=No thanks
+
+# Continue or delete
+decision.error.required=Select whether you would like to continue with your existing {0} or delete and start again
