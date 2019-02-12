@@ -217,7 +217,7 @@ class Recalculation[F[_]: Monad, E](
     fc match {
       case HasExpr(SingleExpr(expr)) =>
         val conv: Convertible[F] =
-          booleanExprEval.evaluator.eval(visSet, fc.id, expr, dataLookup, retrievals, formTemplate)
+          booleanExprEval.evaluator.eval(visSet, fc.id, expr, dataLookup, retrievals, formTemplate, envelopeId)
         val maxFractionDigitsAndRoundingMode = extractMaxFractionalDigits(fc)
 
         Convertible.round(
@@ -254,7 +254,7 @@ class Evaluator[F[_]: Monad](
               enrolments.getEnrolment(sn).flatMap(_.getIdentifier(in)).map(_.value).getOrElse("").pure[F]
           }
         }
-      case UserCtx(_)          => NonConvertible(affinityGroupNameO(retrievals.affinityGroup).pure[F])
+      case UserCtx(_)          => NonConvertible(affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)).pure[F])
       case AuthCtx(value)      => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
       case EeittCtx(eeitt)     => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
       case SubmissionReference => NonConvertible(SubmissionReferenceUtil.getSubmissionReference(envelopeId).pure[F])

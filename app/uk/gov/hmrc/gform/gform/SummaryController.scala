@@ -109,8 +109,9 @@ class SummaryController(
                    )
         } yield result
         val envelopeExpiryDate = cache.form.envelopeExpiryDate
-        lazy val handleExit = recalculation.recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals).map {
-          data =>
+        lazy val handleExit = recalculation
+          .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, Some(cache.form.envelopeId))
+          .map { data =>
             maybeAccessCode match {
               case (Some(accessCode)) =>
                 Ok(save_with_access_code(accessCode, cache.formTemplate, lang, frontendAppConfig))
@@ -118,7 +119,7 @@ class SummaryController(
                 val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode, lang)
                 Ok(save_acknowledgement(envelopeExpiryDate, cache.formTemplate, call, lang, frontendAppConfig))
             }
-        }
+          }
 
         get(dataRaw, FormComponentId("save")) match {
           case "Exit" :: Nil        => handleExit
