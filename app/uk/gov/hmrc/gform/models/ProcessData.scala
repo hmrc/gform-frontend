@@ -76,7 +76,11 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
     implicit hc: HeaderCarrier,
     me: MonadError[F, E]): F[(FormDataRecalculated, List[Section])] =
     for {
-      formDataRecalculated <- recalculation.recalculateFormData(data, cache.formTemplate, cache.retrievals)
+      formDataRecalculated <- recalculation.recalculateFormData(
+                               data,
+                               cache.formTemplate,
+                               cache.retrievals,
+                               Some(cache.form.envelopeId))
     } yield {
       val sections = RepeatingComponentService.getAllSections(cache.formTemplate, formDataRecalculated)
       (formDataRecalculated, sections)

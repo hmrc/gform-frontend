@@ -85,7 +85,7 @@ class AcknowledgementController(
           submission  <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
           cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
-          htmlForPDF  <- addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data)
+          htmlForPDF  <- addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data, Some(cache.form.envelopeId))
           pdfStream   <- pdfService.generatePDF(htmlForPDF)
         } yield Result(
           header = ResponseHeader(200, Map.empty),
