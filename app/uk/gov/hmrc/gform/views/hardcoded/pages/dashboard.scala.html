@@ -40,7 +40,8 @@
     title = heading,
     serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig
+    frontendAppConfig = frontendAppConfig,
+    authConfig = Some(formTemplate.authConfig)
 ) {
 <h1>@heading</h1>
 

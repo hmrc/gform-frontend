@@ -47,7 +47,8 @@
     serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     bodyClasses = None,
-    frontendAppConfig = frontendAppConfig
+    frontendAppConfig = frontendAppConfig,
+    authConfig = Some(formTemplate.authConfig)
 ) {
 
   <div class="govuk-box-highlight">

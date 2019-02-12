@@ -50,7 +50,8 @@
     serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig,
-    containsErrors = hasErrors
+    containsErrors = hasErrors,
+    authConfig = Some(formTemplate.authConfig)
 ) {
 
   @if(hasErrors) {
