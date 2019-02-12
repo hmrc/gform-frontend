@@ -47,6 +47,7 @@ class AuthServiceSpec extends Spec with ExampleData {
     `agent-subscription-frontend-base-url` = "agent-subscription-frontend-base-url",
     feature = null,
     formMaxAttachmentSizeMB = 1,
+    `auth-module` = null,
     /*we can't override list in app-config-base:*/
     contentTypesSeparatedByPipe = "csv|txt"
   )
