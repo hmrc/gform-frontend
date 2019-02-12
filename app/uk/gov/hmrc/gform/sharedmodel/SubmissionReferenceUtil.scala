@@ -53,11 +53,12 @@ object SubmissionReferenceUtil {
     checkCharacter + derivedDigits
   }
 
-  def calculateCheckCharacter(digits: String, radix: Int, comb: Stream[Int]): Long = {
-    val stringToInts = digits.toCharArray.map(i => Integer.parseInt(i.toString, radix)).map(_.toLong)
+  def calculateCheckCharacter(digits: String, radix: Int, comb: Stream[Int]): Int = {
+    val stringToInts = digits.toCharArray.map(i => Integer.parseInt(i.toString, radix))
     stringToInts.zip(comb).map(i => i._1 * i._2).sum % radix
   }
 
-  def verify(reference: String, radix: Int, comb: Stream[Int]): Boolean =
-    calculateCheckCharacter(reference.tail, radix, comb) == Integer.parseInt(reference.head.toString, radix)
+  def verify(reference: String, radix: Int, comb: Stream[Int]): Boolean = {
+  calculateCheckCharacter(reference.tail, radix, comb) == Integer.parseInt(reference.head.toString, radix)
+  }
 }
