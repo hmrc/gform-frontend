@@ -18,8 +18,7 @@
 @import layouts.{govuk_template => hmrcGovUkTemplate}
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous }
-@import uk.gov.hmrc.gform.config.JSConfig
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase, LiveBanner, ResearchBanner, BetaBanner, AlphaBanner}
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -33,9 +32,7 @@
   contentHeader: Option[Html] = None,
   mainContent: Html = HtmlFormat.empty,
   serviceInfoContent: Html = HtmlFormat.empty,
-  scriptElem: Option[Html] = None,
-  authConfig: Option[AuthConfig],
-  navLinks: Option[Html] = None
+  scriptElem: Option[Html] = None
 )(implicit messages: Messages)
 
 @scriptElement = {
@@ -50,16 +47,7 @@
 }
 
 @linkElement = {
-  <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
-}
-
-@authTimeout = @{
-  authConfig match {
-    case Some(EeittModule(_)) => appConfig.authModule.legacyEEITTAuth
-    case Some(Anonymous) => appConfig.authModule.anonymous
-    case Some(_) => appConfig.authModule.hmrc
-    case None => JSConfig(timeoutEnabled = false, 0, 0, "", "")
-  }
+    <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
 }
 
 @head = {
@@ -69,28 +57,11 @@
     @if(appConfig.googleTagManagerIdAvailable) {
       <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
     }
-    @if(authTimeout.timeoutEnabled) {
-      <script>
-              window.gform = window.gform || {};
-              window.gform.config = {
-                timeoutEnabled: @authTimeout.timeoutEnabled,
-                timeout: @authTimeout.timeout,
-                countdown: @authTimeout.countdown,
-                keep_alive_url: "@authTimeout.keepAliveUrl",
-                logout_url: "@authTimeout.signOutUrl"
-              }
-      </script>
-    }
-
     <meta name="format-detection" content="telephone=no" />
 }
 
 @navLinks = {
-  @if(authTimeout.signOutUrl != "") {
-    <li><a href="@{authTimeout.signOutUrl}" id="signOut">Sign out</a></li>
-  } else {
-    None
-  }
+<li><a href="@{appConfig.signOutUrl}" id="signOut">Sign out</a></li>
 }
 
 @insideHeader = {

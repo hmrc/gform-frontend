@@ -16,17 +16,15 @@
       restart_on_yes: true,
       dialog_width: 340,
       close_on_escape: true,
+      background_no_scroll: true,
       keep_alive_button_text: 'Stay signed in',
       sign_out_button_text: 'Sign out'
     };
 
     $.extend(settings, options);
 
-    var timeoutInterval, startTime, currentMin, activeElement;
+    var timeoutInterval, startTime, currentMin;
     var dialogOpen = false;
-    var $pageElements = $('#skiplink-container, body>header, #global-cookie-message, body>main, body>footer');
-    var $html = $('html');
-    var $document = $(document);
 
     function getDateNow() {
         return Date.now() || +new Date()
@@ -58,7 +56,7 @@
     }
 
     function setupDialogTimer() {
-      dialogOpen = false;
+      dialogOpen = false
       settings.signout_time = getDateNow() + settings.timeout * 1000;
       timeoutInterval = global.setInterval(checkTimeElapsed, 1000)
     }
@@ -72,76 +70,82 @@
       }
     }
 
-    var escPress = function (event) {
-      if (event.keyCode === 27) {
-        keepAlive();
-      }
-    };
-
-    var keepAliveAndCloseDialog = function () {
-      if (dialogOpen) {
-        keepAlive();
-      }
-    };
-
-    var handleTouch = function (e) {
-      var touches = e.originalEvent.touches || e.originalEvent.changedTouches;
-      if ($('#timeout-dialog').length) {
-        if (touches.length === 1) {
-          e.preventDefault()
-        }
-      }
-    };
-
     function setupDialog() {
-      destroyDialog();
-      activeElement = document.activeElement;
       dialogOpen = true;
       startTime = Math.round(getDateNow() / 1000);
       currentMin = Math.ceil(settings.timeout / 60);
-      $html.addClass('noScroll');
+      destroyDialog();
+      if (settings.background_no_scroll) {
+        $('html').addClass('noScroll')
+      }
       var time = secondsToTime(settings.countdown);
+      dialogOpen = true;
       if (time.m === 1) {
         settings.time = ' minute'
       }
       $('<div id="timeout-dialog" class="timeout-dialog" role="dialog" aria-labelledby="timeout-message" tabindex=-1 aria-live="polite">' +
         '<h1 class="heading-medium push--top">' + settings.title + '</h1>' +
         '<p id="timeout-message" role="text">' + settings.message + ' <span id="timeout-countdown" class="countdown">' + time.m + ' ' + settings.time + '</span>' + '.</p>' +
-        '<button id="timeout-keep-alive-btn" class="button">' + settings.keep_alive_button_text + '</button>' +
+        '<button id="timeout-keep-signin-btn" class="button">' + settings.keep_alive_button_text + '</button>' +
         '<button id="timeout-sign-out-btn" class="button button--link">' + settings.sign_out_button_text + '</button>' +
         '</div>' +
         '<div id="timeout-overlay" class="timeout-overlay"></div>')
         .appendTo('body');
 
       // AL: disable the non-dialog page to prevent confusion for VoiceOver users
-      $pageElements.attr('aria-hidden', 'true');
+      $('#skiplink-container, body>header, #global-cookie-message, body>main, body>footer').attr('aria-hidden', 'true');
+
+      var activeElement = document.activeElement;
       var modalFocus = document.getElementById('timeout-dialog');
       modalFocus.focus();
       addEvents();
-
       startCountdown(settings.countdown);
+      var escPress = function (event) {
+        if (event.keyCode === 27) {
+          keepAlive();
+          activeElement.focus()
+        }
+      };
 
+      var closeDialog = function () {
+        if (dialogOpen) {
+          keepAlive();
+          activeElement.focus()
+        }
+      };
+
+      var handleTouch = function (e) {
+        var touches = e.originalEvent.touches || e.originalEvent.changedTouches;
+        if ($('#timeout-dialog').length) {
+          if (touches.length === 1) {
+            e.preventDefault()
+          }
+        }
+      };
+
+      $(document)
+        .on('touchmove', handleTouch)
+        .on('keydown', escPress);
+      $('#timeout-keep-signin-btn').on('click', closeDialog);
+      $('#timeout-sign-out-btn').on('click', signOut)
     }
 
     function destroyDialog() {
-      var $dialogue = $('#timeout-dialog');
-      if (!$dialogue.length) {
-        return false;
+      if ($('#timeout-dialog').length) {
+        dialogOpen = false;
+        $('.timeout-overlay').remove();
+        $('#timeout-dialog').remove();
+        if (settings.background_no_scroll) {
+          $('html').removeClass('noScroll')
+        }
       }
-      dialogOpen = false;
-      removeEvents();
-      $('.timeout-overlay').remove();
-      $dialogue.remove();
-      $html.removeClass('noScroll');
-      $pageElements.removeAttr('aria-hidden');
-      activeElement.focus();
+      $('#skiplink-container, body>header, #global-cookie-message, body>main, body>footer').removeAttr('aria-hidden')
     }
 
     function updateUI(counter) {
-      var $countdownEl = $('#timeout-countdown');
       if (counter < 60) {
         $('.timeout-dialog').removeAttr('aria-live');
-        $countdownEl.html(counter + ' seconds')
+        $('#timeout-countdown').html(counter + ' seconds')
       } else {
         var newCounter = Math.ceil(counter / 60);
         var minutesMessage = ' minutes';
@@ -150,46 +154,46 @@
         }
         if (newCounter < currentMin) {
           currentMin = newCounter;
-          $countdownEl.html(newCounter + minutesMessage)
-        }
-      }
-    }
-
-    function setFocusOnActiveDialog(event) {
-      var modalFocus = document.getElementById('timeout-dialog');
-      if (modalFocus && dialogOpen) {
-        if (!modalFocus.contains(event.target)) {
-          event.stopPropagation();
-          modalFocus.focus()
+          $('#timeout-countdown').html(newCounter + minutesMessage)
         }
       }
     }
 
     function addEvents() {
-      $document
-        .on('touchmove', handleTouch)
-        .on('keydown', escPress)
-        .on('click', '#timeout-keep-alive-btn', keepAliveAndCloseDialog)
-        .on('click', '#timeout-sign-out-btn', signOut)
-        .on('focus', 'a, input, textarea, button, [tabindex!="-1"]', setFocusOnActiveDialog);
-    }
+      $('a, input, textarea, button, [tabindex]').not('[tabindex="-1"]').on('focus', function (event) {
+        var modalFocus = document.getElementById('timeout-dialog');
+        if (modalFocus && dialogOpen) {
+          if (!modalFocus.contains(event.target)) {
+            event.stopPropagation();
+            modalFocus.focus()
+          }
+        }
+      });
 
-    function removeEvents() {
-      $document
-        .off('touchmove', handleTouch)
-        .off('keydown', escPress)
-        .off('click', '#timeout-keep-alive-btn', keepAliveAndCloseDialog)
-        .off('click', '#timeout-sign-out-btn', signOut)
-        .off('focus', 'a, input, textarea, button, [tabindex!="-1"]', setFocusOnActiveDialog);
+      function handleFocus () {
+        if (dialogOpen) {
+          global.clearInterval(countdown);
+          var expiredSeconds = (Math.round(Date.now() / 1000)) - startTime;
+          var currentCounter = settings.countdown - expiredSeconds;
+          updateUI(currentCounter);
+          startCountdown(currentCounter)
+        }
+      }
+
+      if (navigator.userAgent.match(/MSIE 8/) == null) {
+        $(global)
+          .off('focus', handleFocus)
+          .on('focus', handleFocus)
+      }
     }
 
     function startCountdown(counter) {
       global.countdown = global.setInterval(function () {
-        if (expired()) {
-          signOut()
-        }
         counter -= 1;
         updateUI(counter);
+        if (counter <= 0) {
+          signOut()
+        }
       }, 1000)
     }
 

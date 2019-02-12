@@ -27,7 +27,6 @@ case class AppConfig(
   `gform-frontend-base-url`: String,
   `agent-subscription-frontend-base-url`: String,
   feature: FeatureToggle,
-  `auth-module`: AuthModule,
   formMaxAttachmentSizeMB: Int,
   /*we can't override list in app-config-base:*/
   contentTypesSeparatedByPipe: String
@@ -60,19 +59,6 @@ case class GoogleAnalytics(
 case class GoogleTagManager(
   id: String,
   `id-available`: Boolean
-)
-
-case class AuthModule(
-  legacyEEITTAuth: JSConfig,
-  hmrc: JSConfig,
-  anonymous: JSConfig
-)
-case class JSConfig(
-  timeoutEnabled: Boolean,
-  timeout: Int,
-  countdown: Int,
-  keepAliveUrl: String,
-  signOutUrl: String
 )
 
 case class FeatureToggle(emailEnabled: Boolean, concurrentAgentAccess: Boolean)

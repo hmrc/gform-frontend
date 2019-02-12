@@ -44,8 +44,7 @@
     title = heading,
     serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+    frontendAppConfig = frontendAppConfig
 ) {
 
 @if(form.hasErrors) {
