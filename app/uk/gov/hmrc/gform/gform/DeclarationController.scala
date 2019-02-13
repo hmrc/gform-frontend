@@ -197,19 +197,11 @@ class DeclarationController(
           cache.formTemplate,
           data,
           cache.form.envelopeId)
-        _ <- if (config.sendPdfWithSubmission)
-              gformConnector.submitFormWithPdf(
-                FormId(cache.retrievals, formTemplateId, maybeAccessCode),
-                customerId,
-                htmlForPDF,
-                AffinityGroupUtil.fromRetrievals(cache.retrievals))
-            else {
-              gformConnector
-                .submitForm(
-                  FormId(cache.retrievals, formTemplateId, maybeAccessCode),
-                  customerId,
-                  AffinityGroupUtil.fromRetrievals(cache.retrievals))
-            }
+        _ <- gformConnector.submitFormWithPdf(
+              FormId(cache.retrievals, formTemplateId, maybeAccessCode),
+              customerId,
+              htmlForPDF,
+              AffinityGroupUtil.fromRetrievals(cache.retrievals))
       } yield {
         if (customerId.isEmpty)
           Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")

@@ -71,18 +71,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").map(_ => ())
 
   /******submission*******/
-  def submitForm(formId: FormId, customerId: String, affinityGroup: Option[AffinityGroup])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[HttpResponse] = {
-    implicit val hcNew = hc
-      .withExtraHeaders("customerId" -> customerId)
-      .withExtraHeaders("affinityGroup" -> affinityGroupNameO(affinityGroup))
-    ws.POSTEmpty[HttpResponse](s"$baseUrl/forms/${formId.value}/submission")(
-      implicitly[HttpReads[HttpResponse]],
-      hcNew,
-      ec)
-  }
-
   def submitFormWithPdf(formId: FormId, customerId: String, htmlForm: String, affinityGroup: Option[AffinityGroup])(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[HttpResponse] = {
