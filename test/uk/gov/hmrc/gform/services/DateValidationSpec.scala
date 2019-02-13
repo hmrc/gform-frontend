@@ -39,12 +39,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
   val retrievals = mock[MaterialisedRetrievals]
   implicit lazy val hc = HeaderCarrier()
 
-  "After Today 1" should "accepts dates after tomorrow" in {
-    val dateConstraint = List(DateConstraint(After, Today, OffsetDate(1)))
-    val constraints = DateConstraints(dateConstraint)
-    val date = Date(constraints, Offset(0), None)
-
-    val speccedDate = FormComponent(
+  private def mkFormComponent(date: Date) =
+    FormComponent(
       FormComponentId("accPeriodStartDate"),
       date,
       "sample label",
@@ -57,6 +53,13 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       true,
       false,
       None)
+
+  "After Today 1" should "accepts dates after tomorrow" in {
+    val dateConstraint = List(DateConstraint(After, Today, OffsetDate(1)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val speccedDate = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.now().plusDays(2)
 
@@ -83,19 +86,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.now().plusDays(1)
 
@@ -124,19 +115,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(6)
 
@@ -165,19 +144,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(2)
 
@@ -198,7 +165,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be after 21 June 2017")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label should be after 21 June 2017")))
   }
 
   "After Today -1" should "accepts today and dates in future" in {
@@ -206,19 +173,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.now()
 
@@ -247,19 +202,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-4)
 
@@ -288,19 +231,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.now()
 
@@ -329,19 +260,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.now().plusDays(-1)
 
@@ -370,19 +289,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.now().plusDays(-2)
 
@@ -411,19 +318,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-6)
 
@@ -447,24 +342,155 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     result.value shouldBe (())
   }
 
+  "Precisely YYYY-04-DD" should "accept any date that in April" in {
+    val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(AnyYear, ExactMonth(4), AnyDay), OffsetDate(0)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = mkFormComponent(date)
+
+    val accepted = LocalDate.of(2017, 4, 16)
+
+    val data = mkFormDataRecalculated(
+      Map(
+        FormComponentId("accPeriodStartDate-day")   -> Seq(accepted.getDayOfMonth.toString),
+        FormComponentId("accPeriodStartDate-month") -> Seq(accepted.getMonthValue.toString),
+        FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
+      ))
+
+    val result = new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ExampleData.formTemplate)
+      .validate(fieldValue)
+      .futureValue
+
+    result.value shouldBe (())
+  }
+
+  "Precisely YYYY-MM-lastDay" should "accept any date that is the last day of the given month" in {
+    val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(AnyYear, AnyMonth, LastDay), OffsetDate(0)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = mkFormComponent(date)
+
+    val accepted = LocalDate.of(2020, 2, 29)
+
+    val data = mkFormDataRecalculated(
+      Map(
+        FormComponentId("accPeriodStartDate-day")   -> Seq(accepted.getDayOfMonth.toString),
+        FormComponentId("accPeriodStartDate-month") -> Seq(accepted.getMonthValue.toString),
+        FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
+      ))
+
+    val result = new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ExampleData.formTemplate)
+      .validate(fieldValue)
+      .futureValue
+
+    result.value shouldBe (())
+  }
+
+  "Precisely next-MM-DD" should "accept any date that is next year" in {
+    val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(Next, AnyMonth, AnyDay), OffsetDate(0)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = mkFormComponent(date)
+
+    val accepted = LocalDate.of(LocalDate.now().getYear + 1, 2, 29)
+
+    val data = mkFormDataRecalculated(
+      Map(
+        FormComponentId("accPeriodStartDate-day")   -> Seq(accepted.getDayOfMonth.toString),
+        FormComponentId("accPeriodStartDate-month") -> Seq(accepted.getMonthValue.toString),
+        FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
+      ))
+
+    val result = new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ExampleData.formTemplate)
+      .validate(fieldValue)
+      .futureValue
+
+    result.value shouldBe (())
+  }
+
+  "Date 26-02-2020" should "return Is not Valid when lastDay validation is applied" in {
+    val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(AnyYear, AnyMonth, LastDay), OffsetDate(0)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = mkFormComponent(date)
+
+    val data = mkFormDataRecalculated(
+      Map(
+        FormComponentId("accPeriodStartDate-day")   -> Seq("26"),
+        FormComponentId("accPeriodStartDate-month") -> Seq("02"),
+        FormComponentId("accPeriodStartDate-year")  -> Seq("2020")
+      ))
+
+    val result = new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ExampleData.formTemplate)
+      .validate(fieldValue)
+      .futureValue
+
+    result.toEither should beLeft(
+      Map(fieldValue.id -> Set(s"sample label must be the last day of the month")))
+  }
+
+  "Date 26-02-2020" should "return Is not Valid when firstDay validation is applied" in {
+    val dateConstraint = List(DateConstraint(Precisely, ConcreteDate(AnyYear, AnyMonth, FirstDay), OffsetDate(0)))
+    val constraints = DateConstraints(dateConstraint)
+    val date = Date(constraints, Offset(0), None)
+
+    val fieldValue = mkFormComponent(date)
+
+    val data = mkFormDataRecalculated(
+      Map(
+        FormComponentId("accPeriodStartDate-day")   -> Seq("26"),
+        FormComponentId("accPeriodStartDate-month") -> Seq("02"),
+        FormComponentId("accPeriodStartDate-year")  -> Seq("2020")
+      ))
+
+    val result = new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ExampleData.formTemplate)
+      .validate(fieldValue)
+      .futureValue
+
+    result.toEither should beLeft(
+      Map(fieldValue.id -> Set(s"sample label must be the first day of the month")))
+  }
+
   "Date 35-12-2017" should "return Is not Valid" in {
     val dateConstraint = List(DateConstraint(Before, ConcreteDate(2017, 6, 16), OffsetDate(-5)))
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -492,19 +518,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val constraints = DateConstraints(dateConstraint)
     val date = Date(constraints, Offset(0), None)
 
-    val fieldValue = FormComponent(
-      FormComponentId("accPeriodStartDate"),
-      date,
-      "sample label",
-      None,
-      None,
-      None,
-      true,
-      false,
-      false,
-      true,
-      false,
-      None)
+    val fieldValue = mkFormComponent(date)
 
     val data = mkFormDataRecalculated(
       Map(

@@ -94,11 +94,11 @@ object ValidationServiceHelper {
     }
 
     val monthString = concreteDate.month match {
-      case ExactMonth(month) if isNotExactDay(concreteDate.day)  => "in " + getMonthName(month)
-      case ExactMonth(month) if !isNotExactDay(concreteDate.day) => "of " + getMonthName(month)
-      case _ if !isNotExactYear(concreteDate.year)               => ""
-      case _ if !isNotExactDay(concreteDate.day)                 => "of the month"
-      case _                                                     => "of any month"
+      case ExactMonth(month) if isNotExactDay(concreteDate.day)             => "in " + getMonthName(month)
+      case ExactMonth(month) if !isNotExactDay(concreteDate.day)            => "of " + getMonthName(month)
+      case _ if !isNotExactDay(concreteDate.day)                            => "of any month"
+      case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => "of the month"
+      case _                                                                => ""
     }
 
     val dayString = concreteDate.day match {
@@ -108,7 +108,11 @@ object ValidationServiceHelper {
       case _             => ""
     }
 
-    val beforeOrAfterOrPreciselyString = beforeAfterPrecisely.toString.toLowerCase
+    val beforeOrAfterOrPreciselyString = beforeAfterPrecisely match {
+      case Before    => "before"
+      case After     => "after"
+      case Precisely => ""
+    }
 
     concreteDate match {
       case date if date.isExact =>
