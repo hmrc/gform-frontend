@@ -27,7 +27,6 @@ case class FrontendAppConfig(
   betaFeedbackUrlNoAuth: String,
   signOutUrl: String,
   whitelistEnabled: Boolean,
-  sendPdfWithSubmission: Boolean,
   googleTagManagerIdAvailable: Boolean,
   googleTagManagerId: String,
   authModule: AuthModule

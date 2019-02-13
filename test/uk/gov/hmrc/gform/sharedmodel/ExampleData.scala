@@ -526,7 +526,6 @@ trait ExampleFrontendAppConfig {
     betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth",
     signOutUrl = "http://localhost:9025/loggedout",
     whitelistEnabled = true,
-    sendPdfWithSubmission = true,
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
     authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""))
