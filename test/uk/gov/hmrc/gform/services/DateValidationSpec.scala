@@ -165,7 +165,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label should be after 21 June 2017")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be after 21 June 2017")))
   }
 
   "After Today -1" should "accepts today and dates in future" in {
@@ -453,8 +453,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(
-      Map(fieldValue.id -> Set(s"sample label must be the last day of the month")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the last day of the month")))
   }
 
   "Date 26-02-2020" should "return Is not Valid when firstDay validation is applied" in {
@@ -481,8 +480,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       .validate(fieldValue)
       .futureValue
 
-    result.toEither should beLeft(
-      Map(fieldValue.id -> Set(s"sample label must be the first day of the month")))
+    result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the first day of the month")))
   }
 
   "Date 35-12-2017" should "return Is not Valid" in {
