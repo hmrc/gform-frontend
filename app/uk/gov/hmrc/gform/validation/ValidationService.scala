@@ -648,7 +648,7 @@ class ComponentsValidator(
   def isPreciselyConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
     date.isEqual(exactConcreteDateToLocalDate(concreteDay).plusDays(offset.value.toLong))
 
-  def isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate): Boolean = //TODO unit tests
+  def isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate): Boolean =
     concreteDay.getExactParameters
       .map {
         case ExactYear(year)   => date.getYear == year
