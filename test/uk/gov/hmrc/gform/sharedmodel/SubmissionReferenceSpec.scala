@@ -21,7 +21,7 @@ import uk.gov.hmrc.gform._
 import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil._
 import java.math.BigInteger
 
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
+import org.scalatest.prop.TableDrivenPropertyChecks.{Table, forAll}
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.mkFormTemplate
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
