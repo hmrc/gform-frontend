@@ -60,7 +60,7 @@
 
     @if(shouldDisplayHeading) {
       <h1 class="h1-heading form-title">@heading</h1>
-      @if(page.sectionDescription.isDefined){
+      @if(page.sectionDescription.exists(_.trim.nonEmpty)){
         <p class="page-description">@localisation(page.sectionDescription.get)</p>
       }
     }
