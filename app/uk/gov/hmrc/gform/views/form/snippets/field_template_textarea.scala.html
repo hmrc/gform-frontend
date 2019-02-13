@@ -72,21 +72,30 @@
 
   @inline_error_map(fieldValue, validationResult)
     @if(maxInputLength.isDefined){
-        <div class="char-counter @sizeClasses" data-char-counter>
-    }
-    <textarea
-        @if(maxInputLength.isDefined) {data-char-field maxLength="@maxInputLength"}
-        name="@fieldValue.id"
-        rows="10"
-        cols="30"
-        @if(!fieldValue.editable) { readonly="" }
-        class="@inputClasses @if(maxInputLength.isDefined) { form-control-full } else {
-        @sizeClasses
-        }@if(fieldValue.derived) {js-hidden}
-"
-        id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
-        @if(maxInputLength.isDefined) {
+    <div class="char-counter @sizeClasses" data-char-counter>
+        <textarea
+            data-char-field maxLength="@maxInputLength"
+            name="@fieldValue.id"
+            rows="10"
+            cols="30"
+            @if(!fieldValue.editable) { readonly="" }
+            class="@inputClasses @if(maxInputLength.isDefined) { form-control-full } else {
+            @sizeClasses
+            }@if(fieldValue.derived) {js-hidden}
+            "
+            id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
      </div>
+    } else{
+        <textarea
+            name="@fieldValue.id"
+            rows="10"
+            cols="30"
+            @if(!fieldValue.editable) { readonly="" }
+            class="@inputClasses @if(maxInputLength.isDefined) { form-control-full } else {
+            @sizeClasses
+            }@if(fieldValue.derived) {js-hidden}
+            "
+            id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
     }
 
 </div>
