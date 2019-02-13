@@ -111,9 +111,6 @@ object ConcreteDate {
     ConcreteDate(ExactYear(year), ExactMonth(month), ExactDay(day))
 }
 
-case class NextDate(month: Int, day: Int) extends DateConstraintInfo
-case class PreviousDate(month: Int, day: Int) extends DateConstraintInfo
-
 case class AnyWord(value: String) extends DateConstraintInfo
 case class DateField(value: FormComponentId) extends DateConstraintInfo
 
