@@ -64,9 +64,9 @@ object ValidationServiceHelper {
     case Previous     => getPreviousYear
   }
 
-  def isExactDateParameter(parameter: DateParameter): Boolean = parameter match {
-    case _: ExactParameter => true
-    case _                 => false
+  def isExactDay(day: Day): Boolean = day match {
+    case _: ExactDay => true
+    case _           => false
   }
 
   def exactConcreteDateToLocalDate(concreteDate: ConcreteDate): LocalDate = concreteDate match {
@@ -86,8 +86,8 @@ object ValidationServiceHelper {
       localDate.plusDays(offset.value.toLong).format(govDateFormat)
 
     val yearString = concreteDate.year match {
-      case ExactYear(year) if concreteDate.month == AnyMonth    => "in " + year
-      case ExactYear(year) if !(concreteDate.month == AnyMonth) => year.toString
+      case ExactYear(year) if concreteDate.month == AnyMonth => "in " + year
+      case ExactYear(year) if concreteDate.month != AnyMonth => year.toString
 
       case Next     => "next year"
       case Previous => "last year"
@@ -95,9 +95,9 @@ object ValidationServiceHelper {
     }
 
     val monthString = concreteDate.month match {
-      case ExactMonth(month) if !isExactDateParameter(concreteDate.day)     => "in " + getMonthName(month)
-      case ExactMonth(month) if isExactDateParameter(concreteDate.day)      => "of " + getMonthName(month)
-      case _ if !isExactDateParameter(concreteDate.day)                     => "of any month"
+      case ExactMonth(month) if !isExactDay(concreteDate.day)               => "in " + getMonthName(month)
+      case ExactMonth(month) if isExactDay(concreteDate.day)                => "of " + getMonthName(month)
+      case _ if isExactDay(concreteDate.day)                                => "of any month"
       case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => "of the month"
       case _                                                                => ""
     }
