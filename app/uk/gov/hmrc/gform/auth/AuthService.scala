@@ -30,6 +30,7 @@ import uk.gov.hmrc.http.cache.client.NoSessionException
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
+import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 import scala.concurrent.Future
 
@@ -212,13 +213,16 @@ class AuthService(
     expression: TextExpression,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]])(implicit hc: HeaderCarrier): Future[String] =
+    data: Map[FormComponentId, Seq[String]],
+    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[String] =
     expression.expr match {
       case AuthCtx(value) => AuthContextPrepop.values(value, retrievals).pure[Future]
 
       case EeittCtx(value) => eeittService.getValue(value, retrievals, formTemplate)
 
       case id: FormCtx => (data.get(id.toFieldId).map(_.head).getOrElse("")).pure[Future]
+
+      case SubmissionReference => getSubmissionReference(envelopeId).pure[Future]
 
       case _ => "".pure[Future] //TODO change this to AuthExpr.
     }

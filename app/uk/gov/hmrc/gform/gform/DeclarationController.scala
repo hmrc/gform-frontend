@@ -95,7 +95,7 @@ class DeclarationController(
   )(implicit hc: HeaderCarrier): String = {
     val referenceNumber = (authConfig, submissionReference) match {
       case (_, Some(textExpression)) =>
-        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data.data)
+        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data.data, envelopeId)
       case (EeittModule(_), None) => authService.eeitReferenceNumber(retrievals)
       case (_, None)              => retrievals.getTaxIdValue(HMRCOBTDSORG())
     }
@@ -180,7 +180,8 @@ class DeclarationController(
                        cache.formTemplate.dmsSubmission.customerId,
                        cache.retrievals,
                        cache.formTemplate,
-                       formDataMap(updatedForm.formData))
+                       formDataMap(updatedForm.formData),
+                       cache.form.envelopeId)
         _ <- gformConnector
               .updateUserData(cache.form._id, UserData(updatedForm.formData, Signed, updatedForm.visitsIndex))
         //todo perhaps not make these calls at all if the feature flag is false?

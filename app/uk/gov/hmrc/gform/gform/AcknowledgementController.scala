@@ -115,7 +115,7 @@ class AcknowledgementController(
 
     val referenceNumber = (authConfig, submissionReference) match {
       case (_, Some(textExpression)) =>
-        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data)
+        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data, envelopeId)
       case (EeittModule(_), None) => Future.successful(authService.eeitReferenceNumber(retrievals))
       case (_, None)              => Future.successful(retrievals.getTaxIdValue(HMRCOBTDSORG()))
     }
