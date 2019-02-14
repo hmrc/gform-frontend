@@ -36,6 +36,15 @@
           .on('click', '#backButton', handleFormSubmit('Back', true))
           .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
           .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));
+
+       // update any character counters with ids and aria labels
+        $('.char-counter-text').each(function (i, hint) {
+          var id = 'character-info-' + i;
+          var $hint = $(hint);
+          $hint.attr('id', id).attr('aria-live', 'polite');
+          var $textarea = $hint.siblings('textarea');
+          $textarea.attr('aria-describedby', id);
+          })
       }
       
       self.GformFormActionHandlers = function () {

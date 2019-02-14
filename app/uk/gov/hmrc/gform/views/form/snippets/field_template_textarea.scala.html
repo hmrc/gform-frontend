@@ -35,6 +35,8 @@
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 
+@textareaClasses = {@inputClasses @if(maxInputLength.isDefined) {form-control-full} else {@sizeClasses}@if(fieldValue.derived) { js-hidden}}
+
 @maxInputLength = @{
     fieldValue.`type` match {
         case TextArea(TextWithRestrictions(_, max),_, _) => Some(max)
@@ -78,10 +80,7 @@
             rows="10"
             cols="30"
             @if(!fieldValue.editable) { readonly="" }
-            class="@inputClasses @if(maxInputLength.isDefined) { form-control-full } else {
-            @sizeClasses
-            }@if(fieldValue.derived) {js-hidden}
-            "
+            class="@textareaClasses"
             id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
      </div>
 
