@@ -36,6 +36,7 @@ import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Today
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
+import uk.gov.hmrc.gform.validation._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
@@ -199,7 +200,8 @@ class ComponentsValidator(
           case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) =>
             (beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) match {
 
-              case (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset) =>
+              case a @ (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset) =>
+                println("find me " + a)
                 validateConcreteDateWithMessages(fieldValue, beforeAfterPrecisely, concreteDate, offset)
 
               case (beforeAfterPrecisely: BeforeAfterPrecisely, Today, offset) =>
@@ -215,7 +217,8 @@ class ComponentsValidator(
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
     offset: OffsetDate): Validated[GformError, Unit] =
-    validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
+    DateValidatorNec
+      .validateConcreteDate(concreteDate)
       .andThen { concreteDate =>
         validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
           .andThen(
@@ -657,7 +660,9 @@ class ComponentsValidator(
     }
   }
 
-  def validateConcreteDate(concreteDate: ConcreteDate, dateError: GformError): Validated[GformError, ConcreteDate] = {
+  def validateConcreteDateOld(
+    concreteDate: ConcreteDate,
+    dateError: GformError): Validated[GformError, ConcreteDate] = {
     val exactParams = concreteDate.getNumericParameters.map {
       case ExactYear(year) =>
         if (year.toString.length == 4) "validYear" -> year
