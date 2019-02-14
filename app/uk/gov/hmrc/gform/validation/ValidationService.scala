@@ -583,26 +583,29 @@ class ComponentsValidator(
   def concreteDateFunctionMatch(beforeAfterPrecisely: BeforeAfterPrecisely)(
     date: LocalDate,
     concreteDate: ConcreteDate,
-    offset: OffsetDate): Boolean = {
-    val parametersLength = concreteDate.getNumericParameters.length
+    offset: OffsetDate): Boolean =
     beforeAfterPrecisely match {
       case Before if concreteDate.isExact => isBeforeExactConcreteDate(date, concreteDate, offset)
 
       case After if concreteDate.isExact => isAfterExactConcreteDate(date, concreteDate, offset)
 
-      case Precisely =>
-        if (concreteDate.isExact) {
-          isPreciselyExactConcreteDate(date, concreteDate, offset)
-        } else {
-          concreteDate match {
-            case concreteDate: ConcreteDate if concreteDate.day == FirstDay || concreteDate.day == LastDay =>
-              isFirstOrLastDay(date, concreteDate)
-            case concreteDate: ConcreteDate if concreteDate.year == Next || concreteDate.year == Previous =>
-              isNextOrPreviousYear(date, concreteDate)
-            case concreteDate: ConcreteDate if parametersLength == 1 || parametersLength == 2 =>
-              isSameAbstractDate(date, concreteDate)
-          }
-        }
+      case Precisely => preciselyFunctionMatch(date, concreteDate, offset)
+
+    }
+
+  def preciselyFunctionMatch(date: LocalDate, concreteDate: ConcreteDate, offset: OffsetDate): Boolean = {
+    val parametersLength = concreteDate.getNumericParameters.length
+    if (concreteDate.isExact) {
+      isPreciselyExactConcreteDate(date, concreteDate, offset)
+    } else {
+      concreteDate match {
+        case concreteDate: ConcreteDate if concreteDate.day == FirstDay || concreteDate.day == LastDay =>
+          isFirstOrLastDay(date, concreteDate)
+        case concreteDate: ConcreteDate if concreteDate.year == Next || concreteDate.year == Previous =>
+          isNextOrPreviousYear(date, concreteDate)
+        case concreteDate: ConcreteDate if parametersLength == 1 || parametersLength == 2 =>
+          isSameAbstractDate(date, concreteDate)
+      }
     }
   }
 
