@@ -249,10 +249,10 @@ class Evaluator[F[_]: Monad](
       case Value => getSubmissionData(dataLookup, fcId)
       case ctx @ UserCtx(_) =>
         new UserCtxEvaluatorProcessor[F].processEvaluation(retrievals, ctx, formTemplate.authConfig)
-      case AuthCtx(value)  => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
-      case EeittCtx(eeitt) => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
+      case AuthCtx(value)      => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
+      case EeittCtx(eeitt)     => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
       case SubmissionReference => NonConvertible(SubmissionReferenceUtil.getSubmissionReference(envelopeId).pure[F])
-      case Constant(fc)    => MaybeConvertible(fc.pure[F])
+      case Constant(fc)        => MaybeConvertible(fc.pure[F])
       case fc @ FormCtx(_) =>
         if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
         else getSubmissionData(dataLookup, fc.toFieldId)
