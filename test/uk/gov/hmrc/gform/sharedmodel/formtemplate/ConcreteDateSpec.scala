@@ -20,21 +20,21 @@ import uk.gov.hmrc.gform.Spec
 class ConcreteDateSpec extends Spec {
 
   "ConcreteDate(2017, 4, 4).getExactParameters" should "return List(ExactDay(4), ExactMonth(4), ExactYear(2017))" in {
-    ConcreteDate(2017, 4, 4).getExactParameters shouldBe List(ExactDay(4), ExactMonth(4), ExactYear(2017))
+    ConcreteDate(2017, 4, 4).getNumericParameters shouldBe List(ExactDay(4), ExactMonth(4), ExactYear(2017))
   }
 
   "ConcreteDate(ExactYear(2017), AnyMonth, AnyDay).getExactParameters" should "return List(ExactYear(2017))" in {
-    ConcreteDate(ExactYear(2017), AnyMonth, AnyDay).getExactParameters shouldBe List(ExactYear(2017))
+    ConcreteDate(ExactYear(2017), AnyMonth, AnyDay).getNumericParameters shouldBe List(ExactYear(2017))
   }
 
   "ConcreteDate(ExactYear(2017), AnyMonth, ExactDay(14)).getExactParameters" should "return List(ExactDay(14), ExactYear(2017))" in {
-    ConcreteDate(ExactYear(2017), AnyMonth, ExactDay(14)).getExactParameters shouldBe List(
+    ConcreteDate(ExactYear(2017), AnyMonth, ExactDay(14)).getNumericParameters shouldBe List(
       ExactDay(14),
       ExactYear(2017))
   }
 
   "ConcreteDate(AnyYear, AnyMonth, AnyDay).getExactParameters" should "return List()" in {
-    ConcreteDate(AnyYear, AnyMonth, AnyDay).getExactParameters shouldBe List()
+    ConcreteDate(AnyYear, AnyMonth, AnyDay).getNumericParameters shouldBe List()
   }
 
   "ConcreteDate(AnyYear, AnyMonth, AnyDay).isExact" should "false" in {

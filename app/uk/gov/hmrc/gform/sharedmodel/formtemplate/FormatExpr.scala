@@ -58,31 +58,32 @@ object BeforeAfterPrecisely {
   implicit val format: OFormat[BeforeAfterPrecisely] = derived.oformat[BeforeAfterPrecisely]
 }
 
-sealed trait DateParameters
+sealed trait ExactParameter
+sealed trait DateParameter
 
-sealed trait Year extends DateParameters
-case object Next extends Year
-case object Previous extends Year
+sealed trait Year extends DateParameter
+case object Next extends Year with ExactParameter
+case object Previous extends Year with ExactParameter
 case object AnyYear extends Year
-case class ExactYear(year: Int) extends Year
+case class ExactYear(year: Int) extends Year with ExactParameter
 
 object Year {
   implicit val format: OFormat[Year] = derived.oformat[Year]
 }
 
-sealed trait Month extends DateParameters
+sealed trait Month extends DateParameter
 case object AnyMonth extends Month
-case class ExactMonth(month: Int) extends Month
+case class ExactMonth(month: Int) extends Month with ExactParameter
 
 object Month {
   implicit val format: OFormat[Month] = derived.oformat[Month]
 }
 
-sealed trait Day extends DateParameters
+sealed trait Day extends DateParameter
 case object AnyDay extends Day
-case class ExactDay(day: Int) extends Day
-case object FirstDay extends Day
-case object LastDay extends Day
+case class ExactDay(day: Int) extends Day with ExactParameter
+case object FirstDay extends Day with ExactParameter
+case object LastDay extends Day with ExactParameter
 
 object Day {
   implicit val format: OFormat[Day] = derived.oformat[Day]
@@ -93,15 +94,15 @@ case object Today extends DateConstraintInfo
 
 case class ConcreteDate(year: Year, month: Month, day: Day) extends DateConstraintInfo {
 
-  val isExact: Boolean = (year.isInstanceOf[ExactYear] || year == Next || year == Previous) && month
-    .isInstanceOf[ExactMonth] && (day == FirstDay || day == LastDay || day.isInstanceOf[ExactDay])
+  val isExact: Boolean = (year, month, day) match {
+    case (_: ExactParameter, _: ExactParameter, _: ExactParameter) => true
+    case _                                                         => false
+  }
 
-  def getExactParameters: List[DateParameters] = {
-    val dateItems = day :: month :: year :: Nil
-    dateItems.filter(
-      item =>
-        item.isInstanceOf[ExactYear] || item.isInstanceOf[ExactMonth] || item
-          .isInstanceOf[ExactDay])
+  def getNumericParameters: List[ExactParameter] = (day :: month :: year :: Nil).collect {
+    case parameter: ExactYear  => parameter
+    case parameter: ExactMonth => parameter
+    case parameter: ExactDay   => parameter
   }
 
 }
