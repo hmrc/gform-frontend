@@ -80,6 +80,7 @@
             rows="10"
             cols="30"
             @if(!fieldValue.editable) { readonly="" }
+            @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }
             class="@textareaClasses"
             id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
      </div>

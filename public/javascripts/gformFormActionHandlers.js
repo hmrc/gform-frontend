@@ -43,7 +43,13 @@
           var $hint = $(hint);
           $hint.attr('id', id).attr('aria-live', 'polite');
           var $textarea = $hint.siblings('textarea');
-          $textarea.attr('aria-describedby', id);
+          var existingAttr = $textarea.attr('aria-describedby')
+            if(existingAttr){
+                $textarea.attr('aria-describedby', existingAttr + " " + id);
+            } else {
+                $textarea.attr('aria-describedby', id);
+            }
+
           })
       }
       
