@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import org.scalacheck.Gen
 import uk.gov.hmrc.http.HeaderCarrier
 
 class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
@@ -155,7 +156,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     res match {
       case Right(formDataRecalculated) =>
         formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("data-returned-from-eeitt")))
-      case otherwise => fail
+      case _ => fail
     }
   }
 
@@ -180,7 +181,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     res match {
       case Right(formDataRecalculated) =>
         formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("individual")))
-      case otherwise => fail
+      case _ => fail
     }
   }
 

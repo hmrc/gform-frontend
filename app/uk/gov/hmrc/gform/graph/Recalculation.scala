@@ -34,6 +34,7 @@ import scalax.collection.GraphEdge._
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
+import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
 import uk.gov.hmrc.gform.models.ExpandUtils
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
@@ -246,19 +247,11 @@ class Evaluator[F[_]: Monad](
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Convertible[F] =
     expr match {
       case Value => getSubmissionData(dataLookup, fcId)
-      case UserCtx(Enrolment(ServiceName(sn), IdentifierName(in))) =>
-        NonConvertible {
-          retrievals match {
-            case AnonymousRetrievals(_) => "".pure[F]
-            case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _) =>
-              enrolments.getEnrolment(sn).flatMap(_.getIdentifier(in)).map(_.value).getOrElse("").pure[F]
-          }
-        }
-      case UserCtx(_)          => NonConvertible(affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)).pure[F])
-      case AuthCtx(value)      => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
-      case EeittCtx(eeitt)     => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
-      case SubmissionReference => NonConvertible(SubmissionReferenceUtil.getSubmissionReference(envelopeId).pure[F])
-      case Constant(fc)        => MaybeConvertible(fc.pure[F])
+      case ctx @ UserCtx(_) =>
+        new UserCtxEvaluatorProcessor[F].processEvaluation(retrievals, ctx, formTemplate.authConfig)
+      case AuthCtx(value)  => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
+      case EeittCtx(eeitt) => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
+      case Constant(fc)    => MaybeConvertible(fc.pure[F])
       case fc @ FormCtx(_) =>
         if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
         else getSubmissionData(dataLookup, fc.toFieldId)

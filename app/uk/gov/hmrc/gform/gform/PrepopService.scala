@@ -17,26 +17,25 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.Logger
-import scala.util.control.NonFatal
-import uk.gov.hmrc.auth.core.retrieve.GGCredId
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.models.mappings.{ HMRCOBTDSORG, IRCT, IRSA, NINO }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
+
+import scala.util.control.NonFatal
 
 object AuthContextPrepop {
   def values(value: AuthInfo, retrievals: MaterialisedRetrievals): String = value match {
     case GG                     => retrievals.ggCredId
-    case PayeNino               => retrievals.getTaxIdValue(None, "NINO")
-    case SaUtr                  => retrievals.getTaxIdValue(Some("IR-SA"), "UTR")
-    case CtUtr                  => retrievals.getTaxIdValue(Some("IR-CT"), "UTR")
-    case EtmpRegistrationNumber => retrievals.getTaxIdValue(Some("HMRC-OBTDS-ORG"), "EtmpRegistrationNumber")
+    case PayeNino               => retrievals.getTaxIdValue(NINO())
+    case SaUtr                  => retrievals.getTaxIdValue(IRSA())
+    case CtUtr                  => retrievals.getTaxIdValue(IRCT())
+    case EtmpRegistrationNumber => retrievals.getTaxIdValue(HMRCOBTDSORG())
   }
 }
 
-class PrepopService(
-  eeittService: EeittService
-) {
+class PrepopService(eeittService: EeittService) {
 
   def eeittPrepop(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate, hc: HeaderCarrier) = {
     implicit val hc_ = hc

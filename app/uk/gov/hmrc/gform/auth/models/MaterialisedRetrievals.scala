@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.auth.models
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.LegacyCredentials
+import uk.gov.hmrc.gform.models.mappings._
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.http.logging.SessionId
 
@@ -43,12 +44,15 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     case _                      => "Save and continue"
   }
 
-  def getTaxIdValue(maybeEnrolment: Option[String], taxIdName: String) = this match {
+  def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {
     case AnonymousRetrievals(_) => ""
     case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _) =>
-      val maybeEnrolmentIdentifier = maybeEnrolment match {
-        case Some(enrolment) => enrolments.getEnrolment(enrolment).flatMap(_.getIdentifier(taxIdName))
-        case None            => enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(taxIdName))
+      val maybeEnrolmentIdentifier = taxIdName match {
+        case IRSA(name, id)         => valueByNameAndId(name, id, enrolments)
+        case IRCT(name, id)         => valueByNameAndId(name, id, enrolments)
+        case HMRCOBTDSORG(name, id) => valueByNameAndId(name, id, enrolments)
+        case NINO(id)               => valueById(enrolments, id)
+        case VATReg(id)             => valueById(enrolments, id)
       }
 
       maybeEnrolmentIdentifier match {
@@ -56,6 +60,12 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
         case None              => ""
       }
   }
+
+  private def valueById(enrolments: Enrolments, id: String) =
+    enrolments.enrolments.flatMap(_.identifiers).find(_.key.equalsIgnoreCase(id))
+
+  private def valueByNameAndId(name: String, id: String, enrolments: Enrolments) =
+    enrolments.getEnrolment(name).flatMap(_.getIdentifier(id))
 }
 
 case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
