@@ -26,8 +26,6 @@ case class FormComponentId(value: String) extends AnyVal {
   override def toString = value
 
   def withSuffix(suffix: String): FormComponentId = FormComponentId(value + "-" + suffix)
-
-  def appendIndex(i: Int): FormComponentId = FormComponentId(value + i.toString)
 }
 
 object FormComponentId {
@@ -39,14 +37,17 @@ object FormComponentId {
 
   val oformat: OFormat[FormComponentId] = ValueClassFormat.oformat("id", FormComponentId.apply, _.value)
 
-  val unanchoredIdValidation: Regex = """[_a-zA-Z]\w*""".r
-  val anchoredIdValidation: Regex = unanchoredIdValidation.anchored
+  val idValidation: String = "[_a-zA-Z]\\w*"
+  val unanchoredIdValidation: Regex = s"""$idValidation""".r
+  val anchoredIdValidation: Regex = s"""^$idValidation$$""".r
 
-  private def validate(s: String): JsResult[FormComponentId] =
+  def errorMessage(s: String): String =
+    "Form Component Ids cannot contain any special characters other than an underscore. They also must not start " +
+      s"with a number. '$s'"
+
+  private[formtemplate] def validate(s: String): JsResult[FormComponentId] =
     if (anchoredIdValidation.findFirstIn(s).isDefined) JsSuccess(FormComponentId(s))
     else
-      JsError(
-        "Form Component Ids cannot contain any special characters other than an underscore. They also must not start " +
-          "with a number.")
+      JsError(errorMessage(s))
 
 }
