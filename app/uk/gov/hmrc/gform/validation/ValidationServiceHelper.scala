@@ -52,13 +52,13 @@ object ValidationServiceHelper {
       }
       .mkString(" ")
 
-  private def getDay(year: Int, month: Int, day: Day): Int = day match {
+  def getDay(year: Int, month: Int, day: Day): Int = day match {
     case ExactDay(d) => d
     case FirstDay    => 1
     case LastDay     => getLastDayOfMonth(year, month)
   }
 
-  private def getYear(year: Year): Int = year match {
+  def getYear(year: Year): Int = year match {
     case ExactYear(y) => y
     case Next         => getNextYear
     case Previous     => getPreviousYear

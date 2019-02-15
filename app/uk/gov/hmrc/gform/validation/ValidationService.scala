@@ -200,8 +200,7 @@ class ComponentsValidator(
           case DateConstraint(beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) =>
             (beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) match {
 
-              case a @ (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset) =>
-                println("find me " + a)
+              case (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset) =>
                 validateConcreteDateWithMessages(fieldValue, beforeAfterPrecisely, concreteDate, offset)
 
               case (beforeAfterPrecisely: BeforeAfterPrecisely, Today, offset) =>
@@ -217,21 +216,16 @@ class ComponentsValidator(
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
     offset: OffsetDate): Validated[GformError, Unit] =
-    DateValidatorNec
-      .validateConcreteDate(concreteDate)
-      .andThen { concreteDate =>
-        validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-          .andThen(
-            inputDate =>
-              validateConcreteDate(
-                fieldValue,
-                inputDate,
-                concreteDate,
-                offset,
-                Map(
-                  fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset)))
-              )(concreteDateFunctionMatch(beforeAfterPrecisely)))
-      }
+    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+      .andThen(
+        inputDate =>
+          validateConcreteDate(
+            fieldValue,
+            inputDate,
+            concreteDate,
+            offset,
+            Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset)))
+          )(concreteDateFunctionMatch(beforeAfterPrecisely)))
 
   def validateTodayWithMessages(
     fieldValue: FormComponent,
@@ -660,36 +654,45 @@ class ComponentsValidator(
     }
   }
 
-  def validateConcreteDateOld(
-    concreteDate: ConcreteDate,
-    dateError: GformError): Validated[GformError, ConcreteDate] = {
-    val exactParams = concreteDate.getNumericParameters.map {
-      case ExactYear(year) =>
-        if (year.toString.length == 4) "validYear" -> year
-        else "invalidYear"                         -> 0
-      case ExactMonth(month) =>
-        if (month <= 12 && month > 0) "validMonth" -> month
-        else
-          "invalidMonth" -> 0
-      case ExactDay(day) =>
-        if (day <= 31 && day > 0) "validDay" -> day
-        else
-          "invalidDay" -> 0
-      case _ => "" -> 0
-    }.toMap
+//  def validateConcreteDateOld(
+//    concreteDate: ConcreteDate,
+//    dateError: GformError): Validated[GformError, ConcreteDate] = {
+//    val exactParams = concreteDate.getNumericParameters.map {
+//      case ExactYear(year) =>
+//        if (year.toString.length == 4) "validYear" -> year
+//        else "invalidYear"                         -> 0
+//      case ExactMonth(month) =>
+//        if (month <= 12 && month > 0) "validMonth" -> month
+//        else
+//          "invalidMonth" -> 0
+//      case ExactDay(day) =>
+//        if (day <= 31 && day > 0) "validDay" -> day
+//        else
+//          "invalidDay" -> 0
+//      case _ => "" -> 0
+//    }.toMap
+//
+//    val isValid = exactParams.get("invalidYear").isEmpty && exactParams.get("invalidYear").isEmpty && exactParams
+//      .get("invalidYear")
+//      .isEmpty
+//
+//    (isValid, concreteDate.isExact) match {
+//      case (true, false) => Valid(ConcreteDate(concreteDate.year, concreteDate.month, concreteDate.day))
+//      case (true, true) =>
+//        tryConcreteDateAsLocalDate(concreteDate) match {
+//          case Success(date) => Valid(ConcreteDate(date.getYear, date.getMonthValue, date.getDayOfMonth))
+//          case Failure(_)    => dateError.invalid
+//          case _             => dateError.invalid
+//        }
+//    }
+//
+//  }
 
-    val isValid = exactParams.get("invalidYear").isEmpty && exactParams.get("invalidYear").isEmpty && exactParams
-      .get("invalidYear")
-      .isEmpty
-
-    if (isValid) {
-      Valid(ConcreteDate(concreteDate.year, concreteDate.month, concreteDate.day))
-
-    } else {
-      dateError.invalid
+  def tryConcreteDateAsLocalDate(concreteDate: ConcreteDate): Try[LocalDate] =
+    concreteDate match {
+      case ConcreteDate(year: ExactParameter, ExactMonth(month), day: ExactParameter) =>
+        Try(LocalDate.of(getYear(year), month, getDay(getYear(year), month, day)))
     }
-
-  }
 
   def validateInputDate(
     fieldValue: FormComponent,
