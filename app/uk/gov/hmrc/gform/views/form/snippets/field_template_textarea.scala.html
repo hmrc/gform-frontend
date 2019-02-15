@@ -35,6 +35,15 @@
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 
+@textareaClasses = {@inputClasses @if(maxInputLength.isDefined) {form-control-full} else {@sizeClasses}@if(fieldValue.derived) { js-hidden}}
+
+@maxInputLength = @{
+    fieldValue.`type` match {
+        case TextArea(TextWithRestrictions(_, max),_, _) => Some(max)
+        case _ => None
+    }
+}
+
 @sizeClasses = @{
   textArea.displayWidth match {
     case DisplayWidth.XS => "form-control-1-4"
@@ -64,26 +73,16 @@
   }
 
   @inline_error_map(fieldValue, validationResult)
-
-    @if(!fieldValue.isSterling) {
-      <textarea
-        name="@fieldValue.id"
-        rows="10"
-        cols="30"
-        @if(!fieldValue.editable) { readonly="" }
-        class="@inputClasses @sizeClasses @if(TextFormatter.isNumber(fieldValue)){form-control--numeric} @if(fieldValue.derived){js-hidden}"
-        id="@fieldValue.id"
-        @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea> @TextFormatter.appendUnit(textArea.constraint)
-    } else {
-    <span class="input-currency">
+    <div @if(maxInputLength.isDefined){class="char-counter @sizeClasses" data-char-counter}>
         <textarea
+            data-char-field maxLength="@maxInputLength"
             name="@fieldValue.id"
             rows="10"
             cols="30"
             @if(!fieldValue.editable) { readonly="" }
-            class="@inputClasses @sizeClasses input--no-spinner input--left-padding"
-            id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>
-    </span>
-    }
+            @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }
+            class="@textareaClasses"
+            id="@fieldValue.id">@prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")</textarea>@TextFormatter.appendUnit(textArea.constraint)
+     </div>
 
 </div>

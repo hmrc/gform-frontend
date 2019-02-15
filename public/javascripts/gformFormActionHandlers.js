@@ -36,6 +36,21 @@
           .on('click', '#backButton', handleFormSubmit('Back', true))
           .on('click', '#saveComeBackLater', handleFormSubmit('Save', true))
           .on('click', '#saveComeBackLaterExit', handleFormSubmit('Exit', true));
+
+       // update any character counters with ids and aria labels
+        $('.char-counter-text').each(function (i, hint) {
+          var id = 'character-info-' + i;
+          var $hint = $(hint);
+          $hint.attr('id', id).attr('aria-live', 'polite');
+          var $textarea = $hint.siblings('textarea');
+          var existingAttr = $textarea.attr('aria-describedby')
+            if(existingAttr){
+                $textarea.attr('aria-describedby', existingAttr + " " + id);
+            } else {
+                $textarea.attr('aria-describedby', id);
+            }
+
+          })
       }
       
       self.GformFormActionHandlers = function () {
