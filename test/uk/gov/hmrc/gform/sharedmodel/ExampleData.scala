@@ -453,7 +453,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def envelope = Envelope(Nil)
 
-  def envelopeExpiryDate = Some(EnvelopeExpiryDate(LocalDateTime.now.plusDays(1).withNano(0)))
+  val envelopeExpiryDate = Some(EnvelopeExpiryDate(LocalDateTime.now.plusDays(1).withNano(0)))
 
   def form = Form(
     formId,
