@@ -26,6 +26,7 @@ case class FormComponentId(value: String) extends AnyVal {
   override def toString = value
 
   def withSuffix(suffix: String): FormComponentId = FormComponentId(value + "-" + suffix)
+  def appendIndex(i: Int): FormComponentId = FormComponentId(value + i.toString)
 }
 
 object FormComponentId {
