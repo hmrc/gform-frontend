@@ -654,39 +654,6 @@ class ComponentsValidator(
     }
   }
 
-//  def validateConcreteDateOld(
-//    concreteDate: ConcreteDate,
-//    dateError: GformError): Validated[GformError, ConcreteDate] = {
-//    val exactParams = concreteDate.getNumericParameters.map {
-//      case ExactYear(year) =>
-//        if (year.toString.length == 4) "validYear" -> year
-//        else "invalidYear"                         -> 0
-//      case ExactMonth(month) =>
-//        if (month <= 12 && month > 0) "validMonth" -> month
-//        else
-//          "invalidMonth" -> 0
-//      case ExactDay(day) =>
-//        if (day <= 31 && day > 0) "validDay" -> day
-//        else
-//          "invalidDay" -> 0
-//      case _ => "" -> 0
-//    }.toMap
-//
-//    val isValid = exactParams.get("invalidYear").isEmpty && exactParams.get("invalidYear").isEmpty && exactParams
-//      .get("invalidYear")
-//      .isEmpty
-//
-//    (isValid, concreteDate.isExact) match {
-//      case (true, false) => Valid(ConcreteDate(concreteDate.year, concreteDate.month, concreteDate.day))
-//      case (true, true) =>
-//        tryConcreteDateAsLocalDate(concreteDate) match {
-//          case Success(date) => Valid(ConcreteDate(date.getYear, date.getMonthValue, date.getDayOfMonth))
-//          case Failure(_)    => dateError.invalid
-//          case _             => dateError.invalid
-//        }
-//    }
-//
-//  }
 
   def tryConcreteDateAsLocalDate(concreteDate: ConcreteDate): Try[LocalDate] =
     concreteDate match {
