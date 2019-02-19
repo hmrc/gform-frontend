@@ -1,19 +1,15 @@
-import sbt._
-import play.sbt.PlayImport._
 import play.core.PlayVersion
-import uk.gov.hmrc.SbtAutoBuildPlugin
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import uk.gov.hmrc.versioning.SbtGitVersioning
-
-object FrontendBuild extends Build with MicroService {
+import play.sbt.PlayImport.ws
+import sbt._
+object Dependencies {
 
   val appName = "gform-frontend"
 
-  override lazy val appDependencies: Seq[ModuleID] = compile ++ test()
+  lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val parsebackVersion = "0.3"
 
-  val compile = Seq(
+  val compile: Seq[ModuleID] = Seq(
     ws,
     "uk.gov.hmrc" %% "frontend-bootstrap" % "10.7.0",
     "uk.gov.hmrc" %% "auth-client" % "2.16.0-play-25",
