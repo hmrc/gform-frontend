@@ -30,6 +30,13 @@
   
       // Set up event handlers
       function init () {
+        // Prevent form submissions while submit button is disabled (covers form submission by hitting Enter)
+        $('form').submit(function(e) {
+          if ($(this).find('input[type=submit], button[type=submit]').prop('disabled')) {
+            return false
+          }
+        })
+
         $('#content')
           .on('click', '[type="submit"]', setAction)
           .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
