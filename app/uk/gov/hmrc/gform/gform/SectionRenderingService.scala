@@ -336,7 +336,8 @@ class SectionRenderingService(
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     lang: Option[String],
-    eventId: String)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
+    eventId: String,
+    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Future[Html] = {
 
     val ei = ExtraInfo(
       maybeAccessCode,
@@ -378,7 +379,7 @@ class SectionRenderingService(
         Nil,
         snippets,
         "",
-        EnvelopeId(""),
+        envelopeId,
         uk.gov.hmrc.gform.gform.routes.DeclarationController
           .submitDeclaration(formTemplate._id, maybeAccessCode, lang),
         false,
