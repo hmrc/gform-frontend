@@ -75,7 +75,7 @@
   @inline_error_map(fieldValue, validationResult)
     <div @if(maxInputLength.isDefined){class="char-counter @sizeClasses" data-char-counter}>
         <textarea
-            data-char-field maxLength="@maxInputLength"
+            @if(maxInputLength.isDefined){data-char-field maxLength="@maxInputLength"}
             name="@fieldValue.id"
             rows="10"
             cols="30"
