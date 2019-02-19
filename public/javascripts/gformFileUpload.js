@@ -129,6 +129,16 @@
     'oxt': 'OXT'
   }
 
+  var submitButton = $('input[type=submit], button[type=submit]')
+
+  function disableSubmitButton() {
+    submitButton.attr('disabled', true)
+  }
+
+  function enableSubmitButton() {
+    submitButton.removeAttr('disabled')
+  }
+
   function mapUserFriendlyFileTypes(array) {
     return array
         .split(', ')
@@ -162,6 +172,7 @@
 
     // Error handling
     function handleError ($input, msg) {
+      enableSubmitButton()
       var errorEl = '<span class="error-message file-upload-error" role="alert">' + msg + '</span>';
       $(errorEl).insertBefore($input)
     }
@@ -170,6 +181,8 @@
     // Setup file upload
     function handleFileUpload (e) {
       $('.file-upload-error').remove();
+
+      disableSubmitButton()
 
       var file = e.target.files[0];
       var $input = $(e.currentTarget);
@@ -212,6 +225,7 @@
 
     // Handle successful file upload
     function fileUploadSuccess (response, fileId, name, formTemplateId, input, accessCode) {
+      enableSubmitButton()
       input.removeAttr('aria-busy')
 
       $('#' + fileId + '-files')
@@ -230,6 +244,8 @@
     // Handle file deletion
     function handleFileDelete (e) {
       e.preventDefault();
+
+      disableSubmitButton()
 
       var t = $(e.currentTarget);
       var d = e.currentTarget.dataset;
@@ -261,6 +277,7 @@
 
     // File deletion succeeded
     function fileDeleteSuccess (fileId) {
+      enableSubmitButton()
       $('#' + fileId + '-files').empty();
       $('#' + fileId).val('');
     }
