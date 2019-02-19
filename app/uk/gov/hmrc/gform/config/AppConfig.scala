@@ -16,7 +16,10 @@
 
 package uk.gov.hmrc.gform.config
 
+import pureconfig.generic.auto._ // used for implicit Derivation reader used by loadConfigOrThrow[AppConfig]
+
 import pureconfig._
+import pureconfig.generic.ProductHint
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 
 case class AppConfig(

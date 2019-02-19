@@ -35,13 +35,13 @@ final case object AnyDate extends DateConstraintType
 final case class DateConstraints(constraints: List[DateConstraint]) extends DateConstraintType
 
 object DateConstraintType {
-  implicit val format: OFormat[DateConstraintType] = derived.oformat[DateConstraintType]
+  implicit val format: OFormat[DateConstraintType] = derived.oformat[DateConstraintType]()
 }
 
 final case class DateConstraint(beforeOrAfter: BeforeOrAfter, dateFormat: DateConstraintInfo, offset: OffsetDate)
 
 object DateConstraint {
-  implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]
+  implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]()
 }
 
 sealed trait BeforeOrAfter
@@ -49,7 +49,7 @@ case object After extends BeforeOrAfter
 case object Before extends BeforeOrAfter
 
 object BeforeOrAfter {
-  implicit val format: OFormat[BeforeOrAfter] = derived.oformat[BeforeOrAfter]
+  implicit val format: OFormat[BeforeOrAfter] = derived.oformat[BeforeOrAfter]()
 }
 
 sealed trait DateConstraintInfo
@@ -61,7 +61,7 @@ case class AnyWord(value: String) extends DateConstraintInfo
 case class DateField(value: FormComponentId) extends DateConstraintInfo
 
 object DateConstraintInfo {
-  implicit val format: OFormat[DateConstraintInfo] = derived.oformat[DateConstraintInfo]
+  implicit val format: OFormat[DateConstraintInfo] = derived.oformat[DateConstraintInfo]()
 }
 
 case class OffsetDate(value: Int) extends AnyVal
@@ -136,7 +136,7 @@ object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
 
-  implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
+  implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]()
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
 }

@@ -100,5 +100,5 @@ case object Signed extends FormStatus
 case object Submitted extends FormStatus
 
 object FormStatus {
-  implicit val format: OFormat[FormStatus] = derived.oformat
+  implicit val format: OFormat[FormStatus] = derived.oformat()
 }

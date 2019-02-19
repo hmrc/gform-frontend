@@ -44,7 +44,7 @@ final case object IsTrue extends BooleanExpr
 final case object IsFalse extends BooleanExpr
 
 object BooleanExpr {
-  implicit val format: OFormat[BooleanExpr] = derived.oformat
+  implicit val format: OFormat[BooleanExpr] = derived.oformat()
 }
 
 class BooleanExprEval[F[_]: Monad](

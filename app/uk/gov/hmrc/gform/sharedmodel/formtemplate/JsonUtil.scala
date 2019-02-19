@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
-import play.api.data.validation.ValidationError
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 import scala.reflect.runtime.universe.TypeTag
@@ -30,8 +28,8 @@ trait JsonUtils {
   def reads[T: Reads: TypeTag]: Reads[NonEmptyList[T]] =
     Reads
       .of[List[T]]
-      .collect(
-        ValidationError(s"expected a NonEmptyList of ${implicitly[TypeTag[T]].tpe} but got an empty list instead")) {
+      .collect(JsonValidationError(
+        s"expected a NonEmptyList of ${implicitly[TypeTag[T]].tpe} but got an empty list instead")) {
         case head :: tail => NonEmptyList(head, tail)
       }
 

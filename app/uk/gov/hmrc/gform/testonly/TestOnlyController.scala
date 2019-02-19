@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.testonly
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import play.api.Play
 import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
@@ -30,6 +31,8 @@ class TestOnlyController(
   proxy: ProxyActions,
   gformConnector: GformConnector
 ) extends FrontendController with ServicesConfig {
+  override protected def mode = Play.current.mode
+  override protected val runModeConfiguration = Play.current.configuration
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 

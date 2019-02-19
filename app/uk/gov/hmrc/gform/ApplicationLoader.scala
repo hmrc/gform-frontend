@@ -24,7 +24,7 @@ import play.api.i18n.I18nComponents
 import play.api.inject.{ Injector, SimpleInjector }
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
-import uk.gov.hmrc.crypto.ApplicationCryptoDI
+import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
@@ -158,7 +158,7 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
 
     val appName = configModule.appConfig.appName
     Logger.info(s"Starting frontend $appName in mode ${environment.mode}")
-    val applicationCrypto = new ApplicationCryptoDI(configModule.playConfiguration)
+    val applicationCrypto = new ApplicationCrypto(configModule.playConfiguration.underlying)
     applicationCrypto.verifyConfiguration()
     MDC.put("appName", appName)
     val loggerDateFormat: Option[String] = configuration.getString("logger.json.dateformat")
