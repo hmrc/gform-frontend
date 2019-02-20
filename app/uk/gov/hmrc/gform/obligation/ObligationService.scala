@@ -36,15 +36,20 @@ class ObligationService(gformConnector: GformConnector) {
     val futureListOfTaxPeriodDes =
       gformConnector
         .getAllTaxPeriods(hmrcTaxPeriodIdentifiers)
-        .map(i => i.flatMap(j => j.obligation.obligations.flatMap(h => makeMap(j.id, h.obligationDetails))))
-    futureListOfTaxPeriodDes.map(i => i.toMap)
+        .map(i => i.flatMap(j => j.obligation.obligations.flatMap(h => makeAllInfoList(j.id, h.obligationDetails))))
+    futureListOfTaxPeriodDes
   }
 
-  def makeMap(id: HmrcTaxPeriod, obligation: List[ObligationDetail]) =
-    Map(
-      id ->
-        TaxPeriods(obligation.map(l =>
-          TaxPeriod(l.inboundCorrespondenceFromDate, l.inboundCorrespondenceToDate, l.periodKey))))
+  def makeAllInfoList(id: HmrcTaxPeriod, obligation: List[ObligationDetail]) =
+    obligation.map(
+      i =>
+        AllInfo(
+          id.idType,
+          id.idNumber,
+          id.regimeType,
+          i.inboundCorrespondenceFromDate,
+          i.inboundCorrespondenceToDate,
+          i.periodKey))
 
   def lookupIfPossible(form: Form, formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
@@ -52,18 +57,19 @@ class ObligationService(gformConnector: GformConnector) {
     }
     form.obligations match {
       case Some(x) => {
-        if (x.keySet.forall(i => hmrcTaxPeriodIdentifiers.contains(i))) {
+        if (x.listAllInfo.forall(i =>
+              hmrcTaxPeriodIdentifiers.contains(HmrcTaxPeriod(i.idType, i.idNumber, i.regimeType)))) {
           Future(form)
         } else {
           val newObligations = lookupObligationsMultiple(formTemplate)
-          newObligations.map(i => form.copy(obligations = Some(i)))
+          newObligations.map(i => form.copy(obligations = Some(ListAllInfo(i))))
         }
       }
       case None => {
         if (hmrcTaxPeriodIdentifiers.forall(
               i => !i.regimeType.value.isEmpty && !i.idType.value.isEmpty && !i.idNumber.value.isEmpty)) {
           val newObligations = lookupObligationsMultiple(formTemplate)
-          newObligations.map(i => form.copy(obligations = Some(i)))
+          newObligations.map(i => form.copy(obligations = Some(ListAllInfo(i))))
         } else {
           Future(form)
         }

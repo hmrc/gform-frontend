@@ -70,7 +70,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         VisitIndex.empty,
         None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -117,7 +117,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         VisitIndex.empty,
         None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -158,7 +158,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         VisitIndex.empty,
         None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc: Document = Jsoup.parse(generatedHtml.body)
@@ -190,7 +190,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         VisitIndex.empty,
         None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -339,7 +339,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         VisitIndex.empty,
         None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -391,7 +391,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         retrievals,
         VisitIndex.empty,
         None,
-        Map[HmrcTaxPeriod, TaxPeriods]()
+        None
       )
 
     val doc = Jsoup.parse(generatedHtml.body)

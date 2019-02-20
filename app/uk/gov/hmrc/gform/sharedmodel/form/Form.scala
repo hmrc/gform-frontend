@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.{ TaxPeriods, UserId }
+import uk.gov.hmrc.gform.sharedmodel.{ AllInfo, ListAllInfo, TaxPeriods, UserId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, HmrcTaxPeriod, SectionNumber }
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
@@ -63,7 +63,7 @@ case class Form(
   status: FormStatus,
   visitsIndex: VisitIndex,
   envelopeExpiryDate: Option[EnvelopeExpiryDate],
-  obligations: Option[Map[HmrcTaxPeriod, TaxPeriods]]
+  obligations: Option[ListAllInfo]
 )
 
 object Form {
@@ -76,7 +76,8 @@ object Form {
       FormData.format and
       FormStatus.format and
       VisitIndex.format and
-      EnvelopeExpiryDate.optionFormat
+      EnvelopeExpiryDate.optionFormat and
+      ListAllInfo.optionFormat
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](

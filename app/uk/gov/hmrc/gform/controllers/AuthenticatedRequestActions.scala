@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import java.util.UUID
+
 import play.api.Logger
 import play.api.http.HeaderNames
 import play.api.i18n.I18nSupport
@@ -40,7 +41,7 @@ import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogi
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.gform.obligation.ObligationService
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AllInfo, ListAllInfo, TaxPeriods }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -334,7 +335,7 @@ case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
   formTemplate: FormTemplate,
-  obligations: Option[Map[HmrcTaxPeriod, TaxPeriods]]
+  obligations: Option[ListAllInfo]
 ) extends AuthCache
 
 case class AuthCacheWithFormWithoutObligations(
@@ -348,5 +349,5 @@ case class AuthCacheWithoutForm(
   formTemplate: FormTemplate
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) =
-    AuthCacheWithForm(retrievals, form, formTemplate, Some(Map[HmrcTaxPeriod, TaxPeriods]()))
+    AuthCacheWithForm(retrievals, form, formTemplate, None)
 }

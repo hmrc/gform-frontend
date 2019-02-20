@@ -17,14 +17,12 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.TaxPeriods
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.HmrcTaxPeriod
+import uk.gov.hmrc.gform.sharedmodel.{ ListAllInfo }
 
 case class UserData(
   formData: FormData,
   formStatus: FormStatus,
-  visitsIndex: VisitIndex,
-  obligations: Option[Map[HmrcTaxPeriod, TaxPeriods]]
+  visitsIndex: VisitIndex
 )
 
 object UserData {

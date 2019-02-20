@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel
 import java.util.Date
 
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.HmrcTaxPeriod
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ HmrcTaxPeriod, IdNumber, IdType, RegimeType }
 
 case class TaxPeriods(taxPeriods: List[TaxPeriod])
 
@@ -62,22 +62,34 @@ object TaxResponse {
   implicit val format: OFormat[TaxResponse] = Json.format[TaxResponse]
 }
 
-case class TaxPeriodPairs(pairs: Map[HmrcTaxPeriod, TaxPeriods])
+case class AllInfo(
+  idType: IdType,
+  idNumber: IdNumber,
+  regimeType: RegimeType,
+  inboundCorrespondenceFromDate: Date,
+  inboundCorrespondenceToDate: Date,
+  periodKey: String)
 
-//object TaxPeriodPairs {
-//  implicit val format: OFormat[TaxPeriodPairs] = Json.format[TaxPeriodPairs]
-//
-//  implicit val optionFormat: OFormat[Option[TaxPeriodPairs]] = new OFormat[Option[TaxPeriodPairs]] {
-//    override def writes(o: Option[TaxPeriodPairs]): JsObject =
-//      o match {
-//        case Some(x) => Json.obj("" -> Json.toJson(x))
-//        case None    => Json.obj()
-//      }
-//
-//    override def reads(json: JsValue) =
-//      json.\("ldt").asOpt[LocalDateTime] match {
-//        case Some(x) => JsSuccess(Some(TaxPeriodPairs(x)))
-//        case None    => JsSuccess(None)
-//      }
-//  }
-//}
+object AllInfo {
+  implicit val format: OFormat[AllInfo] = Json.format[AllInfo]
+}
+
+case class ListAllInfo(listAllInfo: List[AllInfo])
+
+object ListAllInfo {
+  implicit val format: OFormat[ListAllInfo] = Json.format[ListAllInfo]
+
+  implicit val optionFormat: OFormat[Option[ListAllInfo]] = new OFormat[Option[ListAllInfo]] {
+    override def writes(o: Option[ListAllInfo]): JsObject =
+      o match {
+        case Some(x) => Json.obj("TaxPeriodInfo" -> Json.toJson(x))
+        case None    => Json.obj()
+      }
+
+    override def reads(json: JsValue) =
+      json.\("TaxPeriodInfo").asOpt[List[AllInfo]] match {
+        case Some(x) => JsSuccess(Some(ListAllInfo(x)))
+        case None    => JsSuccess(None)
+      }
+  }
+}
