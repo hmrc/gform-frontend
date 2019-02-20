@@ -22,7 +22,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ ListAllInfo }
 case class UserData(
   formData: FormData,
   formStatus: FormStatus,
-  visitsIndex: VisitIndex
+  visitsIndex: VisitIndex,
+  obligations: Option[ListAllInfo]
 )
 
 object UserData {

@@ -455,7 +455,11 @@ class FormController(
         for {
           (_, formData) <- validateForm(processData.data, processData.sections, sectionNumber, cache)
           maybeSn       <- fastForwardValidate(processData, cache)
-          userData = UserData(formData, maybeSn.fold(Summary: FormStatus)(_ => InProgress), processData.visitIndex)
+          userData = UserData(
+            formData,
+            maybeSn.fold(Summary: FormStatus)(_ => InProgress),
+            processData.visitIndex,
+            cache.form.obligations)
           res <- gformConnector.updateUserData(formId, userData).map(_ => result(maybeSn))
         } yield res
 
