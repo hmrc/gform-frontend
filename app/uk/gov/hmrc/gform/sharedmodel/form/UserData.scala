@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{ Json, OFormat }
 import uk.gov.hmrc.gform.sharedmodel.TaxPeriods
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.HmrcTaxPeriod
 

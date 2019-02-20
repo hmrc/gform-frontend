@@ -21,8 +21,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.{TaxPeriods, UserId}
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormComponentId, FormTemplateId, HmrcTaxPeriod, SectionNumber}
+import uk.gov.hmrc.gform.sharedmodel.{ TaxPeriods, UserId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, HmrcTaxPeriod, SectionNumber }
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
   def toFormField: FormField =
@@ -63,7 +63,7 @@ case class Form(
   status: FormStatus,
   visitsIndex: VisitIndex,
   envelopeExpiryDate: Option[EnvelopeExpiryDate],
-  obligations:  Option[Map[HmrcTaxPeriod, TaxPeriods]]
+  obligations: Option[Map[HmrcTaxPeriod, TaxPeriods]]
 )
 
 object Form {

@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ObligationService(gformConnector: GformConnector) {
 
@@ -46,26 +46,25 @@ class ObligationService(gformConnector: GformConnector) {
         TaxPeriods(obligation.map(l =>
           TaxPeriod(l.inboundCorrespondenceFromDate, l.inboundCorrespondenceToDate, l.periodKey))))
 
-  def lookupIfPossible(form: Form, formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) ={
+  def lookupIfPossible(form: Form, formTemplate: FormTemplate)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
       case IsHmrcTaxPeriod(el) => el
     }
-    form.obligations match{
+    form.obligations match {
       case Some(x) => {
-        if (x.keySet.forall(i => hmrcTaxPeriodIdentifiers.contains(i))){
+        if (x.keySet.forall(i => hmrcTaxPeriodIdentifiers.contains(i))) {
           Future(form)
-        }
-        else{
+        } else {
           val newObligations = lookupObligationsMultiple(formTemplate)
           newObligations.map(i => form.copy(obligations = Some(i)))
         }
       }
       case None => {
-        if(hmrcTaxPeriodIdentifiers.forall(i => !i.regimeType.value.isEmpty && !i.idType.value.isEmpty && !i.idNumber.value.isEmpty)){
+        if (hmrcTaxPeriodIdentifiers.forall(
+              i => !i.regimeType.value.isEmpty && !i.idType.value.isEmpty && !i.idNumber.value.isEmpty)) {
           val newObligations = lookupObligationsMultiple(formTemplate)
           newObligations.map(i => form.copy(obligations = Some(i)))
-        }
-        else{
+        } else {
           Future(form)
         }
       }

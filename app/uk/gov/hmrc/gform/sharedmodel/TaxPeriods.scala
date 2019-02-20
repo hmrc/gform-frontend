@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import java.util.Date
 
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.HmrcTaxPeriod
 
 case class TaxPeriods(taxPeriods: List[TaxPeriod])
@@ -61,3 +61,23 @@ case class TaxResponse(id: HmrcTaxPeriod, obligation: Obligation)
 object TaxResponse {
   implicit val format: OFormat[TaxResponse] = Json.format[TaxResponse]
 }
+
+case class TaxPeriodPairs(pairs: Map[HmrcTaxPeriod, TaxPeriods])
+
+//object TaxPeriodPairs {
+//  implicit val format: OFormat[TaxPeriodPairs] = Json.format[TaxPeriodPairs]
+//
+//  implicit val optionFormat: OFormat[Option[TaxPeriodPairs]] = new OFormat[Option[TaxPeriodPairs]] {
+//    override def writes(o: Option[TaxPeriodPairs]): JsObject =
+//      o match {
+//        case Some(x) => Json.obj("" -> Json.toJson(x))
+//        case None    => Json.obj()
+//      }
+//
+//    override def reads(json: JsValue) =
+//      json.\("ldt").asOpt[LocalDateTime] match {
+//        case Some(x) => JsSuccess(Some(TaxPeriodPairs(x)))
+//        case None    => JsSuccess(None)
+//      }
+//  }
+//}

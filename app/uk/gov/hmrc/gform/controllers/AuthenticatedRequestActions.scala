@@ -195,9 +195,9 @@ class AuthenticatedRequestActions(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
-      form        <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
-      obligations <- obligationService.lookupObligationsMultiple(formTemplate)
-      result      <- f(AuthCacheWithForm(retrievals, form, formTemplate, obligations))
+      form    <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
+      newForm <- obligationService.lookupIfPossible(form, formTemplate)
+      result  <- f(AuthCacheWithForm(retrievals, newForm, formTemplate, newForm.obligations))
     } yield result
 
   private def withFormWithoutObligations(f: AuthCacheWithFormWithoutObligations => Future[Result])(
@@ -334,7 +334,7 @@ case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
   formTemplate: FormTemplate,
-  obligations: Map[HmrcTaxPeriod, TaxPeriods]
+  obligations: Option[Map[HmrcTaxPeriod, TaxPeriods]]
 ) extends AuthCache
 
 case class AuthCacheWithFormWithoutObligations(
@@ -348,5 +348,5 @@ case class AuthCacheWithoutForm(
   formTemplate: FormTemplate
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) =
-    AuthCacheWithForm(retrievals, form, formTemplate, Map[HmrcTaxPeriod, TaxPeriods]())
+    AuthCacheWithForm(retrievals, form, formTemplate, Some(Map[HmrcTaxPeriod, TaxPeriods]()))
 }
