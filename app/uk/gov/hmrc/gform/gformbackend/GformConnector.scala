@@ -16,22 +16,20 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import akka.util.ByteString
 import cats.data.NonEmptyList
-import play.api.libs.json.{ JsValue, Json }
+import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
 
 /**
   * This connector originates in GFORM project.
@@ -71,17 +69,15 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").map(_ => ())
 
   /******submission*******/
-  def submitFormWithPdf(formId: FormId, customerId: String, htmlForm: String, affinityGroup: Option[AffinityGroup])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[HttpResponse] = {
-    implicit val hcNew = hc
-      .withExtraHeaders("customerId" -> customerId)
-      .withExtraHeaders("affinityGroup" -> affinityGroupNameO(affinityGroup))
-    ws.POSTString[HttpResponse](s"$baseUrl/forms/${formId.value}/submission-pdf", htmlForm)(
-      implicitly[HttpReads[HttpResponse]],
-      hcNew,
-      ec)
-  }
+  def submitFormWithPdf(
+    formId: FormId,
+    customerId: String,
+    submissionData: SubmissionData,
+    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    ws.POST[SubmissionData, HttpResponse](
+      s"$baseUrl/forms/${formId.value}/submission-pdf",
+      submissionData,
+      Seq("customerId" -> customerId, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
 
   def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
     ws.GET[Submission](s"$baseUrl/forms/${formId.value}/submission")

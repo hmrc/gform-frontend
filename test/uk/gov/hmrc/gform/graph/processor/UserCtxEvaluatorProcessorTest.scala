@@ -39,7 +39,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
 
   it should "return an empty string when authModule in authConfig is set anonymous" in new UserCtxEvaluatorProcessor[Id] {
     processEvaluation(AnonymousRetrievals(SessionId("id")), UserCtx(EnrolledIdentifier), authConfig) should be(
-      NonConvertible(NoChange.pure[Id]))
+      NonConvertible(RecalculationOp.noChange.pure[Id]))
   }
 
   lazy val userCtxTable = Table(
@@ -67,7 +67,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
       EnrolledIdentifier,
       ServiceId(""),
       HmrcEnrolmentModule(EnrolmentAuth(ServiceId(""), Never)),
-      NonConvertible(RecalculationOp.noChange.pure[Id])),
+      NonConvertible(RecalculationOp.newValue("").pure[Id])),
     (
       irctEnrolment,
       FTAffinityGroup,

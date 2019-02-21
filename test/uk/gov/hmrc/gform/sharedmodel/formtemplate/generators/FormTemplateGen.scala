@@ -53,7 +53,7 @@ trait FormTemplateGen {
       emailParameters        <- emailParameterListGen
       submitSuccessUrl       <- PrimitiveGen.urlGen
       submitErrorUrl         <- PrimitiveGen.urlGen
-      sections               <- PrimitiveGen.zeroOrMoreGen(SectionGen.sectionGen)
+      sections               <- PrimitiveGen.oneOrMoreGen(SectionGen.sectionGen)
       acknowledgementSection <- SectionGen.acknowledgementSectionGen
       declarationSection     <- SectionGen.declarationSectionGen
       gFC579Ready            <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
@@ -72,7 +72,7 @@ trait FormTemplateGen {
         emailParameters,
         submitSuccessUrl,
         submitErrorUrl,
-        sections,
+        sections.toList,
         acknowledgementSection,
         declarationSection,
         gFC579Ready

@@ -206,11 +206,15 @@ class DeclarationController(
           cache.formTemplate,
           data,
           cache.form.envelopeId)
-        _ <- gformConnector.submitFormWithPdf(
-              FormId(cache.retrievals, formTemplateId, maybeAccessCode),
-              customerId,
-              htmlForPDF,
-              AffinityGroupUtil.fromRetrievals(cache.retrievals))
+        _ <- GformSubmission
+              .handleSubmission(
+                config,
+                gformConnector,
+                cache.retrievals,
+                cache.formTemplate,
+                maybeAccessCode,
+                customerId,
+                htmlForPDF)
       } yield {
         if (customerId.isEmpty)
           Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
