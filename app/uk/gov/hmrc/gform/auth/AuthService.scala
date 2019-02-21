@@ -29,7 +29,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.cache.client.NoSessionException
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.gform.submission.SubmissionRef.getSubmissionReference
+import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 import scala.concurrent.Future
@@ -222,7 +222,7 @@ class AuthService(
 
       case id: FormCtx => (data.get(id.toFieldId).map(_.head).getOrElse("")).pure[Future]
 
-      case SubmissionReference => getSubmissionReference(envelopeId).pure[Future]
+      case SubmissionReference => SubmissionRef(envelopeId).toString.pure[Future]
 
       case _ => "".pure[Future] //TODO change this to AuthExpr.
     }

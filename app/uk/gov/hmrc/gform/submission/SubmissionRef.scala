@@ -19,14 +19,16 @@ package uk.gov.hmrc.gform.submission
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import play.api.libs.json.OFormat
-import uk.gov.hmrc.gform.submission.SubmissionRef.{ calculate, calculateCheckCharacter, verify }
+import play.api.libs.json.{Format, JsString, OFormat}
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 import scala.math.pow
+import scala.util.Random
 
-case class SubmissionRef(value: String)
+case class SubmissionRef(value: String) extends AnyVal {
+  override def toString = value
+}
 
 object SubmissionRef {
   val radix = 36
@@ -34,8 +36,12 @@ object SubmissionRef {
   val comb: Stream[Int] = Stream.continually(List(1, 3)).flatten
 
   val oformat: OFormat[SubmissionRef] = ValueClassFormat.oformat("submissionRef", SubmissionRef.apply, _.value)
+  val vformat: Format[SubmissionRef] =
+    ValueClassFormat.vformat("submissionRef", SubmissionRef.apply, x => JsString(x.value))
 
-  def getSubmissionReference(envelopeId: EnvelopeId): String =
+  def apply(value: EnvelopeId): SubmissionRef = SubmissionRef(getSubmissionReference(value))
+
+  private def getSubmissionReference(envelopeId: EnvelopeId): String =
     if (!envelopeId.value.isEmpty) {
       // As 36^11 (number of combinations of 11 base 36 digits) < 2^63 (number of combinations of 63 base 2 digits) we can get full significance from this digest.
       val digest = MessageDigest.getInstance("SHA-256").digest(envelopeId.value.getBytes()).take(8)
@@ -51,9 +57,15 @@ object SubmissionRef {
     checkCharacter + derivedDigits
   }
 
-  def calculateCheckCharacter(digits: String, radix: Int, comb: Stream[Int]): Int = {
+  private def calculateCheckCharacter(digits: String, radix: Int, comb: Stream[Int]): Int = {
     val stringToInts = digits.toCharArray.map(i => Integer.parseInt(i.toString, radix))
     stringToInts.zip(comb).map(i => i._1 * i._2).sum % radix
+  }
+
+  private def alphanumeric(rnd: Random): Stream[Char] = {
+    val chars = ('A' to 'Z') ++ ('0' to '9').toList
+    def nextAlphaNum: Char = chars.charAt(rnd.nextInt(chars.length))
+    Stream continually nextAlphaNum
   }
 
   def verifyCheckChar(reference: String): Boolean =
@@ -62,6 +74,6 @@ object SubmissionRef {
       case _       => false
     }
 
-  def verify(reference: String, radix: Int, comb: Stream[Int]): Boolean =
+  private def verify(reference: String, radix: Int, comb: Stream[Int]): Boolean =
     calculateCheckCharacter(reference.tail, radix, comb) == Integer.parseInt(reference.head.toString, radix)
 }
