@@ -41,7 +41,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.submission.SubmissionRef.getSubmissionReference
+import uk.gov.hmrc.gform.submission.SubmissionRef
 
 import scala.concurrent.Future
 
@@ -108,7 +108,7 @@ class DeclarationController(
          |    <dt class="cya-question">
          |      Submission reference
          |    </dt>
-         |    <dd class="cya-answer">${getSubmissionReference(envelopeId)}</dd>
+         |    <dd class="cya-answer">${SubmissionRef(envelopeId).toString}</dd>
          |    <dd></dd>
          |  </div>
          |</dl>

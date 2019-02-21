@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.submission.SubmissionRef._
+import uk.gov.hmrc.gform.submission.SubmissionRef
 import java.math.BigInteger
 
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
@@ -28,22 +28,22 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 class SubmissionReferenceSpec extends Spec {
 
   "A valid EnvelopeID" should "return a 12 digit alphanumeric string separated with hyphens" in {
-    val res: String = getSubmissionReference(envelopeId)
+    val res: String = SubmissionRef(envelopeId).toString
     res should fullyMatch regex "[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"
   }
 
   "A missing EnvelopeID" should "return an empty string" in {
-    val res: String = getSubmissionReference(EnvelopeId(""))
+    val res: String = SubmissionRef(EnvelopeId("")).toString
     res should be("")
   }
 
   "A Submission Reference" should "Have it's last digit be derived from the previous eleven" in {
-    val res: Boolean = verifyCheckChar(getSubmissionReference(envelopeId))
+    val res: Boolean = SubmissionRef.verifyCheckChar(SubmissionRef(envelopeId).toString)
     res should be(true)
   }
 
   "An incorrect Submission Reference" should "cause the check to return false" in {
-    val res: Boolean = verifyCheckChar("ABCD-EFGH-IJKK")
+    val res: Boolean = SubmissionRef.verifyCheckChar("ABCD-EFGH-IJKK")
     res should be(false)
   }
 
@@ -63,7 +63,7 @@ class SubmissionReferenceSpec extends Spec {
     )
 
     forAll(calculateValues) { (bigInteger, radix, digits, stream, expectedOutput) ⇒
-      val reference = calculate(bigInteger, radix, digits, stream)
+      val reference = SubmissionRef.calculate(bigInteger, radix, digits, stream)
       reference shouldBe expectedOutput
     }
   }

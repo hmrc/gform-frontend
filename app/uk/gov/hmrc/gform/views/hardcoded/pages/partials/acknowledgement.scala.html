@@ -17,7 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormCategory, FormTemplate, ResearchBanner}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
+@import uk.gov.hmrc.gform.submission.SubmissionRef
 
 @(timeMessage: String,
         supportContents: SectionRenderingInformation,
@@ -44,7 +44,7 @@
 
     <p class="ack-subheader">
         Your submission reference is<br>
-        @{getSubmissionReference(supportContents.envelopeId)}
+        @{SubmissionRef(supportContents.envelopeId).toString}
     </p>
   </div>
 

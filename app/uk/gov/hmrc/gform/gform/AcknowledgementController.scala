@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.submission.SubmissionRef.getSubmissionReference
+import uk.gov.hmrc.gform.submission.SubmissionRef
 
 import scala.concurrent.Future
 
@@ -143,7 +143,7 @@ class AcknowledgementController(
            |    <dt class="cya-question">
            |      Submission reference
            |    </dt>
-           |    <dd class="cya-answer">${getSubmissionReference(envelopeId)}</dd>
+           |    <dd class="cya-answer">${SubmissionRef(envelopeId).toString}</dd>
            |    <dd></dd>
            |  </div>
            |  <div>
