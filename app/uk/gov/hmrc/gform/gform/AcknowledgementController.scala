@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
+import uk.gov.hmrc.gform.submission.SubmissionRef.getSubmissionReference
 
 import scala.concurrent.Future
 

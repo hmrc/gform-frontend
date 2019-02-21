@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, IncludeIfGN, SimpleGN }
 import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
-import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil
+import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.http.HeaderCarrier
 
 sealed trait GraphException {
@@ -251,7 +251,7 @@ class Evaluator[F[_]: Monad](
         new UserCtxEvaluatorProcessor[F].processEvaluation(retrievals, ctx, formTemplate.authConfig)
       case AuthCtx(value)      => NonConvertible(AuthContextPrepop.values(value, retrievals).pure[F])
       case EeittCtx(eeitt)     => NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc))
-      case SubmissionReference => NonConvertible(SubmissionReferenceUtil.getSubmissionReference(envelopeId).pure[F])
+      case SubmissionReference => NonConvertible(SubmissionRef.getSubmissionReference(envelopeId).pure[F])
       case Constant(fc)        => MaybeConvertible(fc.pure[F])
       case fc @ FormCtx(_) =>
         if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)

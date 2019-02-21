@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil._
+import uk.gov.hmrc.gform.submission.SubmissionRef._
 import java.math.BigInteger
 
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
