@@ -29,7 +29,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.cache.client.NoSessionException
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.gform.sharedmodel.SubmissionReferenceUtil.getSubmissionReference
+import uk.gov.hmrc.gform.submission.SubmissionRef.getSubmissionReference
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 import scala.concurrent.Future
