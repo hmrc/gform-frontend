@@ -22,4 +22,11 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 
 addSbtPlugin("org.lyranthe.sbt" % "partial-unification" % "1.1.2")
 
+libraryDependencies ++= Seq(
+  "com.itv" %% "scalapact-argonaut-6-2"  % "2.2.5",
+  "com.itv" %% "scalapact-http4s-0-16-2" % "2.2.5"
+)
+
+addSbtPlugin("com.itv" % "sbt-scalapact" % "2.2.5")
+
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.2")
