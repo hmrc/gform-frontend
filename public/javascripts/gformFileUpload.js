@@ -180,11 +180,12 @@
 
     // Setup file upload
     function handleFileUpload (e) {
-      $('.file-upload-error').remove();
-
-      disableSubmitButton()
-
       var file = e.target.files[0];
+      if (!file) {
+        return false;
+      }
+      disableSubmitButton();
+      $('.file-upload-error').remove();
       var $input = $(e.currentTarget);
       var formTemplateId = $input[0].dataset.formTemplateId;
       var accessCode = $input[0].dataset.accessCode;
