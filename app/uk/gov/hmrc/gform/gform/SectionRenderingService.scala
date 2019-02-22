@@ -35,11 +35,10 @@ import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals, UserDetails }
-import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
@@ -55,7 +54,6 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, _ }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 import scala.concurrent.Future
@@ -79,9 +77,7 @@ case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: java.util.Date, toDate: java.util.Date, selected: Boolean)
-class SectionRenderingService(
-  frontendAppConfig: FrontendAppConfig
-) {
+class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
 
   case class ExtraInfo(
     maybeAccessCode: Option[AccessCode],

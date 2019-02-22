@@ -135,7 +135,7 @@ object FormTemplate {
     }
   }
 
-  implicit val format: OFormat[FormTemplate] = OFormat(reads, derived.owrites[FormTemplate]())
+  implicit val format: OFormat[FormTemplate] = OFormat(reads, derived.owrites[FormTemplate])
 
   def withDeprecatedDmsSubmission(
     _id: FormTemplateId,

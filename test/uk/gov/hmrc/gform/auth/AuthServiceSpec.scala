@@ -21,7 +21,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.{ Spec, SpecWithFakeApp }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.connectors.EeittConnector
@@ -30,13 +30,13 @@ import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
 import Function.const
 
-class AuthServiceSpec extends Spec with ExampleData {
+class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
 
   behavior of "Authentication and authorisation Service"
 
@@ -67,8 +67,6 @@ class AuthServiceSpec extends Spec with ExampleData {
   val mockEeittDelegateNotAllowed = new EeittAuthorisationDelegate(mockEeittConnectorNotAllowed, "/eeitt-frontend-base")
   val mockEeittServiceNotAllowed = new EeittService(mockEeittConnectorNotAllowed)
   val authServiceNotAllowed = new AuthService(appConfig, mockEeittDelegateNotAllowed, mockEeittServiceNotAllowed)
-
-  implicit val hc = HeaderCarrier()
 
   implicit val request: Request[AnyContent] = null
 

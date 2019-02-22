@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.gform.config
 
-import java.nio.channels.NonWritableChannelException
-
-import com.typesafe.config.{ ConfigFactory, ConfigObject, Config => TypeSafeConfig }
+import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import net.ceedubs.ficus.Ficus._
 import play.api.{ Configuration, Environment }
 import play.api.Mode.Mode
@@ -41,6 +39,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       // ServicesConfig requires running play application so if we don't override these
       // we will experience 'Caused by: java.lang.RuntimeException: There is no started application'
       override protected def runModeConfiguration: Configuration = playConfiguration
+
       override protected def mode: Mode = playBuiltInsModule.context.environment.mode
     }
 
@@ -51,7 +50,6 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
     c.baseUrl("email")
     c
   }
-
   val controllerConfig: ControllerConfig = new ControllerConfig {
     val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }

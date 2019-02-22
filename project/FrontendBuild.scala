@@ -1,9 +1,6 @@
 import sbt._
 import play.sbt.PlayImport._
 import play.core.PlayVersion
-import uk.gov.hmrc.SbtAutoBuildPlugin
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import uk.gov.hmrc.versioning.SbtGitVersioning
 
 object FrontendBuild extends Build with MicroService {
 
@@ -21,7 +18,7 @@ object FrontendBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "play-partials" % "6.5.0",
     "com.codecommit" %% "parseback-core" % parsebackVersion,
     "com.codecommit" %% "parseback-cats" % parsebackVersion,
-    "org.julienrf" %% "play-json-derived-codecs" % "5.0.0",
+    "org.julienrf" %% "play-json-derived-codecs" % "3.3",
     "org.typelevel" %% "cats-core" % "1.6.0",
     "org.typelevel" %% "cats-mtl-core" % "0.5.0" exclude("org.scalacheck", "scalacheck_2.11"),
     "com.github.pureconfig" %% "pureconfig" % "0.10.2",
@@ -29,6 +26,7 @@ object FrontendBuild extends Build with MicroService {
     "com.chuusai" %% "shapeless" % "2.3.3",
     "uk.gov.hmrc" %% "http-caching-client" % "8.1.0",
     "uk.gov.hmrc" %% "emailaddress" % "3.2.0",
+    "uk.gov.hmrc" %% "play-config" % "7.3.0",
     "org.scala-graph" %% "graph-core" % "1.12.5"
   )
 
@@ -39,7 +37,7 @@ object FrontendBuild extends Build with MicroService {
       "org.pegdown" % "pegdown" % "1.6.0" % scope,
       "com.ironcorelabs" %% "cats-scalatest" % "2.4.0" % scope,
       "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-      "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.1" % scope,
+      "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
       "org.mockito" % "mockito-all" % "1.10.19" % scope,
       "org.jsoup" % "jsoup" % "1.11.3"
     )

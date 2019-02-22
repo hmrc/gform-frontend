@@ -32,7 +32,7 @@ class TestOnlyController(
   gformConnector: GformConnector
 ) extends FrontendController with ServicesConfig {
   override protected def mode = Play.current.mode
-  override protected val runModeConfiguration = Play.current.configuration
+  override protected def runModeConfiguration = Play.current.configuration
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 

@@ -21,8 +21,6 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import scala.util.parsing.combinator.RegexParsers
-
 sealed trait Destination extends Product with Serializable {
   def id: DestinationId
   def includeIf: Option[String]
@@ -64,12 +62,12 @@ object Destination {
   val handlebarsHttpApi: String = "handlebarsHttpApi"
 
   implicit val format: OFormat[Destination] = {
-    implicit val d: OFormat[Destination] = derived.oformat()
+    implicit val d: OFormat[Destination] = derived.oformat
 
     OFormatWithTemplateReadFallback(
       ADTFormat.adtRead[Destination](
         typeDiscriminatorFieldName,
-        hmrcDms           -> derived.reads[HmrcDms](),
+        hmrcDms           -> derived.reads[HmrcDms],
         handlebarsHttpApi -> UploadableHandlebarsHttpApiDestination.reads
       ))
   }
@@ -98,7 +96,7 @@ case class UploadableHandlebarsHttpApiDestination(
 
 object UploadableHandlebarsHttpApiDestination {
   implicit val reads = new Reads[Destination.HandlebarsHttpApi] {
-    val d = derived.reads[UploadableHandlebarsHttpApiDestination]()
+    val d = derived.reads[UploadableHandlebarsHttpApiDestination]
     override def reads(json: JsValue): JsResult[Destination.HandlebarsHttpApi] =
       d.reads(json).flatMap(_.toHandlebarsHttpApiDestination.fold(JsError(_), JsSuccess(_)))
   }

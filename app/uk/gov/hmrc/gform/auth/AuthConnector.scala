@@ -27,7 +27,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthConnector(baseUrl: String, wsHttp: WSHttp) extends PlayAuthConnector with ServicesConfig {
   override protected def mode = Play.current.mode
-  override protected val runModeConfiguration = Play.current.configuration
+  override protected def runModeConfiguration = Play.current.configuration
   val serviceUrl = baseUrl
   lazy val http = wsHttp
 

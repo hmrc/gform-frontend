@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.play.config.{ AssetsConfig, OptimizelyConfig }
 
 class ApplicationLoader extends play.api.ApplicationLoader {
   def load(context: Context): Application = {
@@ -142,7 +143,11 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
   override lazy val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
   override def router: Router = routingModule.router
 
-  lazy val customInjector: Injector = new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi
+  lazy val optimizelyConfig: OptimizelyConfig = new OptimizelyConfig(configuration)
+  lazy val assetsConfig: AssetsConfig = new AssetsConfig(configuration)
+
+  lazy val customInjector
+    : Injector = new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi + optimizelyConfig + assetsConfig
   override lazy val application = new DefaultApplication(
     environment,
     applicationLifecycle,

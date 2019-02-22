@@ -36,7 +36,7 @@ import scala.collection.immutable.List
 class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
   implicit val request =
-    FakeRequest().withFormUrlEncodedBody("CSRF_TOKEN_NAME" -> "csrfToken", "CSRF_TOKEN" -> "o'ight mate?")
+    FakeRequest().copyFakeRequest(tags = Map("CSRF_TOKEN_NAME" -> "csrfToken", "CSRF_TOKEN" -> "o'ight mate?"))
   implicit val messages = mock[play.api.i18n.Messages]
   val retrievals = authContext
 

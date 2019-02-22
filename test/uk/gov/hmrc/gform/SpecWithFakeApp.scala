@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform
 
-import org.scalatestplus.play.{ BaseOneServerPerSuite, BaseOneServerPerTest, FakeApplicationFactory }
+import org.scalatestplus.play.{ BaseOneServerPerSuite, FakeApplicationFactory }
 import play.api.ApplicationLoader.Context
 import play.api._
 import uk.gov.hmrc.gform.wshttp.{ StubbedWSHttp, WSHttp, WSHttpModule }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 trait SpecWithFakeApp extends Spec with BaseOneServerPerSuite with FakeApplicationFactory {
-
 
   def configurationOverridings: Map[String, String] = Map()
 

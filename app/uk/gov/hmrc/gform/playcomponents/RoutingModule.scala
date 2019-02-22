@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import controllers.Assets
-import play.api.{ Logger, Play }
+import play.api.Logger
 import play.api.http.HttpRequestHandler
 import play.api.routing.Router
 import uk.gov.hmrc.gform.akka.AkkaModule
@@ -98,5 +98,4 @@ class RoutingModule(
     playBuiltInsModule.builtInComponents.httpConfiguration,
     frontendFiltersModule.httpFilters
   )
-
 }
