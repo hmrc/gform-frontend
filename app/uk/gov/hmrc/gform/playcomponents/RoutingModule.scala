@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
-import uk.gov.hmrc.play.health.AdminController
+import uk.gov.hmrc.play.health.HealthController
 
 class RoutingModule(
   playBuiltInsModule: PlayBuiltInsModule,
@@ -63,7 +63,7 @@ class RoutingModule(
     controllersModule.errorHandler,
     appRoutes,
     new controllers.template.Template(controllersModule.errorHandler),
-    new AdminController(configModule.playConfiguration),
+    new HealthController(configModule.playConfiguration, configModule.environment),
     metricsModule.metricsController
   )
 
@@ -98,5 +98,4 @@ class RoutingModule(
     playBuiltInsModule.builtInComponents.httpConfiguration,
     frontendFiltersModule.httpFilters
   )
-
 }

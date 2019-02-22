@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import java.time.{ LocalDate, LocalDateTime }
+import java.time.LocalDateTime
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
@@ -514,7 +514,6 @@ trait ExampleAuthContext {
 }
 
 trait ExampleFrontendAppConfig {
-
   val frontendAppConfig = FrontendAppConfig(
     assetsPrefix = "assetsPrefix",
     analyticsToken = "analyticsToken",

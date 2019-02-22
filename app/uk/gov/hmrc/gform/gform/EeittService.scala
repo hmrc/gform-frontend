@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId

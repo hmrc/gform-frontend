@@ -21,8 +21,6 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import scala.util.parsing.combinator.RegexParsers
-
 sealed trait Destination extends Product with Serializable {
   def id: DestinationId
   def includeIf: Option[String]

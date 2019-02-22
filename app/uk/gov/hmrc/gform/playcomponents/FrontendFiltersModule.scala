@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.play.frontend.bootstrap.FrontendFilters
 import uk.gov.hmrc.play.frontend.filters._
+import uk.gov.hmrc.crypto.ApplicationCrypto
 
 class FrontendFiltersModule(
   playBuiltInsModule: PlayBuiltInsModule,
@@ -99,6 +100,9 @@ class FrontendFiltersModule(
     override implicit def materializer: Materializer = playBuiltInsModule.builtInComponents.materializer
   }
 
+  private def applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
+  private val sessionCookieCryptoFilter = new SessionCookieCryptoFilter(applicationCrypto)
+
   lazy val httpFilters: Seq[EssentialFilter] = {
 
     val securityFiltersFactory = new SecurityHeadersFilterFactory {
@@ -115,11 +119,13 @@ class FrontendFiltersModule(
         cSRFComponents.csrfFilter // was: CSRFFilter()(akkaModule.materializer) //It's deprecated however this is how platform ops instantiated it.
       override def sessionTimeoutFilter = self.sessionTimeoutFilter
       override def csrfExceptionsFilter = self.csrfExceptionsFilter
+      override def sessionCookieCryptoFilter = self.sessionCookieCryptoFilter
 
       override def frontendFilters: Seq[EssentialFilter] = {
         val enableSecurityHeaderFilter =
           configModule.playConfiguration.getBoolean("security.headers.filter.enabled").getOrElse(true)
-        if (enableSecurityHeaderFilter) Seq(securityFilter) ++ defaultFrontendFilters else defaultFrontendFilters
+        if (enableSecurityHeaderFilter) Seq(securityFilter) ++ defaultFrontendFilters
+        else defaultFrontendFilters
       }
     }
 

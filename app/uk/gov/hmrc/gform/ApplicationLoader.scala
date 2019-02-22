@@ -24,7 +24,7 @@ import play.api.i18n.I18nComponents
 import play.api.inject.{ Injector, SimpleInjector }
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
-import uk.gov.hmrc.crypto.ApplicationCryptoDI
+import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.play.config.{ AssetsConfig, OptimizelyConfig }
 
 class ApplicationLoader extends play.api.ApplicationLoader {
   def load(context: Context): Application = {
@@ -142,7 +143,11 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
   override lazy val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
   override def router: Router = routingModule.router
 
-  lazy val customInjector: Injector = new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi
+  lazy val optimizelyConfig: OptimizelyConfig = new OptimizelyConfig(configuration)
+  lazy val assetsConfig: AssetsConfig = new AssetsConfig(configuration)
+
+  lazy val customInjector
+    : Injector = new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi + optimizelyConfig + assetsConfig
   override lazy val application = new DefaultApplication(
     environment,
     applicationLifecycle,
@@ -158,7 +163,7 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
 
     val appName = configModule.appConfig.appName
     Logger.info(s"Starting frontend $appName in mode ${environment.mode}")
-    val applicationCrypto = new ApplicationCryptoDI(configModule.playConfiguration)
+    val applicationCrypto = new ApplicationCrypto(configModule.playConfiguration.underlying)
     applicationCrypto.verifyConfiguration()
     MDC.put("appName", appName)
     val loggerDateFormat: Option[String] = configuration.getString("logger.json.dateformat")

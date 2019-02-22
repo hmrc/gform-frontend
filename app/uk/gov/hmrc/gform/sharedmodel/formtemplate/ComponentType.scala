@@ -162,5 +162,4 @@ object ComponentType {
   }
 
   implicit val format: OFormat[ComponentType] = derived.oformat
-
 }

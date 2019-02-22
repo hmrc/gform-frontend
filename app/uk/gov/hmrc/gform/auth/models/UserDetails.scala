@@ -38,7 +38,10 @@ case class UserDetails(
 )
 
 object UserDetails {
-  implicit lazy val format: OFormat[UserDetails] = Json.format
+  val pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+  implicit val dateFormat = Format[LocalDate](Reads.jodaLocalDateReads(pattern), Writes.jodaLocalDateWrites(pattern))
+
+  implicit lazy val format: OFormat[UserDetails] = Json.format[UserDetails]
 }
 
 sealed trait AuthProviderType

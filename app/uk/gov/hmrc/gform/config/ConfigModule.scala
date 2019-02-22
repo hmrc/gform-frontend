@@ -16,11 +16,9 @@
 
 package uk.gov.hmrc.gform.config
 
-import java.nio.channels.NonWritableChannelException
-
-import com.typesafe.config.{ ConfigFactory, ConfigObject, Config => TypeSafeConfig }
+import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import net.ceedubs.ficus.Ficus._
-import play.api.Configuration
+import play.api.{ Configuration, Environment }
 import play.api.Mode.Mode
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.config.{ ControllerConfig, ServicesConfig }
@@ -29,6 +27,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
 
   val playConfiguration: Configuration = playBuiltInsModule.context.initialConfiguration
   val typesafeConfig: TypeSafeConfig = ConfigFactory.load()
+  val environment: Environment = playBuiltInsModule.context.environment
 
   val timeOut: Int = typesafeConfig.getInt("future.timeout")
 
@@ -40,6 +39,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       // ServicesConfig requires running play application so if we don't override these
       // we will experience 'Caused by: java.lang.RuntimeException: There is no started application'
       override protected def runModeConfiguration: Configuration = playConfiguration
+
       override protected def mode: Mode = playBuiltInsModule.context.environment.mode
     }
 
@@ -50,7 +50,6 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
     c.baseUrl("email")
     c
   }
-
   val controllerConfig: ControllerConfig = new ControllerConfig {
     val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
