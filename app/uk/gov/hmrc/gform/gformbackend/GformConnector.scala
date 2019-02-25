@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
+import cats.data.NonEmptyList
 import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.auth.core.AffinityGroup
@@ -136,7 +137,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   //TODO move this file to gform and make it's origin there
 
   /****** Tax Period ******/
-  def getAllTaxPeriods(htps: List[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
-    ws.POST[List[HmrcTaxPeriod], List[TaxResponse]](s"$baseUrl/obligation/tax-period", htps)
+  def getAllTaxPeriods(htps: NonEmptyList[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+    ws.POST[NonEmptyList[HmrcTaxPeriod], List[TaxResponse]](s"$baseUrl/obligation/tax-period", htps)
 
 }

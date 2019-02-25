@@ -38,11 +38,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogin, PAClientId, VerifyPid }
+import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _, _ }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.gform.obligation.ObligationService
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ListOfTaxPeriodInformation, TaxPeriodInformation, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel._
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -204,10 +204,7 @@ class AuthenticatedRequestActions(
                  UserData(newForm.formData, newForm.status, newForm.visitsIndex, newForm.obligations),
                  form,
                  newForm)
-      result <- {
-        update
-        f(AuthCacheWithForm(retrievals, newForm, formTemplate, newForm.obligations))
-      }
+      result <- f(AuthCacheWithForm(retrievals, newForm, formTemplate, newForm.obligations))
     } yield result
 
   private def withFormWithoutObligations(f: AuthCacheWithFormWithoutObligations => Future[Result])(
@@ -344,7 +341,7 @@ case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
   formTemplate: FormTemplate,
-  obligations: Option[ListOfTaxPeriodInformation]
+  obligations: Obligations
 ) extends AuthCache
 
 case class AuthCacheWithFormWithoutObligations(
@@ -358,5 +355,5 @@ case class AuthCacheWithoutForm(
   formTemplate: FormTemplate
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) =
-    AuthCacheWithForm(retrievals, form, formTemplate, None)
+    AuthCacheWithForm(retrievals, form, formTemplate, NotChecked)
 }
