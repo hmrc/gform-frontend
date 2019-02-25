@@ -52,12 +52,14 @@ class ObligationService(gformConnector: GformConnector) {
                               formTemplate,
                               FormDataHelpers.formDataMap(form.formData),
                               form.envelopeId))
-      replaceIdNumber = listOfIdNumbers.zip(hmrcTaxPeriodIdentifiers)
       output <- gformConnector
-                 .getAllTaxPeriods(NonEmptyList.fromList(replaceIdNumber.map(a =>
-                   HmrcTaxPeriod(a._2.idType, TextExpression(Constant(a._1)), a._2.regimeType))) match {
-                   case Some(x) => x
-                 })
+                 .getAllTaxPeriods(
+                   NonEmptyList.fromList(
+                     listOfIdNumbers
+                       .zip(hmrcTaxPeriodIdentifiers)
+                       .map(a => HmrcTaxPeriod(a._2.idType, TextExpression(Constant(a._1)), a._2.regimeType))) match {
+                     case Some(x) => x
+                   })
                  .map(i =>
                    i.flatMap(j => j.obligation.obligations.flatMap(h => makeAllInfoList(j.id, h.obligationDetails))))
     } yield output
