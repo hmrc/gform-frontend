@@ -101,8 +101,6 @@ class ObligationService(gformConnector: GformConnector) {
                        if (idNumbers.forall(i => string.equals(i))) {
                          Future(form)
                        } else {
-                         val a = string
-                         val b = idNumbers
                          val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
                          newObligations.map(i => form.copy(obligations = Some(ListAllInfo(i))))
                        }

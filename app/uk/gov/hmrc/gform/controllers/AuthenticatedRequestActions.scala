@@ -204,10 +204,8 @@ class AuthenticatedRequestActions(
                  UserData(newForm.formData, newForm.status, newForm.visitsIndex, newForm.obligations),
                  form,
                  newForm)
-      log <- Future(Logger.debug(Json.prettyPrint(Json.toJson(form)) + "UpdateUserData"))
       result <- {
         update
-        log
         f(AuthCacheWithForm(retrievals, newForm, formTemplate, newForm.obligations))
       }
     } yield result
