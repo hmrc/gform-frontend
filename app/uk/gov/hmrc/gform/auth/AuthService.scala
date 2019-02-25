@@ -224,7 +224,7 @@ class AuthService(
 
       case SubmissionReference => getSubmissionReference(envelopeId).pure[Future]
 
-      case Constant(value) => Future(value)
+      case Constant(value) => Future.successful(value)
 
       case _ => "".pure[Future] //TODO change this to AuthExpr.
     }

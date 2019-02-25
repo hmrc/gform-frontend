@@ -50,7 +50,7 @@ class ObligationService(gformConnector: GformConnector) {
                                 formTemplate,
                                 FormDataHelpers.formDataMap(form.formData),
                                 form.envelopeId)))
-      replaceIdNumber <- Future(listOfIdNumbers.zip(hmrcTaxPeriodIdentifiers))
+      replaceIdNumber = listOfIdNumbers.zip(hmrcTaxPeriodIdentifiers)
       output <- gformConnector
                  .getAllTaxPeriods(replaceIdNumber.map(a =>
                    HmrcTaxPeriod(a._2.idType, TextExpression(Constant(a._1)), a._2.regimeType)))
@@ -99,7 +99,7 @@ class ObligationService(gformConnector: GformConnector) {
                                          form.envelopeId)))
                      output <- {
                        if (idNumbers.forall(i => string.equals(i))) {
-                         Future(form)
+                         Future.successful(form)
                        } else {
                          val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
                          newObligations.map(i => form.copy(obligations = Some(ListAllInfo(i))))
@@ -112,7 +112,7 @@ class ObligationService(gformConnector: GformConnector) {
                      val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
                      newObligations.map(i => form.copy(obligations = Some(ListAllInfo(i))))
                    } else {
-                     Future(form)
+                     Future.successful(form)
                    }
                  }
                }
@@ -125,6 +125,6 @@ class ObligationService(gformConnector: GformConnector) {
     if (form.obligations != newForm.obligations) {
       gformConnector.updateUserData(formId, userData)
     } else {
-      Future.successful()
-    }
+    Future.successful()
+  }
 }
