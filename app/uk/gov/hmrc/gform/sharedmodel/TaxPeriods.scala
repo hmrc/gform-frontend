@@ -18,8 +18,9 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import java.util.Date
 
+import julienrf.json.derived
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ HmrcTaxPeriod, IdNumber, IdType, RegimeType }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 case class TaxPeriods(taxPeriods: List[TaxPeriod])
 
@@ -62,16 +63,22 @@ object TaxResponse {
   implicit val format: OFormat[TaxResponse] = Json.format[TaxResponse]
 }
 
+case class TaxPeriodIdentifier(idType: IdType, idNumber: IdNumber, regimeType: RegimeType)
+
+object TaxPeriodIdentifier {
+  implicit val format: OFormat[TaxPeriodIdentifier] = Json.format[TaxPeriodIdentifier]
+}
+
 case class AllInfo(
   idType: IdType,
-  idNumber: IdNumber,
+  idNumber: TextExpression,
   regimeType: RegimeType,
   inboundCorrespondenceFromDate: Date,
   inboundCorrespondenceToDate: Date,
   periodKey: String)
 
 object AllInfo {
-  implicit val format: OFormat[AllInfo] = Json.format[AllInfo]
+  implicit val format: OFormat[AllInfo] = derived.oformat
 }
 
 case class ListAllInfo(listAllInfo: List[AllInfo])

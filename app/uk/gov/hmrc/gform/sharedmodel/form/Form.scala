@@ -43,8 +43,9 @@ object VisitIndex {
   implicit val format: OFormat[VisitIndex] = Json.format
 
   def fromString(s: String): VisitIndex =
-    if (s.isEmpty) VisitIndex.empty
-    else
+    if (s.isEmpty) {
+      VisitIndex.empty
+    } else
       VisitIndex(
         s.split(",")
           .toList
@@ -89,7 +90,8 @@ object Form {
         FormData.format.writes(form.formData) ++
         FormStatus.format.writes(form.status) ++
         VisitIndex.format.writes(form.visitsIndex) ++
-        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate))
+        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
+        ListAllInfo.optionFormat.writes(form.obligations))
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
 

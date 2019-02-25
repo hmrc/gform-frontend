@@ -25,6 +25,7 @@ import java.util.UUID
 import play.api.Logger
 import play.api.http.HeaderNames
 import play.api.i18n.I18nSupport
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
@@ -32,7 +33,7 @@ import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
 import uk.gov.hmrc.play.HeaderCarrierConverter
@@ -197,8 +198,18 @@ class AuthenticatedRequestActions(
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
       form    <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
-      newForm <- obligationService.lookupIfPossible(form, formTemplate)
-      result  <- f(AuthCacheWithForm(retrievals, newForm, formTemplate, newForm.obligations))
+      newForm <- obligationService.lookupIfPossible(form, formTemplate, authService, retrievals)
+      update <- obligationService.updateObligations(
+                 form._id,
+                 UserData(newForm.formData, newForm.status, newForm.visitsIndex, newForm.obligations),
+                 form,
+                 newForm)
+      log <- Future(Logger.debug(Json.prettyPrint(Json.toJson(form)) + "UpdateUserData"))
+      result <- {
+        update
+        log
+        f(AuthCacheWithForm(retrievals, newForm, formTemplate, newForm.obligations))
+      }
     } yield result
 
   private def withFormWithoutObligations(f: AuthCacheWithFormWithoutObligations => Future[Result])(
