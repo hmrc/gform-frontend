@@ -87,13 +87,27 @@ class ObligationService(gformConnector: GformConnector) {
                  form.envelopeId)
       output <- form.obligations match {
                  case Some(x) => {
-                   if (x.listAllInfo.forall(i =>
-                         hmrcTaxPeriodIdentifiers.contains(HmrcTaxPeriod(i.idType, i.idNumber, i.regimeType)))) {
-                     Future(form)
-                   } else {
-                     val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
-                     newObligations.map(i => form.copy(obligations = Some(ListAllInfo(i))))
-                   }
+                   for {
+                     idNumbers <- Future.sequence(
+                                   x.listAllInfo.map(
+                                     i =>
+                                       authService.evaluateSubmissionReference(
+                                         i.idNumber,
+                                         retrievals,
+                                         formTemplate,
+                                         FormDataHelpers.formDataMap(form.formData),
+                                         form.envelopeId)))
+                     output <- {
+                       if (idNumbers.forall(i => string.equals(i))) {
+                         Future(form)
+                       } else {
+                         val a = string
+                         val b = idNumbers
+                         val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
+                         newObligations.map(i => form.copy(obligations = Some(ListAllInfo(i))))
+                       }
+                     }
+                   } yield output
                  }
                  case None => {
                    if (hmrcTaxPeriodIdentifiers.forall(i => !i.regimeType.value.isEmpty && !string.isEmpty)) {
