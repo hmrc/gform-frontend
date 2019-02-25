@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.data.NonEmptyList
 import play.api.libs.json.{ Json, OFormat, OWrites, Reads }
-import uk.gov.hmrc.gform.sharedmodel.{Obligations, TaxPeriodInformation }
+import uk.gov.hmrc.gform.sharedmodel.{ Obligations, TaxPeriodInformation }
 import play.api.libs.functional.syntax._
 
 case class UserData(
