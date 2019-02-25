@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.submission
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import play.api.libs.json.{Format, JsString, OFormat}
+import play.api.libs.json.{ Format, JsString, OFormat }
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
