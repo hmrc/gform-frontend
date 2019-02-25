@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import cats.instances.future._
 import org.scalatest.mockito.MockitoSugar.mock
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
@@ -282,6 +283,7 @@ class FormatValidationSpec extends Spec with GraphSpec {
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue

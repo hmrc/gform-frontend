@@ -27,6 +27,7 @@ import cats.syntax.applicative._
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.traverse._
+import cats.syntax.validated._
 import cats.mtl.{ ApplicativeAsk, FunctorRaise }
 import cats.mtl.implicits._
 import java.net.URLEncoder
@@ -40,9 +41,9 @@ import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, Recalculation }
+import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
 import uk.gov.hmrc.gform.sharedmodel.TaxPeriods
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
@@ -114,7 +115,7 @@ class EnrolmentController(
                 FormDataRecalculated.empty,
                 Nil,
                 Nil,
-                Valid(()),
+                ValidationResult.empty.valid,
                 lang)
           ).pure[Future]
         case _ =>
@@ -131,13 +132,13 @@ class EnrolmentController(
     data: FormDataRecalculated,
     lang: Option[String])(implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
 
-    def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType, List[Html]) = see match {
+    def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[Html]) = see match {
       case RegimeIdNotMatch(identifierRecipe) =>
         val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set("RegimeId do not match"))
         (Invalid(regimeIdError), List.empty)
       case NoIdentifierProvided =>
         val globalError = html.form.errors.error_global("At least on identifier must be provided")
-        (Valid(()), globalError :: Nil)
+        (ValidationResult.empty.valid, globalError :: Nil)
       case EnrolmentFormNotValid(invalid) => (Invalid(invalid), List.empty)
     }
 
@@ -187,9 +188,16 @@ class EnrolmentController(
 
               val allFields = getAllEnrolmentFields(enrolmentSection.fields)
               for {
-                data <- recalculation.recalculateFormData(dataRaw, formTemplate, retrievals, EnvelopeId(""))
+                data <- recalculation
+                         .recalculateFormData(dataRaw, formTemplate, retrievals, ThirdPartyData.empty, EnvelopeId(""))
                 validationResult <- validationService
-                                     .validateComponents(allFields, data, EnvelopeId(""), retrievals, formTemplate)
+                                     .validateComponents(
+                                       allFields,
+                                       data,
+                                       EnvelopeId(""),
+                                       retrievals,
+                                       ThirdPartyData.empty,
+                                       formTemplate)
                 res <- processValidation(
                         serviceId,
                         enrolmentSection,
@@ -237,7 +245,7 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection,
     postCheck: EnrolmentPostCheck,
     checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
-    validationResult: ValidatedType,
+    validationResult: ValidatedType[Unit],
     retrievals: MaterialisedRetrievals
   )(
     implicit hc: HeaderCarrier,
@@ -258,7 +266,7 @@ class EnrolmentController(
     }
 
   private def getErrorMap(
-    validationResult: ValidatedType,
+    validationResult: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     enrolmentSection: EnrolmentSection
   ): List[(FormComponent, FormFieldValidationResult)] = {
@@ -297,10 +305,21 @@ class EnrolmentController(
         res <- xs.traverse { x =>
                 val fcId = FormComponentId("dummy")
                 val convertible: Convertible[F] =
-                  evaluator.eval(Set.empty, fcId, g(x), env.data.data, env.retrievals, env.formTemplate, EnvelopeId(""))
+                  evaluator.eval(
+                    Set.empty,
+                    fcId,
+                    g(x),
+                    env.data.data,
+                    env.retrievals,
+                    env.formTemplate,
+                    ThirdPartyData.empty,
+                    EnvelopeId(""))
                 Convertible
                   .asString(convertible, env.formTemplate)
-                  .map(value => f(x)(value.getOrElse("")))
+                  .map {
+                    case Some(NewValue(value)) => f(x)(value)
+                    case _                     => f(x)("")
+                  }
               }
       } yield res
 

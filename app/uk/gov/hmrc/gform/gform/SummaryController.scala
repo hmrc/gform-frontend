@@ -89,9 +89,15 @@ class SummaryController(
         val formFieldValidationResultsF = for {
           update <- obligationService.updateObligations(
                      cache.oldForm._id,
-                     UserData(cache.form.formData, cache.form.status, cache.form.visitsIndex, cache.form.obligations),
+                     UserData(
+                       cache.form.formData,
+                       cache.form.status,
+                       cache.form.visitsIndex,
+                       cache.form.thirdPartyData,
+                       cache.form.obligations),
                      cache.oldForm,
-                     cache.form)
+                     cache.form
+                   )
           envelope <- envelopeF
           errors   <- validateForm(cache, envelope, cache.retrievals)
         } yield errors
@@ -101,7 +107,13 @@ class SummaryController(
         lazy val redirectToDeclaration = gformConnector
           .updateUserData(
             FormId(cache.retrievals, formTemplateId, maybeAccessCode),
-            UserData(cache.form.formData, Validated, cache.form.visitsIndex, cache.form.obligations))
+            UserData(
+              cache.form.formData,
+              Validated,
+              cache.form.visitsIndex,
+              cache.form.thirdPartyData,
+              cache.form.obligations)
+          )
           .map { _ =>
             Redirect(
               routes.DeclarationController
@@ -117,7 +129,12 @@ class SummaryController(
         } yield result
         val envelopeExpiryDate = cache.form.envelopeExpiryDate
         lazy val handleExit = recalculation
-          .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
+          .recalculateFormData(
+            dataRaw,
+            cache.formTemplate,
+            cache.retrievals,
+            cache.form.thirdPartyData,
+            cache.form.envelopeId)
           .map { data =>
             maybeAccessCode match {
               case (Some(accessCode)) =>
@@ -158,7 +175,8 @@ class SummaryController(
 
   // TODO JoVl - why validateForm is different from validate in FormController
   private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
-    implicit hc: HeaderCarrier): Future[(ValidatedType, Map[FormComponent, FormFieldValidationResult])] = {
+    implicit hc: HeaderCarrier)
+    : Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
 
     val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
 
@@ -166,7 +184,12 @@ class SummaryController(
       sections.filter(data.isVisible)
 
     for {
-      data <- recalculation.recalculateFormData(dataRaw, cache.formTemplate, retrievals, cache.form.envelopeId)
+      data <- recalculation.recalculateFormData(
+               dataRaw,
+               cache.formTemplate,
+               retrievals,
+               cache.form.thirdPartyData,
+               cache.form.envelopeId)
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
       allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
@@ -175,8 +198,14 @@ class SummaryController(
              .traverse(
                section =>
                  validationService
-                   .validateForm(allFields, section, cache.form.envelopeId, retrievals, cache.formTemplate)(data))
-             .map(Monoid[ValidatedType].combineAll)
+                   .validateForm(
+                     allFields,
+                     section,
+                     cache.form.envelopeId,
+                     retrievals,
+                     cache.form.thirdPartyData,
+                     cache.formTemplate)(data))
+             .map(Monoid[ValidatedType[ValidationResult]].combineAll)
       v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
       errors = validationService.evaluateValidation(v, allFields, data, envelope).toMap
     } yield (v, errors)
@@ -193,7 +222,12 @@ class SummaryController(
 
     for {
       data <- recalculation
-               .recalculateFormData(dataRaw, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
+               .recalculateFormData(
+                 dataRaw,
+                 cache.formTemplate,
+                 cache.retrievals,
+                 cache.form.thirdPartyData,
+                 cache.form.envelopeId)
       envelope <- envelopeF
       (v, _)   <- validateForm(cache, envelope, cache.retrievals)
     } yield

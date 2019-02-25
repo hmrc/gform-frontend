@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
@@ -39,7 +39,7 @@ object SummaryRenderingService {
 
   def renderSummary(
     formTemplate: FormTemplate,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     formFields: FormDataRecalculated,
     maybeAccessCode: Option[AccessCode],
     envelope: Envelope,
@@ -65,7 +65,7 @@ object SummaryRenderingService {
   }
 
   def summaryForRender(
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
@@ -77,7 +77,7 @@ object SummaryRenderingService {
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
         val gformErrors = validatedType match {
           case Invalid(errors) => errors
-          case Valid(())       => Map.empty[FormComponentId, Set[String]]
+          case Valid(_)        => Map.empty[FormComponentId, Set[String]]
         }
         Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
       }

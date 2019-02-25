@@ -101,7 +101,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     errors: List[(FormComponent, FormFieldValidationResult)],
     envelope: Envelope,
     envelopeId: EnvelopeId,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     dynamicSections: List[Section],
     formMaxAttachmentSizeMB: Int,
     contentTypes: List[ContentType],
@@ -260,7 +260,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     form: Form,
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     fieldData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
     lang: Option[String]
@@ -354,7 +354,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
                          0,
                          ei,
                          FormDataRecalculated.empty,
-                         Valid(()),
+                         ValidationResult.empty.valid,
                          lang,
                          obligations = NotChecked)))
       renderingInfo = SectionRenderingInformation(
@@ -386,7 +386,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     fieldData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
     globalErrors: List[Html],
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     lang: Option[String]
   )(implicit hc: HeaderCarrier, request: Request[_], messages: Messages): Html = {
 
@@ -450,7 +450,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     index: Int,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    maybeValidated: ValidatedType,
+    maybeValidated: ValidatedType[ValidationResult],
     lang: Option[String],
     isHidden: Boolean = false,
     obligations: Obligations)(implicit request: Request[_], messages: Messages): Html =
@@ -495,7 +495,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     fieldValue: FormComponent,
     index: Int,
     ei: ExtraInfo,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     obligations: Obligations,
     hmrcTP: HmrcTaxPeriod) = {
@@ -540,7 +540,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     ei: ExtraInfo,
     data: FormDataRecalculated,
     materialisedRetrievals: MaterialisedRetrievals,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     lang: Option[String]) = {
     val validationResult = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
 
@@ -579,7 +579,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     selections: List[Int],
     optionalHelpText: Option[List[String]],
     index: Int,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated) = {
 
@@ -667,7 +667,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     t: T,
     fieldValue: FormComponent,
     index: Int,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
     isHidden: Boolean
@@ -693,7 +693,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     expr: Expr,
     fcId: FormComponentId,
     index: Int,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
     isHidden: Boolean) = {
@@ -712,7 +712,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     fieldValue: FormComponent,
     international: Boolean,
     index: Int,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated) = {
     val fieldValues = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
@@ -725,7 +725,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     offset: Offset,
     dateValue: Option[DateValue],
     index: Int,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
     isHidden: Boolean = false) = {
@@ -761,7 +761,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     index: Int,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     lang: Option[String],
     obligations: Obligations)(implicit request: Request[_], messages: Messages): Html = {
     val grpHtml = htmlForGroup0(grp, formTemplateId, fieldValue, index, ei, data, validatedType, lang, obligations)
@@ -783,7 +783,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     index: Int,
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     lang: Option[String],
     obligations: Obligations)(implicit request: Request[_], messages: Messages) = {
     val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
@@ -825,7 +825,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     formTemplateId: FormTemplateId,
     groupField: Group,
     orientation: Orientation,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
     lang: Option[String],
@@ -859,13 +859,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
   private def buildFormFieldValidationResult(
     fieldValue: FormComponent,
     ei: ExtraInfo,
-    validatedType: ValidatedType,
+    validatedType: ValidatedType[ValidationResult],
     data: FormDataRecalculated): Option[FormFieldValidationResult] = {
     // TODO: Simplify building this result. When this method is called we already know what component we are dealing with
     // TODO: it is possible to get inner fields (if any) and build the result.
     val gformErrors: Map[FormComponentId, Set[String]] = validatedType match {
       case Invalid(errors) => errors
-      case Valid(())       => Map.empty[FormComponentId, Set[String]]
+      case Valid(_)        => Map.empty[FormComponentId, Set[String]]
     }
     val section: BaseSection = ei.dynamicSections(ei.sectionNumber.value)
 

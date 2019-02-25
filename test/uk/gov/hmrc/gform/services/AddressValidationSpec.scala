@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
@@ -53,12 +54,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-street4")  -> Seq("S4"),
         FormComponentId("x-postcode") -> Seq("P1 1P")
       ))
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.value should be(())
@@ -77,12 +79,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-postcode") -> Seq("P1 1P")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.value should be(())
@@ -103,12 +106,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-street4")  -> Seq("S4"),
         FormComponentId("x-postcode") -> Seq("BN11 7YHP")
       ))
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(
@@ -127,12 +131,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-postcode") -> Seq("P1 1P")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("street1") -> Set("l line 1 must be entered")))
@@ -150,12 +155,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-street1") -> Seq("S")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered")))
@@ -174,12 +180,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-country") -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.value should be(())
@@ -197,12 +204,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-street1") -> Seq("S")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("l Country must be entered")))
@@ -222,12 +230,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-country")  -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l must not be entered")))
@@ -246,12 +255,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-country") -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(
@@ -274,12 +284,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x@country") -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(
@@ -314,12 +325,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x@country") -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(
@@ -346,12 +358,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-postcode") -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beRight(())
@@ -370,12 +383,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-postcode") -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beRight(())
@@ -397,12 +411,13 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
         FormComponentId("x-postcode") -> Seq("C")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedAddress).futureValue
 
     result.toEither should beLeft(

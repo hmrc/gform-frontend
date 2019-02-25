@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.services
 
 import cats.data.Validated.Valid
+import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
@@ -26,8 +27,9 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.{ExampleData, NotChecked, TaxPeriods}
-import uk.gov.hmrc.gform.sharedmodel.form.{FormDataRecalculated, VisitIndex}
+import uk.gov.hmrc.gform.sharedmodel.form.ValidationResult
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.JavaConverters
@@ -60,7 +62,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        Valid(()),
+        ValidationResult.empty.valid,
         allSections,
         0,
         Nil,
@@ -107,7 +109,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        Valid(()),
+        ValidationResult.empty.valid,
         allSections.map(sc => sc.copy(fields = sc.fields.map(f => f.copy(onlyShowOnSummary = true)))),
         0,
         Nil,
@@ -148,7 +150,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        Valid(()),
+        ValidationResult.empty.valid,
         List(allSections.head.copy(progressIndicator = Some("Progress Indicator"))),
         0,
         Nil,
@@ -180,7 +182,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        Valid(()),
+        ValidationResult.empty.valid,
         allSections,
         0,
         Nil,
@@ -274,7 +276,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        Valid(()),
+        ValidationResult.empty.valid,
         allSections,
         0,
         Nil,
@@ -329,7 +331,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        Valid(()),
+        ValidationResult.empty.valid,
         allSections,
         0,
         Nil,
@@ -381,7 +383,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         Nil,
         Envelope(Nil),
         envelopeId,
-        Valid(()),
+        ValidationResult.empty.valid,
         allSections,
         0,
         Nil,
@@ -408,7 +410,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         form,
         formTemplate,
         retrievals,
-        Valid(()),
+        ValidationResult.empty.valid,
         FormDataRecalculated.empty,
         Nil,
         None
@@ -432,7 +434,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         form,
         formTemplate.copy(formCategory = Some(HMRCClaimForm)),
         retrievals,
-        Valid(()),
+        ValidationResult.empty.valid,
         FormDataRecalculated.empty,
         Nil,
         None
@@ -456,7 +458,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
         form,
         formTemplate.copy(formCategory = Some(HMRCReturnForm)),
         retrievals,
-        Valid(()),
+        ValidationResult.empty.valid,
         FormDataRecalculated.empty,
         Nil,
         None

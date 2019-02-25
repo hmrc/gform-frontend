@@ -27,15 +27,13 @@ import scala.util.Try
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormField, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormField, ValidationResult, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.http.HeaderCarrier
 
 case class ProcessData(data: FormDataRecalculated, sections: List[Section], visitIndex: VisitIndex)
 
 class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
-
-  private def toData(xs: Seq[FormField]): Data = xs.map(x => x.id -> List(x.value)).toMap
 
   def updateSectionVisits(dataRaw: Data, sections: List[Section], mongoSections: List[Section]): Set[Int] = {
     val visitIndex = dataRaw
@@ -61,7 +59,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
     me: MonadError[F, E]): F[ProcessData] =
     for {
       browserRecalculated <- recalculateDataAndSections(dataRaw, cache)
-      mongoRecalculated   <- recalculateDataAndSections(toData(cache.form.formData.fields), cache)
+      mongoRecalculated   <- recalculateDataAndSections(cache.form.formData.toData, cache)
     } yield {
 
       val (data, sections) = browserRecalculated
@@ -77,7 +75,12 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
     me: MonadError[F, E]): F[(FormDataRecalculated, List[Section])] =
     for {
       formDataRecalculated <- recalculation
-                               .recalculateFormData(data, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
+                               .recalculateFormData(
+                                 data,
+                                 cache.formTemplate,
+                                 cache.retrievals,
+                                 cache.form.thirdPartyData,
+                                 cache.form.envelopeId)
     } yield {
       val sections = RepeatingComponentService.getAllSections(cache.formTemplate, formDataRecalculated)
       (formDataRecalculated, sections)

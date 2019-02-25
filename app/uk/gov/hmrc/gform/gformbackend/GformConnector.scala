@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.gformbackend
 
 import akka.util.ByteString
 import cats.data.NonEmptyList
-import play.api.Logger
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
+import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel._
@@ -107,12 +107,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").map(_ => ())
 
   /********Validators******/
-  def validatePostCodeUtr(utr: String, postCode: String)(
+  def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Boolean] =
-    ws.POST[ValAddress, HttpResponse](s"$baseUrl/validate/des", ValAddress(utr, postCode)).map(_ => true).recover {
-      case _: NotFoundException => false
-    }
+    ec: ExecutionContext): Future[DesRegistrationResponse] =
+    ws.POST[DesRegistrationRequest, DesRegistrationResponse](s"$baseUrl/validate/des/$utr", desRegistrationRequest)
 
   def validateBankModulus(accountNumber: String, sortCode: String)(
     implicit hc: HeaderCarrier,

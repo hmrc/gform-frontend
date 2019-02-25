@@ -20,7 +20,7 @@ import cats.Monad
 import cats.syntax.applicative._
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.graph.{ Convertible, NonConvertible }
+import uk.gov.hmrc.gform.graph.{ Convertible, NonConvertible, RecalculationOp }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -29,26 +29,41 @@ import scala.language.higherKinds
 
 class UserCtxEvaluatorProcessor[F[_]: Monad] {
 
-  def processEvaluation(retrievals: MaterialisedRetrievals, userCtx: UserCtx, authConfig: AuthConfig): Convertible[F] =
-    NonConvertible {
+  def processEvaluation(
+    retrievals: MaterialisedRetrievals,
+    userCtx: UserCtx,
+    authConfig: AuthConfig
+  ): Convertible[F] = {
+    val result =
       (retrievals, userCtx) match {
-        case (AnonymousRetrievals(_), _) => "".pure[F] //TODO this maybe unnecessary as captured from last 'case'
+        case (AnonymousRetrievals(_), _) => RecalculationOp.noChange
         case (AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _), UserCtx(EnrolledIdentifier)) =>
-          irctUtr(enrolments, authConfig)
+          getIdentifierValue(enrolments, authConfig)
         case (
             AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _),
             UserCtx(Enrolment(ServiceName(sn), IdentifierName(in)))) =>
-          enrolments.getEnrolment(sn).flatMap(_.getIdentifier(in)).map(_.value).getOrElse("").pure[F]
-        case (_, _) => affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)).pure[F]
+          enrolments
+            .getEnrolment(sn)
+            .flatMap(_.getIdentifier(in))
+            .map(a => RecalculationOp.newValue(a.value))
+            .getOrElse(RecalculationOp.noChange)
+        case (_, UserCtx(AffinityGroup)) =>
+          RecalculationOp.newValue(affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)))
       }
-    }
-
-  private def irctUtr(enrolments: Enrolments, authConfig: AuthConfig) = authConfig match {
-    case HmrcEnrolmentModule(auth)             => identifierValue(enrolments, auth)
-    case HmrcAgentWithEnrolmentModule(_, auth) => identifierValue(enrolments, auth)
-    case _                                     => "".pure[F]
+    NonConvertible(result.pure[F])
   }
 
-  private def identifierValue(enrolments: Enrolments, auth: EnrolmentAuth): F[String] =
-    enrolments.getEnrolment(auth.serviceId.value).flatMap(_.identifiers.headOption).map(_.value).getOrElse("").pure[F]
+  private def getIdentifierValue(enrolments: Enrolments, authConfig: AuthConfig) = authConfig match {
+    case HmrcEnrolmentModule(auth)             => identifierValue(enrolments, auth)
+    case HmrcAgentWithEnrolmentModule(_, auth) => identifierValue(enrolments, auth)
+    case _                                     => RecalculationOp.noChange
+  }
+
+  private def identifierValue(enrolments: Enrolments, auth: EnrolmentAuth): RecalculationOp =
+    enrolments
+      .getEnrolment(auth.serviceId.value)
+      .flatMap(_.identifiers.headOption)
+      .map(a => RecalculationOp.newValue(a.value))
+      .getOrElse(RecalculationOp.noChange)
+
 }

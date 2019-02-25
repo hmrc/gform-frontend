@@ -17,11 +17,12 @@
 package uk.gov.hmrc.gform.graph.processor
 
 import cats.Id
+import cats.syntax.applicative._
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments, AffinityGroup => CoreAffinityGroup }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals }
-import uk.gov.hmrc.gform.graph.NonConvertible
+import uk.gov.hmrc.gform.graph.{ NoChange, NonConvertible, RecalculationOp }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, EnrolledIdentifier, EnrolmentAuth, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, Never, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
 import uk.gov.hmrc.http.logging.SessionId
 
@@ -38,7 +39,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
 
   it should "return an empty string when authModule in authConfig is set anonymous" in new UserCtxEvaluatorProcessor[Id] {
     processEvaluation(AnonymousRetrievals(SessionId("id")), UserCtx(EnrolledIdentifier), authConfig) should be(
-      NonConvertible(""))
+      NonConvertible(NoChange.pure[Id]))
   }
 
   lazy val userCtxTable = Table(
@@ -48,26 +49,31 @@ class UserCtxEvaluatorProcessorTest extends Spec {
       EnrolledIdentifier,
       ServiceId("IR-CT"),
       HmrcEnrolmentModule(EnrolmentAuth(ServiceId("IR-CT"), Never)),
-      NonConvertible("CT value")),
+      NonConvertible(RecalculationOp.newValue("CT value").pure[Id])),
     (
       irsaEnrolment,
       EnrolledIdentifier,
       ServiceId("IR-SA"),
       HmrcEnrolmentModule(EnrolmentAuth(ServiceId("IR-SA"), Never)),
-      NonConvertible("SA value")),
+      NonConvertible(RecalculationOp.newValue("SA value").pure[Id])),
     (
       irsaEnrolment,
       EnrolledIdentifier,
       ServiceId("IR-SA"),
       HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never)),
-      NonConvertible("SA value")),
+      NonConvertible(RecalculationOp.newValue("SA value").pure[Id])),
     (
       irctEnrolment,
       EnrolledIdentifier,
       ServiceId(""),
       HmrcEnrolmentModule(EnrolmentAuth(ServiceId(""), Never)),
-      NonConvertible("")),
-    (irctEnrolment, FTAffinityGroup, ServiceId(""), HmrcSimpleModule, NonConvertible("agent"))
+      NonConvertible(RecalculationOp.noChange.pure[Id])),
+    (
+      irctEnrolment,
+      FTAffinityGroup,
+      ServiceId(""),
+      HmrcSimpleModule,
+      NonConvertible(RecalculationOp.newValue("agent").pure[Id]))
   )
 
   lazy val materialisedRetrievalsAgent = AuthenticatedRetrievals(

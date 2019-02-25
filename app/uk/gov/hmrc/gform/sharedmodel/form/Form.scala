@@ -63,6 +63,7 @@ case class Form(
   formData: FormData,
   status: FormStatus,
   visitsIndex: VisitIndex,
+  thirdPartyData: ThirdPartyData,
   envelopeExpiryDate: Option[EnvelopeExpiryDate],
   obligations: Obligations
 )
@@ -77,6 +78,7 @@ object Form {
       FormData.format and
       FormStatus.format and
       VisitIndex.format and
+      ThirdPartyData.format and
       EnvelopeExpiryDate.optionFormat and
       Obligations.format
   )(Form.apply _)
@@ -90,6 +92,7 @@ object Form {
         FormData.format.writes(form.formData) ++
         FormStatus.format.writes(form.status) ++
         VisitIndex.format.writes(form.visitsIndex) ++
+        ThirdPartyData.format.writes(form.thirdPartyData) ++
         EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
         Obligations.format.writes(form.obligations))
 

@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -67,12 +68,13 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(speccedDate).futureValue
 
     result.value shouldBe (())
@@ -112,6 +114,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -153,6 +156,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -194,6 +198,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -235,6 +240,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -276,6 +282,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -317,6 +324,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -358,6 +366,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -399,6 +408,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -440,6 +450,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -479,6 +490,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -519,6 +531,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -554,12 +567,13 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
         FormComponentId("accPeriodStartDate-year")  -> Seq(LocalDate.now().getYear.toString)
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(fieldValue).futureValue
 
     result.toEither should beLeft(
@@ -593,12 +607,13 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
         FormComponentId("accPeriodStartDate.year")  -> Seq("1970")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("sample label is missing")))
@@ -628,12 +643,13 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
         FormComponentId("accPeriodStartDate.year")  -> Seq("1970")
       ))
 
-    val result: ValidatedType = new ComponentsValidator(
+    val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
       mock[FileUploadService],
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate).validate(fieldValue).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("New error message")))

@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.data.Validated.Valid
+import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.mvc.Call
@@ -26,7 +27,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
@@ -133,8 +134,7 @@ class SummarySpec extends Spec {
     val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
 
     def fieldValues = formTemplate.sections.flatMap(_.fields)
-    def f: ValidatedType =
-      Valid(()) //valuesValidate(formDataRecalculated, fieldValues, envelope, Map.empty[FieldId, Set[String]])
+    def f: ValidatedType[ValidationResult] = ValidationResult.empty.valid
     implicit val hc = HeaderCarrier()
 
   }
