@@ -71,10 +71,6 @@ testGrouping in IntegrationTest := oneForkedJvmPerTest2((definedTests in Integra
 parallelExecution in IntegrationTest := false
 
 resolvers ++= Seq(
-  Resolver.bintrayRepo("jetbrains", "markdown"),
-  Resolver.jcenterRepo
-)
-resolvers ++= Seq(
   Resolver.jcenterRepo,
   "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven"
 )
