@@ -20,7 +20,7 @@ import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.FormField
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.BooleanExprGen
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -56,6 +56,8 @@ class BooleanExprSpec extends Spec with GraphSpec {
           rawDataFromBrowser,
           authContext,
           Set.empty,
+          ThirdPartyData.empty,
+          EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
   }
@@ -82,6 +84,8 @@ class BooleanExprSpec extends Spec with GraphSpec {
           rawDataFromBrowser,
           authContext,
           Set.empty,
+          ThirdPartyData.empty,
+          EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
   }
@@ -106,6 +110,8 @@ class BooleanExprSpec extends Spec with GraphSpec {
           rawDataFromBrowser,
           authContext,
           Set.empty,
+          ThirdPartyData.empty,
+          EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
   }
@@ -130,7 +136,10 @@ class BooleanExprSpec extends Spec with GraphSpec {
           rawDataFromBrowser,
           authContext,
           Set.empty,
-          ExampleData.formTemplate) shouldBe result
+          ThirdPartyData.empty,
+          EnvelopeId(""),
+          ExampleData.formTemplate
+        ) shouldBe result
     }
   }
 
@@ -154,6 +163,8 @@ class BooleanExprSpec extends Spec with GraphSpec {
           rawDataFromBrowser,
           authContext,
           Set.empty,
+          ThirdPartyData.empty,
+          EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
   }
@@ -178,6 +189,8 @@ class BooleanExprSpec extends Spec with GraphSpec {
           rawDataFromBrowser,
           authContext,
           Set.empty,
+          ThirdPartyData.empty,
+          EnvelopeId(""),
           ExampleData.formTemplate) shouldBe result
     }
   }

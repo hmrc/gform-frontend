@@ -35,8 +35,8 @@ case object Validator {
   implicit val format: OFormat[Validator] = OFormatWithTemplateReadFallback(templateReads)
 }
 
-case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, postcode: FormCtx) extends Validator {
-
+case class HMRCUTRPostcodeCheckValidator(errorMessage: String, regime: String, utr: FormCtx, postcode: FormCtx)
+    extends Validator {
   val utrFieldId = FormComponentId(utr.value)
   val postcodeFieldId = FormComponentId(postcode.value)
 }
@@ -44,6 +44,7 @@ case class HMRCUTRPostcodeCheckValidator(errorMessage: String, utr: FormCtx, pos
 object HMRCUTRPostcodeCheckValidator {
   private val readCustom: Reads[HMRCUTRPostcodeCheckValidator] =
     ((JsPath \ "errorMessage").read[String] and
+      (JsPath \ "parameters" \ "regime").read[String] and
       (JsPath \ "parameters" \ "utr").read(FormCtx.readsForTemplateJson) and
       (JsPath \ "parameters" \ "postcode").read(FormCtx.readsForTemplateJson))(HMRCUTRPostcodeCheckValidator.apply _)
 

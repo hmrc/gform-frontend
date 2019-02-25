@@ -23,7 +23,9 @@ import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphNode, IncludeIfGN, SimpleGN }
 
-case class FormData(fields: Seq[FormField]) extends AnyVal
+case class FormData(fields: Seq[FormField]) extends AnyVal {
+  def toData: Data = fields.map(x => x.id -> List(x.value)).toMap
+}
 case class FormDataRecalculated(invisible: Set[GraphNode], data: Data) {
   def isVisible(section: Section): Boolean =
     !invisible.exists {

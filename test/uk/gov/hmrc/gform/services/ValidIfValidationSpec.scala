@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import cats.data.NonEmptyList
 import org.scalatest.mockito.MockitoSugar.mock
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
@@ -90,7 +91,9 @@ class ValidIfValidationSpec extends Spec with GraphSpec {
         EnvelopeId("whatever"),
         retrievals,
         booleanExprEval,
-        ExampleData.formTemplate).validate(fieldValue)
+        ThirdPartyData.empty,
+        ExampleData.formTemplate
+      ).validate(fieldValue)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }

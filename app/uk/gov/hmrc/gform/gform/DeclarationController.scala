@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.future._
+import cats.syntax.validated._
 import org.jsoup.Jsoup
 import play.api.Logger
 import play.api.i18n.I18nSupport
@@ -73,7 +74,7 @@ class DeclarationController(
                   cache.form,
                   cache.formTemplate,
                   cache.retrievals,
-                  Valid(()),
+                  ValidationResult.empty.valid,
                   FormDataRecalculated.empty,
                   Nil,
                   lang)
@@ -134,6 +135,7 @@ class DeclarationController(
                        formData,
                        cacheOrig.formTemplate,
                        cacheOrig.retrievals,
+                       cacheOrig.form.thirdPartyData,
                        cacheOrig.form.envelopeId)
               invisibleSections = cacheOrig.formTemplate.sections.filterNot(data.isVisible)
 
@@ -152,6 +154,7 @@ class DeclarationController(
                          declarationData,
                          cache.form.envelopeId,
                          cache.retrievals,
+                         cache.form.thirdPartyData,
                          cacheOrig.formTemplate
                        )
 
@@ -166,7 +169,7 @@ class DeclarationController(
     }
 
   def isValid(
-    valType: ValidatedType,
+    valType: ValidatedType[Unit],
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
@@ -181,11 +184,17 @@ class DeclarationController(
                        cache.retrievals,
                        cache.formTemplate,
                        formDataMap(updatedForm.formData),
-                       cache.form.envelopeId)
+                       cache.form.envelopeId
+                     )
         _ <- gformConnector
               .updateUserData(
                 cache.form._id,
-                UserData(updatedForm.formData, Signed, updatedForm.visitsIndex, cache.form.obligations))
+                UserData(
+                  updatedForm.formData,
+                  Signed,
+                  updatedForm.visitsIndex,
+                  updatedForm.thirdPartyData,
+                  cache.form.obligations))
         //todo perhaps not make these calls at all if the feature flag is false?
         summaryHml <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
         cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)
@@ -243,7 +252,7 @@ class DeclarationController(
   }
 
   private def getErrorMap(
-    validationResult: ValidatedType,
+    validationResult: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
     val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)

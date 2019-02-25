@@ -20,6 +20,7 @@ import cats.instances.option._
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated }
@@ -66,6 +67,7 @@ class NavitagionSpec extends Spec with GraphSpec {
       formData.map { case (k, v) => k -> Seq(v) },
       mkFormTemplate(sectionsData),
       ExampleData.authContext,
+      ThirdPartyData.empty,
       EnvelopeId("")
     )
     new Navigation {

@@ -25,7 +25,7 @@ import cats.data.Validated.{ Invalid, Valid }
 import play.api.Logger
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ValidationUtil {
@@ -35,7 +35,7 @@ object ValidationUtil {
   type ValidatedNumeric = Validated[String, Int]
   type ValidatedConcreteDate = Validated[GformError, ConcreteDate]
 
-  type ValidatedType = Validated[GformError, Unit]
+  type ValidatedType[A] = Validated[GformError, A]
 
   val printErrors: (Map[String, Set[String]]) => Set[String] = (map: Map[String, Set[String]]) => {
     map.foldLeft(Set[String]())(_ ++ _._2)
@@ -95,7 +95,7 @@ object ValidationUtil {
 
   def evaluateValidationResult(
     atomicFields: List[FormComponent],
-    validationResult: ValidatedType,
+    validationResult: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     envelope: Envelope): List[FormFieldValidationResult] = {
 
@@ -103,7 +103,7 @@ object ValidationUtil {
 
     val gFormErrors = validationResult match {
       case Invalid(errors) => errors
-      case Valid(())       => Map.empty[FormComponentId, Set[String]]
+      case Valid(_)        => Map.empty[FormComponentId, Set[String]]
     }
 
     val resultErrors: List[FormFieldValidationResult] = atomicFields.map { fieldValue =>
@@ -211,7 +211,9 @@ object ValidationUtil {
       }
   }
 
-  def validateFileUploadHasScannedFiles(fieldValues: List[FormComponent], e: Envelope): Validated[GformError, Unit] = {
+  def validateFileUploadHasScannedFiles(
+    fieldValues: List[FormComponent],
+    e: Envelope): Validated[GformError, ValidationResult] = {
     val fileUploads: Map[FormComponentId, FormComponent] = fieldValues.collect {
       case fv @ FormComponent(id, _: FileUpload, _, _, _, _, _, _, _, _, _, _, _) => id -> fv
     }.toMap
@@ -224,7 +226,7 @@ object ValidationUtil {
       defaultMessage: String): Validated[Map[FormComponentId, Set[String]], Nothing] =
       Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
 
-    val flakies: Seq[ValidatedType] = e.files
+    val flakies: Seq[ValidatedType[ValidationResult]] = e.files
       .collect {
         case f @ File(_, Quarantined, _) =>
           //not processed (scanned by virus scanner) files are in quarantined state
@@ -245,6 +247,6 @@ object ValidationUtil {
             s"Looks like there are more files in the envelope than we expected to have. Could not find 'FieldValue' to corresponding file: $fs"))
         getError(fieldValue, fs._2)
       }
-    Monoid[ValidatedType].combineAll(flakies)
+    Monoid[ValidatedType[ValidationResult]].combineAll(flakies)
   }
 }

@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.services
 import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.prop.TableDrivenPropertyChecks
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
@@ -61,6 +62,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
         EnvelopeId("whatever"),
         retrievals,
         booleanExprEval,
+        ThirdPartyData.empty,
         ExampleData.formTemplate)
         .validate(fieldValue)
 

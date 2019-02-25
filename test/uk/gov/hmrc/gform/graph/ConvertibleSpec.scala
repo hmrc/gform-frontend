@@ -30,19 +30,19 @@ class ConvertibleSpec extends FlatSpec with Matchers {
 
     val formComponentIds = Table(
       ("computable", "scale", "roundingMode", "output"),
-      (NonComputable, 2, RoundingMode.Floor, ""),
-      (Computed(1.23456), 2, RoundingMode.Floor, "1.23"),
-      (Computed(1.239), 2, RoundingMode.Floor, "1.23"),
-      (Computed(1.2), 2, RoundingMode.Floor, "1.2"),
-      (Computed(12), 2, RoundingMode.Floor, "12"),
-      (Computed(1.239), 2, RoundingMode.Ceiling, "1.24"),
-      (Computed(1.239), 2, RoundingMode.Floor, "1.23"),
-      (Computed(1.239), 2, RoundingMode.Up, "1.24"),
-      (Computed(1.239), 2, RoundingMode.Down, "1.23"),
-      (Computed(1.235), 2, RoundingMode.HalfEven, "1.24"),
-      (Computed(1.245), 2, RoundingMode.HalfEven, "1.24"),
-      (Computed(1.235), 2, RoundingMode.HalfUp, "1.24"),
-      (Computed(1.235), 2, RoundingMode.HalfDown, "1.23")
+      (NonComputable, 2, RoundingMode.Floor, NoChange),
+      (Computed(1.23456), 2, RoundingMode.Floor, NewValue("1.23")),
+      (Computed(1.239), 2, RoundingMode.Floor, NewValue("1.23")),
+      (Computed(1.2), 2, RoundingMode.Floor, NewValue("1.2")),
+      (Computed(12), 2, RoundingMode.Floor, NewValue("12")),
+      (Computed(1.239), 2, RoundingMode.Ceiling, NewValue("1.24")),
+      (Computed(1.239), 2, RoundingMode.Floor, NewValue("1.23")),
+      (Computed(1.239), 2, RoundingMode.Up, NewValue("1.24")),
+      (Computed(1.239), 2, RoundingMode.Down, NewValue("1.23")),
+      (Computed(1.235), 2, RoundingMode.HalfEven, NewValue("1.24")),
+      (Computed(1.245), 2, RoundingMode.HalfEven, NewValue("1.24")),
+      (Computed(1.235), 2, RoundingMode.HalfUp, NewValue("1.24")),
+      (Computed(1.235), 2, RoundingMode.HalfDown, NewValue("1.23"))
     )
 
     forAll(formComponentIds) { (computable, scale, roundingMode, expectedOutput) ⇒

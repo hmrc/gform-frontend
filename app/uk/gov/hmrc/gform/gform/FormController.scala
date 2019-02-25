@@ -16,21 +16,23 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.data.Validated.Valid
+import cats.Eq
 import cats.instances.future._
+import cats.instances.option._
 import cats.syntax.applicative._
+import cats.syntax.apply._
+import cats.syntax.eq._
+import cats.syntax.validated._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.{ AgentAccessCode, ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.obligation.ObligationService
@@ -70,14 +72,22 @@ class FormController(
     sn: SectionNumber,
     cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
-  ): Future[(Boolean, FormData)] =
+  ): Future[(Boolean, FormData, ValidatedType[ValidationResult])] =
     for {
-      formData <- validate(data, sections, sn, cache.form.envelopeId, cache.retrievals, cache.formTemplate)
+      formData <- validate(
+                   data,
+                   sections,
+                   sn,
+                   cache.form.envelopeId,
+                   cache.retrievals,
+                   cache.form.thirdPartyData,
+                   cache.formTemplate)
                    .map {
-                     case (validationResult, _, _) =>
+                     case (validationResult, v, _) =>
                        (
                          ValidationUtil.isFormValid(validationResult.toMap),
-                         FormData(validationResult.flatMap(_._2.toFormField)))
+                         FormData(validationResult.flatMap(_._2.toFormField)),
+                         v)
                    }
     } yield formData
 
@@ -95,7 +105,7 @@ class FormController(
             case Some(sn) => Future.successful(Some(sn))
             case None =>
               validateForm(data, sections, currentSn, cache).map {
-                case (isValid, _) =>
+                case (isValid, _, _) =>
                   val section = sections(currentSn.value)
                   val hasBeenVisited = processData.visitIndex.visitsIndex.contains(currentSn.value)
 
@@ -308,14 +318,27 @@ class FormController(
     for {
       update <- obligationService.updateObligations(
                  cache.oldForm._id,
-                 UserData(cache.form.formData, cache.form.status, cache.form.visitsIndex, cache.form.obligations),
+                 UserData(
+                   cache.form.formData,
+                   cache.form.status,
+                   cache.form.visitsIndex,
+                   cache.form.thirdPartyData,
+                   cache.form.obligations),
                  cache.oldForm,
-                 cache.form)
+                 cache.form
+               )
       (data, sections) <- processDataService.recalculateDataAndSections(dataRaw, cache)
       (errors, v, envelope) <- suppressErrors match {
-                                case SeYes => envelopeF(envelopeId).map((List.empty, Valid(()), _))
+                                case SeYes => envelopeF(envelopeId).map((List.empty, ValidationResult.empty.valid, _))
                                 case SeNo =>
-                                  validate(data, sections, sectionNumber, envelopeId, retrievals, cache.formTemplate)
+                                  validate(
+                                    data,
+                                    sections,
+                                    sectionNumber,
+                                    envelopeId,
+                                    retrievals,
+                                    cache.form.thirdPartyData,
+                                    cache.formTemplate)
                               }
       html = renderer.renderSection(
         maybeAccessCode,
@@ -429,10 +452,11 @@ class FormController(
     sectionNumber: SectionNumber,
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals,
+    thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate
   )(
     implicit request: Request[AnyContent]
-  ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType, Envelope)] = {
+  ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] = {
     val section = sections(sectionNumber.value)
     val nonSubmittedYet = nonSubmittedFCsOfNonGroup(formDataRecalculated, section)
     val allFC = submittedFCs(formDataRecalculated, sections.flatMap(_.expandSection(formDataRecalculated.data).allFCs)) ++ nonSubmittedYet
@@ -441,7 +465,8 @@ class FormController(
     for {
       envelope <- envelopeF(envelopeId)
       v <- validationService
-            .validateForm(sectionFields, section, envelopeId, retrievals, formTemplate)(formDataRecalculated)
+            .validateForm(sectionFields, section, envelopeId, retrievals, thirdPartyData, formTemplate)(
+              formDataRecalculated)
     } yield (validationService.evaluateValidation(v, allFC, formDataRecalculated, envelope), v, envelope)
   }
 
@@ -452,28 +477,51 @@ class FormController(
     lang: Option[String]
   ) = auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
     processResponseDataFromBody(request) { (dataRaw: Data) =>
-      val form: Form = cache.form
-      val envelopeId = form.envelopeId
-      val retrievals = cache.retrievals
+      val formId = FormId(cache.retrievals, formTemplateId, maybeAccessCode)
 
-      val formId = FormId(retrievals, formTemplateId, maybeAccessCode)
-
-      def validateAndUpdateData(processData: ProcessData)(result: Option[SectionNumber] => Result): Future[Result] =
+      def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
+        toResult: Option[SectionNumber] => Result): Future[Result] =
         for {
-          (_, formData) <- validateForm(processData.data, processData.sections, sectionNumber, cache)
-          maybeSn       <- fastForwardValidate(processData, cache)
+          (_, formData, v) <- validateForm(processData.data, processData.sections, sectionNumber, cache)
+          res <- {
+            val before: ThirdPartyData = cache.form.thirdPartyData
+            val after: ThirdPartyData = before.updateFrom(v)
+
+            val needsSecondPhaseRecalculation =
+              (before.desRegistrationResponse, after.desRegistrationResponse).mapN(_ =!= _)
+
+            val cacheUpd = cache.copy(form = cache.form.copy(thirdPartyData = after, formData = formData))
+
+            if (needsSecondPhaseRecalculation.getOrElse(false)) {
+              val newDataRaw = formData.copy(fields = cache.form.visitsIndex.toFormField +: formData.fields).toData
+              for {
+                newProcessData <- processDataService.getProcessData(newDataRaw, cacheUpd)
+                result         <- validateAndUpdateData(cacheUpd, newProcessData)(toResult) // recursive call
+              } yield result
+            } else {
+              updateUserData(cacheUpd, processData)(toResult)
+            }
+          }
+        } yield res
+
+      def updateUserData(cache: AuthCacheWithForm, processData: ProcessData)(
+        toResult: Option[SectionNumber] => Result): Future[Result] =
+        for {
+          maybeSn <- fastForwardValidate(processData, cache)
           userData = UserData(
-            formData,
+            cache.form.formData,
             maybeSn.fold(Summary: FormStatus)(_ => InProgress),
             processData.visitIndex,
-            cache.form.obligations)
-          res <- gformConnector.updateUserData(formId, userData).map(_ => result(maybeSn))
+            cache.form.thirdPartyData,
+            cache.form.obligations
+          )
+          res <- gformConnector.updateUserData(formId, userData).map(_ => toResult(maybeSn))
         } yield res
 
       def processSaveAndContinue(
         processData: ProcessData
       ): Future[Result] =
-        validateAndUpdateData(processData) {
+        validateAndUpdateData(cache, processData) {
           case Some(sn) =>
             val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title)
             Redirect(
@@ -484,7 +532,7 @@ class FormController(
         }
 
       def processSaveAndExit(processData: ProcessData): Future[Result] =
-        validateAndUpdateData(processData) { maybeSn =>
+        validateAndUpdateData(cache, processData) { maybeSn =>
           val formTemplate = cache.formTemplate
           val envelopeExpiryDate = cache.form.envelopeExpiryDate
           maybeAccessCode match {
@@ -502,13 +550,13 @@ class FormController(
         }
 
       def processBack(processData: ProcessData, sn: SectionNumber): Future[Result] =
-        validateAndUpdateData(processData) { _ =>
+        validateAndUpdateData(cache, processData) { _ =>
           val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title)
           Redirect(routes.FormController.form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, lang, SeYes))
         }
 
       def handleGroup(processData: ProcessData, anchor: String): Future[Result] =
-        validateAndUpdateData(processData) { _ =>
+        validateAndUpdateData(cache, processData) { _ =>
           val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sectionNumber.value).title)
           Redirect(
             routes.FormController

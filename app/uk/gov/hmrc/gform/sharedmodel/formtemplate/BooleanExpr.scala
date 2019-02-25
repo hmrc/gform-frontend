@@ -25,8 +25,8 @@ import play.api.libs.json._
 
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator }
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -55,9 +55,12 @@ class BooleanExprEval[F[_]: Monad](
     data: Map[FormComponentId, Seq[String]],
     retrievals: MaterialisedRetrievals,
     visSet: Set[GraphNode],
+    thirdPartyData: ThirdPartyData,
+    envelopeId: EnvelopeId,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): F[Boolean] = {
 
-    def loop(expr: BooleanExpr): F[Boolean] = isTrue(expr, data, retrievals, visSet, formTemplate)
+    def loop(expr: BooleanExpr): F[Boolean] =
+      isTrue(expr, data, retrievals, visSet, thirdPartyData, envelopeId, formTemplate)
 
     def compare(
       leftField: Expr,
@@ -77,14 +80,24 @@ class BooleanExprEval[F[_]: Monad](
               maybeStringB <- Convertible.asString(right, formTemplate)
             } yield
               (maybeStringA, maybeStringB) match {
-                case (Some(strA), Some(strB)) => stringRelation(strA, strB)
-                case (_, _)                   => false
+                case (Some(NewValue(strA)), Some(NewValue(strB))) => stringRelation(strA, strB)
+                case (_, _)                                       => false
               }
         }
 
       val fcId = FormComponentId("dummy")
       evaluator
-        .makeCalc(visSet, fcId, data, leftField, rightField, retrievals, formTemplate, doComparison, EnvelopeId(""))
+        .makeCalc(
+          visSet,
+          fcId,
+          data,
+          leftField,
+          rightField,
+          retrievals,
+          formTemplate,
+          doComparison,
+          thirdPartyData,
+          envelopeId)
     }
 
     expr match {
