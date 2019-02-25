@@ -41,15 +41,14 @@ class ObligationService(gformConnector: GformConnector) {
       case IsHmrcTaxPeriod(el) => el
     }
     for {
-      listOfIdNumbers <- Future.sequence(
-                          hmrcTaxPeriodIdentifiers.map(
+      listOfIdNumbers <- Future.traverse(hmrcTaxPeriodIdentifiers)(
                             i =>
                               authService.evaluateSubmissionReference(
                                 i.idNumber,
                                 retrievals,
                                 formTemplate,
                                 FormDataHelpers.formDataMap(form.formData),
-                                form.envelopeId)))
+                                form.envelopeId))
       replaceIdNumber = listOfIdNumbers.zip(hmrcTaxPeriodIdentifiers)
       output <- gformConnector
                  .getAllTaxPeriods(replaceIdNumber.map(a =>
@@ -88,15 +87,14 @@ class ObligationService(gformConnector: GformConnector) {
       output <- form.obligations match {
                  case Some(x) => {
                    for {
-                     idNumbers <- Future.sequence(
-                                   x.listAllInfo.map(
+                     idNumbers <- Future.traverse(x.listAllInfo)(
                                      i =>
                                        authService.evaluateSubmissionReference(
                                          i.idNumber,
                                          retrievals,
                                          formTemplate,
                                          FormDataHelpers.formDataMap(form.formData),
-                                         form.envelopeId)))
+                                         form.envelopeId))
                      output <- {
                        if (idNumbers.forall(i => string.equals(i))) {
                          Future.successful(form)
