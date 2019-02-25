@@ -65,7 +65,7 @@ class ObligationService(gformConnector: GformConnector) {
     } yield output
   }
 
-  def makeAllInfoList(id: HmrcTaxPeriod, obligation: List[ObligationDetail]) =
+  def makeAllInfoList(id: HmrcTaxPeriod, obligation: NonEmptyList[ObligationDetail]) =
     obligation.map(i =>
       TaxPeriodInformation(id, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, i.periodKey))
 
@@ -91,7 +91,7 @@ class ObligationService(gformConnector: GformConnector) {
           output <- form.obligations match {
                      case RetrievedObligations(x) => {
                        for {
-                         idNumbers <- Future.traverse(x)(
+                         idNumbers <- Future.traverse(x.toList)(
                                        i =>
                                          authService.evaluateSubmissionReference(
                                            i.hmrcTaxPeriod.idNumber,

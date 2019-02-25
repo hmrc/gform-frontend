@@ -504,7 +504,7 @@ class SectionRenderingService(
     hmrcTP: HmrcTaxPeriod) = {
 
     val taxPeriodList = obligations match {
-      case RetrievedObligations(listOfObligations) => listOfObligations
+      case RetrievedObligations(listOfObligations) => listOfObligations.toList
       case _                                       => List[TaxPeriodInformation]()
     }
 
