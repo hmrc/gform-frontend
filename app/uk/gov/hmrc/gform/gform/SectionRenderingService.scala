@@ -832,7 +832,9 @@ class SectionRenderingService(
     ei: ExtraInfo,
     data: FormDataRecalculated,
     lang: Option[String],
-    obligations: Option[ListOfTaxPeriodInformation])(implicit request: Request[_], messsages: Messages): (List[Html], Boolean) =
+    obligations: Option[ListOfTaxPeriodInformation])(
+    implicit request: Request[_],
+    messsages: Messages): (List[Html], Boolean) =
     if (groupField.repeatsMax.isDefined) {
       val (groupList, isLimit) = getRepeatingGroupsForRendering(fieldValue, groupField, ei.fieldData)
       val gl: List[GroupList] = groupList

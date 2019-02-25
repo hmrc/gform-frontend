@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.{ TaxPeriodInformation, ListOfTaxPeriodInformation, TaxPeriods, UserId }
+import uk.gov.hmrc.gform.sharedmodel.{ ListOfTaxPeriodInformation, TaxPeriodInformation, TaxPeriods, UserId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, HmrcTaxPeriod, SectionNumber }
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {

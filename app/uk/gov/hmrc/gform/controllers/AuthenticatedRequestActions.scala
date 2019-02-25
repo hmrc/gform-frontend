@@ -42,7 +42,7 @@ import uk.gov.hmrc.auth.core.retrieve.{ GGCredId, LegacyCredentials, OneTimeLogi
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.gform.obligation.ObligationService
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriodInformation, ListOfTaxPeriodInformation, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, ListOfTaxPeriodInformation, TaxPeriodInformation, TaxPeriods }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier

@@ -59,15 +59,8 @@ class ObligationService(gformConnector: GformConnector) {
   }
 
   def makeAllInfoList(id: HmrcTaxPeriod, obligation: List[ObligationDetail]) =
-    obligation.map(
-      i =>
-        TaxPeriodInformation(
-          id.idType,
-          id.idNumber,
-          id.regimeType,
-          i.inboundCorrespondenceFromDate,
-          i.inboundCorrespondenceToDate,
-          i.periodKey))
+    obligation.map(i =>
+      TaxPeriodInformation(id, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, i.periodKey))
 
   def lookupIfPossible(
     form: Form,
@@ -90,7 +83,7 @@ class ObligationService(gformConnector: GformConnector) {
                      idNumbers <- Future.traverse(x.listAllInfo)(
                                    i =>
                                      authService.evaluateSubmissionReference(
-                                       i.idNumber,
+                                       i.hmrcTaxPeriod.idNumber,
                                        retrievals,
                                        formTemplate,
                                        FormDataHelpers.formDataMap(form.formData),

@@ -70,9 +70,7 @@ object TaxPeriodIdentifier {
 }
 
 case class TaxPeriodInformation(
-  idType: IdType,
-  idNumber: TextExpression,
-  regimeType: RegimeType,
+  hmrcTaxPeriod: HmrcTaxPeriod,
   inboundCorrespondenceFromDate: Date,
   inboundCorrespondenceToDate: Date,
   periodKey: String)
@@ -86,17 +84,18 @@ case class ListOfTaxPeriodInformation(listAllInfo: List[TaxPeriodInformation])
 object ListOfTaxPeriodInformation {
   implicit val format: OFormat[ListOfTaxPeriodInformation] = Json.format[ListOfTaxPeriodInformation]
 
-  implicit val optionFormat: OFormat[Option[ListOfTaxPeriodInformation]] = new OFormat[Option[ListOfTaxPeriodInformation]] {
-    override def writes(o: Option[ListOfTaxPeriodInformation]): JsObject =
-      o match {
-        case Some(x) => Json.obj("TaxPeriodInfo" -> Json.toJson(x.listAllInfo))
-        case None    => Json.obj()
-      }
+  implicit val optionFormat: OFormat[Option[ListOfTaxPeriodInformation]] =
+    new OFormat[Option[ListOfTaxPeriodInformation]] {
+      override def writes(o: Option[ListOfTaxPeriodInformation]): JsObject =
+        o match {
+          case Some(x) => Json.obj("TaxPeriodInfo" -> Json.toJson(x.listAllInfo))
+          case None    => Json.obj()
+        }
 
-    override def reads(json: JsValue) =
-      json.\("TaxPeriodInfo").asOpt[List[TaxPeriodInformation]] match {
-        case Some(x) => JsSuccess(Some(ListOfTaxPeriodInformation(x)))
-        case None    => JsSuccess(None)
-      }
-  }
+      override def reads(json: JsValue) =
+        json.\("TaxPeriodInfo").asOpt[List[TaxPeriodInformation]] match {
+          case Some(x) => JsSuccess(Some(ListOfTaxPeriodInformation(x)))
+          case None    => JsSuccess(None)
+        }
+    }
 }
