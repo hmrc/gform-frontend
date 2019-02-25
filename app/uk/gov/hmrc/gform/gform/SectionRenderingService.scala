@@ -112,7 +112,7 @@ class SectionRenderingService(
     retrievals: MaterialisedRetrievals,
     visitsIndex: VisitIndex,
     lang: Option[String],
-    obligations: Option[ListAllInfo]
+    obligations: Option[ListOfTaxPeriodInformation]
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
@@ -456,7 +456,7 @@ class SectionRenderingService(
     maybeValidated: ValidatedType,
     lang: Option[String],
     isHidden: Boolean = false,
-    obligations: Option[ListAllInfo])(implicit request: Request[_], messages: Messages): Html =
+    obligations: Option[ListOfTaxPeriodInformation])(implicit request: Request[_], messages: Messages): Html =
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(fieldValue, sortCode, expr, fieldValue.id, index, maybeValidated, ei, data, isHidden)
@@ -500,12 +500,12 @@ class SectionRenderingService(
     ei: ExtraInfo,
     validatedType: ValidatedType,
     data: FormDataRecalculated,
-    obligations: Option[ListAllInfo],
+    obligations: Option[ListOfTaxPeriodInformation],
     hmrcTP: HmrcTaxPeriod) = {
 
     val taxPeriodList = obligations match {
       case Some(c) => c.listAllInfo
-      case _       => List[AllInfo]()
+      case _       => List[TaxPeriodInformation]()
     }
 
     val taxPeriodOptions = taxPeriodList
@@ -766,7 +766,7 @@ class SectionRenderingService(
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String],
-    obligations: Option[ListAllInfo])(implicit request: Request[_], messages: Messages): Html = {
+    obligations: Option[ListOfTaxPeriodInformation])(implicit request: Request[_], messages: Messages): Html = {
     val grpHtml = htmlForGroup0(grp, formTemplateId, fieldValue, index, ei, data, validatedType, lang, obligations)
 
     val isChecked = FormDataHelpers
@@ -788,7 +788,7 @@ class SectionRenderingService(
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String],
-    obligations: Option[ListAllInfo])(implicit request: Request[_], messages: Messages) = {
+    obligations: Option[ListOfTaxPeriodInformation])(implicit request: Request[_], messages: Messages) = {
     val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
 
     val (lhtml, limitReached) =
@@ -832,7 +832,7 @@ class SectionRenderingService(
     ei: ExtraInfo,
     data: FormDataRecalculated,
     lang: Option[String],
-    obligations: Option[ListAllInfo])(implicit request: Request[_], messsages: Messages): (List[Html], Boolean) =
+    obligations: Option[ListOfTaxPeriodInformation])(implicit request: Request[_], messsages: Messages): (List[Html], Boolean) =
     if (groupField.repeatsMax.isDefined) {
       val (groupList, isLimit) = getRepeatingGroupsForRendering(fieldValue, groupField, ei.fieldData)
       val gl: List[GroupList] = groupList
