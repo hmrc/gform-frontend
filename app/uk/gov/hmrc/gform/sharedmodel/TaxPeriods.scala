@@ -84,7 +84,6 @@ object TaxPeriodInformation {
 
 sealed trait Obligations
 final case object NotChecked extends Obligations
-final case object NoObligations extends Obligations
 final case class RetrievedObligations(listOfObligations: NonEmptyList[TaxPeriodInformation]) extends Obligations
 
 object Obligations {
