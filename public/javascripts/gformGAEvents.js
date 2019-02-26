@@ -51,7 +51,7 @@
         });
 
         if ($submissionReference.length) {
-          sendToGA('send', 'event', 'submission', getServiceName(), $submissionReference.text())
+          sendToGA('send', 'event', 'submission', getServiceName(), $submissionReference.text().trim())
         }
       }
       
