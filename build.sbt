@@ -1,6 +1,6 @@
 import Dependencies.appDependencies
 import play.sbt.routes.RoutesKeys.routesImport
-import sbt.Tests.{Group, SubProcess}
+import sbt.Tests.{ Group, SubProcess }
 import sbt.inConfig
 import uk.gov.hmrc.DefaultBuildSettings._
 import uk.gov.hmrc.SbtAutoBuildPlugin
