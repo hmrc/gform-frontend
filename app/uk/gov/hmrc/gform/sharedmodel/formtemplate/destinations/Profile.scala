@@ -25,9 +25,9 @@ object Profile {
   case object MdgIntegrationFramework extends Profile
   case class MDTP(serviceName: String) extends Profile
 
-  implicit val format = {
+  implicit val format: OFormat[Profile] = {
     val mdtpUploadReads = new Reads[Profile] {
-      private val extractor = """([mM][dD][tT][pP])(\.)([a-zA-Z_][a-zA-Z0-9_]*)""".r
+      private val extractor = """([mM][dD][tT][pP])(\.)([a-zA-Z_][a-zA-Z0-9_-]*)""".r
 
       override def reads(json: JsValue): JsResult[Profile] = json match {
         case JsString("des")                        => JsSuccess(DES)
