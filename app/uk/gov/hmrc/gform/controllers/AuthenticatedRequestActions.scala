@@ -199,12 +199,7 @@ class AuthenticatedRequestActions(
     for {
       form    <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
       newForm <- obligationService.lookupIfPossible(form, formTemplate, authService, retrievals)
-      update <- obligationService.updateObligations(
-                 form._id,
-                 UserData(newForm.formData, newForm.status, newForm.visitsIndex, newForm.obligations),
-                 form,
-                 newForm)
-      result <- f(AuthCacheWithForm(retrievals, newForm, formTemplate, newForm.obligations))
+      result  <- f(AuthCacheWithForm(retrievals, newForm, form, formTemplate, newForm.obligations))
     } yield result
 
   private def withFormWithoutObligations(f: AuthCacheWithFormWithoutObligations => Future[Result])(
@@ -340,6 +335,7 @@ sealed trait AuthCache {
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
+  oldForm: Form,
   formTemplate: FormTemplate,
   obligations: Obligations
 ) extends AuthCache
@@ -355,5 +351,5 @@ case class AuthCacheWithoutForm(
   formTemplate: FormTemplate
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) =
-    AuthCacheWithForm(retrievals, form, formTemplate, NotChecked)
+    AuthCacheWithForm(retrievals, form, form, formTemplate, NotChecked)
 }

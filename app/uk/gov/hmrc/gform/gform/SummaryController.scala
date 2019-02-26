@@ -40,6 +40,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -62,7 +63,8 @@ class SummaryController(
   gformConnector: GformConnector,
   frontendAppConfig: FrontendAppConfig,
   errResponder: ErrResponder,
-  recalculation: Recalculation[Future, Throwable]
+  recalculation: Recalculation[Future, Throwable],
+  obligationService: ObligationService
 ) extends FrontendController {
 
   import i18nSupport._
@@ -85,6 +87,11 @@ class SummaryController(
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
         val formFieldValidationResultsF = for {
+          update <- obligationService.updateObligations(
+                     cache.oldForm._id,
+                     UserData(cache.form.formData, cache.form.status, cache.form.visitsIndex, cache.form.obligations),
+                     cache.oldForm,
+                     cache.form)
           envelope <- envelopeF
           errors   <- validateForm(cache, envelope, cache.retrievals)
         } yield errors
