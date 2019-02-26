@@ -9,9 +9,6 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import uk.gov.hmrc.versioning.SbtGitVersioning
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
-lazy val plugins: Seq[Plugins] = Seq.empty
-lazy val playSettings: Seq[Setting[_]] = Seq.empty
-
 coverageEnabled := true
 
 lazy val scoverageSettings = {
@@ -32,9 +29,7 @@ lazy val microservice = (project in file("."))
     organization := "uk.gov.hmrc",
     name := "gform-frontend",
     majorVersion := 0,
-    majorVersion := 0,
     PlayKeys.playDefaultPort := 9195,
-    playSettings,
     scoverageSettings,
     scalaSettings,
     publishingSettings,
