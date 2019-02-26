@@ -254,6 +254,11 @@ button.button--secondary:active{
   margin-bottom: 30px;
 }
 
+.submission-reference {
+  display: block;
+  font-weight: bold;
+}
+
 table thead th {
   border-bottom: none;
 }
