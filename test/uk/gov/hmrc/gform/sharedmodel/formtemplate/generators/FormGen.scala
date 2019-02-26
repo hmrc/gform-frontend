@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.UserId
+import uk.gov.hmrc.gform.sharedmodel.{NotChecked, UserId}
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.generators.EnvelopeExpiryDateGen
 
@@ -42,7 +42,7 @@ trait FormGen {
       status         <- formStatusGen
       visitIndex     <- VisitIndexGen.visitIndexGen
       expiryDate     <- Gen.option(EnvelopeExpiryDateGen.envelopeExpiryDateGen)
-    } yield Form(formId, envelopeId, userId, formTemplateId, formData, status, visitIndex, expiryDate, None)
+    } yield Form(formId, envelopeId, userId, formTemplateId, formData, status, visitIndex, expiryDate, NotChecked)
 }
 
 object FormGen extends FormGen

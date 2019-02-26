@@ -100,23 +100,22 @@ class ObligationService(gformConnector: GformConnector) {
                                            FormDataHelpers.formDataMap(form.formData),
                                            form.envelopeId))
                          output <- {
-                           if (idNumbers.forall(i => currentIdNumber === i)) {
-                             Future.successful(form)
-                           } else {
-                             val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
-                             newObligations.map(i => form.copy(obligations = RetrievedObligations(i)))
-                           }
+                           ifStatement(
+                             !idNumbers.forall(i => currentIdNumber === i),
+                             formTemplate,
+                             authService,
+                             retrievals,
+                             form)
                          }
                        } yield output
                      }
                      case NotChecked | NoObligations => {
-                       if (hmrcTaxPeriodIdentifiers.forall(
-                             i => !i.regimeType.value.isEmpty && !currentIdNumber.isEmpty)) {
-                         val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
-                         newObligations.map(i => form.copy(obligations = RetrievedObligations(i)))
-                       } else {
-                         Future.successful(form)
-                       }
+                       ifStatement(
+                         hmrcTaxPeriodIdentifiers.forall(i => !i.regimeType.value.isEmpty && !currentIdNumber.isEmpty),
+                         formTemplate,
+                         authService,
+                         retrievals,
+                         form)
                      }
                    }
         } yield output
@@ -131,5 +130,18 @@ class ObligationService(gformConnector: GformConnector) {
       gformConnector.updateUserData(formId, userData)
     } else {
       Future.successful(())
+    }
+
+  def ifStatement(
+    condition: Boolean,
+    formTemplate: FormTemplate,
+    authService: AuthService,
+    retrievals: MaterialisedRetrievals,
+    form: Form)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+    if (condition) {
+      val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form)
+      newObligations.map(i => form.copy(obligations = RetrievedObligations(i)))
+    } else {
+      Future.successful(form)
     }
 }

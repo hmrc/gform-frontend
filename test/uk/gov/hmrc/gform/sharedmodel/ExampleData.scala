@@ -464,7 +464,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     InProgress,
     VisitIndex.empty,
     envelopeExpiryDate,
-    None
+    NotChecked
   )
 
 }
