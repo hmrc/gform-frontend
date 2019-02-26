@@ -1,6 +1,7 @@
 import Dependencies.appDependencies
 import play.sbt.routes.RoutesKeys.routesImport
 import sbt.Tests.{ Group, SubProcess }
+import sbt.inConfig
 import uk.gov.hmrc.DefaultBuildSettings._
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
@@ -10,9 +11,6 @@ import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
 lazy val plugins: Seq[Plugins] = Seq.empty
 lazy val playSettings: Seq[Setting[_]] = Seq.empty
-
-organization := "uk.gov.hmrc"
-name := "gform-frontend"
 
 coverageEnabled := true
 
@@ -28,26 +26,31 @@ lazy val scoverageSettings = {
   )
 }
 
-enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
-majorVersion := 0
-PlayKeys.playDefaultPort := 9195
-playSettings
-scalaSettings
-publishingSettings
-defaultSettings()
-
-scalafmtOnCompile := true
-scalaVersion := "2.11.12"
-libraryDependencies ++= appDependencies
-evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
-routesImport ++= Seq(
-  "uk.gov.hmrc.gform.binders.ValueClassBinder._",
-  "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
-  "uk.gov.hmrc.gform.sharedmodel.form._",
-  "uk.gov.hmrc.gform.sharedmodel._",
-  "uk.gov.hmrc.gform.auth._",
-  "uk.gov.hmrc.gform.models._"
-)
+lazy val microservice = (project in file("."))
+  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+  .settings(
+    organization := "uk.gov.hmrc",
+    name := "gform-frontend",
+    majorVersion := 0,
+    majorVersion := 0,
+    PlayKeys.playDefaultPort := 9195,
+    playSettings,
+    scoverageSettings,
+    scalaSettings,
+    publishingSettings,
+    defaultSettings(),
+    scalafmtOnCompile := true,
+    scalaVersion := "2.11.12",
+    libraryDependencies ++= appDependencies,
+    evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
+    routesImport ++= Seq(
+      "uk.gov.hmrc.gform.binders.ValueClassBinder._",
+      "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
+      "uk.gov.hmrc.gform.sharedmodel.form._",
+      "uk.gov.hmrc.gform.sharedmodel._",
+      "uk.gov.hmrc.gform.auth._",
+      "uk.gov.hmrc.gform.models._"
+    )
 //TODO enable it and fix errors in code!!!
 //      scalacOptions ++= Seq(
 //        "-Xfatal-warnings",
@@ -60,22 +63,24 @@ routesImport ++= Seq(
 //        "-feature",
 //        "-unchecked"
 //      )
+  )
+  .configs(IntegrationTest)
+  .settings(
+    inConfig(IntegrationTest)(Defaults.itSettings),
+    Keys.fork in IntegrationTest := false,
+    unmanagedSourceDirectories in IntegrationTest := { (baseDirectory in IntegrationTest)(base => Seq(base / "it")) }.value,
+    addTestReportOption(IntegrationTest, "int-test-reports"),
+    testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
+    parallelExecution in IntegrationTest := false
+  )
+  .settings(
+    resolvers ++= Seq(
+      Resolver.bintrayRepo("jetbrains", "markdown"),
+      Resolver.jcenterRepo,
+      "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven"
+    ))
 
-configs(IntegrationTest)
-inConfig(IntegrationTest)(Defaults.itSettings)
-
-Keys.fork in IntegrationTest := false
-unmanagedSourceDirectories in IntegrationTest := { (baseDirectory in IntegrationTest)(base => Seq(base / "it")) }.value
-addTestReportOption(IntegrationTest, "int-test-reports")
-testGrouping in IntegrationTest := oneForkedJvmPerTest2((definedTests in IntegrationTest).value)
-parallelExecution in IntegrationTest := false
-
-resolvers ++= Seq(
-  Resolver.jcenterRepo,
-  "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven"
-)
-
-def oneForkedJvmPerTest2(tests: Seq[TestDefinition]) =
+def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
   tests map { test =>
     Group(test.name, Seq(test), SubProcess(ForkOptions(runJVMOptions = Seq("-Dtest.name=" + test.name))))
   }
