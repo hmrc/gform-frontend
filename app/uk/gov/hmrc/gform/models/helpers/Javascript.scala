@@ -92,7 +92,7 @@ object Javascript {
          |};
          |function displaySterling(result) {
          |
-         |  return result < 0 ? result.replace("-", "-£") : '£' BigNumber(result).toFormat(2)
+         |  return result < 0 ? result.replace("-", "-£") : '£' + BigNumber(result).toFormat(2)
          |};
          |""".stripMargin
   }
