@@ -19,7 +19,9 @@ import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Profile
 
 trait ProfileGen {
-  def profileGen: Gen[Profile] = Gen.oneOf(Profile.DES, Profile.MdgIntegrationFramework)
+  def mdtpGen: Gen[Profile.MDTP] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(Profile.MDTP)
+
+  def profileGen: Gen[Profile] = Gen.oneOf(Gen.const(Profile.DES), Gen.const(Profile.MdgIntegrationFramework), mdtpGen)
 }
 
 object ProfileGen extends ProfileGen
