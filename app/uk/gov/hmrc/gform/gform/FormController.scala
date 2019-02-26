@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.{ AgentAccessCode, ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
@@ -57,7 +58,8 @@ class FormController(
   validationService: ValidationService,
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
-  processDataService: ProcessDataService[Future, Throwable]
+  processDataService: ProcessDataService[Future, Throwable],
+  obligationService: ObligationService
 ) extends FrontendController {
 
   import i18nSupport._
@@ -304,6 +306,11 @@ class FormController(
     val visitsIndex: VisitIndex = visits.visit(sectionNumber)
 
     for {
+      update <- obligationService.updateObligations(
+                 cache.oldForm._id,
+                 UserData(cache.form.formData, cache.form.status, cache.form.visitsIndex, cache.form.obligations),
+                 cache.oldForm,
+                 cache.form)
       (data, sections) <- processDataService.recalculateDataAndSections(dataRaw, cache)
       (errors, v, envelope) <- suppressErrors match {
                                 case SeYes => envelopeF(envelopeId).map((List.empty, Valid(()), _))
@@ -455,7 +462,11 @@ class FormController(
         for {
           (_, formData) <- validateForm(processData.data, processData.sections, sectionNumber, cache)
           maybeSn       <- fastForwardValidate(processData, cache)
-          userData = UserData(formData, maybeSn.fold(Summary: FormStatus)(_ => InProgress), processData.visitIndex)
+          userData = UserData(
+            formData,
+            maybeSn.fold(Summary: FormStatus)(_ => InProgress),
+            processData.visitIndex,
+            cache.form.obligations)
           res <- gformConnector.updateUserData(formId, userData).map(_ => result(maybeSn))
         } yield res
 

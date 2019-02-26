@@ -75,7 +75,8 @@ class GformModule(
     validationModule.validationService,
     sectionRenderingService,
     gformBackendModule.gformConnector,
-    processDataService
+    processDataService,
+    controllersModule.obligationService
   )
 
   val summaryController: SummaryController = new SummaryController(
@@ -87,7 +88,8 @@ class GformModule(
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
     controllersModule.errResponder,
-    graphModule.recalculation
+    graphModule.recalculation,
+    controllersModule.obligationService
   )
 
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(

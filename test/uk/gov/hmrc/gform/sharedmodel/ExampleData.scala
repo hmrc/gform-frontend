@@ -463,7 +463,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     formData,
     InProgress,
     VisitIndex.empty,
-    envelopeExpiryDate
+    envelopeExpiryDate,
+    NotChecked
   )
 
 }

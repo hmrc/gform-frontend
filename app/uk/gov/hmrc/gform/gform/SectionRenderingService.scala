@@ -44,7 +44,7 @@ import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, TaxPeriod, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
@@ -108,7 +108,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     retrievals: MaterialisedRetrievals,
     visitsIndex: VisitIndex,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriod, TaxPeriods]
+    obligations: Obligations
   )(implicit request: Request[_], messages: Messages): Html = {
 
     val section = dynamicSections(sectionNumber.value)
@@ -287,17 +287,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
 
     val listResult = errors.map { case (_, validationResult) => validationResult }
 
-    val snippets = formTemplate.declarationSection.fields.map(
-      fieldValue =>
-        htmlFor(
-          fieldValue,
-          formTemplate._id,
-          0,
-          ei,
-          fieldData,
-          validatedType,
-          lang,
-          obligations = Map[HmrcTaxPeriod, TaxPeriods]()))
+    val snippets = formTemplate.declarationSection.fields.map(fieldValue =>
+      htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, validatedType, lang, obligations = NotChecked))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -365,7 +356,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
                          FormDataRecalculated.empty,
                          Valid(()),
                          lang,
-                         obligations = Map[HmrcTaxPeriod, TaxPeriods]())))
+                         obligations = NotChecked)))
       renderingInfo = SectionRenderingInformation(
         formTemplate._id,
         maybeAccessCode,
@@ -414,17 +405,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
       formLevelHeading = true)
     val listResult = errors.map { case (_, validationResult) => validationResult }
     val snippets =
-      enrolmentSection.fields.map(
-        fieldValue =>
-          htmlFor(
-            fieldValue,
-            formTemplate._id,
-            0,
-            ei,
-            fieldData,
-            validatedType,
-            lang,
-            obligations = Map[HmrcTaxPeriod, TaxPeriods]()))
+      enrolmentSection.fields.map(fieldValue =>
+        htmlFor(fieldValue, formTemplate._id, 0, ei, fieldData, validatedType, lang, obligations = NotChecked))
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, globalErrors)
     val renderingInfo = SectionRenderingInformation(
       formTemplate._id,
@@ -471,7 +453,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     maybeValidated: ValidatedType,
     lang: Option[String],
     isHidden: Boolean = false,
-    obligations: Map[HmrcTaxPeriod, TaxPeriods])(implicit request: Request[_], messages: Messages): Html =
+    obligations: Obligations)(implicit request: Request[_], messages: Messages): Html =
     fieldValue.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(fieldValue, sortCode, expr, fieldValue.id, index, maybeValidated, ei, data, isHidden)
@@ -515,13 +497,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     ei: ExtraInfo,
     validatedType: ValidatedType,
     data: FormDataRecalculated,
-    obligations: Map[HmrcTaxPeriod, TaxPeriods],
+    obligations: Obligations,
     hmrcTP: HmrcTaxPeriod) = {
 
-    val taxPeriodList = obligations
-      .get(hmrcTP) match {
-      case Some(c) => c.taxPeriods
-      case _       => List[TaxPeriod]()
+    val taxPeriodList = obligations match {
+      case RetrievedObligations(listOfObligations) => listOfObligations.toList
+      case _                                       => List[TaxPeriodInformation]()
     }
 
     val taxPeriodOptions = taxPeriodList
@@ -782,7 +763,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriod, TaxPeriods])(implicit request: Request[_], messages: Messages): Html = {
+    obligations: Obligations)(implicit request: Request[_], messages: Messages): Html = {
     val grpHtml = htmlForGroup0(grp, formTemplateId, fieldValue, index, ei, data, validatedType, lang, obligations)
 
     val isChecked = FormDataHelpers
@@ -804,7 +785,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     data: FormDataRecalculated,
     validatedType: ValidatedType,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriod, TaxPeriods])(implicit request: Request[_], messages: Messages) = {
+    obligations: Obligations)(implicit request: Request[_], messages: Messages) = {
     val maybeHint = fieldValue.helpText.map(markDownParser).map(Html.apply)
 
     val (lhtml, limitReached) =
@@ -848,9 +829,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
     ei: ExtraInfo,
     data: FormDataRecalculated,
     lang: Option[String],
-    obligations: Map[HmrcTaxPeriod, TaxPeriods])(
-    implicit request: Request[_],
-    messsages: Messages): (List[Html], Boolean) =
+    obligations: Obligations)(implicit request: Request[_], messsages: Messages): (List[Html], Boolean) =
     if (groupField.repeatsMax.isDefined) {
       val (groupList, isLimit) = getRepeatingGroupsForRendering(fieldValue, groupField, ei.fieldData)
       val gl: List[GroupList] = groupList

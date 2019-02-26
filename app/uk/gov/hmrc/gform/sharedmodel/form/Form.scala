@@ -19,9 +19,10 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.UserId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, HmrcTaxPeriod, SectionNumber }
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
   def toFormField: FormField =
@@ -42,8 +43,9 @@ object VisitIndex {
   implicit val format: OFormat[VisitIndex] = Json.format
 
   def fromString(s: String): VisitIndex =
-    if (s.isEmpty) VisitIndex.empty
-    else
+    if (s.isEmpty) {
+      VisitIndex.empty
+    } else
       VisitIndex(
         s.split(",")
           .toList
@@ -61,7 +63,8 @@ case class Form(
   formData: FormData,
   status: FormStatus,
   visitsIndex: VisitIndex,
-  envelopeExpiryDate: Option[EnvelopeExpiryDate]
+  envelopeExpiryDate: Option[EnvelopeExpiryDate],
+  obligations: Obligations
 )
 
 object Form {
@@ -74,7 +77,8 @@ object Form {
       FormData.format and
       FormStatus.format and
       VisitIndex.format and
-      EnvelopeExpiryDate.optionFormat
+      EnvelopeExpiryDate.optionFormat and
+      Obligations.format
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](
@@ -86,7 +90,8 @@ object Form {
         FormData.format.writes(form.formData) ++
         FormStatus.format.writes(form.status) ++
         VisitIndex.format.writes(form.visitsIndex) ++
-        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate))
+        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
+        Obligations.format.writes(form.obligations))
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
 
