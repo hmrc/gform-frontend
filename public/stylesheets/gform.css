@@ -297,3 +297,11 @@ textarea.form-control.form-control-full,
 .pdf-only {
   display: none;
 }
+
+/*
+* AF 3.9.0 uses inline-block for this which
+* creates double arrows in MS Edge
+ */
+.no-details details summary .arrow-closed {
+    display: none !important;
+}
