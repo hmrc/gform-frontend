@@ -9,8 +9,6 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import uk.gov.hmrc.versioning.SbtGitVersioning
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
-coverageEnabled := true
-
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
   Seq(
