@@ -25,11 +25,11 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId, UserData}
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ObligationService(gformConnector: GformConnector) {
 
@@ -40,17 +40,18 @@ class ObligationService(gformConnector: GformConnector) {
     authService: AuthService,
     retrievals: MaterialisedRetrievals,
     form: Form,
-    hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-
+    hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     for {
-      listOfIdNumbers <- {Future.traverse(hmrcTaxPeriodIdentifiers.toList)(
-                          i =>
-                            authService.evaluateSubmissionReference(
-                              i.idNumber,
-                              retrievals,
-                              formTemplate,
-                              FormDataHelpers.formDataMap(form.formData),
-                              form.envelopeId))}
+      listOfIdNumbers <- {
+        Future.traverse(hmrcTaxPeriodIdentifiers.toList)(
+          i =>
+            authService.evaluateSubmissionReference(
+              i.idNumber,
+              retrievals,
+              formTemplate,
+              FormDataHelpers.formDataMap(form.formData),
+              form.envelopeId))
+      }
       output <- gformConnector
                  .getAllTaxPeriods(
                    NonEmptyList.fromList(
@@ -58,12 +59,14 @@ class ObligationService(gformConnector: GformConnector) {
                        .zip(hmrcTaxPeriodIdentifiers.toList)
                        .map(a => HmrcTaxPeriod(a._2.idType, TextExpression(Constant(a._1)), a._2.regimeType))) match {
                      case Some(x) => x
-                     case None => NonEmptyList(HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")), List())
+                     case None =>
+                       NonEmptyList(
+                         HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")),
+                         List())
                    })
                  .map(i =>
                    i.flatMap(j => j.obligation.obligations.flatMap(h => makeAllInfoList(j.id, h.obligationDetails))))
     } yield output
-  }
 
   def makeAllInfoList(id: HmrcTaxPeriod, obligation: NonEmptyList[ObligationDetail]) =
     obligation.map(i =>
@@ -78,14 +81,17 @@ class ObligationService(gformConnector: GformConnector) {
     val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
       case IsHmrcTaxPeriod(el) => el
     }
-    val hmrcTaxPeriodIdentifiersNonEmpty: NonEmptyList[HmrcTaxPeriod] = NonEmptyList.fromList(hmrcTaxPeriodIdentifiers) match {
-      case Some(x) => x
-      case _ => NonEmptyList(HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")), List())
-    }
+    val hmrcTaxPeriodIdentifiersNonEmpty: NonEmptyList[HmrcTaxPeriod] =
+      NonEmptyList.fromList(hmrcTaxPeriodIdentifiers) match {
+        case Some(x) => x
+        case _ =>
+          NonEmptyList(HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")), List())
+      }
 
     def ifStatement(condition: Boolean) =
       if (condition) {
-        val newObligations = lookupObligationsMultiple(formTemplate, authService, retrievals, form, hmrcTaxPeriodIdentifiersNonEmpty)
+        val newObligations =
+          lookupObligationsMultiple(formTemplate, authService, retrievals, form, hmrcTaxPeriodIdentifiersNonEmpty)
         newObligations.map(i => form.copy(obligations = RetrievedObligations(i)))
       } else {
         Future.successful(form)
@@ -113,8 +119,7 @@ class ObligationService(gformConnector: GformConnector) {
                                            FormDataHelpers.formDataMap(form.formData),
                                            form.envelopeId))
                          output <- {
-                           ifStatement(
-                             !idNumbers.forall(i => currentIdNumber === i))
+                           ifStatement(!idNumbers.forall(i => currentIdNumber === i))
                          }
                        } yield output
                      }
