@@ -17,13 +17,10 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import java.util.Date
-
-import cats.data.NonEmptyList
 import julienrf.json.derived
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import scala.collection.immutable.{ ::, List, Nil }
+import scala.collection.immutable.{List}
 
 case class TaxPeriods(taxPeriods: List[TaxPeriod])
 
