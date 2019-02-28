@@ -120,14 +120,7 @@ class ObligationService(gformConnector: GformConnector) {
           output <- form.obligations match {
                      case RetrievedObligations(x) => {
                        for {
-                         idNumbers <- Future.traverse(x)(
-                                       i =>
-                                         authService.evaluateSubmissionReference(
-                                           i.hmrcTaxPeriod.idNumber,
-                                           retrievals,
-                                           formTemplate,
-                                           FormDataHelpers.formDataMap(form.formData),
-                                           form.envelopeId))
+                         idNumbers <- Future(x.map(i => i.idNumberValue.value))
                          output <- {
                            val a = currentIdNumber
                            val b = idNumbers
