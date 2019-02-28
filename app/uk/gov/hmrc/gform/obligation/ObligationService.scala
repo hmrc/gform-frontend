@@ -42,33 +42,43 @@ class ObligationService(gformConnector: GformConnector) {
     form: Form,
     hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     for {
-      listOfIdNumbers <- Future.traverse(hmrcTaxPeriodIdentifiers.toList)(
-                          i =>
-                            authService.evaluateSubmissionReference(
-                              i.idNumber,
-                              retrievals,
-                              formTemplate,
-                              FormDataHelpers.formDataMap(form.formData),
-                              form.envelopeId))
+      listOfIdNumbers <- {
+        Future.traverse(hmrcTaxPeriodIdentifiers.toList)(i => {
+          val j = authService.evaluateSubmissionReference(
+            i.idNumber,
+            retrievals,
+            formTemplate,
+            FormDataHelpers.formDataMap(form.formData),
+            form.envelopeId)
+          j.map(jj => HmrcTaxPeriodWithEvaluatedId(i, IdNumberValue(jj)))
+        })
+      }
       output <- gformConnector
-                 .getAllTaxPeriods(
-                   NonEmptyList.fromList(
-                     listOfIdNumbers
-                       .zip(hmrcTaxPeriodIdentifiers.toList)
-                       .map(a => HmrcTaxPeriod(a._2.idType, TextExpression(Constant(a._1)), a._2.regimeType))) match {
-                     case Some(x) => x
-                     case None =>
-                       NonEmptyList(
-                         HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")),
-                         List())
-                   })
-                 .map(i =>
-                   i.flatMap(j => j.obligation.obligations.flatMap(h => makeAllInfoList(j.id, h.obligationDetails))))
+                 .getAllTaxPeriods(listOfIdNumbers)
+                 .map(
+                   i =>
+                     i.flatMap(
+                       j =>
+                         j.obligation.obligations.flatMap(
+                           h =>
+                             makeAllInfoList(
+                               j.id,
+                               listOfIdNumbers.find(x => x.hmrcTaxPeriod == j.id).get,
+                               h.obligationDetails))))
     } yield output
 
-  def makeAllInfoList(id: HmrcTaxPeriod, obligation: NonEmptyList[ObligationDetail]) =
-    obligation.map(i =>
-      TaxPeriodInformation(id, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, i.periodKey))
+  def makeAllInfoList(
+    id: HmrcTaxPeriod,
+    evaluatedId: HmrcTaxPeriodWithEvaluatedId,
+    obligation: List[ObligationDetail]) =
+    obligation.map(
+      i =>
+        TaxPeriodInformation(
+          id,
+          evaluatedId.idNumberValue,
+          i.inboundCorrespondenceFromDate,
+          i.inboundCorrespondenceToDate,
+          i.periodKey))
 
   def lookupIfPossible(
     form: Form,
@@ -98,17 +108,19 @@ class ObligationService(gformConnector: GformConnector) {
     hmrcTaxPeriodIdentifiers match {
       case a :: _ =>
         for {
-          currentIdNumber <- authService.evaluateSubmissionReference(
-                              a.idNumber,
-                              retrievals,
-                              formTemplate,
-                              FormDataHelpers.formDataMap(form.formData),
-                              form.envelopeId
-                            )
+          currentIdNumber <- Future.traverse(hmrcTaxPeriodIdentifiers)(
+                              i =>
+                                authService.evaluateSubmissionReference(
+                                  i.idNumber,
+                                  retrievals,
+                                  formTemplate,
+                                  FormDataHelpers.formDataMap(form.formData),
+                                  form.envelopeId
+                              ))
           output <- form.obligations match {
                      case RetrievedObligations(x) => {
                        for {
-                         idNumbers <- Future.traverse(x.toList)(
+                         idNumbers <- Future.traverse(x)(
                                        i =>
                                          authService.evaluateSubmissionReference(
                                            i.hmrcTaxPeriod.idNumber,
@@ -117,13 +129,17 @@ class ObligationService(gformConnector: GformConnector) {
                                            FormDataHelpers.formDataMap(form.formData),
                                            form.envelopeId))
                          output <- {
-                           ifStatement(!idNumbers.forall(i => currentIdNumber === i))
+                           val a = currentIdNumber
+                           val b = idNumbers
+                           val c = a
+                           ifStatement(!currentIdNumber.forall(i => idNumbers.contains(i)))
                          }
                        } yield output
                      }
                      case NotChecked => {
-                       ifStatement(
-                         hmrcTaxPeriodIdentifiers.forall(i => !i.regimeType.value.isEmpty && !currentIdNumber.isEmpty))
+                       val a = currentIdNumber
+                       val b = a
+                       ifStatement(currentIdNumber.exists(i => !i.isEmpty))
                      }
                    }
         } yield output
