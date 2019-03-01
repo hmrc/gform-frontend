@@ -26,8 +26,8 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.{ExampleData, NotChecked, TaxPeriods}
-import uk.gov.hmrc.gform.sharedmodel.form.{FormDataRecalculated, VisitIndex}
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked, TaxPeriods }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import scala.collection.JavaConverters
