@@ -18,8 +18,6 @@ package uk.gov.hmrc.gform.obligation
 import java.text.SimpleDateFormat
 
 import cats.data.NonEmptyList
-import cats.kernel.Eq
-import cats.implicits._
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
