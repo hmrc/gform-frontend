@@ -45,29 +45,3 @@ trait WSHttp
   override protected def appNameConfiguration: Configuration = Play.current.configuration
 }
 object WSHttp extends WSHttp
-
-//class WSHttp extends uk.gov.hmrc.play.http.ws.WSHttp {
-//
-//  override val hooks: Seq[HttpHook] = Nil
-//
-////  //TODO: body should be type of Stream not ByteString (do we want to blow up if few people will submit forms at the same time?)
-////  def POSTFile[O](
-////    url: String,
-////    fileName: String,
-////    body: ByteString,
-////    headers: Seq[(String, String)],
-////    contentType: String
-////  )(implicit
-////    hc: HeaderCarrier,
-////    rds: HttpReads[O]): Future[O] = {
-////
-////    val source = Source(FilePart(fileName, fileName, Some(contentType), Source.single(body)) :: Nil)
-////    withTracing(POST_VERB, url) {
-////      import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-////      val httpResponse = buildRequest(url).withHeaders(headers: _*).post(source).map(new WSHttpResponse(_))
-////      executeHooks(url, POST_VERB, Option(s"""{"info":"multipart upload of $fileName"}"""), httpResponse)
-////      mapErrors(POST_VERB, url, httpResponse).map(rds.read(POST_VERB, url, _))
-////    }
-////  }
-//
-//}

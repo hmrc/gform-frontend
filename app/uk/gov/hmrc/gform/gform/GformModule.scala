@@ -17,8 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -45,6 +44,8 @@ class GformModule(
   auditingModule: AuditingModule,
   playBuiltInsModule: PlayBuiltInsModule,
   graphModule: GraphModule
+)(
+  implicit ec: ExecutionContext
 ) {
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(

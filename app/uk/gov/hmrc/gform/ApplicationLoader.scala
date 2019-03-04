@@ -58,6 +58,8 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
 
   Logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
 
+  private implicit val executionContext = play.api.libs.concurrent.Execution.defaultContext
+
   private val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(context, self)
 

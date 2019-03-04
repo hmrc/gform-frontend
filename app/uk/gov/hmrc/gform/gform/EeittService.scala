@@ -16,16 +16,18 @@
 
 package uk.gov.hmrc.gform.gform
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.models.userdetails.GroupId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.Future
 
-class EeittService(eeittConnector: EeittConnector) {
+class EeittService(eeittConnector: EeittConnector)(
+  implicit ec: ExecutionContext
+) {
 
   def getValue(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate)(
     implicit hc: HeaderCarrier) = {

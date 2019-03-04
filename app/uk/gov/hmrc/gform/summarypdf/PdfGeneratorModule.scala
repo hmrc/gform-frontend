@@ -16,12 +16,15 @@
 
 package uk.gov.hmrc.gform.summarypdf
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class PdfGeneratorModule(
   configModule: ConfigModule,
   wSHttpModule: WSHttpModule
+)(
+  implicit ec: ExecutionContext
 ) {
 
   private val pdfGeneratorConnector =

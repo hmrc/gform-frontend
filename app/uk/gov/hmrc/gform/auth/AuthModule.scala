@@ -16,13 +16,16 @@
 
 package uk.gov.hmrc.gform.auth
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.connectors.EeittConnector
 import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBackendModule: GformBackendModule) {
+class AuthModule(configModule: ConfigModule, wSHttpModule: WSHttpModule, gformBackendModule: GformBackendModule)(
+  implicit ec: ExecutionContext
+) {
   self =>
 
   lazy val authConnector = new AuthConnector(
