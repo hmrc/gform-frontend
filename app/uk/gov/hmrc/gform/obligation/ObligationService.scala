@@ -22,12 +22,13 @@ import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, UserData }
+import uk.gov.hmrc.gform.sharedmodel.{NotChecked, _}
+import uk.gov.hmrc.gform.sharedmodel.form.{Form, FormId, UserData}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
 import cats.implicits._
-import scala.concurrent.{ ExecutionContext, Future }
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class ObligationService(gformConnector: GformConnector) {
 
@@ -94,62 +95,50 @@ class ObligationService(gformConnector: GformConnector) {
     retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] = {
 
     val hmrcTaxPeriodIdentifiers = formTemplate.expandFormTemplateFull.allFCs.collect {
-      case IsHmrcTaxPeriod(el) => el
-    }
+    case IsHmrcTaxPeriod(el) => el
+  }
     val hmrcTaxPeriodIdentifiersNonEmpty: NonEmptyList[HmrcTaxPeriod] =
-      NonEmptyList.fromList(hmrcTaxPeriodIdentifiers) match {
-        case Some(x) => x
-        case _ =>
-          NonEmptyList(HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")), List())
-      }
+    NonEmptyList.fromList(hmrcTaxPeriodIdentifiers) match {
+      case Some(x) => x
+      case _ =>
+        NonEmptyList(HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")), List())
+    }
 
     hmrcTaxPeriodIdentifiers match {
-      case a :: _ =>
-        for {
-          currentIdNumber <- Future.traverse(hmrcTaxPeriodIdentifiers)(
-                              i =>
-                                authService.evaluateSubmissionReference(
-                                  i.idNumber,
-                                  retrievals,
-                                  formTemplate,
-                                  FormDataHelpers.formDataMap(form.formData),
-                                  form.envelopeId
-                              ))
-          output <- form.obligations match {
-                     case RetrievedObligations(retrievedObligations) => {
-                       val retrievedTaxPeriodIds = retrievedObligations.map(i => i.idNumberValue.value)
-                       val retrievedContainsAllCurrent: Boolean =
-                         currentIdNumber.forall(i => retrievedTaxPeriodIds.contains(i))
-                       for {
-                         idNumbers <- Future(retrievedObligations.map(i => i.idNumberValue.value))
-                         output <- {
-                           val a = currentIdNumber
-                           val c = a
-                           copyFormUpdatedObligations(
-                             formTemplate,
-                             authService,
-                             retrievals,
-                             form,
-                             hmrcTaxPeriodIdentifiersNonEmpty,
-                             !retrievedContainsAllCurrent)
-                         }
-                       } yield output
-                     }
-                     case NotChecked => {
-                       val a = currentIdNumber
-                       val b = a
-                       copyFormUpdatedObligations(
-                         formTemplate,
-                         authService,
-                         retrievals,
-                         form,
-                         hmrcTaxPeriodIdentifiersNonEmpty,
-                         currentIdNumber.exists(i => !i.isEmpty))
-                     }
-                   }
-        } yield output
-      case _ => Future.successful(form)
-    }
+    case a :: _ =>
+      for {
+        currentIdNumber <- Future.traverse(hmrcTaxPeriodIdentifiers)(
+                            i =>
+                              authService.evaluateSubmissionReference(
+                                i.idNumber,
+                                retrievals,
+                                formTemplate,
+                                FormDataHelpers.formDataMap(form.formData),
+                                form.envelopeId
+                            ))
+        shouldUpdate: Boolean = form.obligations match {
+          case RetrievedObligations(retrievedObligations) => {
+            val retrievedTaxPeriodIds = retrievedObligations.map(i => i.idNumberValue.value)
+            val retrievedContainsAllCurrent: Boolean =
+              currentIdNumber.forall(i => retrievedTaxPeriodIds.contains(i))
+            !retrievedContainsAllCurrent
+          }
+          case NotChecked => {
+            val currentNotEmpty: Boolean = currentIdNumber.exists(i => !i.isEmpty)
+            currentNotEmpty
+          }
+        }
+
+        output <- copyFormUpdatedObligations(
+                   formTemplate,
+                   authService,
+                   retrievals,
+                   form,
+                   hmrcTaxPeriodIdentifiersNonEmpty,
+                   shouldUpdate)
+      } yield output
+    case _ => Future.successful(form)
+  }
   }
 
   def updateObligations(formId: FormId, userData: UserData, form: Form, newForm: Form)(
