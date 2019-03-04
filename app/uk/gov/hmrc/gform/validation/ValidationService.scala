@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.validation
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import cats.data.Validated.{ Invalid, Valid }
 import cats.data._
@@ -657,17 +656,19 @@ class ComponentsValidator(
 
     }
 
+  import cats.instances.int._
+  import cats.syntax.eq._
   def preciselyFunctionMatch(date: LocalDate, concreteDate: ConcreteDate, offset: OffsetDate): Boolean = {
     val parametersLength = concreteDate.getNumericParameters.length
     if (concreteDate.isExact) {
       isPreciselyExactConcreteDate(date, concreteDate, offset)
     } else {
       concreteDate match {
-        case concreteDate: ConcreteDate if concreteDate.day == FirstDay || concreteDate.day == LastDay =>
+        case concreteDate: ConcreteDate if concreteDate.day === FirstDay || concreteDate.day === LastDay =>
           isFirstOrLastDay(date, concreteDate)
-        case concreteDate: ConcreteDate if concreteDate.year == Next || concreteDate.year == Previous =>
+        case concreteDate: ConcreteDate if concreteDate.year === Next || concreteDate.year === Previous =>
           isNextOrPreviousYear(date, concreteDate)
-        case concreteDate: ConcreteDate if parametersLength == 1 || parametersLength == 2 =>
+        case concreteDate: ConcreteDate if parametersLength === 1 || parametersLength === 2 =>
           isSameAbstractDate(date, concreteDate)
       }
     }
@@ -701,14 +702,14 @@ class ComponentsValidator(
   def isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate): Boolean =
     concreteDay.getNumericParameters
       .map {
-        case ExactYear(year)   => date.getYear == year
-        case ExactMonth(month) => date.getMonthValue == month
-        case ExactDay(day)     => date.getDayOfMonth == day
+        case ExactYear(year)   => date.getYear === year
+        case ExactMonth(month) => date.getMonthValue === month
+        case ExactDay(day)     => date.getDayOfMonth === day
       }
       .forall(identity)
 
   def isFirstOrLastDay(date: LocalDate, concreteDay: ConcreteDate): Boolean = concreteDay.day match {
-    case FirstDay => date.getDayOfMonth == 1
+    case FirstDay => date.getDayOfMonth === 1
     case LastDay =>
       exactConcreteDateToLocalDate(ConcreteDate(ExactYear(date.getDayOfYear), ExactMonth(date.getMonthValue), LastDay)).getDayOfMonth == date.getDayOfMonth
   }
@@ -716,8 +717,8 @@ class ComponentsValidator(
   def isNextOrPreviousYear(date: LocalDate, concreteDay: ConcreteDate): Boolean = {
     val areMonthAndDayEqual = isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate)
     concreteDay.year match {
-      case Next     => date.getYear == getNextYear && areMonthAndDayEqual
-      case Previous => date.getYear == getPreviousYear && areMonthAndDayEqual
+      case Next     => date.getYear === getNextYear && areMonthAndDayEqual
+      case Previous => date.getYear === getPreviousYear && areMonthAndDayEqual
     }
   }
 

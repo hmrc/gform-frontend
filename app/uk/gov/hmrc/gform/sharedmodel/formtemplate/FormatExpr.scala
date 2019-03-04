@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import java.time.LocalDate
-
+import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json._
 
@@ -68,6 +67,8 @@ case object AnyYear extends Year
 case class ExactYear(year: Int) extends Year with ExactParameter
 
 object Year {
+  implicit val catsEq: Eq[Year] = Eq.fromUniversalEquals
+
   implicit val format: OFormat[Year] = derived.oformat[Year]
 }
 
@@ -86,6 +87,8 @@ case object FirstDay extends Day with ExactParameter
 case object LastDay extends Day with ExactParameter
 
 object Day {
+  implicit val catsEq: Eq[Day] = Eq.fromUniversalEquals
+
   implicit val format: OFormat[Day] = derived.oformat[Day]
 }
 
