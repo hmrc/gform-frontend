@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
-
+import cats.implicits._
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ObligationService(gformConnector: GformConnector) {
@@ -41,7 +41,7 @@ class ObligationService(gformConnector: GformConnector) {
     hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     for {
       listOfIdNumbers <- {
-        Future.traverse(hmrcTaxPeriodIdentifiers.toList)(i => {
+        hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i => {
           val j = authService.evaluateSubmissionReference(
             i.idNumber,
             retrievals,
