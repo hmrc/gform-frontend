@@ -190,38 +190,55 @@ class FormatValidationSpec extends Spec with GraphSpec {
     CompanyRegistrationNumber,
     "sample label is not a valid Company Registration Number")
 
+  "EORI" should "return valid EORI with 7 digits" in createSuccessTest("FR1234567", EORI)
+  "EORI" should "return valid EORI with 7 digits/letters" in createSuccessTest("FR1234ABC", EORI)
+  "EORI" should "return valid EORI with 7 letters" in createSuccessTest("FRABCDEFG", EORI)
+  "EORI" should "return valid EORI with 8 digits" in createSuccessTest("FR12345678", EORI)
+  "EORI" should "return valid EORI with 8 digits/letters" in createSuccessTest("FR12345DKF", EORI)
+  "EORI" should "return valid EORI with 8 letters" in createSuccessTest("FRABCDEFGH", EORI)
+  "EORI" should "return valid EORI with 9 digits" in createSuccessTest("FR123456789", EORI)
+  "EORI" should "return valid EORI with 9 digits/letters" in createSuccessTest("FR12345DAFE", EORI)
+  "EORI" should "return valid EORI with 9 letters" in createSuccessTest("FRABCDEFGHI", EORI)
+  "EORI" should "return valid EORI with 10 digits" in createSuccessTest("FR1234567891", EORI)
+  "EORI" should "return valid EORI with 10 digits/letters" in createSuccessTest("FR1234567FEA", EORI)
+  "EORI" should "return valid EORI with 10 letters" in createSuccessTest("FRABCDEFGHIJ", EORI)
+  "EORI" should "return valid EORI with 11 digits" in createSuccessTest("FR12345678911", EORI)
+  "EORI" should "return valid EORI with 11 digits/letters" in createSuccessTest("FRABCDEFGH513", EORI)
+  "EORI" should "return valid EORI with 11 letters" in createSuccessTest("FRABCDEFGHIJK", EORI)
   "EORI" should "return valid EORI with 12 digits" in createSuccessTest("GB123456789123", EORI)
+  "EORI" should "return valid EORI with 12 digits/letters" in createSuccessTest("GBABCDEFGH6134", EORI)
+  "EORI" should "return valid EORI with 12 letters" in createSuccessTest("GBABCDEFGHIJKL", EORI)
+  "EORI" should "return valid EORI with 13 digits" in createSuccessTest("GB1234567891233", EORI)
+  "EORI" should "return valid EORI with 13 digits/letters" in createSuccessTest("GB123456789GEAF", EORI)
+  "EORI" should "return valid EORI with 13 letters" in createSuccessTest("GBABCDEFGHIJKLM", EORI)
+  "EORI" should "return valid EORI with 14 digits" in createSuccessTest("GB12345678912333", EORI)
+  "EORI" should "return valid EORI with 14 digits/letters" in createSuccessTest("GB12345678912FAW", EORI)
+  "EORI" should "return valid EORI with 14 letters" in createSuccessTest("GBABCDEFGHIJKLMN", EORI)
   "EORI" should "return valid EORI with 15 digits" in createSuccessTest("FR123456789123456", EORI)
+  "EORI" should "return valid EORI with 15 digits/letters" in createSuccessTest("FR12345678912FYHB", EORI)
+  "EORI" should "return valid EORI with 15 letters" in createSuccessTest("FRABCDEFGHIJKLMNO", EORI)
   "EORI" should "return invalid without one of the previous conditions" in createFailTest(
     "K8765432",
     EORI,
     "sample label is not a valid EORI")
-  "EORI" should "return invalid as too many letters in data - 12 num" in createFailTest(
-    "XGB123456789123",
+  "EORI" should "return invalid as too many characters in data" in createFailTest(
+    "XB1234567891123456",
     EORI,
     "sample label is not a valid EORI")
-  "EORI" should "return invalid as too few letters in data - 12 num" in createFailTest(
-    "3GB123456789123",
+  "EORI" should "return invalid as too few letters in data" in createFailTest(
+    "GB123456",
     EORI,
     "sample label is not a valid EORI")
-  "EORI" should "return invalid as too many letters in data - 15 num" in createFailTest(
-    "XFR123456789123456",
+  "EORI" should "return invalid as starts with number" in createFailTest(
+    "1XFR1234567893456",
     EORI,
     "sample label is not a valid EORI")
-  "EORI" should "return invalid as too few letters in data - 15 num" in createFailTest(
-    "3FR123456789123456",
+  "EORI" should "return invalid as too few letters at start" in createFailTest(
+    "F12345678",
     EORI,
     "sample label is not a valid EORI")
-  "EORI" should "return invalid if too short" in createFailTest(
-    "GB12345678912",
-    EORI,
-    "sample label is not a valid EORI")
-  "EORI" should "return invalid if too long - 12 num" in createFailTest(
-    "GB1234567891233",
-    EORI,
-    "sample label is not a valid EORI")
-  "EORI" should "return invalid if too long - 15 num" in createFailTest(
-    "FR1234567891234563",
+  "EORI" should "return invalid if contains special characters" in createFailTest(
+    "GB123456789*2",
     EORI,
     "sample label is not a valid EORI")
 
