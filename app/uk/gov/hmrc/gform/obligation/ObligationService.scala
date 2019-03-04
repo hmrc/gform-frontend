@@ -33,7 +33,7 @@ class ObligationService(gformConnector: GformConnector) {
 
   val stringToDate = new SimpleDateFormat("yyyy-MM-dd")
 
-  private def lookupObligationsMultipleD(
+  private def copyFormUpdatedObligations(
     formTemplate: FormTemplate,
     authService: AuthService,
     retrievals: MaterialisedRetrievals,
@@ -45,39 +45,10 @@ class ObligationService(gformConnector: GformConnector) {
         idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i =>
                       withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
         taxResponses <- gformConnector.getAllTaxPeriods(idNumbers)
-        obligations = obligationsB(idNumbers, taxResponses)
+        obligations = updatedObligations(idNumbers, taxResponses)
       } yield form.copy(obligations = RetrievedObligations(obligations))
     } else
       Future.successful(form)
-
-  private def lookupObligationsMultipleB(
-    formTemplate: FormTemplate,
-    authService: AuthService,
-    retrievals: MaterialisedRetrievals,
-    form: Form,
-    hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[List[TaxPeriodInformation]] =
-    for {
-      idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i =>
-                    withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
-      taxResponses <- gformConnector.getAllTaxPeriods(idNumbers)
-    } yield obligationsB(idNumbers, taxResponses)
-
-  private def lookupObligationsMultipleC(
-    formTemplate: FormTemplate,
-    authService: AuthService,
-    retrievals: MaterialisedRetrievals,
-    form: Form,
-    hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Form] =
-    for {
-      idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i =>
-                    withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
-      taxResponses <- gformConnector.getAllTaxPeriods(idNumbers)
-      obligations = obligationsB(idNumbers, taxResponses)
-    } yield form.copy(obligations = RetrievedObligations(obligations))
 
   private def withEvaluatedIdB(
     formTemplate: FormTemplate,
@@ -96,7 +67,7 @@ class ObligationService(gformConnector: GformConnector) {
                     form.envelopeId)
     } yield HmrcTaxPeriodWithEvaluatedId(hmrcTaxPeriod, IdNumberValue(evaluated))
 
-  private def obligationsB(
+  private def updatedObligations(
     idNumbers: NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
     taxResponses: List[TaxResponse]): List[TaxPeriodInformation] =
     taxResponses.flatMap(j =>
@@ -132,13 +103,6 @@ class ObligationService(gformConnector: GformConnector) {
           NonEmptyList(HmrcTaxPeriod(IdType("NONE"), TextExpression(Constant("NONE")), RegimeType("NONE")), List())
       }
 
-    def ifStatement(condition: Boolean) =
-      if (condition) {
-        lookupObligationsMultipleD(formTemplate, authService, retrievals, form, hmrcTaxPeriodIdentifiersNonEmpty, true)
-      } else {
-        Future.successful(form)
-      }
-
     hmrcTaxPeriodIdentifiers match {
       case a :: _ =>
         for {
@@ -152,27 +116,29 @@ class ObligationService(gformConnector: GformConnector) {
                                   form.envelopeId
                               ))
           output <- form.obligations match {
-                     case RetrievedObligations(x) => {
+                     case RetrievedObligations(retrievedObligations) => {
+                       val retrievedTaxPeriodIds = retrievedObligations.map(i => i.idNumberValue.value)
+                       val retrievedContainsAllCurrent: Boolean =
+                         currentIdNumber.forall(i => retrievedTaxPeriodIds.contains(i))
                        for {
-                         idNumbers <- Future(x.map(i => i.idNumberValue.value))
+                         idNumbers <- Future(retrievedObligations.map(i => i.idNumberValue.value))
                          output <- {
                            val a = currentIdNumber
-                           val b = idNumbers
                            val c = a
-                           lookupObligationsMultipleD(
+                           copyFormUpdatedObligations(
                              formTemplate,
                              authService,
                              retrievals,
                              form,
                              hmrcTaxPeriodIdentifiersNonEmpty,
-                             !currentIdNumber.forall(i => idNumbers.contains(i)))
+                             !retrievedContainsAllCurrent)
                          }
                        } yield output
                      }
                      case NotChecked => {
                        val a = currentIdNumber
                        val b = a
-                       lookupObligationsMultipleD(
+                       copyFormUpdatedObligations(
                          formTemplate,
                          authService,
                          retrievals,
