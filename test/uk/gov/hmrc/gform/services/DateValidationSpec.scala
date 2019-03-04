@@ -375,6 +375,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -404,6 +405,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -433,6 +435,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -460,6 +463,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue
@@ -487,6 +491,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       EnvelopeId("whatever"),
       retrievals,
       booleanExprEval,
+      ThirdPartyData.empty,
       ExampleData.formTemplate)
       .validate(fieldValue)
       .futureValue

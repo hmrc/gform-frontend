@@ -19,29 +19,27 @@ package uk.gov.hmrc.gform.validation
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import cats.{ Monoid, Semigroup }
 import cats.data.Validated.{ Invalid, Valid }
 import cats.data._
 import cats.implicits._
+import cats.{ Monoid, Semigroup }
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import ValidationUtil.{ ValidatedType, _ }
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData, ValidationResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Today, _ }
 import uk.gov.hmrc.gform.typeclasses.Now
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Today
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
-import uk.gov.hmrc.gform.validation._
+import uk.gov.hmrc.gform.validation.ValidationUtil.{ ValidatedType, _ }
+import uk.gov.hmrc.gform.views.html._
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.views.html._
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
@@ -213,109 +211,7 @@ class ComponentsValidator(
   private def messagePrefix(fieldValue: FormComponent) =
     localisation(fieldValue.shortName.getOrElse(fieldValue.label))
 
-  private def validateDateImpl(fieldValue: FormComponent, date: Date)(
-    data: FormDataRecalculated): ValidatedType[Unit] = {
-    val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
-    val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
-      localDate.plusDays(offset.value.toLong).format(govDateFormat)
-    date.constraintType match {
-      case AnyDate =>
-        validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => ().valid)
-      case DateConstraints(dateConstraintList) =>
-        val result = dateConstraintList.map {
-          case DateConstraint(beforeOrAfter, dateConstrInfo, offsetDate) =>
-            (beforeOrAfter, dateConstrInfo, offsetDate) match {
-
-              case (Before, Today, offset) =>
-                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-                  .andThen(
-                    inputDate =>
-                      validateToday(
-                        fieldValue,
-                        inputDate,
-                        offset,
-                        Map(fieldValue.id -> errors(fieldValue, "should be before Today")))(isBeforeToday))
-
-              case (Before, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "is not a valid date")))
-                  .andThen { concreteDate =>
-                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-                      .andThen(
-                        inputDate =>
-                          validateConcreteDate(
-                            fieldValue,
-                            inputDate,
-                            concreteDate,
-                            offset,
-                            Map(fieldValue.id ->
-                              errors(fieldValue, s"should be before ${dateWithOffset(concreteDate, offset)}"))
-                          )(isBeforeConcreteDate))
-                  }
-
-              case (beforeOrAfter @ _, DateField(fieldId), offset) => {
-
-                lazy val validateOtherDate = validateInputDate(fieldValue, fieldId, None, data)
-
-                lazy val validatedThisDate = validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-
-                val beforeOrAfterString = beforeOrAfter match {
-                  case After  => localisation("after")
-                  case Before => localisation("before")
-                }
-
-                val beforeOrAfterFunction = beforeOrAfter match {
-                  case After  => isAfterConcreteDate _
-                  case Before => isBeforeConcreteDate _
-                }
-
-                validateOtherDate.andThen { otherLocalDate =>
-                  validatedThisDate.andThen { thisLocalDate =>
-                    validateConcreteDate(
-                      fieldValue,
-                      thisLocalDate,
-                      otherLocalDate,
-                      offset,
-                      Map(fieldValue.id ->
-                        errors(fieldValue, s"should be $beforeOrAfterString ${dateWithOffset(otherLocalDate, offset)}"))
-                    )(beforeOrAfterFunction)
-                  }
-                }
-              }
-
-              case (After, Today, offset) =>
-                validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-                  .andThen(
-                    inputDate =>
-                      validateToday(
-                        fieldValue,
-                        inputDate,
-                        offset,
-                        Map(fieldValue.id -> errors(fieldValue, "should be after today")))(isAfterToday))
-
-              case (After, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDate(concreteDate, Map(fieldValue.id -> errors(fieldValue, "must be a valid date")))
-                  .andThen { concreteDate =>
-                    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-                      .andThen(
-                        inputDate =>
-                          validateConcreteDate(
-                            fieldValue,
-                            inputDate,
-                            concreteDate,
-                            offset,
-                            Map(
-                              fieldValue.id -> errors(
-                                fieldValue,
-                                s"should be after ${dateWithOffset(concreteDate, offset)}"))
-                          )(isAfterConcreteDate))
-                  }
-            }
-        }
-        Monoid[ValidatedType[Unit]].combineAll(result)
-    }
-  }
-
-  private def validateDateImpl2(fieldValue: FormComponent, date: Date)(data: FormDataRecalculated): ValidatedType =
+  private def validateDateImpl(fieldValue: FormComponent, date: Date)(data: FormDataRecalculated): ValidatedType[Unit] =
     date.constraintType match {
 
       case AnyDate =>
@@ -328,23 +224,24 @@ class ComponentsValidator(
             (beforeOrAfterOrPrecisely, dateConstrInfo, offsetDate) match {
 
               case (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset) =>
-                validateConcreteDateWithMessages(fieldValue, beforeAfterPrecisely, concreteDate, offset)
+                validateConcreteDateWithMessages(fieldValue, beforeAfterPrecisely, concreteDate, offset, data)
 
               case (beforeAfterPrecisely: BeforeAfterPrecisely, Today, offset) =>
-                validateTodayWithMessages(fieldValue, beforeAfterPrecisely, offset)
+                validateTodayWithMessages(fieldValue, beforeAfterPrecisely, offset, data)
 
               case (beforeAfterPrecisely @ _, dateField: DateField, offset) =>
-                validateDateFieldWithMessages(fieldValue, beforeAfterPrecisely, dateField, offset)
+                validateDateFieldWithMessages(fieldValue, beforeAfterPrecisely, dateField, offset, data)
             }
 
         }
-        Monoid[ValidatedType].combineAll(result)
+        Monoid[ValidatedType[Unit]].combineAll(result)
     }
   def validateConcreteDateWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
-    offset: OffsetDate): Validated[GformError, Unit] =
+    offset: OffsetDate,
+    data: FormDataRecalculated): Validated[GformError, Unit] =
     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
       .andThen(
         inputDate =>
@@ -359,7 +256,8 @@ class ComponentsValidator(
   def validateTodayWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
-    offset: OffsetDate): Validated[GformError, Unit] =
+    offset: OffsetDate,
+    data: FormDataRecalculated): Validated[GformError, Unit] =
     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
       .andThen(
         inputDate =>
@@ -370,7 +268,8 @@ class ComponentsValidator(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     dateField: DateField,
-    offset: OffsetDate): Validated[GformError, Unit] = {
+    offset: OffsetDate,
+    data: FormDataRecalculated): Validated[GformError, Unit] = {
 
     lazy val validateOtherDate = validateInputDate(fieldValue, dateField.value, None, data)
 
@@ -737,20 +636,9 @@ class ComponentsValidator(
   def validateConcreteDate(
     fieldValue: FormComponent,
     localDate: LocalDate,
-    concreteDate: LocalDate,
-    offset: OffsetDate,
-    dateError: GformError)(func: (LocalDate, LocalDate, OffsetDate) => Boolean): ValidatedType[Unit] =
-    func(localDate, concreteDate, offset) match {
-      case true  => ().valid
-      case false => dateError.invalid
-    }
-
-  def validateConcreteDate2(
-    fieldValue: FormComponent,
-    localDate: LocalDate,
     concreteDate: ConcreteDate,
     offset: OffsetDate = OffsetDate(0),
-    dateError: GformError)(func: (LocalDate, ConcreteDate, OffsetDate) => Boolean): ValidatedType =
+    dateError: GformError)(func: (LocalDate, ConcreteDate, OffsetDate) => Boolean): ValidatedType[Unit] =
     func(localDate, concreteDate, offset) match {
       case true  => ().valid
       case false => dateError.invalid
