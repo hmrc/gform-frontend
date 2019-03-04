@@ -20,16 +20,18 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import play.api.libs.ws.WSRequest
 import play.api.libs.ws.ahc.AhcWSClient
+import play.api.libs.concurrent.Execution
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import uk.gov.hmrc.http.HeaderCarrier
 
 object DemoApp extends App {
+
+  implicit val executionContext = Execution.defaultContext
 
   val gformConnector = new GformConnector(TestWSHttp, "http://localhost:9196/gform")
 

@@ -36,7 +36,6 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ ValidatedType, _ }
 import uk.gov.hmrc.gform.views.html._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
@@ -47,6 +46,8 @@ class ValidationService(
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
   booleanExpr: BooleanExprEval[Future]
+)(
+  implicit ec: ExecutionContext
 ) {
 
   private def validateFieldValue(
@@ -157,7 +158,9 @@ class ComponentsValidator(
   retrievals: MaterialisedRetrievals,
   booleanExpr: BooleanExprEval[Future],
   thirdPartyData: ThirdPartyData,
-  formTemplate: FormTemplate) {
+  formTemplate: FormTemplate)(
+  implicit ec: ExecutionContext
+) {
 
   def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] = {
 

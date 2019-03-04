@@ -52,7 +52,6 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.ExecutionContext.Implicits.global
 
 sealed trait SubmitEnrolmentError
 private case object NoIdentifierProvided extends SubmitEnrolmentError
@@ -71,6 +70,8 @@ class EnrolmentController(
   recalculation: Recalculation[Future, Throwable],
   taxEnrolmentConnector: TaxEnrolmentsConnector,
   ggConnector: GovernmentGatewayConnector
+)(
+  implicit ec: ExecutionContext
 ) extends FrontendController {
 
   type Ctx[A] = ReaderT[Future, Env, A]
@@ -85,7 +86,7 @@ class EnrolmentController(
     new Evaluator(eeittPrepop)
   }
 
-  private def enrolmentConnect(implicit hc: HeaderCarrier, ec: ExecutionContext): EnrolmentConnect[EnrolM] =
+  private def enrolmentConnect(implicit hc: HeaderCarrier): EnrolmentConnect[EnrolM] =
     new EnrolmentConnect[EnrolM] {
       def enrolGGUser(
         request: TaxEnrolment,
@@ -94,7 +95,7 @@ class EnrolmentController(
         liftEM(taxEnrolmentConnector.enrolGGUser(request, service, retrievals))
     }
 
-  private def ggConnect(implicit hc: HeaderCarrier, ec: ExecutionContext): GGConnect[EnrolM] =
+  private def ggConnect(implicit hc: HeaderCarrier): GGConnect[EnrolM] =
     new GGConnect[EnrolM] {
       def enrolGGUser(request: GGEnrolmentRequest): EnrolM[HttpResponse] =
         liftEM(ggConnector.enrolGGUser(request))

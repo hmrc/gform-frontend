@@ -19,14 +19,16 @@ package uk.gov.hmrc.gform.summarypdf
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.libs.ws.StreamedResponse
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
-class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp) {
+class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp)(
+  implicit ec: ExecutionContext
+) {
 
   def generatePDF(payload: Map[String, Seq[String]], headers: Seq[(String, String)])(
     implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {

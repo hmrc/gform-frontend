@@ -22,20 +22,20 @@ import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.{ StreamedBody, WSClient, WSRequest }
 import play.api.mvc._
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.LoggingDetails
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-class ProxyActions(wsClient: WSClient) {
+class ProxyActions(wsClient: WSClient)(
+  implicit ec: ExecutionContext
+) {
 
   /**
     * This creates actions which proxies incoming request to remote service.
     */
-  def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] = {
-    val ec = play.api.libs.concurrent.Execution.defaultContext
+  def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] =
     Action.async(streamedBodyParser(ec)) { implicit inboundRequest: Request[Source[ByteString, _]] =>
       for {
         outboundRequest  <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
@@ -52,7 +52,6 @@ class ProxyActions(wsClient: WSClient) {
         )
       }
     }
-  }
 
   private lazy val contentTypeHeaderKey = "Content-Type"
   private lazy val contentLengthHeaderKey = "Content-Length"
@@ -78,8 +77,6 @@ class ProxyActions(wsClient: WSClient) {
     Accumulator.source[ByteString].map(Right.apply)
   }
 
-  private implicit def mdcExecutionContext(implicit loggingDetails: LoggingDetails): ExecutionContext =
-    MdcLoggingExecutionContext.fromLoggingDetails
   private implicit def hc(implicit request: Request[_]): HeaderCarrier =
     HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 }
