@@ -33,37 +33,54 @@ class ObligationService(gformConnector: GformConnector) {
 
   val stringToDate = new SimpleDateFormat("yyyy-MM-dd")
 
-  private def lookupObligationsMultiple(
+  private def lookupObligationsMultipleB(
     formTemplate: FormTemplate,
     authService: AuthService,
     retrievals: MaterialisedRetrievals,
     form: Form,
-    hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+    hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[List[TaxPeriodInformation]] =
     for {
-      listOfIdNumbers <- {
-        hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i => {
-          val j = authService.evaluateSubmissionReference(
-            i.idNumber,
-            retrievals,
-            formTemplate,
-            FormDataHelpers.formDataMap(form.formData),
-            form.envelopeId)
-          j.map(jj => HmrcTaxPeriodWithEvaluatedId(i, IdNumberValue(jj)))
-        })
-      }
-      output <- gformConnector
-                 .getAllTaxPeriods(listOfIdNumbers)
-                 .map(
-                   i =>
-                     i.flatMap(
-                       j =>
-                         j.obligation.obligations.flatMap(
-                           h =>
-                             makeAllInfoList(
-                               j.id,
-                               listOfIdNumbers.find(x => x.hmrcTaxPeriod == j.id).get,
-                               h.obligationDetails))))
-    } yield output
+      idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i => withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
+      taxResponses <- gformConnector.getAllTaxPeriods(idNumbers)
+    } yield obligationsB(idNumbers, taxResponses)
+
+  private def lookupObligationsMultipleC(
+                                          formTemplate: FormTemplate,
+                                          authService: AuthService,
+                                          retrievals: MaterialisedRetrievals,
+                                          form: Form,
+                                          hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod])(
+                                          implicit hc: HeaderCarrier,
+                                          ec: ExecutionContext): Future[Form] =
+    for {
+      idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i => withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
+      taxResponses <- gformConnector.getAllTaxPeriods(idNumbers)
+      obligations = obligationsB(idNumbers, taxResponses)
+    } yield form.copy(obligations = RetrievedObligations(obligations))
+
+  private def withEvaluatedIdB(
+    formTemplate: FormTemplate,
+    authService: AuthService,
+    retrievals: MaterialisedRetrievals,
+    form: Form,
+    hmrcTaxPeriod: HmrcTaxPeriod)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[HmrcTaxPeriodWithEvaluatedId] =
+    for {
+      evaluated <- authService.evaluateSubmissionReference(
+                    hmrcTaxPeriod.idNumber,
+                    retrievals,
+                    formTemplate,
+                    FormDataHelpers.formDataMap(form.formData),
+                    form.envelopeId)
+    } yield HmrcTaxPeriodWithEvaluatedId(hmrcTaxPeriod, IdNumberValue(evaluated))
+
+  private def obligationsB(idNumbers: NonEmptyList[HmrcTaxPeriodWithEvaluatedId], taxResponses:List[TaxResponse]): List[TaxPeriodInformation] =
+        taxResponses.flatMap(j =>
+          j.obligation.obligations.flatMap(h =>
+            makeAllInfoList(j.id, idNumbers.find(x => x.hmrcTaxPeriod == j.id).get, h.obligationDetails)))
 
   def makeAllInfoList(
     id: HmrcTaxPeriod,
@@ -97,7 +114,7 @@ class ObligationService(gformConnector: GformConnector) {
     def ifStatement(condition: Boolean) =
       if (condition) {
         val newObligations =
-          lookupObligationsMultiple(formTemplate, authService, retrievals, form, hmrcTaxPeriodIdentifiersNonEmpty)
+          lookupObligationsMultipleB(formTemplate, authService, retrievals, form, hmrcTaxPeriodIdentifiersNonEmpty)
         newObligations.map(i => form.copy(obligations = RetrievedObligations(i)))
       } else {
         Future.successful(form)
