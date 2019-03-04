@@ -2,10 +2,10 @@
     'use strict'
   
     var $ = global.jQuery
-    var GOVUK = global.GOVUK || {}
+    var GOVUK = global.GOVUK || {};
   
     function GformGAEvents () {
-      var self = this
+      var self = this;
 
       // wrapper function to ensure ga is
       // available in the environment
@@ -14,7 +14,6 @@
           global.ga.apply(null, arguments)
         }
       }
-
 
       function labelText($errorLink) {
         var fieldId = $errorLink.attr('data-focuses');
@@ -31,6 +30,10 @@
         }
 
         return $('h1').text().trim();
+      };
+
+      function getServiceName() {
+        return document.title.split('-')[1].trim()
       }
 
       function sendErrorToGA($errorLink) {
@@ -41,9 +44,15 @@
 
       // Set up event handlers
       function init () {
+        var $submissionReference = $('.submission-reference');
+
         $('.error-summary').find('a').each(function(i, link) {
           sendErrorToGA($(link));
-        })
+        });
+
+        if ($submissionReference.length) {
+          sendToGA('send', 'event', 'submission', getServiceName(), $submissionReference.text().trim())
+        }
       }
       
       self.GformGAEvents = function () {
