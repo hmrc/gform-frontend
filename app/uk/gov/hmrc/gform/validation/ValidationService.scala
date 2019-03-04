@@ -369,7 +369,7 @@ class ComponentsValidator(
   }
 
   private def checkEORI(fieldValue: FormComponent, value: String) = {
-    val ValidCRN = "^[A-Z]{2}[0-9]{12}|[A-Z]{2}[0-9]{15}$".r
+    val ValidCRN = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
     val str = value.replace(" ", "")
     str match {
       case ValidCRN() => ().valid
