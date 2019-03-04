@@ -129,13 +129,15 @@ class ObligationService(gformConnector: GformConnector) {
           }
         }
 
-        output <- copyFormUpdatedObligations(
+        output <- if (shouldUpdate) copyFormUpdatedObligations(
                    formTemplate,
                    authService,
                    retrievals,
                    form,
                    hmrcTaxPeriodIdentifiersNonEmpty,
                    shouldUpdate)
+      else
+          Future.successful(form)
       } yield output
     case _ => Future.successful(form)
   }
