@@ -250,16 +250,15 @@ class ComponentsValidator(
     concreteDate: ConcreteDate,
     offset: OffsetDate,
     data: FormDataRecalculated): Validated[GformError, Unit] =
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-      .andThen(
-        inputDate =>
-          validateConcreteDate(
-            fieldValue,
-            inputDate,
-            concreteDate,
-            offset,
-            Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset)))
-          )(concreteDateFunctionMatch(beforeAfterPrecisely)))
+    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(
+      inputDate =>
+        validateConcreteDate(
+          fieldValue,
+          inputDate,
+          concreteDate,
+          offset,
+          Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset))))(
+          concreteDateFunctionMatch(beforeAfterPrecisely)))
 
   def validateTodayWithMessages(
     fieldValue: FormComponent,

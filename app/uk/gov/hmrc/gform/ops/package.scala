@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Sterling, Text, TextArea }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup, Number, PositiveNumber, Sterling, Text, TextArea }
 
 package object ops {
 
@@ -27,6 +26,16 @@ package object ops {
       case TextArea(Sterling(_), _, _) => true
       case _                           => false
     }
+    def isNumber = formComponent.`type` match {
+      case Text(Number(_, _, _, _), _, _)     => true
+      case TextArea(Number(_, _, _, _), _, _) => true
+      case _                                  => false
+    }
+    def isPositiveNumber = formComponent.`type` match {
+      case Text(PositiveNumber(_, _, _, _), _, _)     => true
+      case TextArea(PositiveNumber(_, _, _, _), _, _) => true
+      case _                                          => false
+    }
   }
 
   implicit class FormComponentWithCtxOps(formComponent: FormComponentWithCtx) {
@@ -34,6 +43,13 @@ package object ops {
       case FormComponentWithGroup(fc, _) => fc.isSterling
       case FormComponentSimple(fc)       => fc.isSterling
     }
+    def isNumber = formComponent match {
+      case FormComponentWithGroup(fc, _) => fc.isNumber
+      case FormComponentSimple(fc)       => fc.isNumber
+    }
+    def isPositiveNumber = formComponent match {
+      case FormComponentWithGroup(fc, _) => fc.isPositiveNumber
+      case FormComponentSimple(fc)       => fc.isPositiveNumber
+    }
   }
-
 }

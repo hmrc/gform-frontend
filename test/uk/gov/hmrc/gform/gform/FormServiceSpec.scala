@@ -16,55 +16,83 @@
 
 package uk.gov.hmrc.gform.gform
 
+import org.scalacheck.Gen
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.models.gform.FormComponentValidation
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
 import uk.gov.hmrc.gform.validation.{ FieldError, FieldOk }
+import uk.gov.hmrc.gform.ops.FormComponentOps
 
 class FormServiceSpec extends Spec {
 
   val formService = new FormService
+
   val genFormComponent = FormComponentGen.formComponentGen()
 
-  "removeCommas" should "remove any commas from the FormFieldValidationResult when FormComponent type is an instance" +
+  val sterling = new Sterling(RoundingMode.defaultRoundingMode)
+  val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
+  val genFormComponentSterlingConstraint: Gen[FormComponent] =
+    genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
+
+  val number = new Number()
+  val textNumberConstraint = Text(number, Expr.additionIdentityExpr)
+  val genFormComponentNumberConstraint: Gen[FormComponent] =
+    genFormComponent.map(e => e.copy(`type` = textNumberConstraint))
+
+  val positiveNumber = new PositiveNumber()
+  val textPositiveNumberConstraint = Text(positiveNumber, Expr.additionIdentityExpr)
+  val genFormComponentPNConstraint: Gen[FormComponent] =
+    genFormComponent.map(e => e.copy(`type` = textPositiveNumberConstraint))
+
+  "removeCommas" should "remove any commas from the FormFieldValidationResult when FormComponent type is of type Sterling" +
     "of Sterling" in {
-    val sterling = new Sterling(RoundingMode.defaultRoundingMode)
-    val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
-    val genFormComponentSterlingConstraint = genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
-
     forAll(genFormComponentSterlingConstraint) { formComponent =>
       formService
-        .removeCommas(List((formComponent, FieldOk(formComponent, "1,000.25"))))
+        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1000.25"))))
         .head
-        ._2
+        .formFieldValidationResult
         .getCurrentValue shouldBe Some("1000.25")
     }
   }
 
-  it should "remove any commas from the FormFieldValidationResult when FormComponent type is an instance of Sterling" +
-    " regardless of FormFieldValidationResult type" in {
-    val sterling = new Sterling(RoundingMode.defaultRoundingMode)
-    val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
-    val genFormComponentSterlingConstraint = genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
-
+  it should "not remove any commas from the FormFieldValidationResult when FormFieldValidationResult is not equal to FieldOk" in {
     forAll(genFormComponentSterlingConstraint) { formComponent =>
       formService
-        .removeCommas(List((formComponent, FieldError(formComponent, "1,000.25", Set("someErrors")))))
+        .removeCommas(
+          List(FormComponentValidation(formComponent, FieldError(formComponent, "1,000.25", Set("someErrors")))))
         .head
-        ._2
-        .getCurrentValue shouldBe Some("1000.25")
+        .formFieldValidationResult
+        .getCurrentValue shouldBe Some("1,000.25")
     }
   }
 
-  it should "when FormComponent type does not equal Sterling, commas should be untouched" in {
-    forAll(genFormComponent) { formComponent =>
-      val isSterlingConstraint = IsText.unapply(formComponent).map(_.constraint.isInstanceOf[Sterling]).getOrElse(false)
-
-      isSterlingConstraint shouldBe false
+  it should "remove any commas from the FormFieldValidationResult when FormComponent type is Number" in {
+    forAll(genFormComponentPNConstraint) { formComponent =>
       formService
-        .removeCommas(List((formComponent, FieldOk(formComponent, "1,000.25"))))
+        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1,000,000"))))
         .head
-        ._2
+        .formFieldValidationResult
+        .getCurrentValue shouldBe Some("1000000")
+    }
+  }
+
+  it should "remove any commas from the FormFieldValidationResult when FormComponent type is PositiveNumber" in {
+    forAll(genFormComponentNumberConstraint) { formComponent =>
+      formService
+        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1,000,000"))))
+        .head
+        .formFieldValidationResult
+        .getCurrentValue shouldBe Some("1000000")
+    }
+  }
+
+  it should "leave commas untouched, when FormComponent type does not equal Sterling, Number or Positive Number" in {
+    forAll(genFormComponent.filterNot(x => x.isSterling || x.isNumber || x.isPositiveNumber)) { formComponent =>
+      formService
+        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1,000.25"))))
+        .head
+        .formFieldValidationResult
         .getCurrentValue shouldBe Some("1,000.25")
     }
   }

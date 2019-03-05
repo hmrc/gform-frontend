@@ -15,25 +15,20 @@
  */
 
 package uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IsText, Sterling }
-import uk.gov.hmrc.gform.validation.{ FieldOk, FormFieldValidationResult }
+import uk.gov.hmrc.gform.models.gform.FormComponentValidation
+import uk.gov.hmrc.gform.validation.FieldOk
+import uk.gov.hmrc.gform.ops.FormComponentOps
 
 class FormService {
 
-  def removeCommas(formValidatedData: List[(FormComponent, FormFieldValidationResult)])
-    : List[(FormComponent, FormFieldValidationResult)] =
-    formValidatedData.map {
-      case (formComponent, formFiledValidationResult) =>
-        formComponent match {
-          case text
-              if IsText
-                .unapply(text)
-                .map(e => e.constraint.isInstanceOf[Sterling])
-                .getOrElse(false) =>
-            (
-              formComponent,
-              FieldOk(formComponent, formFiledValidationResult.getCurrentValue.getOrElse("").replaceAll(",", "")))
-          case _ => (formComponent, formFiledValidationResult)
-        }
+  def removeCommas(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
+    formValidatedData.map(removeCommasHelper)
+
+  def removeCommasHelper(formComponentValidation: FormComponentValidation) =
+    formComponentValidation match {
+      case FormComponentValidation(formComponent, FieldOk(fv, cv))
+          if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
+        FormComponentValidation(formComponent, FieldOk(fv, cv.replaceAll(",", "")))
+      case _ => formComponentValidation
     }
 }

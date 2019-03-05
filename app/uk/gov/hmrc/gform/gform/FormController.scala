@@ -45,6 +45,7 @@ import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.gform.models.gform.FormComponentValidation
 
 import scala.concurrent.Future
 
@@ -66,13 +67,15 @@ class FormController(
 
   import i18nSupport._
 
+  case class FormValidationOutcome(isValid: Boolean, formData: FormData, validatedType: ValidatedType[ValidationResult])
+
   private def validateForm(
     data: FormDataRecalculated,
     sections: List[Section],
     sn: SectionNumber,
     cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
-  ): Future[(Boolean, FormData, ValidatedType[ValidationResult])] =
+  ): Future[Option[FormValidationOutcome]] =
     for {
       formData <- validate(
                    data,
@@ -83,18 +86,33 @@ class FormController(
                    cache.form.thirdPartyData,
                    cache.formTemplate)
                    .map {
-                     case (validationResult, validatedType, _) => {
+                     case (validationResult, validatedType, _) =>
+                       splitFormComponentValidation(validationResult.headOption).map(fcv =>
+                         validateFormHelper(List(fcv), validatedType))
 
-                       val isFormValid = ValidationUtil.isFormValid(validationResult.toMap)
-                       val formComponents =
-                         if (isFormValid) formService.removeCommas(validationResult) else validationResult
-
-                       (isFormValid, FormData(formComponents.flatMap {
-                         case (_, formFieldValidationResult) => formFieldValidationResult.toFormField
-                       }), validatedType)
-                     }
                    }
     } yield formData
+
+  def splitFormComponentValidation(
+    optionFcv: Option[(FormComponent, FormFieldValidationResult)]): Option[FormComponentValidation] =
+    optionFcv.map(fcv => FormComponentValidation(fcv._1, fcv._2))
+
+  private def validateFormHelper(
+    validationResult: List[FormComponentValidation],
+    validatedType: ValidatedType[ValidationResult]): FormValidationOutcome = {
+    val isFormValid =
+      ValidationUtil.isFormValid(validationResult.map(x => x.formComponent -> x.formFieldValidationResult).toMap)
+    val formComponents =
+      if (isFormValid) formService.removeCommas(validationResult) else validationResult
+
+    FormValidationOutcome(
+      isFormValid,
+      FormData(formComponents.flatMap {
+        case FormComponentValidation(_, formFieldValidationResult) => formFieldValidationResult.toFormField
+      }),
+      validatedType
+    )
+  }
 
   private def fastForwardValidate(processData: ProcessData, cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
@@ -110,12 +128,12 @@ class FormController(
             case Some(sn) => Future.successful(Some(sn))
             case None =>
               validateForm(data, sections, currentSn, cache).map {
-                case (isValid, _, _) =>
+                case formValidation: FormValidationOutcome =>
                   val section = sections(currentSn.value)
                   val hasBeenVisited = processData.visitIndex.visitsIndex.contains(currentSn.value)
 
                   val stop = section.continueIf.contains(Stop) || !hasBeenVisited
-                  if (isValid && !stop) None else Some(currentSn)
+                  if (formValidation.isValid && !stop) None else Some(currentSn)
               }
           }
         }
@@ -487,7 +505,11 @@ class FormController(
       def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
         toResult: Option[SectionNumber] => Result): Future[Result] =
         for {
-          (_, formData, v) <- validateForm(processData.data, processData.sections, sectionNumber, cache)
+          Some(FormValidationOutcome(_, formData, v)) <- validateForm(
+                                                          processData.data,
+                                                          processData.sections,
+                                                          sectionNumber,
+                                                          cache)
           res <- {
             val before: ThirdPartyData = cache.form.thirdPartyData
             val after: ThirdPartyData = before.updateFrom(v)
