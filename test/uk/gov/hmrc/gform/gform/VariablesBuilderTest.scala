@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.gform
 import com.softwaremill.quicklens._
 import play.api.libs.json.Json
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, AffinityGroup => CoreAffinityGroup}
+import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments, AffinityGroup => CoreAffinityGroup }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.AuthenticatedRetrievals
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.VariablesBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
-import uk.gov.hmrc.gform.sharedmodel.{Variables, VariablesBuilder}
+import uk.gov.hmrc.gform.sharedmodel.{ Variables, VariablesBuilder }
 
 class VariablesBuilderTest extends Spec with FormTemplateGen {
 
