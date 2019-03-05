@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.Eq
 import cats.instances.future._
 import cats.instances.option._
 import cats.syntax.applicative._
@@ -61,7 +60,8 @@ class FormController(
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future, Throwable],
-  obligationService: ObligationService
+  obligationService: ObligationService,
+  formService: FormService
 ) extends FrontendController {
 
   import i18nSupport._
@@ -83,11 +83,16 @@ class FormController(
                    cache.form.thirdPartyData,
                    cache.formTemplate)
                    .map {
-                     case (validationResult, v, _) =>
-                       (
-                         ValidationUtil.isFormValid(validationResult.toMap),
-                         FormData(validationResult.flatMap(_._2.toFormField)),
-                         v)
+                     case (validationResult, v, _) => {
+
+                       val isFormValid = ValidationUtil.isFormValid(validationResult.toMap)
+                       val formComponents =
+                         if (isFormValid) formService.removeCommas(validationResult) else validationResult
+
+                       (isFormValid, FormData(formComponents.flatMap {
+                         case (_, formFieldValidationResult) => formFieldValidationResult.toFormField
+                       }), v)
+                     }
                    }
     } yield formData
 

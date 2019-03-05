@@ -76,7 +76,8 @@ class GformModule(
     sectionRenderingService,
     gformBackendModule.gformConnector,
     processDataService,
-    controllersModule.obligationService
+    controllersModule.obligationService,
+    controllersModule.formService
   )
 
   val summaryController: SummaryController = new SummaryController(
