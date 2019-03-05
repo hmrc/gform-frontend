@@ -20,6 +20,7 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.gform.FormService
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
@@ -37,6 +38,8 @@ class ControllersModule(
   val obligationService: ObligationService = new ObligationService(
     gformBackendModule.gformConnector
   )
+
+  val formService: FormService = new FormService
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
