@@ -23,7 +23,7 @@ class FormService {
   def removeCommas(formValidatedData: List[(FormComponent, FormFieldValidationResult)])
     : List[(FormComponent, FormFieldValidationResult)] =
     formValidatedData.map {
-      case (formComponent, formFiledValidationR) =>
+      case (formComponent, formFiledValidationResult) =>
         formComponent match {
           case text
               if IsText
@@ -32,8 +32,8 @@ class FormService {
                 .getOrElse(false) =>
             (
               formComponent,
-              FieldOk(formComponent, formFiledValidationR.getCurrentValue.getOrElse("").replaceAll(",", "")))
-          case _ => (formComponent, formFiledValidationR)
+              FieldOk(formComponent, formFiledValidationResult.getCurrentValue.getOrElse("").replaceAll(",", "")))
+          case _ => (formComponent, formFiledValidationResult)
         }
     }
 }

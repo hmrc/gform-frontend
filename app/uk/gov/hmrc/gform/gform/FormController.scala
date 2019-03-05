@@ -83,7 +83,7 @@ class FormController(
                    cache.form.thirdPartyData,
                    cache.formTemplate)
                    .map {
-                     case (validationResult, v, _) => {
+                     case (validationResult, validatedType, _) => {
 
                        val isFormValid = ValidationUtil.isFormValid(validationResult.toMap)
                        val formComponents =
@@ -91,7 +91,7 @@ class FormController(
 
                        (isFormValid, FormData(formComponents.flatMap {
                          case (_, formFieldValidationResult) => formFieldValidationResult.toFormField
-                       }), v)
+                       }), validatedType)
                      }
                    }
     } yield formData

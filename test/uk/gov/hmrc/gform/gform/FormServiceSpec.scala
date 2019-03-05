@@ -26,10 +26,10 @@ class FormServiceSpec extends Spec {
   val formService = new FormService
   val genFormComponent = FormComponentGen.formComponentGen()
 
-  it should "remove any commas from the FormFieldValidationResult when FormComponent.`type` of Text.constraint is instanceOf Sterling" in {
+  "removeCommas" should "remove any commas from the FormFieldValidationResult when FormComponent type is an instance" +
+    "of Sterling" in {
     val sterling = new Sterling(RoundingMode.defaultRoundingMode)
     val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
-
     val genFormComponentSterlingConstraint = genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
 
     forAll(genFormComponentSterlingConstraint) { formComponent =>
@@ -41,10 +41,10 @@ class FormServiceSpec extends Spec {
     }
   }
 
-  it should "remove any commas from the FormFieldValidationResult when FormComponent.`type` of Text.constraint is instanceOf Sterling no matter FormFieldValidationResult type" in {
+  it should "remove any commas from the FormFieldValidationResult when FormComponent type is an instance of Sterling" +
+    " regardless of FormFieldValidationResult type" in {
     val sterling = new Sterling(RoundingMode.defaultRoundingMode)
     val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
-
     val genFormComponentSterlingConstraint = genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
 
     forAll(genFormComponentSterlingConstraint) { formComponent =>
@@ -56,7 +56,7 @@ class FormServiceSpec extends Spec {
     }
   }
 
-  it should "when FormComponent.`type` of Text.constraint != Sterling leave commars" in {
+  it should "when FormComponent type does not equal Sterling, commas should be untouched" in {
     forAll(genFormComponent) { formComponent =>
       val isSterlingConstraint = IsText.unapply(formComponent).map(_.constraint.isInstanceOf[Sterling]).getOrElse(false)
 
