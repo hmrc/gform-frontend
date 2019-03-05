@@ -31,6 +31,7 @@ object DateExpr {
     case ExactDateValue(year, month, day) => DateExpr(year, month, day)
     case n @ NextDateValue(_, _)          => nextDateExpr(n)
     case p @ PreviousDateValue(_, _)      => previousDateExpr(p)
+
   }
 
   private def nextDateExpr(nextDate: NextDateValue)(implicit now: Now[LocalDate]): DateExpr = {

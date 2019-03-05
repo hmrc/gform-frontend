@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import java.time.LocalDate
+
 import julienrf.json.derived
 import play.api.libs.json._
 
