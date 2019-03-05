@@ -44,7 +44,7 @@ object ObligationDetail {
   implicit val format: OFormat[ObligationDetail] = Json.format[ObligationDetail]
 }
 
-case class ObligationDetails(obligationDetails: List[ObligationDetail])
+case class ObligationDetails(value: List[ObligationDetail]) extends AnyVal
 
 object ObligationDetails {
   import JsonUtils._

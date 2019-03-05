@@ -34,27 +34,31 @@ class ObligationService(gformConnector: GformConnector) {
 
   val stringToDate = new SimpleDateFormat("yyyy-MM-dd")
 
-  private def makeAllInfoList(
-    id: HmrcTaxPeriod,
-    evaluatedId: HmrcTaxPeriodWithEvaluatedId,
-    obligation: List[ObligationDetail]) =
-    obligation.map(
-      i =>
-        TaxPeriodInformation(
-          id,
-          evaluatedId.idNumberValue,
-          i.inboundCorrespondenceFromDate,
-          i.inboundCorrespondenceToDate,
-          i.periodKey))
-
   private def updatedObligations(
     idNumbers: NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
     taxResponses: List[TaxResponse]): List[TaxPeriodInformation] =
-    taxResponses.flatMap(j =>
-      j.obligation.obligations.flatMap(h =>
-        makeAllInfoList(j.id, idNumbers.find(x => x.hmrcTaxPeriod == j.id).get, h.obligationDetails)))
+    taxResponses.flatMap(
+      taxResponse => {
+        val obligations: List[ObligationDetails] = taxResponse.obligation.obligations
+        obligations.flatMap(
+          x => {
+            val obligationDetails: List[ObligationDetail] = x.value
+            obligationDetails.map(
+              obligationDetail =>
+                TaxPeriodInformation(
+                  taxResponse.id,
+                  idNumbers.find(i => i.hmrcTaxPeriod == taxResponse.id).get.idNumberValue,
+                  obligationDetail.inboundCorrespondenceFromDate,
+                  obligationDetail.inboundCorrespondenceToDate,
+                  obligationDetail.periodKey
+              )
+            )
+          }
+        )
+      }
+    )
 
-  private def withEvaluatedIdB(
+  private def evaluateOneId(
     formTemplate: FormTemplate,
     authService: AuthService,
     retrievals: MaterialisedRetrievals,
@@ -71,7 +75,7 @@ class ObligationService(gformConnector: GformConnector) {
                     form.envelopeId)
     } yield HmrcTaxPeriodWithEvaluatedId(hmrcTaxPeriod, IdNumberValue(evaluated))
 
-  private def copyFormUpdatedObligations(
+  private def updatedForm(
     formTemplate: FormTemplate,
     authService: AuthService,
     retrievals: MaterialisedRetrievals,
@@ -81,7 +85,7 @@ class ObligationService(gformConnector: GformConnector) {
     ec: ExecutionContext): Future[Form] =
     for {
       idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i =>
-                    withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
+                    evaluateOneId(formTemplate, authService, retrievals, form, i))
       taxResponses <- gformConnector.getAllTaxPeriods(idNumbers)
       obligations = updatedObligations(idNumbers, taxResponses)
     } yield form.copy(obligations = RetrievedObligations(obligations))
@@ -125,12 +129,7 @@ class ObligationService(gformConnector: GformConnector) {
                               ))
 
           output <- if (shouldUpdate(form.obligations, currentIdNumber))
-                     copyFormUpdatedObligations(
-                       formTemplate,
-                       authService,
-                       retrievals,
-                       form,
-                       hmrcTaxPeriodIdentifiersNonEmpty)
+                     updatedForm(formTemplate, authService, retrievals, form, hmrcTaxPeriodIdentifiersNonEmpty)
                    else
                      Future.successful(form)
         } yield output
