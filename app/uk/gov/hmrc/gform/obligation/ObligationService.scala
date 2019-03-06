@@ -50,9 +50,14 @@ class ObligationService(gformConnector: GformConnector) {
   private def updatedObligations(
     idNumbers: NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
     taxResponses: List[TaxResponse]): List[TaxPeriodInformation] =
-    taxResponses.flatMap(j =>
-      j.obligation.obligations.flatMap(h =>
-        makeAllInfoList(j.id, idNumbers.find(x => x.hmrcTaxPeriod == j.id).get, h.obligationDetails)))
+    taxResponses.flatMap(
+      taxResponse =>
+        taxResponse.obligation.obligations.flatMap(
+          obligDetails =>
+            makeAllInfoList(
+              taxResponse.id,
+              idNumbers.find(hTPWithId => hTPWithId.hmrcTaxPeriod == taxResponse.id).get,
+              obligDetails.obligationDetails)))
 
   private def withEvaluatedIdB(
     formTemplate: FormTemplate,
@@ -94,10 +99,7 @@ class ObligationService(gformConnector: GformConnector) {
           currentIdNumbers.forall(i => retrievedTaxPeriodIds.contains(i))
         !retrievedContainsAllCurrent
       }
-      case NotChecked => {
-        val currentNotEmpty: Boolean = currentIdNumbers.exists(i => !i.isEmpty)
-        currentNotEmpty
-      }
+      case NotChecked => currentIdNumbers.exists(i => !i.isEmpty)
     }
 
   def lookupIfPossible(
