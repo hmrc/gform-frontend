@@ -41,13 +41,13 @@ class ObligationService(gformConnector: GformConnector) {
       taxResponse => {
         val obligations: List[ObligationDetails] = taxResponse.obligation.obligations
         obligations.flatMap(
-          x => {
-            val obligationDetails: List[ObligationDetail] = x.value
+          listOfObligationDetails => {
+            val obligationDetails: List[ObligationDetail] = listOfObligationDetails.value
             obligationDetails.map(
               obligationDetail =>
                 TaxPeriodInformation(
                   taxResponse.id,
-                  idNumbers.find(i => i.hmrcTaxPeriod == taxResponse.id).get.idNumberValue,
+                  idNumbers.find(hTPWithId => hTPWithId.hmrcTaxPeriod == taxResponse.id).get.idNumberValue,
                   obligationDetail.inboundCorrespondenceFromDate,
                   obligationDetail.inboundCorrespondenceToDate,
                   obligationDetail.periodKey
@@ -98,10 +98,7 @@ class ObligationService(gformConnector: GformConnector) {
           currentIdNumbers.forall(i => retrievedTaxPeriodIds.contains(i))
         !retrievedContainsAllCurrent
       }
-      case NotChecked => {
-        val currentNotEmpty: Boolean = currentIdNumbers.exists(i => !i.isEmpty)
-        currentNotEmpty
-      }
+      case NotChecked => currentIdNumbers.exists(i => !i.isEmpty)
     }
 
   def lookupIfPossible(
