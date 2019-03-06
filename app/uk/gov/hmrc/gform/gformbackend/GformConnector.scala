@@ -105,8 +105,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   /********Validators******/
   def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[DesRegistrationResponse] =
-    ws.POST[DesRegistrationRequest, DesRegistrationResponse](s"$baseUrl/validate/des/$utr", desRegistrationRequest)
+    ec: ExecutionContext): Future[ServiceCallResponse[DesRegistrationResponse]] =
+    ws.POST[DesRegistrationRequest, ServiceCallResponse[DesRegistrationResponse]](
+      s"$baseUrl/validate/des/$utr",
+      desRegistrationRequest)
 
   def validateBankModulus(accountNumber: String, sortCode: String)(
     implicit hc: HeaderCarrier,

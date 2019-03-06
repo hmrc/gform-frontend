@@ -27,6 +27,7 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.sharedmodel.{ NotFound, ServiceNotAvailable, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Today, _ }
@@ -130,10 +131,15 @@ class ValidationService(
 
         gformConnector
           .validatePostCodeUtr(utrValue, desRegistrationRequest)
-          .map(
-            drr =>
-              if (compare(postcodeValue)(drr)) ValidationResult(Some(drr)).valid
-              else errors.invalid)
+          .flatMap {
+            case NotFound            => Future.successful(errors.invalid)
+            case ServiceNotAvailable => Future.failed(new Exception("Call to des registration has failed"))
+            case ServiceResponse(drr) =>
+              Future.successful(
+                if (compare(postcodeValue)(drr)) ValidationResult(Some(drr)).valid
+                else errors.invalid
+              )
+          }
       case BankAccoutnModulusCheck(errorMessage, accountNumber, sortCode) =>
         val sortCodeCombined = UkSortCode.fields(sortCode.toFieldId).map(dataGetter).mkString("-")
         val errors = Map(accountNumber.toFieldId -> Set(errorMessage), sortCode.toFieldId -> Set(errorMessage))
