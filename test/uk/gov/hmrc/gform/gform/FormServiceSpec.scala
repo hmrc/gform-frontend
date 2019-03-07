@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
+import org.scalacheck.Gen
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
@@ -23,15 +24,15 @@ import uk.gov.hmrc.gform.validation.{ FieldError, FieldOk }
 
 class FormServiceSpec extends Spec {
 
-  val formService = new FormService
-  val genFormComponent = FormComponentGen.formComponentGen()
+  lazy val formService = new FormService
+  lazy val genFormComponent = FormComponentGen.formComponentGen()
+  lazy val genFormComponentSterlingConstraint: Gen[FormComponent] =
+    genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
+  lazy val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
+  lazy val sterling = new Sterling(RoundingMode.defaultRoundingMode)
 
   "removeCommas" should "remove any commas from the FormFieldValidationResult when FormComponent type is an instance" +
     "of Sterling" in {
-    val sterling = new Sterling(RoundingMode.defaultRoundingMode)
-    val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
-    val genFormComponentSterlingConstraint = genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
-
     forAll(genFormComponentSterlingConstraint) { formComponent =>
       formService
         .removeCommas(List((formComponent, FieldOk(formComponent, "1,000.25"))))
@@ -43,10 +44,6 @@ class FormServiceSpec extends Spec {
 
   it should "remove any commas from the FormFieldValidationResult when FormComponent type is an instance of Sterling" +
     " regardless of FormFieldValidationResult type" in {
-    val sterling = new Sterling(RoundingMode.defaultRoundingMode)
-    val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
-    val genFormComponentSterlingConstraint = genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
-
     forAll(genFormComponentSterlingConstraint) { formComponent =>
       formService
         .removeCommas(List((formComponent, FieldError(formComponent, "1,000.25", Set("someErrors")))))
@@ -56,11 +53,9 @@ class FormServiceSpec extends Spec {
     }
   }
 
+  import uk.gov.hmrc.gform.ops.FormComponentOps
   it should "when FormComponent type does not equal Sterling, commas should be untouched" in {
-    forAll(genFormComponent) { formComponent =>
-      val isSterlingConstraint = IsText.unapply(formComponent).map(_.constraint.isInstanceOf[Sterling]).getOrElse(false)
-
-      isSterlingConstraint shouldBe false
+    forAll(genFormComponent.filterNot(_.isSterling)) { formComponent =>
       formService
         .removeCommas(List((formComponent, FieldOk(formComponent, "1,000.25"))))
         .head

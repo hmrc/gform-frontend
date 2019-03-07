@@ -66,13 +66,15 @@ class FormController(
 
   import i18nSupport._
 
+  case class FormValidationOutcome(isValid: Boolean, formData: FormData, validatedType: ValidatedType[ValidationResult])
+
   private def validateForm(
     data: FormDataRecalculated,
     sections: List[Section],
     sn: SectionNumber,
     cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
-  ): Future[(Boolean, FormData, ValidatedType[ValidationResult])] =
+  ): Future[FormValidationOutcome] =
     for {
       formData <- validate(
                    data,
@@ -83,18 +85,23 @@ class FormController(
                    cache.form.thirdPartyData,
                    cache.formTemplate)
                    .map {
-                     case (validationResult, validatedType, _) => {
+                     case (validationResult, validatedType, _) =>
+                       validateFormHelper(validationResult, validatedType)
 
-                       val isFormValid = ValidationUtil.isFormValid(validationResult.toMap)
-                       val formComponents =
-                         if (isFormValid) formService.removeCommas(validationResult) else validationResult
-
-                       (isFormValid, FormData(formComponents.flatMap {
-                         case (_, formFieldValidationResult) => formFieldValidationResult.toFormField
-                       }), validatedType)
-                     }
                    }
     } yield formData
+
+  private def validateFormHelper(
+    validationResult: List[(FormComponent, FormFieldValidationResult)],
+    validatedType: ValidatedType[ValidationResult]): FormValidationOutcome = {
+    val isFormValid = ValidationUtil.isFormValid(validationResult.toMap)
+    val formComponents =
+      if (isFormValid) formService.removeCommas(validationResult) else validationResult
+
+    FormValidationOutcome(isFormValid, FormData(formComponents.flatMap {
+      case (_, formFieldValidationResult) => formFieldValidationResult.toFormField
+    }), validatedType)
+  }
 
   private def fastForwardValidate(processData: ProcessData, cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
@@ -110,12 +117,12 @@ class FormController(
             case Some(sn) => Future.successful(Some(sn))
             case None =>
               validateForm(data, sections, currentSn, cache).map {
-                case (isValid, _, _) =>
+                case formValidationO: FormValidationOutcome =>
                   val section = sections(currentSn.value)
                   val hasBeenVisited = processData.visitIndex.visitsIndex.contains(currentSn.value)
 
                   val stop = section.continueIf.contains(Stop) || !hasBeenVisited
-                  if (isValid && !stop) None else Some(currentSn)
+                  if (formValidationO.isValid && !stop) None else Some(currentSn)
               }
           }
         }
@@ -487,7 +494,11 @@ class FormController(
       def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
         toResult: Option[SectionNumber] => Result): Future[Result] =
         for {
-          (_, formData, v) <- validateForm(processData.data, processData.sections, sectionNumber, cache)
+          FormValidationOutcome(_, formData, v) <- validateForm(
+                                                    processData.data,
+                                                    processData.sections,
+                                                    sectionNumber,
+                                                    cache)
           res <- {
             val before: ThirdPartyData = cache.form.thirdPartyData
             val after: ThirdPartyData = before.updateFrom(v)

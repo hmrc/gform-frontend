@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IsText, Sterling }
 import uk.gov.hmrc.gform.validation.{ FieldOk, FormFieldValidationResult }
+import uk.gov.hmrc.gform.ops.FormComponentOps
 
 class FormService {
 
@@ -25,11 +26,7 @@ class FormService {
     formValidatedData.map {
       case (formComponent, formFiledValidationResult) =>
         formComponent match {
-          case text
-              if IsText
-                .unapply(text)
-                .map(e => e.constraint.isInstanceOf[Sterling])
-                .getOrElse(false) =>
+          case x if x.isSterling =>
             (
               formComponent,
               FieldOk(formComponent, formFiledValidationResult.getCurrentValue.getOrElse("").replaceAll(",", "")))
