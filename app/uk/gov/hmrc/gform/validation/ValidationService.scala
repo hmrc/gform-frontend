@@ -27,7 +27,7 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.{ NotFound, ServiceNotAvailable, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Today, _ }
@@ -132,8 +132,8 @@ class ValidationService(
         gformConnector
           .validatePostCodeUtr(utrValue, desRegistrationRequest)
           .flatMap {
-            case NotFound            => Future.successful(errors.invalid)
-            case ServiceNotAvailable => Future.failed(new Exception("Call to des registration has failed"))
+            case NotFound               => Future.successful(errors.invalid)
+            case CannotRetrieveResponse => Future.failed(new Exception("Call to des registration has failed"))
             case ServiceResponse(drr) =>
               Future.successful(
                 if (compare(postcodeValue)(drr)) ValidationResult(Some(drr)).valid
