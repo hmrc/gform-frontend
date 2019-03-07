@@ -194,7 +194,9 @@ class DeclarationController(
                   Signed,
                   updatedForm.visitsIndex,
                   updatedForm.thirdPartyData,
-                  cache.form.obligations))
+                  cache.form.obligations,
+                  cache.form.emailParameters)
+              )
         //todo perhaps not make these calls at all if the feature flag is false?
         summaryHml <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
         cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)

@@ -323,7 +323,8 @@ class FormController(
                    cache.form.status,
                    cache.form.visitsIndex,
                    cache.form.thirdPartyData,
-                   cache.form.obligations),
+                   cache.form.obligations,
+                   cache.form.emailParameters),
                  cache.oldForm,
                  cache.form
                )
@@ -505,7 +506,8 @@ class FormController(
         } yield res
 
       def updateUserData(cache: AuthCacheWithForm, processData: ProcessData)(
-        toResult: Option[SectionNumber] => Result): Future[Result] =
+        toResult: Option[SectionNumber] => Result): Future[Result] = {
+        println("findmehere" + processData)
         for {
           maybeSn <- fastForwardValidate(processData, cache)
           userData = UserData(
@@ -513,10 +515,12 @@ class FormController(
             maybeSn.fold(Summary: FormStatus)(_ => InProgress),
             processData.visitIndex,
             cache.form.thirdPartyData,
-            cache.form.obligations
+            cache.form.obligations,
+            cache.form.emailParameters
           )
           res <- gformConnector.updateUserData(formId, userData).map(_ => toResult(maybeSn))
         } yield res
+      }
 
       def processSaveAndContinue(
         processData: ProcessData

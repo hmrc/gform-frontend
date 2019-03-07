@@ -82,11 +82,13 @@ class Recalculation[F[_]: Monad, E](
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, me: MonadError[F, E]): F[FormDataRecalculated] =
+    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, me: MonadError[F, E]): F[FormDataRecalculated] = {
+    println("davids data " + data)
     recalculateFormData_(data, formTemplate, retrievals, thirdPartyData, envelopeId).value.flatMap {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd)            => fd.pure[F]
     }
+  }
 
   private def recalculateFormData_(
     data: Data,
@@ -96,6 +98,8 @@ class Recalculation[F[_]: Monad, E](
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): EitherT[F, GraphException, FormDataRecalculated] = {
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate, data)
+
+    println("daviddata" + data)
 
     val fcLookup: Map[FormComponentId, FormComponent] = formTemplate.expandFormTemplate(data).fcsLookup(data)
 
@@ -219,6 +223,7 @@ class Recalculation[F[_]: Monad, E](
     thirdPartyData: ThirdPartyData,
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Either[GraphException, Data]] =
     Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup)).traverse { fc =>
+      println("formcomponentz:" + fcLookup)
       if ((fc.editable || fc.derived) && hasData(fc, dataLookup)) dataLookup.pure[F]
       else
         fc match {
@@ -280,8 +285,9 @@ class Evaluator[F[_]: Monad](
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     thirdPartyData: ThirdPartyData,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Convertible[F] =
-    expr match {
+    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Convertible[F] = {
+    println("dataLookup: " + dataLookup + "visSet \n" + visSet + "expr \n " + expr)
+    val a = expr match {
       case Value                               => getSubmissionData(dataLookup, fcId)
       case HmrcRosmRegistrationCheck(rosmProp) => NonConvertible(evalRosm(thirdPartyData, rosmProp).pure[F])
       case ctx @ UserCtx(_) =>
@@ -339,7 +345,9 @@ class Evaluator[F[_]: Monad](
             thirdPartyData,
             envelopeId))
     }
-
+    println("resultis: " + a)
+    a
+  }
   private def getSubmissionData(dataLookup: Data, fcId: FormComponentId): Convertible[F] =
     dataLookup.get(fcId).flatMap(_.headOption) match {
       case None        => Converted((NonComputable: Computable).pure[F])
