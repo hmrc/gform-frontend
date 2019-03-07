@@ -65,7 +65,7 @@ object ContactDetails {
 sealed trait DesEntity {
   def getOrganisationName = this match {
     case Organisation(organisationName, _, _) => organisationName
-    case _                                    => ""
+    case Individual(firstName, lastName, _)   => firstName + lastName.fold("")(" " + _)
   }
   def getOrganisationType = this match {
     case Organisation(_, _, organisationType) => organisationType
