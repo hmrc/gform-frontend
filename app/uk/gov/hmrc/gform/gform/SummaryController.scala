@@ -21,23 +21,21 @@ import cats.instances.future._
 import cats.instances.list._
 import cats.instances.map._
 import cats.instances.set._
-import cats.instances.unit._
-import cats.syntax.traverse._
-import cats.syntax.flatMap._
 import cats.syntax.applicative._
-import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, Request }
+import cats.syntax.flatMap._
+import cats.syntax.traverse._
 import play.api.http.HttpEntity
-import play.api.mvc._
+import play.api.i18n.I18nSupport
+import play.api.mvc.{ Action, AnyContent, Request, _ }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder, Origin }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ Data, Recalculation, RecalculationOp }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.obligation.ObligationService
@@ -49,10 +47,11 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
+import scala.util.{ Failure, Success }
 
 class SummaryController(
   i18nSupport: I18nSupport,
@@ -68,6 +67,84 @@ class SummaryController(
 ) extends FrontendController {
 
   import i18nSupport._
+
+  def mkFormComponent(fcId: String, ct: ComponentType) =
+    FormComponent(
+      FormComponentId(fcId),
+      ct,
+      "Label",
+      None,
+      None,
+      None,
+      true,
+      false,
+      true,
+      false,
+      false,
+      None,
+      None
+    )
+
+  def mkSection(formComponents: List[FormComponent]) =
+    Section(
+      "Section Name",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      formComponents,
+      None,
+      None
+    )
+
+  def p(
+    data: Data,
+    formTemplate: FormTemplate,
+    recalculation: Recalculation[Future, Throwable],
+    retrievals: MaterialisedRetrievals,
+    thirdPartyData: ThirdPartyData,
+    envelopeId: EnvelopeId,
+    gformConnector: GformConnector,
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier) = {
+    val newFormComponents = formTemplate.emailParameters.fold(List.empty[FormComponent])(_.toList.map(parameter =>
+      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value.expr))))
+
+    val newSections = formTemplate.sections ::: List(mkSection(newFormComponents))
+
+    val newFormTemplate = formTemplate.copy(sections = newSections)
+
+    val res = recalculation
+      .recalculateFormData(data, newFormTemplate, retrievals, thirdPartyData, envelopeId)
+      .map(
+        a =>
+          formTemplate.emailParameters.fold(Map.empty[String, String])(
+            _.toList
+              .map(parameter =>
+                (parameter.emailTemplateVariable, a.data.get(FormComponentId(parameter.emailTemplateVariable))))
+              .map(a => (a._1, a._2.getOrElse(Seq(""))))
+              .map(a => (a._1, a._2.head))
+              .toMap))
+
+    res.onComplete {
+      case Success(value) =>
+        println("plzplzwork" + value)
+        gformConnector.updateUserData(
+          FormId(cache.retrievals, formTemplate._id, maybeAccessCode),
+          UserData(
+            cache.form.formData,
+            Validated,
+            cache.form.visitsIndex,
+            cache.form.thirdPartyData,
+            cache.form.obligations,
+            EmailParameters(value))
+        )
+    }
+
+  }
 
   def summaryById(
     formTemplateId: FormTemplateId,
@@ -85,7 +162,7 @@ class SummaryController(
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-
+        println("cachestuff" + cache.form.formData + " \n")
         val formFieldValidationResultsF = for {
           update <- obligationService.updateObligations(
                      cache.oldForm._id,
@@ -94,7 +171,8 @@ class SummaryController(
                        cache.form.status,
                        cache.form.visitsIndex,
                        cache.form.thirdPartyData,
-                       cache.form.obligations),
+                       cache.form.obligations,
+                       cache.form.emailParameters),
                      cache.oldForm,
                      cache.form
                    )
@@ -112,7 +190,8 @@ class SummaryController(
               Validated,
               cache.form.visitsIndex,
               cache.form.thirdPartyData,
-              cache.form.obligations)
+              cache.form.obligations,
+              cache.form.emailParameters)
           )
           .map { _ =>
             Redirect(
@@ -144,6 +223,18 @@ class SummaryController(
                 Ok(save_acknowledgement(envelopeExpiryDate, cache.formTemplate, call, lang, frontendAppConfig))
             }
           }
+
+        p(
+          dataRaw,
+          cache.formTemplate,
+          recalculation,
+          cache.retrievals,
+          cache.form.thirdPartyData,
+          cache.form.envelopeId,
+          gformConnector,
+          cache,
+          maybeAccessCode
+        )
 
         get(dataRaw, FormComponentId("save")) match {
           case "Exit" :: Nil        => handleExit
@@ -189,10 +280,22 @@ class SummaryController(
                cache.formTemplate,
                retrievals,
                cache.form.thirdPartyData,
-               cache.form.envelopeId)
+               cache.form.envelopeId
+             )
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
-      allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
+      allFields = submittedFCs(
+        data,
+        sections
+          .flatMap { a =>
+            println("formdatarec2: " + retrievals)
+            a.expandSection(data.data).allFCs
+          }
+          .map { a =>
+            println("formcomponentDav" + a)
+            a
+          }
+      )
 
       v1 <- sections
              .traverse(
