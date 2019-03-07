@@ -119,7 +119,7 @@ class ValidationService(
     }
 
     v match {
-      case HMRCUTRPostcodeCheckValidator(errorMessage, regime, utr, postcode) =>
+      case HmrcRosmRegistrationCheckValidator(errorMessage, regime, utr, postcode) =>
         def findByKey(key: String): String = data.data.get(FormComponentId(key)).toList.flatten.headOption.getOrElse("")
 
         val utrValue = findByKey(utr.value)
