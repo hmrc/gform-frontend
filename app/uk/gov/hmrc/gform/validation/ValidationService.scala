@@ -670,6 +670,7 @@ class ComponentsValidator(
           isNextOrPreviousYear(date, concreteDate)
         case concreteDate: ConcreteDate if parametersLength === 1 || parametersLength === 2 =>
           isSameAbstractDate(date, concreteDate)
+        case _ => true
       }
     }
   }
