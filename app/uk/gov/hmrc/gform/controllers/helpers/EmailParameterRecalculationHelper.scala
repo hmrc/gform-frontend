@@ -45,7 +45,7 @@ case class EmailParameterRecalculationHelper(cache: AuthCacheWithForm) extends F
 
   private def mkFormComponent(fcId: String, ct: ComponentType) =
     FormComponent(
-      FormComponentId(fcId),
+      FormComponentId(fcId + "UniqueEmailParameter"),
       ct,
       "UniqueEmailParameter",
       None,
@@ -80,7 +80,7 @@ case class EmailParameterRecalculationHelper(cache: AuthCacheWithForm) extends F
     val newFormComponents = cache.formTemplate.emailParameters.fold(List.empty[FormComponent])(_.toList.map(parameter =>
       mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value.expr))))
 
-    val newSections = List(mkSection(newFormComponents))
+    val newSections = cache.formTemplate.sections ::: List(mkSection(newFormComponents))
 
     val newFormTemplate = cache.formTemplate.copy(sections = newSections)
 
@@ -91,14 +91,12 @@ case class EmailParameterRecalculationHelper(cache: AuthCacheWithForm) extends F
     EmailParameters(cache.formTemplate.emailParameters.fold(Map.empty[String, String])(parameters =>
       parameterFormat(parameters.toList, formDataRecalculated)))
 
-  private def parameterToTuple(parameter: EmailParameter, formDataRecalculated: FormDataRecalculated): (String, Option[Seq[String]]) = {
-
-    val parameterComponents = cache.formTemplate.expandFormTemplate(formDataRecalculated.data).allFCs.filter(fc => fc.label == "UniqueEmailParameter")
-
-//    (parameter.emailTemplateVariable, formDataRecalculated.data.get(FormComponentId(parameter.emailTemplateVariable)))
-    (parameter.emailTemplateVariable, formDataRecalculated.data.get(FormComponentId(parameter.emailTemplateVariable)))
-
-  }
+  private def parameterToTuple(
+    parameter: EmailParameter,
+    formDataRecalculated: FormDataRecalculated): (String, Option[Seq[String]]) =
+    (
+      parameter.emailTemplateVariable,
+      formDataRecalculated.data.get(FormComponentId(parameter.emailTemplateVariable + "UniqueEmailParameter")))
 
   private def parameterFormat(
     parameters: List[EmailParameter],
