@@ -16,8 +16,21 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.MonadError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.core._
+import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.frontend.controller.FrontendController
+
+import scala.concurrent.Future
+import scala.util.{ Failure, Success }
 case class EmailParameter(emailTemplateVariable: String, value: TextExpression)
 object EmailParameter {
   implicit val format: OFormat[EmailParameter] = {
@@ -35,7 +48,10 @@ object EmailParameter {
   }
 }
 
-case class EmailParameters(parameters: Map[String, String])
+case class EmailParameters(emailParameters: Map[String, String]) {
+  def toFormFields: Seq[FormField] =
+    emailParameters.map(parameter => FormField(FormComponentId(parameter._1), parameter._2)).toSeq
+}
 
 object EmailParameters {
 
