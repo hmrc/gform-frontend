@@ -21,6 +21,7 @@ import akka.util.ByteString
 import play.api.Play
 import play.api.libs.json.Json
 import play.api.mvc._
+import uk.gov.hmrc.gform.InjectionDodge
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
@@ -31,8 +32,8 @@ class TestOnlyController(
   proxy: ProxyActions,
   gformConnector: GformConnector
 ) extends FrontendController with ServicesConfig {
-  override protected def mode = Play.current.mode
-  override protected def runModeConfiguration = Play.current.configuration
+  override protected def mode = InjectionDodge.mode
+  override protected def runModeConfiguration = InjectionDodge.configuration
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 
