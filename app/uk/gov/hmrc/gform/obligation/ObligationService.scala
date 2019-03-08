@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations, _ }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -96,7 +96,7 @@ class ObligationService(gformConnector: GformConnector) {
       case RetrievedObligations(retrievedObligations) => {
         val retrievedTaxPeriodIds = retrievedObligations.map(i => i.idNumberValue.value)
         val retrievedContainsAllCurrent: Boolean =
-          currentIdNumbers.filter(j => !j.isEmpty).forall(i => retrievedTaxPeriodIds.contains(i))
+          currentIdNumbers.filter(j => j.nonEmpty).forall(i => retrievedTaxPeriodIds.contains(i))
         !retrievedContainsAllCurrent
       }
       case NotChecked => currentIdNumbers.exists(i => !i.isEmpty)
