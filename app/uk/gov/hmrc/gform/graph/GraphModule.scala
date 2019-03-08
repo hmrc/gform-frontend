@@ -17,15 +17,18 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.instances.future._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import play.api.libs.concurrent.Execution
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.gform.PrepopService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.BooleanExprEval
 
 class GraphModule(
   authModule: AuthModule
+)(
+  implicit ec: ExecutionContext
 ) {
+
   private val prepopService = new PrepopService(authModule.eeittService)
 
   private val evaluator: Evaluator[Future] = new Evaluator[Future](prepopService.eeittPrepop)

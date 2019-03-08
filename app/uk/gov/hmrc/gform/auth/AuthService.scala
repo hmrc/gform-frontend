@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.auth
 
 import cats.implicits._
 import play.api.mvc._
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
@@ -28,7 +29,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.cache.client.NoSessionException
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
 import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
@@ -38,6 +38,8 @@ class AuthService(
   appConfig: AppConfig,
   eeittDelegate: EeittAuthorisationDelegate,
   eeittService: EeittService
+)(
+  implicit ec: ExecutionContext
 ) {
 
   def authenticateAndAuthorise(

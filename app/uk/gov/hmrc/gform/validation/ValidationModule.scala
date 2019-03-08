@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
@@ -24,6 +25,8 @@ class ValidationModule(
   fileUploadModule: FileUploadModule,
   gformBackendModule: GformBackendModule,
   graphModule: GraphModule
+)(
+  implicit ec: ExecutionContext
 ) {
 
   val validationService = new ValidationService(

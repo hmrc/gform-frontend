@@ -77,6 +77,8 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
     }
   }
 
+  val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
+
   val materialisedRetrievalsAgent = AuthenticatedRetrievals(
     OneTimeLogin,
     Enrolments(Set(irsaEnrolment)),
@@ -85,7 +87,7 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
     None,
     userDetails,
     None,
-    None)
+    None
+  )
 
-  val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
 }

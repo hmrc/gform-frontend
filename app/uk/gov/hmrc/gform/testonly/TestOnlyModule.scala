@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.testonly
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
@@ -23,6 +24,8 @@ import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 class TestOnlyModule(
   playBuiltInsModule: PlayBuiltInsModule,
   gformBackendModule: GformBackendModule
+)(
+  implicit ec: ExecutionContext
 ) {
 
   private val proxyActions = new ProxyActions(playBuiltInsModule.ahcWSComponents.wsClient)

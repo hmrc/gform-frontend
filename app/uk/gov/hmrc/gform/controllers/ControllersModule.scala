@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -30,6 +31,8 @@ class ControllersModule(
   gformBackendModule: GformBackendModule,
   playBuiltInsModule: PlayBuiltInsModule,
   auditingModule: AuditingModule
+)(
+  implicit ec: ExecutionContext
 ) {
 
   val obligationService: ObligationService = new ObligationService(

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.auditing
 
 import play.api.mvc.RequestHeader
+import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.play.frontend.config.HttpAuditEvent
 import uk.gov.hmrc.play.audit.http.connector.{ AuditConnector, AuditResult }
 
@@ -28,8 +29,9 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 /**
   * This is ErrorAuditingSettings logic ported out of deprecated play GlobalSettings
   */
-class HttpAuditingService(appName: String, auditConnector: AuditConnector) { self =>
-  import scala.concurrent.ExecutionContext.Implicits.global
+class HttpAuditingService(appName: String, auditConnector: AuditConnector)(
+  implicit ec: ExecutionContext
+) { self =>
 
   def auditServerError(requestHeader: RequestHeader): Future[AuditResult] = auditConnector.sendEvent(
     httpAuditEvent.dataEvent0(ServerInternalError, unexpectedError, requestHeader)
