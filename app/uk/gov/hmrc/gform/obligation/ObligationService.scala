@@ -94,12 +94,12 @@ class ObligationService(gformConnector: GformConnector) {
   private def shouldUpdate(anyRetrievedObligations: Obligations, currentIdNumbers: List[String]): Boolean =
     anyRetrievedObligations match {
       case RetrievedObligations(retrievedObligations) => {
-        val retrievedTaxPeriodIds = retrievedObligations.map(i => i.idNumberValue.value)
+        val retrievedTaxPeriodIds = retrievedObligations.map(i => i.idNumberValue.value).toSet
         val retrievedContainsAllCurrent: Boolean =
-          currentIdNumbers.filter(j => j.nonEmpty).forall(i => retrievedTaxPeriodIds.contains(i))
+          currentIdNumbers.filter(j => j.nonEmpty).forall(retrievedTaxPeriodIds(_))
         !retrievedContainsAllCurrent
       }
-      case NotChecked => currentIdNumbers.exists(i => !i.isEmpty)
+      case NotChecked => !currentIdNumbers.forall(_.isEmpty)
     }
 
   def lookupIfPossible(

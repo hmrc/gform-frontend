@@ -203,4 +203,6 @@ object TextExpression {
 
   //TODO: this is not the same as in origin
   implicit val format: OFormat[TextExpression] = Json.format[TextExpression]
+
+  implicit val equal: Eq[TextExpression] = Eq.fromUniversalEquals
 }

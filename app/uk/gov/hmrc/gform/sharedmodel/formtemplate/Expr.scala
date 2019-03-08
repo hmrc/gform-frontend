@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.core.parsers.ExprParsers
@@ -51,6 +52,7 @@ object Expr {
   val additionIdentityExpr: Expr = Constant(additionIdentity.toString)
   val multiplicationIdentity = 1
   implicit val format: OFormat[Expr] = derived.oformat
+  implicit val equal: Eq[Expr] = Eq.fromUniversalEquals
 }
 
 sealed trait RosmProp extends Product with Serializable
