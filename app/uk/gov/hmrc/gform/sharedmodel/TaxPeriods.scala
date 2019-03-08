@@ -17,9 +17,12 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import java.util.Date
+
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+
+import scala.collection.immutable.List
 
 case class TaxPeriods(taxPeriods: List[TaxPeriod])
 
@@ -86,7 +89,7 @@ final case object NotChecked extends Obligations
 final case class RetrievedObligations(listOfObligations: List[TaxPeriodInformation]) extends Obligations
 
 object Obligations {
-  implicit val format: OFormat[Obligations] = derived.oformat
+  implicit val format: OFormat[Obligations] = derived.oformat[Obligations]
 }
 
 case class IdNumberValue(value: String) extends AnyVal
