@@ -96,7 +96,7 @@ class ObligationService(gformConnector: GformConnector) {
       case RetrievedObligations(retrievedObligations) => {
         val retrievedTaxPeriodIds = retrievedObligations.map(i => i.idNumberValue.value)
         val retrievedContainsAllCurrent: Boolean =
-          currentIdNumbers.forall(i => retrievedTaxPeriodIds.contains(i))
+          currentIdNumbers.filter(j => !j.isEmpty).forall(i => retrievedTaxPeriodIds.contains(i))
         !retrievedContainsAllCurrent
       }
       case NotChecked => currentIdNumbers.exists(i => !i.isEmpty)
