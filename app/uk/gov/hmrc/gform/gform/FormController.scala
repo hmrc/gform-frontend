@@ -502,8 +502,7 @@ class FormController(
         } yield res
 
       def updateUserData(cache: AuthCacheWithForm, processData: ProcessData)(
-        toResult: Option[SectionNumber] => Result): Future[Result] = {
-        println("findmehere" + processData)
+        toResult: Option[SectionNumber] => Result): Future[Result] =
         for {
           maybeSn <- fastForwardValidate(processData, cache)
           userData = UserData(
@@ -516,7 +515,6 @@ class FormController(
           )
           res <- gformConnector.updateUserData(formId, userData).map(_ => toResult(maybeSn))
         } yield res
-      }
 
       def processSaveAndContinue(
         processData: ProcessData

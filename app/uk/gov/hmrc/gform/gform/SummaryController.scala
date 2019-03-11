@@ -104,7 +104,7 @@ class SummaryController(
         val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
         val emailParametersRecalculation = EmailParameterRecalculation(cache)
-          .recalculateEmailParameters(dataRaw, recalculation, gformConnector, maybeAccessCode)
+          .recalculateEmailParameters(recalculation)
 
         lazy val redirectToDeclaration = for {
           emailParameters <- emailParametersRecalculation
