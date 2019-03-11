@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.graph
 import cats.MonadError
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,10 +27,7 @@ import scala.concurrent.Future
 case class EmailParameterRecalculation(cache: AuthCacheWithForm) extends FrontendController {
 
   def recalculateEmailParameters(
-    data: Data,
-    recalculation: Recalculation[Future, Throwable],
-    gformConnector: GformConnector,
-    maybeAccessCode: Option[AccessCode]
+    recalculation: Recalculation[Future, Throwable]
   )(implicit hc: HeaderCarrier, me: MonadError[Future, Throwable]): Future[EmailParameters] =
     recalculation
       .recalculateFormData(
