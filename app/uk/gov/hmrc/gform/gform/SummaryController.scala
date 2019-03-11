@@ -26,16 +26,16 @@ import cats.syntax.flatMap._
 import cats.syntax.traverse._
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, Request, _ }
+import play.api.mvc.{Action, AnyContent, Request, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.helpers.{ EmailParameterRecalculationHelper, FormDataHelpers }
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
+import uk.gov.hmrc.gform.controllers.{AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder}
+import uk.gov.hmrc.gform.fileupload.{Envelope, FileUploadService}
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{EmailParameterRecalculation, Recalculation}
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.obligation.ObligationService
@@ -45,8 +45,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
-import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
+import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationService, ValidationUtil}
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{save_acknowledgement, save_with_access_code}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
@@ -103,7 +103,7 @@ class SummaryController(
 
         val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
-        val emailParametersRecalculation = EmailParameterRecalculationHelper(cache)
+        val emailParametersRecalculation = EmailParameterRecalculation(cache)
           .recalculateEmailParameters(dataRaw, recalculation, gformConnector, maybeAccessCode)
 
         lazy val redirectToDeclaration = for {
