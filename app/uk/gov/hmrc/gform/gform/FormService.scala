@@ -32,7 +32,7 @@ class FormService {
         FormComponentValidation(
           formComponent,
           FieldOk(formComponent, formFieldValidationResult.getCurrentValue.getOrElse("").replaceAll(",", "")))
-      case _ => FormComponentValidation(formComponent, formFieldValidationResult)
+      case _ => formValidationOutcome
     }
   }
 
