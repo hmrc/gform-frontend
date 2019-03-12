@@ -28,7 +28,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm) extends Fronten
 
   def recalculateEmailParameters(
     recalculation: Recalculation[Future, Throwable]
-  )(implicit hc: HeaderCarrier, me: MonadError[Future, Throwable]): Future[EmailParameters] =
+  )(implicit hc: HeaderCarrier, me: MonadError[Future, Throwable]): Future[EmailParametersRecalculated] =
     recalculation
       .recalculateFormData(
         cache.form.formData.toData,
@@ -73,7 +73,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm) extends Fronten
   private def formTemplateWithParametersAsComponents: FormTemplate = {
 
     val newFormComponents = cache.formTemplate.emailParameters.fold(List.empty[FormComponent])(_.toList.map(parameter =>
-      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value.expr))))
+      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value))))
 
     val newSections = cache.formTemplate.sections ::: List(mkSection(newFormComponents))
 
@@ -82,9 +82,10 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm) extends Fronten
     newFormTemplate
   }
 
-  private def mapToParameterTemplateVariables(formDataRecalculated: FormDataRecalculated): EmailParameters =
-    EmailParameters(cache.formTemplate.emailParameters.fold(Map.empty[String, String])(parameters =>
-      parameterFormat(parameters.toList, formDataRecalculated)))
+  private def mapToParameterTemplateVariables(formDataRecalculated: FormDataRecalculated): EmailParametersRecalculated =
+    EmailParametersRecalculated(
+      cache.formTemplate.emailParameters.fold(Map.empty[EmailTemplateVariable, EmailParameterValue])(parameters =>
+        parameterFormat(parameters.toList, formDataRecalculated)))
 
   private def parameterToTuple(
     parameter: EmailParameter,
@@ -96,11 +97,11 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm) extends Fronten
 
   def parameterFormat(
     parameters: List[EmailParameter],
-    formDataRecalculated: FormDataRecalculated): Map[String, String] =
+    formDataRecalculated: FormDataRecalculated): Map[EmailTemplateVariable, EmailParameterValue] =
     parameters
       .map(parameter => parameterToTuple(parameter, formDataRecalculated))
       .map(parameter => (parameter._1, parameter._2.getOrElse(Seq(""))))
-      .map(parameter => (parameter._1, parameter._2.head))
+      .map(parameter => (EmailTemplateVariable(parameter._1), EmailParameterValue(parameter._2.head)))
       .toMap
 
 }

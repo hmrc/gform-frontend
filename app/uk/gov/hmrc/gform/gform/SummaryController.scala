@@ -91,8 +91,8 @@ class SummaryController(
                        cache.form.status,
                        cache.form.visitsIndex,
                        cache.form.thirdPartyData,
-                       cache.form.obligations,
-                       cache.form.emailParameters),
+                       cache.form.obligations
+                     ),
                      cache.oldForm,
                      cache.form
                    )
@@ -103,28 +103,22 @@ class SummaryController(
 
         val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
-        val emailParametersRecalculation = EmailParameterRecalculation(cache)
-          .recalculateEmailParameters(recalculation)
-
-        lazy val redirectToDeclaration = for {
-          emailParameters <- emailParametersRecalculation
-          result <- gformConnector
-                     .updateUserData(
-                       FormId(cache.retrievals, formTemplateId, maybeAccessCode),
-                       UserData(
-                         cache.form.formData,
-                         Validated,
-                         cache.form.visitsIndex,
-                         cache.form.thirdPartyData,
-                         cache.form.obligations,
-                         emailParameters)
-                     )
-                     .map { _ =>
-                       Redirect(
-                         routes.DeclarationController
-                           .showDeclaration(maybeAccessCode, formTemplateId, lang))
-                     }
-        } yield result
+        lazy val redirectToDeclaration = gformConnector
+          .updateUserData(
+            FormId(cache.retrievals, formTemplateId, maybeAccessCode),
+            UserData(
+              cache.form.formData,
+              Validated,
+              cache.form.visitsIndex,
+              cache.form.thirdPartyData,
+              cache.form.obligations
+            )
+          )
+          .map { _ =>
+            Redirect(
+              routes.DeclarationController
+                .showDeclaration(maybeAccessCode, formTemplateId, lang))
+          }
 
         lazy val redirectToSummary =
           Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, lang))

@@ -16,22 +16,10 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import cats.MonadError
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.core._
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.frontend.controller.FrontendController
-
-import scala.concurrent.Future
-import scala.util.{ Failure, Success }
-case class EmailParameter(emailTemplateVariable: String, value: TextExpression)
+case class EmailParameter(emailTemplateVariable: String, value: Expr)
 object EmailParameter {
   implicit val format: OFormat[EmailParameter] = {
     val mongoFormat = Json.format[EmailParameter]
@@ -39,7 +27,7 @@ object EmailParameter {
     val uploadTemplateReads: Reads[EmailParameter] =
       for {
         emailTemplateVariable <- (JsPath \ "emailTemplateVariable").read[String]
-        value                 <- (JsPath \ "value").read[TextExpression]
+        value                 <- (JsPath \ "value").read[Expr]
       } yield EmailParameter(emailTemplateVariable, value)
 
     val reads: Reads[EmailParameter] = uploadTemplateReads | mongoFormat
@@ -48,13 +36,18 @@ object EmailParameter {
   }
 }
 
-case class EmailParameters(emailParameters: Map[String, String]) {
-  def toFormFields: Seq[FormField] =
-    emailParameters.map(parameter => FormField(FormComponentId(parameter._1), parameter._2)).toSeq
-}
+case class EmailTemplateVariable(emailTemplateVariableId: String)
+case class EmailParameterValue(value: String)
 
-object EmailParameters {
+case class EmailParametersRecalculated(emailParametersMap: Map[EmailTemplateVariable, EmailParameterValue])
 
-  implicit val format: OFormat[EmailParameters] = Json.format
+object EmailParametersRecalculated {
+
+  implicit val reads: Reads[EmailParametersRecalculated] =
+    for {
+      emailParameters <- (JsPath \ "emailParameters").read[Map[String, String]]
+    } yield
+      EmailParametersRecalculated(
+        emailParameters.map(parameter => EmailTemplateVariable(parameter._1) -> EmailParameterValue(parameter._2)))
 
 }

@@ -38,6 +38,8 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
       val retrievals: AuthenticatedRetrievals =
         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+      val emailParameters =
+        EmailParametersRecalculated(Map(EmailTemplateVariable("emailTemplateVariable") -> EmailParameterValue("value")))
 
       val actual = VariablesBuilder(
         retrievals,
@@ -45,11 +47,14 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .modify(_.sections.each.fields.each.`type`)
           .setTo(enrolledIdType)
           .modify(_.authConfig)
-          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
+          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)),
+        emailParameters
       )
 
       processContext(retrievals, HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)) shouldBe "SA value"
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value"}}"""))
+      actual shouldBe Variables(
+        Json.parse(
+          """{"user":{"enrolledIdentifier":"SA value"},"emailParameters":{"emailTemplateVariable":"value"}}"""))
     }
   }
 
@@ -61,6 +66,8 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
       val retrievals: AuthenticatedRetrievals =
         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+      val emailParameters =
+        EmailParametersRecalculated(Map(EmailTemplateVariable("emailTemplateVariable") -> EmailParameterValue("value")))
 
       val usrCtxComponent = cmp1.modify(_.`type`).setTo(enrolledId)
       val valueComponent = cmp2.modify(_.`type`).setTo(valueComponentType)
@@ -72,8 +79,40 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .modify(_.authConfig)
           .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
 
-      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields)
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value"}}"""))
+      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, emailParameters)
+      actual shouldBe Variables(
+        Json.parse(
+          """{"user":{"enrolledIdentifier":"SA value"},"emailParameters":{"emailTemplateVariable":"value"}}"""))
+    }
+  }
+
+  forAll(formTemplateGen, formComponentGen(), formComponentGen()) { (template, cmp1, cmp2) =>
+    it should s"Build a data structure with valid key value pair for ${template._id} with multiple email parameters" in new IdentifierExtractor {
+      val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.EnrolledIdentifier)
+      val enrolledId: ComponentType = Text(BasicText, userCtx)
+      val valueComponentType: ComponentType = Text(BasicText, Value)
+      val retrievals: AuthenticatedRetrievals =
+        materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
+
+      val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+      val emailParameters = EmailParametersRecalculated(
+        Map(
+          EmailTemplateVariable("emailTemplateVariable")  -> EmailParameterValue("value"),
+          EmailTemplateVariable("emailTemplateVariable2") -> EmailParameterValue("value2")
+        ))
+
+      val usrCtxComponent = cmp1.modify(_.`type`).setTo(enrolledId)
+      val valueComponent = cmp2.modify(_.`type`).setTo(valueComponentType)
+      val templateWithAtLeastTwoFields =
+        template
+          .modify(_.sections.each.fields)
+          .setTo(List(valueComponent, usrCtxComponent))
+          .modify(_.authConfig)
+          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
+
+      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, emailParameters)
+      actual shouldBe Variables(Json.parse(
+        """{"user":{"enrolledIdentifier":"SA value"},"emailParameters":{"emailTemplateVariable":"value", "emailTemplateVariable2":"value2"}}"""))
     }
   }
 

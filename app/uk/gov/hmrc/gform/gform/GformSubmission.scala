@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, SubmissionData, VariablesBuilder }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
@@ -34,6 +34,7 @@ object GformSubmission {
     gformConnector: GformConnector,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
+    emailParameters: EmailParametersRecalculated,
     maybeAccessCode: Option[AccessCode],
     customerId: String,
     htmlForPDF: String
@@ -41,14 +42,15 @@ object GformSubmission {
     gformConnector.submitFormWithPdf(
       FormId(retrievals, formTemplate._id, maybeAccessCode),
       customerId,
-      buildSubmissionData(htmlForPDF, retrievals, formTemplate),
+      buildSubmissionData(htmlForPDF, retrievals, formTemplate, emailParameters),
       AffinityGroupUtil.fromRetrievals(retrievals)
     )
 
   def buildSubmissionData(
     htmlForPDF: String,
     retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate): SubmissionData =
-    SubmissionData(htmlForPDF, VariablesBuilder(retrievals, formTemplate))
+    formTemplate: FormTemplate,
+    emailParameters: EmailParametersRecalculated): SubmissionData =
+    SubmissionData(htmlForPDF, VariablesBuilder(retrievals, formTemplate, emailParameters))
 
 }

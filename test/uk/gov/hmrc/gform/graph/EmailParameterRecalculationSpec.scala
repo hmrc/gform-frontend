@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.graph
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameter, FormComponentId, FormCtx, TextExpression }
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
 
 class EmailParameterRecalculationSpec extends FlatSpec with Matchers {
 
@@ -28,9 +28,9 @@ class EmailParameterRecalculationSpec extends FlatSpec with Matchers {
 
   val emailParameterRecalculation: EmailParameterRecalculation = EmailParameterRecalculation(cache)
 
-  "parameter format with list of email parameters" should "convert it to a Map[String, String]" in {
+  "parameter format with list of email parameters" should "convert it to a Map[EmailTemplateVariable, EmailParameterValue]" in {
 
-    val emailParameters = List(EmailParameter("templateVarId", TextExpression(FormCtx("${fieldId}"))))
+    val emailParameters = List(EmailParameter("templateVarId", FormCtx("${fieldId}")))
 
     ExampleData.formDataRecalculated
 
@@ -38,7 +38,7 @@ class EmailParameterRecalculationSpec extends FlatSpec with Matchers {
 
     emailParameterRecalculation
       .parameterFormat(emailParameters, FormDataRecalculated.empty.copy(data = data)) shouldBe Map(
-      "templateVarId" -> "value")
+      EmailTemplateVariable("templateVarId") -> EmailParameterValue("value"))
   }
 
 }
