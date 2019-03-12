@@ -22,8 +22,6 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-import scala.collection.immutable.List
-
 case class TaxPeriods(taxPeriods: List[TaxPeriod])
 
 object TaxPeriods {

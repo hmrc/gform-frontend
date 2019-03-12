@@ -55,8 +55,14 @@ class ObligationService(gformConnector: GformConnector) {
       obligDetails <- taxResponse.obligation.obligations
       info <- makeAllInfoList(
                taxResponse.id,
-               idNumbers.find(hTPWithId => hTPWithId.hmrcTaxPeriod == taxResponse.id).get,
-               obligDetails.obligationDetails)
+               idNumbers
+                 .find(hTPWithId => hTPWithId.hmrcTaxPeriod == taxResponse.id)
+                 .getOrElse(
+                   HmrcTaxPeriodWithEvaluatedId(
+                     HmrcTaxPeriod(IdType("None"), TextExpression(Constant("None")), RegimeType("None")),
+                     IdNumberValue("None"))),
+               obligDetails.obligationDetails
+             )
     } yield info
 
   private def withEvaluatedIdB(
@@ -113,21 +119,22 @@ class ObligationService(gformConnector: GformConnector) {
     }
 
     hmrcTaxPeriodIdentifiers match {
-      case x :: xs =>
-        updateFormObligationsIfRequired(hmrcTaxPeriodIdentifiers, authService, retrievals, formTemplate, form)
+      case x :: xs => {
+        val hmrcTaxPeriodIdentifiersNonEmpty = NonEmptyList(x, xs)
+        updateFormObligationsIfRequired(hmrcTaxPeriodIdentifiersNonEmpty, authService, retrievals, formTemplate, form)
+      }
       case _ => Future.successful(form)
     }
   }
 
   def updateFormObligationsIfRequired(
-    hmrcTaxPeriodIdentifiers: List[HmrcTaxPeriod],
+    hmrcTaxPeriodIdentifiers: NonEmptyList[HmrcTaxPeriod],
     authService: AuthService,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    form: Form)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    val hmrcTaxPeriodIdentifiersNonEmpty = NonEmptyList(hmrcTaxPeriodIdentifiers.head, hmrcTaxPeriodIdentifiers.tail)
+    form: Form)(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     for {
-      currentIdNumber <- Future.traverse(hmrcTaxPeriodIdentifiers)(
+      currentIdNumber <- Future.traverse(hmrcTaxPeriodIdentifiers.toList)(
                           i =>
                             authService.evaluateSubmissionReference(
                               i.idNumber,
@@ -138,16 +145,10 @@ class ObligationService(gformConnector: GformConnector) {
                           ))
 
       output <- if (shouldUpdate(form.obligations, currentIdNumber))
-                 copyFormUpdatedObligations(
-                   formTemplate,
-                   authService,
-                   retrievals,
-                   form,
-                   hmrcTaxPeriodIdentifiersNonEmpty)
+                 copyFormUpdatedObligations(formTemplate, authService, retrievals, form, hmrcTaxPeriodIdentifiers)
                else
                  Future.successful(form)
     } yield output
-  }
 
   def updateObligations(formId: FormId, userData: UserData, form: Form, newForm: Form)(
     implicit hc: HeaderCarrier,
