@@ -94,13 +94,6 @@ class DeclarationController(
     data: FormDataRecalculated,
     envelopeId: EnvelopeId
   )(implicit hc: HeaderCarrier): String = {
-    val referenceNumber = (authConfig, submissionReference) match {
-      case (_, Some(textExpression)) =>
-        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data.data, envelopeId)
-      case (EeittModule(_), None) => authService.eeitReferenceNumber(retrievals)
-      case (_, None)              => retrievals.getTaxIdValue(HMRCOBTDSORG())
-    }
-
     val extraData =
       s"""
          |<h2 class="h2-heading">Submission details</h2>
@@ -122,7 +115,7 @@ class DeclarationController(
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cacheOrig =>
-      processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
+      processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
         val formData: Map[FormComponentId, List[String]] = cacheOrig.form.formData.fields.map {
           case FormField(id, value) => id -> (value :: Nil)
         }.toMap
@@ -213,7 +206,7 @@ class DeclarationController(
                 cache.retrievals,
                 cache.formTemplate,
                 maybeAccessCode,
-                customerId,
+                CustomerId(customerId),
                 htmlForPDF)
       } yield {
         if (customerId.isEmpty)

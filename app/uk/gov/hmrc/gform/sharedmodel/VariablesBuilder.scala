@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -25,7 +26,8 @@ object VariablesBuilder extends IdentifierExtractor {
 
   def apply(
     retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate
+    formTemplate: FormTemplate,
+    customerId: CustomerId
   ): Variables = {
 
     val identifierValue = formTemplate.sections
@@ -36,7 +38,7 @@ object VariablesBuilder extends IdentifierExtractor {
       }
       .getOrElse("")
 
-    Variables(jsonBuilder(identifierValue))
+    Variables(jsonBuilder(identifierValue, customerId))
   }
 
   def processContext(retrievals: MaterialisedRetrievals, authConfig: AuthConfig) =
@@ -46,6 +48,6 @@ object VariablesBuilder extends IdentifierExtractor {
       case _                                     => ""
     }
 
-  private val jsonBuilder: String => JsValue = value =>
-    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$value" } }""")
+  private val jsonBuilder: (String, CustomerId) => JsValue = (identifier, customerId) =>
+    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$identifier", "customerId": "${customerId.id}" } }""")
 }
