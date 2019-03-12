@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.wshttp
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
 import play.api.{ Configuration, Play }
+import uk.gov.hmrc.gform.InjectionDodge
 import uk.gov.hmrc.http.hooks.HttpHooks
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
@@ -40,8 +41,8 @@ trait Hooks extends HttpHooks with HttpAuditing {
 trait WSHttp
     extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete
     with Hooks with AppName {
-  override protected def actorSystem: ActorSystem = Play.current.actorSystem
-  override protected def configuration: Option[Config] = Option(Play.current.configuration.underlying)
-  override protected def appNameConfiguration: Configuration = Play.current.configuration
+  override protected def actorSystem: ActorSystem = InjectionDodge.actorSystem
+  override protected def configuration: Option[Config] = Option(InjectionDodge.configuration.underlying)
+  override protected def appNameConfiguration: Configuration = InjectionDodge.configuration
 }
 object WSHttp extends WSHttp
