@@ -53,9 +53,6 @@ object VariablesBuilder extends IdentifierExtractor {
       case _                                     => ""
     }
 
-//  private val jsonBuilder: (String, CustomerId) => JsValue = (identifier, customerId) =>
-//    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$identifier", "customerId": "${customerId.id}" } }""")
-
   private val jsonBuilder: (String, CustomerId, String) => JsValue = (value, customerId, emailParameters) =>
     Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$value",
                "customerId": "${customerId.id}"},
