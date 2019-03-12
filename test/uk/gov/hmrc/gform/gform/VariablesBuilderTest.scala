@@ -48,16 +48,13 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .setTo(enrolledIdType)
           .modify(_.authConfig)
           .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)),
+        CustomerId("cid"),
         emailParameters
-          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)),
-        CustomerId("cid")
       )
 
       processContext(retrievals, HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)) shouldBe "SA value"
-      actual shouldBe Variables(
-        Json.parse(
-          """{"user":{"enrolledIdentifier":"SA value"},"emailParameters":{"emailTemplateVariable":"value"}}"""))
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
+      actual shouldBe Variables(Json.parse(
+        """{"user":{"enrolledIdentifier":"SA value", "customerId":"cid"},"emailParameters":{"emailTemplateVariable":"value"}}"""))
     }
   }
 
@@ -82,10 +79,9 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .modify(_.authConfig)
           .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
 
-      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, emailParameters)
-      actual shouldBe Variables(
-        Json.parse(
-          """{"user":{"enrolledIdentifier":"SA value"},"emailParameters":{"emailTemplateVariable":"value"}}"""))
+      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"), emailParameters)
+      actual shouldBe Variables(Json.parse(
+        """{"user":{"enrolledIdentifier":"SA value", "customerId":"cid"},"emailParameters":{"emailTemplateVariable":"value"}}"""))
     }
   }
 
@@ -113,11 +109,9 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .modify(_.authConfig)
           .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
 
-      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, emailParameters)
+      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"), emailParameters)
       actual shouldBe Variables(Json.parse(
-        """{"user":{"enrolledIdentifier":"SA value"},"emailParameters":{"emailTemplateVariable":"value", "emailTemplateVariable2":"value2"}}"""))
-      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
+        """{"user":{"enrolledIdentifier":"SA value", "customerId":"cid"},"emailParameters":{"emailTemplateVariable":"value", "emailTemplateVariable2":"value2"}}"""))
     }
   }
 
