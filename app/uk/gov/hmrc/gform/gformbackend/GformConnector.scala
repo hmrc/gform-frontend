@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gformbackend
 import cats.data.NonEmptyList
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
+import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
@@ -71,13 +72,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   /******submission*******/
   def submitFormWithPdf(
     formId: FormId,
-    customerId: String,
+    customerId: CustomerId,
     submissionData: SubmissionData,
     affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     ws.POST[SubmissionData, HttpResponse](
       s"$baseUrl/forms/${formId.value}/submission-pdf",
       submissionData,
-      Seq("customerId" -> customerId, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
+      Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
 
   def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
     ws.GET[Submission](s"$baseUrl/forms/${formId.value}/submission")

@@ -20,9 +20,10 @@ import com.itv.scalapact.ScalaPactForger._
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.SpecWithFakeApp
+import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.{ SubmissionData, Variables }
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.{ SubmissionData, Variables }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
@@ -47,14 +48,15 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
             None
           )
           .given("Form 123 exists")
-          .willRespondWith(202)
+          .willRespondWith(204)
       )
       .runConsumerTest { mockConfig =>
         val connector = new GformConnector(WSHttp, s"${mockConfig.baseUrl}/gform")
-        val eventualResponse = connector.submitFormWithPdf(FormId("123"), "cid", submissionData, None)
+        val eventualResponse = connector.submitFormWithPdf(FormId("123"), CustomerId("cid"), submissionData, None)
 
         whenReady(eventualResponse) { r =>
-          r.get.status should be(202)
+          r.get.status should be(204)
+          r.get.body should be("")
         }
       }
   }
