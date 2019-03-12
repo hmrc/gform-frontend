@@ -53,14 +53,10 @@ class ObligationService(gformConnector: GformConnector) {
     for {
       taxResponse  <- taxResponses
       obligDetails <- taxResponse.obligation.obligations
+      idNumber     <- idNumbers.find(hTPWithId => hTPWithId.hmrcTaxPeriod == taxResponse.id).toList
       info <- makeAllInfoList(
                taxResponse.id,
-               idNumbers
-                 .find(hTPWithId => hTPWithId.hmrcTaxPeriod == taxResponse.id)
-                 .getOrElse(
-                   HmrcTaxPeriodWithEvaluatedId(
-                     HmrcTaxPeriod(IdType("None"), TextExpression(Constant("None")), RegimeType("None")),
-                     IdNumberValue("None"))),
+               idNumber,
                obligDetails.obligationDetails
              )
     } yield info
