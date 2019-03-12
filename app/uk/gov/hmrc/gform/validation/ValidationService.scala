@@ -739,50 +739,48 @@ class ComponentsValidator(
     }
 
   def validateInputDate(
-    formComponent: FormComponent,
-    formComponentId: FormComponentId,
+    fieldValue: FormComponent,
+    fieldId: FormComponentId,
     errorMsg: Option[String],
     data: FormDataRecalculated): ValidatedLocalDate = {
-    val fieldIdList = Date.fields(formComponentId).map(fId => data.data.get(fId))
+    val fieldIdList = Date.fields(fieldId).map(fId => data.data.get(fId))
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
-        validateLocalDate(formComponent, formComponentId, errorMsg, day, month, year) match {
+        validateLocalDate(fieldValue, errorMsg, day, month, year) match {
           case Valid(ConcreteDate(ExactYear(concYear), ExactMonth(concMonth), ExactDay(concDay))) =>
             Try(LocalDate.of(concYear, concMonth, concDay)) match {
               case Success(date) => Valid(date)
-              case Failure(ex)   => Map(formComponentId -> errors(formComponent, "must be a valid date")).invalid
+              case Failure(ex)   => Map(fieldId -> errors(fieldValue, "must be a valid date")).invalid
             }
-          case Invalid(nonEmptyList) =>
-            Invalid(nonEmptyList)
+          case Invalid(nonEmptyList) => Invalid(nonEmptyList)
         }
 
       case _ =>
-        getError(formComponent, "is missing")
+        getError(fieldValue, "is missing")
     }
   }
 
   def validateLocalDate(
-    formComponent: FormComponent,
-    formComponentId: FormComponentId,
+    fieldValue: FormComponent,
     errorMessage: Option[String],
     day: String,
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val dayLabel = messagePrefix(formComponent) + " " + localisation("day")
-    val monthLabel = messagePrefix(formComponent) + " " + localisation("month")
-    val yearLabel = messagePrefix(formComponent) + " " + localisation("year")
+    val dayLabel = messagePrefix(fieldValue) + " " + localisation("day")
+    val monthLabel = messagePrefix(fieldValue) + " " + localisation("month")
+    val yearLabel = messagePrefix(fieldValue) + " " + localisation("year")
 
     val d = isNumeric(day, dayLabel)
       .andThen(y => isWithinBounds(y, 31, dayLabel))
-      .leftMap(er => Map(formComponentId.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
+      .leftMap(er => Map(fieldValue.id.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
     val m = isNumeric(month, monthLabel)
       .andThen(y => isWithinBounds(y, 12, monthLabel))
-      .leftMap(er => Map(formComponentId.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
+      .leftMap(er => Map(fieldValue.id.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
     val y = isNumeric(year, yearLabel)
       .andThen(y => hasValidNumberOfDigits(y, 4, yearLabel))
-      .leftMap(er => Map(formComponentId.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
+      .leftMap(er => Map(fieldValue.id.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }
