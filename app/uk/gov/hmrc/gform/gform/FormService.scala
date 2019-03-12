@@ -24,15 +24,17 @@ class FormService {
   def removeCommas(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
     formValidatedData.map(removeCommasHelper)
 
-  def removeCommasHelper(formValidationOutcome: FormComponentValidation) = {
-    import formValidationOutcome._
-    if (formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber)
-      FormComponentValidation(
-        formComponent,
-        FieldOk(formComponent, formFieldValidationResult.getCurrentValue.getOrElse("").replaceAll(",", "")))
-    else formValidationOutcome
-  }
+
+
+
+
+  def removeCommasHelper(formComponentValidation: FormComponentValidation) = {
+    formComponentValidation match {
+      case FormComponentValidation(formComponent, FieldOk(fv, cv))
+        if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
+      FormComponentValidation(formComponent, FieldOk(fv, cv.replaceAll(",", "")))
+    case _ => formComponentValidation
     }
-
-
-
+    }
+  }
+//formComponent: FormComponent, formFieldValidationResult: FormFieldValidationResult
