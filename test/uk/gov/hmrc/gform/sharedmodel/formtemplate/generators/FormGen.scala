@@ -19,7 +19,7 @@ import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.generators.{ EnvelopeExpiryDateGen, ThirdPartyDataGen }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParameters
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
 
 trait FormGen {
   def formIdGen: Gen[FormId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormId(_))
@@ -33,26 +33,17 @@ trait FormGen {
   def formDataGen: Gen[FormData] = PrimitiveGen.zeroOrMoreGen(formFieldGen).map(FormData(_))
   def formStatusGen: Gen[FormStatus] = Gen.oneOf(InProgress, Summary, Validated, Signed, Submitted)
 
-  def emailParametersGen: Gen[EmailParameters] =
-    for {
-      emailTemplateVariable <- Gen.alphaNumStr
-      value                 <- Gen.alphaNumStr
-      parameters            <- Gen.nonEmptyListOf((emailTemplateVariable, value))
-
-    } yield EmailParameters(parameters.toMap)
-
   def formGen: Gen[Form] =
     for {
-      formId          <- formIdGen
-      envelopeId      <- envelopeIdGen
-      userId          <- userIdGen
-      formTemplateId  <- FormTemplateGen.formTemplateIdGen
-      formData        <- formDataGen
-      status          <- formStatusGen
-      visitIndex      <- VisitIndexGen.visitIndexGen
-      thirdPartyData  <- ThirdPartyDataGen.thirdPartyDataGen
-      expiryDate      <- Gen.option(EnvelopeExpiryDateGen.envelopeExpiryDateGen)
-      emailParameters <- emailParametersGen
+      formId         <- formIdGen
+      envelopeId     <- envelopeIdGen
+      userId         <- userIdGen
+      formTemplateId <- FormTemplateGen.formTemplateIdGen
+      formData       <- formDataGen
+      status         <- formStatusGen
+      visitIndex     <- VisitIndexGen.visitIndexGen
+      thirdPartyData <- ThirdPartyDataGen.thirdPartyDataGen
+      expiryDate     <- Gen.option(EnvelopeExpiryDateGen.envelopeExpiryDateGen)
     } yield
       Form(
         formId,
@@ -64,8 +55,7 @@ trait FormGen {
         visitIndex,
         thirdPartyData,
         expiryDate,
-        NotChecked,
-        emailParameters
+        NotChecked
       )
 }
 

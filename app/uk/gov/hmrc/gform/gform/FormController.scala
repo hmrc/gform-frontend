@@ -315,8 +315,8 @@ class FormController(
                    cache.form.status,
                    cache.form.visitsIndex,
                    cache.form.thirdPartyData,
-                   cache.form.obligations,
-                   cache.form.emailParameters),
+                   cache.form.obligations
+                 ),
                  cache.oldForm,
                  cache.form
                )
@@ -510,8 +510,7 @@ class FormController(
             maybeSn.fold(Summary: FormStatus)(_ => InProgress),
             processData.visitIndex,
             cache.form.thirdPartyData,
-            cache.form.obligations,
-            cache.form.emailParameters
+            cache.form.obligations
           )
           res <- gformConnector.updateUserData(formId, userData).map(_ => toResult(maybeSn))
         } yield res
