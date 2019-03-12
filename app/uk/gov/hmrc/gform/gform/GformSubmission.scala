@@ -35,20 +35,20 @@ object GformSubmission {
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     maybeAccessCode: Option[AccessCode],
-    customerId: String,
+    customerId: CustomerId,
     htmlForPDF: String
   )(implicit hc: HeaderCarrier): Future[HttpResponse] =
     gformConnector.submitFormWithPdf(
       FormId(retrievals, formTemplate._id, maybeAccessCode),
       customerId,
-      buildSubmissionData(htmlForPDF, retrievals, formTemplate),
+      buildSubmissionData(htmlForPDF, customerId, retrievals, formTemplate),
       AffinityGroupUtil.fromRetrievals(retrievals)
     )
 
-  def buildSubmissionData(
+  private def buildSubmissionData(
     htmlForPDF: String,
+    customerId: CustomerId,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate): SubmissionData =
-    SubmissionData(htmlForPDF, VariablesBuilder(retrievals, formTemplate))
-
+    SubmissionData(htmlForPDF, VariablesBuilder(retrievals, formTemplate, customerId))
 }

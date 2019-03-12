@@ -45,11 +45,12 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .modify(_.sections.each.fields.each.`type`)
           .setTo(enrolledIdType)
           .modify(_.authConfig)
-          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
+          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)),
+        CustomerId("cid")
       )
 
       processContext(retrievals, HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)) shouldBe "SA value"
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value"}}"""))
+      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
     }
   }
 
@@ -72,8 +73,8 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .modify(_.authConfig)
           .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
 
-      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields)
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value"}}"""))
+      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
+      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
     }
   }
 
