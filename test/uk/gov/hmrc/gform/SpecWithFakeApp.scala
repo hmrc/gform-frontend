@@ -26,21 +26,19 @@ trait SpecWithFakeApp extends Spec with BaseOneServerPerSuite with FakeApplicati
 
   def configurationOverridings: Map[String, String] = Map()
 
-  override def fakeApplication(): Application = {
-    val env: Environment = Environment.simple(mode = Mode.Test)
-    val context: Context = ApplicationLoader.createContext(env)
+  private val env: Environment = Environment.simple(mode = Mode.Test)
+  private val context: Context = ApplicationLoader.createContext(env)
 
-    val applicationModule = new ApplicationModule(context) {
-      override lazy val httpFilters = Nil
-      lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule) {
-        override val auditableWSHttp: WSHttp = new StubbedWSHttp(
-          HttpResponse(200)
-        )
-      }
+  lazy val applicationModule = new ApplicationModule(context) {
+    override lazy val httpFilters = Nil
+    lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule) {
+      override val auditableWSHttp: WSHttp = new StubbedWSHttp(
+        HttpResponse(200)
+      )
     }
-
-    applicationModule.application
   }
 
   implicit lazy val hc = HeaderCarrier()
+
+  override def fakeApplication(): Application = applicationModule.application
 }

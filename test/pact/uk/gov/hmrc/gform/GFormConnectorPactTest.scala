@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.{ SubmissionData, Variables }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
@@ -54,10 +55,74 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
         val connector = new GformConnector(WSHttp, s"${mockConfig.baseUrl}/gform")
         val eventualResponse = connector.submitFormWithPdf(FormId("123"), CustomerId("cid"), submissionData, None)
 
-        whenReady(eventualResponse) { r =>
-          r.get.status should be(204)
-          r.get.body should be("")
+        whenReady(eventualResponse) { response =>
+          response.get.status should be(204)
+          response.get.body should be("")
         }
       }
   }
+
+  it should "retrieve existing form template by id" in {
+    val templateId = FormTemplateId("333")
+    val jsValue = Json.parse(expectedForm)
+    val body = jsValue.toString()
+
+    forgePact
+      .between("gform-frontend")
+      .and("gform")
+      .addInteraction(
+        interaction
+          .description("Retrieve form template by id")
+          .uponReceiving(GET, "/gform/formtemplates/333")
+          .given("Form 333 exists")
+          .willRespondWith(200, body)
+      )
+      .runConsumerTest { mockConfig =>
+        val connector = new GformConnector(WSHttp, s"${mockConfig.baseUrl}/gform")
+        val eventualResponse = connector.getFormTemplate(templateId)
+
+        whenReady(eventualResponse) { response =>
+          response should be(jsValue.as[FormTemplate])
+        }
+      }
+  }
+
+  private val expectedForm =
+    """
+      |{
+      |  "formName": "name",
+      |  "sections": [],
+      |  "description": "description",
+      |  "_id": "333",
+      |  "submitSuccessUrl": "",
+      |  "authConfig": {
+      |    "HmrcSimpleModule": {}
+      |  },
+      |  "declarationSection": {
+      |    "title": "Mr",
+      |    "fields": []
+      |  },
+      |  "submitErrorUrl": "business",
+      |  "acknowledgementSection": {
+      |    "title": "Mr",
+      |    "fields": []
+      |  },
+      |  "destinations": {
+      |    "DmsSubmission": {
+      |      "dmsFormId": "id",
+      |      "customerId": {
+      |        "expr": {
+      |          "Constant": {
+      |            "value": "costant"
+      |          }
+      |        }
+      |      },
+      |      "classificationType": "classification",
+      |      "businessArea": "BA"
+      |    }
+      |  },
+      |  "emailTemplateId": "classification"
+      |}
+    """.stripMargin
+
 }
