@@ -15,15 +15,14 @@
  */
 
 package uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.models.gform.FormComponentValidation
-import uk.gov.hmrc.gform.validation.{ FieldOk, FormFieldValidationResult, ValidationUtil }
+import uk.gov.hmrc.gform.models.gform.{FormComponentValidation, FormValidationOutcome}
+import uk.gov.hmrc.gform.validation.{FieldOk, FormFieldValidationResult, ValidationUtil}
 import uk.gov.hmrc.gform.ops.FormComponentOps
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidationResult }
+import uk.gov.hmrc.gform.sharedmodel.form.{FormData, ValidationResult}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 class FormService {
-  case class FormValidationOutcome(isValid: Boolean, formData: FormData, validatedType: ValidatedType[ValidationResult])
 
   val formService = new FormService
 
@@ -42,6 +41,23 @@ class FormService {
     optionFcv: Option[(FormComponent, FormFieldValidationResult)]): Option[FormComponentValidation] =
     optionFcv.map(fcv => FormComponentValidation(fcv._1, fcv._2))
 
+  def extractedValidateFormHelper(
+    validationResult: List[FormComponentValidation],
+    validatedType: ValidatedType[ValidationResult]): FormValidationOutcome = {
+    val isFormValid =
+      ValidationUtil.isFormValid(validationResult.map(x => x.formComponent -> x.formFieldValidationResult).toMap)
+    val formComponents =
+      if (isFormValid) removeCommas(validationResult) else validationResult
+
+    FormValidationOutcome(
+      isFormValid,
+      FormData(formComponents.flatMap {
+        case FormComponentValidation(_, formFieldValidationResult) => formFieldValidationResult.toFormField
+      }),
+      validatedType
+    )
   }
+  }
+
 
 
