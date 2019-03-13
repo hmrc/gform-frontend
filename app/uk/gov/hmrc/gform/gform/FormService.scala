@@ -37,13 +37,20 @@ class FormService {
 
   def splitFormComponentValidation(
     optionFcv: Option[(FormComponent, FormFieldValidationResult)]): Option[FormComponentValidation] =
-    optionFcv.map(fcv => FormComponentValidation(fcv._1, fcv._2))
+    optionFcv.map {
+      case (formComponent, formFieldValidationResult) =>
+        FormComponentValidation(formComponent, formFieldValidationResult)
+    }
 
   def extractedValidateFormHelper(
     validationResult: List[FormComponentValidation],
     validatedType: ValidatedType[ValidationResult]): FormValidationOutcome = {
     val isFormValid =
-      ValidationUtil.isFormValid(validationResult.map(x => x.formComponent -> x.formFieldValidationResult).toMap)
+      ValidationUtil.isFormValid(
+        validationResult
+          .map(formComponentValidation =>
+            formComponentValidation.formComponent -> formComponentValidation.formFieldValidationResult)
+          .toMap)
     val formComponents =
       if (isFormValid) removeCommas(validationResult) else validationResult
 
