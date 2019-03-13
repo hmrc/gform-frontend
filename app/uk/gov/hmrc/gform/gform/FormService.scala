@@ -15,16 +15,14 @@
  */
 
 package uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.models.gform.{FormComponentValidation, FormValidationOutcome}
-import uk.gov.hmrc.gform.validation.{FieldOk, FormFieldValidationResult, ValidationUtil}
+import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
+import uk.gov.hmrc.gform.validation.{ FieldOk, FormFieldValidationResult, ValidationUtil }
 import uk.gov.hmrc.gform.ops.FormComponentOps
-import uk.gov.hmrc.gform.sharedmodel.form.{FormData, ValidationResult}
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 class FormService {
-
-  val formService = new FormService
 
   def removeCommas(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
     formValidatedData.map(removeCommasHelper)
@@ -57,7 +55,4 @@ class FormService {
       validatedType
     )
   }
-  }
-
-
-
+}
