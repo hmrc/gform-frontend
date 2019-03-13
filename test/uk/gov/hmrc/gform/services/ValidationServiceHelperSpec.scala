@@ -15,7 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.services
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper
 
