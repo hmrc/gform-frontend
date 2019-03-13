@@ -89,26 +89,25 @@ object ValidationServiceHelper {
       localDate.plusDays(offset.value.toLong).format(govDateFormat)
 
     val yearString = concreteDate.year match {
-      case ExactYear(year) if concreteDate.month == AnyMonth => "in " + year
-      case ExactYear(year) if concreteDate.month != AnyMonth => year.toString
-
-      case Next     => "next year"
-      case Previous => "last year"
-      case _        => ""
+      case ExactYear(year) if concreteDate.month == AnyMonth => s"in $year "
+      case ExactYear(year) if concreteDate.month != AnyMonth => s"$year "
+      case Next                                              => s"in $getNextYear "
+      case Previous                                          => s"in $getPreviousYear "
+      case _                                                 => ""
     }
 
     val monthString = concreteDate.month match {
-      case ExactMonth(month) if !isExactDay(concreteDate.day)               => "in " + getMonthName(month)
-      case ExactMonth(month) if isExactDay(concreteDate.day)                => "of " + getMonthName(month)
-      case _ if isExactDay(concreteDate.day)                                => "of any month"
-      case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => "of the month"
+      case ExactMonth(month) if !isExactDay(concreteDate.day)               => s"in ${getMonthName(month)} "
+      case ExactMonth(month) if isExactDay(concreteDate.day)                => s"of ${getMonthName(month)} "
+      case _ if isExactDay(concreteDate.day)                                => "of any month "
+      case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => "of the month "
       case _                                                                => ""
     }
 
     val dayString = concreteDate.day match {
-      case ExactDay(day) => s"the $day" + ordinalAbbrev(day)
-      case FirstDay      => "the first day"
-      case LastDay       => "the last day"
+      case ExactDay(day) => s"the $day${ordinalAbbrev(day)} "
+      case FirstDay      => "the first day "
+      case LastDay       => "the last day "
       case _             => ""
     }
 
@@ -118,12 +117,15 @@ object ValidationServiceHelper {
       case Precisely => ""
     }
 
-    concreteDate match {
+    val result = concreteDate match {
       case date if date.isExact =>
         s"must be $beforeOrAfterOrPreciselyString ${dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate)}"
-      case _ => s"must be $dayString $monthString $yearString"
+      case _ => s"must be $dayString$monthString$yearString"
 
     }
+
+    result.trim
+
   }
 
 }
