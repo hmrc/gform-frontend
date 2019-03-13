@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.form._
 case class EmailParameter(emailTemplateVariable: String, value: Expr)
 object EmailParameter {
   implicit val format: OFormat[EmailParameter] = {
@@ -43,11 +42,26 @@ case class EmailParametersRecalculated(emailParametersMap: Map[EmailTemplateVari
 
 object EmailParametersRecalculated {
 
-  implicit val reads: Reads[EmailParametersRecalculated] =
-    for {
-      emailParameters <- (JsPath \ "emailParameters").read[Map[String, String]]
-    } yield
-      EmailParametersRecalculated(
-        emailParameters.map(parameter => EmailTemplateVariable(parameter._1) -> EmailParameterValue(parameter._2)))
+  private def jsObjectToEmailParamRecalculated(jsObject: JsObject): EmailParametersRecalculated =
+    EmailParametersRecalculated(jsObject.fields.collect {
+      case field @ (_, jsObject: JsString) =>
+        (EmailTemplateVariable(field._1), EmailParameterValue(jsObject.value))
+    }.toMap)
+
+  implicit val format: OFormat[EmailParametersRecalculated] = {
+
+    val reads: Reads[EmailParametersRecalculated] =
+      Reads {
+        case jsObject: JsObject => JsSuccess(jsObjectToEmailParamRecalculated(jsObject))
+
+        case other => JsError(s"Incorrect use for emailParameters: $other")
+      }
+
+    val writes: OWrites[EmailParametersRecalculated] = OWrites(emailParameter =>
+      JsObject(emailParameter.emailParametersMap.flatMap(parameter =>
+        Seq(parameter._1.emailTemplateVariableId -> JsString(parameter._2.value)))))
+
+    OFormat(reads, writes)
+  }
 
 }

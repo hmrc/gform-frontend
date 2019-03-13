@@ -27,8 +27,7 @@ object VariablesBuilder extends IdentifierExtractor {
   def apply(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    customerId: CustomerId,
-    emailParameters: EmailParametersRecalculated
+    customerId: CustomerId
   ): Variables = {
 
     val identifierValue = formTemplate.sections
@@ -39,11 +38,7 @@ object VariablesBuilder extends IdentifierExtractor {
       }
       .getOrElse("")
 
-    val emailParameterJsonArray = "{" + emailParameters.emailParametersMap
-      .map(parameter => s""" "${parameter._1.emailTemplateVariableId}": "${parameter._2.value}" """)
-      .mkString(", ") + "}"
-
-    Variables(jsonBuilder(identifierValue, customerId, emailParameterJsonArray))
+    Variables(jsonBuilder(identifierValue, customerId))
   }
 
   def processContext(retrievals: MaterialisedRetrievals, authConfig: AuthConfig) =
@@ -53,8 +48,6 @@ object VariablesBuilder extends IdentifierExtractor {
       case _                                     => ""
     }
 
-  private val jsonBuilder: (String, CustomerId, String) => JsValue = (value, customerId, emailParameters) =>
-    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$value",
-               "customerId": "${customerId.id}"},
-                  | "emailParameters": $emailParameters  }""".stripMargin)
+  private val jsonBuilder: (String, CustomerId) => JsValue = (identifier, customerId) =>
+    Json.parse(s"""{ "user" :{ "enrolledIdentifier": "$identifier", "customerId": "${customerId.id}" } }""")
 }

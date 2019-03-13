@@ -52,5 +52,5 @@ object GformSubmission {
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     emailParameters: EmailParametersRecalculated): SubmissionData =
-    SubmissionData(htmlForPDF, VariablesBuilder(retrievals, formTemplate, customerId, emailParameters))
+    SubmissionData(htmlForPDF, VariablesBuilder(retrievals, formTemplate, customerId), emailParameters)
 }
