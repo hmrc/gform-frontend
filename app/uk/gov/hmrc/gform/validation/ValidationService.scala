@@ -720,7 +720,7 @@ class ComponentsValidator(
   def isFirstOrLastDay(date: LocalDate, concreteDay: ConcreteDate): Boolean = concreteDay.day match {
     case FirstDay => date.getDayOfMonth === 1
     case LastDay =>
-      exactConcreteDateToLocalDate(ConcreteDate(ExactYear(date.getDayOfYear), ExactMonth(date.getMonthValue), LastDay)).getDayOfMonth == date.getDayOfMonth
+      LocalDate.of(date.getYear, date.getMonthValue, date.getDayOfMonth).lengthOfMonth() === date.getDayOfMonth
   }
 
   def isNextOrPreviousYear(date: LocalDate, concreteDay: ConcreteDate): Boolean = {
