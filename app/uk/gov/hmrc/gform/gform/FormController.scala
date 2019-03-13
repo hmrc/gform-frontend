@@ -128,12 +128,12 @@ class FormController(
             case Some(sn) => Future.successful(Some(sn))
             case None =>
               validateForm(data, sections, currentSn, cache).map {
-                case formValidation: FormValidationOutcome =>
+                case formValidation: Option[FormValidationOutcome] =>
                   val section = sections(currentSn.value)
                   val hasBeenVisited = processData.visitIndex.visitsIndex.contains(currentSn.value)
 
                   val stop = section.continueIf.contains(Stop) || !hasBeenVisited
-                  if (formValidation.isValid && !stop) None else Some(currentSn)
+                  if (formValidation.fold(false)(_.isValid) && !stop) None else Some(currentSn)
               }
           }
         }
