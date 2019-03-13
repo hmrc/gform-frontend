@@ -75,28 +75,24 @@ class FormController(
     sn: SectionNumber,
     cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
-  ): Future[Option[FormValidationOutcome]] =
+  ): Future[Option[FormValidationOutcome]] = {
+    val formService = new FormService
     for {
-      formData <- validate(
-                   data,
-                   sections,
-                   sn,
-                   cache.form.envelopeId,
-                   cache.retrievals,
-                   cache.form.thirdPartyData,
-                   cache.formTemplate)
-                   .map {
-                     case (validationResult, validatedType, _) =>
-                       splitFormComponentValidation(validationResult.headOption).map(fcv =>
-                         validateFormHelper(List(fcv), validatedType))
-
-                   }
-    } yield formData
-
-  def splitFormComponentValidation(
-    optionFcv: Option[(FormComponent, FormFieldValidationResult)]): Option[FormComponentValidation] =
-    optionFcv.map(fcv => FormComponentValidation(fcv._1, fcv._2))
-
+    formData <- validate(
+                 data,
+                 sections,
+                 sn,
+                 cache.form.envelopeId,
+                 cache.retrievals,
+                 cache.form.thirdPartyData,
+                 cache.formTemplate)
+                 .map {
+                   case (validationResult, validatedType, _) =>
+                     formService.splitFormComponentValidation(validationResult.headOption).map(fcv =>
+                       validateFormHelper(List(fcv), validatedType))
+                 }
+  } yield formData
+  }
   private def validateFormHelper(
     validationResult: List[FormComponentValidation],
     validatedType: ValidatedType[ValidationResult]): FormValidationOutcome = {
