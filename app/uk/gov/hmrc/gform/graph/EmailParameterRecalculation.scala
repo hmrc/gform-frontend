@@ -20,11 +20,10 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
-case class EmailParameterRecalculation(cache: AuthCacheWithForm) extends FrontendController {
+case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: ExecutionContext) {
 
   def recalculateEmailParameters(
     recalculation: Recalculation[Future, Throwable]

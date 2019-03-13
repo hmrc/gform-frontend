@@ -21,7 +21,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 
-class EmailParameterRecalculationSpec extends FlatSpec with Matchers {
+import scala.concurrent.ExecutionContext
+
+class EmailParameterRecalculationSpec(implicit ec: ExecutionContext) extends FlatSpec with Matchers {
 
   val cache: AuthCacheWithForm = AuthCacheWithoutForm(ExampleData.materialisedRetrievals, ExampleData.formTemplate)
     .toAuthCacheWithForm(ExampleData.form)
