@@ -24,28 +24,28 @@ import cats.syntax.eq._
 import cats.syntax.validated._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals }
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.auth.models.{IsAgent, MaterialisedRetrievals}
+import uk.gov.hmrc.gform.config.{AppConfig, FrontendAppConfig}
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.helpers._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{Envelope, FileUploadService}
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.models.{ AgentAccessCode, ProcessData, ProcessDataService }
+import uk.gov.hmrc.gform.models.{AgentAccessCode, ProcessData, ProcessDataService}
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{UserId => _, _}
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
+import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationService}
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
-import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
+import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.models.gform.FormComponentValidation
+import uk.gov.hmrc.gform.models.gform.{FormComponentValidation, FormValidationOutcome}
 
 import scala.concurrent.Future
 
@@ -66,9 +66,6 @@ class FormController(
 ) extends FrontendController {
 
   import i18nSupport._
-
-  case class FormValidationOutcome(isValid: Boolean, formData: FormData, validatedType: ValidatedType[ValidationResult])
-
   private def validateForm(
     data: FormDataRecalculated,
     sections: List[Section],
@@ -96,18 +93,8 @@ class FormController(
   private def validateFormHelper(
     validationResult: List[FormComponentValidation],
     validatedType: ValidatedType[ValidationResult]): FormValidationOutcome = {
-    val isFormValid =
-      ValidationUtil.isFormValid(validationResult.map(x => x.formComponent -> x.formFieldValidationResult).toMap)
-    val formComponents =
-      if (isFormValid) formService.removeCommas(validationResult) else validationResult
-
-    FormValidationOutcome(
-      isFormValid,
-      FormData(formComponents.flatMap {
-        case FormComponentValidation(_, formFieldValidationResult) => formFieldValidationResult.toFormField
-      }),
-      validatedType
-    )
+val formService = new FormService
+   formService.extractedValidateFormHelper(validationResult,validatedType)
   }
 
   private def fastForwardValidate(processData: ProcessData, cache: AuthCacheWithForm)(
