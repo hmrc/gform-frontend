@@ -20,7 +20,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import akka.japi
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
@@ -503,11 +502,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     hmrcTP: HmrcTaxPeriod) = {
 
     val taxPeriodList = obligations match {
-      case RetrievedObligations(listOfObligations) => listOfObligations.toList
+      case RetrievedObligations(listOfObligations) => listOfObligations
       case _                                       => List[TaxPeriodInformation]()
     }
 
     val taxPeriodOptions = taxPeriodList
+      .filter(i => i.hmrcTaxPeriod.idNumber === hmrcTP.idNumber)
       .map(i => new OptionParams(i.periodKey, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, false))
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val mapOfResultsOption = validatedValue match {
