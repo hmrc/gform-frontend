@@ -72,31 +72,16 @@ class FormController(
     sn: SectionNumber,
     cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
-  ): Future[Option[FormValidationOutcome]] = {
-    val formService = new FormService
-    for {
-      formData <- validate(
-                   data,
-                   sections,
-                   sn,
-                   cache.form.envelopeId,
-                   cache.retrievals,
-                   cache.form.thirdPartyData,
-                   cache.formTemplate)
-                   .map {
-                     case (validationResult, validatedType, _) =>
-                       formService
-                         .splitFormComponentValidation(validationResult.headOption)
-                         .map(fcv => validateFormHelper(List(fcv), validatedType))
-                   }
-    } yield formData
-  }
-  private def validateFormHelper(
-    validationResult: List[FormComponentValidation],
-    validatedType: ValidatedType[ValidationResult]): FormValidationOutcome = {
-    val formService = new FormService
-    formService.extractedValidateFormHelper(validationResult, validatedType)
-  }
+  ): Future[FormValidationOutcome] =
+    validate(data, sections, sn, cache.form.envelopeId, cache.retrievals, cache.form.thirdPartyData, cache.formTemplate)
+      .map {
+        case (validationResult, validatedType, _) =>
+          val fcvs: List[FormComponentValidation] = validationResult.map {
+            case (formComponent, formFieldValidationResult) =>
+              FormComponentValidation(formComponent, formFieldValidationResult)
+          }
+          formService.extractedValidateFormHelper(fcvs, validatedType)
+      }
 
   private def fastForwardValidate(processData: ProcessData, cache: AuthCacheWithForm)(
     implicit request: Request[AnyContent]
@@ -112,12 +97,12 @@ class FormController(
             case Some(sn) => Future.successful(Some(sn))
             case None =>
               validateForm(data, sections, currentSn, cache).map {
-                case formValidation: Option[FormValidationOutcome] =>
+                case FormValidationOutcome(isValid, _, _) =>
                   val section = sections(currentSn.value)
                   val hasBeenVisited = processData.visitIndex.visitsIndex.contains(currentSn.value)
 
                   val stop = section.continueIf.contains(Stop) || !hasBeenVisited
-                  if (formValidation.fold(false)(_.isValid) && !stop) None else Some(currentSn)
+                  if (isValid && !stop) None else Some(currentSn)
               }
           }
         }
@@ -489,11 +474,11 @@ class FormController(
       def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
         toResult: Option[SectionNumber] => Result): Future[Result] =
         for {
-          Some(FormValidationOutcome(_, formData, v)) <- validateForm(
-                                                          processData.data,
-                                                          processData.sections,
-                                                          sectionNumber,
-                                                          cache)
+          FormValidationOutcome(_, formData, v) <- validateForm(
+                                                    processData.data,
+                                                    processData.sections,
+                                                    sectionNumber,
+                                                    cache)
           res <- {
             val before: ThirdPartyData = cache.form.thirdPartyData
             val after: ThirdPartyData = before.updateFrom(v)
