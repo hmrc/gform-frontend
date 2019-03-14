@@ -23,10 +23,8 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ SubmissionData, Variables }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormTemplate, FormTemplateId}
-import uk.gov.hmrc.gform.sharedmodel.{SubmissionData, Variables}
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
