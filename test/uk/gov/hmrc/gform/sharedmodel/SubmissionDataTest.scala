@@ -26,8 +26,10 @@ class SubmissionDataTest extends Spec {
     val submissionData = SubmissionData(
       htmlForm,
       Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
-      EmailParametersRecalculated(Map(EmailTemplateVariable("variable1") -> EmailParameterValue("value1"),
-        EmailTemplateVariable("variable2") -> EmailParameterValue("value2")))
+      EmailParametersRecalculated(
+        Map(
+          EmailTemplateVariable("variable1") -> EmailParameterValue("value1"),
+          EmailTemplateVariable("variable2") -> EmailParameterValue("value2")))
     )
 
     Json.toJson(submissionData) should be(expectedJson)
