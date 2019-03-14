@@ -504,7 +504,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig) {
       case _                                       => List[TaxPeriodInformation]()
     }
 
-    import cats.syntax.eq._
     val taxPeriodOptions = taxPeriodList
       .filter(i => i.hmrcTaxPeriod.idNumber === hmrcTP.idNumber)
       .map(i => new OptionParams(i.periodKey, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, false))

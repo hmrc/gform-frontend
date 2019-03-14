@@ -34,29 +34,24 @@ class ObligationService(gformConnector: GformConnector) {
 
   val stringToDate = new SimpleDateFormat("yyyy-MM-dd")
 
-  private def makeAllInfoList(
-    id: HmrcTaxPeriod,
-    evaluatedId: HmrcTaxPeriodWithEvaluatedId,
-    obligation: List[ObligationDetail]) =
+  private def makeAllInfoList(id: HmrcTaxPeriodWithEvaluatedId, obligation: List[ObligationDetail]) =
     obligation.map(
       i =>
         TaxPeriodInformation(
-          id,
-          evaluatedId.idNumberValue,
+          id.hmrcTaxPeriod,
+          id.idNumberValue,
           i.inboundCorrespondenceFromDate,
           i.inboundCorrespondenceToDate,
           i.periodKey))
 
   private def updatedObligations(
     idNumbers: NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
-    taxResponses: List[TaxResponse]): List[TaxPeriodInformation] =
+    taxResponses: NonEmptyList[TaxResponse]): List[TaxPeriodInformation] =
     for {
-      taxResponse  <- taxResponses
+      taxResponse  <- taxResponses.toList
       obligDetails <- taxResponse.obligation.obligations
-      idNumber     <- idNumbers.find(hTPWithId => hTPWithId.hmrcTaxPeriod == taxResponse.id).toList
       info <- makeAllInfoList(
                taxResponse.id,
-               idNumber,
                obligDetails.obligationDetails
              )
     } yield info
