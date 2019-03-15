@@ -27,10 +27,10 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Today, _ }
+import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ ValidatedType, _ }
@@ -268,7 +268,14 @@ class ComponentsValidator(
     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
       .andThen(
         inputDate =>
-          validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> errors(fieldValue, "must be today")))(
+          validateToday(
+            fieldValue,
+            inputDate,
+            offset,
+            Map(
+              fieldValue.id -> errors(
+                fieldValue,
+                s"must be ${BeforeAfterPrecisely.mkString(beforeAfterPrecisely)} today")))(
             todayFunctionMatch(beforeAfterPrecisely)))
 
   def validateDateFieldWithMessages(
@@ -433,7 +440,6 @@ class ComponentsValidator(
           fieldValue,
           "can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
         )
-
     }
   }
 
