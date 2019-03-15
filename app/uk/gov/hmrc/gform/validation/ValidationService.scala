@@ -80,14 +80,14 @@ class ValidationService(
       .getOrElse(ValidationResult.empty.valid.pure[Future])
   }
 
-  def validateForm(
+  def validateFormComponents(
     sectionFields: List[FormComponent],
     section: Section,
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    formTemplate: FormTemplate)(data: FormDataRecalculated)(
-    implicit hc: HeaderCarrier): Future[ValidatedType[ValidationResult]] = {
+    formTemplate: FormTemplate,
+    data: FormDataRecalculated)(implicit hc: HeaderCarrier): Future[ValidatedType[ValidationResult]] = {
     val eT = for {
       _ <- EitherT(
             validateComponents(sectionFields, data, envelopeId, retrievals, thirdPartyData, formTemplate).map(

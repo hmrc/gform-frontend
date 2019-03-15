@@ -81,10 +81,10 @@ class SummaryController(
 
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], lang: Option[String]) =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
-      processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
+      processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
         val formFieldValidationResultsF = for {
-          update <- obligationService.updateObligations(
+          update <- obligationService.updateObligations[Future](
                      cache.oldForm._id,
                      UserData(
                        cache.form.formData,
@@ -204,13 +204,14 @@ class SummaryController(
              .traverse(
                section =>
                  validationService
-                   .validateForm(
+                   .validateFormComponents(
                      allFields,
                      section,
                      cache.form.envelopeId,
                      retrievals,
                      cache.form.thirdPartyData,
-                     cache.formTemplate)(data))
+                     cache.formTemplate,
+                     data))
              .map(Monoid[ValidatedType[ValidationResult]].combineAll)
       v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
       errors = validationService.evaluateValidation(v, allFields, data, envelope).toMap
