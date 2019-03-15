@@ -48,12 +48,19 @@ object DateConstraint {
   implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]
 }
 
-sealed trait BeforeAfterPrecisely
+sealed trait BeforeAfterPrecisely {
+  def mkString: String = this match {
+    case Before    => "before"
+    case After     => "after"
+    case Precisely => ""
+  }
+}
 case object After extends BeforeAfterPrecisely
 case object Before extends BeforeAfterPrecisely
 case object Precisely extends BeforeAfterPrecisely
 
 object BeforeAfterPrecisely {
+
   implicit val format: OFormat[BeforeAfterPrecisely] = derived.oformat[BeforeAfterPrecisely]
 }
 
