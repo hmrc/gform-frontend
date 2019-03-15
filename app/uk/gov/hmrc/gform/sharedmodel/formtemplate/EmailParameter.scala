@@ -35,33 +35,20 @@ object EmailParameter {
   }
 }
 
-case class EmailTemplateVariable(emailTemplateVariableId: String)
-case class EmailParameterValue(value: String)
+case class EmailTemplateVariable(emailTemplateVariableId: String) extends AnyVal
+case class EmailParameterValue(value: String) extends AnyVal
+
+object EmailParameterValue {
+  implicit val format: OFormat[EmailParameterValue] = Json.format[EmailParameterValue]
+}
 
 case class EmailParametersRecalculated(emailParametersMap: Map[EmailTemplateVariable, EmailParameterValue])
 
 object EmailParametersRecalculated {
 
-  private def jsObjectToEmailParamRecalculated(jsObject: JsObject): EmailParametersRecalculated =
-    EmailParametersRecalculated(jsObject.fields.collect {
-      case field @ (_, jsObject: JsString) =>
-        (EmailTemplateVariable(field._1), EmailParameterValue(jsObject.value))
-    }.toMap)
+  implicit val formatMap: Format[Map[EmailTemplateVariable, EmailParameterValue]] =
+    JsonUtils.formatMap(EmailTemplateVariable.apply, _.emailTemplateVariableId)
 
-  implicit val format: OFormat[EmailParametersRecalculated] = {
-
-    val reads: Reads[EmailParametersRecalculated] =
-      Reads {
-        case jsObject: JsObject => JsSuccess(jsObjectToEmailParamRecalculated(jsObject))
-
-        case other => JsError(s"Incorrect use for emailParameters: $other")
-      }
-
-    val writes: OWrites[EmailParametersRecalculated] = OWrites(emailParameter =>
-      JsObject(emailParameter.emailParametersMap.flatMap(parameter =>
-        Seq(parameter._1.emailTemplateVariableId -> JsString(parameter._2.value)))))
-
-    OFormat(reads, writes)
-  }
+  implicit val format: OFormat[EmailParametersRecalculated] = Json.format[EmailParametersRecalculated]
 
 }

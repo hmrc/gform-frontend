@@ -50,8 +50,10 @@ class SubmissionDataTest extends Spec {
           |    }
           |  },
           |  "emailParameters": {
-          |  "variable1": "value1",
-          |  "variable2": "value2"
+          |     "emailParametersMap": {
+          |       "variable1": { "value":"value1" },
+          |       "variable2": { "value":"value2" }
+          |     }
           |  }
           |}""".stripMargin
     )

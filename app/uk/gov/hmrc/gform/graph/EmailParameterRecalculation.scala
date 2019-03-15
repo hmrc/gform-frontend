@@ -99,8 +99,10 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
     formDataRecalculated: FormDataRecalculated): Map[EmailTemplateVariable, EmailParameterValue] =
     parameters
       .map(parameter => parameterToTuple(parameter, formDataRecalculated))
-      .map(parameter => (parameter._1, parameter._2.getOrElse(Seq(""))))
-      .map(parameter => (EmailTemplateVariable(parameter._1), EmailParameterValue(parameter._2.head)))
+      .map {
+        case (variableId, parameterValue) =>
+          (EmailTemplateVariable(variableId), EmailParameterValue(parameterValue.flatMap(_.headOption).getOrElse("")))
+      }
       .toMap
 
 }
