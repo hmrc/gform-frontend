@@ -272,10 +272,7 @@ class ComponentsValidator(
             fieldValue,
             inputDate,
             offset,
-            Map(
-              fieldValue.id -> errors(
-                fieldValue,
-                s"must be ${BeforeAfterPrecisely.mkString(beforeAfterPrecisely)} today")))(
+            Map(fieldValue.id -> errors(fieldValue, s"must be ${beforeAfterPrecisely.mkString} today")))(
             todayFunctionMatch(beforeAfterPrecisely)))
 
   def validateDateFieldWithMessages(

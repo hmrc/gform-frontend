@@ -111,11 +111,9 @@ object ValidationServiceHelper {
       case _             => ""
     }
 
-    val beforeOrAfterOrPreciselyString = BeforeAfterPrecisely.mkString(beforeAfterPrecisely)
-
     val result = concreteDate match {
       case date if date.isExact =>
-        s"must be $beforeOrAfterOrPreciselyString ${dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate)}"
+        s"must be ${beforeAfterPrecisely.mkString} ${dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate)}"
       case _ => s"must be $dayString$monthString$yearString"
 
     }
