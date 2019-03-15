@@ -157,12 +157,15 @@ class ObligationService(gformConnector: GformConnector) {
                  Future.successful(form)
     } yield output
 
-  def updateObligations(formId: FormId, userData: UserData, form: Form, newForm: Form)(
+  import cats.Monad
+
+  def updateObligations[F[_]](formId: FormId, userData: UserData, form: Form, newForm: Form)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext) =
+    ec: ExecutionContext,
+    F: Monad[F]): F[Unit] =
     if (form.obligations != newForm.obligations) {
-      gformConnector.updateUserData(formId, userData)
+      F.pure(gformConnector.updateUserData(formId, userData).onComplete { case _ => () })
     } else {
-      Future.successful(())
+      F.pure(())
     }
 }

@@ -17,22 +17,18 @@
 package uk.gov.hmrc.gform.auth
 
 import cats.implicits._
-import play.api.mvc._
-import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.cache.client.NoSessionException
-import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
+import uk.gov.hmrc.gform.submission.SubmissionRef
+import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthService(
   appConfig: AppConfig,
@@ -173,12 +169,6 @@ class AuthService(
           }
         case otherAuthResults => otherAuthResults.pure[Future]
       }
-
-  private def agentSubscribeUrl(requestUri: String): String = {
-    val continueUrl = java.net.URLEncoder.encode(requestUri, "UTF-8")
-    val baseUrl = appConfig.`agent-subscription-frontend-base-url`
-    s"$baseUrl/agent-subscription/check-business-type?continue=$continueUrl"
-  }
 
   private def ggAgentAuthorise(
     agentAccess: AgentAccess,
