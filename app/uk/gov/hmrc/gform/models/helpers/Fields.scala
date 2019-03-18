@@ -29,14 +29,14 @@ object Fields {
     val data: FormComponentId => String = id => dGetter(id).headOption.map(_.value).getOrElse("")
     fieldValue.`type` match {
       case UkSortCode(_) =>
-        UkSortCode.fields(fieldValue.id).map { fieldId =>
+        UkSortCode.fields(fieldValue.id).toList.map { fieldId =>
           gformErrors.get(fieldId) match {
             case Some(errors) => (fieldId, FieldError(fieldValue, data(fieldId), errors))
             case None         => (fieldId, FieldOk(fieldValue, data(fieldId)))
           }
         }
       case Address(_) =>
-        Address.fields(fieldValue.id).map { fieldId =>
+        Address.fields(fieldValue.id).toList.map { fieldId =>
           gformErrors.get(fieldId) match {
             case Some(errors) => (fieldId, FieldError(fieldValue, data(fieldId), errors))
             case None         => (fieldId, FieldOk(fieldValue, data(fieldId)))
@@ -44,7 +44,7 @@ object Fields {
         }
 
       case Date(_, _, _) =>
-        Date.fields(fieldValue.id).map { fieldId =>
+        Date.fields(fieldValue.id).toList.map { fieldId =>
           gformErrors.get(fieldId) match {
             case Some(errors) => (fieldId, FieldError(fieldValue, data(fieldId), errors))
             case None         => (fieldId, FieldOk(fieldValue, data(fieldId)))
@@ -89,9 +89,9 @@ object Fields {
     }
 
     fieldValue.`type` match {
-      case Address(_)    => componentField(Address.fields(fieldValue.id))
-      case Date(_, _, _) => componentField(Date.fields(fieldValue.id))
-      case UkSortCode(_) => componentField(UkSortCode.fields(fieldValue.id))
+      case Address(_)    => componentField(Address.fields(fieldValue.id).toList)
+      case Date(_, _, _) => componentField(Date.fields(fieldValue.id).toList)
+      case UkSortCode(_) => componentField(UkSortCode.fields(fieldValue.id).toList)
       case Text(_, _, _) | TextArea(_, _, _) | Group(_, _, _, _, _, _) =>
         formFields.get(fieldValue.id).map { formField =>
           gformErrors
@@ -145,9 +145,9 @@ object Fields {
         case Group(_, _, _, _, _, _) =>
           require(true, "There shouldn't be Group fields here")
           Nil // For completion, there shouldn't be Groups here
-        case Address(_)    => Address.fields(fv.id).map(getFieldData)
-        case Date(_, _, _) => Date.fields(fv.id).map(getFieldData)
-        case UkSortCode(_) => UkSortCode.fields(fv.id).map(getFieldData)
+        case Address(_)    => Address.fields(fv.id).toList.map(getFieldData)
+        case Date(_, _, _) => Date.fields(fv.id).toList.map(getFieldData)
+        case UkSortCode(_) => UkSortCode.fields(fv.id).toList.map(getFieldData)
         case Text(_, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) | HmrcTaxPeriod(_, _, _) =>
           List(getFieldData(fv.id))
         case FileUpload()             => List(getFieldData(fv.id))

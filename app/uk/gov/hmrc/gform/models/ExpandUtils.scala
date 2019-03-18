@@ -119,9 +119,9 @@ object ExpandUtils {
 
   private def groupIds[A, B](group: Group, f: List[FormComponentId] => A): List[A] =
     group.fields.map {
-      case fc @ IsDate(_)       => f(Date.fields(fc.id))
-      case fc @ IsAddress(_)    => f(Address.fields(fc.id))
-      case fc @ IsUkSortCode(_) => f(UkSortCode.fields(fc.id))
+      case fc @ IsDate(_)       => f(Date.fields(fc.id).toList)
+      case fc @ IsAddress(_)    => f(Address.fields(fc.id).toList)
+      case fc @ IsUkSortCode(_) => f(UkSortCode.fields(fc.id).toList)
       case fc                   => f(List(fc.id))
     }
 
@@ -166,13 +166,13 @@ object ExpandUtils {
             case _                       => false
           }
           .headOption
-          .flatMap {
-            case fc @ IsDate(_)          => Date.fields(fc.id).headOption
-            case fc @ IsAddress(_)       => Address.fields(fc.id).headOption
-            case fc @ IsUkSortCode(_)    => UkSortCode.fields(fc.id).headOption
-            case fc @ IsChoice(_)        => Some(fc.id.appendIndex(0))
-            case fc @ IsHmrcTaxPeriod(_) => Some(fc.id)
-            case fc                      => Some(fc.id)
+          .map {
+            case fc @ IsDate(_)          => Date.fields(fc.id).head
+            case fc @ IsAddress(_)       => Address.fields(fc.id).head
+            case fc @ IsUkSortCode(_)    => UkSortCode.fields(fc.id).head
+            case fc @ IsChoice(_)        => fc.id.appendIndex(0)
+            case fc @ IsHmrcTaxPeriod(_) => fc.id
+            case fc                      => fc.id
           } map (fcId => index + "_" + fcId.value)
 
         (data.copy(data = newData), anchor)

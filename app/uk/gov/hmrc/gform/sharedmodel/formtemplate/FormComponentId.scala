@@ -23,10 +23,13 @@ import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 import scala.util.matching.Regex
 
 case class FormComponentId(value: String) extends AnyVal {
-  override def toString = value
+  override def toString: String = value
 
   def withSuffix(suffix: String): FormComponentId = FormComponentId(value + "-" + suffix)
   def appendIndex(i: Int): FormComponentId = FormComponentId(value + i.toString)
+  def stripBase(baseFieldId: FormComponentId): FormComponentId =
+    FormComponentId(value.substring(baseFieldId.value.size + 1))
+
 }
 
 object FormComponentId {

@@ -58,14 +58,14 @@ object ValidationUtil {
     dGetter: (FormComponentId) => Seq[String]): List[(FormComponentId, FormFieldValidationResult)] =
     fieldValue.`type` match {
       case UkSortCode(_) =>
-        UkSortCode.fields(fieldValue.id).map { fieldId =>
+        UkSortCode.fields(fieldValue.id).toList.map { fieldId =>
           gformErrors.get(fieldId) match {
             case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
           }
         }
       case Address(_) =>
-        Address.fields(fieldValue.id).map { fieldId =>
+        Address.fields(fieldValue.id).toList.map { fieldId =>
           gformErrors.get(fieldId) match {
             case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
@@ -73,7 +73,7 @@ object ValidationUtil {
         }
 
       case Date(_, _, _) =>
-        Date.fields(fieldValue.id).map { fieldId =>
+        Date.fields(fieldValue.id).toList.map { fieldId =>
           gformErrors.get(fieldId) match {
             case Some(errors) => (fieldId, FieldError(fieldValue, dGetter(fieldId).headOption.getOrElse(""), errors))
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
