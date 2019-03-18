@@ -122,7 +122,6 @@ object ConcreteDate {
     ConcreteDate(ExactYear(year), ExactMonth(month), ExactDay(day))
 }
 
-case class AnyWord(value: String) extends DateConstraintInfo
 case class DateField(value: FormComponentId) extends DateConstraintInfo
 
 object DateConstraintInfo {
