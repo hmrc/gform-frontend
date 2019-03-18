@@ -30,22 +30,23 @@ import cats.syntax.traverse._
 import cats.syntax.validated._
 import cats.mtl.{ ApplicativeAsk, FunctorRaise }
 import cats.mtl.implicits._
-import java.net.URLEncoder
 
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ AnyContent, Request, Result }
+import play.api.mvc.{ AnyContent, Request, Result, Results }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
+import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.TaxPeriods
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -126,52 +127,6 @@ class EnrolmentController(
       }
   }
 
-  private def recoverEnrolmentError(
-    formTemplate: FormTemplate,
-    retrievals: MaterialisedRetrievals,
-    enrolmentSection: EnrolmentSection,
-    data: FormDataRecalculated,
-    lang: Option[String])(implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
-
-    def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[Html]) = see match {
-      case RegimeIdNotMatch(identifierRecipe) =>
-        val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set("RegimeId do not match"))
-        (Invalid(regimeIdError), List.empty)
-      case NoIdentifierProvided =>
-        val globalError = html.form.errors.error_global("At least on identifier must be provided")
-        (ValidationResult.empty.valid, globalError :: Nil)
-      case EnrolmentFormNotValid(invalid) => (Invalid(invalid), List.empty)
-    }
-
-    val (validationResult, globalErrors) = convertEnrolmentError(enrolmentError)
-    val errorMap = getErrorMap(validationResult, data, enrolmentSection)
-
-    Ok(
-      renderer.renderEnrolmentSection(
-        formTemplate,
-        retrievals,
-        enrolmentSection,
-        data,
-        errorMap,
-        globalErrors,
-        validationResult,
-        lang
-      )
-    )
-  }
-
-  private def processEnrolmentResult(formTemplate: FormTemplate, lang: Option[String])(
-    authRes: CheckEnrolmentsResult): Result =
-    authRes match {
-      case EnrolmentSuccessful => Redirect(routes.FormController.dashboard(formTemplate._id, lang).url)
-      case EnrolmentFailed =>
-        val newPageUrl = routes.FormController.dashboard(formTemplate._id, lang).url
-        val continueUrl = URLEncoder.encode(appConfig.`gform-frontend-base-url` + newPageUrl, "UTF-8")
-        val ggLoginUrl = appConfig.`government-gateway-sign-in-url`
-        val redirectUrl = s"$ggLoginUrl?continue=$continueUrl"
-        Redirect(redirectUrl)
-    }
-
   def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.asyncGGAuth(formTemplateId) {
     implicit request => cache =>
       import cache._
@@ -187,7 +142,7 @@ class EnrolmentController(
               implicit val GGC = ggConnect
               implicit val evtor = evaluator
 
-              val allFields = getAllEnrolmentFields(enrolmentSection.fields)
+              val allFields = Fields.flattenGroups(enrolmentSection.fields)
               for {
                 data <- recalculation
                          .recalculateFormData(dataRaw, formTemplate, retrievals, ThirdPartyData.empty, EnvelopeId(""))
@@ -199,6 +154,13 @@ class EnrolmentController(
                                        retrievals,
                                        ThirdPartyData.empty,
                                        formTemplate)
+                enrolmentResultProcessor = new EnrolmentResultProcessor(
+                  renderer.renderEnrolmentSection,
+                  formTemplate,
+                  retrievals,
+                  enrolmentSection,
+                  data,
+                  lang)
                 res <- processValidation(
                         serviceId,
                         enrolmentSection,
@@ -207,12 +169,12 @@ class EnrolmentController(
                         validationResult,
                         retrievals)
                         .fold(
-                          recoverEnrolmentError(formTemplate, retrievals, enrolmentSection, data, lang),
-                          processEnrolmentResult(formTemplate, lang))
+                          enrolmentResultProcessor.recoverEnrolmentError,
+                          enrolmentResultProcessor.processEnrolmentResult
+                        )
                         .run(Env(formTemplate, retrievals, data))
                         .recoverWith(handleEnrolmentException(formTemplate, lang))
               } yield res
-
             }
             get(dataRaw, FormComponentId("save")) match {
               case "Continue" :: Nil => handleContinue
@@ -266,23 +228,6 @@ class EnrolmentController(
         } yield authRes
     }
 
-  private def getErrorMap(
-    validationResult: ValidatedType[ValidationResult],
-    data: FormDataRecalculated,
-    enrolmentSection: EnrolmentSection
-  ): List[(FormComponent, FormFieldValidationResult)] = {
-    val enrolmentFields = getAllEnrolmentFields(enrolmentSection.fields)
-    validationService.evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
-  }
-
-  private def getAllEnrolmentFields(fields: List[FormComponent]): List[FormComponent] =
-    fields.flatMap { fieldValue =>
-      fieldValue.`type` match {
-        case grp: Group => getAllEnrolmentFields(grp.fields)
-        case _          => List(fieldValue)
-      }
-    }
-
   private def purgeEmpty[F[_]: Applicative](
     xs: NonEmptyList[(IdentifierRecipe, Identifier)]
   )(
@@ -330,7 +275,13 @@ class EnrolmentController(
         identifier => value => (identifier, Identifier(identifier.key, value)))
 
     val allVerifiers: F[List[Verifier]] =
-      evaluate(enrolmentSection.verifiers)(_.value, verifier => value => Verifier(verifier.key, value))
+      evaluate(enrolmentSection.verifiers)(
+        _.value,
+        verifier =>
+          value =>
+            if (value.nonEmpty)
+              List(Verifier(verifier.key, value))
+            else Nil).map(_.flatten)
 
     for {
       identifiers       <- allIdentifiers

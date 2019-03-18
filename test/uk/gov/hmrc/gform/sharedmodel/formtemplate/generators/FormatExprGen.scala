@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ After, AnyDate, AnyDay, AnyMonth, AnyText, AnyWord, AnyYear, BasicText, Before, BeforeAfterPrecisely, CompanyRegistrationNumber, ConcreteDate, CountryCode, DateConstraint, DateConstraintInfo, DateConstraintType, DateConstraints, DateField, EORI, Email, ExactDay, ExactMonth, ExactYear, FirstDay, LastDay, NINO, Next, NonUkCountryCode, Number, OffsetDate, PositiveNumber, Precisely, Previous, RoundingMode, ShortText, Sterling, TelephoneNumber, TextConstraint, TextExpression, TextWithRestrictions, Today, UTR, UkBankAccountNumber, UkSortCodeFormat, UkVrn }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ After, AnyDate, AnyDay, AnyMonth, AnyText, AnyYear, BasicText, Before, BeforeAfterPrecisely, CompanyRegistrationNumber, ConcreteDate, CountryCode, DateConstraint, DateConstraintInfo, DateConstraintType, DateConstraints, DateField, EORI, Email, ExactDay, ExactMonth, ExactYear, FirstDay, LastDay, NINO, Next, NonUkCountryCode, Number, OffsetDate, PositiveNumber, Precisely, Previous, RoundingMode, ShortText, Sterling, TelephoneNumber, TextConstraint, TextExpression, TextWithRestrictions, Today, UTR, UkBankAccountNumber, UkSortCodeFormat, UkVrn }
 
 trait FormatExprGen {
   def numberGen: Gen[Number] =
@@ -62,6 +62,13 @@ trait FormatExprGen {
     Gen.const(EORI)
   )
 
+  def telephoneNumberGen(phoneNumberType: PhoneNumberType): Gen[String] =
+    for {
+      phoneNumberRange <- Gen.choose(4, 25)
+      elems            <- telephoneNumberHelper(phoneNumberRange, phoneNumberType)
+
+    } yield elems.mkString
+
   def textExpressionGen: Gen[TextExpression] = ExprGen.exprGen().map(TextExpression(_))
 
   def beforeAfterPreciselyGen: Gen[BeforeAfterPrecisely] = Gen.oneOf(Before, After, Precisely)
@@ -79,8 +86,6 @@ trait FormatExprGen {
       day   <- Gen.oneOf(exactDayGen, Gen.const(AnyDay), Gen.const(FirstDay), Gen.const(LastDay))
     } yield ConcreteDate(year, month, day)
 
-  def anyWordGen: Gen[AnyWord] = Gen.alphaNumStr.map(AnyWord)
-
   def dateFieldGen: Gen[DateField] = FormComponentGen.formComponentIdGen.map(DateField)
 
   def offsetDateGen: Gen[OffsetDate] = Gen.posNum[Int].map(OffsetDate(_))
@@ -88,7 +93,6 @@ trait FormatExprGen {
   def dateConstraintInfoGen: Gen[DateConstraintInfo] = Gen.oneOf(
     Gen.const(Today),
     concreteDateGen,
-    anyWordGen,
     dateFieldGen
   )
 
@@ -113,6 +117,16 @@ trait FormatExprGen {
     RoundingMode.Down,
     RoundingMode.Up
   )
+
+  private def telephoneNumberHelper(lengthRestraint: Int, phoneNumberType: PhoneNumberType) =
+    Gen.listOfN(lengthRestraint, Gen.numChar).map {
+      case phoneNumber if phoneNumberType == International => '+' :: phoneNumber
+      case phoneNumber                                     => phoneNumber
+    }
+
+  sealed trait PhoneNumberType
+  case object International extends PhoneNumberType
+  case object UK extends PhoneNumberType
 }
 
 object FormatExprGen extends FormatExprGen

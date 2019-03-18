@@ -30,8 +30,8 @@
   validation match {
     case _:FieldGlobalError =>
       validation.fieldValue.`type` match {
-        case _:UkSortCode => UkSortCode.fields(validation.fieldValue.id)(0).value
-        case _:Date       => Date.fields(validation.fieldValue.id)(0).value
+        case _:UkSortCode => UkSortCode.fields(validation.fieldValue.id).toList(0).value
+        case _:Date       => Date.fields(validation.fieldValue.id).toList(0).value
         case _            => validation.fieldValue.id.value
     }
     case _ => validation.fieldValue.id.value

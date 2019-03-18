@@ -31,12 +31,24 @@ trait FormTemplateGen {
   def emailParameterGen: Gen[EmailParameter] =
     for {
       emailTemplateVariable <- Gen.alphaNumStr
-      value                 <- Gen.alphaNumStr
+      value                 <- ExprGen.exprGen()
 
-    } yield EmailParameter(emailTemplateVariable, FormCtx(value))
+    } yield EmailParameter(emailTemplateVariable, value)
 
   def emailParameterListGen: Gen[Option[NonEmptyList[EmailParameter]]] =
     Gen.option(PrimitiveGen.oneOrMoreGen(emailParameterGen))
+
+  def templateNameGen: Gen[TemplateName] =
+    for {
+      templateName <- Gen.alphaNumStr
+
+    } yield TemplateName(templateName)
+
+  def webChatGen: Gen[WebChat] =
+    for {
+      roomId       <- PrimitiveGen.nonEmptyAlphaNumStrGen
+      templateName <- templateNameGen
+    } yield WebChat(ChatRoomId(roomId), templateName)
 
   def formTemplateGen: Gen[FormTemplate] =
     for {
@@ -53,6 +65,7 @@ trait FormTemplateGen {
       emailParameters        <- emailParameterListGen
       submitSuccessUrl       <- PrimitiveGen.urlGen
       submitErrorUrl         <- PrimitiveGen.urlGen
+      webChat                <- Gen.option(webChatGen)
       sections               <- PrimitiveGen.oneOrMoreGen(SectionGen.sectionGen)
       acknowledgementSection <- SectionGen.acknowledgementSectionGen
       declarationSection     <- SectionGen.declarationSectionGen
@@ -67,11 +80,13 @@ trait FormTemplateGen {
         draftRetrievalMethod,
         submissionReference,
         destinations,
+        None,
         authConfig,
         emailTemplateId,
         emailParameters,
         submitSuccessUrl,
         submitErrorUrl,
+        webChat,
         sections.toList,
         acknowledgementSection,
         declarationSection,

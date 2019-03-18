@@ -29,7 +29,8 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, Recalculation }
+import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -143,7 +144,7 @@ class DeclarationController(
               cache = cacheOrig.copy(form = form)
 
               valRes <- validationService.validateComponents(
-                         getAllDeclarationFields(cache.formTemplate.declarationSection.fields),
+                         Fields.flattenGroups(cache.formTemplate.declarationSection.fields),
                          declarationData,
                          cache.form.envelopeId,
                          cache.retrievals,
@@ -171,6 +172,7 @@ class DeclarationController(
   )(implicit request: Request[_]): Future[Result] = valType match {
     case Valid(()) =>
       val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
+      val emailParameterRecalculation = EmailParameterRecalculation(cache)
       for {
         customerId <- authService.evaluateSubmissionReference(
                        cache.formTemplate.dmsSubmission.customerId,
@@ -187,10 +189,13 @@ class DeclarationController(
                   Signed,
                   updatedForm.visitsIndex,
                   updatedForm.thirdPartyData,
-                  cache.form.obligations))
+                  cache.form.obligations
+                )
+              )
         //todo perhaps not make these calls at all if the feature flag is false?
         summaryHml <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
         cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)
+        emailParameter <- emailParameterRecalculation.recalculateEmailParameters(recalculation)
         htmlForPDF = addExtraDataToHTML(
           cleanHtml,
           cache.formTemplate.authConfig,
@@ -205,6 +210,7 @@ class DeclarationController(
                 gformConnector,
                 cache.retrievals,
                 cache.formTemplate,
+                emailParameter,
                 maybeAccessCode,
                 CustomerId(customerId),
                 htmlForPDF)
@@ -237,7 +243,7 @@ class DeclarationController(
 
   private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: FormDataRecalculated) = {
     val fieldNames = data.data.keySet.map(_.value)
-    val allDeclarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
+    val allDeclarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
     val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
@@ -252,16 +258,8 @@ class DeclarationController(
     validationResult: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
-    val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
+    val declarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
     validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))
   }
-
-  private def getAllDeclarationFields(fields: List[FormComponent]): List[FormComponent] =
-    fields.flatMap { fieldValue =>
-      fieldValue.`type` match {
-        case grp: Group => getAllDeclarationFields(grp.fields)
-        case _          => List(fieldValue)
-      }
-    }
 
 }

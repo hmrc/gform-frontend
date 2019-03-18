@@ -19,6 +19,7 @@ import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.generators.{ EnvelopeExpiryDateGen, ThirdPartyDataGen }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
 
 trait FormGen {
   def formIdGen: Gen[FormId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormId(_))
@@ -54,7 +55,8 @@ trait FormGen {
         visitIndex,
         thirdPartyData,
         expiryDate,
-        NotChecked)
+        NotChecked
+      )
 }
 
 object FormGen extends FormGen

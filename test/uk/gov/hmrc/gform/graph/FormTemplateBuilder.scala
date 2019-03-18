@@ -116,6 +116,7 @@ object FormTemplateBuilder {
       .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email")))),
     "http://www.google.co.uk",
     "http://www.yahoo.co.uk",
+    None,
     sections,
     AcknowledgementSection(
       "Acknowledgement Page",

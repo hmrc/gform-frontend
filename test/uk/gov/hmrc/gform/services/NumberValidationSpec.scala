@@ -55,7 +55,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
       `fieldId - number` -> `formField - number`
     )
 
-    def validate(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) =
+    def validate(fieldValue: FormComponent, fieldValues: List[FormComponent], data: Map[FormComponentId, Seq[String]]) =
       new ComponentsValidator(
         mkFormDataRecalculated(data),
         mock[FileUploadService],
@@ -64,7 +64,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
         booleanExprEval,
         ThirdPartyData.empty,
         ExampleData.formTemplate)
-        .validate(fieldValue)
+        .validate(fieldValue, fieldValues)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }
@@ -104,7 +104,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
     forAll(numbers) { number =>
       new Test {
         override val value = number
-        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe ().valid
+        validate(`fieldValue - number`, List(`fieldValue - number`), rawDataFromBrowser).futureValue shouldBe ().valid
       }
     }
   }
@@ -135,7 +135,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
       new Test {
         override val value = number
         val expectedError = Map(`fieldValue - number`.id -> Set("sample label must be a number")).invalid[Unit]
-        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expectedError
+        validate(`fieldValue - number`, List(`fieldValue - number`), rawDataFromBrowser).futureValue shouldBe expectedError
       }
     }
   }
@@ -163,7 +163,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
     forAll(numbers) { (number, expected) =>
       new Test {
         override val value = number
-        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+        validate(`fieldValue - number`, List(`fieldValue - number`), rawDataFromBrowser).futureValue shouldBe expected
       }
     }
   }
@@ -203,7 +203,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
       new Test {
         override val value = number
         override def `fieldValue - number` = super.`fieldValue - number`.copy(`type` = constraint)
-        validate(`fieldValue - number`, rawDataFromBrowser).futureValue shouldBe expected
+        validate(`fieldValue - number`, List(`fieldValue - number`), rawDataFromBrowser).futureValue shouldBe expected
       }
     }
   }

@@ -34,9 +34,9 @@ case class FormComponentSimple(fc: FormComponent) extends FormComponentWithCtx
 case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal {
   def allIds: List[FormComponentId] =
     expandedFC.flatMap {
-      case fc @ IsDate(_)       => Date.fields(fc.id)
-      case fc @ IsAddress(_)    => Address.fields(fc.id)
-      case fc @ IsUkSortCode(_) => UkSortCode.fields(fc.id)
+      case fc @ IsDate(_)       => Date.fields(fc.id).toList
+      case fc @ IsAddress(_)    => Address.fields(fc.id).toList
+      case fc @ IsUkSortCode(_) => UkSortCode.fields(fc.id).toList
       case fc                   => List(fc.id)
     }
 }
@@ -111,7 +111,7 @@ case class FormComponent(
 }
 
 object FormComponent {
-  implicit val format = Json.format[FormComponent]
+  implicit val format: OFormat[FormComponent] = Json.format[FormComponent]
 }
 
 object IsText {

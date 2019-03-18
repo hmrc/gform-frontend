@@ -61,6 +61,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val speccedDate = mkFormComponent(date)
+    val speccedDateList = List(speccedDate)
 
     val acceptedAfter = LocalDate.now().plusDays(2)
 
@@ -78,7 +79,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedDate).futureValue
+      ExampleData.formTemplate).validate(speccedDate, speccedDateList).futureValue
 
     result.value shouldBe (())
   }
@@ -89,6 +90,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.now().plusDays(1)
 
@@ -107,7 +109,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.toEither should beRight(())
@@ -119,6 +121,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(6)
 
@@ -137,7 +140,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -149,6 +152,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(2)
 
@@ -167,7 +171,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be after 21 June 2017")))
@@ -179,6 +183,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.now()
 
@@ -197,7 +202,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -209,6 +214,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-4)
 
@@ -227,7 +233,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -239,6 +245,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.now()
 
@@ -257,7 +264,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -269,6 +276,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.now().plusDays(-1)
 
@@ -287,7 +295,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -299,6 +307,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.now().plusDays(-2)
 
@@ -317,7 +326,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -329,6 +338,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-6)
 
@@ -347,7 +357,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -359,6 +369,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val accepted = LocalDate.of(2017, 4, 16)
 
@@ -377,7 +388,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -389,6 +400,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val accepted = LocalDate.of(2020, 2, 29)
 
@@ -407,7 +419,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -419,6 +431,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val accepted = LocalDate.of(LocalDate.now().getYear + 1, 2, 29)
 
@@ -437,7 +450,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -449,6 +462,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -465,7 +479,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the last day of the month")))
@@ -477,6 +491,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -493,7 +508,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the first day of the month")))
@@ -505,6 +520,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -521,7 +537,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.toEither should beLeft(
@@ -534,6 +550,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
     val date = Date(constraints, Offset(0), None)
 
     val fieldValue = mkFormComponent(date)
+    val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -550,7 +567,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.toEither should beLeft(
@@ -577,6 +594,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       false,
       None)
 
+    val fieldValues = List(fieldValue)
+
     val data = mkFormDataRecalculated(
       Map(
         FormComponentId("accPeriodStartDate-day")   -> Seq("Tuesday"),
@@ -591,7 +610,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue).futureValue
+      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -617,6 +636,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       false,
       None)
 
+    val fieldValues = List(fieldValue)
+
     val data = mkFormDataRecalculated(
       Map(
         FormComponentId("accPeriodStartDate.day")   -> Seq("01"),
@@ -631,7 +652,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue).futureValue
+      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("sample label is missing")))
   }
@@ -653,6 +674,8 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       false,
       Some("New error message"))
 
+    val fieldValues = List(fieldValue)
+
     val data = mkFormDataRecalculated(
       Map(
         FormComponentId("accPeriodStartDate.day")   -> Seq("01"),
@@ -667,7 +690,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue).futureValue
+      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("New error message")))
   }

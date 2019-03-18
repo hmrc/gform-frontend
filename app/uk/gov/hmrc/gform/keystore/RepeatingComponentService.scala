@@ -46,7 +46,16 @@ object RepeatingComponentService {
         }
       }
 
-  private def isRepeatingSection(section: Section) = section.repeatsMax.isDefined && section.repeatsMin.isDefined
+  def isRepeatingSection(section: Section): Boolean = section.repeatsMax.isDefined && section.repeatsMin.isDefined
+
+  def reduceToTemplateFieldId(fieldId: FormComponentId): FormComponentId = {
+    val repeatingGroupFieldId = """^\d+_(.+)""".r
+
+    fieldId.value match {
+      case repeatingGroupFieldId(extractedFieldId) => FormComponentId(extractedFieldId)
+      case _                                       => fieldId
+    }
+  }
 
   private def generateDynamicSections(
     section: Section,

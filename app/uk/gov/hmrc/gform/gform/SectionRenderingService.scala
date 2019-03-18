@@ -20,7 +20,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-import akka.japi
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
 import cats.implicits._
@@ -252,7 +251,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     component: ComponentField)(a: FormFieldValidationResult, b: FormFieldValidationResult): Boolean =
     component.fieldValue.`type` match {
       case _: Address => // currently only required for address as other components are in order
-        val indexedFields = Address.fields(component.fieldValue.id).zipWithIndex.toMap
+        val indexedFields = Address.fields(component.fieldValue.id).toList.zipWithIndex.toMap
         indexedFields.getOrElse(a.fieldValue.id, -1) < indexedFields.getOrElse(b.fieldValue.id, -1)
       case _ => false // keep the order for other components
     }
@@ -503,12 +502,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     hmrcTP: HmrcTaxPeriod) = {
 
     val taxPeriodList = obligations match {
-      case RetrievedObligations(listOfObligations) => listOfObligations.toList
+      case RetrievedObligations(listOfObligations) => listOfObligations
       case _                                       => List[TaxPeriodInformation]()
     }
 
     val taxPeriodOptions = taxPeriodList
-      .map(i => new OptionParams(i.periodKey, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, false))
+      .filter(i => i.hmrcTaxPeriod.idNumber === hmrcTP.idNumber)
+      .map(i => OptionParams(i.periodKey, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, false))
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val mapOfResultsOption = validatedValue match {
       case Some(ComponentField(a, b)) => b

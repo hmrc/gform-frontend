@@ -17,7 +17,9 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner, AuthConfig}
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
+@import uk.gov.hmrc.play.views.html.layouts
 
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @(title: String,
   serviceName: String,
   containsErrors: Boolean = false,
@@ -28,21 +30,56 @@
   mainClass: Option[String] = None,
   scriptElem: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig,
-  authConfig: Option[AuthConfig]
-)(mainContent: Html)(implicit messagesApi: Messages)
-
-@import uk.gov.hmrc.play.views.html.layouts
-
+  authConfig: Option[AuthConfig],
+  webChat: Option[WebChat] = None
+)(mainContent: Html)(implicit request : Request[_], messagesApi: Messages)
 
 @serviceInfoContent = {}
+
+@webChatRoomId = @{
+  webChat match {
+    case Some(x) => x.chatRoomId.value
+    case None => ""
+  }
+}
+
+@webChatTemplateName = @{
+  webChat match {
+    case Some(x) => x.templateName.value
+    case None => ""
+  }
+}
+
+@mainScripts = {
+  @scriptElem
+  @if(webChat.nonEmpty) {
+    @uk.gov.hmrc.csp.WebchatClient.webchatClickToChatScriptPartial(webChatRoomId, webChatTemplateName)
+  }
+}
 
 @headTitle = @{
     (if (containsErrors) "Error: " else "") + title + " - " + serviceName + " - GOV.UK"
 }
-@sidebar = {
-    @if(sidebarLinks.isDefined) {
-        @layouts.sidebar(sidebarLinks.get, Some("sidebar"))
-    }
+@webchatSidebar = {
+  @if(webChat.nonEmpty) {
+    <nav class="govuk-related-items" style="border-top: 5px solid #005ea5;">
+      <h2 class="heading-medium" id="subsection-title">
+        Webchat service
+      </h2>
+      <ul class="section__ul--link-list sidebar__list">
+        <li class="sidebar__list-item">
+          <a href="#chat" onclick="openChat();
+          return false">
+            Chat online with an advisor
+          </a>
+        </li>
+      </ul>
+    </nav>
+  } else { @None }
+}
+
+@sidebar = @{
+    layouts.sidebar(webchatSidebar, Some("sidebar"))
 }
 
 @govuk_wrapper(
@@ -57,6 +94,6 @@
   contentHeader = contentHeader,
   mainContent = layouts.article(mainContent),
   serviceInfoContent = serviceInfoContent,
-  scriptElem = scriptElem,
+  scriptElem = Some(mainScripts),
   authConfig = authConfig
 )

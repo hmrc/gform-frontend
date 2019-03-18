@@ -53,6 +53,7 @@ class FormatValidationSpec extends Spec with GraphSpec {
 
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
+    val fieldValues = List(fieldValue)
 
     val data = Map(
       FormComponentId("n-1") -> Seq("12"),
@@ -60,7 +61,7 @@ class FormatValidationSpec extends Spec with GraphSpec {
       FormComponentId("n-3") -> Seq("12")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(fieldValue, fieldValues, data)
 
     result.toEither should beRight(())
   }
@@ -71,13 +72,15 @@ class FormatValidationSpec extends Spec with GraphSpec {
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
 
+    val fieldValues = List(fieldValue)
+
     val data = Map(
       FormComponentId("n-1") -> Seq("12"),
       FormComponentId("n-2") -> Seq("123"),
       FormComponentId("n-3") -> Seq("12")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(fieldValue, fieldValues, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be 2 numbers")))
   }
@@ -88,13 +91,15 @@ class FormatValidationSpec extends Spec with GraphSpec {
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
 
+    val fieldValues = List(fieldValue)
+
     val data = Map(
       FormComponentId("n-1") -> Seq(""),
       FormComponentId("n-2") -> Seq(""),
       FormComponentId("n-3") -> Seq("")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(fieldValue, fieldValues, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label values must be two digit numbers")))
   }
@@ -105,13 +110,15 @@ class FormatValidationSpec extends Spec with GraphSpec {
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
 
+    val fieldValues = List(fieldValue)
+
     val data = Map(
       FormComponentId("n-1") -> Seq("-1"),
       FormComponentId("n-2") -> Seq("24"),
       FormComponentId("n-3") -> Seq("24")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(fieldValue, fieldValues, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be 2 numbers")))
   }
@@ -122,25 +129,28 @@ class FormatValidationSpec extends Spec with GraphSpec {
     val fieldValue =
       FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
 
+    val fieldValues = List(fieldValue)
+
     val data = Map(
       FormComponentId("n-1") -> Seq("1.2"),
       FormComponentId("n-2") -> Seq("1.3"),
       FormComponentId("n-3") -> Seq("1.2")
     )
 
-    val result = validator(fieldValue, data)
+    val result = validator(fieldValue, fieldValues, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be a whole number")))
   }
 
-  "TelephoneNumber" should "be valid within limit of 30" in createSuccessTest(
-    "123456789101112131415161718192",
+  "TelephoneNumber" should "be valid within limit of 25" in createSuccessTest(
+    "1234567890123456789012345",
     TelephoneNumber)
   "TelephoneNumber" should "be valid with special characters" in createSuccessTest("+44 1234 567890", TelephoneNumber)
   "TelephoneNumber" should "be invalid with over the limit" in createFailTest(
     "1234567891011121314151617181920",
     TelephoneNumber,
-    "sample label has more than 30 characters")
+    "sample label has more than 25 characters")
+
   "Email" should "be valid with proper structure" in createSuccessTest("test@test.com", Email)
   "Email" should "be invalid with invalid email address" in createFailTest(
     "testtest.com",
@@ -150,13 +160,16 @@ class FormatValidationSpec extends Spec with GraphSpec {
     List.fill(241)("a").mkString + "@test.com",
     Email,
     "sample label has more than 241 characters")
+
   "UTR" should "be valid " in createSuccessTest("1000000000", UTR)
   "UTR" should "be invalid with decimals" in createFailTest("123456789", UTR, "sample label is not a valid Id")
+
   "NINO" should "be valid with a valid NINO " in createSuccessTest("AA111111A", NINO)
   "NINO" should "be return Invalid with an incorrect NINO" in createFailTest(
     "AA111111",
     NINO,
     "sample label is not a valid Id")
+
   "UkVrn" should "return valid standard" in createSuccessTest("GB999999973", UkVrn)
   "UkVrn" should "return valid branch" in createSuccessTest("GB999999973001", UkVrn)
   "UkVrn" should "return valid gpvernment" in createSuccessTest("GBGD001", UkVrn)
@@ -284,16 +297,22 @@ class FormatValidationSpec extends Spec with GraphSpec {
     TextWithRestrictions(1, 100),
     "sample label has more than 100 characters")
   private def createSuccessTest(data: String, contraint: TextConstraint) =
-    validator(fieldValueFunction(contraint), getData(data)).toEither should beRight(())
+    validator(fieldValueFunction(contraint), getFormComponentList(contraint), getData(data)).toEither should beRight(())
 
   private def createFailTest(data: String, constrait: TextConstraint, errorMessage: String) =
-    validator(fieldValueFunction(constrait), getData(data)).toEither should beLeft(Map(default -> Set(errorMessage)))
+    validator(fieldValueFunction(constrait), getFormComponentList(constrait), getData(data)).toEither should beLeft(
+      Map(default -> Set(errorMessage)))
 
   private val getData: String => Map[FormComponentId, Seq[String]] = str => Map(default -> Seq(str))
+  private val getFormComponentList: TextConstraint => List[FormComponent] = contraint =>
+    List(fieldValue(Text(contraint, Value)))
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   implicit lazy val hc = HeaderCarrier()
 
-  private def validator(fieldValue: FormComponent, data: Map[FormComponentId, Seq[String]]) =
+  private def validator(
+    fieldValue: FormComponent,
+    fieldValues: List[FormComponent],
+    data: Map[FormComponentId, Seq[String]]) =
     new ComponentsValidator(
       mkFormDataRecalculated(data),
       mock[FileUploadService],
@@ -302,7 +321,7 @@ class FormatValidationSpec extends Spec with GraphSpec {
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
   private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Value))
