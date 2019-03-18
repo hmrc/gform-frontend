@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import layouts.{govuk_template => hmrcGovUkTemplate}
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
+@import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous }
 @import uk.gov.hmrc.gform.config.JSConfig
@@ -51,10 +52,11 @@
     <script src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
   @if(webchatEnabled) {
     <script>
-            var openChat = function (e) {
-              e.preventDefault();
-              alert("webchat window not integrated");
-            }
+      //webchat csp partials include as follow with twirl 'at' sign to be added:
+      //uk.gov.hmrc.csp.WebchatClient.webchatClickToChatScriptPartial(FrontendAppConfig.egainEntryPoint, FrontendAppConfig.egainTemplate)
+      var openChat = function () {
+        alert("placeholder for webchat window as it is not integrated yet");
+      }
     </script>
   }
 }
@@ -171,27 +173,26 @@
 }
 
 @getHelpForm = @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
-
+@sidebarLinks = {
   @if(webchatEnabled) {
-    @sidebarLinks = {
-    <nav class="govuk-related-items ">
+    <nav class="govuk-related-items" style="border-top: 5px solid #005ea5;">
       <h2 class="heading-medium" id="subsection-title">
-        Other actions
+        Webchat service
       </h2>
-
       <ul class="section__ul--link-list sidebar__list">
         <li class="sidebar__list-item">
-          <a href="javascript:return false;" onclick="openChat()">
-            Click to chat online with an advisor
+          <a href="#chat" onclick="openChat(); return false">
+            Chat online with an advisor
           </a>
         </li>
       </ul>
     </nav>
   }
+}
 
 @sidebar = {
   @if(webchatEnabled) {
-    @layouts.sidebar(sidebarLinks.get, Some("sidebar"))
+    @layouts.sidebar(sidebarLinks, Some("sidebar"))
   }
 }
 
