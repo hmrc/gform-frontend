@@ -38,6 +38,8 @@
   navLinks: Option[Html] = None
 )(implicit messages: Messages)
 
+@webchatEnabled = @{true}
+
 @scriptElement = {
     <script src='@routes.Assets.versioned("javascripts/gformGAEvents.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
@@ -47,6 +49,14 @@
     <script src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gform.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
+  @if(webchatEnabled) {
+    <script>
+            var openChat = function (e) {
+              e.preventDefault();
+              alert("webchat window not integrated");
+            }
+    </script>
+  }
 }
 
 @linkElement = {
@@ -161,6 +171,29 @@
 }
 
 @getHelpForm = @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
+
+  @if(webchatEnabled) {
+    @sidebarLinks = {
+    <nav class="govuk-related-items ">
+      <h2 class="heading-medium" id="subsection-title">
+        Other actions
+      </h2>
+
+      <ul class="section__ul--link-list sidebar__list">
+        <li class="sidebar__list-item">
+          <a href="javascript:return false;" onclick="openChat()">
+            Click to chat online with an advisor
+          </a>
+        </li>
+      </ul>
+    </nav>
+  }
+
+@sidebar = {
+  @if(webchatEnabled) {
+    @layouts.sidebar(sidebarLinks.get, Some("sidebar"))
+  }
+}
 
 @content = {
     @uiLayouts.main_content(
