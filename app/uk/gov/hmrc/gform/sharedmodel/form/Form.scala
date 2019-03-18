@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId, HmrcTaxPeriod, SectionNumber }
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
   def toFormField: FormField =
@@ -94,7 +94,8 @@ object Form {
         VisitIndex.format.writes(form.visitsIndex) ++
         ThirdPartyData.format.writes(form.thirdPartyData) ++
         EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
-        Obligations.format.writes(form.obligations))
+        Obligations.format.writes(form.obligations)
+  )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
 

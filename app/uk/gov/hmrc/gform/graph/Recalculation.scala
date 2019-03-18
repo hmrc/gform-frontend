@@ -339,7 +339,6 @@ class Evaluator[F[_]: Monad](
             thirdPartyData,
             envelopeId))
     }
-
   private def getSubmissionData(dataLookup: Data, fcId: FormComponentId): Convertible[F] =
     dataLookup.get(fcId).flatMap(_.headOption) match {
       case None        => Converted((NonComputable: Computable).pure[F])

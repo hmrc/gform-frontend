@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, Recalculation }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -171,6 +171,7 @@ class DeclarationController(
   )(implicit request: Request[_]): Future[Result] = valType match {
     case Valid(()) =>
       val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
+      val emailParameterRecalculation = EmailParameterRecalculation(cache)
       for {
         customerId <- authService.evaluateSubmissionReference(
                        cache.formTemplate.dmsSubmission.customerId,
@@ -187,10 +188,13 @@ class DeclarationController(
                   Signed,
                   updatedForm.visitsIndex,
                   updatedForm.thirdPartyData,
-                  cache.form.obligations))
+                  cache.form.obligations
+                )
+              )
         //todo perhaps not make these calls at all if the feature flag is false?
         summaryHml <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
         cleanHtml = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = true)
+        emailParameter <- emailParameterRecalculation.recalculateEmailParameters(recalculation)
         htmlForPDF = addExtraDataToHTML(
           cleanHtml,
           cache.formTemplate.authConfig,
@@ -205,6 +209,7 @@ class DeclarationController(
                 gformConnector,
                 cache.retrievals,
                 cache.formTemplate,
+                emailParameter,
                 maybeAccessCode,
                 CustomerId(customerId),
                 htmlForPDF)

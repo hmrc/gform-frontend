@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ SubmissionData, Variables }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
@@ -32,7 +32,11 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
   it should "should be able to submit data to gform backend" in {
     lazy val htmlForm = "<hmtl>something</html>"
     val submissionData =
-      SubmissionData(htmlForm, Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")))
+      SubmissionData(
+        htmlForm,
+        Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
+        EmailParametersRecalculated(Map(EmailTemplateVariable("variable") -> EmailParameterValue("value")))
+      )
 
     forgePact
       .between("gform-frontend")

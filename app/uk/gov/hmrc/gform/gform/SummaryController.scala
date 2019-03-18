@@ -21,23 +21,21 @@ import cats.instances.future._
 import cats.instances.list._
 import cats.instances.map._
 import cats.instances.set._
-import cats.instances.unit._
-import cats.syntax.traverse._
-import cats.syntax.flatMap._
 import cats.syntax.applicative._
-import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, Request }
+import cats.syntax.flatMap._
+import cats.syntax.traverse._
 import play.api.http.HttpEntity
-import play.api.mvc._
+import play.api.i18n.I18nSupport
+import play.api.mvc.{ Action, AnyContent, Request, _ }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder, Origin }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, Recalculation }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.obligation.ObligationService
@@ -49,8 +47,8 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
 
@@ -85,7 +83,6 @@ class SummaryController(
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-
         val formFieldValidationResultsF = for {
           update <- obligationService.updateObligations(
                      cache.oldForm._id,
@@ -94,10 +91,12 @@ class SummaryController(
                        cache.form.status,
                        cache.form.visitsIndex,
                        cache.form.thirdPartyData,
-                       cache.form.obligations),
+                       cache.form.obligations
+                     ),
                      cache.oldForm,
                      cache.form
                    )
+
           envelope <- envelopeF
           errors   <- validateForm(cache, envelope, cache.retrievals)
         } yield errors
@@ -112,13 +111,15 @@ class SummaryController(
               Validated,
               cache.form.visitsIndex,
               cache.form.thirdPartyData,
-              cache.form.obligations)
+              cache.form.obligations
+            )
           )
           .map { _ =>
             Redirect(
               routes.DeclarationController
                 .showDeclaration(maybeAccessCode, formTemplateId, lang))
           }
+
         lazy val redirectToSummary =
           Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode, lang))
         lazy val handleDeclaration = for {
@@ -189,10 +190,15 @@ class SummaryController(
                cache.formTemplate,
                retrievals,
                cache.form.thirdPartyData,
-               cache.form.envelopeId)
+               cache.form.envelopeId
+             )
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
-      allFields = submittedFCs(data, sections.flatMap(_.expandSection(data.data).allFCs))
+      allFields = submittedFCs(
+        data,
+        sections
+          .flatMap(_.expandSection(data.data).allFCs)
+      )
 
       v1 <- sections
              .traverse(

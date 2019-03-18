@@ -18,11 +18,19 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable }
 
 class SubmissionDataTest extends Spec {
 
   it should "serialized/deserialize in to/from json" in {
-    val submissionData = SubmissionData(htmlForm, Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")))
+    val submissionData = SubmissionData(
+      htmlForm,
+      Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
+      EmailParametersRecalculated(
+        Map(
+          EmailTemplateVariable("variable1") -> EmailParameterValue("value1"),
+          EmailTemplateVariable("variable2") -> EmailParameterValue("value2")))
+    )
 
     Json.toJson(submissionData) should be(expectedJson)
     expectedJson.as[SubmissionData] should be(submissionData)
@@ -40,6 +48,12 @@ class SubmissionDataTest extends Spec {
           |      "enrolledIdentifier": "ITC"
           |      }
           |    }
+          |  },
+          |  "emailParameters": {
+          |     "emailParametersMap": {
+          |       "variable1": { "value":"value1" },
+          |       "variable2": { "value":"value2" }
+          |     }
           |  }
           |}""".stripMargin
     )

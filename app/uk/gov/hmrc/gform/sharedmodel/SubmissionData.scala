@@ -17,8 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
 
-case class SubmissionData(pdfData: String, variables: Variables)
+case class SubmissionData(pdfData: String, variables: Variables, emailParameters: EmailParametersRecalculated)
 
 object SubmissionData {
 
