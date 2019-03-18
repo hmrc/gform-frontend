@@ -315,7 +315,8 @@ class FormController(
                    cache.form.status,
                    cache.form.visitsIndex,
                    cache.form.thirdPartyData,
-                   cache.form.obligations),
+                   cache.form.obligations
+                 ),
                  cache.oldForm,
                  cache.form
                )
