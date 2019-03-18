@@ -40,20 +40,24 @@ trait IdentifierExtractor {
     case EnrolmentAuth(_, DoCheck(_, _, RegimeIdCheck(RegimeId(id)))) =>
       maybeValue(
         enrolmentsByServiceId(enrolments, auth.serviceId.value)
-          .flatMap(_.identifiers.find(_.value.drop(2).startsWith(id))))
+          .flatMap(_.identifiers)
+          .find(_.value.drop(2).startsWith(id)))
     case _ =>
       maybeValue(
-        enrolmentsByServiceId(enrolments, auth.serviceId.value)
+        enrolmentByServiceId(enrolments, auth.serviceId.value)
           .flatMap(_.identifiers.headOption))
   }
 
   def extractIdentifier(enrolments: Enrolments, serviceName: ServiceName, identifierName: IdentifierName): String =
     maybeValue(
-      enrolmentsByServiceId(enrolments, serviceName.value)
+      enrolmentByServiceId(enrolments, serviceName.value)
         .flatMap(_.getIdentifier(identifierName.value)))
 
-  private val enrolmentsByServiceId: (Enrolments, String) => Option[core.Enrolment] =
+  private val enrolmentByServiceId: (Enrolments, String) => Option[core.Enrolment] =
     (enrolments, serviceId) => enrolments.getEnrolment(serviceId)
+
+  private val enrolmentsByServiceId: (Enrolments, String) => Set[core.Enrolment] =
+    (enrolments, serviceId) => enrolments.enrolments.filter(_.key == serviceId)
 
   private val maybeValue: Option[EnrolmentIdentifier] => String =
     maybeIdentifier => maybeIdentifier.map(_.value).getOrElse("")
