@@ -84,7 +84,7 @@ class ObligationService(gformConnector: GformConnector) {
     for {
       idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i =>
                     withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
-      taxResponses <- gformConnector.getAllTaxPeriods(idNumbers)
+      taxResponses <- gformConnector.getAllTaxPeriods(idNumbers.filter(i => i.idNumberValue.value != ""))
       obligations = updatedObligations(idNumbers, taxResponses)
     } yield form.copy(obligations = RetrievedObligations(obligations))
 
