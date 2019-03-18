@@ -38,6 +38,18 @@ trait FormTemplateGen {
   def emailParameterListGen: Gen[Option[NonEmptyList[EmailParameter]]] =
     Gen.option(PrimitiveGen.oneOrMoreGen(emailParameterGen))
 
+  def templateNameGen: Gen[TemplateName] =
+    for {
+      templateName <- Gen.alphaNumStr
+
+    } yield TemplateName(templateName)
+
+  def webChatGen: Gen[WebChat] =
+    for {
+      roomId       <- PrimitiveGen.nonEmptyAlphaNumStrGen
+      templateName <- Gen.option(templateNameGen)
+    } yield WebChat(ChatRoomId(roomId), templateName)
+
   def formTemplateGen: Gen[FormTemplate] =
     for {
       id                     <- formTemplateIdGen
@@ -53,6 +65,7 @@ trait FormTemplateGen {
       emailParameters        <- emailParameterListGen
       submitSuccessUrl       <- PrimitiveGen.urlGen
       submitErrorUrl         <- PrimitiveGen.urlGen
+      webChat                <- Gen.option(webChatGen)
       sections               <- PrimitiveGen.oneOrMoreGen(SectionGen.sectionGen)
       acknowledgementSection <- SectionGen.acknowledgementSectionGen
       declarationSection     <- SectionGen.declarationSectionGen
@@ -72,6 +85,7 @@ trait FormTemplateGen {
         emailParameters,
         submitSuccessUrl,
         submitErrorUrl,
+        webChat,
         sections.toList,
         acknowledgementSection,
         declarationSection,
