@@ -17,13 +17,14 @@
 package uk.gov.hmrc.gform.graph.processor
 
 import cats.Id
+import cats.data.NonEmptyList
 import cats.syntax.applicative._
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments, AffinityGroup => CoreAffinityGroup }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals }
 import uk.gov.hmrc.gform.graph.{ NoChange, NonConvertible, RecalculationOp }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, EnrolledIdentifier, EnrolmentAuth, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, Never, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolledIdentifier, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
 import uk.gov.hmrc.http.logging.SessionId
 
 class UserCtxEvaluatorProcessorTest extends Spec {
@@ -42,39 +43,32 @@ class UserCtxEvaluatorProcessorTest extends Spec {
       NonConvertible(RecalculationOp.noChange.pure[Id]))
   }
 
+  it should "return enrolledIdentifier value when authModule in authConfig are set" in new UserCtxEvaluatorProcessor[Id] {
+    val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(multi))
+    val enrSec = EnrolmentSection("title", None, Nil, NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))), Nil)
+    val auth = HmrcEnrolmentModule(
+      EnrolmentAuth(ServiceId("IR-CT"), DoCheck(Always, RequireEnrolment(enrSec), RegimeIdCheck(RegimeId("XX")))))
+
+    processEvaluation(retrievals, UserCtx(EnrolledIdentifier), auth) should be(
+      NonConvertible(RecalculationOp.newValue("12XX567890").pure[Id]))
+  }
+
+  // format:off
   lazy val userCtxTable = Table(
     ("enr", "userField", "serviceId", "authConfig", "NoncovertibleResult"),
-    (
-      irctEnrolment,
-      EnrolledIdentifier,
-      ServiceId("IR-CT"),
-      HmrcEnrolmentModule(EnrolmentAuth(ServiceId("IR-CT"), Never)),
-      NonConvertible(RecalculationOp.newValue("CT value").pure[Id])),
-    (
-      irsaEnrolment,
-      EnrolledIdentifier,
-      ServiceId("IR-SA"),
-      HmrcEnrolmentModule(EnrolmentAuth(ServiceId("IR-SA"), Never)),
-      NonConvertible(RecalculationOp.newValue("SA value").pure[Id])),
-    (
-      irsaEnrolment,
-      EnrolledIdentifier,
-      ServiceId("IR-SA"),
-      HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never)),
-      NonConvertible(RecalculationOp.newValue("SA value").pure[Id])),
-    (
-      irctEnrolment,
-      EnrolledIdentifier,
-      ServiceId(""),
-      HmrcEnrolmentModule(EnrolmentAuth(ServiceId(""), Never)),
-      NonConvertible(RecalculationOp.newValue("").pure[Id])),
-    (
-      irctEnrolment,
-      FTAffinityGroup,
-      ServiceId(""),
-      HmrcSimpleModule,
-      NonConvertible(RecalculationOp.newValue("agent").pure[Id]))
+    (irctEnrolment, EnrolledIdentifier, ServiceId("IR-CT"), hmrcModule("IR-CT"), nonConvertible("CT value")),
+    (irsaEnrolment, EnrolledIdentifier, ServiceId("IR-SA"), hmrcModule("IR-SA"), nonConvertible("SA value")),
+    (irsaEnrolment, EnrolledIdentifier, ServiceId("IR-SA"), hmrcAgentWithEnrolmentModule, nonConvertible("SA value")),
+    (irctEnrolment, EnrolledIdentifier, ServiceId(""), hmrcModule(""), nonConvertible("")),
+    (irctEnrolment, FTAffinityGroup, ServiceId(""), HmrcSimpleModule, nonConvertible("agent"))
   )
+  // format:on
+
+  lazy val hmrcModule: String => AuthConfig = id => HmrcEnrolmentModule(EnrolmentAuth(ServiceId(id), Never))
+  lazy val nonConvertible: String => NonConvertible[Id] = value =>
+    NonConvertible(RecalculationOp.newValue(value).pure[Id])
+  lazy val hmrcAgentWithEnrolmentModule =
+    HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never))
 
   lazy val materialisedRetrievalsAgent = AuthenticatedRetrievals(
     OneTimeLogin,
@@ -88,4 +82,9 @@ class UserCtxEvaluatorProcessorTest extends Spec {
 
   lazy val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
   lazy val irctEnrolment = Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "CT value")))
+
+  lazy val multi = Set(
+    Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12AB567890"))),
+    Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "12XX567890")))
+  )
 }

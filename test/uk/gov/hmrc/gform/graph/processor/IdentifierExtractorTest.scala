@@ -25,17 +25,24 @@ class IdentifierExtractorTest extends Spec {
   it should "Retrieve enrolment value head option for a given service id when regime id do not exist" in new IdentifierExtractor {
     val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), Never)
 
-    identifierValue(multiEnrolments, enrolmentAuth) should be("12XX567890")
+    identifierValue(enrolmentWithMultipleIdentifier, enrolmentAuth) should be("12XX567890")
   }
 
   it should "Retrieve enrolment value for a given service id and regime id when exist" in new IdentifierExtractor {
     val doCheck = DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB")))
     val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), doCheck)
 
-    identifierValue(multiEnrolments, enrolmentAuth) should be("12AB567890")
+    identifierValue(enrolmentWithMultipleIdentifier, enrolmentAuth) should be("12AB567890")
   }
 
-  lazy val multiEnrolments = Enrolments(
+  it should "Retrieve enrolment value for a given service id and regime id when exist with multiple Enrolment" in new IdentifierExtractor {
+    val doCheck = DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AA")))
+    val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), doCheck)
+
+    identifierValue(multiEnrolments, enrolmentAuth) should be("12AA567890")
+  }
+
+  lazy val enrolmentWithMultipleIdentifier = Enrolments(
     Set(
       Enrolment("HMRC-ORG-OBTDS").copy(identifiers = List(
         EnrolmentIdentifier("EtmpRegistrationNumber", "12XX567890"),
@@ -43,4 +50,16 @@ class IdentifierExtractorTest extends Spec {
         EnrolmentIdentifier("UTR", "XXXXXXX"),
         EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")
       ))))
+
+  lazy val multiEnrolments = Enrolments(
+    Set(
+      Enrolment("HMRC-ORG-OBTDS").copy(
+        identifiers = List(
+          EnrolmentIdentifier("EtmpRegistrationNumber", "12BB567890")
+        )),
+      Enrolment("HMRC-ORG-OBTDS").copy(
+        identifiers = List(
+          EnrolmentIdentifier("EtmpRegistranntionNumber", "12AA567890")
+        ))
+    ))
 }
