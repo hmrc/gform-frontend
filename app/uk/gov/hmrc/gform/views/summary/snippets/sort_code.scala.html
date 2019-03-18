@@ -27,7 +27,7 @@
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </dt>
   <dd class="cya-answer">
-    @UkSortCode.fields(fieldValue.id).map{ fieldId =>
+    @UkSortCode.fields(fieldValue.id).toList.map{ fieldId =>
       @validationResult.map(_.getCurrentValue(fieldId.toString)).getOrElse("")
     }.mkString("-")
   </dd>

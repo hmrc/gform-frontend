@@ -16,15 +16,17 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
-import cats.Eq
-import play.api.libs.json.Reads._
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import com.fasterxml.jackson.databind.node.JsonNodeFactory.{ instance => jnf }
+import com.fasterxml.jackson.databind.node.{ ArrayNode, ObjectNode }
+import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 
-case class DestinationId(id: String) extends AnyVal
+import scala.collection.JavaConversions._
 
-object DestinationId {
-  implicit val format: Format[DestinationId] = JsonUtils.valueClassFormat[DestinationId, String](DestinationId(_), _.id)
+object JsonNodes {
+  def parseJson(json: String): JsonNode = new ObjectMapper().readTree(json)
 
-  implicit val equal: Eq[DestinationId] = Eq.fromUniversalEquals
+  def textNode(s: String): JsonNode = jnf.textNode(s)
+  def objectNode(fields: Map[String, JsonNode]): JsonNode = new ObjectNode(jnf, fields)
+  def arrayNode(elements: List[JsonNode]): JsonNode = new ArrayNode(jnf, elements)
+  def numberNode(n: Int): JsonNode = jnf.numberNode(n)
 }

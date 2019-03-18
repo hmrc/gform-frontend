@@ -142,7 +142,7 @@ class ValidationService(
               )
           }
       case BankAccoutnModulusCheck(errorMessage, accountNumber, sortCode) =>
-        val sortCodeCombined = UkSortCode.fields(sortCode.toFieldId).map(dataGetter).mkString("-")
+        val sortCodeCombined = UkSortCode.fields(sortCode.toFieldId).toList.map(dataGetter).mkString("-")
         val errors = Map(accountNumber.toFieldId -> Set(errorMessage), sortCode.toFieldId -> Set(errorMessage))
         gformConnector
           .validateBankModulus(dataGetter(accountNumber.toFieldId), sortCodeCombined)
@@ -484,6 +484,7 @@ class ComponentsValidator(
     Monoid[ValidatedType[Unit]].combineAll(
       UkSortCode
         .fields(fieldValue.id)
+        .toList
         .map { fieldId =>
           val sortCode: Seq[String] = data.data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
@@ -745,7 +746,7 @@ class ComponentsValidator(
     formComponentId: FormComponentId,
     errorMsg: Option[String],
     data: FormDataRecalculated): ValidatedLocalDate = {
-    val fieldIdList = Date.fields(formComponentId).map(fId => data.data.get(fId))
+    val fieldIdList = Date.fields(formComponentId).map(fId => data.data.get(fId)).toList
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>

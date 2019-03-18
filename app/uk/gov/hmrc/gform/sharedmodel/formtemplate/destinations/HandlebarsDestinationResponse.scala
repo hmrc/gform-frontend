@@ -16,15 +16,19 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
-import cats.Eq
-import play.api.libs.json.Reads._
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import play.api.libs.json.{ JsNull, JsValue }
+import uk.gov.hmrc.http.HttpResponse
 
-case class DestinationId(id: String) extends AnyVal
+case class HandlebarsDestinationResponse(id: DestinationId, status: Int, json: JsValue)
 
-object DestinationId {
-  implicit val format: Format[DestinationId] = JsonUtils.valueClassFormat[DestinationId, String](DestinationId(_), _.id)
+object HandlebarsDestinationResponse {
+  def apply(destination: Destination.HandlebarsHttpApi, response: HttpResponse): HandlebarsDestinationResponse =
+    HandlebarsDestinationResponse(destination.id, response.status, responseJson(response))
 
-  implicit val equal: Eq[DestinationId] = Eq.fromUniversalEquals
+  private def responseJson(response: HttpResponse): JsValue =
+    try {
+      Option(response.json) getOrElse JsNull
+    } catch {
+      case _: Exception => JsNull
+    }
 }

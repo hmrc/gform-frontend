@@ -21,7 +21,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.formtemplate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, Destinations }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationTest, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
 case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
@@ -45,6 +45,7 @@ case class FormTemplate(
   draftRetrievalMethod: Option[DraftRetrievalMethod],
   submissionReference: Option[TextExpression],
   destinations: Destinations,
+  destinationTests: Option[List[DestinationTest]],
   authConfig: formtemplate.AuthConfig,
   emailTemplateId: String,
   emailParameters: Option[NonEmptyList[EmailParameter]],
@@ -104,6 +105,7 @@ object FormTemplate {
         draftRetrievalMethod: Option[DraftRetrievalMethod],
         submissionReference: Option[TextExpression],
         destinations = dmsSubmission,
+        destinationTests = None,
         authConfig: formtemplate.AuthConfig,
         emailTemplateId: String,
         emailParameters: Option[NonEmptyList[EmailParameter]],
