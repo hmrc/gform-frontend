@@ -52,13 +52,14 @@ class ValidationService(
 
   private def validateFieldValue(
     fieldValue: FormComponent,
+    fieldValues: List[FormComponent],
     data: FormDataRecalculated,
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] =
     new ComponentsValidator(data, fileUploadService, envelopeId, retrievals, booleanExpr, thirdPartyData, formTemplate)
-      .validate(fieldValue)
+      .validate(fieldValue, fieldValues)
 
   def validateComponents(
     fieldValues: List[FormComponent],
@@ -68,7 +69,7 @@ class ValidationService(
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] =
     fieldValues
-      .traverse(fv => validateFieldValue(fv, data, envelopeId, retrievals, thirdPartyData, formTemplate))
+      .traverse(fv => validateFieldValue(fv, fieldValues, data, envelopeId, retrievals, thirdPartyData, formTemplate))
       .map(Monoid[ValidatedType[Unit]].combineAll)
 
   private def validateUsingValidators(section: Section, data: FormDataRecalculated)(
@@ -162,7 +163,8 @@ class ComponentsValidator(
   implicit ec: ExecutionContext
 ) {
 
-  def validate(fieldValue: FormComponent)(implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] = {
+  def validate(fieldValue: FormComponent, fieldValues: List[FormComponent])(
+    implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] = {
 
     def validIf(validationResult: ValidatedType[Unit]): Future[ValidatedType[Unit]] =
       (validationResult.isValid, fieldValue.validIf) match {
@@ -177,8 +179,9 @@ class ComponentsValidator(
       }
 
     fieldValue.`type` match {
-      case sortCode @ UkSortCode(_)      => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
-      case date @ Date(_, _, _)          => validIf(validateDate(fieldValue, date))
+      case sortCode @ UkSortCode(_) => validIf(validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
+      case date @ Date(_, _, _) =>
+        validIf(validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues)))
       case text @ Text(constraint, _, _) => validIf(validateText(fieldValue, constraint, retrievals)(data))
       case TextArea(constraint, _, _)    => validIf(validateText(fieldValue, constraint, retrievals)(data))
       case address @ Address(_)          => validIf(validateAddress(fieldValue, address)(data))
@@ -193,11 +196,12 @@ class ComponentsValidator(
   def validF(implicit ec: ExecutionContext) =
     ().valid.pure[Future]
 
-  private def validateDate(fieldValue: FormComponent, date: Date): ValidatedType[Unit] = {
-    val reqFieldValidResult = validateDateRequiredField(fieldValue)
-    val otherRulesValidResult = validateDateImpl(fieldValue, date)(data)
-    Monoid[ValidatedType[Unit]].combineAll(List(reqFieldValidResult, otherRulesValidResult))
-  }
+  private def validateDate(
+    fieldValue: FormComponent,
+    date: Date,
+    otherFieldValue: Option[FormComponent]): ValidatedType[Unit] =
+    Monoid[ValidatedType[Unit]].combineAll(
+      List(validateDateRequiredField(fieldValue), validateDateImpl(fieldValue, date, otherFieldValue)(data)))
 
   private lazy val dataGetter: FormComponent => String => Seq[String] = fv =>
     suffix => data.data.get(fv.id.withSuffix(suffix)).toList.flatten
@@ -216,14 +220,23 @@ class ComponentsValidator(
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
 
-  private def messagePrefix(fieldValue: FormComponent) =
-    localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+  private def messagePrefix(
+    fieldValue: FormComponent,
+    workedOnId: FormComponentId,
+    otherFormComponent: Option[FormComponent]) =
+    otherFormComponent match {
+      case Some(x) if x.id === workedOnId => localisation(x.shortName.getOrElse(x.label))
+      case Some(x)                        => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+      case None                           => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    }
 
-  private def validateDateImpl(fieldValue: FormComponent, date: Date)(data: FormDataRecalculated): ValidatedType[Unit] =
+  private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
+    data: FormDataRecalculated): ValidatedType[Unit] =
     date.constraintType match {
 
       case AnyDate =>
-        validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(lDate => ().valid)
+        validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data, otherFieldValue).andThen(lDate =>
+          ().valid)
 
       case DateConstraints(dateConstraintList) =>
         val result = dateConstraintList.map {
@@ -238,7 +251,13 @@ class ComponentsValidator(
                 validateTodayWithMessages(fieldValue, beforeAfterPrecisely, offset, data)
 
               case (beforeAfterPrecisely @ _, dateField: DateField, offset) =>
-                validateDateFieldWithMessages(fieldValue, beforeAfterPrecisely, dateField, offset, data)
+                validateDateFieldWithMessages(
+                  fieldValue,
+                  beforeAfterPrecisely,
+                  dateField,
+                  offset,
+                  data,
+                  otherFieldValue)
             }
 
         }
@@ -280,9 +299,10 @@ class ComponentsValidator(
     beforeAfterPrecisely: BeforeAfterPrecisely,
     dateField: DateField,
     offset: OffsetDate,
-    data: FormDataRecalculated): Validated[GformError, Unit] = {
+    data: FormDataRecalculated,
+    otherFieldValue: Option[FormComponent]): Validated[GformError, Unit] = {
 
-    lazy val validateOtherDate = validateInputDate(fieldValue, dateField.value, None, data)
+    lazy val validateOtherDate = validateInputDate(fieldValue, dateField.value, None, data, otherFieldValue)
 
     lazy val validatedThisDate = validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
 
@@ -745,12 +765,13 @@ class ComponentsValidator(
     formComponent: FormComponent,
     formComponentId: FormComponentId,
     errorMsg: Option[String],
-    data: FormDataRecalculated): ValidatedLocalDate = {
+    data: FormDataRecalculated,
+    otherFormComponent: Option[FormComponent] = None): ValidatedLocalDate = {
     val fieldIdList = Date.fields(formComponentId).map(fId => data.data.get(fId)).toList
 
     fieldIdList match {
       case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
-        validateLocalDate(formComponent, formComponentId, errorMsg, day, month, year) match {
+        validateLocalDate(formComponent, formComponentId, otherFormComponent, errorMsg, day, month, year) match {
           case Valid(ConcreteDate(ExactYear(concYear), ExactMonth(concMonth), ExactDay(concDay))) =>
             Try(LocalDate.of(concYear, concMonth, concDay)) match {
               case Success(date) => Valid(date)
@@ -768,14 +789,15 @@ class ComponentsValidator(
   def validateLocalDate(
     formComponent: FormComponent,
     formComponentId: FormComponentId,
+    otherFormComponent: Option[FormComponent],
     errorMessage: Option[String],
     day: String,
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val dayLabel = messagePrefix(formComponent) + " " + localisation("day")
-    val monthLabel = messagePrefix(formComponent) + " " + localisation("month")
-    val yearLabel = messagePrefix(formComponent) + " " + localisation("year")
+    val dayLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("day")
+    val monthLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("month")
+    val yearLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("year")
 
     val d = isNumeric(day, dayLabel)
       .andThen(y => isWithinBounds(y, 31, dayLabel))
@@ -818,7 +840,10 @@ class ComponentsValidator(
     }
 
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
-    Set(localisation(fieldValue.errorMessage.getOrElse(messagePrefix(fieldValue) + " " + localisation(defaultErr))))
+    Set(
+      localisation(
+        fieldValue.errorMessage.getOrElse(
+          messagePrefix(fieldValue, fieldValue.id, None) + " " + localisation(defaultErr))))
 
   private def getError(fieldValue: FormComponent, defaultMessage: String) =
     Map(fieldValue.id -> errors(fieldValue, localisation(defaultMessage))).invalid
