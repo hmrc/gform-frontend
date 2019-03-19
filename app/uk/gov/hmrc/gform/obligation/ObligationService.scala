@@ -93,11 +93,10 @@ class ObligationService(gformConnector: GformConnector) {
     idNumbers: NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
     form: Form)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[TaxPeriodInformation]] =
     filteredIdNumbers match {
-      case x :: xs => {
+      case x :: xs =>
         gformConnector
           .getAllTaxPeriods(NonEmptyList(x, xs))
           .map(listOfTaxResponses => updatedObligations(idNumbers, listOfTaxResponses))
-      }
       case _ =>
         form.obligations match {
           case RetrievedObligations(listOfObligations) => Future.successful(listOfObligations)
