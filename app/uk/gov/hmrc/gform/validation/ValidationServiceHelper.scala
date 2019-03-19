@@ -19,6 +19,7 @@ import java.text.DateFormatSymbols
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import com.fasterxml.jackson.databind.deser.std.DateDeserializers.DateDeserializer
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ValidationServiceHelper {
@@ -121,5 +122,23 @@ object ValidationServiceHelper {
     result.trim
 
   }
+
+  def getCompanionFieldComponent(
+    formComponent: FormComponent,
+    formComponentList: List[FormComponent]): Option[FormComponent] = formComponent.`type` match {
+    case IsDate(x) =>
+      val getDateResult = getDateConstraint(x.constraintType).fold(None)(_);
+      formComponentList.filterNot(formComponent => formComponent.id == getDateResult).headOption
+    case _ => None
+  }
+
+  def getDateConstraint(constraintType: DateConstraintType): Option[List[DateField]] =
+    constraintType match {
+      case DateConstraints(x) => Some(x.map(a => getDateField(a)))
+      case _                  => None
+    }
+
+  def getDateField(dateConstraint: DateConstraint): DateField =
+    dateConstraint match { case DateConstraint(_, dateConstraintInfo: DateField, _) => dateConstraintInfo }
 
 }
