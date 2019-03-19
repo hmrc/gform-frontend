@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner, AuthConfig}
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
+@import uk.gov.hmrc.play.views.html.layouts
 
 @(title: String,
   serviceName: String,
@@ -31,8 +32,6 @@
   authConfig: Option[AuthConfig]
 )(mainContent: Html)(implicit request : Request[_], messagesApi: Messages)
 
-@import uk.gov.hmrc.play.views.html.layouts
-
 @webchatEnabled = @{true}
 @serviceInfoContent = {}
 
@@ -46,10 +45,26 @@
 @headTitle = @{
     (if (containsErrors) "Error: " else "") + title + " - " + serviceName + " - GOV.UK"
 }
-@sidebar = {
-    @if(sidebarLinks.isDefined) {
-        @layouts.sidebar(sidebarLinks.get, Some("sidebar"))
-    }
+@webchatSidebar = {
+  @if(webchatEnabled) {
+    <nav class="govuk-related-items" style="border-top: 5px solid #005ea5;">
+      <h2 class="heading-medium" id="subsection-title">
+        Webchat service
+      </h2>
+      <ul class="section__ul--link-list sidebar__list">
+        <li class="sidebar__list-item">
+          <a href="#chat" onclick="openChat();
+          return false">
+            Chat online with an advisor
+          </a>
+        </li>
+      </ul>
+    </nav>
+  } else { @None }
+}
+
+@sidebar = @{
+    layouts.sidebar(webchatSidebar, Some("sidebar"))
 }
 
 @govuk_wrapper(

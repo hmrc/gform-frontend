@@ -39,8 +39,6 @@
   navLinks: Option[Html] = None
 )(implicit messages: Messages)
 
-@webchatEnabled = @{true}
-
 @scriptElement = {
   @scriptElem
     <script src='@routes.Assets.versioned("javascripts/gformGAEvents.js")'></script>
@@ -165,28 +163,6 @@
 }
 
 @getHelpForm = @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
-@sidebarLinks = {
-  @if(webchatEnabled) {
-    <nav class="govuk-related-items" style="border-top: 5px solid #005ea5;">
-      <h2 class="heading-medium" id="subsection-title">
-        Webchat service
-      </h2>
-      <ul class="section__ul--link-list sidebar__list">
-        <li class="sidebar__list-item">
-          <a href="#chat" onclick="openChat(); return false">
-            Chat online with an advisor
-          </a>
-        </li>
-      </ul>
-    </nav>
-  }
-}
-
-@sidebar = {
-  @if(webchatEnabled) {
-    @layouts.sidebar(sidebarLinks, Some("sidebar"))
-  }
-}
 
 @content = {
     @uiLayouts.main_content(
