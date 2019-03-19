@@ -84,9 +84,26 @@ class ObligationService(gformConnector: GformConnector) {
     for {
       idNumbers <- hmrcTaxPeriodIdentifiers.nonEmptyTraverse(i =>
                     withEvaluatedIdB(formTemplate, authService, retrievals, form, i))
-      taxResponses <- gformConnector.getAllTaxPeriods(idNumbers.filter(i => i.idNumberValue.value != ""))
-      obligations = updatedObligations(idNumbers, taxResponses)
+      filteredIdNumbers <- Future(idNumbers.filter(i => i.idNumberValue.value != ""))
+      obligations       <- checkIfIdNumbersExist(filteredIdNumbers, idNumbers, form)
     } yield form.copy(obligations = RetrievedObligations(obligations))
+
+  def checkIfIdNumbersExist(
+    filteredIdNumbers: List[HmrcTaxPeriodWithEvaluatedId],
+    idNumbers: NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
+    form: Form)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[TaxPeriodInformation]] =
+    filteredIdNumbers match {
+      case x :: xs => {
+        for {
+          taxResponses <- gformConnector.getAllTaxPeriods(NonEmptyList(x, xs))
+        } yield updatedObligations(idNumbers, taxResponses)
+      }
+      case _ =>
+        form.obligations match {
+          case RetrievedObligations(listOfObligations) => Future(listOfObligations)
+          case _                                       => Future(List[TaxPeriodInformation]())
+        }
+    }
 
   private def shouldUpdate(anyRetrievedObligations: Obligations, currentIdNumbers: List[String]): Boolean =
     anyRetrievedObligations match {
