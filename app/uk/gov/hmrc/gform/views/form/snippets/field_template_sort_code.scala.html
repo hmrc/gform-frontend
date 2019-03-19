@@ -46,7 +46,7 @@
 
     @inline_error_map(fieldValue, validationResult)
     
-    @UkSortCode.fields(fieldValue.id).zipWithIndex.map{ case (fieldId, index) =>
+    @UkSortCode.fields(fieldValue.id).toList.zipWithIndex.map{ case (fieldId, index) =>
       @defining(index + 1){ fieldNumber =>
         <div class="form-date">
             <div class="form-group push">
