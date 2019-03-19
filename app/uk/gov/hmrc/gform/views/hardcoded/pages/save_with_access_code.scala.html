@@ -28,7 +28,7 @@
         formTemplate: FormTemplate,
         lang: Option[String],
         frontendAppConfig: FrontendAppConfig
-)(implicit messages: Messages)
+)(implicit request: Request[_], messages: Messages)
 
 @formCat = @{formCategory(formTemplate)}
 @heading = @{localisation(s"Your $formCat has been saved")}

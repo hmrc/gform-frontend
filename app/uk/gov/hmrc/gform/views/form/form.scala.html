@@ -33,7 +33,7 @@
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
-        request: RequestHeader, //required by CSRF.formField
+        request: Request[_], //required by CSRF.formField
         messages: Messages
 )
 

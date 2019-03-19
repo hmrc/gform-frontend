@@ -30,7 +30,7 @@
     call: Call,
     lang: Option[String],
     frontendAppConfig: FrontendAppConfig
-)(implicit messages: Messages)
+)(implicit request: Request[_], messages: Messages)
 
 @formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
 @heading = @{"Your " + formCategory(formTemplate) + " has been saved"}

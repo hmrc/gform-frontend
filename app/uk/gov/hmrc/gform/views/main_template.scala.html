@@ -29,12 +29,19 @@
   scriptElem: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig,
   authConfig: Option[AuthConfig]
-)(mainContent: Html)(implicit messagesApi: Messages)
+)(mainContent: Html)(implicit request : Request[_], messagesApi: Messages)
 
 @import uk.gov.hmrc.play.views.html.layouts
 
-
+@webchatEnabled = @{true}
 @serviceInfoContent = {}
+
+@mainScripts = {
+  @scriptElem
+  @if(webchatEnabled) {
+    @uk.gov.hmrc.csp.WebchatClient.webchatClickToChatScriptPartial("1001", "hmrc7")
+  }
+}
 
 @headTitle = @{
     (if (containsErrors) "Error: " else "") + title + " - " + serviceName + " - GOV.UK"
@@ -57,6 +64,6 @@
   contentHeader = contentHeader,
   mainContent = layouts.article(mainContent),
   serviceInfoContent = serviceInfoContent,
-  scriptElem = scriptElem,
+  scriptElem = Some(mainScripts),
   authConfig = authConfig
 )
