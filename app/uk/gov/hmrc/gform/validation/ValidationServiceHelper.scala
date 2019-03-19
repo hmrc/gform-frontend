@@ -123,22 +123,17 @@ object ValidationServiceHelper {
 
   }
 
+  import cats.syntax.eq._
+  import shapeless.syntax.typeable._
   def getCompanionFieldComponent(
-    formComponent: FormComponent,
-    formComponentList: List[FormComponent]): Option[FormComponent] = formComponent.`type` match {
-    case IsDate(x) =>
-      val getDateResult = getDateConstraint(x.constraintType).fold(None)(_);
-      formComponentList.filterNot(formComponent => formComponent.id == getDateResult).headOption
-    case _ => None
+    formComponent: Date,
+    formComponentList: List[FormComponent]): Option[FormComponent] = {
+    (for {
+        dateConstraints <- formComponent.constraintType.cast[DateConstraints]
+        dateConstraint  <- dateConstraints.constraints
+        dateField       <- dateConstraint.dateFormat.cast[DateField]
+        formComponent   <- formComponentList
+        if formComponent.id === dateField.value
+      } yield formComponent).headOption
   }
-
-  def getDateConstraint(constraintType: DateConstraintType): Option[List[DateField]] =
-    constraintType match {
-      case DateConstraints(x) => Some(x.map(a => getDateField(a)))
-      case _                  => None
-    }
-
-  def getDateField(dateConstraint: DateConstraint): DateField =
-    dateConstraint match { case DateConstraint(_, dateConstraintInfo: DateField, _) => dateConstraintInfo }
-
 }
