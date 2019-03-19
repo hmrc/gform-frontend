@@ -125,15 +125,12 @@ object ValidationServiceHelper {
 
   import cats.syntax.eq._
   import shapeless.syntax.typeable._
-  def getCompanionFieldComponent(
-    formComponent: Date,
-    formComponentList: List[FormComponent]): Option[FormComponent] = {
+  def getCompanionFieldComponent(formComponent: Date, formComponentList: List[FormComponent]): Option[FormComponent] =
     (for {
-        dateConstraints <- formComponent.constraintType.cast[DateConstraints]
-        dateConstraint  <- dateConstraints.constraints
-        dateField       <- dateConstraint.dateFormat.cast[DateField]
-        formComponent   <- formComponentList
-        if formComponent.id === dateField.value
-      } yield formComponent).headOption
-  }
+      dateConstraints <- formComponent.constraintType.cast[DateConstraints].toSeq
+      dateConstraint  <- dateConstraints.constraints
+      dateField       <- dateConstraint.dateFormat.cast[DateField].toSeq
+      formComponent   <- formComponentList
+      if formComponent.id === dateField.value
+    } yield formComponent).headOption
 }
