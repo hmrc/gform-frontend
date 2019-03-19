@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
 @import uk.gov.hmrc.play.views.html.layouts
 
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @(title: String,
   serviceName: String,
   containsErrors: Boolean = false,
@@ -29,16 +30,30 @@
   mainClass: Option[String] = None,
   scriptElem: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig,
-  authConfig: Option[AuthConfig]
+  authConfig: Option[AuthConfig],
+  webChat: Option[WebChat] = None
 )(mainContent: Html)(implicit request : Request[_], messagesApi: Messages)
 
-@webchatEnabled = @{true}
 @serviceInfoContent = {}
+
+@webChatRoomId = @{
+  webChat match {
+    case Some(x) => x.chatRoomId.value
+    case None => ""
+  }
+}
+
+@webChatTemplateName = @{
+  webChat match {
+    case Some(x) => x.templateName.get.value
+    case None => ""
+  }
+}
 
 @mainScripts = {
   @scriptElem
-  @if(webchatEnabled) {
-    @uk.gov.hmrc.csp.WebchatClient.webchatClickToChatScriptPartial("1001", "hmrc7")
+  @if(webChat.nonEmpty) {
+    @uk.gov.hmrc.csp.WebchatClient.webchatClickToChatScriptPartial(webChatRoomId, webChatTemplateName)
   }
 }
 
@@ -46,7 +61,7 @@
     (if (containsErrors) "Error: " else "") + title + " - " + serviceName + " - GOV.UK"
 }
 @webchatSidebar = {
-  @if(webchatEnabled) {
+  @if(webChat.nonEmpty) {
     <nav class="govuk-related-items" style="border-top: 5px solid #005ea5;">
       <h2 class="heading-medium" id="subsection-title">
         Webchat service
