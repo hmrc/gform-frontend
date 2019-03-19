@@ -222,8 +222,15 @@ class ComponentsValidator(
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
 
-  private def messagePrefix(fieldValue: FormComponent, otherFormComponent: Option[FormComponent]) =
-    localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+  private def messagePrefix(
+    fieldValue: FormComponent,
+    workedOnId: FormComponentId,
+    otherFormComponent: Option[FormComponent]) =
+    otherFormComponent match {
+      case Some(x) if x.id === workedOnId => localisation(x.shortName.getOrElse(x.label))
+      case Some(x)                        => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+      case None                           => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    }
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
     data: FormDataRecalculated): ValidatedType[Unit] =
@@ -790,9 +797,9 @@ class ComponentsValidator(
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val dayLabel = messagePrefix(formComponent, otherFormComponent) + " " + localisation("day")
-    val monthLabel = messagePrefix(formComponent, otherFormComponent) + " " + localisation("month")
-    val yearLabel = messagePrefix(formComponent, otherFormComponent) + " " + localisation("year")
+    val dayLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("day")
+    val monthLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("month")
+    val yearLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("year")
 
     val d = isNumeric(day, dayLabel)
       .andThen(y => isWithinBounds(y, 31, dayLabel))
@@ -836,7 +843,9 @@ class ComponentsValidator(
 
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
     Set(
-      localisation(fieldValue.errorMessage.getOrElse(messagePrefix(fieldValue, None) + " " + localisation(defaultErr))))
+      localisation(
+        fieldValue.errorMessage.getOrElse(
+          messagePrefix(fieldValue, fieldValue.id, None) + " " + localisation(defaultErr))))
 
   private def getError(fieldValue: FormComponent, defaultMessage: String) =
     Map(fieldValue.id -> errors(fieldValue, localisation(defaultMessage))).invalid
