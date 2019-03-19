@@ -94,14 +94,12 @@ class ObligationService(gformConnector: GformConnector) {
     form: Form)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[List[TaxPeriodInformation]] =
     filteredIdNumbers match {
       case x :: xs => {
-        for {
-          taxResponses <- gformConnector.getAllTaxPeriods(NonEmptyList(x, xs))
-        } yield updatedObligations(idNumbers, taxResponses)
+        gformConnector.getAllTaxPeriods(NonEmptyList(x, xs)).map(i => updatedObligations(idNumbers, i))
       }
       case _ =>
         form.obligations match {
-          case RetrievedObligations(listOfObligations) => Future(listOfObligations)
-          case _                                       => Future(List[TaxPeriodInformation]())
+          case RetrievedObligations(listOfObligations) => Future.successful(listOfObligations)
+          case _                                       => Future.successful(List[TaxPeriodInformation]())
         }
     }
 
