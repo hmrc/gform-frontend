@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.validation
 import java.text.DateFormatSymbols
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import cats.syntax.eq._
+import shapeless.syntax.typeable._
 
 import com.fasterxml.jackson.databind.deser.std.DateDeserializers.DateDeserializer
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -123,8 +125,6 @@ object ValidationServiceHelper {
 
   }
 
-  import cats.syntax.eq._
-  import shapeless.syntax.typeable._
   def getCompanionFieldComponent(formComponent: Date, formComponentList: List[FormComponent]): Option[FormComponent] =
     (for {
       dateConstraints <- formComponent.constraintType.cast[DateConstraints].toSeq
