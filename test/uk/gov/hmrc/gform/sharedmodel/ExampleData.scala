@@ -362,7 +362,7 @@ trait ExampleFormTemplate {
 
   def submitErrorUrl = """http://imsorry.com"""
 
-  def webChat = Some(WebChat(ChatRoomId("test"), Some(TemplateName("hmrc7"))))
+  def webChat = Some(WebChat(ChatRoomId("test"), TemplateName("hmrc7")))
 
   def acknowledgementSection =
     AcknowledgementSection(
