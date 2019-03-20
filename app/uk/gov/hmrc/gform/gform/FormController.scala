@@ -577,7 +577,6 @@ class FormController(
 
         handleGroup(processData.copy(data = updatedData), "")
       }
-      println(cache.formTemplate.webChat + "       dddddddd   " + cache.formTemplate.emailParameters)
       for {
         processData <- processDataService.getProcessData(dataRaw, cache)
         nav = new Navigator(sectionNumber, processData.sections, processData.data).navigate
