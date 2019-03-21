@@ -30,12 +30,26 @@
         shouldDisplayBack: Boolean,
         shouldDisplayHeading: Boolean,
         shouldDisplayContinue: Boolean,
-        frontendAppConfig: FrontendAppConfig
+        frontendAppConfig: FrontendAppConfig,
+        isDeclaration: Boolean = false,
+        lang: Option[String]
 )(
         implicit
         request: Request[_], //required by CSRF.formField
         messages: Messages
 )
+
+@declarationBackLink = {
+    @if(isDeclaration) {
+<a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode,None)" class="link-back" >Back</a>
+}
+}
+
+@backLink = {
+@if(shouldDisplayBack){
+<a href="#" class="link-back js-visible" id="backButton">Back</a>
+}
+}
 
 @heading = @{localisation(page.sectionTitle)}
 
@@ -51,9 +65,10 @@
     @if(page.progressIndicator.isDefined){
     <span id ="progress-indicator" class="form-hint">@localisation(page.progressIndicator.get)</span>
     }
-    @if(shouldDisplayBack){
-        <a href="#" class="link-back js-visible" id="backButton">Back</a>
-    }
+
+    @declarationBackLink
+
+    @backLink
 
     @pageLevelError.render
 
