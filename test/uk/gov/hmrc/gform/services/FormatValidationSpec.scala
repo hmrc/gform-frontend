@@ -61,7 +61,7 @@ class FormatValidationSpec extends Spec with GraphSpec {
       FormComponentId("n-3") -> Seq("12")
     )
 
-    val result = validator(fieldValue,fieldValues, data)
+    val result = validator(fieldValue, fieldValues, data)
 
     result.toEither should beRight(())
   }
@@ -99,7 +99,7 @@ class FormatValidationSpec extends Spec with GraphSpec {
       FormComponentId("n-3") -> Seq("")
     )
 
-    val result = validator(fieldValue,fieldValues, data)
+    val result = validator(fieldValue, fieldValues, data)
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label values must be two digit numbers")))
   }
@@ -296,14 +296,19 @@ class FormatValidationSpec extends Spec with GraphSpec {
     validator(fieldValueFunction(contraint), getFormComponentList(contraint), getData(data)).toEither should beRight(())
 
   private def createFailTest(data: String, constrait: TextConstraint, errorMessage: String) =
-    validator(fieldValueFunction(constrait), getFormComponentList(constrait), getData(data)).toEither should beLeft(Map(default -> Set(errorMessage)))
+    validator(fieldValueFunction(constrait), getFormComponentList(constrait), getData(data)).toEither should beLeft(
+      Map(default -> Set(errorMessage)))
 
   private val getData: String => Map[FormComponentId, Seq[String]] = str => Map(default -> Seq(str))
-  private val getFormComponentList: TextConstraint=> List[FormComponent] = contraint => List(fieldValue(Text(contraint, Value)))
+  private val getFormComponentList: TextConstraint => List[FormComponent] = contraint =>
+    List(fieldValue(Text(contraint, Value)))
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   implicit lazy val hc = HeaderCarrier()
 
-  private def validator(fieldValue: FormComponent,fieldValues: List[FormComponent], data: Map[FormComponentId, Seq[String]]) =
+  private def validator(
+    fieldValue: FormComponent,
+    fieldValues: List[FormComponent],
+    data: Map[FormComponentId, Seq[String]]) =
     new ComponentsValidator(
       mkFormDataRecalculated(data),
       mock[FileUploadService],
@@ -312,7 +317,7 @@ class FormatValidationSpec extends Spec with GraphSpec {
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue,fieldValues)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
   private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Value))

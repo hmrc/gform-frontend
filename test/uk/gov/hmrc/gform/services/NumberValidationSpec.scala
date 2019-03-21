@@ -104,7 +104,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
     forAll(numbers) { number =>
       new Test {
         override val value = number
-        validate(`fieldValue - number`,List(`fieldValue - number`), rawDataFromBrowser).futureValue shouldBe ().valid
+        validate(`fieldValue - number`, List(`fieldValue - number`), rawDataFromBrowser).futureValue shouldBe ().valid
       }
     }
   }
@@ -135,7 +135,7 @@ class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with Grap
       new Test {
         override val value = number
         val expectedError = Map(`fieldValue - number`.id -> Set("sample label must be a number")).invalid[Unit]
-        validate(`fieldValue - number`, List(`fieldValue - number`),rawDataFromBrowser).futureValue shouldBe expectedError
+        validate(`fieldValue - number`, List(`fieldValue - number`), rawDataFromBrowser).futureValue shouldBe expectedError
       }
     }
   }

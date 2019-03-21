@@ -79,7 +79,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedDate,speccedDateList).futureValue
+      ExampleData.formTemplate).validate(speccedDate, speccedDateList).futureValue
 
     result.value shouldBe (())
   }
@@ -233,7 +233,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue,fieldValues)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -326,7 +326,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate)
-      .validate(fieldValue,fieldValues)
+      .validate(fieldValue, fieldValues)
       .futureValue
 
     result.value shouldBe (())
@@ -652,7 +652,7 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue,fieldValues).futureValue
+      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("sample label is missing")))
   }

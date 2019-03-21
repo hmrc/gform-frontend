@@ -40,7 +40,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
   val baseAddress = Address(international = false)
   val baseListItem =
     FormComponent(FormComponentId("x"), baseAddress, "l", None, None, None, true, true, false, true, false, None)
-  val tempList : List[FormComponent] = List(baseListItem,baseListItem)
+  val tempList: List[FormComponent] = List(baseListItem, baseListItem)
 
   implicit lazy val hc = HeaderCarrier()
 
@@ -50,7 +50,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
     val speccedAddress =
       FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
 
-    val tempList : List[FormComponent] = List(speccedAddress,speccedAddress)
+    val tempList: List[FormComponent] = List(speccedAddress, speccedAddress)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -68,7 +68,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.value should be(())
   }
@@ -120,7 +120,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode is longer than 8 characters")))
@@ -145,7 +145,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("street1") -> Set("l line 1 must be entered")))
   }
@@ -169,7 +169,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered")))
   }
@@ -194,7 +194,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.value should be(())
   }
@@ -218,7 +218,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("l Country must be entered")))
   }
@@ -244,7 +244,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l must not be entered")))
   }
@@ -269,7 +269,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -298,7 +298,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -339,7 +339,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -372,7 +372,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beRight(())
   }
@@ -397,7 +397,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beRight(())
   }
@@ -425,7 +425,7 @@ class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers w
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress,tempList).futureValue
+      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(
