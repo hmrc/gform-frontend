@@ -201,7 +201,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       shouldDisplayBack = sectionNumber > originSection,
       shouldDisplayHeading = formLevelHeading,
       shouldDisplayContinue = !section.continueIf.contains(Stop),
-      frontendAppConfig
+      frontendAppConfig,
+      isDeclaration = false,
+      lang
     )
 
   }
@@ -315,7 +317,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       shouldDisplayBack = false,
       shouldDisplayHeading = true,
       shouldDisplayContinue = true,
-      frontendAppConfig
+      frontendAppConfig,
+      isDeclaration = true,
+      lang
     )
   }
 
@@ -425,7 +429,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       0,
       Nil
     )
-    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig)
+    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig, false, lang)
   }
 
   private def createJavascript(
