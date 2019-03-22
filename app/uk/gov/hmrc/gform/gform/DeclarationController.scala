@@ -30,6 +30,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, Recalculation }
+import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -143,7 +144,7 @@ class DeclarationController(
               cache = cacheOrig.copy(form = form)
 
               valRes <- validationService.validateComponents(
-                         getAllDeclarationFields(cache.formTemplate.declarationSection.fields),
+                         Fields.flattenGroups(cache.formTemplate.declarationSection.fields),
                          declarationData,
                          cache.form.envelopeId,
                          cache.retrievals,
@@ -242,7 +243,7 @@ class DeclarationController(
 
   private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: FormDataRecalculated) = {
     val fieldNames = data.data.keySet.map(_.value)
-    val allDeclarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
+    val allDeclarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
     val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
@@ -257,16 +258,8 @@ class DeclarationController(
     validationResult: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
-    val declarationFields = getAllDeclarationFields(formTemplate.declarationSection.fields)
+    val declarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
     validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))
   }
-
-  private def getAllDeclarationFields(fields: List[FormComponent]): List[FormComponent] =
-    fields.flatMap { fieldValue =>
-      fieldValue.`type` match {
-        case grp: Group => getAllDeclarationFields(grp.fields)
-        case _          => List(fieldValue)
-      }
-    }
 
 }
