@@ -507,7 +507,6 @@ class FormController(
 
         handleGroup(processData.copy(data = updatedData), "")
       }
-
       for {
         processData <- processDataService.getProcessData(dataRaw, cache)
         nav = new Navigator(sectionNumber, processData.sections, processData.data).navigate
