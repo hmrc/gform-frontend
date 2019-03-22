@@ -192,7 +192,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       section.continueLabel.getOrElse(retrievals.continueLabel),
       formMaxAttachmentSizeMB,
       contentTypes,
-      section.progressIndicator
+      section.progressIndicator,
+      lang
     )
     html.form.form(
       formTemplate,
@@ -202,8 +203,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       shouldDisplayHeading = formLevelHeading,
       shouldDisplayContinue = !section.continueIf.contains(Stop),
       frontendAppConfig,
-      isDeclaration = false,
-      lang
+      isDeclaration = false
     )
 
   }
@@ -308,7 +308,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       false,
       confirm,
       0,
-      Nil
+      Nil,
+      lang
     )
     html.form.form(
       formTemplate,
@@ -318,8 +319,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       shouldDisplayHeading = true,
       shouldDisplayContinue = true,
       frontendAppConfig,
-      isDeclaration = true,
-      lang
+      isDeclaration = true
     )
   }
 
@@ -377,7 +377,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
         false,
         "Confirm and send",
         0,
-        Nil
+        Nil,
+        lang
       )
     } yield
       uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
@@ -427,9 +428,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       false,
       "Confirm and send",
       0,
-      Nil
+      Nil,
+      lang
     )
-    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig, false, lang)
+    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig, false)
   }
 
   private def createJavascript(
