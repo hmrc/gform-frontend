@@ -31,8 +31,7 @@
         shouldDisplayHeading: Boolean,
         shouldDisplayContinue: Boolean,
         frontendAppConfig: FrontendAppConfig,
-        isDeclaration: Boolean = false,
-        lang: Option[String]
+        isDeclaration: Boolean = false
 )(
         implicit
         request: Request[_], //required by CSRF.formField
@@ -41,7 +40,7 @@
 
 @declarationBackLink = {
     @if(isDeclaration) {
-<a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode,None)" class="link-back" >Back</a>
+<a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back" >Back</a>
 }
 }
 
