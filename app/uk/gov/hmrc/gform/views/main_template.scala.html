@@ -45,7 +45,7 @@
 
 @webChatTemplateName = @{
   webChat match {
-    case Some(x) => x.templateName.get.value
+    case Some(x) => x.templateName.value
     case None => ""
   }
 }
