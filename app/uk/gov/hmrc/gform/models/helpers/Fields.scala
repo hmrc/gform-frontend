@@ -178,4 +178,12 @@ object Fields {
 
     (submitted ++ alwaysEmptyHiddenGroup ++ alwaysEmptyHidden ++ hiddenFUs, data.copy(data = dataUpd))
   }
+
+  def flattenGroups(fields: List[FormComponent]): List[FormComponent] =
+    fields.flatMap { fieldValue =>
+      fieldValue.`type` match {
+        case grp: Group => flattenGroups(grp.fields)
+        case _          => List(fieldValue)
+      }
+    }
 }
