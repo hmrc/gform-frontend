@@ -22,6 +22,7 @@ import org.jsoup.Jsoup
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
+import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
@@ -37,6 +38,7 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.submission.SubmissionRef
+import uk.gov.hmrc.gform.views.html.summary.snippets._
 
 import scala.concurrent.Future
 
@@ -119,47 +121,16 @@ class AcknowledgementController(
     val formattedTime =
       s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
 
-    val referenceNumber = (authConfig, submissionReference) match {
-      case (_, Some(textExpression)) =>
-        authService.evaluateSubmissionReference(textExpression, retrievals, formTemplate, data, envelopeId)
-      case (EeittModule(_), None) => Future.successful(authService.eeitReferenceNumber(retrievals))
-      case (_, None)              => Future.successful(retrievals.getTaxIdValue(HMRCOBTDSORG()))
-    }
+    val rows = List(
+      cya_row("Submission date", formattedTime),
+      cya_row("Submission reference", SubmissionRef(envelopeId).toString),
+      cya_row("Submission mark", hashedValue)
+    )
+    val extraData = cya_section("Submission details", HtmlFormat.fill(rows)).toString()
 
-    referenceNumber.map { ref =>
-      // TODO: Add Submission mark when it's implemented for the submission auditing event
-      val extraData =
-        s"""
-           |<h2 class="h2-heading">Submission details</h2>
-           |<dl class="govuk-check-your-answers cya-questions-long">
-           |  <div>
-           |    <dt class="cya-question">
-           |      Submission date
-           |    </dt>
-           |    <dd class="cya-answer">$formattedTime</dd>
-           |    <dd></dd>
-           |  </div>
-           |  <div>
-           |    <dt class="cya-question">
-           |      Submission reference
-           |    </dt>
-           |    <dd class="cya-answer">${SubmissionRef(envelopeId).toString}</dd>
-           |    <dd></dd>
-           |  </div>
-           |  <div>
-           |    <dt class="cya-question">
-           |      Submission mark
-           |    </dt>
-           |    <dd class="cya-answer">$hashedValue</dd>
-           |    <dd></dd>
-           |  </div>
-           |</dl>
-      """.stripMargin
-
-      val doc = Jsoup.parse(html)
-      doc.select("article[class*=content__body]").append(extraData)
-      doc.html.replace("£", "&pound;")
-    }
+    val doc = Jsoup.parse(html)
+    doc.select("article[class*=content__body]").append(extraData)
+    Future(doc.html.replace("£", "&pound;"))
   }
 
   def exitSurvey(

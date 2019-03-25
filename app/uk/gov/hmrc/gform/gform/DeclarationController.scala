@@ -23,6 +23,7 @@ import org.jsoup.Jsoup
 import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Request, Result }
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -44,6 +45,7 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationServi
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.submission.SubmissionRef
+import uk.gov.hmrc.gform.views.html.summary.snippets._
 
 import scala.concurrent.Future
 
@@ -95,22 +97,10 @@ class DeclarationController(
     data: FormDataRecalculated,
     envelopeId: EnvelopeId
   )(implicit hc: HeaderCarrier): String = {
-    val extraData =
-      s"""
-         |<h2 class="h2-heading">Submission details</h2>
-         |<dl class="govuk-check-your-answers cya-questions-long">
-         |  <div>
-         |    <dt class="cya-question">
-         |      Submission reference
-         |    </dt>
-         |    <dd class="cya-answer">${SubmissionRef(envelopeId).toString}</dd>
-         |    <dd></dd>
-         |  </div>
-         |</dl>
-      """.stripMargin
-
+    val rows = cya_row("Submission reference", SubmissionRef(envelopeId).toString)
+    val extraData = cya_section("Submission details", rows).toString()
     val doc = Jsoup.parse(html)
-    doc.select("article[class*=content__body]").append(extraData)
+    doc.select("article[class*=content__body]").append(extraData.toString)
     doc.html
   }
 

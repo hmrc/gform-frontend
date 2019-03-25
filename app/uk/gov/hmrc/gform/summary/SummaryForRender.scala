@@ -198,14 +198,8 @@ object SummaryRenderingService {
         .flatMap {
           case (section, index) =>
             val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title)
-            val begin = begin_section(
-              formTemplate._id,
-              maybeAccessCode,
-              section.shortName.getOrElse(section.title),
-              SectionNumber(index),
-              sectionTitle4Ga,
-              lang)
-            val end = end_section(formTemplate._id, maybeAccessCode, section.title, index)
+            val begin = begin_section(section.shortName.getOrElse(section.title))
+            val end = end_section()
 
             val middle =
               section.fields
