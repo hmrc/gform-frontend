@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package validation
+package uk.gov.hmrc.gform.validation
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
