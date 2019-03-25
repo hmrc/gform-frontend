@@ -315,7 +315,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       formTemplate,
       pageLevelErrorHtml,
       renderingInfo,
-      shouldDisplayBack = false,
+      shouldDisplayBack = true,
       shouldDisplayHeading = true,
       shouldDisplayContinue = true,
       frontendAppConfig,

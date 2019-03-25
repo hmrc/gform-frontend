@@ -38,18 +38,6 @@
         messages: Messages
 )
 
-@declarationBackLink = {
-    @if(isDeclaration) {
-<a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back" >Back</a>
-}
-}
-
-@backLink = {
-@if(shouldDisplayBack){
-<a href="#" class="link-back js-visible" id="backButton">Back</a>
-}
-}
-
 @heading = @{localisation(page.sectionTitle)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -64,9 +52,13 @@
     <span id ="progress-indicator" class="form-hint">@localisation(page.progressIndicator.get)</span>
     }
 
-    @declarationBackLink
-
-    @backLink
+    @if(shouldDisplayBack && isDeclaration) {
+        <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back" >Back</a>
+} else {
+    @if(shouldDisplayBack) {
+        <a href="#" class="link-back js-visible" id="backButton">Back</a>
+    }
+}
 
     @pageLevelError.render
 
