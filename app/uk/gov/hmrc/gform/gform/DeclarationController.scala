@@ -99,8 +99,16 @@ class DeclarationController(
   )(implicit hc: HeaderCarrier): String = {
     val rows = cya_row("Submission reference", SubmissionRef(envelopeId).toString)
     val extraData = cya_section("Submission details", rows).toString()
+    val declaration: List[(FormComponent, Seq[String])] = for {
+      formTemplateDecFields <- formTemplate.declarationSection.fields
+      formData              <- data.data.get(formTemplateDecFields.id)
+    } yield (formTemplateDecFields, formData)
+    val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
+      case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
+    })).toString()
     val doc = Jsoup.parse(html)
-    doc.select("article[class*=content__body]").append(extraData.toString)
+    doc.select("article[class*=content__body]").append(extraData)
+    doc.select("article[class*=content__body]").append(declarationExtraData)
     doc.html
   }
 
