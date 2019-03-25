@@ -192,8 +192,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       section.continueLabel.getOrElse(retrievals.continueLabel),
       formMaxAttachmentSizeMB,
       contentTypes,
-      section.progressIndicator,
-      lang
+      lang,
+      section.progressIndicator
     )
     html.form.form(
       formTemplate,
