@@ -62,7 +62,7 @@ class AcknowledgementController(
     lang: Option[String],
     eventId: String
   ) =
-    auth.asyncWithoutObligations(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
         case Submitted =>
           renderer

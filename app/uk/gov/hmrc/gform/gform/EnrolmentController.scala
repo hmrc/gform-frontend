@@ -16,39 +16,32 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.{ Applicative, Monad, Traverse }
-import cats.data.{ EitherT, Kleisli, NonEmptyList, ReaderT }
 import cats.data.Validated.{ Invalid, Valid }
+import cats.data.{ EitherT, Kleisli, NonEmptyList, ReaderT }
 import cats.instances.future._
 import cats.instances.list._
-import cats.instances.string._
-import cats.syntax.eq._
+import cats.mtl.implicits._
+import cats.mtl.{ ApplicativeAsk, FunctorRaise }
 import cats.syntax.applicative._
-import cats.syntax.functor._
 import cats.syntax.flatMap._
+import cats.syntax.functor._
 import cats.syntax.traverse._
 import cats.syntax.validated._
-import cats.mtl.{ ApplicativeAsk, FunctorRaise }
-import cats.mtl.implicits._
-
+import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ AnyContent, Request, Result, Results }
-import play.twirl.api.Html
-import uk.gov.hmrc.gform.auth.models._
+import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auth._
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
-import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.TaxPeriods
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
+import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
-import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 

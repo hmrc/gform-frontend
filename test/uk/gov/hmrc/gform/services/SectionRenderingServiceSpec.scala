@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.services
 
-import cats.data.Validated.Valid
 import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -26,11 +25,10 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
-import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.form.ValidationResult
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked, TaxPeriods }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
+import uk.gov.hmrc.gform.graph.{ Data, RecData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked }
 
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
@@ -477,5 +475,6 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
 
   private def toList(elements: Elements) = JavaConverters.asScalaIteratorConverter(elements.iterator).asScala.toList
 
-  private def mkFormDataRecalculated(data: Data): FormDataRecalculated = FormDataRecalculated.empty.copy(data = data)
+  private def mkFormDataRecalculated(data: Data): FormDataRecalculated =
+    FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
 }

@@ -25,6 +25,7 @@ import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
@@ -429,7 +430,8 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
   )
 
   def rawDataFromBrowser: Map[FormComponentId, Seq[String]] = data.mapValues(x => Seq(x.value))
-  def formDataRecalculated: FormDataRecalculated = FormDataRecalculated.empty.copy(data = rawDataFromBrowser)
+  def formDataRecalculated: FormDataRecalculated =
+    FormDataRecalculated.empty.copy(recData = RecData.fromData(rawDataFromBrowser))
 }
 
 trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
@@ -468,8 +470,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     InProgress,
     VisitIndex.empty,
     ThirdPartyData.empty,
-    envelopeExpiryDate,
-    NotChecked
+    envelopeExpiryDate
   )
 
 }

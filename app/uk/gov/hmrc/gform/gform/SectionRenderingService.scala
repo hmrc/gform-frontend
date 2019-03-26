@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.time.ZoneId
+import java.time.{ LocalDate, ZoneId }
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
-import cats.implicits._
+import cats.syntax.eq._
+import cats.syntax.validated._
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
@@ -41,7 +42,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
 import uk.gov.hmrc.gform.models.helpers.Javascript._
 import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
 import uk.gov.hmrc.gform.sharedmodel._
@@ -75,7 +76,7 @@ case object NoErrors extends HasErrors
 case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
-case class OptionParams(value: String, fromDate: java.util.Date, toDate: java.util.Date, selected: Boolean)
+case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
 class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
   implicit ec: ExecutionContext
 ) {
@@ -487,15 +488,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
         htmlForFileUpload(fieldValue, formTemplateId, index, ei, data, ei.retrievals, maybeValidated, lang)
       case InformationMessage(infoType, infoText) =>
         htmlForInformationMessage(fieldValue, infoType, infoText, index, ei)
-      case HmrcTaxPeriod(idType, idNumber, regimeType) =>
-        htmlForHmrcTaxPeriod(
-          fieldValue,
-          index,
-          ei,
-          maybeValidated,
-          data,
-          obligations,
-          HmrcTaxPeriod(idType, idNumber, regimeType))
+      case htp @ HmrcTaxPeriod(idType, idNumber, regimeType) =>
+        htmlForHmrcTaxPeriod(fieldValue, index, ei, maybeValidated, data, obligations, htp)
     }
 
   private def htmlForHmrcTaxPeriod(
@@ -507,24 +501,19 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     obligations: Obligations,
     hmrcTP: HmrcTaxPeriod) = {
 
-    val taxPeriodList = obligations match {
-      case RetrievedObligations(listOfObligations) => listOfObligations
-      case _                                       => List[TaxPeriodInformation]()
+    val taxPeriodOptions: List[OptionParams] = obligations match {
+      case RetrievedObligations(listOfObligations) =>
+        listOfObligations
+          .find(_.id.recalculatedTaxPeriodKey.hmrcTaxPeriod === hmrcTP)
+          .map(_.obligation.obligations.flatMap(_.obligationDetails.map(od =>
+            OptionParams(od.periodKey, od.inboundCorrespondenceFromDate, od.inboundCorrespondenceToDate, false))))
+          .getOrElse(List.empty[OptionParams])
+      case _ => List.empty[OptionParams]
     }
 
-    val taxPeriodOptions = taxPeriodList
-      .filter(i => i.hmrcTaxPeriod.idNumber === hmrcTP.idNumber)
-      .map(i => OptionParams(i.periodKey, i.inboundCorrespondenceFromDate, i.inboundCorrespondenceToDate, false))
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val mapOfResultsOption = validatedValue match {
-      case Some(ComponentField(a, b)) => b
-      case _                          => Map[String, FormFieldValidationResult]()
-    }
-    val setValue = mapOfResultsOption.values.toList match {
-      case a :: _ if TextFormatter.formatText(Some(a)).contains("|") =>
-        TextFormatter.formatText(Some(a)).split("\\|")(0)
-      case _ => ""
-    }
+
+    val setValue = TaxPeriodHelper.formatTaxPeriodOutput(validatedValue)
 
     html.form.snippets
       .hmrc_tax_period("radio", fieldValue, taxPeriodOptions, Set[String](), validatedValue, index, true, setValue)

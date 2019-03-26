@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Eq
 import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.data.validation.ValidationError
@@ -100,23 +101,19 @@ object ChoiceType {
 }
 
 case class IdType(value: String) extends AnyVal
-case class IdNumber(value: String) extends AnyVal
-
 case class RegimeType(value: String) extends AnyVal
 
 object IdType {
   implicit val format: OFormat[IdType] = ValueClassFormat.oformat("idType", IdType.apply, _.value)
 }
-object IdNumber {
-  implicit val format: OFormat[IdNumber] = derived.oformat
-}
 object RegimeType {
   implicit val format: OFormat[RegimeType] = ValueClassFormat.oformat("regimeType", RegimeType.apply, _.value)
 }
 
-case class HmrcTaxPeriod(idType: IdType, idNumber: TextExpression, regimeType: RegimeType) extends ComponentType
+case class HmrcTaxPeriod(idType: IdType, idNumber: Expr, regimeType: RegimeType) extends ComponentType
 
 object HmrcTaxPeriod {
+  implicit val catsEq: Eq[HmrcTaxPeriod] = Eq.fromUniversalEquals
   implicit val format: OFormat[HmrcTaxPeriod] = derived.oformat
 }
 

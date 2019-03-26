@@ -25,8 +25,8 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -45,13 +45,14 @@ object SummaryRenderingService {
     envelope: Envelope,
     lang: Option[String],
     retrievals: MaterialisedRetrievals,
-    frontendAppConfig: FrontendAppConfig
+    frontendAppConfig: FrontendAppConfig,
+    obligations: Obligations
   )(
     implicit
     request: Request[_],
     messages: Messages): Html = {
     val sfr =
-      summaryForRender(validatedType, formFields, maybeAccessCode, formTemplate, envelope, lang)
+      summaryForRender(validatedType, formFields, maybeAccessCode, formTemplate, envelope, lang, obligations)
     summary(
       formTemplate,
       sfr,
@@ -70,7 +71,8 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     envelope: Envelope,
-    lang: Option[String]
+    lang: Option[String],
+    obligations: Obligations
   ): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent]): List[Html] = {
@@ -181,7 +183,12 @@ object SummaryRenderingService {
           case f @ FileUpload()         => file_upload(fieldValue, f, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
-          case HmrcTaxPeriod(_, _, _)   => hmrc_tax_period(fieldValue, validate(fieldValue), changeButton)
+          case h @ HmrcTaxPeriod(idType, _, _) =>
+            val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue))
+
+            val maybeObligation = obligations.findByPeriodKey(h, periodId)
+
+            hmrc_tax_period(fieldValue, validate(fieldValue), changeButton, maybeObligation)
         }
       }
 

@@ -25,7 +25,7 @@ import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.mkData
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, IdNumberValue, RecalculatedTaxPeriodKey }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -62,6 +62,36 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
     verify(inputData, expectedOutputData, sections)
 
+  }
+
+  it should "recalculate IdNumberValue for HmrcTaxPeriod component" in {
+
+    val inputData = mkData(
+      "a" -> "123",
+      "b" -> "eee"
+    )
+
+    val expectedOutputData = mkData(
+      "a" -> "123",
+      "b" -> "eee"
+    )
+
+    val hmrcTaxPeriod = HmrcTaxPeriod(IdType("idType"), FormCtx("a"), RegimeType("RegimeType"))
+
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", Value),
+          mkFormComponent("b", hmrcTaxPeriod)
+        )
+      )
+    )
+
+    val expectedRecData = RecData(
+      expectedOutputData,
+      Map(RecalculatedTaxPeriodKey(FormComponentId("b"), hmrcTaxPeriod) -> IdNumberValue("123")))
+
+    verifyRecData(inputData, expectedRecData, sections)
   }
 
   it should "handle group component" in {
@@ -566,6 +596,18 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         ThirdPartyData.empty,
         EnvelopeId(""))
     Right(expectedOutput) shouldBe output.map(_.data)
+  }
+
+  private def verifyRecData(input: Data, expectedRecData: RecData, sections: List[Section])(
+    implicit position: Position) = {
+    val output =
+      recalculation.recalculateFormData(
+        input,
+        mkFormTemplate(sections),
+        ExampleData.authContext,
+        ThirdPartyData.empty,
+        EnvelopeId(""))
+    Right(expectedRecData) shouldBe output.map(_.recData)
 
   }
 }

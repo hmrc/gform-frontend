@@ -25,8 +25,9 @@ import play.api.mvc.Call
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.helpers.Extractors._
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
@@ -141,7 +142,7 @@ class SummarySpec extends Spec {
 
   "Summary" should "display the summary sections" in new Test {
     val render = SummaryRenderingService
-      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, None)
+      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, None, NotChecked)
     render.size should be(9)
     extractAllTestStringValues(render) should be(List("Your details", "About you", "Business details"))
   }
@@ -151,7 +152,7 @@ class SummarySpec extends Spec {
 
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
 
     val testStringValues = extractAllHrefs(render)
 
@@ -244,7 +245,7 @@ class SummarySpec extends Spec {
     override def formTemplate = super.formTemplate.copy(sections = List(section))
 
     override val formDataRecalculated = FormDataRecalculated.empty.copy(
-      data = Map(
+      recData = RecData.fromData(Map(
         FormComponentId("Surname")              -> Seq("Test!Saxe-Coburg-Gotha!Test"),
         FormComponentId("Info")                 -> Seq("Test!Royal!Test"),
         FormComponentId("BirthDate-day")        -> Seq("19"),
@@ -256,11 +257,11 @@ class SummarySpec extends Spec {
         FormComponentId("HomeAddress-street4")  -> Seq("Test!Town!Test"),
         FormComponentId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
         FormComponentId("HomeAddress-country")  -> Seq("Test!UK!Test")
-      ))
+      )))
 
     override def fieldValues = formTemplate.sections.flatMap(_.fields)
     val render = SummaryRenderingService
-      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, None)
+      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val testStringValues = extractAllTestStringValues(render)
     testStringValues should be(
       List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
@@ -270,7 +271,7 @@ class SummarySpec extends Spec {
   it should "display the title when shortName is not present in the section" in new Test {
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toLowerCase should include("your details")
@@ -282,7 +283,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toUpperCase should include(shortName)
@@ -308,7 +309,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(shortName) shouldBe true
   }
@@ -332,7 +333,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(label) shouldBe true
   }
@@ -357,7 +358,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -382,7 +383,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -407,7 +408,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -433,7 +434,7 @@ class SummarySpec extends Spec {
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -458,7 +459,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -483,7 +484,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -497,22 +498,24 @@ class SummarySpec extends Spec {
     )
     val renderWithDataMatching = SummaryRenderingService.summaryForRender(
       f,
-      FormDataRecalculated.empty.copy(data = Map(FormComponentId("firstName") -> Seq("Pete"))),
+      FormDataRecalculated.empty.copy(recData = RecData.fromData(Map(FormComponentId("firstName") -> Seq("Pete")))),
       Some(accessCode),
       formTemplate,
       envelope,
-      None
+      None,
+      NotChecked
     )
     renderWithDataMatching.size shouldBe 3
     val renderWithDataMismatch = SummaryRenderingService.summaryForRender(
       f,
       FormDataRecalculated(
         Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
-        Map(FormComponentId("firstName") -> Seq("*Not*Pete"))),
+        RecData.fromData(Map(FormComponentId("firstName") -> Seq("*Not*Pete")))),
       Some(accessCode),
       formTemplate,
       envelope,
-      None
+      None,
+      NotChecked
     )
     renderWithDataMismatch.size shouldBe 0
   }
@@ -540,7 +543,7 @@ class SummarySpec extends Spec {
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     val render0 =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
     extractAllTestStringValues(render0) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
       sections = List(
@@ -566,7 +569,8 @@ class SummarySpec extends Spec {
         Some(accessCode),
         formTemplateWGroupWithShortname,
         envelope,
-        None)
+        None,
+        NotChecked)
     extractAllTestStringValues(render1) should be(List("group-shortname"))
   }
 
@@ -582,11 +586,12 @@ class SummarySpec extends Spec {
       f,
       FormDataRecalculated(
         Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
-        Map(FormComponentId("firstName") -> Seq("*Not*Pete"))),
+        RecData.fromData(Map(FormComponentId("firstName") -> Seq("*Not*Pete")))),
       Some(accessCode),
       formTemplate,
       envelope,
-      None
+      None,
+      NotChecked
     )
     val htmls = summaryForRender
 

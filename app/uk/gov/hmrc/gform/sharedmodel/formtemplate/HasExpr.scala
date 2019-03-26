@@ -28,6 +28,7 @@ object HasExpr {
       case Text(_, expr, _)             => Some(SingleExpr(expr))
       case TextArea(_, expr, _)         => Some(SingleExpr(expr))
       case UkSortCode(expr)             => Some(SingleExpr(expr))
+      case HmrcTaxPeriod(_, expr, _)    => Some(SingleExpr(expr))
       case Group(fields, _, _, _, _, _) => Some(MultipleExpr(fields))
       case _                            => None
     }

@@ -21,6 +21,7 @@ import cats.instances.option._
 import cats.syntax.applicative._
 import cats.syntax.apply._
 import cats.syntax.eq._
+import com.softwaremill.quicklens._
 import play.api.data
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -36,7 +37,6 @@ import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
 import uk.gov.hmrc.gform.models.{ AgentAccessCode, ProcessData, ProcessDataService }
-import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
@@ -61,7 +61,6 @@ class FormController(
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future, Throwable],
-  obligationService: ObligationService,
   formService: FormService,
   handler: FormControllerRequestHandler
 ) extends FrontendController {
@@ -146,18 +145,9 @@ class FormController(
     maybeAccessCode: Option[AccessCode],
     lang: Option[String])(implicit request: Request[AnyContent]): Future[Result] =
     for {
-      processData <- processDataService.getProcessData(dataRaw, cache)
-      maybeSectionNumber <- handler.handleRedirectOrigin(
-                             maybeAccessCode,
-                             cache,
-                             processData,
-                             lang,
-                             formService.extractedValidateFormHelper,
-                             fileUploadService.getEnvelope,
-                             validationService.validateFormComponents,
-                             validationService.evaluateValidation
-                           )
-    } yield redirectResult(cache, maybeAccessCode, lang, processData, maybeSectionNumber)
+      processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods)
+      res         <- updateUserData(cache, processData)(redirectResult(cache, maybeAccessCode, lang, processData, _))
+    } yield res
 
   private def redirectResult(
     cache: AuthCacheWithForm,
@@ -262,19 +252,11 @@ class FormController(
     suppressErrors: SuppressErrors) = auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
     handler
       .handleForm(
-        formTemplateId,
-        maybeAccessCode,
         sectionNumber,
-        sectionTitle4Ga,
-        lang,
         suppressErrors,
         cache,
-        obligationService.updateObligations[Future],
         processDataService.recalculateDataAndSections,
         fileUploadService.getEnvelope,
-        renderer.renderSection,
-        formMaxAttachmentSizeMB,
-        contentTypes,
         validationService.validateFormComponents,
         validationService.evaluateValidation
       )
@@ -295,7 +277,7 @@ class FormController(
           cache.retrievals,
           cache.form.visitsIndex.visit(sectionNumber),
           lang,
-          cache.obligations
+          cache.form.thirdPartyData.obligations
         )))
   }
 
@@ -363,7 +345,7 @@ class FormController(
     implicit hc: HeaderCarrier): Future[Result] = {
     val formTemplateId = cache.formTemplate._id
     gformConnector
-      .deleteForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
+      .deleteForm(cache.form._id)
       .map(_ =>
         (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
           case (Some(FormAccessCodeForAgents), IsAgent()) =>
@@ -381,6 +363,26 @@ class FormController(
 
   val deleteOnExit = delete _
 
+  private def updateUserData(cache: AuthCacheWithForm, processData: ProcessData)(
+    toResult: Option[SectionNumber] => Result)(implicit request: Request[AnyContent]): Future[Result] =
+    for {
+      maybeSn <- handler.handleFastForwardValidate(
+                  processData,
+                  cache,
+                  formService.extractedValidateFormHelper,
+                  fileUploadService.getEnvelope,
+                  validationService.validateFormComponents,
+                  validationService.evaluateValidation
+                )
+      userData = UserData(
+        cache.form.formData,
+        maybeSn.fold(Summary: FormStatus)(_ => InProgress),
+        processData.visitIndex,
+        cache.form.thirdPartyData.modify(_.obligations).setTo(processData.obligations)
+      )
+      res <- gformConnector.updateUserData(cache.form._id, userData).map(_ => toResult(maybeSn))
+    } yield res
+
   def updateFormData(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -388,8 +390,6 @@ class FormController(
     lang: Option[String]
   ) = auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
     processResponseDataFromBody(request) { (dataRaw: Data) =>
-      val formId = FormId(cache.retrievals, formTemplateId, maybeAccessCode)
-
       def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
         toResult: Option[SectionNumber] => Result): Future[Result] =
         for {
@@ -410,39 +410,22 @@ class FormController(
             val needsSecondPhaseRecalculation =
               (before.desRegistrationResponse, after.desRegistrationResponse).mapN(_ =!= _)
 
-            val cacheUpd = cache.copy(form = cache.form.copy(thirdPartyData = after, formData = formData))
+            val cacheUpd =
+              cache.copy(
+                form = cache.form
+                  .copy(thirdPartyData = after.copy(obligations = processData.obligations), formData = formData))
 
             if (needsSecondPhaseRecalculation.getOrElse(false)) {
               val newDataRaw = formData.copy(fields = cache.form.visitsIndex.toFormField +: formData.fields).toData
               for {
-                newProcessData <- processDataService.getProcessData(newDataRaw, cacheUpd)
-                result         <- validateAndUpdateData(cacheUpd, newProcessData)(toResult) // recursive call
+                newProcessData <- processDataService
+                                   .getProcessData(newDataRaw, cacheUpd, gformConnector.getAllTaxPeriods)
+                result <- validateAndUpdateData(cacheUpd, newProcessData)(toResult) // recursive call
               } yield result
             } else {
               updateUserData(cacheUpd, processData)(toResult)
             }
           }
-        } yield res
-
-      def updateUserData(cache: AuthCacheWithForm, processData: ProcessData)(
-        toResult: Option[SectionNumber] => Result): Future[Result] =
-        for {
-          maybeSn <- handler.handleFastForwardValidate(
-                      processData,
-                      cache,
-                      formService.extractedValidateFormHelper,
-                      fileUploadService.getEnvelope,
-                      validationService.validateFormComponents,
-                      validationService.evaluateValidation
-                    )
-          userData = UserData(
-            cache.form.formData,
-            maybeSn.fold(Summary: FormStatus)(_ => InProgress),
-            processData.visitIndex,
-            cache.form.thirdPartyData,
-            cache.form.obligations
-          )
-          res <- gformConnector.updateUserData(formId, userData).map(_ => toResult(maybeSn))
         } yield res
 
       def processSaveAndContinue(
@@ -507,8 +490,9 @@ class FormController(
 
         handleGroup(processData.copy(data = updatedData), "")
       }
+
       for {
-        processData <- processDataService.getProcessData(dataRaw, cache)
+        processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods)
         nav = new Navigator(sectionNumber, processData.sections, processData.data).navigate
         res <- nav match {
                 case SaveAndContinue           => processSaveAndContinue(processData)

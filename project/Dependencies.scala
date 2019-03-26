@@ -27,7 +27,8 @@ object Dependencies {
     "uk.gov.hmrc" %% "emailaddress" % "3.2.0",
     "uk.gov.hmrc" %% "play-config" % "7.3.0",
     "org.scala-graph" %% "graph-core" % "1.12.5",
-    "uk.gov.hmrc" %% "csp-client" % "3.4.0"
+    "uk.gov.hmrc" %% "csp-client" % "3.4.0",
+    "com.softwaremill.quicklens" %% "quicklens" % "1.4.11"
   )
 
   def test(scope: String = "test") = Seq(
@@ -42,7 +43,6 @@ object Dependencies {
     "org.jsoup" % "jsoup" % "1.11.3",
     "com.itv" %% "scalapact-circe-0-9"     % "2.2.5" % scope,
     "com.itv" %% "scalapact-http4s-0-18-0" % "2.2.5" % scope,
-    "com.itv" %% "scalapact-scalatest"     % "2.2.5" % scope,
-    "com.softwaremill.quicklens" %% "quicklens" % "1.4.11" % scope
+    "com.itv" %% "scalapact-scalatest"     % "2.2.5" % scope
   )
 }

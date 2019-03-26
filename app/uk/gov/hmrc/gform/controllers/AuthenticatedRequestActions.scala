@@ -41,7 +41,6 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _, _ }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.gform.obligation.ObligationService
 import uk.gov.hmrc.gform.sharedmodel._
 
 import scala.concurrent.Future
@@ -55,8 +54,7 @@ class AuthenticatedRequestActions(
   frontendAppConfig: FrontendAppConfig,
   val authConnector: AuthConnector,
   i18nSupport: I18nSupport,
-  errResponder: ErrResponder,
-  obligationService: ObligationService
+  errResponder: ErrResponder
 )(
   implicit ec: ExecutionContext
 ) extends AuthorisedFunctions {
@@ -170,46 +168,12 @@ class AuthenticatedRequestActions(
       } yield result
     }
 
-  def asyncWithoutObligations(
-    formTemplateId: FormTemplateId,
-    lang: Option[String],
-    maybeAccessCode: Option[AccessCode])(
-    f: Request[AnyContent] => AuthCacheWithFormWithoutObligations => Future[Result]): Action[AnyContent] =
-    Action.async { implicit request =>
-      for {
-        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
-        authResult <- authService
-                       .authenticateAndAuthorise(
-                         formTemplate,
-                         lang,
-                         request.uri,
-                         getAffinityGroup,
-                         ggAuthorised(request))
-        newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
-        result <- handleAuthResults(
-                   authResult,
-                   formTemplate,
-                   request,
-                   onSuccess = withFormWithoutObligations(f(newRequest))(maybeAccessCode, formTemplate)
-                 )
-      } yield result
-    }
-
   private def withForm(f: AuthCacheWithForm => Future[Result])(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
     for {
-      form    <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
-      newForm <- obligationService.lookupIfPossible(form, formTemplate, authService, retrievals)
-      result  <- f(AuthCacheWithForm(retrievals, newForm, form, formTemplate, newForm.obligations))
-    } yield result
-
-  private def withFormWithoutObligations(f: AuthCacheWithFormWithoutObligations => Future[Result])(
-    maybeAccessCode: Option[AccessCode],
-    formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
-    for {
       form   <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
-      result <- f(AuthCacheWithFormWithoutObligations(retrievals, form, formTemplate))
+      result <- f(AuthCacheWithForm(retrievals, form, formTemplate))
     } yield result
 
   private def handleAuthResults(
@@ -337,14 +301,6 @@ sealed trait AuthCache {
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
-  oldForm: Form,
-  formTemplate: FormTemplate,
-  obligations: Obligations
-) extends AuthCache
-
-case class AuthCacheWithFormWithoutObligations(
-  retrievals: MaterialisedRetrievals,
-  form: Form,
   formTemplate: FormTemplate
 ) extends AuthCache
 
@@ -353,5 +309,5 @@ case class AuthCacheWithoutForm(
   formTemplate: FormTemplate
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) =
-    AuthCacheWithForm(retrievals, form, form, formTemplate, NotChecked)
+    AuthCacheWithForm(retrievals, form, formTemplate)
 }

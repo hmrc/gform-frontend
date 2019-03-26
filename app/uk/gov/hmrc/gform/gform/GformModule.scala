@@ -79,7 +79,6 @@ class GformModule(
     sectionRenderingService,
     gformBackendModule.gformConnector,
     processDataService,
-    controllersModule.obligationService,
     controllersModule.formService,
     new FormControllerRequestHandler(new FormValidator())
   )
@@ -93,8 +92,7 @@ class GformModule(
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
     controllersModule.errResponder,
-    graphModule.recalculation,
-    controllersModule.obligationService
+    graphModule.recalculation
   )
 
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(

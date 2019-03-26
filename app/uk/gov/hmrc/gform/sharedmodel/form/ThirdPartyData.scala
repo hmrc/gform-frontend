@@ -18,21 +18,24 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.data.Validated.Valid
 import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 case class ThirdPartyData(
-  desRegistrationResponse: Option[DesRegistrationResponse]
+  desRegistrationResponse: Option[DesRegistrationResponse],
+  obligations: Obligations
 ) {
   def updateFrom(vr: ValidatedType[ValidationResult]): ThirdPartyData =
-    (vr, desRegistrationResponse) match {
-      case (Valid(ValidationResult(Some(desRegistrationResponse))), _) => ThirdPartyData(Some(desRegistrationResponse))
-      case _                                                           => this
+    vr match {
+      case Valid(ValidationResult(Some(desRegistrationResponse))) =>
+        ThirdPartyData(Some(desRegistrationResponse), obligations)
+      case _ => this
     }
 }
 
 object ThirdPartyData {
-  val empty = ThirdPartyData(None)
+  val empty = ThirdPartyData(None, NotChecked)
   implicit val format: OFormat[ThirdPartyData] = Json.format
 
 }

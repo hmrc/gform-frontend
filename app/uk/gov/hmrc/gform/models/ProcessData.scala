@@ -16,22 +16,29 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.{ Monad, MonadError }
-import cats.instances.future._
+import cats.data.NonEmptyList
 import cats.instances.int._
-import cats.syntax.functor._
-import cats.syntax.flatMap._
+import cats.syntax.applicative._
 import cats.syntax.eq._
-import scala.concurrent.Future
-import scala.util.Try
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+import cats.{ Monad, MonadError }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
+import uk.gov.hmrc.gform.graph.{ Data, RecData, Recalculation }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormField, ValidationResult, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
+import FormDataRecalculated._
 
-case class ProcessData(data: FormDataRecalculated, sections: List[Section], visitIndex: VisitIndex)
+import scala.util.Try
+
+case class ProcessData(
+  data: FormDataRecalculated,
+  sections: List[Section],
+  visitIndex: VisitIndex,
+  obligations: Obligations)
 
 class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
 
@@ -54,20 +61,46 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
       .filterNot(_ === -1)
   }
 
-  def getProcessData(dataRaw: Data, cache: AuthCacheWithForm)(
+  def hmrcTaxPeriodWithId(recData: RecData): Option[NonEmptyList[HmrcTaxPeriodWithEvaluatedId]] =
+    recData.recalculatedTaxPeriod.map {
+      case (periodKey, idNumberValue) =>
+        HmrcTaxPeriodWithEvaluatedId(periodKey, idNumberValue)
+    } match {
+      case x :: xs => Some(NonEmptyList(x, xs))
+      case Nil     => None
+    }
+
+  def getProcessData(
+    dataRaw: Data,
+    cache: AuthCacheWithForm,
+    getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[TaxResponse]]
+  )(
     implicit hc: HeaderCarrier,
-    me: MonadError[F, E]): F[ProcessData] =
+    me: MonadError[F, E]
+  ): F[ProcessData] =
     for {
       browserRecalculated <- recalculateDataAndSections(dataRaw, cache)
       mongoRecalculated   <- recalculateDataAndSections(cache.form.formData.toData, cache)
+      (data, sections) = browserRecalculated
+      (oldData, mongoSections) = mongoRecalculated
+      obligations <- new TaxPeriodStateChecker[F]().callDesIfNeeded(
+                      getAllTaxPeriods,
+                      hmrcTaxPeriodWithId(data.recData),
+                      cache.form.thirdPartyData.obligations,
+                      data.recData.recalculatedTaxPeriod,
+                      oldData.recData.recalculatedTaxPeriod
+                    )
+
     } yield {
 
-      val (data, sections) = browserRecalculated
-      val (_, mongoSections) = mongoRecalculated
+      val dataUpd =
+        if (obligations =!= cache.form.thirdPartyData.obligations)
+          clearTaxResponses(data)
+        else data
 
       val newVisitIndex = updateSectionVisits(dataRaw, sections, mongoSections)
 
-      ProcessData(data, sections, VisitIndex(newVisitIndex))
+      ProcessData(dataUpd, sections, VisitIndex(newVisitIndex), obligations)
     }
 
   def recalculateDataAndSections(data: Data, cache: AuthCacheWithForm)(
