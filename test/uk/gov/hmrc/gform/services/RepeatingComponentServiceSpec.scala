@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.services
 
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.graph.Data
+import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
@@ -120,5 +120,6 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
 
-  protected def mkFormDataRecalculated(data: Data): FormDataRecalculated = FormDataRecalculated.empty.copy(data = data)
+  protected def mkFormDataRecalculated(data: Data): FormDataRecalculated =
+    FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
 }

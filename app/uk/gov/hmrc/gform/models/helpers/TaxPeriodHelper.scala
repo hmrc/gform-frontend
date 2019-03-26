@@ -15,8 +15,8 @@
  */
 
 package uk.gov.hmrc.gform.models.helpers
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
@@ -28,15 +28,8 @@ object TaxPeriodHelper {
       case _                          => ""
     }
 
-  def formatDate(date: Date) =
-    new SimpleDateFormat("dd MMMMM yyyy").format(date)
+  private val dtfUser = DateTimeFormatter.ofPattern("dd MMMM yyyy")
 
-  def formatDate2(date: Date) =
-    new SimpleDateFormat("yyyy-MM-dd").format(date)
-
-  val stringToDateFormatter = new SimpleDateFormat("yyyy-MM-dd")
-
-  def stringToDate(string: String) =
-    stringToDateFormatter.parse(string)
+  def formatDate(date: LocalDate) = dtfUser.format(date)
 
 }

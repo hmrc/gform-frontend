@@ -16,29 +16,21 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import java.util.Date
+import cats.Eq
+import cats.data.NonEmptyList
+import cats.instances.string._
+import cats.syntax.eq._
+import java.time.LocalDate
 
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-case class TaxPeriods(taxPeriods: List[TaxPeriod])
-
-object TaxPeriods {
-  implicit val format: OFormat[TaxPeriods] = Json.format[TaxPeriods]
-}
-
-case class TaxPeriod(inboundCorrespondenceFromDate: Date, inboundCorrespondenceToDate: Date, periodKey: String)
-
-object TaxPeriod {
-  implicit val format: OFormat[TaxPeriod] = Json.format[TaxPeriod]
-}
-
 case class ObligationDetail(
   status: String,
-  inboundCorrespondenceFromDate: Date,
-  inboundCorrespondenceToDate: Date,
-  inboundCorrespondenceDueDate: Date,
+  inboundCorrespondenceFromDate: LocalDate,
+  inboundCorrespondenceToDate: LocalDate,
+  inboundCorrespondenceDueDate: LocalDate,
   periodKey: String)
 
 object ObligationDetail {
@@ -48,14 +40,12 @@ object ObligationDetail {
 case class ObligationDetails(obligationDetails: List[ObligationDetail])
 
 object ObligationDetails {
-  import JsonUtils._
   implicit val format: OFormat[ObligationDetails] = Json.format[ObligationDetails]
 }
 
 case class Obligation(obligations: List[ObligationDetails])
 
 object Obligation {
-  import JsonUtils._
   implicit val format: OFormat[Obligation] = Json.format[Obligation]
 }
 
@@ -65,38 +55,44 @@ object TaxResponse {
   implicit val format: OFormat[TaxResponse] = Json.format[TaxResponse]
 }
 
-case class TaxPeriodIdentifier(idType: IdType, idNumber: IdNumber, regimeType: RegimeType)
+sealed trait Obligations {
+  val isNotChecked = this === NotChecked
 
-object TaxPeriodIdentifier {
-  implicit val format: OFormat[TaxPeriodIdentifier] = Json.format[TaxPeriodIdentifier]
+  def findByPeriodKey(hmrcTaxPeriod: HmrcTaxPeriod, periodKey: String): Option[ObligationDetail] = this match {
+    case NotChecked => None
+    case RetrievedObligations(taxResponses) =>
+      taxResponses
+        .filter(_.id.recalculatedTaxPeriodKey.hmrcTaxPeriod === hmrcTaxPeriod)
+        .map(_.obligation)
+        .flatMap(_.obligations)
+        .flatMap(_.obligationDetails)
+        .find(_.periodKey === periodKey)
+  }
 }
-
-case class TaxPeriodInformation(
-  hmrcTaxPeriod: HmrcTaxPeriod,
-  idNumberValue: IdNumberValue,
-  inboundCorrespondenceFromDate: Date,
-  inboundCorrespondenceToDate: Date,
-  periodKey: String)
-
-object TaxPeriodInformation {
-  implicit val format: OFormat[TaxPeriodInformation] = derived.oformat
-}
-
-sealed trait Obligations
 final case object NotChecked extends Obligations
-final case class RetrievedObligations(listOfObligations: List[TaxPeriodInformation]) extends Obligations
+final case class RetrievedObligations(obligation: NonEmptyList[TaxResponse]) extends Obligations
 
 object Obligations {
+  implicit val catsEq: Eq[Obligations] = Eq.fromUniversalEquals
+  import JsonUtils._
   implicit val format: OFormat[Obligations] = derived.oformat[Obligations]
 }
 
 case class IdNumberValue(value: String) extends AnyVal
 
 object IdNumberValue {
+  implicit val catsEq: Eq[IdNumberValue] = Eq.fromUniversalEquals
   implicit val format: OFormat[IdNumberValue] = derived.oformat
 }
 
-case class HmrcTaxPeriodWithEvaluatedId(hmrcTaxPeriod: HmrcTaxPeriod, idNumberValue: IdNumberValue)
+case class RecalculatedTaxPeriodKey(fcId: FormComponentId, hmrcTaxPeriod: HmrcTaxPeriod)
+object RecalculatedTaxPeriodKey {
+  implicit val format: OFormat[RecalculatedTaxPeriodKey] = derived.oformat
+}
+
+case class HmrcTaxPeriodWithEvaluatedId(
+  recalculatedTaxPeriodKey: RecalculatedTaxPeriodKey,
+  idNumberValue: IdNumberValue)
 
 object HmrcTaxPeriodWithEvaluatedId {
   implicit val format: OFormat[HmrcTaxPeriodWithEvaluatedId] = derived.oformat

@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import ExpandUtils._
-import uk.gov.hmrc.gform.graph.Data
+import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
@@ -127,11 +127,11 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val expected1 = "1_a" :: "1_b" :: "1_c" :: "1_d" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
     val expected2 = "2_a" :: "2_b" :: "2_c" :: "2_d" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
 
-    val data1 = FormDataRecalculated.empty.copy(data = formData1)
-    val data2 = FormDataRecalculated.empty.copy(data = formData2)
+    val data1 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1))
+    val data2 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2))
 
-    val data1Expected = FormDataRecalculated.empty.copy(data = formData1 ++ expected1)
-    val data2Expected = FormDataRecalculated.empty.copy(data = formData2 ++ expected2)
+    val data1Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1 ++ expected1))
+    val data2Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2 ++ expected2))
 
     addNextGroup(Some(group), data1) shouldBe ((data1Expected, Some("1_a")))
     addNextGroup(Some(group), data2) shouldBe ((data2Expected, Some("2_a")))
@@ -148,11 +148,11 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val expected1 = "1_a-day" :: "1_a-month" :: "1_a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
     val expected2 = "2_a-day" :: "2_a-month" :: "2_a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
 
-    val data1 = FormDataRecalculated.empty.copy(data = formData1)
-    val data2 = FormDataRecalculated.empty.copy(data = formData2)
+    val data1 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1))
+    val data2 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2))
 
-    val data1Expected = FormDataRecalculated.empty.copy(data = formData1 ++ expected1)
-    val data2Expected = FormDataRecalculated.empty.copy(data = formData2 ++ expected2)
+    val data1Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1 ++ expected1))
+    val data2Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2 ++ expected2))
 
     addNextGroup(Some(group), data1) shouldBe ((data1Expected, Some("1_a-day")))
     addNextGroup(Some(group), data2) shouldBe ((data2Expected, Some("2_a-day")))
@@ -469,7 +469,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
   private def mkFormDataRecalculated(fcIds: String*): FormDataRecalculated =
     FormDataRecalculated.empty.copy(
-      data = fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap)
+      recData = RecData.fromData(fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap))
 
   "getAlwaysEmptyHiddenGroup" should "should ignore Choice which is not part of a Group" in {
 
@@ -741,5 +741,6 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
       None
     )
 
-  private def mkFormDataRecalculated(data: Data): FormDataRecalculated = FormDataRecalculated.empty.copy(data = data)
+  private def mkFormDataRecalculated(data: Data): FormDataRecalculated =
+    FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
 }

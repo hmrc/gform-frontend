@@ -79,19 +79,11 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     }
 
   def handleForm(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
-    sectionTitle4Ga: SectionTitle4Ga,
-    lang: Option[String],
     suppressErrors: SuppressErrors,
     cache: AuthCacheWithForm,
-    updateObligations: UpdateObligations[Future], //TODO remove all the Future
     recalculateDataAndSections: RecalculateDataAndSections[Future],
     envelopeF: EnvelopeId => Future[Envelope],
-    htmlGenerator: HtmlGenerator,
-    formMaxAttachmentSizeMB: Int,
-    contentTypes: List[ContentType],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[FormHandlerResult] = {
@@ -99,17 +91,6 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     val retrievals = cache.retrievals
 
     for {
-      _ <- updateObligations(
-            cache.oldForm._id,
-            UserData(
-              cache.form.formData,
-              cache.form.status,
-              cache.form.visitsIndex,
-              cache.form.thirdPartyData,
-              cache.form.obligations),
-            cache.oldForm,
-            cache.form
-          )
       (data, sections) <- recalculateDataAndSections(FormDataHelpers.formDataMap(cache.form.formData), cache)
       (errors, validate, envelope) <- handleSuppressErrors(
                                        sectionNumber,
@@ -193,29 +174,6 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       envelopeF,
       validateFormComponents,
       evaluateValidation)
-
-  def handleRedirectOrigin(
-    maybeAccessCode: Option[AccessCode],
-    cache: AuthCacheWithForm,
-    processData: ProcessData,
-    lang: Option[String],
-    extractedValidateFormHelper: (
-      List[FormComponentValidation],
-      ValidatedType[ValidationResult]) => FormValidationOutcome,
-    envelopeF: EnvelopeId => Future[Envelope],
-    validateFormComponents: ValidateFormComponents[Future],
-    evaluateValidation: EvaluateValidation
-  )(
-    implicit request: Request[AnyContent]
-  ): Future[Option[SectionNumber]] =
-    handleFastForwardValidate(
-      processData,
-      cache,
-      extractedValidateFormHelper,
-      envelopeF,
-      validateFormComponents,
-      evaluateValidation
-    )
 }
 
 case class FormHandlerResult(

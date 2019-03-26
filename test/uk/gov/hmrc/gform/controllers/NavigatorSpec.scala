@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.controllers
 import org.scalatest.mockito.MockitoSugar.mock
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf, IsFalse }
@@ -80,7 +81,9 @@ class SaveSpec extends Spec {
   trait FixtureExcludedMidSection extends Fixture {
     val includeIf = IncludeIf(IsFalse)
     override val formDataRecalculated: FormDataRecalculated =
-      FormDataRecalculated(Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)), rawDataFromBrowser)
+      FormDataRecalculated(
+        Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
+        RecData.fromData(rawDataFromBrowser))
     override def `section - businessDetails` =
       super.`section - businessDetails`.copy(includeIf = Some(includeIf))
   }

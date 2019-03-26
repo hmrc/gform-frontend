@@ -178,7 +178,7 @@ object ExpandUtils {
             case fc                      => fc.id
           } map (fcId => index + "_" + fcId.value)
 
-        (data.copy(data = newData), anchor)
+        (data.copy(recData = data.recData.copy(data = newData)), anchor)
       case None => (data, None)
     }
 
@@ -215,7 +215,7 @@ object ExpandUtils {
             .toMap
         val newData = (updatedData -- allGroupFcIds) ++ updatedMap
 
-        data.copy(data = newData)
+        data.copy(recData = data.recData.copy(data = newData))
 
     }
 

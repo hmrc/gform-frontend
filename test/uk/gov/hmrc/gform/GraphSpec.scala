@@ -20,7 +20,7 @@ import cats.Monad
 import cats.syntax.applicative._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.graph.{ Data, Evaluator }
+import uk.gov.hmrc.gform.graph.{ Data, Evaluator, RecData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BooleanExprEval, Eeitt, FormTemplate }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,6 +35,7 @@ trait GraphSpec {
   def evaluator[F[_]: Monad]: Evaluator[F] = new Evaluator[F](eeittPrepop[F])
   def booleanExprEval[F[_]: Monad]: BooleanExprEval[F] = new BooleanExprEval[F](evaluator)
 
-  protected def mkFormDataRecalculated(data: Data): FormDataRecalculated = FormDataRecalculated.empty.copy(data = data)
+  protected def mkFormDataRecalculated(data: Data): FormDataRecalculated =
+    FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
 
 }

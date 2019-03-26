@@ -64,11 +64,13 @@ case class Form(
   status: FormStatus,
   visitsIndex: VisitIndex,
   thirdPartyData: ThirdPartyData,
-  envelopeExpiryDate: Option[EnvelopeExpiryDate],
-  obligations: Obligations
+  envelopeExpiryDate: Option[EnvelopeExpiryDate]
 )
 
 object Form {
+
+  private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
+    (__ \ "thirdPartyData").read[ThirdPartyData]
 
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
@@ -78,9 +80,8 @@ object Form {
       FormData.format and
       FormStatus.format and
       VisitIndex.format and
-      ThirdPartyData.format and
-      EnvelopeExpiryDate.optionFormat and
-      Obligations.format
+      thirdPartyDataWithFallback and
+      EnvelopeExpiryDate.optionFormat
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](
@@ -92,9 +93,8 @@ object Form {
         FormData.format.writes(form.formData) ++
         FormStatus.format.writes(form.status) ++
         VisitIndex.format.writes(form.visitsIndex) ++
-        ThirdPartyData.format.writes(form.thirdPartyData) ++
-        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
-        Obligations.format.writes(form.obligations)
+        Json.obj("thirdPartyData" -> ThirdPartyData.format.writes(form.thirdPartyData)) ++
+        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate)
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)

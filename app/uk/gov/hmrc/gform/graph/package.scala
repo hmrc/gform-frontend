@@ -16,8 +16,27 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, HmrcTaxPeriod }
+import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RecalculatedTaxPeriodKey }
 
 package object graph {
   type Data = Map[FormComponentId, Seq[String]]
+}
+
+package graph {
+
+  import julienrf.json.derived
+  import play.api.libs.json.OFormat
+
+  case class RecData(
+    data: Data,
+    recalculatedTaxPeriod: Map[RecalculatedTaxPeriodKey, IdNumberValue]
+  ) {
+    val cleared = data -- recalculatedTaxPeriod.keySet.map(_.fcId)
+  }
+
+  object RecData {
+    val empty = fromData(Map.empty)
+    def fromData(data: Data): RecData = RecData(data, Map.empty[RecalculatedTaxPeriodKey, IdNumberValue])
+  }
 }

@@ -39,7 +39,7 @@ class EmailParameterRecalculationSpec(implicit ec: ExecutionContext) extends Fla
     val data: Data = Map(FormComponentId("templateVarIdUniqueEmailParameter") -> Seq("value"))
 
     emailParameterRecalculation
-      .parameterFormat(emailParameters, FormDataRecalculated.empty.copy(data = data)) shouldBe Map(
+      .parameterFormat(emailParameters, FormDataRecalculated.empty.copy(recData = RecData.fromData(data))) shouldBe Map(
       EmailTemplateVariable("templateVarId") -> EmailParameterValue("value"))
   }
 

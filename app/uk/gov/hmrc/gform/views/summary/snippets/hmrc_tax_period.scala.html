@@ -14,17 +14,16 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.sharedmodel.ObligationDetail
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ComponentField}
+@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.gform.views.html.localisation
-@import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.play.views.html.helpers._
-@import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
-@import java.util.Date
+@import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html, maybeObligationDetail: Option[ObligationDetail])
 
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
@@ -32,20 +31,17 @@
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
     errorInline("summary", e, Seq()) }}
 
-@formatTaxPeriod(taxPeriod:String) = @{
-taxPeriod.split("\\|").toList match {
-case _ :: from :: to :: _ => localisation("From")+" "+formatDate(stringToDate(from))+" "+localisation("to")+" "+formatDate(stringToDate(to))
-case _ => "Value Lost!"
-}
-}
-
 <div>
-  <dt class="cya-question@if(hasErrors) { summary--error}">
-    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-  </dt>
-  <dd class="cya-answer">
-    @{formatTaxPeriod(formatTaxPeriodOutput(validationResult))}
-  <dd class="cya-change">
-    @changeButton
-  </dd>
+    <dt class="cya-question@if(hasErrors) { summary--error}">
+        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    </dt>
+    <dd class="cya-answer">
+        @{maybeObligationDetail.fold("Value Lost!") { od =>
+            localisation("From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
+            localisation("to")   + " " + formatDate(od.inboundCorrespondenceToDate)
+        }}
+    </dd>
+    <dd class="cya-change">
+       @changeButton
+    </dd>
 </div>

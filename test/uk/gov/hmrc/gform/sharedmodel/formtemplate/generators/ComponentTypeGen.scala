@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+
 import cats.data.NonEmptyList
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
@@ -61,6 +62,13 @@ trait ComponentTypeGen {
       helpText    <- Gen.option(PrimitiveGen.zeroOrMoreGen(PrimitiveGen.nonEmptyAlphaNumStrGen))
     } yield Choice(tpe, options, orientation, selections, helpText)
 
+  def hmrcTaxPeriodGen: Gen[HmrcTaxPeriod] =
+    for {
+      idType     <- IdTypeGen.idTypeGen
+      expr       <- ExprGen.exprGen()
+      regimeType <- RegimeTypeGen.regimeTypeGen
+    } yield HmrcTaxPeriod(idType, expr, regimeType)
+
   def groupGen(maxDepth: Int): Gen[Group] =
     for {
       fields               <- PrimitiveGen.oneOrMoreGen(FormComponentGen.formComponentGen(maxDepth - 1))
@@ -91,7 +99,8 @@ trait ComponentTypeGen {
         ukSortCodeGen,
         addressGen,
         informationMessageGen,
-        fileUploadGen
+        fileUploadGen,
+        hmrcTaxPeriodGen
       )
     else
       Gen.oneOf(
@@ -103,6 +112,7 @@ trait ComponentTypeGen {
         choiceGen,
         informationMessageGen,
         fileUploadGen,
+        hmrcTaxPeriodGen,
         groupGen(maxDepth))
 }
 

@@ -18,20 +18,34 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.Semigroup
 import cats.syntax.eq._
+import com.softwaremill.quicklens._
 import play.api.libs.json._
-import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
+import uk.gov.hmrc.gform.graph.{ Data, RecData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section
 import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphNode, IncludeIfGN, SimpleGN }
+
+case class FormDataRecalculated(invisible: Set[GraphNode], recData: RecData) {
+
+  val data = recData.data // ToDo JoVl Rename to recalculatedData
+
+  def isVisible(section: Section): Boolean =
+    !invisible.exists {
+      case SimpleGN(_)               => false
+      case IncludeIfGN(_, includeIf) => section.includeIf.exists(_ === includeIf)
+    }
+}
+
+object FormDataRecalculated {
+  val empty = FormDataRecalculated(Set.empty, RecData.empty)
+
+  def clearTaxResponses(data: FormDataRecalculated): FormDataRecalculated =
+    data
+      .modify(_.recData.data)
+      .setTo(data.recData.cleared)
+}
 
 case class FormData(fields: Seq[FormField]) extends AnyVal {
   def toData: Data = fields.map(x => x.id -> List(x.value)).toMap
-}
-case class FormDataRecalculated(invisible: Set[GraphNode], data: Data) {
-  def isVisible(section: Section): Boolean =
-    !invisible.exists {
-      case SimpleGN(fcId)               => false
-      case IncludeIfGN(fcId, includeIf) => section.includeIf.exists(_ === includeIf)
-    }
 }
 
 object FormData {
@@ -41,8 +55,4 @@ object FormData {
   }
 
   implicit val format: OFormat[FormData] = Json.format[FormData]
-}
-
-object FormDataRecalculated {
-  val empty = FormDataRecalculated(Set.empty, Map.empty)
 }
