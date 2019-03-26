@@ -275,7 +275,13 @@ class EnrolmentController(
         identifier => value => (identifier, Identifier(identifier.key, value)))
 
     val allVerifiers: F[List[Verifier]] =
-      evaluate(enrolmentSection.verifiers)(_.value, verifier => value => Verifier(verifier.key, value))
+      evaluate(enrolmentSection.verifiers)(
+        _.value,
+        verifier =>
+          value =>
+            if (value.nonEmpty)
+              List(Verifier(verifier.key, value))
+            else Nil).map(_.flatten)
 
     for {
       identifiers       <- allIdentifiers
