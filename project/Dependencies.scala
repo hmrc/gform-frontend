@@ -14,6 +14,7 @@ object Dependencies {
     "uk.gov.hmrc" %% "auth-client" % "2.19.0-play-25",
     "uk.gov.hmrc" %% "domain" % "5.3.0",
     "uk.gov.hmrc" %% "play-partials" % "6.5.0",
+    "uk.gov.hmrc" %% "csp-client" % "3.4.0",
     "com.codecommit" %% "parseback-core" % parsebackVersion,
     "com.codecommit" %% "parseback-cats" % parsebackVersion,
     "org.julienrf" %% "play-json-derived-codecs" % "3.3",

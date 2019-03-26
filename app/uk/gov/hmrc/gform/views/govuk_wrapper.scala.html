@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import layouts.{govuk_template => hmrcGovUkTemplate}
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
+@import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous }
 @import uk.gov.hmrc.gform.config.JSConfig
@@ -39,6 +40,7 @@
 )(implicit messages: Messages)
 
 @scriptElement = {
+  @scriptElem
     <script src='@routes.Assets.versioned("javascripts/gformGAEvents.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformErrorSummary.js")'></script>
