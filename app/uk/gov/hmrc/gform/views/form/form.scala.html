@@ -40,6 +40,14 @@
 
 @heading = @{localisation(page.sectionTitle)}
 
+@backLink = {
+    @if(isDeclaration) {
+        <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back" >Back</a>
+    } else {
+        <a href="#" class="link-back js-visible" id="backButton">Back</a>
+    }
+}
+
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
     serviceName = localisation(formTemplate.formName),
@@ -52,13 +60,9 @@
     <span id ="progress-indicator" class="form-hint">@localisation(page.progressIndicator.get)</span>
     }
 
-    @if(shouldDisplayBack && isDeclaration) {
-        <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back" >Back</a>
-} else {
     @if(shouldDisplayBack) {
-        <a href="#" class="link-back js-visible" id="backButton">Back</a>
+        @backLink
     }
-}
 
     @pageLevelError.render
 
