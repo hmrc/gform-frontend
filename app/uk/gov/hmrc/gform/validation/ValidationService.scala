@@ -162,6 +162,7 @@ class ComponentsValidator(
   formTemplate: FormTemplate)(
   implicit ec: ExecutionContext
 ) {
+  import uk.gov.hmrc.gform.validation.ComponentsValidator._
 
   def validate(fieldValue: FormComponent, fieldValues: List[FormComponent])(
     implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] = {
@@ -219,16 +220,6 @@ class ComponentsValidator(
     }
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
-
-  private def messagePrefix(
-    fieldValue: FormComponent,
-    workedOnId: FormComponentId,
-    otherFormComponent: Option[FormComponent]) =
-    otherFormComponent match {
-      case Some(x) if x.id === workedOnId => localisation(x.shortName.getOrElse(x.label))
-      case Some(x)                        => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-      case None                           => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
-    }
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
     data: FormDataRecalculated): ValidatedType[Unit] =
@@ -378,7 +369,7 @@ class ComponentsValidator(
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
-        textValidator(fieldValue, value, ValidationValues.phoneDigits._1, ValidationValues.phoneDigits._2)
+        validatePhoneNumber(fieldValue, value)
       case (_, value :: Nil, Email) =>
         Monoid.combine(email(fieldValue, value), textValidator(fieldValue, value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _, _)) =>
@@ -474,13 +465,15 @@ class ComponentsValidator(
   }
 
   private def textValidator(fieldValue: FormComponent, value: String, min: Int, max: Int) =
-    value.length match {
-      case tooLong if tooLong > max =>
-        getError(fieldValue, s"has more than $max characters")
-      case tooShort if tooShort < min =>
-        getError(fieldValue, s"has less than $min characters")
-      case _ => ().valid
-    }
+    ComponentsValidator.validatorHelper(value.length, fieldValue, value, min, max)
+
+  private def validatePhoneNumber(fieldValue: FormComponent, value: String) =
+    ComponentsValidator.validatorHelper(
+      value.replace("+", "").length,
+      fieldValue,
+      value,
+      TelephoneNumber.minimumLength,
+      TelephoneNumber.maximumLength)
 
   private def email(fieldValue: FormComponent, value: String) =
     if (EmailAddress.isValid(value)) ().valid
@@ -690,6 +683,7 @@ class ComponentsValidator(
 
   import cats.instances.int._
   import cats.syntax.eq._
+
   def preciselyFunctionMatch(date: LocalDate, concreteDate: ConcreteDate, offset: OffsetDate): Boolean = {
     val parametersLength = concreteDate.getNumericParameters.length
     if (concreteDate.isExact) {
@@ -839,6 +833,24 @@ class ComponentsValidator(
       case value :: rest => FieldOk(fieldValue, value) // we don't support multiple values yet
     }
 
+}
+
+object ComponentsValidator {
+
+  def validatorHelper(
+    fieldValueConstraint: Int,
+    fieldValue: FormComponent,
+    value: String,
+    min: Int,
+    max: Int): Validated[Map[FormComponentId, Set[String]], Unit] =
+    fieldValueConstraint match {
+      case tooLong if tooLong > max =>
+        getError(fieldValue, s"has more than $max characters")
+      case tooShort if tooShort < min =>
+        getError(fieldValue, s"has less than $min characters")
+      case _ => ().valid
+    }
+
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
     Set(
       localisation(
@@ -847,11 +859,20 @@ class ComponentsValidator(
 
   private def getError(fieldValue: FormComponent, defaultMessage: String) =
     Map(fieldValue.id -> errors(fieldValue, localisation(defaultMessage))).invalid
+
+  private def messagePrefix(
+    fieldValue: FormComponent,
+    workedOnId: FormComponentId,
+    otherFormComponent: Option[FormComponent]) =
+    otherFormComponent match {
+      case Some(x) if x.id === workedOnId => localisation(x.shortName.getOrElse(x.label))
+      case Some(x)                        => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+      case None                           => localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    }
 }
 
 object ValidationValues {
 
-  val phoneDigits = (4, 30)
   val sortCodeLength = 2
   val bankAccountLength = 8
   val sterlingLength = 11

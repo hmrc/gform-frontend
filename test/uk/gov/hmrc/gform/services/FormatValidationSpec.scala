@@ -142,14 +142,15 @@ class FormatValidationSpec extends Spec with GraphSpec {
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be a whole number")))
   }
 
-  "TelephoneNumber" should "be valid within limit of 30" in createSuccessTest(
-    "123456789101112131415161718192",
+  "TelephoneNumber" should "be valid within limit of 25" in createSuccessTest(
+    "1234567890123456789012345",
     TelephoneNumber)
   "TelephoneNumber" should "be valid with special characters" in createSuccessTest("+44 1234 567890", TelephoneNumber)
   "TelephoneNumber" should "be invalid with over the limit" in createFailTest(
     "1234567891011121314151617181920",
     TelephoneNumber,
-    "sample label has more than 30 characters")
+    "sample label has more than 25 characters")
+
   "Email" should "be valid with proper structure" in createSuccessTest("test@test.com", Email)
   "Email" should "be invalid with invalid email address" in createFailTest(
     "testtest.com",
@@ -159,13 +160,16 @@ class FormatValidationSpec extends Spec with GraphSpec {
     List.fill(241)("a").mkString + "@test.com",
     Email,
     "sample label has more than 241 characters")
+
   "UTR" should "be valid " in createSuccessTest("1000000000", UTR)
   "UTR" should "be invalid with decimals" in createFailTest("123456789", UTR, "sample label is not a valid Id")
+
   "NINO" should "be valid with a valid NINO " in createSuccessTest("AA111111A", NINO)
   "NINO" should "be return Invalid with an incorrect NINO" in createFailTest(
     "AA111111",
     NINO,
     "sample label is not a valid Id")
+
   "UkVrn" should "return valid standard" in createSuccessTest("GB999999973", UkVrn)
   "UkVrn" should "return valid branch" in createSuccessTest("GB999999973001", UkVrn)
   "UkVrn" should "return valid gpvernment" in createSuccessTest("GBGD001", UkVrn)

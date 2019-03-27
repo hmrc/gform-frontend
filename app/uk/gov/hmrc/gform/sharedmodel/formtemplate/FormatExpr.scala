@@ -182,7 +182,12 @@ case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
 final case class Sterling(roundingMode: RoundingMode) extends TextConstraint
 final case object UkBankAccountNumber extends TextConstraint
 final case object UkSortCodeFormat extends TextConstraint
-case object TelephoneNumber extends TextConstraint
+
+case object TelephoneNumber extends TextConstraint {
+  val minimumLength = 4
+  val maximumLength = 25
+}
+
 case object Email extends TextConstraint
 case object UTR extends TextConstraint
 case object NINO extends TextConstraint
