@@ -62,6 +62,13 @@ trait FormatExprGen {
     Gen.const(EORI)
   )
 
+  def telephoneNumberGen(phoneNumberType: PhoneNumberType): Gen[String] =
+    for {
+      phoneNumberRange <- Gen.choose(4, 25)
+      elems            <- telephoneNumberHelper(phoneNumberRange, phoneNumberType)
+
+    } yield elems.mkString
+
   def textExpressionGen: Gen[TextExpression] = ExprGen.exprGen().map(TextExpression(_))
 
   def beforeAfterPreciselyGen: Gen[BeforeAfterPrecisely] = Gen.oneOf(Before, After, Precisely)
@@ -110,6 +117,16 @@ trait FormatExprGen {
     RoundingMode.Down,
     RoundingMode.Up
   )
+
+  private def telephoneNumberHelper(lengthRestraint: Int, phoneNumberType: PhoneNumberType) =
+    Gen.listOfN(lengthRestraint, Gen.numChar).map {
+      case phoneNumber if phoneNumberType == International => '+' :: phoneNumber
+      case phoneNumber                                     => phoneNumber
+    }
+
+  sealed trait PhoneNumberType
+  case object International extends PhoneNumberType
+  case object UK extends PhoneNumberType
 }
 
 object FormatExprGen extends FormatExprGen
