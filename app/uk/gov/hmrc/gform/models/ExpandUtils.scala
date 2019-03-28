@@ -28,11 +28,8 @@ object ExpandUtils {
       }
 
     (section.fields ++ groupFields.flatten).filter {
-      case IsGroup(_)      => false
-      case IsDate(_)       => false
-      case IsAddress(_)    => false
-      case IsUkSortCode(_) => false
-      case fc              => !data.data.contains(fc.id)
+      case IsGroup(group) => false
+      case fc             => !data.data.contains(fc.id)
     }
   }
 
