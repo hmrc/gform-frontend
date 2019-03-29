@@ -9,13 +9,7 @@
 
     function adjustSummarySection($textareaCells) {
       $textareaCells.each(function (i, textareaCell) {
-        var $cell = $(textareaCell);
-        var content = $cell
-          .text()
-          .trim()
-          .split(/\r?\n/g);
-        $cell
-          .html(content.join('<br>'))
+        $(textareaCell)
           .closest('dl')
           .removeClass('cya-questions-long')
           .addClass('cya-questions-short')
