@@ -24,10 +24,10 @@
 
 @(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)
 
-@currentValueLines = @{TextFormatter.formatText(validationResult).split("\\R")}
+@currentValueLines = @{TextFormatter.formatText(validationResult).split("\\s*\\r?\\n\\s*")}
 
 @currentValue = {
-    @currentValueLines.init.map{line => @line<br> }
+    @currentValueLines.init.map{line => @line<br><br> }
     @currentValueLines.last
 }
 
@@ -41,7 +41,7 @@
   <dt class="cya-question@if(hasErrors) { summary--error}">
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </dt>
-  <dd class="cya-answer">
+  <dd class="cya-answer cya-textarea">
     @{if(hasErrors) errors else validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")}
   </dd>
   <dd class="cya-change">
