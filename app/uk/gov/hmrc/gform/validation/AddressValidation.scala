@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidator.{ errors, validateForbidden, validateRequired }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.localisation
-
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 case class AddressValidation(data: FormDataRecalculated) {
   import AddressValidation._
   def validateAddress(fieldValue: FormComponent, address: Address)(data: FormDataRecalculated): ValidatedType[Unit] = {
@@ -78,7 +78,7 @@ case object AddressValidation {
     xs: Seq[String]): ValidatedType[Unit] = {
     val Fourth = "[4]$".r.unanchored
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
-      case (Nil, _) => ().valid
+      case (Nil, _) => validationSuccess
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
         Map(fieldId -> errors(fieldValue, s"line 4 is longer than ${ValidationValues.addressLine4} characters")).invalid
       case (value :: Nil, _) if value.length > ValidationValues.addressLine =>
@@ -86,7 +86,7 @@ case object AddressValidation {
           fieldId -> errors(
             fieldValue,
             s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")).invalid
-      case _ => ().valid
+      case _ => validationSuccess
     }
   }
 
@@ -94,6 +94,6 @@ case object AddressValidation {
     xs.filterNot(_.isEmpty) match {
       case value :: Nil if value.length > ValidationValues.postcodeLimit =>
         Map(fieldId -> errors(fieldValue, s"postcode is longer than ${ValidationValues.postcodeLimit} characters")).invalid
-      case _ => ().valid
+      case _ => validationSuccess
     }
 }

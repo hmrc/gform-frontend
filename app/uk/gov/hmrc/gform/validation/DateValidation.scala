@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 import java.time.LocalDate
+import uk.gov.hmrc.gform.validation.DateValidationLogic._
 
 import cats.{ Monoid, Semigroup }
 import cats.data.Validated._
@@ -30,6 +31,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil._
 import uk.gov.hmrc.gform.validation.ComponentsValidator._
 import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.gform.validation.DateValidation._
+
 import scala.util.{ Failure, Success, Try }
 
 case class DateValidation(data: FormDataRecalculated) {
@@ -61,7 +63,7 @@ case class DateValidation(data: FormDataRecalculated) {
 
       case AnyDate =>
         validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data, otherFieldValue).andThen(lDate =>
-          ().valid)
+          validationSuccess)
 
       case DateConstraints(dateConstraintList) =>
         val result = dateConstraintList.map {
@@ -160,7 +162,7 @@ case class DateValidation(data: FormDataRecalculated) {
   def validateToday(fieldValue: FormComponent, localDate: LocalDate, offset: OffsetDate, dateError: GformError)(
     func: (LocalDate, OffsetDate) => Boolean): ValidatedType[Unit] =
     func(localDate, offset) match {
-      case true  => ().valid
+      case true  => validationSuccess
       case false => dateError.invalid
     }
 
@@ -171,7 +173,7 @@ case class DateValidation(data: FormDataRecalculated) {
     offset: OffsetDate = OffsetDate(0),
     dateError: GformError)(func: (LocalDate, ConcreteDate, OffsetDate) => Boolean): ValidatedType[Unit] =
     func(localDate, concreteDate, offset) match {
-      case true  => ().valid
+      case true  => validationSuccess
       case false => dateError.invalid
     }
 
@@ -283,7 +285,7 @@ case class DateValidation(data: FormDataRecalculated) {
         }
 
       case _ =>
-        getError(formComponent, "is missing")
+        validationFailure(formComponent, "is missing")
     }
   }
 
