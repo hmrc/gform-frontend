@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.services
+package uk.gov.hmrc.gform.validation
 
 import cats.instances.future._
 import org.scalatest.mockito.MockitoSugar.mock
-import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
-import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ComponentsValidator
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
 class FormatValidationSpec extends Spec with GraphSpec {
