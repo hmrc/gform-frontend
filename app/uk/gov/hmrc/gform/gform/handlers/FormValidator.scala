@@ -20,7 +20,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, Origin }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.models.ExpandUtils.{ nonSubmittedFCsOfNonGroup, submittedFCs }
+import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.models.ProcessData
 import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
@@ -81,10 +81,8 @@ class FormValidator(implicit ec: ExecutionContext) {
     implicit request: Request[AnyContent]
   ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] = {
     val section = sections(sectionNumber.value)
-    val nonSubmittedYet = nonSubmittedFCsOfNonGroup(formDataRecalculated, section)
-    val allFC = submittedFCs(formDataRecalculated, sections.flatMap(_.expandSection(formDataRecalculated.data).allFCs)) ++ nonSubmittedYet
-    val sectionFields = submittedFCs(formDataRecalculated, section.expandSection(formDataRecalculated.data).allFCs) ++ nonSubmittedYet
-
+    val allFC = submittedFCs(formDataRecalculated, sections.flatMap(_.expandSection(formDataRecalculated.data).allFCs))
+    val sectionFields = submittedFCs(formDataRecalculated, section.expandSection(formDataRecalculated.data).allFCs)
     for {
       envelope <- envelopeF(envelopeId)
       v <- validateFormComponents(
