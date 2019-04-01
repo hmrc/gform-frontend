@@ -22,20 +22,22 @@ import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ComponentsValidator.getError
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 
-case class ComponentValidator(fieldValue: FormComponent, constraint: TextConstraint)(data: FormDataRecalculated) {
+case object ComponentValidator {
 
-  def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
-    data: FormDataRecalculated): ValidatedType[Unit] = {
-    val textData = data.data.get(fieldValue.id) match { // extract
-      case Some(s) => s.filterNot(_.isEmpty()).toList //
+  private def textData(formData: FormDataRecalculated, fieldValue: FormComponent) =
+    formData.data.get(fieldValue.id) match {
+      case Some(s) => s.filterNot(_.isEmpty()).toList
       case None    => Nil
     }
-    (fieldValue.mandatory, textData, constraint) match {
-      case (true, Nil, _)                                    => getError(fieldValue, "must be entered")
-      case (_, _, AnyText)                                   => ().valid
+
+  def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
+    data: FormDataRecalculated): ValidatedType[Unit] =
+    (fieldValue.mandatory, textData(data, fieldValue), constraint) match {
+      case (true, Nil, _)                                    => validationFailure(fieldValue, "must be entered")
+      case (_, _, AnyText)                                   => validationSuccess
       case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
       case (_, value :: Nil, BasicText)                      => ComponentValidator.textValidation(fieldValue, value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(fieldValue, value, min, max)
@@ -58,10 +60,9 @@ case class ComponentValidator(fieldValue: FormComponent, constraint: TextConstra
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, true)
-      case (false, Nil, _)       => ().valid
-      case (_, value :: rest, _) => ().valid // we don't support multiple values yet
+      case (false, Nil, _)       => validationSuccess
+      case (_, value :: rest, _) => validationSuccess // we don't support multiple values yet
     }
-  }
 
   private def validateNumber(
     fieldValue: FormComponent,
@@ -72,36 +73,39 @@ case class ComponentValidator(fieldValue: FormComponent, constraint: TextConstra
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
-      case (WholeShape(_, whole, _), _, _) if filterCommas(whole).length > maxWhole =>
-        getError(fieldValue, s"must be at most $maxWhole digits")
+      case (WholeShape(_, whole, _), _, _) if ComponentValidator.surpassMaxLength(whole, maxWhole) =>
+        validationFailure(fieldValue, s"must be at most $maxWhole digits")
       case (WholeShape("-", _, _), _, true) =>
-        getError(fieldValue, "must be a positive number")
-      case (WholeShape(_, _, _), _, _) => ().valid
+        validationFailure(fieldValue, "must be a positive number")
+      case (WholeShape(_, _, _), _, _) => validationSuccess
       case (FractionalShape(_, whole, _, fractional), 0, _)
-          if filterCommas(whole).length > maxWhole && fractional.length > 0 =>
-        getError(fieldValue, s"must be at most $maxWhole whole digits and no decimal fraction")
+          if ComponentValidator.surpassMaxLength(whole, maxWhole) && ComponentValidator.lessThanMinLength(
+            fractional,
+            0) =>
+        validationFailure(fieldValue, s"must be at most $maxWhole whole digits and no decimal fraction")
       case (FractionalShape(_, whole, _, fractional), _, _)
-          if filterCommas(whole).length > maxWhole && fractional.length > maxFractional =>
-        getError(
+          if ComponentValidator.surpassMaxLength(whole, maxWhole) && ComponentValidator.surpassMaxLength(
+            fractional,
+            maxFractional) =>
+        validationFailure(
           fieldValue,
           s"must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
-      case (FractionalShape(_, whole, _, _), _, _) if filterCommas(whole).length > maxWhole =>
-        getError(fieldValue, s"must be at most $maxWhole whole digits")
-      case (FractionalShape(_, _, _, fractional), 0, _) if fractional.length > 0 =>
-        getError(fieldValue, "must be a whole number")
-      case (FractionalShape(_, _, _, fractional), _, _) if fractional.length > maxFractional =>
-        getError(fieldValue, s"must be at most $maxFractional digits")
+      case (FractionalShape(_, whole, _, _), _, _) if ComponentValidator.surpassMaxLength(whole, maxWhole) =>
+        validationFailure(fieldValue, s"must be at most $maxWhole whole digits")
+      case (FractionalShape(_, _, _, fractional), 0, _) if ComponentValidator.lessThanMinLength(fractional, 0) =>
+        validationFailure(fieldValue, "must be a whole number")
+      case (FractionalShape(_, _, _, fractional), _, _)
+          if ComponentValidator.surpassMaxLength(fractional, maxFractional) =>
+        validationFailure(fieldValue, s"must be at most $maxFractional digits")
       case (FractionalShape("-", _, _, _), _, true) =>
-        getError(fieldValue, "must be a positive number")
-      case (FractionalShape(_, _, _, _), _, _) => ().valid
-      case (_, 0, true)                        => getError(fieldValue, "must be a positive whole number")
-      case (_, _, true)                        => getError(fieldValue, "must be a positive number")
-      case (_, 0, false)                       => getError(fieldValue, "must be a whole number")
-      case _                                   => getError(fieldValue, "must be a number")
+        validationFailure(fieldValue, "must be a positive number")
+      case (FractionalShape(_, _, _, _), _, _) => validationSuccess
+      case (_, 0, true)                        => validationFailure(fieldValue, "must be a positive whole number")
+      case (_, _, true)                        => validationFailure(fieldValue, f"must be a positive number")
+      case (_, 0, false)                       => validationFailure(fieldValue, "must be a whole number")
+      case _                                   => validationFailure(fieldValue, "must be a number")
     }
   }
-
-  private def filterCommas(number: String) = number.filterNot(c => c == ',')
 
   private def textValidator(fieldValue: FormComponent, value: String, min: Int, max: Int) =
     ComponentsValidator.validatorHelper(value.length, fieldValue, value, min, max)
@@ -115,8 +119,8 @@ case class ComponentValidator(fieldValue: FormComponent, constraint: TextConstra
       TelephoneNumber.maximumLength)
 
   private def email(fieldValue: FormComponent, value: String) =
-    if (EmailAddress.isValid(value)) ().valid
-    else getError(fieldValue, "is not valid")
+    if (EmailAddress.isValid(value)) validationSuccess
+    else validationFailure(fieldValue, "is not valid")
 
   private def checkVrn(fieldValue: FormComponent, value: String) = {
     val Standard = "GB[0-9]{9}".r
@@ -125,11 +129,11 @@ case class ComponentValidator(fieldValue: FormComponent, constraint: TextConstra
     val Health = "GBHA[5-9][0-9]{2}".r
     val str = value.replace(" ", "")
     str match {
-      case Standard()   => ().valid
-      case Branch()     => ().valid
-      case Government() => ().valid
-      case Health()     => ().valid
-      case _            => getError(fieldValue, "is not a valid VRN")
+      case Standard()   => validationSuccess
+      case Branch()     => validationSuccess
+      case Government() => validationSuccess
+      case Health()     => validationSuccess
+      case _            => validationFailure(fieldValue, "is not a valid VRN")
     }
   }
 
@@ -137,8 +141,8 @@ case class ComponentValidator(fieldValue: FormComponent, constraint: TextConstra
     val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
     val str = value.replace(" ", "")
     str match {
-      case ValidCRN() => ().valid
-      case _          => getError(fieldValue, "is not a valid Company Registration Number")
+      case ValidCRN() => validationSuccess
+      case _          => validationFailure(fieldValue, "is not a valid Company Registration Number")
     }
   }
 
@@ -146,57 +150,55 @@ case class ComponentValidator(fieldValue: FormComponent, constraint: TextConstra
     val ValidCRN = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
     val str = value.replace(" ", "")
     str match {
-      case ValidCRN() => ().valid
-      case _          => getError(fieldValue, "is not a valid EORI")
+      case ValidCRN() => validationSuccess
+      case _          => validationFailure(fieldValue, "is not a valid EORI")
     }
   }
 
   private def checkNonUkCountryCode(fieldValue: FormComponent, value: String) = {
     val countryCode = "[A-Z]{2}".r
     value match {
-      case countryCode() if value != "UK" => ().valid
-      case _                              => getError(fieldValue, "is not a valid non UK country code")
+      case countryCode() if value != "UK" => validationSuccess
+      case _                              => validationFailure(fieldValue, "is not a valid non UK country code")
     }
   }
 
   private def checkCountryCode(fieldValue: FormComponent, value: String) = {
     val countryCode = "[A-Z]{2}".r
     value match {
-      case countryCode() => ().valid
-      case _             => getError(fieldValue, "is not a valid country code")
+      case countryCode() => validationSuccess
+      case _             => validationFailure(fieldValue, "is not a valid country code")
     }
   }
 
   private def checkId(fieldValue: FormComponent, value: String) = {
     val UTR = "[0-9]{10}".r
     value match {
-      case UTR()                => ().valid
-      case x if Nino.isValid(x) => ().valid
-      case _                    => getError(fieldValue, "is not a valid Id")
+      case UTR()                => validationSuccess
+      case x if Nino.isValid(x) => validationSuccess
+      case _                    => validationFailure(fieldValue, "is not a valid Id")
     }
   }
 
   def shortTextValidation(fieldValue: FormComponent, value: String) = {
     val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]{0,1000}""".r
     value match {
-      case ShortTextValidation() => ().valid
+      case ShortTextValidation() => validationSuccess
       case _ =>
-        getError(
+        validationFailure(
           fieldValue,
           "can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
         )
     }
   }
-}
 
-case object ComponentValidator {
   def textValidation(fieldValue: FormComponent, value: String) = {
     val TextValidation =
       """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
     value match {
-      case TextValidation() => ().valid
+      case TextValidation() => validationSuccess
       case _ =>
-        getError(
+        validationFailure(
           fieldValue,
           "can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
         )
@@ -208,8 +210,17 @@ case object ComponentValidator {
 
     (fieldValue.mandatory, choiceValue) match {
       case (true, None | Some("")) =>
-        getError(fieldValue, "must be selected")
-      case _ => ().valid
+        validationFailure(fieldValue, "must be selected")
+      case _ => validationSuccess
     }
   }
+
+  def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =
+    filterCommas(wholeOrFractional).length > maxLength
+
+  private def lessThanMinLength(wholeOrFractional: String, minLength: Int): Boolean =
+    wholeOrFractional.length > minLength
+
+  private def filterCommas(number: String) = number.filterNot(c => c == ',')
+
 }

@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, UkSortCode }
 import uk.gov.hmrc.gform.validation.ComponentsValidator.getError
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 
 case class SortCodeValidation(data: FormDataRecalculated) {
 
@@ -33,8 +34,8 @@ case class SortCodeValidation(data: FormDataRecalculated) {
           val sortCode: Seq[String] = data.data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
-              getError(fieldValue, "values must be two digit numbers")
-            case (Nil, false)      => ().valid
+              validationFailure(fieldValue, "values must be two digit numbers")
+            case (Nil, false)      => validationSuccess
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
           }
         }
@@ -46,10 +47,10 @@ case class SortCodeValidation(data: FormDataRecalculated) {
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
       case FractionalShape(_, _, _) =>
-        getError(fieldValue, "must be a whole number")
-      case WholeShape() => ().valid
+        validationFailure(fieldValue, "must be a whole number")
+      case WholeShape() => validationSuccess
       case _ =>
-        getError(fieldValue, s"must be $desiredLength numbers")
+        validationFailure(fieldValue, s"must be $desiredLength numbers")
     }
   }
 }

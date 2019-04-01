@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.http.HeaderCarrier
-
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.validation.ComponentsValidator._
 
@@ -51,7 +51,7 @@ class ComponentsValidator(
           booleanExpr
             .isTrue(vi.expr, data.data, retrievals, data.invisible, thirdPartyData, envelopeId, formTemplate)
             .map {
-              case false => getError(fieldValue, "must be entered")
+              case false => validationFailure(fieldValue, "must be entered")
               case true  => validationResult
             }
         case _ => validationResult.pure[Future]
@@ -66,11 +66,11 @@ class ComponentsValidator(
         validIf(DateValidation(data).validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues)))
       case text @ Text(constraint, _, _) =>
         validIf(
-          ComponentValidator(fieldValue, constraint)(data)
+          ComponentValidator
             .validateText(fieldValue, constraint, retrievals)(data))
       case TextArea(constraint, _, _) =>
         validIf(
-          ComponentValidator(fieldValue, constraint)(data)
+          ComponentValidator
             .validateText(fieldValue, constraint, retrievals)(data))
       case address @ Address(_) => validIf(AddressValidation(data).validateAddress(fieldValue, address)(data))
       case c @ Choice(_, _, _, _, _) =>
@@ -93,14 +93,14 @@ class ComponentsValidator(
         val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
 
         file match {
-          case Some(File(fileId, Error(Some(reason)), _)) => getError(fieldValue, reason)
+          case Some(File(fileId, Error(Some(reason)), _)) => validationFailure(fieldValue, reason)
           case Some(File(fileId, Error(None), _)) =>
-            getError(fieldValue, "has an unknown error from file upload")
+            validationFailure(fieldValue, "has an unknown error from file upload")
           case Some(File(fileId, Infected, _)) =>
-            getError(fieldValue, "has a virus detected")
-          case Some(File(fileId, _, _))     => ().valid
-          case None if fieldValue.mandatory => getError(fieldValue, "must be uploaded")
-          case None                         => ().valid
+            validationFailure(fieldValue, "has a virus detected")
+          case Some(File(fileId, _, _))     => validationSuccess
+          case None if fieldValue.mandatory => validationFailure(fieldValue, "must be uploaded")
+          case None                         => validationSuccess
         }
       }
 }
@@ -108,7 +108,7 @@ class ComponentsValidator(
 object ComponentsValidator {
 
   def validF(implicit ec: ExecutionContext) =
-    ().valid.pure[Future]
+    validationSuccess.pure[Future]
 
   def validatorHelper(
     fieldValueConstraint: Int,
@@ -118,10 +118,10 @@ object ComponentsValidator {
     max: Int): Validated[Map[FormComponentId, Set[String]], Unit] =
     fieldValueConstraint match {
       case tooLong if tooLong > max =>
-        getError(fieldValue, s"has more than $max characters")
+        validationFailure(fieldValue, s"has more than $max characters")
       case tooShort if tooShort < min =>
-        getError(fieldValue, s"has less than $min characters")
-      case _ => ().valid
+        validationFailure(fieldValue, s"has less than $min characters")
+      case _ => validationSuccess
     }
 
   def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
@@ -130,7 +130,9 @@ object ComponentsValidator {
         fieldValue.errorMessage.getOrElse(
           messagePrefix(fieldValue, fieldValue.id, None) + " " + localisation(defaultErr))))
 
-  def getError(fieldValue: FormComponent, defaultMessage: String) =
+  def getError(
+    fieldValue: FormComponent,
+    defaultMessage: String): Validated[Map[FormComponentId, Set[String]], Nothing] =
     Map(fieldValue.id -> errors(fieldValue, localisation(defaultMessage))).invalid
 
   def messagePrefix(fieldValue: FormComponent, workedOnId: FormComponentId, otherFormComponent: Option[FormComponent]) =
@@ -151,13 +153,13 @@ object ComponentsValidator {
     xs.filterNot(_.isEmpty()) match {
       case Nil =>
         Map(fieldId -> errors(fieldValue, s"${errorPrefix.getOrElse("")} must be entered")).invalid
-      case value :: Nil  => ().valid
-      case value :: rest => ().valid // we don't support multiple values yet
+      case value :: Nil  => validationSuccess
+      case value :: rest => validationSuccess // we don't support multiple values yet
     }
 
   def validateForbidden(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty()) match {
-      case Nil => ().valid
+      case Nil => validationSuccess
       case value :: Nil =>
         Map(fieldId -> errors(fieldValue, "must not be entered")).invalid
       case value :: rest =>
