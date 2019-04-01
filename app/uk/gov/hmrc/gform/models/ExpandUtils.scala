@@ -21,21 +21,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ExpandUtils {
 
-  def nonSubmittedFCsOfNonGroup(data: FormDataRecalculated, section: Section): List[FormComponent] = {
-    val groupFields: List[List[FormComponent]] =
-      section.fields.collect {
-        case IsGroup(group) => group.fields
-      }
-
-    (section.fields ++ groupFields.flatten).filter {
-      case IsGroup(_)       => false
-      case IsDate(_)        => false
-      case IsUkSortCode(_)  => false
-      case IsAddress(_)     => false
-      case fc               => !data.data.contains(fc.id)
-    }
-  }
-
   def submittedFCs(data: FormDataRecalculated, formComponents: List[FormComponent]): List[FormComponent] = {
     val fcIds: Set[FormComponentId] = data.data.keys.toSet
 
