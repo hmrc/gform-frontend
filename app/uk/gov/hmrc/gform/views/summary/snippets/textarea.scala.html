@@ -41,8 +41,8 @@
   <dt class="cya-question@if(hasErrors) { summary--error}">
     @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
   </dt>
-  <dd class="cya-answer">
-    @{if(hasErrors) errors else validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")}
+  <dd class="cya-answer cya-textarea">
+    @{if(hasErrors) errors else currentValue}
   </dd>
   <dd class="cya-change">
     @changeButton
