@@ -858,7 +858,7 @@ object ComponentsValidator {
   def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
     value match {
       case TelephoneNumber.phoneNumberValidation() => ().valid
-      case _                                       => getError(fieldValue, "Outrageous character selection detected")
+      case _                                       => getError(fieldValue, "must be a valid number")
     }
 
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
