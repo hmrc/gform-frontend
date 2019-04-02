@@ -857,7 +857,10 @@ object ComponentsValidator {
   def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
     value match {
       case TelephoneNumber.phoneNumberValidation() => ().valid
-      case _                                       => getError(fieldValue, "can only contain numbers, plus signs, hashtags, uppercase letters, spaces, asterisks, round brackets, and hyphens")
+      case _ =>
+        getError(
+          fieldValue,
+          "can only contain numbers, plus signs, hashtags, uppercase letters, spaces, asterisks, round brackets, and hyphens")
     }
 
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
