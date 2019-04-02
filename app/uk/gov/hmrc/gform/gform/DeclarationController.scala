@@ -102,9 +102,9 @@ class DeclarationController(
     val declaration: List[(FormComponent, Seq[String])] = for {
       formTemplateDecField <- formTemplate.declarationSection.fields
       field <- formTemplateDecField.`type` match {
-        case g: Group => g.fields
-        case _        => List(formTemplateDecField)
-      }
+                case g: Group => g.fields
+                case _        => List(formTemplateDecField)
+              }
       formData <- data.data.get(field.id)
     } yield (field, formData)
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
