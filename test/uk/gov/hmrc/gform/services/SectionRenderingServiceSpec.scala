@@ -163,7 +163,7 @@ class SectionRenderingServiceSpec extends SpecWithFakeApp {
     val doc: Document = Jsoup.parse(generatedHtml.body)
     val progressIndicator = doc.getElementById("progress-indicator")
     progressIndicator.toString should be(
-      "<span id=\"progress-indicator\" class=\"form-hint\">Progress Indicator</span>")
+      "<span id=\"progress-indicator\" class=\"heading-caption\">Progress Indicator</span>")
   }
 
   it should "generate second page" in {
