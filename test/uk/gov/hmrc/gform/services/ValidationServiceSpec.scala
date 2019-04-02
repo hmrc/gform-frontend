@@ -43,19 +43,13 @@ class ValidationServiceSpec extends Spec {
   "validatePhoneNumber" should "return valid when character count is less than 4 and contains a special character" in {
     val lessThan4WithPlus = numberWithPlus.map(string => string.substring(0, 4))
     forAll(lessThan4WithPlus) { phoneNumber =>
-      {
-        val result = ComponentsValidator.validatePhoneNumber(
-        phoneNumber.length,
-        formComponent,
-        phoneNumber)
-        result.isValid shouldBe true
-      }
+      val result = ComponentsValidator.validatePhoneNumber(phoneNumber.length, formComponent, phoneNumber)
+      result.isValid shouldBe true
     }
   }
 
   it should "return invalid when a string contains a '$' symbol" in {
     forAll(numberWithPlus) { phoneNumber =>
-    {
       val result = ComponentsValidator.validatePhoneNumber(
         (phoneNumber + "$").length,
         formComponent,
@@ -63,44 +57,28 @@ class ValidationServiceSpec extends Spec {
       )
       result.isInvalid shouldBe true
     }
-    }
   }
 
   it should "return valid when character count is between 4-25" in {
     forAll(numberWithoutPlus) { phoneNumber =>
-      {
-        val result = ComponentsValidator.validatePhoneNumber(
-          phoneNumber.length,
-          formComponent,
-          phoneNumber)
-        result.isValid shouldBe true
-      }
+      val result = ComponentsValidator.validatePhoneNumber(phoneNumber.length, formComponent, phoneNumber)
+      result.isValid shouldBe true
     }
   }
 
   it should "return invalid when character count is less than 4" in {
     val invalidNumber = numberWithoutPlus.map(string => string.substring(0, 3))
     forAll(invalidNumber) { phoneNumber =>
-      {
-        val result = ComponentsValidator.validatePhoneNumber(
-          phoneNumber.length,
-          formComponent,
-          phoneNumber)
-        result.isInvalid shouldBe true
-      }
+      val result = ComponentsValidator.validatePhoneNumber(phoneNumber.length, formComponent, phoneNumber)
+      result.isInvalid shouldBe true
     }
   }
 
   "it" should "return valid when character count is less than 4 and contains a special character" in {
     val lessThan4WithPlus = numberWithPlus.map(string => string.substring(0, 4))
     forAll(lessThan4WithPlus) { phoneNumber =>
-    {
-      val result = ComponentsValidator.validatePhoneNumber(
-        phoneNumber.length,
-        formComponent,
-        phoneNumber)
+      val result = ComponentsValidator.validatePhoneNumber(phoneNumber.length, formComponent, phoneNumber)
       result.isValid shouldBe true
-    }
     }
   }
 }
