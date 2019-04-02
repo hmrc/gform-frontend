@@ -369,7 +369,7 @@ class ComponentsValidator(
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
-        validatePhoneNumber(value.length, fieldValue, value)
+        validatePhoneNumber(fieldValue, value)
       case (_, value :: Nil, Email) =>
         Monoid.combine(email(fieldValue, value), textValidator(fieldValue, value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _, _)) =>
@@ -844,14 +844,13 @@ object ComponentsValidator {
     }
 
   def validatePhoneNumber(
-    fieldValueConstraint: Int,
     fieldValue: FormComponent,
     value: String): Validated[Map[FormComponentId, Set[String]], Unit] =
-    fieldValueConstraint match {
+    value.length match {
       case tooLong if tooLong > TelephoneNumber.maximumLength =>
         getError(fieldValue, s"has more than ${TelephoneNumber.maximumLength} characters")
       case tooShort if tooShort < TelephoneNumber.minimumLength =>
-        getError(fieldValue, s"has less than ${TelephoneNumber.minimumLength} characters")
+        getError(fieldValue, s"has fewer than ${TelephoneNumber.minimumLength} characters")
       case _ => validatePhoneNumberContent(value, fieldValue)
     }
 
