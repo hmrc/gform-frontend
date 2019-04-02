@@ -120,18 +120,20 @@ class AcknowledgementController(
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime =
       s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
-
     val rows = List(
       cya_row("Submission date", formattedTime),
       cya_row("Submission reference", SubmissionRef(envelopeId).toString),
       cya_row("Submission mark", hashedValue)
     )
     val extraData = cya_section("Submission details", HtmlFormat.fill(rows)).toString()
-
     val declaration: List[(FormComponent, Seq[String])] = for {
-      formTemplateDecFields <- formTemplate.declarationSection.fields
-      formData              <- data.get(formTemplateDecFields.id)
-    } yield (formTemplateDecFields, formData)
+      formTemplateDecField <- formTemplate.declarationSection.fields
+      field <- formTemplateDecField.`type` match {
+                case g: Group => g.fields
+                case _        => List(formTemplateDecField)
+              }
+      formData <- data.get(field.id)
+    } yield (field, formData)
 
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
       case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)

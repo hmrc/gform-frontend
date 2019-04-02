@@ -100,9 +100,13 @@ class DeclarationController(
     val rows = cya_row("Submission reference", SubmissionRef(envelopeId).toString)
     val extraData = cya_section("Submission details", rows).toString()
     val declaration: List[(FormComponent, Seq[String])] = for {
-      formTemplateDecFields <- formTemplate.declarationSection.fields
-      formData              <- data.data.get(formTemplateDecFields.id)
-    } yield (formTemplateDecFields, formData)
+      formTemplateDecField <- formTemplate.declarationSection.fields
+      field <- formTemplateDecField.`type` match {
+        case g: Group => g.fields
+        case _        => List(formTemplateDecField)
+      }
+      formData <- data.data.get(field.id)
+    } yield (field, formData)
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
       case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
     })).toString()
