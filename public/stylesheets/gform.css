@@ -20,10 +20,6 @@ strong {
   margin-top: 0;
 }
 
-.link-back {
-  margin-top: 0;
-}
-
 /* Generic page styles */
 @media (min-width: 641px) {
   .content__body .page-description {
