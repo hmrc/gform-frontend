@@ -40,46 +40,67 @@ class ValidationServiceSpec extends Spec {
     false,
     None)
 
-  "validateHelper" should "return invalid when character count is less than 4, not including the + symbol" in {
+  "validatePhoneNumber" should "return valid when character count is less than 4 and contains a special character" in {
     val lessThan4WithPlus = numberWithPlus.map(string => string.substring(0, 4))
     forAll(lessThan4WithPlus) { phoneNumber =>
       {
-        val result = ComponentsValidator.validatorHelper(
-          phoneNumber.replace("+", "").length,
+        val result = ComponentsValidator.validatePhoneNumber(
+        phoneNumber.length,
+        formComponent,
+        phoneNumber)
+        result.isValid shouldBe true
+      }
+    }
+  }
+
+  it should "return invalid when a string contains a '$' symbol" in {
+    forAll(numberWithPlus) { phoneNumber =>
+    {
+      val result = ComponentsValidator.validatePhoneNumber(
+        (phoneNumber + "$").length,
+        formComponent,
+        phoneNumber + "$"
+      )
+      result.isInvalid shouldBe true
+    }
+    }
+  }
+
+  it should "return valid when character count is between 4-25" in {
+    forAll(numberWithoutPlus) { phoneNumber =>
+      {
+        val result = ComponentsValidator.validatePhoneNumber(
+          phoneNumber.length,
           formComponent,
-          phoneNumber,
-          telephoneNumber.minimumLength,
-          telephoneNumber.maximumLength
-        )
+          phoneNumber)
+        result.isValid shouldBe true
+      }
+    }
+  }
+
+  it should "return invalid when character count is less than 4" in {
+    val invalidNumber = numberWithoutPlus.map(string => string.substring(0, 3))
+    forAll(invalidNumber) { phoneNumber =>
+      {
+        val result = ComponentsValidator.validatePhoneNumber(
+          phoneNumber.length,
+          formComponent,
+          phoneNumber)
         result.isInvalid shouldBe true
       }
     }
   }
 
-  it should "return invalid when character count is greater than 25, not including the + symbol" in {
-    val greaterThan25WithPlus = "+123456768901234567889012345"
-
-    val result = ComponentsValidator.validatorHelper(
-      greaterThan25WithPlus.replace("+", "").length,
-      formComponent,
-      greaterThan25WithPlus,
-      telephoneNumber.minimumLength,
-      telephoneNumber.maximumLength)
-
-    result.isInvalid shouldBe true
-  }
-
-  it should "return valid when character count is between 0-25 and starts with a number" in {
-    forAll(numberWithoutPlus) { phoneNumber =>
-      {
-        val result = ComponentsValidator.validatorHelper(
-          phoneNumber.length,
-          formComponent,
-          phoneNumber,
-          telephoneNumber.minimumLength,
-          telephoneNumber.maximumLength)
-        result.isValid shouldBe true
-      }
+  "it" should "return valid when character count is less than 4 and contains a special character" in {
+    val lessThan4WithPlus = numberWithPlus.map(string => string.substring(0, 4))
+    forAll(lessThan4WithPlus) { phoneNumber =>
+    {
+      val result = ComponentsValidator.validatePhoneNumber(
+        phoneNumber.length,
+        formComponent,
+        phoneNumber)
+      result.isValid shouldBe true
+    }
     }
   }
 }

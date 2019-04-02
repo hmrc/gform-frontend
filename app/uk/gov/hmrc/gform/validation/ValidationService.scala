@@ -369,7 +369,7 @@ class ComponentsValidator(
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
-        validatePhoneNumber(fieldValue, value)
+        validatePhoneNumber(value.length, fieldValue, value)
       case (_, value :: Nil, Email) =>
         Monoid.combine(email(fieldValue, value), textValidator(fieldValue, value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _, _)) =>
@@ -466,14 +466,6 @@ class ComponentsValidator(
 
   private def textValidator(fieldValue: FormComponent, value: String, min: Int, max: Int) =
     ComponentsValidator.validatorHelper(value.length, fieldValue, value, min, max)
-
-  private def validatePhoneNumber(fieldValue: FormComponent, value: String) =
-    ComponentsValidator.validatorHelper(
-      value.replace("+", "").length,
-      fieldValue,
-      value,
-      TelephoneNumber.minimumLength,
-      TelephoneNumber.maximumLength)
 
   private def email(fieldValue: FormComponent, value: String) =
     if (EmailAddress.isValid(value)) ().valid
@@ -849,6 +841,24 @@ object ComponentsValidator {
       case tooShort if tooShort < min =>
         getError(fieldValue, s"has less than $min characters")
       case _ => ().valid
+    }
+
+  def validatePhoneNumber(
+    fieldValueConstraint: Int,
+    fieldValue: FormComponent,
+    value: String): Validated[Map[FormComponentId, Set[String]], Unit] =
+    fieldValueConstraint match {
+      case tooLong if tooLong > TelephoneNumber.maximumLength =>
+        getError(fieldValue, s"has more than ${TelephoneNumber.maximumLength} characters")
+      case tooShort if tooShort < TelephoneNumber.minimumLength =>
+        getError(fieldValue, s"has less than ${TelephoneNumber.minimumLength} characters")
+      case _ => validatePhoneNumberContent(value, fieldValue)
+    }
+
+  def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
+    value match {
+      case TelephoneNumber.phoneNumberValidation() => ().valid
+      case _                                       => getError(fieldValue, "Outrageous character selection detected")
     }
 
   private def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
