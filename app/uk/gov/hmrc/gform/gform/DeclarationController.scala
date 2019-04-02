@@ -46,6 +46,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.gform.views.html.summary.snippets._
+import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 
 import scala.concurrent.Future
 
@@ -100,13 +101,9 @@ class DeclarationController(
     val rows = cya_row("Submission reference", SubmissionRef(envelopeId).toString)
     val extraData = cya_section("Submission details", rows).toString()
     val declaration: List[(FormComponent, Seq[String])] = for {
-      formTemplateDecField <- formTemplate.declarationSection.fields
-      field <- formTemplateDecField.`type` match {
-                case g: Group => g.fields
-                case _        => List(formTemplateDecField)
-              }
-      formData <- data.data.get(field.id)
-    } yield (field, formData)
+      formTemplateDecField <- flattenGroups(formTemplate.declarationSection.fields)
+      formData             <- data.data.get(formTemplateDecField.id)
+    } yield (formTemplateDecField, formData)
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
       case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
     })).toString()
