@@ -107,9 +107,6 @@ class ComponentsValidator(
 
 object ComponentsValidator {
 
-  def validF(implicit ec: ExecutionContext) =
-    validationSuccess.pure[Future]
-
   def validatorHelper(
     fieldValueConstraint: Int,
     fieldValue: FormComponent,
@@ -123,6 +120,9 @@ object ComponentsValidator {
         validationFailure(fieldValue, s"has less than $min characters")
       case _ => validationSuccess
     }
+
+  def validF(implicit ec: ExecutionContext) =
+    validationSuccess.pure[Future]
 
   def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
     Set(

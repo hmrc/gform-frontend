@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.validation
 import cats.Monoid
+import cats.data.Validated
 import cats.implicits._
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
@@ -36,11 +37,12 @@ case object ComponentValidator {
   def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
     data: FormDataRecalculated): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(data, fieldValue), constraint) match {
-      case (true, Nil, _)                                    => validationFailure(fieldValue, "must be entered")
-      case (_, _, AnyText)                                   => validationSuccess
-      case (_, value :: Nil, ShortText)                      => shortTextValidation(fieldValue, value)
-      case (_, value :: Nil, BasicText)                      => ComponentValidator.textValidation(fieldValue, value)
-      case (_, value :: Nil, TextWithRestrictions(min, max)) => textValidator(fieldValue, value, min, max)
+      case (true, Nil, _)               => validationFailure(fieldValue, "must be entered")
+      case (_, _, AnyText)              => validationSuccess
+      case (_, value :: Nil, ShortText) => shortTextValidation(fieldValue, value)
+      case (_, value :: Nil, BasicText) => textValidation(fieldValue, value)
+      case (_, value :: Nil, TextWithRestrictions(min, max)) =>
+        textValidationWithConstraints(fieldValue, value, min, max)
       case (_, value :: Nil, Sterling(_)) =>
         validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
       case (_, value :: Nil, UkBankAccountNumber) =>
@@ -55,7 +57,9 @@ case object ComponentValidator {
       case (_, value :: Nil, TelephoneNumber) =>
         validatePhoneNumber(fieldValue, value)
       case (_, value :: Nil, Email) =>
-        Monoid.combine(email(fieldValue, value), textValidator(fieldValue, value, 0, ValidationValues.emailLimit))
+        Monoid.combine(
+          email(fieldValue, value),
+          textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
       case (_, value :: Nil, Number(maxWhole, maxFractional, _, _)) =>
         validateNumber(fieldValue, value, maxWhole, maxFractional, false)
       case (_, value :: Nil, PositiveNumber(maxWhole, maxFractional, _, _)) =>
@@ -73,29 +77,24 @@ case object ComponentValidator {
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
-      case (WholeShape(_, whole, _), _, _) if ComponentValidator.surpassMaxLength(whole, maxWhole) =>
+      case (WholeShape(_, whole, _), _, _) if surpassMaxLength(whole, maxWhole) =>
         validationFailure(fieldValue, s"must be at most $maxWhole digits")
       case (WholeShape("-", _, _), _, true) =>
         validationFailure(fieldValue, "must be a positive number")
       case (WholeShape(_, _, _), _, _) => validationSuccess
       case (FractionalShape(_, whole, _, fractional), 0, _)
-          if ComponentValidator.surpassMaxLength(whole, maxWhole) && ComponentValidator.lessThanMinLength(
-            fractional,
-            0) =>
+          if surpassMaxLength(whole, maxWhole) && lessThanMinLength(fractional, 0) =>
         validationFailure(fieldValue, s"must be at most $maxWhole whole digits and no decimal fraction")
       case (FractionalShape(_, whole, _, fractional), _, _)
-          if ComponentValidator.surpassMaxLength(whole, maxWhole) && ComponentValidator.surpassMaxLength(
-            fractional,
-            maxFractional) =>
+          if surpassMaxLength(whole, maxWhole) && surpassMaxLength(fractional, maxFractional) =>
         validationFailure(
           fieldValue,
           s"must be at most $maxWhole whole digits and decimal fraction must be at most $maxFractional digits")
-      case (FractionalShape(_, whole, _, _), _, _) if ComponentValidator.surpassMaxLength(whole, maxWhole) =>
+      case (FractionalShape(_, whole, _, _), _, _) if surpassMaxLength(whole, maxWhole) =>
         validationFailure(fieldValue, s"must be at most $maxWhole whole digits")
-      case (FractionalShape(_, _, _, fractional), 0, _) if ComponentValidator.lessThanMinLength(fractional, 0) =>
+      case (FractionalShape(_, _, _, fractional), 0, _) if lessThanMinLength(fractional, 0) =>
         validationFailure(fieldValue, "must be a whole number")
-      case (FractionalShape(_, _, _, fractional), _, _)
-          if ComponentValidator.surpassMaxLength(fractional, maxFractional) =>
+      case (FractionalShape(_, _, _, fractional), _, _) if surpassMaxLength(fractional, maxFractional) =>
         validationFailure(fieldValue, s"must be at most $maxFractional digits")
       case (FractionalShape("-", _, _, _), _, true) =>
         validationFailure(fieldValue, "must be a positive number")
@@ -107,16 +106,8 @@ case object ComponentValidator {
     }
   }
 
-  private def textValidator(fieldValue: FormComponent, value: String, min: Int, max: Int) =
+  private def textValidationWithConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int) =
     ComponentsValidator.validatorHelper(value.length, fieldValue, value, min, max)
-
-  private def validatePhoneNumber(fieldValue: FormComponent, value: String) =
-    ComponentsValidator.validatorHelper(
-      value.replace("+", "").length,
-      fieldValue,
-      value,
-      TelephoneNumber.minimumLength,
-      TelephoneNumber.maximumLength)
 
   private def email(fieldValue: FormComponent, value: String) =
     if (EmailAddress.isValid(value)) validationSuccess
@@ -179,6 +170,26 @@ case object ComponentValidator {
       case _                    => validationFailure(fieldValue, "is not a valid Id")
     }
   }
+
+  def validatePhoneNumber(
+    fieldValue: FormComponent,
+    value: String): Validated[Map[FormComponentId, Set[String]], Unit] =
+    value.length match {
+      case tooLong if tooLong > TelephoneNumber.maximumLength =>
+        validationFailure(fieldValue, s"has more than ${TelephoneNumber.maximumLength} characters")
+      case tooShort if tooShort < TelephoneNumber.minimumLength =>
+        validationFailure(fieldValue, s"has fewer than ${TelephoneNumber.minimumLength} characters")
+      case _ => validatePhoneNumberContent(value, fieldValue)
+    }
+
+  def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
+    value match {
+      case TelephoneNumber.phoneNumberValidation() => validationSuccess
+      case _ =>
+        validationFailure(
+          fieldValue,
+          "can only contain numbers, plus signs, hashtags, uppercase letters, spaces, asterisks, round brackets, and hyphens")
+    }
 
   def shortTextValidation(fieldValue: FormComponent, value: String) = {
     val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]{0,1000}""".r

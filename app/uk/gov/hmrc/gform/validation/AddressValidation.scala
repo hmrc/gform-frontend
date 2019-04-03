@@ -25,34 +25,37 @@ import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 case class AddressValidation(data: FormDataRecalculated) {
   import AddressValidation._
+
   def validateAddress(fieldValue: FormComponent, address: Address)(data: FormDataRecalculated): ValidatedType[Unit] = {
     val addressValueOf: String => Seq[String] = suffix => data.data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
+
+    def validateRequiredFieldSub(value: String, str: String) =
+      validateRequiredField(value, localisation(str), fieldValue)(addressValueOf(value))
+
+    def streetValidation(streetName: String) = lengthValidation(streetName, fieldValue)(addressValueOf(streetName))
+
+    val combinedValidation =
+      Monoid[ValidatedType[Unit]].combine(validateRequiredFieldSub("street1", "line 1"), streetValidation("street1"))
 
     val validatedResult: List[ValidatedType[Unit]] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
-          Monoid[ValidatedType[Unit]].combine(
-            validateRequiredField("street1", localisation("line 1"), fieldValue)(addressValueOf("street1")),
-            lengthValidation("street1", fieldValue)(addressValueOf("street1"))
-          ),
-          lengthValidation("street2", fieldValue)(addressValueOf("street2")),
-          lengthValidation("street3", fieldValue)(addressValueOf("street3")),
-          lengthValidation("street4", fieldValue)(addressValueOf("street4")),
-          validateRequiredField("postcode", localisation("postcode"), fieldValue)(addressValueOf("postcode")),
+          combinedValidation,
+          streetValidation("street2"),
+          streetValidation("street3"),
+          streetValidation("street4"),
+          validateRequiredFieldSub("postcode", "postcode"),
           validateForbiddenField("country", fieldValue)(addressValueOf("country")),
           postcodeLengthValidation("postcode", fieldValue)(addressValueOf("postcode"))
         )
       case _ =>
         List(
-          Monoid[ValidatedType[Unit]].combine(
-            validateRequiredField("street1", localisation("line 1"), fieldValue)(addressValueOf("street1")),
-            lengthValidation("street1", fieldValue)(addressValueOf("street1"))
-          ),
-          lengthValidation("street2", fieldValue)(addressValueOf("street2")),
-          lengthValidation("street3", fieldValue)(addressValueOf("street3")),
-          lengthValidation("street4", fieldValue)(addressValueOf("street4")),
+          combinedValidation,
+          streetValidation("street2"),
+          streetValidation("street3"),
+          streetValidation("street4"),
           validateForbiddenField("postcode", fieldValue)(addressValueOf("postcode")),
-          validateRequiredField("country", localisation("Country"), fieldValue)(addressValueOf("country"))
+          validateRequiredFieldSub("country", "Country")
         )
     }
 
