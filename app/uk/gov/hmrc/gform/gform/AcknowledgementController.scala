@@ -39,6 +39,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.gform.views.html.summary.snippets._
+import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 
 import scala.concurrent.Future
 
@@ -120,18 +121,16 @@ class AcknowledgementController(
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime =
       s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
-
     val rows = List(
       cya_row("Submission date", formattedTime),
       cya_row("Submission reference", SubmissionRef(envelopeId).toString),
       cya_row("Submission mark", hashedValue)
     )
     val extraData = cya_section("Submission details", HtmlFormat.fill(rows)).toString()
-
     val declaration: List[(FormComponent, Seq[String])] = for {
-      formTemplateDecFields <- formTemplate.declarationSection.fields
-      formData              <- data.get(formTemplateDecFields.id)
-    } yield (formTemplateDecFields, formData)
+      formTemplateDecField <- flattenGroups(formTemplate.declarationSection.fields)
+      formData             <- data.get(formTemplateDecField.id)
+    } yield (formTemplateDecField, formData)
 
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
       case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
