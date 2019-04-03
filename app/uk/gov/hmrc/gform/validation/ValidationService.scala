@@ -22,14 +22,14 @@ import cats.Monoid
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.des.{DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress}
-import uk.gov.hmrc.gform.sharedmodel.form.{Validated => _, _}
+import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{CannotRetrieveResponse, NotFound, ServiceResponse}
-import uk.gov.hmrc.gform.validation.ValidationUtil.{ValidatedType, _}
+import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, NotFound, ServiceResponse }
+import uk.gov.hmrc.gform.validation.ValidationUtil.{ ValidatedType, _ }
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
