@@ -60,10 +60,10 @@ class ComponentsValidator(
     fieldValue.`type` match {
       case sortCode @ UkSortCode(_) =>
         validIf(
-          SortCodeValidation(data)
+          SortCodeValidation
             .validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
       case date @ Date(_, _, _) =>
-        validIf(DateValidation(data).validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues)))
+        validIf(DateValidation.validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues), data))
       case text @ Text(constraint, _, _) =>
         validIf(
           ComponentValidator
@@ -72,7 +72,7 @@ class ComponentsValidator(
         validIf(
           ComponentValidator
             .validateText(fieldValue, constraint, retrievals)(data))
-      case address @ Address(_) => validIf(AddressValidation(data).validateAddress(fieldValue, address)(data))
+      case address @ Address(_) => validIf(AddressValidation.validateAddress(fieldValue, address)(data))
       case c @ Choice(_, _, _, _, _) =>
         validIf(ComponentValidator.validateChoice(fieldValue)(data))
       case Group(_, _, _, _, _, _)  => validF //a group is read-only
