@@ -19,7 +19,14 @@ import java.text.DateFormatSymbols
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import cats.implicits._
+import cats.Semigroup
+import cats.data.Validated
+import cats.data.Validated.{ Invalid, Valid }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedNumeric
+
+import scala.util.{ Failure, Success, Try }
 
 case object DateValidationLogic {
 
@@ -117,8 +124,27 @@ case object DateValidationLogic {
       case _ => s"must be $dayString$monthString$yearString"
 
     }
-
     result.trim
-
   }
+
+  def isNumeric(str: String, label: String): ValidatedNumeric =
+    Try(str.toInt) match {
+      case Success(x) => Valid(x)
+      case Failure(_) => Invalid(s"$label must be numeric")
+    }
+
+  def isWithinBounds(number: Int, dayOrMonth: Int, label: String): ValidatedNumeric =
+    number match {
+      case x if number <= dayOrMonth => Valid(number)
+      case y if number > dayOrMonth  => Invalid(s"$label must not be greater than $dayOrMonth")
+    }
+
+  def hasValidNumberOfDigits(number: Int, digits: Int, label: String): ValidatedNumeric =
+    number.toString.length match {
+      case x if x == digits => Valid(number)
+      case y if y != digits => Invalid(s"$label must be a $digits digit number")
+    }
+
+  def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(
+    f: (Int, Int, Int) => ConcreteDate): Validated[E, ConcreteDate] = (v3, v2, v1).mapN(f)
 }

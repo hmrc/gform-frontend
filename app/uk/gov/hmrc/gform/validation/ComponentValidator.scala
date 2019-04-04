@@ -46,7 +46,7 @@ case object ComponentValidator {
       case (_, value :: Nil, Sterling(_)) =>
         validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
       case (_, value :: Nil, UkBankAccountNumber) =>
-        SortCodeValidation(data).checkLength(fieldValue, value, ValidationValues.bankAccountLength)
+        SortCodeValidation.checkLength(fieldValue, value, ValidationValues.bankAccountLength)
       case (_, value :: Nil, UTR)                       => checkId(fieldValue, value)
       case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
@@ -182,7 +182,7 @@ case object ComponentValidator {
       case _ => validatePhoneNumberContent(value, fieldValue)
     }
 
-  def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
+ private def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
     value match {
       case TelephoneNumber.phoneNumberValidation() => validationSuccess
       case _ =>
@@ -191,7 +191,7 @@ case object ComponentValidator {
           "can only contain numbers, plus signs, hashtags, uppercase letters, spaces, asterisks, round brackets, and hyphens")
     }
 
-  def shortTextValidation(fieldValue: FormComponent, value: String) = {
+ private def shortTextValidation(fieldValue: FormComponent, value: String) = {
     val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]{0,1000}""".r
     value match {
       case ShortTextValidation() => validationSuccess
@@ -203,7 +203,7 @@ case object ComponentValidator {
     }
   }
 
-  def textValidation(fieldValue: FormComponent, value: String) = {
+ private def textValidation(fieldValue: FormComponent, value: String) = {
     val TextValidation =
       """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
     value match {
@@ -226,7 +226,7 @@ case object ComponentValidator {
     }
   }
 
-  def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =
+ private def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =
     filterCommas(wholeOrFractional).length > maxLength
 
   private def lessThanMinLength(wholeOrFractional: String, minLength: Int): Boolean =

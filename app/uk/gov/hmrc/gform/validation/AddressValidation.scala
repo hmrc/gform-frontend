@@ -23,8 +23,7 @@ import uk.gov.hmrc.gform.validation.ComponentsValidator.{ errors, validateForbid
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
-case class AddressValidation(data: FormDataRecalculated) {
-  import AddressValidation._
+case object AddressValidation {
 
   def validateAddress(fieldValue: FormComponent, address: Address)(data: FormDataRecalculated): ValidatedType[Unit] = {
     val addressValueOf: String => Seq[String] = suffix => data.data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
@@ -61,23 +60,20 @@ case class AddressValidation(data: FormDataRecalculated) {
 
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
-}
 
-case object AddressValidation {
-
-  def validateRequiredField(value: String, errorPrefix: String, fieldValue: FormComponent) =
+ private def validateRequiredField(value: String, errorPrefix: String, fieldValue: FormComponent) =
     validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix)) _
 
-  def validateForbiddenField(value: String, fieldValue: FormComponent) =
+  private def validateForbiddenField(value: String, fieldValue: FormComponent) =
     validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
 
-  def lengthValidation(value: String, fieldValue: FormComponent) =
+  private def lengthValidation(value: String, fieldValue: FormComponent) =
     addressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
-  def postcodeLengthValidation(value: String, fieldValue: FormComponent) =
+  private def postcodeLengthValidation(value: String, fieldValue: FormComponent) =
     postcodeValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
-  def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
+ private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
     xs: Seq[String]): ValidatedType[Unit] = {
     val Fourth = "[4]$".r.unanchored
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
@@ -93,7 +89,7 @@ case object AddressValidation {
     }
   }
 
-  def postcodeValidation(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType[Unit] =
+  private def postcodeValidation(fieldValue: FormComponent, fieldId: FormComponentId)(xs: Seq[String]): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty) match {
       case value :: Nil if value.length > ValidationValues.postcodeLimit =>
         Map(fieldId -> errors(fieldValue, s"postcode is longer than ${ValidationValues.postcodeLimit} characters")).invalid

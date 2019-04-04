@@ -19,11 +19,10 @@ import cats.Monoid
 import cats.implicits._
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, UkSortCode }
-import uk.gov.hmrc.gform.validation.ComponentsValidator.getError
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 
-case class SortCodeValidation(data: FormDataRecalculated) {
+case object SortCodeValidation {
 
   def validateSortCode(fieldValue: FormComponent, sC: UkSortCode, mandatory: Boolean)(data: FormDataRecalculated) =
     Monoid[ValidatedType[Unit]].combineAll(
