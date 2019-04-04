@@ -92,7 +92,7 @@ case object DateValidation {
         }
         Monoid[ValidatedType[Unit]].combineAll(result)
     }
- private def validateConcreteDateWithMessages(
+  private def validateConcreteDateWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
@@ -108,7 +108,7 @@ case object DateValidation {
           Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset))))(
           concreteDateFunctionMatch(beforeAfterPrecisely)))
 
- private def validateTodayWithSpecificMessages(
+  private def validateTodayWithSpecificMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     offset: OffsetDate,
@@ -152,7 +152,7 @@ case object DateValidation {
     }
   }
 
- private def validateTodayWithMessages(
+  private def validateTodayWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     offset: OffsetDate,
@@ -163,14 +163,14 @@ case object DateValidation {
           validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> errors(fieldValue, "must be today")))(
             todayFunctionMatch(beforeAfterPrecisely)))
 
- private def validateToday(fieldValue: FormComponent, localDate: LocalDate, offset: OffsetDate, dateError: GformError)(
+  private def validateToday(fieldValue: FormComponent, localDate: LocalDate, offset: OffsetDate, dateError: GformError)(
     func: (LocalDate, OffsetDate) => Boolean): ValidatedType[Unit] =
     func(localDate, offset) match {
       case true  => validationSuccess
       case false => dateError.invalid
     }
 
- private def validateConcreteDate(
+  private def validateConcreteDate(
     fieldValue: FormComponent,
     localDate: LocalDate,
     concreteDate: ConcreteDate,
@@ -181,7 +181,7 @@ case object DateValidation {
       case false => dateError.invalid
     }
 
- private def concreteDateFunctionMatch(beforeAfterPrecisely: BeforeAfterPrecisely)(
+  private def concreteDateFunctionMatch(beforeAfterPrecisely: BeforeAfterPrecisely)(
     date: LocalDate,
     concreteDate: ConcreteDate,
     offset: OffsetDate): Boolean =
@@ -197,7 +197,7 @@ case object DateValidation {
   import cats.instances.int._
   import cats.syntax.eq._
 
- private def preciselyFunctionMatch(date: LocalDate, concreteDate: ConcreteDate, offset: OffsetDate): Boolean = {
+  private def preciselyFunctionMatch(date: LocalDate, concreteDate: ConcreteDate, offset: OffsetDate): Boolean = {
     val parametersLength = concreteDate.getNumericParameters.length
     if (concreteDate.isExact) {
       isPreciselyExactConcreteDate(date, concreteDate, offset)
@@ -214,32 +214,33 @@ case object DateValidation {
     }
   }
 
- private def todayFunctionMatch(beforeAfterPrecisely: BeforeAfterPrecisely)(date: LocalDate, offset: OffsetDate): Boolean =
+  private def todayFunctionMatch(
+    beforeAfterPrecisely: BeforeAfterPrecisely)(date: LocalDate, offset: OffsetDate): Boolean =
     beforeAfterPrecisely match {
       case Before    => isBeforeToday(date, offset)
       case After     => isAfterToday(date, offset)
       case Precisely => isPreciselyToday(date, offset)
     }
 
- private def isAfterToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
+  private def isAfterToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
     date.isAfter(now.apply().plusDays(offset.value.toLong))
 
   private def isAfterExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
     date.isAfter(exactConcreteDateToLocalDate(concreteDay).plusDays(offset.value.toLong))
 
- private def isBeforeToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
+  private def isBeforeToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
     date.isBefore(now.apply().plusDays(offset.value.toLong))
 
- private def isBeforeExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
+  private def isBeforeExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
     date.isBefore(exactConcreteDateToLocalDate(concreteDay).plusDays(offset.value.toLong))
 
- private def isPreciselyToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
+  private def isPreciselyToday(date: LocalDate, offset: OffsetDate)(implicit now: Now[LocalDate]): Boolean =
     date.isEqual(now.apply().plusDays(offset.value.toLong))
 
- private def isPreciselyExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
+  private def isPreciselyExactConcreteDate(date: LocalDate, concreteDay: ConcreteDate, offset: OffsetDate): Boolean =
     date.isEqual(exactConcreteDateToLocalDate(concreteDay).plusDays(offset.value.toLong))
 
- private def isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate): Boolean =
+  private def isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate): Boolean =
     concreteDay.getNumericParameters
       .map {
         case ExactYear(year)   => date.getYear === year
@@ -248,13 +249,13 @@ case object DateValidation {
       }
       .forall(identity)
 
- private def isFirstOrLastDay(date: LocalDate, concreteDay: ConcreteDate): Boolean = concreteDay.day match {
+  private def isFirstOrLastDay(date: LocalDate, concreteDay: ConcreteDate): Boolean = concreteDay.day match {
     case FirstDay => date.getDayOfMonth === 1
     case LastDay =>
       LocalDate.of(date.getYear, date.getMonthValue, date.getDayOfMonth).lengthOfMonth() === date.getDayOfMonth
   }
 
- private def isNextOrPreviousYear(date: LocalDate, concreteDay: ConcreteDate): Boolean = {
+  private def isNextOrPreviousYear(date: LocalDate, concreteDay: ConcreteDate): Boolean = {
     val areMonthAndDayEqual = isSameAbstractDate(date: LocalDate, concreteDay: ConcreteDate)
     concreteDay.year match {
       case Next     => date.getYear === getNextYear && areMonthAndDayEqual
@@ -262,13 +263,13 @@ case object DateValidation {
     }
   }
 
- private def tryConcreteDateAsLocalDate(concreteDate: ConcreteDate): Try[LocalDate] =
+  private def tryConcreteDateAsLocalDate(concreteDate: ConcreteDate): Try[LocalDate] =
     concreteDate match {
       case ConcreteDate(year: ExactParameter, ExactMonth(month), day: ExactParameter) =>
         Try(LocalDate.of(getYear(year), month, getDay(getYear(year), month, day)))
     }
 
- private def validateInputDate(
+  private def validateInputDate(
     formComponent: FormComponent,
     formComponentId: FormComponentId,
     errorMsg: Option[String],

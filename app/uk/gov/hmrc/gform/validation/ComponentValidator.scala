@@ -182,7 +182,7 @@ case object ComponentValidator {
       case _ => validatePhoneNumberContent(value, fieldValue)
     }
 
- private def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
+  private def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
     value match {
       case TelephoneNumber.phoneNumberValidation() => validationSuccess
       case _ =>
@@ -191,7 +191,7 @@ case object ComponentValidator {
           "can only contain numbers, plus signs, hashtags, uppercase letters, spaces, asterisks, round brackets, and hyphens")
     }
 
- private def shortTextValidation(fieldValue: FormComponent, value: String) = {
+  private def shortTextValidation(fieldValue: FormComponent, value: String) = {
     val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]{0,1000}""".r
     value match {
       case ShortTextValidation() => validationSuccess
@@ -203,7 +203,7 @@ case object ComponentValidator {
     }
   }
 
- private def textValidation(fieldValue: FormComponent, value: String) = {
+  private def textValidation(fieldValue: FormComponent, value: String) = {
     val TextValidation =
       """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
     value match {
@@ -226,7 +226,7 @@ case object ComponentValidator {
     }
   }
 
- private def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =
+  private def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =
     filterCommas(wholeOrFractional).length > maxLength
 
   private def lessThanMinLength(wholeOrFractional: String, minLength: Int): Boolean =
