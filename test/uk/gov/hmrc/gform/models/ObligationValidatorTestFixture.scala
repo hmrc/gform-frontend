@@ -29,25 +29,26 @@ trait ObligationValidatorTestFixture {
   val cachedData: Data = Map(formComponentId -> Seq("16AZ"), FormComponentId("2") -> Seq("17BB"))
   val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
   val recalculatedTaxPeriodKey: RecalculatedTaxPeriodKey = RecalculatedTaxPeriodKey(formComponentId, taxPeriod)
+  val recalculatedTaxPeriod = Map(recalculatedTaxPeriodKey -> IdNumberValue("2"))
   val date = LocalDate.now
   val detailOne = ObligationDetail("0", date, date, date, "15BB")
   val detailTwo = ObligationDetail("0", date, date, date, "16AZ")
   val detailThree = ObligationDetail("0", date, date, date, "17AZ")
   val details: List[ObligationDetail] = detailOne :: detailTwo :: Nil
   val obligationDetails: List[ObligationDetails] = ObligationDetails(details) :: Nil
-  val obligations = Obligation(obligationDetails)
+  val obligation = Obligation(obligationDetails)
 
   val taxResponse =
-    TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriodKey, IdNumberValue("1")), obligations)
+    TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriodKey, IdNumberValue("1")), obligation)
 
   val moreObligationsAvailable =
-    obligations.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne, detailTwo, detailThree))))
+    obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne, detailTwo, detailThree))))
   val lessObligationsUnavailable =
-    obligations.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne))))
-  val lessObligationsAvailable = obligations.modify(_.obligations).setTo(List(ObligationDetails(List(detailTwo))))
+    obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailOne))))
+  val lessObligationsAvailable = obligation.modify(_.obligations).setTo(List(ObligationDetails(List(detailTwo))))
 
   val differentObligationsAvailable =
-    obligations
+    obligation
       .modify(_.obligations)
       .setTo(
         obligationDetails.tail ::: ObligationDetails(ObligationDetail("0", date, date, date, "different") :: Nil) :: Nil)

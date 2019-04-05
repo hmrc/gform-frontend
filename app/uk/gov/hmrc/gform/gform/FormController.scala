@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, NotToBeR
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.models.gform.FormValidationOutcome
+import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NewUser, ReturningUser, UserType }
 import uk.gov.hmrc.gform.models.{ AgentAccessCode, ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -121,7 +121,7 @@ class FormController(
                    for {
                      maybeForm <- getForm(formId)
                      res <- maybeForm match {
-                             case Some(form) => redirectFromEmpty(cache, form, noAccessCode, lang)
+                             case Some(form) => redirectFromEmpty(cache, form, noAccessCode, lang, NewUser)
                              case None       => Future.failed(new NotFoundException(s"Form with id $formId not found."))
                            }
                    } yield res
@@ -133,19 +133,21 @@ class FormController(
     cache: AuthCacheWithoutForm,
     form: Form,
     maybeAccessCode: Option[AccessCode],
-    lang: Option[String])(implicit request: Request[AnyContent]) = {
+    lang: Option[String],
+    userType: UserType)(implicit request: Request[AnyContent]) = {
     val dataRaw = Map.empty[FormComponentId, Seq[String]]
     val cacheWithForm = cache.toAuthCacheWithForm(form)
-    redirectWithRecalculation(cacheWithForm, dataRaw, maybeAccessCode, lang)
+    redirectWithRecalculation(cacheWithForm, dataRaw, maybeAccessCode, lang, userType)
   }
 
   private def redirectWithRecalculation(
     cache: AuthCacheWithForm,
     dataRaw: Data,
     maybeAccessCode: Option[AccessCode],
-    lang: Option[String])(implicit request: Request[AnyContent]): Future[Result] =
+    lang: Option[String],
+    userType: UserType)(implicit request: Request[AnyContent]): Future[Result] =
     for {
-      processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods)
+      processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, userType)
       res         <- updateUserData(cache, processData)(redirectResult(cache, maybeAccessCode, lang, processData, _))
     } yield res
 
@@ -179,7 +181,7 @@ class FormController(
               for {
                 maybeForm <- getForm(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
                 res <- maybeForm match {
-                        case Some(form) => redirectFromEmpty(cache, form, maybeAccessCode, lang)
+                        case Some(form) => redirectFromEmpty(cache, form, maybeAccessCode, lang, NewUser)
                         case None =>
                           BadRequest(
                             access_code_start(
@@ -333,7 +335,7 @@ class FormController(
                 frontendAppConfig)).pure[Future], {
             case "continue" =>
               val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
-              redirectWithRecalculation(cache, dataRaw, maybeAccessCode, lang)
+              redirectWithRecalculation(cache, dataRaw, maybeAccessCode, lang, ReturningUser)
             case "delete" =>
               deleteForm(maybeAccessCode, lang, cache)
             case _ => Redirect(routes.FormController.newForm(formTemplateId, lang)).pure[Future]
@@ -419,7 +421,7 @@ class FormController(
               val newDataRaw = formData.copy(fields = cache.form.visitsIndex.toFormField +: formData.fields).toData
               for {
                 newProcessData <- processDataService
-                                   .getProcessData(newDataRaw, cacheUpd, gformConnector.getAllTaxPeriods)
+                                   .getProcessData(newDataRaw, cacheUpd, gformConnector.getAllTaxPeriods, NewUser)
                 result <- validateAndUpdateData(cacheUpd, newProcessData)(toResult) // recursive call
               } yield result
             } else {
@@ -492,7 +494,7 @@ class FormController(
       }
 
       for {
-        processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods)
+        processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, NewUser)
         nav = new Navigator(sectionNumber, processData.sections, processData.data).navigate
         res <- nav match {
                 case SaveAndContinue           => processSaveAndContinue(processData)

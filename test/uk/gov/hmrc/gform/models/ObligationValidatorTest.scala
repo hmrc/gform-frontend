@@ -16,25 +16,20 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RetrievedObligations }
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 
 class ObligationValidatorTest extends Spec with ObligationValidatorTestFixture {
 
-  // format: off
-  val taxPeriodValidationTable = Table(
-    ("description", "data", "cachedObligations", "taxResponse", "output"),
-    ("obligations match and selected still available",                      cachedData,                                      obligations, taxResponse,                                                DoNotGoBackToTaxPeriodSelection),
-    ("more obligations are now available in DES",                           cachedData,                                      obligations, taxResponse.withObligations(moreObligationsAvailable),      GoBackToTaxPeriodSelection),
-    ("less obligations are available but selected still available",         cachedData,                                      obligations, taxResponse.withObligations(lessObligationsAvailable),      DoNotGoBackToTaxPeriodSelection),
-    ("less obligations are available in DES and selected is not available", cachedData.updated(formComponentId, Seq("XXX")), obligations, taxResponse.withObligations(lessObligationsAvailable),      GoBackToTaxPeriodSelection),
-    ("obligations size match but are different in DES",                     cachedData,                                      obligations, taxResponse.withObligations(differentObligationsAvailable), GoBackToTaxPeriodSelection)
-  )
-  // format: on
+  it should "validate tax period selection against DES tax response" in new ObligationValidator {
+    val cachedObligation = RetrievedObligations(NonEmptyList.one(taxResponse))
+    val desObligation = RetrievedObligations(NonEmptyList.one(taxResponse))
+    val recalculatedTaxPeriod = Map(recalculatedTaxPeriodKey -> IdNumberValue("2"))
+    val formDataRecalculated = FormDataRecalculated(Set(), RecData(cachedData, recalculatedTaxPeriod))
 
-  forAll(taxPeriodValidationTable) { (description, data, storedObligations, taxResponse, output) =>
-    it should s"check if still valid when $description" in new ObligationValidator {
-
-      validate(data, storedObligations, taxResponse) shouldBe output
-    }
+    validateWithDes(formDataRecalculated, cachedObligation, desObligation, FormDataRecalculated.clearTaxResponses) shouldBe formDataRecalculated
   }
 }

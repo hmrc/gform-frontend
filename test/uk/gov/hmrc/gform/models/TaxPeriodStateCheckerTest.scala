@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import org.scalatest.Assertion
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.models.gform.{ NewUser, ReturningUser }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -36,7 +37,7 @@ class TaxPeriodStateCheckerTest extends Spec {
         val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
           _ => desResponse.pure[Id]
 
-        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty) should be(
+        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty, NewUser) should be(
           RetrievedObligations(desResponse)
         )
       }
@@ -52,7 +53,7 @@ class TaxPeriodStateCheckerTest extends Spec {
         val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
           _ => desResponse.pure[Id]
 
-        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), NotChecked, state, Map.empty) should be(
+        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), NotChecked, state, Map.empty, NewUser) should be(
           RetrievedObligations(desResponse)
         )
       }
@@ -68,7 +69,7 @@ class TaxPeriodStateCheckerTest extends Spec {
         val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
           _ => desResponse.pure[Id]
 
-        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty) should be(
+        callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty, NewUser) should be(
           obligations
         )
       }
@@ -83,7 +84,7 @@ class TaxPeriodStateCheckerTest extends Spec {
       val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
         _ => desResponse.pure[Id]
 
-      callDesIfNeeded(getAllTaxPeriods, None, obligations, state, Map.empty) should be(obligations)
+      callDesIfNeeded(getAllTaxPeriods, None, obligations, state, Map.empty, ReturningUser) should be(obligations)
     }
   }
 
