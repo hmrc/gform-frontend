@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.validation.DateValidationLogic._
 
 import scala.util.{ Failure, Success, Try }
 
-case object DateValidation {
+object DateValidation {
 
   def validateDate(
     fieldValue: FormComponent,
