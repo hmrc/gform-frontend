@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedNumeric
 
 import scala.util.{ Failure, Success, Try }
 
-case object DateValidationLogic {
+object DateValidationLogic {
 
   def getLastDayOfMonth(year: Int, month: Int): Int = LocalDate.of(year, month, 1).lengthOfMonth
 

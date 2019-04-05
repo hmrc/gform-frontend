@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 
-case object ComponentValidator {
+object ComponentValidator {
 
   private def textData(formData: FormDataRecalculated, fieldValue: FormComponent) =
     formData.data.get(fieldValue.id) match {
@@ -188,7 +188,7 @@ case object ComponentValidator {
       case _ =>
         validationFailure(
           fieldValue,
-          "can only contain numbers, plus signs, hashtags, uppercase letters, spaces, asterisks, round brackets, and hyphens")
+          "can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens")
     }
 
   private def shortTextValidation(fieldValue: FormComponent, value: String) = {

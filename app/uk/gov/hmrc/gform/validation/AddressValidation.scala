@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.validation.ComponentsValidator.{ errors, validateForbid
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
-case object AddressValidation {
+object AddressValidation {
 
   def validateAddress(fieldValue: FormComponent, address: Address)(data: FormDataRecalculated): ValidatedType[Unit] = {
     val addressValueOf: String => Seq[String] = suffix => data.data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
