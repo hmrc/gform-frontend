@@ -9,11 +9,11 @@
 
     function init () {
       // check we are on a page with repeating groups
-      var isRepeatingPage = $('.section-repeating').length;
+      var isRepeatingPage = $('.section-repeating').length && window.location.hash;
       if (!isRepeatingPage) return;
 
-      var fieldset = $(window.location.hash).parent()
-      if (fieldset.context) $('html, body').animate({ scrollTop: $(fieldset).offset().top}, 1000);
+      var fieldset = $(window.location.hash).closest('.section-repeating')
+      if (fieldset.context) $('html, body').animate({ scrollTop: $(fieldset).offset().top}, 400);
     }
 
     self.GformRepeatingGroups = function () {
