@@ -23,22 +23,19 @@ import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-sealed trait GraphNode
-case class SimpleGN(fcId: FormComponentId) extends GraphNode
-case class IncludeIfGN(fcId: FormComponentId, includeIf: IncludeIf) extends GraphNode
-
 object DependencyGraph {
 
   val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
 
   def toGraph(formTemplate: FormTemplate, data: Data): Graph[GraphNode, DiEdge] =
     graphFrom(formTemplate.expandFormTemplate(data))
+
   def toGraphFull(formTemplate: FormTemplate): Graph[GraphNode, DiEdge] =
     graphFrom(formTemplate.expandFormTemplateFull)
 
   private def graphFrom(expandedFT: ExpandedFormTemplate): Graph[GraphNode, DiEdge] = {
 
-    val allFcIds = expandedFT.allFcIds
+    val allFcIds = expandedFT.allFormComponentIds
 
     def edges(fc: FormComponent): List[DiEdge[GraphNode]] = {
       def fcIds(fc: FormComponent): List[FormComponentId] = fc match {
@@ -87,23 +84,19 @@ object DependencyGraph {
 
     }
 
-    expandedFT.allFCs.flatMap(edges).foldLeft(emptyGraph)(_ + _) ++ includeIfs
+    expandedFT.allFormComponents.flatMap(edges).foldLeft(emptyGraph)(_ + _) ++ includeIfs
   }
 
-  def constructDepencyGraph(graph: Graph[GraphNode, DiEdge]): Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] =
+  def constructDependencyGraph(
+    graph: Graph[GraphNode, DiEdge]): Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] = {
+    def sortedOuterNodes(items: Iterable[graph.NodeT]) =
+      items.toList
+        .map(_.toOuter)
+        .sortBy(_.formComponentId.value)
+
     graph.topologicalSort
-      .map(_.toLayered)
-      .map(lto =>
-        lto.map {
-          case (index, items) =>
-            (
-              index,
-              items.toList
-                .map(_.toOuter)
-                .sortBy {
-                  case SimpleGN(fcId)       => fcId.value
-                  case IncludeIfGN(fcId, _) => fcId.value
-                }
-            )
+      .map(_.toLayered.map {
+        case (index, items) => (index, sortedOuterNodes(items))
       })
+  }
 }

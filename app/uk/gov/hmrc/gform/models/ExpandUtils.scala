@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.syntax.eq._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -30,9 +31,7 @@ object ExpandUtils {
 
     (section.fields ++ groupFields.flatten).filter {
       case IsGroup(_)      => false
-      case IsDate(_)       => false
-      case IsUkSortCode(_) => false
-      case IsAddress(_)    => false
+      case IsMultiField(_) => false
       case fc              => !data.data.contains(fc.id)
     }
   }
@@ -41,10 +40,8 @@ object ExpandUtils {
     val fcIds: Set[FormComponentId] = data.data.keys.toSet
 
     formComponents.filter {
-      case fc @ IsDate(_)       => Date.fields(fc.id).forall(ds => fcIds.exists(_ == ds))
-      case fc @ IsAddress(_)    => Address.fields(fc.id).forall(ds => fcIds.exists(_ == ds))
-      case fc @ IsUkSortCode(_) => UkSortCode.fields(fc.id).forall(ds => fcIds.exists(_ == ds))
-      case fc                   => fcIds.exists(_ == fc.id)
+      case fc @ IsMultiField(mf) => mf.fields(fc.id).forall(fcIds)
+      case fc                    => fcIds(fc.id)
     }
   }
 
@@ -68,7 +65,7 @@ object ExpandUtils {
 
     val fieldsInGroups: List[A] = groups.flatMap(_.fields).collect(pf)
 
-    val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent(data.data).expandedFC)
+    val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent(data.data).expandedFormComponents)
     val filtered = formComponents.filter(fc => pf.lift(fc).isDefined)
 
     val fcIds: Set[FormComponentId] = data.data.keys.toSet
@@ -128,10 +125,8 @@ object ExpandUtils {
 
   private def groupIds[A, B](group: Group, f: List[FormComponentId] => A): List[A] =
     group.fields.map {
-      case fc @ IsDate(_)       => f(Date.fields(fc.id).toList)
-      case fc @ IsAddress(_)    => f(Address.fields(fc.id).toList)
-      case fc @ IsUkSortCode(_) => f(UkSortCode.fields(fc.id).toList)
-      case fc                   => f(List(fc.id))
+      case fc @ IsMultiField(mf) => f(mf.fields(fc.id).toList)
+      case fc                    => f(List(fc.id))
     }
 
   /**
@@ -149,7 +144,7 @@ object ExpandUtils {
   private def occurrenceCount(ids: List[FormComponentId])(formData: FormDataRecalculated): Int = {
     val res = formData.data.keys
       .filter { fcId =>
-        ids.exists(_ == stripAnyPrefix(fcId))
+        ids.contains(stripAnyPrefix(fcId))
       }
     res.size / ids.size
   }
@@ -177,9 +172,7 @@ object ExpandUtils {
           }
           .headOption
           .map {
-            case fc @ IsDate(_)                          => Date.fields(fc.id).head
-            case fc @ IsAddress(_)                       => Address.fields(fc.id).head
-            case fc @ IsUkSortCode(_)                    => UkSortCode.fields(fc.id).head
+            case fc @ IsMultiField(mf)                   => mf.fields(fc.id).head
             case fc @ IsChoice(_)                        => fc.id.appendIndex(0)
             case fc @ lookupExtractors.IsRadioLookup(tt) => fc.id.appendIndex(0)
             case fc @ IsHmrcTaxPeriod(_)                 => fc.id
@@ -201,7 +194,7 @@ object ExpandUtils {
         val groupIdToRemove = groupIndex(idx, group)
 
         val updatedData: Map[FormComponentId, Seq[String]] = data.data -- groupIdToRemove
-        val remainingGroupIds: Set[FormComponentId] = updatedData.keys.toSet.filter(id => allGroupFcIds.exists(_ == id))
+        val remainingGroupIds: Set[FormComponentId] = updatedData.keys.toSet.filter(id => allGroupFcIds(id))
 
         val groupFcWithoutLast: FormComponent = {
           val groupUpd = group.copy(repeatsMax = Some(remainingGroupIds.size / group.fields.size))
@@ -218,7 +211,7 @@ object ExpandUtils {
             .zip(sortedIntersect)
             .map {
               case (targetFcId, sourceFcId) =>
-                (stripZeroPrefix(targetFcId), updatedData.get(stripZeroPrefix(sourceFcId)).getOrElse(Seq.empty[String]))
+                (stripZeroPrefix(targetFcId), updatedData.getOrElse(stripZeroPrefix(sourceFcId), Seq.empty[String]))
             }
             .toMap
         val newData = (updatedData -- allGroupFcIds) ++ updatedMap
@@ -232,7 +225,8 @@ object ExpandUtils {
     val gFCIds: List[FormComponentId] = group.fields.map(_.id)
     val gFC: Set[FormComponentId] = gFCIds.toSet
 
-    val presentOnPage: List[FormComponent] = submittedFCs(data, topFieldValue.expandFormComponent(data.data).expandedFC)
+    val presentOnPage: List[FormComponent] =
+      submittedFCs(data, topFieldValue.expandFormComponent(data.data).expandedFormComponents)
 
     val baseFieldPresentOnPage = {
       val alreadyPresent = presentOnPage.map(_.id).toSet
@@ -246,7 +240,7 @@ object ExpandUtils {
   }
 
   private def sortGroupList(componentList: List[FormComponent], base: List[FormComponentId]): GroupList =
-    GroupList(base.map(fcId => componentList.find(fc => stripAnyPrefix(fc.id) == fcId)).flatten)
+    GroupList(base.flatMap(fcId => componentList.find(fc => stripAnyPrefix(fc.id) === fcId)))
 
   def fillToMin(groupLists: List[GroupList], group: Group): List[GroupList] =
     group.repeatsMin match {

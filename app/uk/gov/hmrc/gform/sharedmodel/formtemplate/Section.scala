@@ -29,9 +29,9 @@ sealed trait BaseSection {
   def fields: List[FormComponent]
 }
 
-case class ExpandedSection(expandedFCs: List[ExpandedFormComponent], includeIf: Option[IncludeIf]) {
+case class ExpandedSection(expandedFormComponents: List[ExpandedFormComponent], includeIf: Option[IncludeIf]) {
   def toExpandedFormTemplate: ExpandedFormTemplate = ExpandedFormTemplate(this :: Nil)
-  def allFCs: List[FormComponent] = toExpandedFormTemplate.allFCs
+  def allFCs: List[FormComponent] = toExpandedFormTemplate.allFormComponents
 }
 
 case class Section(
@@ -49,8 +49,10 @@ case class Section(
 ) extends BaseSection {
   def expandSection(data: Data): ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponent(data)), includeIf) // TODO expand sections
+
   val expandSectionFull: ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponentFull), includeIf) // TODO expand sections
+
   val expandSectionFullWithCtx: List[FormComponentWithCtx] = fields.flatMap(_.expandFormComponentFullWithCtx)
 
   def isRepeating: Boolean = repeatsMax.isDefined && repeatsMin.isDefined

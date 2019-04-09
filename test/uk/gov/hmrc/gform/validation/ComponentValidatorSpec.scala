@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.validation
+import org.jsoup.select.Evaluator.IsEmpty
 import org.scalatest.Matchers
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
@@ -29,7 +30,7 @@ class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matc
       {
         val choiceComponent = convertFormComponent(formComponent, choice)
         whenever(isFormComponentMandatory(formComponent, true)) {
-          val res = ComponentValidator.validateChoice(choiceComponent)(choiceData(true, formComponent))
+          val res = ComponentValidator.validateChoice(choiceComponent)(emptyData(true, formComponent))
           res.isInvalid shouldBe true
         }
       }
@@ -41,19 +42,19 @@ class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matc
       {
         val choiceComponent = convertFormComponent(formComponent, choice)
         whenever(isFormComponentMandatory(formComponent, false)) {
-          val res = ComponentValidator.validateChoice(choiceComponent)(choiceData(false, formComponent))
+          val res = ComponentValidator.validateChoice(choiceComponent)(emptyData(false, formComponent))
           res.isValid shouldBe true
         }
       }
     }
   }
 
-  it should "be valid when the form component is mandatory and the data associated with the id is empty" in {
+  it should "be valid when the form component is mandatory and the data associated with the id is not empty" in {
     forAll(FormComponentGen.formComponentGen(), choiceGen) { (formComponent, choice) =>
       {
         val choiceComponent = convertFormComponent(formComponent, choice)
         whenever(isFormComponentMandatory(formComponent, true)) {
-          val res = ComponentValidator.validateChoice(choiceComponent)(choiceData(false, formComponent))
+          val res = ComponentValidator.validateChoice(choiceComponent)(emptyData(false, formComponent))
           res.isValid shouldBe true
         }
       }
@@ -145,14 +146,65 @@ class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matc
       ComponentValidator.shortTextValidation(shortTextComponent, shortTextIncorrectChars, 3, 5)
     result.isInvalid shouldBe true
   }
+  /*
+  "validateRevealingChoice" should "be invalid when one of the choices is not selected" in {
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(formComponent, revealingChoice) =>
+      {
+        val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
+        whenever(isFormComponentMandatory(formComponent, true)) {
+           val res = ComponentValidator.validateRevealingChoice(revealingChoiceComponent, data)(emptyData(true, formComponent))
+            res.isInvalid shouldBe true
+        }
+      }
+    }
+  }
+  it should "be valid when the form component is not mandatory and the data associated with the id is empty" in {
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen) { (formComponent, revealingChoice) =>
+    {
+      val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
+      whenever(isFormComponentMandatory(formComponent, false)) {
+        val res = ComponentValidator.validateRevealingChoice(choiceComponent)(emptyData(true, formComponent))
+        res.isValid shouldBe true
+      }
+    }
+    }
+  }
+  it should "be invalid if one of the choices is sleceted and it's hidden field is invalid" in {
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(formComponent, revealingChoice) =>
+      {
+        val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
+        whenever(isFormComponentMandatory(formComponent, true)){
+          val res = ComponentValidator.validateRevealingChoice(revealingChoiceComponent)(formComponentData(revealingChoiceComponent, true))
+          res.isValid shouldBe true
+        }
+      }
+    }
+  }
+  it should "be valid if one of the choices is selected and it's hidden field is valid" in {
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(formComponent, revealingChoice) =>
+      {
+        val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
+        whenever(isFormComponentMandatory(formComponent, true)){
+          val res = ComponentValidator.validateRevealingChoice(revealingChoiceComponent)(formComponentData(revealingChoiceComponent, false))
+          res.isValid shouldBe true
+        }
+      }
+    }
+  }
 
-  private val convertFormComponent: (FormComponent, Choice) => FormComponent = (formComponent, choice) =>
-    formComponent.copy(`type` = choice)
+   */
+  private val convertFormComponent: (FormComponent, ComponentType) => FormComponent = (formComponent, componentType) =>
+    formComponent.copy(`type` = componentType)
 
-  private def choiceData(isEmpty: Boolean, formComponent: FormComponent) =
+  private def emptyData(isEmpty: Boolean, formComponent: FormComponent) =
     if (isEmpty) mkFormDataRecalculated(Map(FormComponentId(formComponent.id.value) -> Seq()))
     else mkFormDataRecalculated(Map(FormComponentId(formComponent.id.value)         -> Seq("bing")))
 
   private def isFormComponentMandatory(fieldValue: FormComponent, isMandatory: Boolean) =
     fieldValue.mandatory == isMandatory
+  /*
+  private def formComponentData(revealingChoice: FormComponent, isEmpty: Boolean) = revealingChoice match {
+    case r @RevealingChoice(_, _, _) if isEmpty == true => r.hiddenField.flatMap(_.map(_.id.value)).map(id => mkFormDataRecalculated(Map(FormComponentId(id)         -> Seq())))
+    case r @RevealingChoice(_, _, _) if isEmpty == false => r.hiddenField.flatMap(_.map(_.id.value)).map(id => mkFormDataRecalculated(Map(FormComponentId(id)         -> Seq("bing"))))
+  }*/
 }

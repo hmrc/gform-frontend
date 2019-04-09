@@ -121,6 +121,14 @@ object ChoiceType {
   implicit val format: OFormat[ChoiceType] = derived.oformat
 }
 
+case class RevealingChoice(options: List[String], selections: List[Int], hiddenField: List[List[FormComponent]])
+    extends ComponentType {
+  def getHiddenFieldsId = hiddenField.flatten.map(_.id)
+}
+object RevealingChoice {
+  implicit val format: OFormat[RevealingChoice] = derived.oformat
+}
+
 case class IdType(value: String) extends AnyVal
 case class RegimeType(value: String) extends AnyVal
 

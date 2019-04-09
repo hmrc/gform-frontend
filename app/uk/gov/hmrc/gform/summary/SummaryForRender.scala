@@ -127,7 +127,7 @@ object SummaryRenderingService {
               val fcs: List[FormComponent] =
                 getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
 
-              val value = fcs.map(validate).filterNot(_ == None)
+              val value = fcs.map(validate).filterNot(_.isEmpty)
 
               if (value.nonEmpty) {
                 group_grid(fieldValue, value, isLabel, changeButton)
@@ -169,6 +169,7 @@ object SummaryRenderingService {
           case Address(_)        => address(fieldValue, validate(fieldValue), changeButton)
           case Text(_, _, _, _)  => text(fieldValue, validate(fieldValue), changeButton)
           case TextArea(_, _, _) => textarea(fieldValue, validate(fieldValue), changeButton)
+
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex
               .map {
@@ -180,14 +181,33 @@ object SummaryRenderingService {
               .collect { case Some(selection) => selection }
 
             choice(fieldValue, selections, changeButton)
+
+          // NEEDS TO BE CHANGED
+          case RevealingChoice(options, _, hiddenField) =>
+            val selections: List[(String, Int)] = options.zipWithIndex
+              .map {
+                case (option, index) =>
+                  validate(fieldValue)
+                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
+                    .map(_ => (option, index))
+              }
+              .collect { case Some(selection) => selection }
+            val hiddenFieldInfo: List[Html] = selections
+              .flatMap {
+                case (_, index) =>
+                  hiddenField(index)
+              }
+              .map(valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga, lang))
+            val listOfHtml = choice(fieldValue, selections.map { _._1 }, changeButton) :: hiddenFieldInfo
+            revealingChoice(fieldValue, listOfHtml, changeButton)
+
           case f @ FileUpload()         => file_upload(fieldValue, f, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
-          case h @ HmrcTaxPeriod(idType, _, _) =>
+
+          case h @ HmrcTaxPeriod(_, _, _) =>
             val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue))
-
             val maybeObligation = obligations.findByPeriodKey(h, periodId)
-
             hmrc_tax_period(fieldValue, validate(fieldValue), changeButton, maybeObligation)
         }
       }

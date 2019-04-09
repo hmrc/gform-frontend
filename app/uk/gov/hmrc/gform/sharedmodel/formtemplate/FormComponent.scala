@@ -31,14 +31,17 @@ sealed trait FormComponentWithCtx {
 case class FormComponentWithGroup(fc: FormComponent, parent: FormComponent) extends FormComponentWithCtx
 case class FormComponentSimple(fc: FormComponent) extends FormComponentWithCtx
 
-case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal {
-  def allIds: List[FormComponentId] =
-    expandedFC.flatMap {
-      case fc @ IsDate(_)       => Date.fields(fc.id).toList
-      case fc @ IsAddress(_)    => Address.fields(fc.id).toList
-      case fc @ IsUkSortCode(_) => UkSortCode.fields(fc.id).toList
-      case fc                   => List(fc.id)
-    }
+case class ExpandedFormComponent(expandedFormComponents: List[FormComponent]) extends AnyVal {
+  def allIds: List[FormComponentId] = {
+    def recurse(formComponent: FormComponent): List[FormComponentId] =
+      formComponent match {
+        case IsMultiField(mf)      => mf.fields(formComponent.id).toList
+        case IsRevealingChoice(rc) => rc.hiddenField.flatten.flatMap(recurse)
+        case _                     => List(formComponent.id)
+      }
+
+    expandedFormComponents.flatMap(recurse)
+  }
 }
 
 case class FormComponent(
@@ -68,29 +71,27 @@ case class FormComponent(
   private def expandByData(fc: FormComponent, data: Data): List[FormComponent] =
     expand(
       fc,
-      fields =>
-        group =>
-          index => {
-            val ids: List[FormComponentId] = groupIndex(index + 1, group)
-            val toExpand: Boolean = ids.forall(data.contains)
-            if (index == 0 || toExpand) {
-              fields.map(addFieldIndex(_, index))
-            } else Nil
+      (fields, group, index) => {
+        val ids: List[FormComponentId] = groupIndex(index + 1, group)
+        val toExpand: Boolean = ids.forall(data.contains)
+        if (index == 0 || toExpand) fields.map(addFieldIndex(_, index))
+        else Nil
       }
     )
 
   private def expandAll(fc: FormComponent): List[FormComponent] =
-    expand(fc, fields => _ => index => fields.map(addFieldIndex(_, index)))
+    expand(fc, (fields, _, index) => fields.map(addFieldIndex(_, index)))
 
   private def expand(
     fc: FormComponent,
-    f: List[FormComponent] => Group => Int => List[FormComponent]): List[FormComponent] =
+    f: (List[FormComponent], Group, Int) => List[FormComponent]): List[FormComponent] =
     fc.`type` match {
-      case g @ Group(fields, _, max, _, _, _) =>
+      case group @ Group(fields, _, max, _, _, _) =>
         val expandedFields: List[FormComponent] =
-          (0 until max.getOrElse(1)).toList.flatMap(f(fields)(g))
+          (0 until max.getOrElse(1)).toList.flatMap(f(fields, group, _))
         expandedFields.flatMap(expand(_, f)) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
-
+      case r @ RevealingChoice(options, _, hiddenField) =>
+        fc :: options.zipWithIndex.flatMap { case (_, index) => hiddenField(index) }
       case _ => fc :: Nil
     }
 
@@ -146,6 +147,14 @@ object IsGroup {
     }
 }
 
+object IsMultiField {
+  def unapply(fc: FormComponent): Option[MultiField] =
+    fc.`type` match {
+      case d: MultiField => Some(d)
+      case _             => None
+    }
+}
+
 object IsDate {
   def unapply(fc: FormComponent): Option[Date] =
     fc.`type` match {
@@ -159,6 +168,14 @@ object IsChoice {
     fc.`type` match {
       case c @ Choice(_, _, _, _, _) => Some(c)
       case _                         => None
+    }
+}
+
+object IsRevealingChoice {
+  def unapply(fc: FormComponent): Option[RevealingChoice] =
+    fc.`type` match {
+      case r @ RevealingChoice(_, _, _) => Some(r)
+      case _                            => None
     }
 }
 

@@ -214,6 +214,30 @@ class StructuredFormDataBuilderSpec extends Spec {
     )
   }
 
+  it must "create the correct JSON for RevealingChoice components" in {
+    validate(
+      createFormTemplate(
+        createNonRepeatingSection(
+          createRevealingChoice("field", createNonGroupField("revealedField1"), createNonGroupField("revealedField2"))
+        )
+      ),
+      createForm(
+        "field"          -> "0",
+        "revealedField1" -> "revealedField1Value",
+        "revealedField2" -> "revealedField2Value"
+      ),
+      objectStructure(
+        "field" -> objectStructure(
+          "choice" -> textNode("0"),
+          "revealed" -> objectStructure(
+            "revealedField1" -> textNode("revealedField1Value"),
+            "revealedField2" -> textNode("revealedField2Value")
+          )
+        )
+      )
+    )
+  }
+
   it must "include the acknowledgment and declaration sections" in {
     validate(
       createFormTemplate(
@@ -372,6 +396,12 @@ class StructuredFormDataBuilderSpec extends Spec {
 
   def createDate(id: String): FormComponent =
     createFormComponent(id, Date(AnyDate, Offset(0), None))
+
+  def createRevealingChoice(id: String, selectedFields: FormComponent*): FormComponent =
+    createFormComponent(
+      id,
+      RevealingChoice(List("Foo"), Nil, List(selectedFields.toList))
+    )
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

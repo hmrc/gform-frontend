@@ -68,7 +68,7 @@ class FormComponentSpec extends Spec {
         "Short name for $n."
       )
 
-    val result = fc.expandFormComponentFull.expandedFC
+    val result = fc.expandFormComponentFull.expandedFormComponents
 
     val expected = List(
       mkFormComponent("text-id", exprText, "1. Some label", "Short name for 1."),
@@ -120,7 +120,7 @@ class FormComponentSpec extends Spec {
       "Group label",
       "Group short name"
     )
-    val result = fc.expandFormComponentFull.expandedFC
+    val result = fc.expandFormComponentFull.expandedFormComponents
 
     val expected = List(
       mkFormComponent("text-id", exprText, "1. Some label", "Short name for 1."),
@@ -187,7 +187,7 @@ class FormComponentSpec extends Spec {
       "Group short name outer"
     )
 
-    val result = fc.expandFormComponentFull.expandedFC
+    val result = fc.expandFormComponentFull.expandedFormComponents
 
     // This is not correct, but we can take it from here if ever Group in Group functionality would be required
     val expected = List(
@@ -206,7 +206,7 @@ class FormComponentSpec extends Spec {
 
   private def notExpand(ct: ComponentType)(implicit position: Position) = {
     val fc = mkFormComponent("some-component", ct, "$n. Some label", "Short name for $n.")
-    fc.expandFormComponentFull.expandedFC should be(fc :: Nil)
+    fc.expandFormComponentFull.expandedFormComponents should be(fc :: Nil)
   }
 
   private def mkFormComponent(fcId: String, ct: ComponentType, label: String, shortName: String) =

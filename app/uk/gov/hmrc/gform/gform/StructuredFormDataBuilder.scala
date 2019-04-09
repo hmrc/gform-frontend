@@ -55,9 +55,28 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate) {
 
   private def buildField(field: FormComponent, repeatable: Boolean): Seq[Field] =
     field.`type` match {
-      case g: Group => buildGroupFields(g)
-      case _        => buildNonGroupField(field, repeatable).toSeq
+      case g: Group           => buildGroupFields(g)
+      case r: RevealingChoice => buildRevealingChoiceFields(field.id, r)
+      case _                  => buildNonGroupField(field, repeatable).toSeq
     }
+
+  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice): List[Field] =
+    formValuesByUnindexedId.get(id).map(_.head).toList.map { selection =>
+      Field(
+        FieldName(id.value),
+        ObjectStructure(
+          List(
+            Field(FieldName("choice"), TextNode(selection)),
+            Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(revealingChoice, selection.toInt)))))
+      )
+    }
+
+  private def revealedChoiceFields(revealingChoice: RevealingChoice, selection: Int): List[Field] =
+    revealingChoice
+      .hiddenField(selection)
+      .flatMap { component =>
+        buildNonGroupField(component, false)
+      }
 
   private def buildGroupFields(group: Group): Seq[Field] =
     group.fields.flatMap { buildNonGroupField(_, repeatable = true) }
