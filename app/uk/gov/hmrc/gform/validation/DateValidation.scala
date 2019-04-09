@@ -78,9 +78,8 @@ object DateValidation {
               case (beforeAfterPrecisely: BeforeAfterPrecisely, concreteDate: ConcreteDate, offset) =>
                 validateConcreteDateWithMessages(fieldValue, beforeAfterPrecisely, concreteDate, offset, data)
 
-              case (beforeAfterPrecisely: BeforeAfterPrecisely, Today, offset) => {
+              case (beforeAfterPrecisely: BeforeAfterPrecisely, Today, offset) =>
                 validateTodayWithMessages(fieldValue, beforeAfterPrecisely, offset, data)
-              }
 
               case (beforeAfterPrecisely @ _, dateField: DateField, offset) =>
                 validateDateFieldWithMessages(
