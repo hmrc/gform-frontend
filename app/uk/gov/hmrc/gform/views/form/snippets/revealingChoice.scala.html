@@ -1,0 +1,88 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import cats.data.NonEmptyList
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+@import uk.gov.hmrc.gform.views.html._
+@import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import play.twirl.api.Html
+
+@(fieldValue: FormComponent,
+optionsAndHiddenField: List[(String,List[Html])],
+prepop: Set[String],
+validationResult: Option[FormFieldValidationResult],
+index: Int,
+sectionTitle: String,
+formLevelHeading: Boolean
+)
+
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
+}
+
+@label = @{
+  LabelHelper.buildRepeatingLabel(fieldValue, index)
+}
+
+<div class="form-group@if(hasErrors) { form-group-error}">
+    <fieldset @if(fieldValue.helpText.nonEmpty){ aria-describedby="@{fieldValue.id.value}-hint" }>
+        <legend class="form-label">
+          @if(!formLevelHeading) {
+            <h1>@label</h1>
+          } else {
+            @label
+          }
+        </legend>
+
+        @if(fieldValue.helpText.nonEmpty) {
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+        }
+
+        @inline_error_map(fieldValue, validationResult)
+
+          @optionsAndHiddenField.zipWithIndex.map{ case (optionsAndHiddenField, index) =>
+          <div class="multiple-choice"
+               @if(optionsAndHiddenField._2.size>0) {
+               data-target="fields-@{fieldValue.id.appendIndex(index)}"
+               }>
+              <input id="@{fieldValue.id.appendIndex(index)}"
+                     name="@{fieldValue.id}"
+                     value="@index"
+                     type="radio"
+                     @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
+                     index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
+              />
+
+              <label for="@{fieldValue.id.appendIndex(index)}">
+                @optionsAndHiddenField._1
+              </label>
+          </div>
+        <div id="fields-@{fieldValue.id.appendIndex(index)}"
+             class="panel panel-indent js-hidden"
+             aria-hidden="true">
+            @optionsAndHiddenField._2.map{formComponent =>
+            @formComponent
+            }
+        </div>
+          }
+      </fieldset>
+</div>

@@ -15,6 +15,9 @@
  */
 
 package uk.gov.hmrc.gform.validation
+
+import akka.actor.FSM.Failure
+import akka.actor.Status.Success
 import cats.Monoid
 import cats.data.Validated
 import cats.implicits._
@@ -27,6 +30,9 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 import scala.util.matching.Regex
 
@@ -246,6 +252,24 @@ object ComponentValidator {
         validationFailure(fieldValue, messages("choice.error.required"))
       case _ => validationSuccess
     }
+  }
+
+  def validateRevealingChoice(
+    fieldValue: FormComponent,
+    revealingChoice: RevealingChoice,
+    componentsValidator: ComponentsValidator)(
+    data: FormDataRecalculated)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    val validatedChoice = validateChoice(fieldValue)(data)
+    val choiceIndex = data.data.get(fieldValue.id).toList.flatten.headOption
+    val listOfHiddenFields = choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.hiddenField.get }
+    val hiddenFieldValidations: Future[List[ValidatedType[Unit]]] =
+      listOfHiddenFields.toList.flatten.traverse(hiddenField =>
+        componentsValidator.validate(hiddenField, listOfHiddenFields.toList.flatten))
+
+    if (validatedChoice == validationSuccess) {
+      hiddenFieldValidations.map(Monoid[ValidatedType[Unit]].combineAll)
+    } else
+      Future(validatedChoice)
   }
 
   private def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =

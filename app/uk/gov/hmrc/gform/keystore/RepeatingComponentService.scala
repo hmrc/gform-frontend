@@ -31,7 +31,7 @@ object RepeatingComponentService {
     RepeatFormComponentIds(fcId => fcs.filter(_.id.value.endsWith(fcId.value)).map(_.id))
 
   def sumFunctionality(field: FormCtx, formTemplate: FormTemplate, data: FormDataRecalculated): BigDecimal = {
-    val repeatFormComponentIds = getRepeatFormComponentIds(formTemplate.expandFormTemplate(data.data).allFCs)
+    val repeatFormComponentIds = getRepeatFormComponentIds(formTemplate.expandFormTemplate(data.data).allFormComponents)
     val fcIds: List[FormComponentId] = repeatFormComponentIds.op(FormComponentId(field.value))
     fcIds.map(id => data.data.get(id).flatMap(_.headOption).fold(0: BigDecimal)(toBigDecimalDefault)).sum
   }
@@ -210,13 +210,13 @@ object RepeatingComponentService {
         }
 
     section match {
-      case s: Section => s.expandSection(data).expandedFCs.flatMap(_.expandedFC)
+      case s: Section => s.expandSection(data).expandedFormComponents.flatMap(_.expandedFormComponents)
       case _          => loop(section.fields)
     }
   }
 
   def atomicFieldsFull(section: Section): List[FormComponent] =
-    section.expandSectionFull.expandedFCs.flatMap(_.expandedFC)
+    section.expandSectionFull.expandedFormComponents.flatMap(_.expandedFormComponents)
 
   def atomicFieldsFullWithCtx(section: Section): List[FormComponentWithCtx] =
     section.expandSectionFullWithCtx

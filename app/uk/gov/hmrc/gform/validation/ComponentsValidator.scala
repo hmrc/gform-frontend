@@ -79,6 +79,8 @@ class ComponentsValidator(
       case address @ Address(_) => validIf(new AddressValidation().validateAddress(fieldValue, address)(data))
       case c @ Choice(_, _, _, _, _) =>
         validIf(ComponentValidator.validateChoice(fieldValue)(data))
+      case revealingChoice @ RevealingChoice(_, _, _) =>
+        ComponentValidator.validateRevealingChoice(fieldValue, revealingChoice, this)(data).flatMap(validIf _)
       case Group(_, _, _, _, _, _)  => cvh.validF //a group is read-only
       case FileUpload()             => validateFileUpload(data, fieldValue)
       case InformationMessage(_, _) => cvh.validF

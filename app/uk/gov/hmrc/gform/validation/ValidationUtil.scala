@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.validation
 
 import java.time.LocalDate
-import cats.implicits._
 
+import cats.implicits._
 import cats.Monoid
 import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined 
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.ValidationUtil.IsTextOrTextArea
 
 object ValidationUtil {
 
@@ -79,8 +80,8 @@ object ValidationUtil {
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
           }
         }
-      case Choice(_, _, _, _, _) | FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) |
-          Text(_, _, _, _) | TextArea(_, _, _) | HmrcTaxPeriod(_, _, _) =>
+      case Choice(_, _, _, _, _) | RevealingChoice(_, _, _) | FileUpload() | Group(_, _, _, _, _, _) |
+          InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) | HmrcTaxPeriod(_, _, _) =>
         List.empty[(FormComponentId, FormFieldValidationResult)]
     }
 
@@ -105,9 +106,117 @@ object ValidationUtil {
       case Invalid(errors) => errors
       case Valid(_)        => Map.empty[FormComponentId, Set[String]]
     }
+    def matchComponentType(fieldValue: FormComponent): FormFieldValidationResult = fieldValue.`type` match {
+      case sortCode @ UkSortCode(_) =>
+        val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
+          evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
+        val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
+          evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
+
+        val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
+          kv._1.value -> kv._2
+        }.toMap
+
+        ComponentField(fieldValue, dataMap)
+      case address @ Address(_) =>
+        val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
+          evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
+        val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
+          evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
+
+        val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
+          kv._1.value -> kv._2
+        }.toMap
+
+        ComponentField(fieldValue, dataMap)
+
+      case date @ Date(_, _, _) =>
+        val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
+          evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
+
+        val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
+          evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
+
+        val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
+          kv._1.value -> kv._2
+        }.toMap
+
+        ComponentField(fieldValue, dataMap)
+
+      case IsTextOrTextArea(constraint) =>
+        val data = constraint match {
+          case UkVrn | CompanyRegistrationNumber | EORI =>
+            dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
+          case _ => dataGetter(fieldValue.id).headOption.getOrElse("")
+        }
+        gFormErrors
+          .get(fieldValue.id)
+          .fold[FormFieldValidationResult](
+            FieldOk(fieldValue, data)
+          )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
+      case Group(_, _, _, _, _, _) => {
+        FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
+      }
+
+      case Choice(_, _, _, _, _) =>
+        gFormErrors.get(fieldValue.id) match {
+          case Some(errors) =>
+            FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
+          case None =>
+            val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
+              selectedValue.map { index =>
+                fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+              }.toMap
+            }
+            ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
+        }
+      case revealingChoice @ RevealingChoice(_, _, _) =>
+        val choiceIndex = dataGetter(fieldValue.id).headOption
+        val listOfHiddenFields =
+          choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.hiddenField.get }
+        val listOfValidatedHiddenFields =
+          listOfHiddenFields.toList.flatten.map(formComponent => matchComponentType(formComponent))
+        gFormErrors.get(fieldValue.id) match {
+          case Some(errors) =>
+            FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
+          case None =>
+            val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
+              selectedValue.map { index =>
+                fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+              }.toMap
+            }
+            val hiddenFieldMap = listOfValidatedHiddenFields.map { formFieldValidation =>
+              formFieldValidation.fieldValue.id.value -> formFieldValidation
+            }.toMap
+            ComponentField(fieldValue, optionalData.getOrElse(Map.empty) ++ hiddenFieldMap)
+        }
+      case FileUpload() => {
+        val fileName =
+          envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("Upload document")
+        gFormErrors.get(fieldValue.id) match {
+          case Some(errors) => FieldError(fieldValue, fileName, errors)
+          case None         => FieldOk(fieldValue, fileName)
+        }
+      }
+      case InformationMessage(_, infoText) => FieldOk(fieldValue, "")
+      case HmrcTaxPeriod(_, _, _) =>
+        gFormErrors.get(fieldValue.id) match {
+          case Some(errors) =>
+            FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
+          case None =>
+            val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
+              selectedValue.map { index =>
+                fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+              }.toMap
+
+            }
+            ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
+        }
+    }
 
     val resultErrors: List[FormFieldValidationResult] = atomicFields.map { fieldValue =>
-      fieldValue.`type` match {
+      matchComponentType(fieldValue)
+    /* fieldValue.`type` match {
         case sortCode @ UkSortCode(_) =>
           val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
             evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
@@ -168,9 +277,35 @@ object ValidationUtil {
                 selectedValue.map { index =>
                   fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
                 }.toMap
-
               }
-
+              ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
+          }
+        case revealingChoice @ RevealingChoice(_, _, _) =>
+          val choiceIndex = dataGetter(fieldValue.id).headOption
+          val listOfHiddenFields =
+            choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.hiddenField.get }
+          listOfHiddenFields.toList.flatten.map(k => k.id).map { component =>
+            gFormErrors.get(component) match {
+              case Some(errors) =>
+                FieldError(fieldValue, dataGetter(component).headOption.getOrElse(""), errors)
+              case None =>
+                val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
+                  selectedValue.map { index =>
+                    fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+                  }.toMap
+                }
+                ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
+            }
+          }
+          gFormErrors.get(fieldValue.id) match {
+            case Some(errors) =>
+              FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
+            case None =>
+              val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
+                selectedValue.map { index =>
+                  fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
+                }.toMap
+              }
               ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
           }
         case FileUpload() => {
@@ -193,10 +328,9 @@ object ValidationUtil {
                 }.toMap
 
               }
-
               ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
           }
-      }
+      }*/
 
     }
     resultErrors

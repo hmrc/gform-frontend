@@ -20,7 +20,6 @@ import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph._
-import uk.gov.hmrc.gform.sharedmodel.graph._
 import FormTemplateBuilder._
 
 class DependencyGraphSpec extends FlatSpec with Matchers {
@@ -226,18 +225,14 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
   }
 
   private def layers(sections: List[Section])(implicit position: Position): List[(Int, List[String])] =
-    constructDepencyGraph(toGraphFull(mkFormTemplate(sections))) match {
+    constructDependencyGraph(toGraphFull(mkFormTemplate(sections))) match {
       case Left(e) => fail
       case Right(topOrder) =>
         topOrder.toList.map {
           case (index, items) =>
             (
               index,
-              items.toList
-                .map {
-                  case SimpleGN(fcId)       => fcId.value
-                  case IncludeIfGN(fcId, _) => fcId.value
-                }
+              items.map(_.formComponentId.value)
             )
         }
     }

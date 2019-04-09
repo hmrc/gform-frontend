@@ -25,14 +25,15 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationTest
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
 case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
-  val allFCs: List[FormComponent] = expandedSection.flatMap(_.expandedFCs.flatMap(_.expandedFC))
-  val allFcIds: List[FormComponentId] = expandedSection.flatMap(_.expandedFCs.flatMap(_.allIds))
-  def fcsLookup(data: Data): Map[FormComponentId, FormComponent] =
-    allFCs.flatMap(fc => fc.expandFormComponent(data).allIds.map(_ -> fc)).toMap
-  def fcsLookupFull: Map[FormComponentId, FormComponent] =
-    allFCs.flatMap(fc => fc.expandFormComponentFull.allIds.map(_ -> fc)).toMap
+  val allFormComponents: List[FormComponent] =
+    expandedSection.flatMap(_.expandedFormComponents.flatMap(_.expandedFormComponents))
+  val allFormComponentIds: List[FormComponentId] = expandedSection.flatMap(_.expandedFormComponents.flatMap(_.allIds))
+  def formComponentsLookup(data: Data): Map[FormComponentId, FormComponent] =
+    allFormComponents.flatMap(fc => fc.expandFormComponent(data).allIds.map(_ -> fc)).toMap
+  def formComponentsLookupFull: Map[FormComponentId, FormComponent] =
+    allFormComponents.flatMap(fc => fc.expandFormComponentFull.allIds.map(_ -> fc)).toMap
   val allIncludeIfs: List[(List[ExpandedFormComponent], IncludeIf, Int)] = expandedSection.zipWithIndex.collect {
-    case (ExpandedSection(expandedFCs, Some(includeIf)), index) => (expandedFCs, includeIf, index)
+    case (ExpandedSection(expandedFormComponents, Some(includeIf)), index) => (expandedFormComponents, includeIf, index)
   }
 }
 
@@ -58,6 +59,7 @@ case class FormTemplate(
   GFC579Ready: Option[String]
 ) {
   def expandFormTemplate(data: Data): ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSection(data)))
+
   val expandFormTemplateFull: ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSectionFull))
 }
 

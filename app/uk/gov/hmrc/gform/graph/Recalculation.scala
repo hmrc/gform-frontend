@@ -117,10 +117,10 @@ class Recalculation[F[_]: Monad, E](
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate, data)
 
-    val fcLookup = formTemplate.expandFormTemplate(data).fcsLookup(data) ++ additionalFcLookup
+    val fcLookup = formTemplate.expandFormTemplate(data).formComponentsLookup(data) ++ additionalFcLookup
 
     val orderedGraph: Either[GraphException, Traversable[(Int, List[GraphNode])]] = DependencyGraph
-      .constructDepencyGraph(graph)
+      .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
     val orderedGraphT: EitherT[F, GraphException, Traversable[(Int, List[GraphNode])]] = EitherT(orderedGraph.pure[F])
@@ -245,7 +245,7 @@ class Recalculation[F[_]: Monad, E](
   }
 
   private def hasData(fc: FormComponent, dataLookup: Data): Boolean =
-    dataLookup.get(fc.id).fold(false)(_.filter(_.isEmpty).isEmpty)
+    dataLookup.get(fc.id).fold(false)(!_.exists(_.isEmpty))
 
   private def isHmrcTaxPeriodComponent(fc: FormComponent): Boolean = fc match {
     case IsHmrcTaxPeriod(_) => true
@@ -313,7 +313,7 @@ class Evaluator[F[_]: Monad](
   val eeittPrepop: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => F[String]
 ) {
 
-  val defaultF = "0".pure[F]
+  val defaultF: F[String] = "0".pure[F]
 
   private def evalRosm(thirdPartyData: ThirdPartyData, rosmProp: RosmProp): RecalculationOp = {
     val f = thirdPartyData.desRegistrationResponse.fold(RecalculationOp.setEmpty) _
@@ -480,7 +480,7 @@ object Convertible {
         computable.map { case NonComputable => None; case Computed(bd) => Some(bd) }
       case MaybeConvertible(str)            => str.map(BigDecimalUtil.toBigDecimalSafe)
       case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, BigDecimalUtil.toBigDecimalSafe)
-      case NonConvertible(_)                => Option.empty.pure[F]
+      case NonConvertible(_)                => Option.empty[BigDecimal].pure[F]
     }
 
   def round[F[_]: Monad](
@@ -500,7 +500,7 @@ case class NonConvertible[F[_]](str: F[RecalculationOp]) extends Convertible[F]
 case class MaybeConvertible[F[_]](str: F[String]) extends Convertible[F]
 case class MaybeConvertibleHidden[F[_]: Applicative](str: F[String], fcId: FormComponentId) extends Convertible[F] {
   def visible[A](formTemplate: FormTemplate, f: String => Option[A]): F[Option[A]] = {
-    val lookup = formTemplate.expandFormTemplateFull.fcsLookupFull
+    val lookup = formTemplate.expandFormTemplateFull.formComponentsLookupFull
     val maybeFc: Option[FormComponent] = lookup.get(fcId).filter {
       case IsChoice(_) => false
       case _           => true
