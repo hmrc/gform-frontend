@@ -79,8 +79,7 @@ object DateValidation {
                 validateConcreteDateWithMessages(fieldValue, beforeAfterPrecisely, concreteDate, offset, data)
 
               case (beforeAfterPrecisely: BeforeAfterPrecisely, Today, offset) => {
-                val overloadedFunctionHelper = new OverloadedFunctionHelper(data)
-                overloadedFunctionHelper.validateTodayWithMessages(fieldValue, beforeAfterPrecisely, offset, data)
+                validateTodayWithMessages(fieldValue, beforeAfterPrecisely, offset, data)
               }
 
               case (beforeAfterPrecisely @ _, dateField: DateField, offset) =>
@@ -110,6 +109,21 @@ object DateValidation {
           offset,
           Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset))))(
           concreteDateFunctionMatch(beforeAfterPrecisely)))
+
+  def validateTodayWithMessages(
+    fieldValue: FormComponent,
+    beforeAfterPrecisely: BeforeAfterPrecisely,
+    offset: OffsetDate,
+    data: FormDataRecalculated): Validated[GformError, Unit] =
+    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+      .andThen(
+        inputDate =>
+          validateToday(
+            fieldValue,
+            inputDate,
+            offset,
+            Map(fieldValue.id -> errors(fieldValue, s"must be ${beforeAfterPrecisely.mkString} today")))(
+            todayFunctionMatch(beforeAfterPrecisely)))
 
   private def validateDateFieldWithMessages(
     fieldValue: FormComponent,
@@ -295,34 +309,4 @@ object DateValidation {
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }
-}
-
-class OverloadedFunctionHelper(data: FormDataRecalculated) {
-
-  import uk.gov.hmrc.gform.validation.DateValidation._
-
-  def validateTodayWithMessages(
-    fieldValue: FormComponent,
-    beforeAfterPrecisely: BeforeAfterPrecisely,
-    offset: OffsetDate): Validated[GformError, Unit] =
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-      .andThen(
-        inputDate =>
-          validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> errors(fieldValue, "must be today")))(
-            todayFunctionMatch(beforeAfterPrecisely)))
-
-  def validateTodayWithMessages(
-    fieldValue: FormComponent,
-    beforeAfterPrecisely: BeforeAfterPrecisely,
-    offset: OffsetDate,
-    data: FormDataRecalculated): Validated[GformError, Unit] =
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-      .andThen(
-        inputDate =>
-          validateToday(
-            fieldValue,
-            inputDate,
-            offset,
-            Map(fieldValue.id -> errors(fieldValue, s"must be ${beforeAfterPrecisely.mkString} today")))(
-            todayFunctionMatch(beforeAfterPrecisely)))
 }
