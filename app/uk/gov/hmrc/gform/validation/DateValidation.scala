@@ -110,7 +110,7 @@ object DateValidation {
           Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset))))(
           concreteDateFunctionMatch(beforeAfterPrecisely)))
 
-  def validateTodayWithMessages(
+  private def validateTodayWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     offset: OffsetDate,
@@ -154,7 +154,7 @@ object DateValidation {
     }
   }
 
-  def validateToday(fieldValue: FormComponent, localDate: LocalDate, offset: OffsetDate, dateError: GformError)(
+  private def validateToday(fieldValue: FormComponent, localDate: LocalDate, offset: OffsetDate, dateError: GformError)(
     func: (LocalDate, OffsetDate) => Boolean): ValidatedType[Unit] =
     func(localDate, offset) match {
       case true  => validationSuccess
@@ -205,7 +205,8 @@ object DateValidation {
     }
   }
 
-  def todayFunctionMatch(beforeAfterPrecisely: BeforeAfterPrecisely)(date: LocalDate, offset: OffsetDate): Boolean =
+  private def todayFunctionMatch(
+    beforeAfterPrecisely: BeforeAfterPrecisely)(date: LocalDate, offset: OffsetDate): Boolean =
     beforeAfterPrecisely match {
       case Before    => isBeforeToday(date, offset)
       case After     => isAfterToday(date, offset)
