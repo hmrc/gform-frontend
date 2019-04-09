@@ -45,6 +45,7 @@ object DateValidation {
 
   private val dataGetter: (FormComponent, FormDataRecalculated) => String => Seq[String] = (fv, data) =>
     suffix => data.data.get(fv.id.withSuffix(suffix)).toList.flatten
+
   private def validateDateRequiredField(fieldValue: FormComponent, data: FormDataRecalculated): ValidatedType[Unit] = {
     val dateValueOf = dataGetter(fieldValue, data)
 
@@ -108,7 +109,7 @@ object DateValidation {
           Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset))))(
           concreteDateFunctionMatch(beforeAfterPrecisely)))
 
-  private def validateTodayWithSpecificMessages(
+  private def validateTodayWithMessages(
     fieldValue: FormComponent,
     beforeAfterPrecisely: BeforeAfterPrecisely,
     offset: OffsetDate,
@@ -151,17 +152,6 @@ object DateValidation {
       }
     }
   }
-
-  private def validateTodayWithMessages(
-    fieldValue: FormComponent,
-    beforeAfterPrecisely: BeforeAfterPrecisely,
-    offset: OffsetDate,
-    data: FormDataRecalculated): Validated[GformError, Unit] =
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
-      .andThen(
-        inputDate =>
-          validateToday(fieldValue, inputDate, offset, Map(fieldValue.id -> errors(fieldValue, "must be today")))(
-            todayFunctionMatch(beforeAfterPrecisely)))
 
   private def validateToday(fieldValue: FormComponent, localDate: LocalDate, offset: OffsetDate, dateError: GformError)(
     func: (LocalDate, OffsetDate) => Boolean): ValidatedType[Unit] =
@@ -269,7 +259,7 @@ object DateValidation {
         Try(LocalDate.of(getYear(year), month, getDay(getYear(year), month, day)))
     }
 
-  private def validateInputDate(
+  def validateInputDate(
     formComponent: FormComponent,
     formComponentId: FormComponentId,
     errorMsg: Option[String],
@@ -319,5 +309,4 @@ object DateValidation {
 
     parallelWithApplicative(d, m, y)(ConcreteDate.apply)
   }
-
 }
