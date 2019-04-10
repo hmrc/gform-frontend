@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import FormDataRecalculated._
+import uk.gov.hmrc.gform.models.gform.ObligationsAction
 
 import scala.util.Try
 
@@ -73,7 +74,8 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
   def getProcessData(
     dataRaw: Data,
     cache: AuthCacheWithForm,
-    getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[TaxResponse]]
+    getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[TaxResponse]],
+    obligationsAction: ObligationsAction
   )(
     implicit hc: HeaderCarrier,
     me: MonadError[F, E]
@@ -88,15 +90,17 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
                       hmrcTaxPeriodWithId(data.recData),
                       cache.form.thirdPartyData.obligations,
                       data.recData.recalculatedTaxPeriod,
-                      oldData.recData.recalculatedTaxPeriod
+                      oldData.recData.recalculatedTaxPeriod,
+                      obligationsAction
                     )
 
     } yield {
 
-      val dataUpd =
-        if (obligations =!= cache.form.thirdPartyData.obligations)
-          clearTaxResponses(data)
-        else data
+      val dataUpd = new ObligationValidator {}.validateWithDes(
+        data,
+        cache.form.thirdPartyData.obligations,
+        obligations,
+        FormDataRecalculated.clearTaxResponses)
 
       val newVisitIndex = updateSectionVisits(dataRaw, sections, mongoSections)
 

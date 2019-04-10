@@ -41,6 +41,8 @@ case class ObligationDetails(obligationDetails: List[ObligationDetail])
 
 object ObligationDetails {
   implicit val format: OFormat[ObligationDetails] = Json.format[ObligationDetails]
+
+  implicit val eq: Eq[ObligationDetails] = Eq.fromUniversalEquals
 }
 
 case class Obligation(obligations: List[ObligationDetails])

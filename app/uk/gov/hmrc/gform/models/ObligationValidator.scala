@@ -16,50 +16,33 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.{ Obligation, TaxResponse }
+import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.{ Obligations, RetrievedObligations, TaxResponse }
 
-sealed trait TaxSelectionNavigator
-case object DoNotGoBackToTaxPeriodSelection extends TaxSelectionNavigator
-case object GoBackToTaxPeriodSelection extends TaxSelectionNavigator
+trait ObligationValidator extends TaxSelectionNavigator {
 
-trait ObligationValidator {
-
-  def validate(data: Data, cachedObligation: Obligation, taxResponse: TaxResponse): TaxSelectionNavigator = {
-    val obligationsMatch = obligationsMatchTaxResponseObligations(cachedObligation, taxResponse)
-    val stillAvailable = selectedPeriodStillAvailable(data, taxResponse)
-
-    (obligationsMatch, stillAvailable) match {
-      case (GoBackToTaxPeriodSelection, DoNotGoBackToTaxPeriodSelection) =>
-        goBackIf(desHasMore(cachedObligation, taxResponse.obligation))
-      case (GoBackToTaxPeriodSelection, GoBackToTaxPeriodSelection) =>
-        GoBackToTaxPeriodSelection
-      case (DoNotGoBackToTaxPeriodSelection, _) =>
-        DoNotGoBackToTaxPeriodSelection
+  def validateWithDes(
+    formDataRecalculated: FormDataRecalculated,
+    cachedObligation: Obligations,
+    desObligation: Obligations,
+    clearTaxResponses: FormDataRecalculated => FormDataRecalculated): FormDataRecalculated =
+    (cachedObligation, desObligation) match {
+      case (RetrievedObligations(obligation), RetrievedObligations(responseObligation))
+          if mayClear(formDataRecalculated, obligation, responseObligation) =>
+        clearTaxResponses(formDataRecalculated)
+      case _ => formDataRecalculated
     }
-  }
 
-  private def obligationsMatchTaxResponseObligations(
-    cachedObligation: Obligation,
-    taxResponse: TaxResponse): TaxSelectionNavigator =
-    if (cachedObligation.obligations == taxResponse.obligation.obligations) DoNotGoBackToTaxPeriodSelection
-    else GoBackToTaxPeriodSelection
-
-  private def selectedPeriodStillAvailable(data: Data, taxResponse: TaxResponse): TaxSelectionNavigator = {
-    val desPeriods: List[String] = taxResponse.obligation.obligations.flatMap(_.obligationDetails).map(_.periodKey)
-    (for {
-      maybePeriod <- data.get(taxResponse.id.recalculatedTaxPeriodKey.fcId)
-      periodValue <- maybePeriod.headOption
-    } yield periodValue).fold[TaxSelectionNavigator](GoBackToTaxPeriodSelection) { period =>
-      goBackIf(!desPeriods.contains(period))
-    }
-  }
-
-  private def desHasMore(dataObligation: Obligation, desObligation: Obligation): Boolean =
-    desObligation.obligations.flatMap(_.obligationDetails).size > dataObligation.obligations
-      .flatMap(_.obligationDetails)
-      .size
-
-  private val goBackIf: Boolean => TaxSelectionNavigator =
-    predicate => if (predicate) GoBackToTaxPeriodSelection else DoNotGoBackToTaxPeriodSelection
+  private def mayClear(
+    formDataRecalculated: FormDataRecalculated,
+    cachedObligation: NonEmptyList[TaxResponse],
+    responseObligation: NonEmptyList[TaxResponse]): Boolean =
+    cachedObligation.toList
+      .zip(responseObligation.toList)
+      .map {
+        case (cached, taxResponse) => (cached.obligation, taxResponse)
+      }
+      .map { case (obligation, taxResponse) => taxSelectionNavigator(formDataRecalculated, obligation, taxResponse) }
+      .count(_ == GoBackToTaxPeriodSelection) > 0
 }
