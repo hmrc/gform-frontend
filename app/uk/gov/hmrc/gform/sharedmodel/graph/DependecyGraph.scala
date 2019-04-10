@@ -90,7 +90,20 @@ object DependencyGraph {
     expandedFT.allFCs.flatMap(edges).foldLeft(emptyGraph)(_ + _) ++ includeIfs
   }
 
-  def constructDepencyGraph(
-    graph: Graph[GraphNode, DiEdge]): Either[graph.NodeT, graph.LayeredTopologicalOrder[graph.NodeT]] =
-    graph.topologicalSort.map(_.toLayered)
+  def constructDepencyGraph(graph: Graph[GraphNode, DiEdge]): Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] =
+    graph.topologicalSort
+      .map(_.toLayered)
+      .map(lto =>
+        lto.map {
+          case (index, items) =>
+            (
+              index,
+              items.toList
+                .map(_.toOuter)
+                .sortBy {
+                  case SimpleGN(fcId)       => fcId.value
+                  case IncludeIfGN(fcId, _) => fcId.value
+                }
+            )
+      })
 }

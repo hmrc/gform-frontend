@@ -234,12 +234,11 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
             (
               index,
               items.toList
-                .map(_.toOuter)
                 .map {
                   case SimpleGN(fcId)       => fcId.value
                   case IncludeIfGN(fcId, _) => fcId.value
                 }
-                .sorted)
+            )
         }
     }
 }

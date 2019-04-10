@@ -99,12 +99,11 @@ class Recalculation[F[_]: Monad, E](
 
     val fcLookup: Map[FormComponentId, FormComponent] = formTemplate.expandFormTemplate(data).fcsLookup(data)
 
-    val orderedGraph: Either[GraphException, graph.LayeredTopologicalOrder[graph.NodeT]] = DependencyGraph
+    val orderedGraph: Either[GraphException, Traversable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDepencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
-    val orderedGraphT: EitherT[F, GraphException, graph.LayeredTopologicalOrder[graph.NodeT]] = EitherT(
-      orderedGraph.pure[F])
+    val orderedGraphT: EitherT[F, GraphException, Traversable[(Int, List[GraphNode])]] = EitherT(orderedGraph.pure[F])
 
     /**
       * Adds invisible nodes to invisibility set and returns nodes to recalculate for current Graph layer
@@ -145,12 +144,12 @@ class Recalculation[F[_]: Monad, E](
       }
     }
 
-    def recalculateGraphLayer(graphLayer: Iterable[graph.NodeT], ctx: Context): EitherT[F, GraphException, Context] = {
+    def recalculateGraphLayer(graphLayer: List[GraphNode], ctx: Context): EitherT[F, GraphException, Context] = {
       val (visibilitySet, dataLookup) = ctx
 
       val extendVisibility: EitherT[F, GraphException, ContextWithNodesToRecalculate] = {
         val visNodes: F[ContextWithNodesToRecalculate] =
-          graphLayer.toList.map(_.toOuter).foldLeft((visibilitySet, List.empty[FormComponentId]).pure[F]) {
+          graphLayer.foldLeft((visibilitySet, List.empty[FormComponentId]).pure[F]) {
             case (accF, graphNode) =>
               for {
                 acc <- accF

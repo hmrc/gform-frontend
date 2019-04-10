@@ -50,7 +50,7 @@ import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, SimpleGN }
+import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, SimpleGN }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.html
@@ -118,14 +118,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
 
     val graph = DependencyGraph.toGraphFull(formTemplate)
 
-    val graphTopologicalOrder: Either[graph.NodeT, graph.LayeredTopologicalOrder[graph.NodeT]] =
+    val graphTopologicalOrder: Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] =
       DependencyGraph.constructDepencyGraph(graph)
 
     val dependencies: Dependecies = graphTopologicalOrder match {
       case Left(_) => Dependecies(List.empty[FormComponentIdDeps])
       case Right(lto) =>
         val depLayers: Traversable[List[FormComponentId]] =
-          lto.map(_._2.map(_.toOuter).toList).map(_.collect { case SimpleGN(fcId) => fcId })
+          lto.map(_._2).map(_.collect { case SimpleGN(fcId) => fcId })
         val (deps, _) =
           depLayers
             .foldRight((List.empty[FormComponentIdDeps], List.empty[FormComponentId])) {
