@@ -601,7 +601,7 @@ class SummarySpec extends Spec {
       val urlOfHrefToSection0 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
         .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), None, SeYes)
-        .url + s"#iptRegNum"
+        .url
       urlOfHrefToSection0 shouldBe targetUrl
     }
     {
@@ -610,7 +610,7 @@ class SummarySpec extends Spec {
       val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
         .form(formTemplate._id, Some(accessCode), SectionNumber(2), SectionTitle4Ga("Business-details"), None, SeYes)
-        .url + s"#nameOfBusiness"
+        .url
       urlOfHrefToSection2 shouldBe targetUrl
     }
   }

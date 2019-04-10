@@ -22,6 +22,9 @@
   var gformSummaryLayout = new GOVUK.GformSummaryLayout();
   gformSummaryLayout.init();
 
+  var gformRepeatingGroups = new GOVUK.GformRepeatingGroups();
+  gformRepeatingGroups.init();
+
   if (window.gform && window.gform.config && window.gform.config.timeoutEnabled) {
     GOVUK.gformSessionTimeout({
       timeout: window.gform.config.timeout,
