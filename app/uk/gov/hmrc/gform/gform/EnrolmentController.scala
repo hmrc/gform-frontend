@@ -212,8 +212,8 @@ class EnrolmentController(
 
     def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
       for {
-        _      <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
-        result <- checkEnrolment(identifiers)
+        httpResponse      <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
+        result <- if (httpResponse.status == 409) EnrolmentConflict.pure[F] else checkEnrolment(identifiers)
       } yield result
 
     validationResult match {

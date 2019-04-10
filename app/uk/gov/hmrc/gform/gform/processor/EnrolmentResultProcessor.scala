@@ -18,11 +18,10 @@ package uk.gov.hmrc.gform.gform.processor
 
 import cats.data.Validated.Invalid
 import cats.syntax.validated._
-
 import play.api.mvc.{ AnyContent, Request, Result, Results }
 import play.twirl.api.Html
 import play.api.mvc.Results.{ Ok, Redirect }
-import uk.gov.hmrc.gform.auth.models.{ CheckEnrolmentsResult, EnrolmentFailed, EnrolmentSuccessful, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
@@ -95,6 +94,8 @@ class EnrolmentResultProcessor(
 
   def processEnrolmentResult(authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent]): Result =
     authRes match {
+      case EnrolmentConflict =>
+        Ok(uk.gov.hmrc.gform.views.html.form.errors.error_enrolment_conflict())
       case EnrolmentSuccessful =>
         Redirect(uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id, lang).url)
       case EnrolmentFailed =>
