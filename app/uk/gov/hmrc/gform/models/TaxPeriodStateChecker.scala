@@ -21,8 +21,8 @@ import cats.data.NonEmptyList
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.functor._
-import uk.gov.hmrc.gform.models.gform.UserType
-import uk.gov.hmrc.gform.models.gform.ReturningUser
+import uk.gov.hmrc.gform.models.gform.ObligationsAction
+import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._
 
 class TaxPeriodStateChecker[F[_]: Monad] {
@@ -33,9 +33,11 @@ class TaxPeriodStateChecker[F[_]: Monad] {
     obligations: Obligations,
     newState: Map[RecalculatedTaxPeriodKey, IdNumberValue],
     oldState: Map[RecalculatedTaxPeriodKey, IdNumberValue],
-    userType: UserType
+    obligationsAction: ObligationsAction
   ): F[Obligations] =
-    (evaluatedTaxPeriod, needRefresh(newState, oldState) || obligations.isNotChecked || isAReturningUser(userType)) match {
+    (
+      evaluatedTaxPeriod,
+      needRefresh(newState, oldState) || obligations.isNotChecked || forceObligationReload(obligationsAction)) match {
       case (None, _)        => obligations.pure[F]
       case (Some(_), false) => obligations.pure[F]
       case (Some(hmrcTaxPeriodWithEvaluatedIds), true) =>
@@ -55,8 +57,8 @@ class TaxPeriodStateChecker[F[_]: Monad] {
             oldState.get(hmrcTaxPeriod).fold(true)(_ =!= idNumberValue)
       }
 
-  private val isAReturningUser: UserType => Boolean = {
-    case ReturningUser => true
-    case _             => false
+  private val forceObligationReload: ObligationsAction => Boolean = {
+    case ForceReload => true
+    case _           => false
   }
 }

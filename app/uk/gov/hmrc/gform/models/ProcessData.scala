@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
 import FormDataRecalculated._
-import uk.gov.hmrc.gform.models.gform.UserType
+import uk.gov.hmrc.gform.models.gform.ObligationsAction
 
 import scala.util.Try
 
@@ -75,7 +75,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
     dataRaw: Data,
     cache: AuthCacheWithForm,
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[TaxResponse]],
-    userType: UserType
+    obligationsAction: ObligationsAction
   )(
     implicit hc: HeaderCarrier,
     me: MonadError[F, E]
@@ -91,7 +91,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
                       cache.form.thirdPartyData.obligations,
                       data.recData.recalculatedTaxPeriod,
                       oldData.recData.recalculatedTaxPeriod,
-                      userType
+                      obligationsAction
                     )
 
     } yield {

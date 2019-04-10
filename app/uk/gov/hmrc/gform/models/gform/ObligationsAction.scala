@@ -16,6 +16,6 @@
 
 package uk.gov.hmrc.gform.models.gform
 
-sealed trait UserType
-case object ReturningUser extends UserType
-case object NewUser extends UserType
+sealed trait ObligationsAction extends Product with Serializable
+case object ForceReload extends ObligationsAction
+case object NoSpecificAction extends ObligationsAction
