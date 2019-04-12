@@ -28,8 +28,16 @@ case class FormComponentId(value: String) extends AnyVal {
   def withSuffix(suffix: String): FormComponentId = FormComponentId(value + "-" + suffix)
   def appendIndex(i: Int): FormComponentId = FormComponentId(value + i.toString)
   def stripBase(baseFieldId: FormComponentId): FormComponentId =
-    FormComponentId(value.substring(baseFieldId.value.size + 1))
+    FormComponentId(value.substring(baseFieldId.value.length + 1))
 
+  def reduceToTemplateFieldId: FormComponentId = {
+    val repeatingGroupFieldId = """^\d+_(.+)""".r
+
+    value match {
+      case repeatingGroupFieldId(extractedFieldId) => FormComponentId(extractedFieldId)
+      case _                                       => this
+    }
+  }
 }
 
 object FormComponentId {
@@ -53,5 +61,4 @@ object FormComponentId {
     if (anchoredIdValidation.findFirstIn(s).isDefined) JsSuccess(FormComponentId(s))
     else
       JsError(errorMessage(s))
-
 }

@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable }
+import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
 class SubmissionDataTest extends Spec {
 
@@ -26,6 +27,7 @@ class SubmissionDataTest extends Spec {
     val submissionData = SubmissionData(
       htmlForm,
       Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
+      StructuredFormValue.ObjectStructure(List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue")))),
       EmailParametersRecalculated(
         Map(
           EmailTemplateVariable("variable1") -> EmailParameterValue("value1"),
@@ -48,6 +50,18 @@ class SubmissionDataTest extends Spec {
           |      "enrolledIdentifier": "ITC"
           |      }
           |    }
+          |  },
+          |  "structuredFormData": {
+          |    "fields": [
+          |     {
+          |       "name": "foo",
+          |       "value": {
+          |         "TextNode" : {
+          |           "value" : "fooValue"
+          |         }
+          |       }
+          |     }
+          |   ]
           |  },
           |  "emailParameters": {
           |     "emailParametersMap": {

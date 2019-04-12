@@ -31,7 +31,7 @@ sealed trait BaseSection {
 
 case class ExpandedSection(expandedFCs: List[ExpandedFormComponent], includeIf: Option[IncludeIf]) {
   def toExpandedFormTemplate: ExpandedFormTemplate = ExpandedFormTemplate(this :: Nil)
-  def allFCs = toExpandedFormTemplate.allFCs
+  def allFCs: List[FormComponent] = toExpandedFormTemplate.allFCs
 }
 
 case class Section(
@@ -52,10 +52,12 @@ case class Section(
   val expandSectionFull: ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponentFull), includeIf) // TODO expand sections
   val expandSectionFullWithCtx: List[FormComponentWithCtx] = fields.flatMap(_.expandFormComponentFullWithCtx)
+
+  def isRepeating: Boolean = repeatsMax.isDefined && repeatsMin.isDefined
 }
 
 object Section {
-  implicit val format = Json.format[Section]
+  implicit val format: OFormat[Section] = Json.format[Section]
 }
 
 case class DeclarationSection(
@@ -66,7 +68,7 @@ case class DeclarationSection(
 ) extends BaseSection
 
 object DeclarationSection {
-  implicit val format = Json.format[DeclarationSection]
+  implicit val format: OFormat[DeclarationSection] = Json.format[DeclarationSection]
 }
 
 case class AcknowledgementSection(
@@ -77,7 +79,7 @@ case class AcknowledgementSection(
 ) extends BaseSection
 
 object AcknowledgementSection {
-  implicit val format = Json.format[AcknowledgementSection]
+  implicit val format: OFormat[AcknowledgementSection] = Json.format[AcknowledgementSection]
 }
 
 case class EnrolmentSection(
@@ -90,7 +92,7 @@ case class EnrolmentSection(
 
 object EnrolmentSection {
   import JsonUtils._
-  implicit val format = Json.format[EnrolmentSection]
+  implicit val format: OFormat[EnrolmentSection] = Json.format[EnrolmentSection]
 }
 
 case class SectionFormField(

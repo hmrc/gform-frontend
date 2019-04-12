@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel
+package uk.gov.hmrc.gform.sharedmodel.structuredform
 
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
-import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
+import play.api.libs.json.{ Json, OFormat }
 
-case class SubmissionData(
-  pdfData: String,
-  variables: Variables,
-  structuredFormData: StructuredFormValue.ObjectStructure,
-  emailParameters: EmailParametersRecalculated)
+case class Field(name: FieldName, value: StructuredFormValue)
 
-object SubmissionData {
-
-  implicit val format: OFormat[SubmissionData] = Json.format[SubmissionData]
+object Field {
+  implicit val format: OFormat[Field] = Json.format[Field]
 }

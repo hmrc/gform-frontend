@@ -18,10 +18,12 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
 
 import com.fasterxml.jackson.databind.JsonNode
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.Variables
+import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.JsonNodes._
+import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 
 import scala.collection.JavaConversions._
 
@@ -48,10 +50,11 @@ object HandlebarsTemplateProcessorModel {
   def apply(jsonDocument: String): HandlebarsTemplateProcessorModel =
     HandlebarsTemplateProcessorModel(parseJson(jsonDocument))
 
-  def apply(form: Form, template: FormTemplate): HandlebarsTemplateProcessorModel =
-    HandlebarsTemplateProcessorModel(StructuredFormDataBuilder(form, template)) +
-      HandlebarsTemplateProcessorModel(Map("formId" -> textNode(form._id.value))) +
-      rosmRegistration(form)
+  def apply(structuredData: StructuredFormValue.ObjectStructure): HandlebarsTemplateProcessorModel =
+    HandlebarsTemplateProcessorModel(JsonStructuredFormDataBuilder(structuredData))
+
+  def formId(form: Form): HandlebarsTemplateProcessorModel =
+    HandlebarsTemplateProcessorModel(Map("formId" -> textNode(form._id.value)))
 
   def apply(fields: Map[String, JsonNode]): HandlebarsTemplateProcessorModel =
     HandlebarsTemplateProcessorModel(objectNode(fields))
@@ -62,7 +65,37 @@ object HandlebarsTemplateProcessorModel {
   def apply(variables: Variables): HandlebarsTemplateProcessorModel =
     apply(variables.value.toString)
 
-  private def rosmRegistration(form: Form): HandlebarsTemplateProcessorModel = {
+  def hmrcTaxPeriods(form: Form): HandlebarsTemplateProcessorModel = {
+
+    val lookup: Map[FormComponentId, String] = form.formData.fields.map(fd => fd.id -> fd.value).toMap
+
+    def mkMap(od: ObligationDetail): Map[String, String] = Map(
+      "periodKey"  -> od.periodKey,
+      "periodFrom" -> formatDate(od.inboundCorrespondenceFromDate),
+      "periodTo"   -> formatDate(od.inboundCorrespondenceToDate)
+    )
+
+    def toJsonNode(taxResponse: TaxResponse) = {
+      val fcId = taxResponse.id.recalculatedTaxPeriodKey.fcId
+      for {
+        periodKey <- lookup.get(fcId)
+        obligationDetail <- form.thirdPartyData.obligations
+                             .findByPeriodKey(taxResponse.id.recalculatedTaxPeriodKey.hmrcTaxPeriod, periodKey)
+      } yield Map(fcId.value -> objectNode(mkMap(obligationDetail).mapValues(textNode)))
+    }
+
+    val jsonNodes: Map[String, JsonNode] =
+      form.thirdPartyData.obligations match {
+        case NotChecked => Map.empty
+        case RetrievedObligations(taxResponses) =>
+          taxResponses.map(toJsonNode).toList.flatten.foldLeft(Map.empty[String, JsonNode])(_ ++ _)
+      }
+
+    HandlebarsTemplateProcessorModel(objectNode(jsonNodes))
+
+  }
+
+  def rosmRegistration(form: Form): HandlebarsTemplateProcessorModel = {
     val f = form.thirdPartyData.desRegistrationResponse.fold("") _
 
     HandlebarsTemplateProcessorModel(
