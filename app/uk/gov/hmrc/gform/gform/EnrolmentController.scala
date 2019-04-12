@@ -219,6 +219,7 @@ class EnrolmentController(
           _             <- validateIdentifiers[F](identifierss, postCheck)
           _             <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
           initialResult <- checkEnrolment(identifiers)
+
           reattemptResult <- if (initialResult.s.equals(EnrolmentFailed) && legacyFcEnrolmentVerifier.isDefined) {
                               enrolmentService
                                 .enrolUser(
@@ -227,24 +228,10 @@ class EnrolmentController(
                                   List(Verifier(legacyFcEnrolmentVerifier.get.value, "FC")),
                                   retrievals)
                               checkEnrolment(identifiers)
-                            } else
-                              initialResult.pure[F]
+                            } else initialResult.pure[F]
 
         } yield reattemptResult
     }
-
-//  private def p[F[_]: Monad: EnrolmentConnect: GGConnect: Evaluator](
-//    serviceId: ServiceId,
-//    checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
-//    legacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier],
-//    retrievals: MaterialisedRetrievals,
-//    identifiers: NonEmptyList[Identifier],
-//    initialResult: CheckEnrolmentsResult) =
-//    if (initialResult.s.equals(EnrolmentFailed) && legacyFcEnrolmentVerifier.isDefined) {
-//      enrolmentService
-//        .enrolUser(serviceId, identifiers, List(Verifier(legacyFcEnrolmentVerifier.get.value, "FC")), retrievals)
-//      checkEnrolment(identifiers)
-//    } else initialResult.pure[F]
 
   private def purgeEmpty[F[_]: Applicative](
     xs: NonEmptyList[(IdentifierRecipe, Identifier)]
