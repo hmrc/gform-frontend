@@ -23,21 +23,21 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 class IdentifierExtractorTest extends Spec {
 
   it should "Retrieve enrolment value head option for a given service id when regime id do not exist" in new IdentifierExtractor {
-    val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), Never)
+    val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), Never, None)
 
     identifierValue(enrolmentWithMultipleIdentifier, enrolmentAuth) should be("12XX567890")
   }
 
   it should "Retrieve enrolment value for a given service id and regime id when exist" in new IdentifierExtractor {
     val doCheck = DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB")))
-    val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), doCheck)
+    val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), doCheck, None)
 
     identifierValue(enrolmentWithMultipleIdentifier, enrolmentAuth) should be("12AB567890")
   }
 
   it should "Retrieve enrolment value for a given service id and regime id when exist with multiple Enrolment" in new IdentifierExtractor {
     val doCheck = DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AA")))
-    val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), doCheck)
+    val enrolmentAuth = EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), doCheck, None)
 
     identifierValue(multiEnrolments, enrolmentAuth) should be("12AA567890")
   }

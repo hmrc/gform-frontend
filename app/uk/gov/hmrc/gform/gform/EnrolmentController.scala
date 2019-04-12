@@ -100,7 +100,7 @@ class EnrolmentController(
   def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.asyncGGAuth(formTemplateId) {
     implicit request => cache =>
       cache.formTemplate.authConfig match {
-        case HasEnrolmentSection((_, enrolmentSection, _)) =>
+        case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
           Ok(
             renderer
               .renderEnrolmentSection(
@@ -125,10 +125,9 @@ class EnrolmentController(
       import cache._
       val checkEnrolment: ServiceId => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
         serviceId => identifiers => EitherT.liftF(Kleisli(_ => auth.checkEnrolment(serviceId, identifiers)))
-
-      processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
+      processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
         formTemplate.authConfig match {
-          case HasEnrolmentSection((serviceId, enrolmentSection, postCheck)) =>
+          case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
             def handleContinue = {
 
               implicit val EC = enrolmentConnect
@@ -160,6 +159,7 @@ class EnrolmentController(
                         postCheck,
                         checkEnrolment(serviceId),
                         validationResult,
+                        lfcev,
                         retrievals)
                         .fold(
                           enrolmentResultProcessor.recoverEnrolmentError,
@@ -202,6 +202,7 @@ class EnrolmentController(
     postCheck: EnrolmentPostCheck,
     checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
     validationResult: ValidatedType[Unit],
+    legacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier],
     retrievals: MaterialisedRetrievals
   )(
     implicit hc: HeaderCarrier,
@@ -215,11 +216,35 @@ class EnrolmentController(
           idenVer <- extractIdentifiersAndVerifiers[F](enrolmentSection)
           (identifierss, verifiers) = idenVer
           identifiers = identifierss.map(_._2)
-          _       <- validateIdentifiers[F](identifierss, postCheck)
-          _       <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
-          authRes <- checkEnrolment(identifiers)
-        } yield authRes
+          _             <- validateIdentifiers[F](identifierss, postCheck)
+          _             <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
+          initialResult <- checkEnrolment(identifiers)
+          reattemptResult <- if (initialResult.s.equals(EnrolmentFailed) && legacyFcEnrolmentVerifier.isDefined) {
+                              enrolmentService
+                                .enrolUser(
+                                  serviceId,
+                                  identifiers,
+                                  List(Verifier(legacyFcEnrolmentVerifier.get.value, "FC")),
+                                  retrievals)
+                              checkEnrolment(identifiers)
+                            } else
+                              initialResult.pure[F]
+
+        } yield reattemptResult
     }
+
+//  private def p[F[_]: Monad: EnrolmentConnect: GGConnect: Evaluator](
+//    serviceId: ServiceId,
+//    checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
+//    legacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier],
+//    retrievals: MaterialisedRetrievals,
+//    identifiers: NonEmptyList[Identifier],
+//    initialResult: CheckEnrolmentsResult) =
+//    if (initialResult.s.equals(EnrolmentFailed) && legacyFcEnrolmentVerifier.isDefined) {
+//      enrolmentService
+//        .enrolUser(serviceId, identifiers, List(Verifier(legacyFcEnrolmentVerifier.get.value, "FC")), retrievals)
+//      checkEnrolment(identifiers)
+//    } else initialResult.pure[F]
 
   private def purgeEmpty[F[_]: Applicative](
     xs: NonEmptyList[(IdentifierRecipe, Identifier)]

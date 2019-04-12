@@ -30,7 +30,8 @@ object EEITTAuthConfig {
 
 case class EnrolmentAuth(
   serviceId: ServiceId,
-  enrolmentCheck: EnrolmentCheck
+  enrolmentCheck: EnrolmentCheck,
+  legacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier]
 )
 object EnrolmentAuth {
   implicit val format: OFormat[EnrolmentAuth] = derived.oformat
@@ -118,13 +119,15 @@ case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
 case class HmrcAgentWithEnrolmentModule(agentAccess: AgentAccess, enrolmentAuth: EnrolmentAuth) extends AuthConfig
 
 object HasEnrolmentSection {
-  def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck)] = ac match {
-    case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check))) =>
-      Some((serviceId, es, check))
-    case HmrcAgentWithEnrolmentModule(_, EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check))) =>
-      Some((serviceId, es, check))
-    case _ => None
-  }
+  def unapply(
+    ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, Option[LegacyFcEnrolmentVerifier])] =
+    ac match {
+      case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check), lfcev)) =>
+        Some((serviceId, es, check, lfcev))
+      case HmrcAgentWithEnrolmentModule(_, EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check), lfcev)) =>
+        Some((serviceId, es, check, lfcev))
+      case _ => None
+    }
 }
 
 object AuthConfig {
@@ -136,32 +139,42 @@ object AuthConfig {
     serviceId: ServiceId,
     maybeRegimeId: Option[RegimeId],
     maybeEnrolmentCheck: Option[EnrolmentCheckVerb],
-    maybeEnrolmentSection: Option[EnrolmentSection]): EnrolmentAuth =
+    maybeEnrolmentSection: Option[EnrolmentSection],
+    maybeLegacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier]): EnrolmentAuth =
     (maybeEnrolmentCheck, maybeEnrolmentSection) match {
       case (Some(AlwaysVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
           serviceId,
-          DoCheck(Always, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)))
+          DoCheck(Always, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)),
+          maybeLegacyFcEnrolmentVerifier)
       case (Some(ForNonAgentsVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
           serviceId,
-          DoCheck(ForNonAgents, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)))
+          DoCheck(ForNonAgents, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)),
+          maybeLegacyFcEnrolmentVerifier)
       case (Some(AlwaysVerb), None) =>
-        EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
+        EnrolmentAuth(
+          serviceId,
+          DoCheck(Always, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)),
+          maybeLegacyFcEnrolmentVerifier)
       case (Some(ForNonAgentsVerb), None) =>
-        EnrolmentAuth(serviceId, DoCheck(ForNonAgents, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
-      case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never)
+        EnrolmentAuth(
+          serviceId,
+          DoCheck(ForNonAgents, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)),
+          maybeLegacyFcEnrolmentVerifier)
+      case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never, maybeLegacyFcEnrolmentVerifier)
     }
 
   implicit val format: OFormat[AuthConfig] = {
     val rawTemplateReads = Reads[AuthConfig] { json =>
       for {
-        authModule            <- (json \ "authModule").validate[AuthModule]
-        maybeRegimeId         <- (json \ "regimeId").validateOpt[RegimeId]
-        maybeServiceId        <- (json \ "serviceId").validateOpt[ServiceId]
-        maybeAgentAccess      <- (json \ "agentAccess").validateOpt[AgentAccess]
-        maybeEnrolmentSection <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
-        maybeEnrolmentCheck   <- (json \ "enrolmentCheck").validateOpt[EnrolmentCheckVerb]
+        authModule                     <- (json \ "authModule").validate[AuthModule]
+        maybeRegimeId                  <- (json \ "regimeId").validateOpt[RegimeId]
+        maybeLegacyFcEnrolmentVerifier <- (json \ "legacyFcEnrolmentVerifier").validateOpt[LegacyFcEnrolmentVerifier]
+        maybeServiceId                 <- (json \ "serviceId").validateOpt[ServiceId]
+        maybeAgentAccess               <- (json \ "agentAccess").validateOpt[AgentAccess]
+        maybeEnrolmentSection          <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
+        maybeEnrolmentCheck            <- (json \ "enrolmentCheck").validateOpt[EnrolmentCheckVerb]
         authConfig <- authModule match {
                        case EeittLegacy =>
                          maybeRegimeId match {
@@ -176,7 +189,12 @@ object AuthConfig {
                                JsSuccess(HmrcAgentModule(agentAccess)))
                            case Some(serviceId) =>
                              val enrolmentAuth =
-                               toEnrolmentAuth(serviceId, maybeRegimeId, maybeEnrolmentCheck, maybeEnrolmentSection)
+                               toEnrolmentAuth(
+                                 serviceId,
+                                 maybeRegimeId,
+                                 maybeEnrolmentCheck,
+                                 maybeEnrolmentSection,
+                                 maybeLegacyFcEnrolmentVerifier)
 
                              JsSuccess(
                                maybeAgentAccess.fold(HmrcEnrolmentModule(enrolmentAuth): AuthConfig)(
@@ -185,6 +203,7 @@ object AuthConfig {
                          }
                      }
       } yield authConfig
+
     }
 
     val writes: OWrites[AuthConfig] = derived.owrites
@@ -204,6 +223,13 @@ object ServiceId {
 case class RegimeId(value: String) extends AnyVal
 object RegimeId {
   implicit val format: Format[RegimeId] = ValueClassFormat.oformat("regimeId", RegimeId.apply, _.value)
+}
+
+case class LegacyFcEnrolmentVerifier(value: String) extends AnyVal
+
+object LegacyFcEnrolmentVerifier {
+  implicit val format: Format[LegacyFcEnrolmentVerifier] =
+    ValueClassFormat.oformat("legacyFcEnrolmentVerifier", LegacyFcEnrolmentVerifier.apply, _.value)
 }
 
 sealed trait AgentAccess

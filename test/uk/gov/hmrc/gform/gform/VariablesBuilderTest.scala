@@ -37,7 +37,7 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
       val enrolledIdType: ComponentType = Text(BasicText, userCtx)
       val retrievals: AuthenticatedRetrievals =
         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
-      val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+      val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never, None)
 
       val actual = VariablesBuilder(
         retrievals,
@@ -61,7 +61,7 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
       val valueComponentType: ComponentType = Text(BasicText, Value)
       val retrievals: AuthenticatedRetrievals =
         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
-      val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
+      val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never, None)
 
       val usrCtxComponent = cmp1.modify(_.`type`).setTo(enrolledId)
       val valueComponent = cmp2.modify(_.`type`).setTo(valueComponentType)

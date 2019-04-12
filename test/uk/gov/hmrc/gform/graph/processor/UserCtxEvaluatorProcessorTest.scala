@@ -47,7 +47,7 @@ class UserCtxEvaluatorProcessorTest extends Spec {
     val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(multi))
     val enrSec = EnrolmentSection("title", None, Nil, NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))), Nil)
     val auth = HmrcEnrolmentModule(
-      EnrolmentAuth(ServiceId("IR-CT"), DoCheck(Always, RequireEnrolment(enrSec), RegimeIdCheck(RegimeId("XX")))))
+      EnrolmentAuth(ServiceId("IR-CT"), DoCheck(Always, RequireEnrolment(enrSec), RegimeIdCheck(RegimeId("XX"))), None))
 
     processEvaluation(retrievals, UserCtx(EnrolledIdentifier), auth) should be(
       NonConvertible(RecalculationOp.newValue("12XX567890").pure[Id]))
@@ -64,11 +64,11 @@ class UserCtxEvaluatorProcessorTest extends Spec {
   )
   // format:on
 
-  lazy val hmrcModule: String => AuthConfig = id => HmrcEnrolmentModule(EnrolmentAuth(ServiceId(id), Never))
+  lazy val hmrcModule: String => AuthConfig = id => HmrcEnrolmentModule(EnrolmentAuth(ServiceId(id), Never, None))
   lazy val nonConvertible: String => NonConvertible[Id] = value =>
     NonConvertible(RecalculationOp.newValue(value).pure[Id])
   lazy val hmrcAgentWithEnrolmentModule =
-    HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never))
+    HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never, None))
 
   lazy val materialisedRetrievalsAgent = AuthenticatedRetrievals(
     OneTimeLogin,

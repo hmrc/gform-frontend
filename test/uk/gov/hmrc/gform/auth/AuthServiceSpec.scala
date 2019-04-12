@@ -112,9 +112,9 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   val ggAuthorisedRedirect = factory(AuthRedirect(""))
   val ggAuthorisedEnrolment = factory(AuthSuccessful(materialisedRetrievalsEnrolment))
 
-  val enrolmentAuthNoCheck = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck))
+  val enrolmentAuthNoCheck = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck), None)
   val enrolmentAuthCheck =
-    EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB"))))
+    EnrolmentAuth(ServiceId("HMRC-ORG-OBTDS"), DoCheck(Always, RejectAccess, RegimeIdCheck(RegimeId("AB"))), None)
 
   val authConfigAgentDenied = HmrcAgentWithEnrolmentModule(DenyAnyAgentAffinityUser, enrolmentAuthNoCheck)
   val formTemplateAgentDenied = formTemplate.copy(authConfig = authConfigAgentDenied)
