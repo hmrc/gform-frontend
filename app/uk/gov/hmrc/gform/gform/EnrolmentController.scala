@@ -220,16 +220,13 @@ class EnrolmentController(
           _             <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
           initialResult <- checkEnrolment(identifiers)
 
-          reattemptResult <- if (initialResult.s.equals(EnrolmentFailed) && legacyFcEnrolmentVerifier.isDefined) {
-                              enrolmentService
-                                .enrolUser(
-                                  serviceId,
-                                  identifiers,
-                                  List(Verifier(legacyFcEnrolmentVerifier.get.value, "FC")),
-                                  retrievals)
-                              checkEnrolment(identifiers)
-                            } else initialResult.pure[F]
-
+          reattemptResult <- (initialResult, legacyFcEnrolmentVerifier) match {
+                              case (EnrolmentFailed, Some(lfcev)) =>
+                                enrolmentService
+                                  .enrolUser(serviceId, identifiers, List(Verifier(lfcev.value, "FC")), retrievals)
+                                checkEnrolment(identifiers)
+                              case _ => initialResult.pure[F]
+                            }
         } yield reattemptResult
     }
 
