@@ -25,6 +25,9 @@
   var gformRepeatingGroups = new GOVUK.GformRepeatingGroups();
   gformRepeatingGroups.init();
 
+  var gformAutoComplete = new GOVUK.GformAutoComplete();
+  gformAutoComplete.init();
+
   if (window.gform && window.gform.config && window.gform.config.timeoutEnabled) {
     GOVUK.gformSessionTimeout({
       timeout: window.gform.config.timeout,

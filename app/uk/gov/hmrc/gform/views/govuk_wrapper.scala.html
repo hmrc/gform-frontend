@@ -49,11 +49,14 @@
     <script src='@routes.Assets.versioned("javascripts/gformFormActionHandlers.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformSummaryLayout.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/accessible-autocomplete.min.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformAutoComplete.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gform.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
 }
 
 @linkElement = {
+  <link href='@routes.Assets.versioned("stylesheets/accessible-autocomplete.min.css")' rel="stylesheet" />
   <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
 }
 
@@ -73,16 +76,19 @@
     @if(appConfig.googleTagManagerIdAvailable) {
       <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
     }
+    <script>
+      window.gform = window.gform || {};
+      window.gform.baseLookupUrl = "/submissions/lookup/";
+    </script>
     @if(authTimeout.timeoutEnabled) {
       <script>
-              window.gform = window.gform || {};
-              window.gform.config = {
-                timeoutEnabled: @authTimeout.timeoutEnabled,
-                timeout: @authTimeout.timeout,
-                countdown: @authTimeout.countdown,
-                keep_alive_url: "@authTimeout.keepAliveUrl",
-                logout_url: "@authTimeout.signOutUrl"
-              }
+        window.gform.config = {
+          timeoutEnabled: @authTimeout.timeoutEnabled,
+          timeout: @authTimeout.timeout,
+          countdown: @authTimeout.countdown,
+          keep_alive_url: "@authTimeout.keepAliveUrl",
+          logout_url: "@authTimeout.signOutUrl"
+        }
       </script>
     }
 
