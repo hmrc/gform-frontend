@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.scalatest.Assertion
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.NotChecked
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
 class StructuredFormDataBuilderSpec extends Spec {
   "apply(Form, FormTemplate)" must "create the correct JSON for simple fields in non-repeating sections/groups" in {
@@ -35,9 +34,9 @@ class StructuredFormDataBuilderSpec extends Spec {
       createForm(
         "field" -> "fieldValue"
       ),
-      s"""{
-      |  "field" : "fieldValue"
-      |}"""
+      objectStructure(
+        "field" -> textNode("fieldValue")
+      )
     )
   }
 
@@ -51,9 +50,9 @@ class StructuredFormDataBuilderSpec extends Spec {
       createForm(
         "field" -> "value1,value2"
       ),
-      s"""{
-      |  "field" : ["value1", "value2"]
-      |}"""
+      objectStructure(
+        "field" -> arrayNode(textNode("value1"), textNode("value2"))
+      )
     )
   }
 
@@ -70,13 +69,13 @@ class StructuredFormDataBuilderSpec extends Spec {
         "field-month" -> "2",
         "field-year"  -> "3"
       ),
-      s"""{
-      |  "field" : {
-      |    "day": "1",
-      |    "month": "2",
-      |    "year": "3"
-      |  }
-      |}"""
+      objectStructure(
+        "field" -> objectStructure(
+          "day"   -> textNode("1"),
+          "month" -> textNode("2"),
+          "year"  -> textNode("3")
+        )
+      )
     )
   }
 
@@ -91,12 +90,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "1_field" -> "fieldValue1",
         "2_field" -> "fieldValue2"
       ),
-      s"""{
-      |  "field" : [
-      |    "fieldValue1",
-      |    "fieldValue2"
-      |  ]
-      |}"""
+      objectStructure(
+        "field" -> arrayNode(
+          textNode("fieldValue1"),
+          textNode("fieldValue2")
+        )
+      )
     )
   }
 
@@ -111,12 +110,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "1_field" -> "value1,value2",
         "2_field" -> "value1,value3, value4"
       ),
-      s"""{
-      |  "field" : [
-      |               ["value1", "value2"],
-      |               ["value1", "value3", "value4"]
-      |            ]
-      |}"""
+      objectStructure(
+        "field" -> arrayNode(
+          arrayNode(textNode("value1"), textNode("value2")),
+          arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
+        )
+      )
     )
   }
 
@@ -136,19 +135,20 @@ class StructuredFormDataBuilderSpec extends Spec {
         "2_field-month" -> "5",
         "3_field-year"  -> "6"
       ),
-      s"""{
-      |  "field" : [
-      |    {
-      |      "day": "1",
-      |      "month": "2",
-      |      "year": "3"
-      |    }, {
-      |      "day": "4",
-      |      "month": "5",
-      |      "year": "6"
-      |    }
-      |  ]
-      |}"""
+      objectStructure(
+        "field" -> arrayNode(
+          objectStructure(
+            "day"   -> textNode("1"),
+            "month" -> textNode("2"),
+            "year"  -> textNode("3")
+          ),
+          objectStructure(
+            "day"   -> textNode("4"),
+            "month" -> textNode("5"),
+            "year"  -> textNode("6")
+          )
+        )
+      )
     )
   }
 
@@ -163,12 +163,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "field"   -> "fieldValue1",
         "2_field" -> "fieldValue2"
       ),
-      s"""{
-      |  "field" : [
-      |    "fieldValue1",
-      |    "fieldValue2"
-      |  ]
-      |}"""
+      objectStructure(
+        "field" -> arrayNode(
+          textNode("fieldValue1"),
+          textNode("fieldValue2")
+        )
+      )
     )
   }
 
@@ -183,12 +183,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "field"   -> "value1,value2",
         "2_field" -> "value1,value3, value4"
       ),
-      s"""{
-      |  "field" : [
-      |               ["value1", "value2"],
-      |               ["value1", "value3", "value4"]
-      |            ]
-      |}"""
+      objectStructure(
+        "field" -> arrayNode(
+          arrayNode(textNode("value1"), textNode("value2")),
+          arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
+        )
+      )
     )
   }
 
@@ -208,19 +208,20 @@ class StructuredFormDataBuilderSpec extends Spec {
         "2_field-month" -> "5",
         "3_field-year"  -> "6"
       ),
-      s"""{
-      |  "field" : [
-      |    {
-      |      "day": "1",
-      |      "month": "2",
-      |      "year": "3"
-      |    }, {
-      |      "day": "4",
-      |      "month": "5",
-      |      "year": "6"
-      |    }
-      |  ]
-      |}"""
+      objectStructure(
+        "field" -> arrayNode(
+          objectStructure(
+            "day"   -> textNode("1"),
+            "month" -> textNode("2"),
+            "year"  -> textNode("3")
+          ),
+          objectStructure(
+            "day"   -> textNode("4"),
+            "month" -> textNode("5"),
+            "year"  -> textNode("6")
+          )
+        )
+      )
     )
   }
 
@@ -238,17 +239,16 @@ class StructuredFormDataBuilderSpec extends Spec {
         "ackField" -> "ackFieldValue",
         "decField" -> "decFieldValue"
       ),
-      s"""{
-      |  "field" : "fieldValue",
-      |  "ackField" : "ackFieldValue",
-      |  "decField" : "decFieldValue"
-      |}"""
+      objectStructure(
+        "field"    -> textNode("fieldValue"),
+        "ackField" -> textNode("ackFieldValue"),
+        "decField" -> textNode("decFieldValue")
+      )
     )
   }
 
-  private def validate(formTemplate: FormTemplate, formData: Form, expectedHandlebarsModelJson: String): Assertion =
-    StructuredFormDataBuilder(formData, formTemplate) shouldBe
-      new ObjectMapper().readTree(expectedHandlebarsModelJson.stripMargin)
+  private def validate(formTemplate: FormTemplate, formData: Form, expected: StructuredFormValue): Assertion =
+    StructuredFormDataBuilder(formData, formTemplate) shouldBe expected
 
   def createForm(fields: (String, String)*): Form =
     Form(
@@ -349,4 +349,13 @@ class StructuredFormDataBuilderSpec extends Spec {
 
   def createDate(id: String): FormComponent =
     createFormComponent(id, Date(AnyDate, Offset(0), None))
+
+  private def objectStructure(fields: (String, StructuredFormValue)*): StructuredFormValue =
+    StructuredFormValue.ObjectStructure(fields.map { case (n, v) => Field(FieldName(n), v) }.toList)
+
+  private def textNode(value: String): StructuredFormValue =
+    StructuredFormValue.TextNode(value)
+
+  private def arrayNode(values: StructuredFormValue*): StructuredFormValue =
+    StructuredFormValue.ArrayNode(values.toList)
 }
