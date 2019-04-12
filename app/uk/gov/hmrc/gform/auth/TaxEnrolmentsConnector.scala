@@ -46,10 +46,9 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
       .map(identifier => identifier.key + "~" + identifier.value)
       .mkString("~")
 
-    http
-      .POST(
-        s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
-        TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment")
-      )
+    http.POST(
+      s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
+      TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment")
+    )
   }
 }
