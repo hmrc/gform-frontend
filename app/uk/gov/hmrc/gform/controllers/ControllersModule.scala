@@ -34,7 +34,7 @@ class ControllersModule(
   implicit ec: ExecutionContext
 ) {
 
-  val formService: FormService = new FormService
+  val formService = FormService
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,

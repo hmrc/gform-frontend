@@ -470,7 +470,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       case Date(_, offset, dateValue) =>
         htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, data, isHidden)
       case Address(international) => htmlForAddress(fieldValue, international, index, maybeValidated, ei, data)
-      case t @ Text(_, _, _)      => renderText(t, fieldValue, index, maybeValidated, ei, data, isHidden)
+      case t @ Text(_, _, _, _)   => renderText(t, fieldValue, index, maybeValidated, ei, data, isHidden)
       case t @ TextArea(_, _, _)  => renderTextArea(t, fieldValue, index, maybeValidated, ei, data, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(

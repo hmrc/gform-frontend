@@ -167,7 +167,7 @@ object SummaryRenderingService {
           case UkSortCode(_)     => sort_code(fieldValue, validate(fieldValue), changeButton)
           case Date(_, _, _)     => date(fieldValue, validate(fieldValue), changeButton)
           case Address(_)        => address(fieldValue, validate(fieldValue), changeButton)
-          case Text(_, _, _)     => text(fieldValue, validate(fieldValue), changeButton)
+          case Text(_, _, _, _)  => text(fieldValue, validate(fieldValue), changeButton)
           case TextArea(_, _, _) => textarea(fieldValue, validate(fieldValue), changeButton)
           case Choice(_, options, _, _, _) =>
             val selections = options.toList.zipWithIndex

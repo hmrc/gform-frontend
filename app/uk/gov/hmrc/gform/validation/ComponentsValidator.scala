@@ -64,7 +64,7 @@ class ComponentsValidator(
             .validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
       case date @ Date(_, _, _) =>
         validIf(DateValidation.validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues), data))
-      case text @ Text(constraint, _, _) =>
+      case text @ Text(constraint, _, _, _) =>
         validIf(
           ComponentValidator
             .validateText(fieldValue, constraint, retrievals)(data))

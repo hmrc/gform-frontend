@@ -61,13 +61,13 @@ class FormController(
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future, Throwable],
-  formService: FormService,
   handler: FormControllerRequestHandler
 ) extends FrontendController {
 
   import i18nSupport._
 
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
+  private val formService = FormService
 
   // TODO: this method should really be in the SignOutController which does not yet exist
   def keepAlive() = auth.keepAlive()

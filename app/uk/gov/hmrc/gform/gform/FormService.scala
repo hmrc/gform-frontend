@@ -19,21 +19,20 @@ import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationO
 import uk.gov.hmrc.gform.validation.{ FieldOk, FormFieldValidationResult, ValidationUtil }
 import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, ValidationResult }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IsText, Text }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
-class FormService {
+object FormService {
 
   def removeCommas(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
     formValidatedData.map(removeCommasHelper)
 
-  def removeCommasHelper(formComponentValidation: FormComponentValidation) =
-    formComponentValidation match {
-      case FormComponentValidation(formComponent, FieldOk(fv, cv))
-          if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
-        FormComponentValidation(formComponent, FieldOk(fv, cv.replaceAll(",", "")))
-      case _ => formComponentValidation
-    }
+  private def removeCommasHelper(formComponentValidation: FormComponentValidation) = formComponentValidation match {
+    case FormComponentValidation(formComponent, FieldOk(fv, cv))
+        if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
+      FormComponentValidation(formComponent, FieldOk(fv, cv.replaceAll(",", "")))
+    case _ => formComponentValidation
+  }
 
   def splitFormComponentValidation(
     optionFcv: Option[(FormComponent, FormFieldValidationResult)]): Option[FormComponentValidation] =
@@ -52,7 +51,7 @@ class FormService {
             formComponentValidation.formComponent -> formComponentValidation.formFieldValidationResult)
           .toMap)
     val formComponents =
-      if (isFormValid) removeCommas(validationResult) else validationResult
+      if (isFormValid) toUpperCase(removeCommas(validationResult)) else validationResult
 
     FormValidationOutcome(
       isFormValid,
@@ -61,5 +60,19 @@ class FormService {
       }),
       validatedType
     )
+  }
+
+  private def toUpperCase(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
+    formValidatedData.map(isTextUpperCase)
+
+  def isTextUpperCase(formComponentValidation: FormComponentValidation): FormComponentValidation =
+    formComponentValidation.formComponent match {
+      case fc if fc.isUpperCase == false => formComponentValidation
+      case fc if fc.isUpperCase          => makeUpperCase(formComponentValidation)
+    }
+
+  private def makeUpperCase(formComponentValidation: FormComponentValidation) = formComponentValidation match {
+    case FormComponentValidation(formComponent, FieldOk(fieldValue, value)) =>
+      FormComponentValidation(formComponent, FieldOk(fieldValue, value.toUpperCase))
   }
 }

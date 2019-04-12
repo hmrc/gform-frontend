@@ -34,7 +34,8 @@ sealed trait ComponentType
 case class Text(
   constraint: TextConstraint,
   value: Expr,
-  displayWidth: DisplayWidth = DisplayWidth.DEFAULT
+  displayWidth: DisplayWidth = DisplayWidth.DEFAULT,
+  toUpperCase: UpperCaseBoolean = IsNotUpperCase
 ) extends ComponentType
 
 case class TextArea(
@@ -80,6 +81,16 @@ object DisplayWidth extends Enumeration {
 
   implicit val displayWidthReads = Reads.enumNameReads(DisplayWidth)
   implicit val displayWidthWrites = Writes.enumNameWrites
+}
+
+sealed trait UpperCaseBoolean
+
+object IsUpperCase extends UpperCaseBoolean
+
+object IsNotUpperCase extends UpperCaseBoolean
+
+object UpperCaseBoolean {
+  implicit val format: OFormat[UpperCaseBoolean] = derived.oformat
 }
 
 case class Choice(

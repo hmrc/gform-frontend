@@ -26,23 +26,22 @@ import uk.gov.hmrc.gform.ops.FormComponentOps
 
 class FormServiceSpec extends Spec {
 
-  val formService = new FormService
+  private val formService = FormService
 
-  val genFormComponent = FormComponentGen.formComponentGen()
-
-  val sterling = new Sterling(RoundingMode.defaultRoundingMode)
-  val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
-  val genFormComponentSterlingConstraint: Gen[FormComponent] =
+  private val genFormComponent = FormComponentGen.formComponentGen()
+  private val sterling = Sterling(RoundingMode.defaultRoundingMode)
+  private val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
+  private val genFormComponentSterlingConstraint: Gen[FormComponent] =
     genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))
 
-  val number = new Number()
-  val textNumberConstraint = Text(number, Expr.additionIdentityExpr)
-  val genFormComponentNumberConstraint: Gen[FormComponent] =
+  private val number = Number()
+  private val textNumberConstraint = Text(number, Expr.additionIdentityExpr)
+  private val genFormComponentNumberConstraint: Gen[FormComponent] =
     genFormComponent.map(e => e.copy(`type` = textNumberConstraint))
 
-  val positiveNumber = new PositiveNumber()
-  val textPositiveNumberConstraint = Text(positiveNumber, Expr.additionIdentityExpr)
-  val genFormComponentPNConstraint: Gen[FormComponent] =
+  private val positiveNumber = PositiveNumber()
+  private val textPositiveNumberConstraint = Text(positiveNumber, Expr.additionIdentityExpr)
+  private val genFormComponentPNConstraint: Gen[FormComponent] =
     genFormComponent.map(e => e.copy(`type` = textPositiveNumberConstraint))
 
   "removeCommas" should "remove any commas from the FormFieldValidationResult when FormComponent type is of type Sterling" +
@@ -94,6 +93,23 @@ class FormServiceSpec extends Spec {
         .head
         .formFieldValidationResult
         .getCurrentValue shouldBe Some("1,000.25")
+    }
+  }
+
+  private val textWithoutUppercase = Text(BasicText, Expr.additionIdentityExpr)
+  private val textWithUppercase = Text(BasicText, Expr.additionIdentityExpr, DisplayWidth.DEFAULT, IsUpperCase)
+
+  "isTextUpperCase" should "return a formValidationResult if the toUpperCase attribute is set to false" in {
+    forAll(genFormComponent.map(e => e.copy(`type` = textWithoutUppercase))) { formComponent =>
+      formService.isTextUpperCase(FormComponentValidation(formComponent, FieldOk(formComponent, "abcd"))) shouldBe
+        FormComponentValidation(formComponent, FieldOk(formComponent, "abcd"))
+    }
+  }
+
+  it should "change the text to uppercase if the toUpperCase attribute is set to true" in {
+    forAll(genFormComponent.map(e => e.copy(`type` = textWithUppercase))) { formComponent =>
+      formService.isTextUpperCase(FormComponentValidation(formComponent, FieldOk(formComponent, "abcd"))) shouldBe
+        FormComponentValidation(formComponent, FieldOk(formComponent, "ABCD"))
     }
   }
 }
