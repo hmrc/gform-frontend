@@ -196,19 +196,26 @@ class EnrolmentController(
           FR.raise(RegimeIdNotMatch(identifierRecipe))
     }
 
-  private def processValidation[F[_]: Monad: EnrolmentConnect: GGConnect: Evaluator](
+  def processValidation[F[_]: Monad: EnrolmentConnect: GGConnect: Evaluator](
     serviceId: ServiceId,
     enrolmentSection: EnrolmentSection,
     postCheck: EnrolmentPostCheck,
     checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
     validationResult: ValidatedType[Unit],
-    legacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier],
+    enrolmentAction: EnrolmentAction,
     retrievals: MaterialisedRetrievals
   )(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent],
     AA: ApplicativeAsk[F, Env],
-    FR: FunctorRaise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] =
+    FR: FunctorRaise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
+    println("eeeeeee " + enrolmentAction)
+    def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
+      for {
+        _      <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
+        result <- checkEnrolment(identifiers)
+      } yield result
+
     validationResult match {
       case Invalid(errors) => FR.raise(EnrolmentFormNotValid(errors))
       case Valid(()) =>
@@ -217,18 +224,19 @@ class EnrolmentController(
           (identifierss, verifiers) = idenVer
           identifiers = identifierss.map(_._2)
           _             <- validateIdentifiers[F](identifierss, postCheck)
-          _             <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
-          initialResult <- checkEnrolment(identifiers)
-
-          reattemptResult <- (initialResult, legacyFcEnrolmentVerifier) match {
-                              case (EnrolmentFailed, Some(lfcev)) =>
-                                enrolmentService
-                                  .enrolUser(serviceId, identifiers, List(Verifier(lfcev.value, "FC")), retrievals)
-                                checkEnrolment(identifiers)
-                              case _ => initialResult.pure[F]
+          initialResult <- tryEnrolment(verifiers, identifiers)
+          reattemptResult <- (initialResult, enrolmentAction) match {
+                              case (EnrolmentFailed, LegacyFcEnrolmentVerifier(value)) =>
+                                println("hello1")
+                                tryEnrolment(List(Verifier(value, "FC")), identifiers)
+                              case _ =>
+                                println("hello2")
+                                initialResult.pure[F]
                             }
         } yield reattemptResult
+
     }
+  }
 
   private def purgeEmpty[F[_]: Applicative](
     xs: NonEmptyList[(IdentifierRecipe, Identifier)]

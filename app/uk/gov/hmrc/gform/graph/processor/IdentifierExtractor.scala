@@ -37,7 +37,7 @@ trait IdentifierExtractor {
   }
 
   def identifierValue(enrolments: Enrolments, auth: EnrolmentAuth): String = auth match {
-    case EnrolmentAuth(_, DoCheck(_, _, RegimeIdCheck(RegimeId(id))), _) =>
+    case EnrolmentAuth(_, DoCheck(_, _, RegimeIdCheck(RegimeId(id)))) =>
       maybeValue(
         enrolmentsByServiceId(enrolments, auth.serviceId.value)
           .flatMap(_.identifiers)

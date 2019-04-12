@@ -24,7 +24,7 @@ import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments, Affin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals }
 import uk.gov.hmrc.gform.graph.{ NoChange, NonConvertible, RecalculationOp }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolledIdentifier, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolledIdentifier, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
 import uk.gov.hmrc.http.logging.SessionId
 
 class UserCtxEvaluatorProcessorTest extends Spec {
@@ -47,7 +47,9 @@ class UserCtxEvaluatorProcessorTest extends Spec {
     val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(multi))
     val enrSec = EnrolmentSection("title", None, Nil, NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))), Nil)
     val auth = HmrcEnrolmentModule(
-      EnrolmentAuth(ServiceId("IR-CT"), DoCheck(Always, RequireEnrolment(enrSec), RegimeIdCheck(RegimeId("XX"))), None))
+      EnrolmentAuth(
+        ServiceId("IR-CT"),
+        DoCheck(Always, RequireEnrolment(enrSec, NoAction), RegimeIdCheck(RegimeId("XX")))))
 
     processEvaluation(retrievals, UserCtx(EnrolledIdentifier), auth) should be(
       NonConvertible(RecalculationOp.newValue("12XX567890").pure[Id]))
@@ -64,11 +66,11 @@ class UserCtxEvaluatorProcessorTest extends Spec {
   )
   // format:on
 
-  lazy val hmrcModule: String => AuthConfig = id => HmrcEnrolmentModule(EnrolmentAuth(ServiceId(id), Never, None))
+  lazy val hmrcModule: String => AuthConfig = id => HmrcEnrolmentModule(EnrolmentAuth(ServiceId(id), Never))
   lazy val nonConvertible: String => NonConvertible[Id] = value =>
     NonConvertible(RecalculationOp.newValue(value).pure[Id])
   lazy val hmrcAgentWithEnrolmentModule =
-    HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never, None))
+    HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, EnrolmentAuth(ServiceId("IR-SA"), Never))
 
   lazy val materialisedRetrievalsAgent = AuthenticatedRetrievals(
     OneTimeLogin,

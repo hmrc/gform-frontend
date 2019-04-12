@@ -30,8 +30,7 @@ object EEITTAuthConfig {
 
 case class EnrolmentAuth(
   serviceId: ServiceId,
-  enrolmentCheck: EnrolmentCheck,
-  legacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier]
+  enrolmentCheck: EnrolmentCheck
 )
 object EnrolmentAuth {
   implicit val format: OFormat[EnrolmentAuth] = derived.oformat
@@ -56,7 +55,7 @@ object EnrolmentCheckPredicate {
 }
 
 sealed trait NeedEnrolment extends Product with Serializable
-case class RequireEnrolment(enrolmentSection: EnrolmentSection) extends NeedEnrolment
+case class RequireEnrolment(enrolmentSection: EnrolmentSection, enrolmentAction: EnrolmentAction) extends NeedEnrolment
 case object RejectAccess extends NeedEnrolment
 object NeedEnrolment {
   implicit val format: OFormat[NeedEnrolment] = derived.oformat
@@ -119,13 +118,14 @@ case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
 case class HmrcAgentWithEnrolmentModule(agentAccess: AgentAccess, enrolmentAuth: EnrolmentAuth) extends AuthConfig
 
 object HasEnrolmentSection {
-  def unapply(
-    ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, Option[LegacyFcEnrolmentVerifier])] =
+  def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction)] =
     ac match {
-      case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check), lfcev)) =>
-        Some((serviceId, es, check, lfcev))
-      case HmrcAgentWithEnrolmentModule(_, EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check), lfcev)) =>
-        Some((serviceId, es, check, lfcev))
+      case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))) =>
+        Some((serviceId, es, check, enrolmentAction))
+      case HmrcAgentWithEnrolmentModule(
+          _,
+          EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))) =>
+        Some((serviceId, es, check, enrolmentAction))
       case _ => None
     }
 }
@@ -135,34 +135,37 @@ object AuthConfig {
   def toEnrolmentPostCheck(maybeRegimeId: Option[RegimeId]): EnrolmentPostCheck =
     maybeRegimeId.fold(NoCheck: EnrolmentPostCheck)(RegimeIdCheck.apply)
 
+  def enrolmentActionMatch(enrolmentAction: Option[EnrolmentAction]): EnrolmentAction = enrolmentAction match {
+    case Some(lfcev: LegacyFcEnrolmentVerifier) => lfcev
+    case _                                      => NoAction
+  }
+
   def toEnrolmentAuth(
     serviceId: ServiceId,
     maybeRegimeId: Option[RegimeId],
     maybeEnrolmentCheck: Option[EnrolmentCheckVerb],
     maybeEnrolmentSection: Option[EnrolmentSection],
-    maybeLegacyFcEnrolmentVerifier: Option[LegacyFcEnrolmentVerifier]): EnrolmentAuth =
+    maybeEnrolmentAction: Option[EnrolmentAction]): EnrolmentAuth =
     (maybeEnrolmentCheck, maybeEnrolmentSection) match {
       case (Some(AlwaysVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
           serviceId,
-          DoCheck(Always, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)),
-          maybeLegacyFcEnrolmentVerifier)
+          DoCheck(
+            Always,
+            RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
+            toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(ForNonAgentsVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
           serviceId,
-          DoCheck(ForNonAgents, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)),
-          maybeLegacyFcEnrolmentVerifier)
+          DoCheck(
+            ForNonAgents,
+            RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
+            toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(AlwaysVerb), None) =>
-        EnrolmentAuth(
-          serviceId,
-          DoCheck(Always, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)),
-          maybeLegacyFcEnrolmentVerifier)
+        EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(ForNonAgentsVerb), None) =>
-        EnrolmentAuth(
-          serviceId,
-          DoCheck(ForNonAgents, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)),
-          maybeLegacyFcEnrolmentVerifier)
-      case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never, maybeLegacyFcEnrolmentVerifier)
+        EnrolmentAuth(serviceId, DoCheck(ForNonAgents, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
+      case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never)
     }
 
   implicit val format: OFormat[AuthConfig] = {
@@ -225,7 +228,13 @@ object RegimeId {
   implicit val format: Format[RegimeId] = ValueClassFormat.oformat("regimeId", RegimeId.apply, _.value)
 }
 
-case class LegacyFcEnrolmentVerifier(value: String) extends AnyVal
+sealed trait EnrolmentAction
+case class LegacyFcEnrolmentVerifier(value: String) extends EnrolmentAction
+case object NoAction extends EnrolmentAction
+
+object EnrolmentAction {
+  implicit val format: Format[EnrolmentAction] = derived.oformat[EnrolmentAction]
+}
 
 object LegacyFcEnrolmentVerifier {
   implicit val format: Format[LegacyFcEnrolmentVerifier] =

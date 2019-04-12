@@ -51,7 +51,7 @@ trait ExampleAuthConfig {
   def authConfig =
     HmrcAgentWithEnrolmentModule(
       AllowAnyAgentAffinityUser,
-      EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck), None))
+      EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck)))
 }
 
 trait ExampleFieldId {
