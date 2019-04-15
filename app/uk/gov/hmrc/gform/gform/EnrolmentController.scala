@@ -209,7 +209,7 @@ class EnrolmentController(
     request: Request[AnyContent],
     AA: ApplicativeAsk[F, Env],
     FR: FunctorRaise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
-    println("eeeeeee " + enrolmentAction)
+
     def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
       for {
         _      <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
@@ -227,10 +227,8 @@ class EnrolmentController(
           initialResult <- tryEnrolment(verifiers, identifiers)
           reattemptResult <- (initialResult, enrolmentAction) match {
                               case (EnrolmentFailed, LegacyFcEnrolmentVerifier(value)) =>
-                                println("hello1")
                                 tryEnrolment(List(Verifier(value, "FC")), identifiers)
                               case _ =>
-                                println("hello2")
                                 initialResult.pure[F]
                             }
         } yield reattemptResult
