@@ -67,7 +67,6 @@ class FormController(
   import i18nSupport._
 
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
-  private val formService = FormService
 
   // TODO: this method should really be in the SignOutController which does not yet exist
   def keepAlive() = auth.keepAlive()
@@ -374,7 +373,7 @@ class FormController(
       maybeSn <- handler.handleFastForwardValidate(
                   processData,
                   cache,
-                  formService.extractedValidateFormHelper,
+                  FormService.extractedValidateFormHelper,
                   fileUploadService.getEnvelope,
                   validationService.validateFormComponents,
                   validationService.evaluateValidation
@@ -403,7 +402,7 @@ class FormController(
                                                     processData.sections,
                                                     sectionNumber,
                                                     cache,
-                                                    formService.extractedValidateFormHelper,
+                                                    FormService.extractedValidateFormHelper,
                                                     fileUploadService.getEnvelope,
                                                     validationService.validateFormComponents,
                                                     validationService.evaluateValidation

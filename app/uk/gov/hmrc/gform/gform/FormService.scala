@@ -67,12 +67,13 @@ object FormService {
 
   def isTextUpperCase(formComponentValidation: FormComponentValidation): FormComponentValidation =
     formComponentValidation.formComponent match {
-      case fc if fc.isUpperCase == false => formComponentValidation
-      case fc if fc.isUpperCase          => makeUpperCase(formComponentValidation)
+      case fc if fc.isUpperCase =>
+        FormComponentValidation(fc, makeUpperCase(formComponentValidation.formFieldValidationResult))
+      case _ => formComponentValidation
     }
 
-  private def makeUpperCase(formComponentValidation: FormComponentValidation) = formComponentValidation match {
-    case FormComponentValidation(formComponent, FieldOk(fieldValue, value)) =>
-      FormComponentValidation(formComponent, FieldOk(fieldValue, value.toUpperCase))
+  private def makeUpperCase(ffvr: FormFieldValidationResult) = ffvr match {
+    case FieldOk(fieldValue, value) => FieldOk(fieldValue, value.toUpperCase)
+    case _                          => ffvr
   }
 }
