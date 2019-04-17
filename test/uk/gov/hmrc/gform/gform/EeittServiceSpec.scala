@@ -32,6 +32,8 @@ class EeittServiceSpec extends Spec with ExampleData {
 
   behavior of "Eeitt Service"
 
+  implicit lazy val hc = HeaderCarrier()
+
   val mockEeittConnector = new EeittConnector("", null) {
     override def prepopulationBusinessUser(groupId: GroupId, regimeId: RegimeId)(
       implicit hc: HeaderCarrier,
@@ -43,15 +45,14 @@ class EeittServiceSpec extends Spec with ExampleData {
   }
 
   val eeittService = new EeittService(mockEeittConnector)
-
   it should "return a eeitt business user" in {
     val result = call(uk.gov.hmrc.gform.sharedmodel.formtemplate.BusinessUser)
     result.futureValue should be("TESTREGNUM")
   }
 
   it should "return a eeitt agent" in new ExampleData {
-    override def affinityGroup = Some(AffinityGroup.Agent)
 
+    override def affinityGroup = Some(AffinityGroup.Agent)
     val result = call(uk.gov.hmrc.gform.sharedmodel.formtemplate.Agent, authContext)
     result.futureValue should be("TESTARN")
   }
@@ -62,14 +63,12 @@ class EeittServiceSpec extends Spec with ExampleData {
   }
 
   it should "return a eeitt user id for agent" in new ExampleData {
-    override def affinityGroup = Some(AffinityGroup.Agent)
 
+    override def affinityGroup = Some(AffinityGroup.Agent)
     val result = call(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserId, authContext)
     result.futureValue should be("TESTARN")
   }
 
   def call(eeitt: Eeitt, authContext: MaterialisedRetrievals = authContext) =
     eeittService.getValue(eeitt, authContext, formTemplate)
-
-  implicit lazy val hc = HeaderCarrier()
 }

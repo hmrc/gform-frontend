@@ -55,7 +55,7 @@ object EnrolmentCheckPredicate {
 }
 
 sealed trait NeedEnrolment extends Product with Serializable
-case class RequireEnrolment(enrolmentSection: EnrolmentSection) extends NeedEnrolment
+case class RequireEnrolment(enrolmentSection: EnrolmentSection, enrolmentAction: EnrolmentAction) extends NeedEnrolment
 case object RejectAccess extends NeedEnrolment
 object NeedEnrolment {
   implicit val format: OFormat[NeedEnrolment] = derived.oformat
@@ -118,13 +118,16 @@ case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
 case class HmrcAgentWithEnrolmentModule(agentAccess: AgentAccess, enrolmentAuth: EnrolmentAuth) extends AuthConfig
 
 object HasEnrolmentSection {
-  def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck)] = ac match {
-    case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check))) =>
-      Some((serviceId, es, check))
-    case HmrcAgentWithEnrolmentModule(_, EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es), check))) =>
-      Some((serviceId, es, check))
-    case _ => None
-  }
+  def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction)] =
+    ac match {
+      case HmrcEnrolmentModule(EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))) =>
+        Some((serviceId, es, check, enrolmentAction))
+      case HmrcAgentWithEnrolmentModule(
+          _,
+          EnrolmentAuth(serviceId, DoCheck(_, RequireEnrolment(es, enrolmentAction), check))) =>
+        Some((serviceId, es, check, enrolmentAction))
+      case _ => None
+    }
 }
 
 object AuthConfig {
@@ -132,20 +135,30 @@ object AuthConfig {
   def toEnrolmentPostCheck(maybeRegimeId: Option[RegimeId]): EnrolmentPostCheck =
     maybeRegimeId.fold(NoCheck: EnrolmentPostCheck)(RegimeIdCheck.apply)
 
+  def enrolmentActionMatch(enrolmentAction: Option[EnrolmentAction]): EnrolmentAction =
+    enrolmentAction.getOrElse(NoAction)
+
   def toEnrolmentAuth(
     serviceId: ServiceId,
     maybeRegimeId: Option[RegimeId],
     maybeEnrolmentCheck: Option[EnrolmentCheckVerb],
-    maybeEnrolmentSection: Option[EnrolmentSection]): EnrolmentAuth =
+    maybeEnrolmentSection: Option[EnrolmentSection],
+    maybeEnrolmentAction: Option[EnrolmentAction]): EnrolmentAuth =
     (maybeEnrolmentCheck, maybeEnrolmentSection) match {
       case (Some(AlwaysVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
           serviceId,
-          DoCheck(Always, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)))
+          DoCheck(
+            Always,
+            RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
+            toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(ForNonAgentsVerb), Some(enrolmentSection)) =>
         EnrolmentAuth(
           serviceId,
-          DoCheck(ForNonAgents, RequireEnrolment(enrolmentSection), toEnrolmentPostCheck(maybeRegimeId)))
+          DoCheck(
+            ForNonAgents,
+            RequireEnrolment(enrolmentSection, enrolmentActionMatch(maybeEnrolmentAction)),
+            toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(AlwaysVerb), None) =>
         EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, toEnrolmentPostCheck(maybeRegimeId)))
       case (Some(ForNonAgentsVerb), None) =>
@@ -156,12 +169,13 @@ object AuthConfig {
   implicit val format: OFormat[AuthConfig] = {
     val rawTemplateReads = Reads[AuthConfig] { json =>
       for {
-        authModule            <- (json \ "authModule").validate[AuthModule]
-        maybeRegimeId         <- (json \ "regimeId").validateOpt[RegimeId]
-        maybeServiceId        <- (json \ "serviceId").validateOpt[ServiceId]
-        maybeAgentAccess      <- (json \ "agentAccess").validateOpt[AgentAccess]
-        maybeEnrolmentSection <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
-        maybeEnrolmentCheck   <- (json \ "enrolmentCheck").validateOpt[EnrolmentCheckVerb]
+        authModule                     <- (json \ "authModule").validate[AuthModule]
+        maybeRegimeId                  <- (json \ "regimeId").validateOpt[RegimeId]
+        maybeLegacyFcEnrolmentVerifier <- (json \ "legacyFcEnrolmentVerifier").validateOpt[LegacyFcEnrolmentVerifier]
+        maybeServiceId                 <- (json \ "serviceId").validateOpt[ServiceId]
+        maybeAgentAccess               <- (json \ "agentAccess").validateOpt[AgentAccess]
+        maybeEnrolmentSection          <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
+        maybeEnrolmentCheck            <- (json \ "enrolmentCheck").validateOpt[EnrolmentCheckVerb]
         authConfig <- authModule match {
                        case EeittLegacy =>
                          maybeRegimeId match {
@@ -176,7 +190,12 @@ object AuthConfig {
                                JsSuccess(HmrcAgentModule(agentAccess)))
                            case Some(serviceId) =>
                              val enrolmentAuth =
-                               toEnrolmentAuth(serviceId, maybeRegimeId, maybeEnrolmentCheck, maybeEnrolmentSection)
+                               toEnrolmentAuth(
+                                 serviceId,
+                                 maybeRegimeId,
+                                 maybeEnrolmentCheck,
+                                 maybeEnrolmentSection,
+                                 maybeLegacyFcEnrolmentVerifier)
 
                              JsSuccess(
                                maybeAgentAccess.fold(HmrcEnrolmentModule(enrolmentAuth): AuthConfig)(
@@ -185,6 +204,7 @@ object AuthConfig {
                          }
                      }
       } yield authConfig
+
     }
 
     val writes: OWrites[AuthConfig] = derived.owrites
@@ -204,6 +224,19 @@ object ServiceId {
 case class RegimeId(value: String) extends AnyVal
 object RegimeId {
   implicit val format: Format[RegimeId] = ValueClassFormat.oformat("regimeId", RegimeId.apply, _.value)
+}
+
+sealed trait EnrolmentAction
+case class LegacyFcEnrolmentVerifier(value: String) extends EnrolmentAction
+case object NoAction extends EnrolmentAction
+
+object EnrolmentAction {
+  implicit val format: Format[EnrolmentAction] = derived.oformat[EnrolmentAction]
+}
+
+object LegacyFcEnrolmentVerifier {
+  implicit val format: Format[LegacyFcEnrolmentVerifier] =
+    ValueClassFormat.oformat("legacyFcEnrolmentVerifier", LegacyFcEnrolmentVerifier.apply, _.value)
 }
 
 sealed trait AgentAccess

@@ -100,7 +100,7 @@ class EnrolmentController(
   def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.asyncGGAuth(formTemplateId) {
     implicit request => cache =>
       cache.formTemplate.authConfig match {
-        case HasEnrolmentSection((_, enrolmentSection, _)) =>
+        case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
           Ok(
             renderer
               .renderEnrolmentSection(
@@ -125,10 +125,9 @@ class EnrolmentController(
       import cache._
       val checkEnrolment: ServiceId => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
         serviceId => identifiers => EitherT.liftF(Kleisli(_ => auth.checkEnrolment(serviceId, identifiers)))
-
-      processResponseDataFromBody(request) { (dataRaw: Map[FormComponentId, Seq[String]]) =>
+      processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
         formTemplate.authConfig match {
-          case HasEnrolmentSection((serviceId, enrolmentSection, postCheck)) =>
+          case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
             def handleContinue = {
 
               implicit val EC = enrolmentConnect
@@ -160,6 +159,7 @@ class EnrolmentController(
                         postCheck,
                         checkEnrolment(serviceId),
                         validationResult,
+                        lfcev,
                         retrievals)
                         .fold(
                           enrolmentResultProcessor.recoverEnrolmentError,
@@ -202,12 +202,20 @@ class EnrolmentController(
     postCheck: EnrolmentPostCheck,
     checkEnrolment: NonEmptyList[Identifier] => F[CheckEnrolmentsResult],
     validationResult: ValidatedType[Unit],
+    enrolmentAction: EnrolmentAction,
     retrievals: MaterialisedRetrievals
   )(
     implicit hc: HeaderCarrier,
     request: Request[AnyContent],
     AA: ApplicativeAsk[F, Env],
-    FR: FunctorRaise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] =
+    FR: FunctorRaise[F, SubmitEnrolmentError]): F[CheckEnrolmentsResult] = {
+
+    def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
+      for {
+        _      <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
+        result <- checkEnrolment(identifiers)
+      } yield result
+
     validationResult match {
       case Invalid(errors) => FR.raise(EnrolmentFormNotValid(errors))
       case Valid(()) =>
@@ -215,11 +223,18 @@ class EnrolmentController(
           idenVer <- extractIdentifiersAndVerifiers[F](enrolmentSection)
           (identifierss, verifiers) = idenVer
           identifiers = identifierss.map(_._2)
-          _       <- validateIdentifiers[F](identifierss, postCheck)
-          _       <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
-          authRes <- checkEnrolment(identifiers)
-        } yield authRes
+          _             <- validateIdentifiers[F](identifierss, postCheck)
+          initialResult <- tryEnrolment(verifiers, identifiers)
+          reattemptResult <- (initialResult, enrolmentAction) match {
+                              case (EnrolmentFailed, LegacyFcEnrolmentVerifier(value)) =>
+                                tryEnrolment(List(Verifier(value, "FC")), identifiers)
+                              case _ =>
+                                initialResult.pure[F]
+                            }
+        } yield reattemptResult
+
     }
+  }
 
   private def purgeEmpty[F[_]: Applicative](
     xs: NonEmptyList[(IdentifierRecipe, Identifier)]
