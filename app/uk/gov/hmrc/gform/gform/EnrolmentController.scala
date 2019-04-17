@@ -196,7 +196,7 @@ class EnrolmentController(
           FR.raise(RegimeIdNotMatch(identifierRecipe))
     }
 
-  def processValidation[F[_]: Monad: EnrolmentConnect: GGConnect: Evaluator](
+  private def processValidation[F[_]: Monad: EnrolmentConnect: GGConnect: Evaluator](
     serviceId: ServiceId,
     enrolmentSection: EnrolmentSection,
     postCheck: EnrolmentPostCheck,
