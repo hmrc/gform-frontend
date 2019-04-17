@@ -61,7 +61,6 @@ class FormController(
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future, Throwable],
-  formService: FormService,
   handler: FormControllerRequestHandler
 ) extends FrontendController {
 
@@ -374,7 +373,7 @@ class FormController(
       maybeSn <- handler.handleFastForwardValidate(
                   processData,
                   cache,
-                  formService.extractedValidateFormHelper,
+                  FormService.extractedValidateFormHelper,
                   fileUploadService.getEnvelope,
                   validationService.validateFormComponents,
                   validationService.evaluateValidation
@@ -403,7 +402,7 @@ class FormController(
                                                     processData.sections,
                                                     sectionNumber,
                                                     cache,
-                                                    formService.extractedValidateFormHelper,
+                                                    FormService.extractedValidateFormHelper,
                                                     fileUploadService.getEnvelope,
                                                     validationService.validateFormComponents,
                                                     validationService.evaluateValidation

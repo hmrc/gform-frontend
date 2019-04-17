@@ -23,8 +23,8 @@ case class MaxDigitsAndRoundingMode(maxDigits: Int, roundingMode: RoundingMode)
 object HasDigits {
   def unapply(expr: ComponentType): Option[MaxDigitsAndRoundingMode] =
     expr match {
-      case Text(Number(_, digits, rm, _), _, _)             => Some(MaxDigitsAndRoundingMode(digits, rm))
-      case Text(PositiveNumber(_, digits, rm, _), _, _)     => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case Text(Number(_, digits, rm, _), _, _, _)          => Some(MaxDigitsAndRoundingMode(digits, rm))
+      case Text(PositiveNumber(_, digits, rm, _), _, _, _)  => Some(MaxDigitsAndRoundingMode(digits, rm))
       case TextArea(Number(_, digits, rm, _), _, _)         => Some(MaxDigitsAndRoundingMode(digits, rm))
       case TextArea(PositiveNumber(_, digits, rm, _), _, _) => Some(MaxDigitsAndRoundingMode(digits, rm))
       case _                                                => None
@@ -34,7 +34,7 @@ object HasDigits {
 object HasSterling {
   def unapply(expr: ComponentType): Option[MaxDigitsAndRoundingMode] =
     expr match {
-      case Text(Sterling(rm), _, _)     => Some(MaxDigitsAndRoundingMode(2, rm))
+      case Text(Sterling(rm), _, _, _)  => Some(MaxDigitsAndRoundingMode(2, rm))
       case TextArea(Sterling(rm), _, _) => Some(MaxDigitsAndRoundingMode(2, rm))
       case _                            => None
     }

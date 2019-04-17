@@ -16,25 +16,30 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup, Number, PositiveNumber, Sterling, Text, TextArea }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup, IsUpperCase, Number, PositiveNumber, Sterling, Text, TextArea }
 
 package object ops {
 
   implicit class FormComponentOps(formComponent: FormComponent) {
     def isSterling = formComponent.`type` match {
-      case Text(Sterling(_), _, _)     => true
+      case Text(Sterling(_), _, _, _)  => true
       case TextArea(Sterling(_), _, _) => true
       case _                           => false
     }
     def isNumber = formComponent.`type` match {
-      case Text(Number(_, _, _, _), _, _)     => true
+      case Text(Number(_, _, _, _), _, _, _)  => true
       case TextArea(Number(_, _, _, _), _, _) => true
       case _                                  => false
     }
     def isPositiveNumber = formComponent.`type` match {
-      case Text(PositiveNumber(_, _, _, _), _, _)     => true
+      case Text(PositiveNumber(_, _, _, _), _, _, _)  => true
       case TextArea(PositiveNumber(_, _, _, _), _, _) => true
       case _                                          => false
+    }
+
+    def isUpperCase = formComponent.`type` match {
+      case Text(_, _, _, IsUpperCase) => true
+      case _                          => false
     }
   }
 
@@ -50,6 +55,11 @@ package object ops {
     def isPositiveNumber = formComponent match {
       case FormComponentWithGroup(fc, _) => fc.isPositiveNumber
       case FormComponentSimple(fc)       => fc.isPositiveNumber
+    }
+
+    def isUpperCase = formComponent match {
+      case FormComponentWithGroup(fc, _) => fc.isUpperCase
+      case FormComponentSimple(fc)       => fc.isUpperCase
     }
   }
 }

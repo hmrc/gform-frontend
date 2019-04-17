@@ -26,10 +26,11 @@ trait ComponentTypeGen {
 
   def textGen: Gen[Text] =
     for {
-      constraint   <- FormatExprGen.textConstraintGen
-      value        <- ExprGen.exprGen()
-      displayWidth <- displayWidthGen
-    } yield Text(constraint, value, displayWidth)
+      constraint       <- FormatExprGen.textConstraintGen
+      value            <- ExprGen.exprGen()
+      displayWidth     <- displayWidthGen
+      upperCaseBoolean <- Gen.oneOf(IsNotUpperCase, IsUpperCase)
+    } yield Text(constraint, value, displayWidth, upperCaseBoolean)
 
   def textAreaGen: Gen[TextArea] =
     for {

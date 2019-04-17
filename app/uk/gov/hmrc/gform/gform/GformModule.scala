@@ -79,7 +79,6 @@ class GformModule(
     sectionRenderingService,
     gformBackendModule.gformConnector,
     processDataService,
-    controllersModule.formService,
     new FormControllerRequestHandler(new FormValidator())
   )
 

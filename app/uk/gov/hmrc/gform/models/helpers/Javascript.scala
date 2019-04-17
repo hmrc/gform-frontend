@@ -106,11 +106,11 @@ object Javascript {
 
     def getRoundingMode(fc: FormComponent) =
       fc.`type` match {
-        case Text(Number(_, _, rm, _), _, _)             => Some(rm)
+        case Text(Number(_, _, rm, _), _, _, _)          => Some(rm)
         case TextArea(Number(_, _, rm, _), _, _)         => Some(rm)
-        case Text(PositiveNumber(_, _, rm, _), _, _)     => Some(rm)
+        case Text(PositiveNumber(_, _, rm, _), _, _, _)  => Some(rm)
         case TextArea(PositiveNumber(_, _, rm, _), _, _) => Some(rm)
-        case Text(Sterling(rm), _, _)                    => Some(rm)
+        case Text(Sterling(rm), _, _, _)                 => Some(rm)
         case TextArea(Sterling(rm), _, _)                => Some(rm)
         case _                                           => None
       }
