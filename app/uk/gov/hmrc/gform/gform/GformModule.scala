@@ -63,7 +63,8 @@ class GformModule(
     configModule.appConfig,
     graphModule.recalculation,
     authModule.taxEnrolmentsConnector,
-    authModule.ggConnector
+    authModule.ggConnector,
+    configModule.frontendAppConfig
   )
 
   val processDataService: ProcessDataService[Future, Throwable] =

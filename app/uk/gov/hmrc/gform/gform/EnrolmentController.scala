@@ -32,7 +32,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
-import uk.gov.hmrc.gform.config.AppConfig
+import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
@@ -63,7 +63,8 @@ class EnrolmentController(
   appConfig: AppConfig,
   recalculation: Recalculation[Future, Throwable],
   taxEnrolmentConnector: TaxEnrolmentsConnector,
-  ggConnector: GovernmentGatewayConnector
+  ggConnector: GovernmentGatewayConnector,
+  frontendAppConfig: FrontendAppConfig
 )(
   implicit ec: ExecutionContext
 ) extends FrontendController {
@@ -152,7 +153,8 @@ class EnrolmentController(
                   retrievals,
                   enrolmentSection,
                   data,
-                  lang)
+                  lang,
+                  frontendAppConfig)
                 res <- processValidation(
                         serviceId,
                         enrolmentSection,
