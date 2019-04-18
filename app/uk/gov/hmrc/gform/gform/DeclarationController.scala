@@ -176,13 +176,12 @@ class DeclarationController(
     data: FormDataRecalculated,
     maybeAccessCode: Option[AccessCode],
     lang: Option[String])(implicit request: Request[_]) = {
-    val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
-    val updatedCache = cache.copy(form = updatedForm)
+    val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
     for {
-      _          <- updateUserData(updatedForm, cache.form._id)
-      customerId <- evaluateSubmissionReference(updatedForm, cache)
+      _          <- updateUserData(updatedCache.form)
+      customerId <- evaluateSubmissionReference(updatedCache)
       _          <- handleSubmission(maybeAccessCode, updatedCache, data, lang, customerId)
-    } yield showAcknowledgement(cache, maybeAccessCode, lang, customerId)
+    } yield showAcknowledgement(updatedCache, maybeAccessCode, lang, customerId)
   }
 
   private def showAcknowledgement(
@@ -207,10 +206,10 @@ class DeclarationController(
       cache.retrievals,
       customerId)
 
-  private def updateUserData(updatedForm: Form, formId: FormId)(implicit hc: HeaderCarrier) =
+  private def updateUserData(updatedForm: Form)(implicit hc: HeaderCarrier) =
     gformConnector
       .updateUserData(
-        formId,
+        updatedForm._id,
         UserData(
           updatedForm.formData,
           Signed,
@@ -219,12 +218,12 @@ class DeclarationController(
         )
       )
 
-  private def evaluateSubmissionReference(updatedForm: Form, cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
+  private def evaluateSubmissionReference(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
     authService.evaluateSubmissionReference(
       cache.formTemplate.dmsSubmission.customerId,
       cache.retrievals,
       cache.formTemplate,
-      formDataMap(updatedForm.formData),
+      formDataMap(cache.form.formData),
       cache.form.envelopeId)
 
   private def handleSubmission(
@@ -236,6 +235,9 @@ class DeclarationController(
     for {
       htmlForPDF     <- createHtmlForPdf(maybeAccessCode, cache, data, lang)
       emailParameter <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
+      _ = Logger.logger.info(s"form: ${cache.form.formData.fields}")
+      sf = StructuredFormDataBuilder(cache.form, cache.formTemplate)
+      _ = Logger.logger.info(s"StructuredFormData: $sf")
       _ <- GformSubmission
             .handleSubmission(
               config,
@@ -246,7 +248,7 @@ class DeclarationController(
               maybeAccessCode,
               CustomerId(customerId),
               htmlForPDF,
-              StructuredFormDataBuilder(cache.form, cache.formTemplate)
+              sf
             )
     } yield ()
 
