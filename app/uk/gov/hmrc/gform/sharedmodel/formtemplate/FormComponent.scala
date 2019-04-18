@@ -122,6 +122,14 @@ object IsText {
     }
 }
 
+object IsCapitalised {
+  def unapply(fc: FormComponent): Option[Unit] =
+    fc.`type` match {
+      case t @ Text(_, _, _, IsUpperCase) => Some(())
+      case _                              => None
+    }
+}
+
 object IsTextArea {
   def unapply(fc: FormComponent): Option[TextArea] =
     fc.`type` match {

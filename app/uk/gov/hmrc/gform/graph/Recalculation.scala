@@ -262,6 +262,7 @@ class Recalculation[F[_]: Monad, E](
     thirdPartyData: ThirdPartyData,
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[RecalculationOp] =
     fc match {
+      case IsCapitalised(_) => capitalise(fc, dataLookup)
       case HasExpr(SingleExpr(expr)) =>
         val conv: Convertible[F] =
           booleanExprEval.evaluator
@@ -275,6 +276,15 @@ class Recalculation[F[_]: Monad, E](
           formTemplate)
       case _ => RecalculationOp.noChange.pure[F]
     }
+
+  private def capitalise(fc: FormComponent, dataLookup: RecData) = {
+    val optionOfOp: Option[RecalculationOp] = for {
+      ss    <- dataLookup.data.get(fc.id)
+      value <- ss.headOption
+    } yield RecalculationOp.newValue(value.toUpperCase)
+
+    (optionOfOp getOrElse RecalculationOp.noChange).pure[F]
+  }
 }
 
 class Evaluator[F[_]: Monad](
