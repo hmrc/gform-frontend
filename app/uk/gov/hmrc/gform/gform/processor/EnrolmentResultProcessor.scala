@@ -18,11 +18,12 @@ package uk.gov.hmrc.gform.gform.processor
 
 import cats.data.Validated.Invalid
 import cats.syntax.validated._
-
+import play.api.i18n.Messages
 import play.api.mvc.{ AnyContent, Request, Result, Results }
 import play.twirl.api.Html
 import play.api.mvc.Results.{ Ok, Redirect }
-import uk.gov.hmrc.gform.auth.models.{ CheckEnrolmentsResult, EnrolmentFailed, EnrolmentSuccessful, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models._
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
@@ -39,7 +40,8 @@ class EnrolmentResultProcessor(
   retrievals: MaterialisedRetrievals,
   enrolmentSection: EnrolmentSection,
   data: FormDataRecalculated,
-  lang: Option[String]
+  lang: Option[String],
+  frontendAppConfig: FrontendAppConfig
 ) {
 
   private def getErrorMap(
@@ -93,8 +95,11 @@ class EnrolmentResultProcessor(
 
   }
 
-  def processEnrolmentResult(authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent]): Result =
+  def processEnrolmentResult(
+    authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent], messages: Messages): Result =
     authRes match {
+      case EnrolmentConflict =>
+        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))
       case EnrolmentSuccessful =>
         Redirect(uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id, lang).url)
       case EnrolmentFailed =>

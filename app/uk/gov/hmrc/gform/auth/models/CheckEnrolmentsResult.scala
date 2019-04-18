@@ -20,3 +20,4 @@ sealed trait CheckEnrolmentsResult extends Product with Serializable
 
 case object EnrolmentSuccessful extends CheckEnrolmentsResult
 case object EnrolmentFailed extends CheckEnrolmentsResult
+case object EnrolmentConflict extends CheckEnrolmentsResult

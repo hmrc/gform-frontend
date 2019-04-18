@@ -1,0 +1,68 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+
+
+@(
+formTemplate: FormTemplate,
+frontendAppConfig: FrontendAppConfig
+)(
+implicit
+request: Request[_],
+messages: Messages
+)
+
+@heading = @{"You need to request access to use this service"}
+
+
+@uk.gov.hmrc.gform.views.html.main_template(
+title = heading,
+serviceName = formTemplate.formName,
+bodyClasses = None,
+frontendAppConfig = frontendAppConfig,
+authConfig = None
+) {
+
+<h1>@heading</h1>
+
+
+<div class="form-group">
+
+    <p>Someone has already enrolled in this service using these details. </p>
+
+    This could be because your organisation uses a shared Government Gateway account. </p>
+
+    Because of this, you do not currently have permission to access the service. </p>
+
+    <h2>How to get access</h2>
+
+    <p>Contact an administrator, or if you have an administrator account: </p>
+
+    1. <a href="https://www.gov.uk/log-in-register-hmrc-online-services">Sign in</a> to your Business Tax Account or
+    Personal Tax Account. </p>
+
+    2. Select Manage Users, then choose who has permission to access the service. </p>
+
+    <p>If you cannot do this, <a href="https://www.gov.uk/log-in-register-hmrc-online-services/problems-signing-in">get
+        help with signing in.</a></p>
+
+</div>
+
+<div class="form-group">
+</div>
+}
