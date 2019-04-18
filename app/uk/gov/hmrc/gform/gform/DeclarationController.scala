@@ -177,10 +177,11 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     lang: Option[String])(implicit request: Request[_]) = {
     val updatedForm = updateFormWithDeclaration(cache.form, cache.formTemplate, data)
+    val updatedCache = cache.copy(form = updatedForm)
     for {
       _          <- updateUserData(updatedForm, cache.form._id)
       customerId <- evaluateSubmissionReference(updatedForm, cache)
-      _          <- handleSubmission(maybeAccessCode, cache, data, lang, customerId)
+      _          <- handleSubmission(maybeAccessCode, updatedCache, data, lang, customerId)
     } yield showAcknowledgement(cache, maybeAccessCode, lang, customerId)
   }
 
