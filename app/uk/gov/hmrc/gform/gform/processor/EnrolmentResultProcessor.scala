@@ -99,7 +99,7 @@ class EnrolmentResultProcessor(
     authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent], messages: Messages): Result =
     authRes match {
       case EnrolmentConflict =>
-        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig, lang))
+        Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))
       case EnrolmentSuccessful =>
         Redirect(uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id, lang).url)
       case EnrolmentFailed =>

@@ -14,37 +14,32 @@
  * limitations under the License.
  *@
 
-@import helper._
-@import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.models.{AgentAccessCode, _}
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
-@import uk.gov.hmrc.play.views.html.helpers.{form, input}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+
 
 @(
 formTemplate: FormTemplate,
-frontendAppConfig: FrontendAppConfig,
-lang: Option[String]
+frontendAppConfig: FrontendAppConfig
 )(
 implicit
 request: Request[_],
 messages: Messages
 )
 
-@heading = @{"Would you like to continue your " + formCategory(formTemplate) + " or start again?"}
+@heading = @{"Insufficient Enrolments"}
+
 
 @uk.gov.hmrc.gform.views.html.main_template(
 title = heading,
 serviceName = formTemplate.formName,
-developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+bodyClasses = None,
 frontendAppConfig = frontendAppConfig,
-authConfig = Some(formTemplate.authConfig)
+authConfig = None
 ) {
+
 <h1>@heading</h1>
 
-<form action=@uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang) method="POST">
 
  <div class="form-group">
 
@@ -66,5 +61,4 @@ authConfig = Some(formTemplate.authConfig)
 
  <div class="form-group">
  </div>
-</form>
 }
