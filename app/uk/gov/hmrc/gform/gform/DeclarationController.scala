@@ -130,11 +130,7 @@ class DeclarationController(
 
   private def removeHiddenSectionData(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
     recalculateFormData(cache).map { data =>
-      val invisibleSections = cache.formTemplate.sections.filterNot(data.isVisible)
-      val invisibleFields: Set[FormComponentId] = invisibleSections.flatMap(_.fields).map(_.id).toSet
-      val visibleFields: Seq[FormField] =
-        cache.form.formData.fields.filterNot(field => invisibleFields.contains(field.id))
-
+      val visibleFields: Seq[FormField] = VisibleFieldCalculator(cache.formTemplate, cache.form.formData, data)
       val updatedForm = cache.form.copy(formData = cache.form.formData.copy(fields = visibleFields))
       cache.copy(form = updatedForm)
     }
@@ -235,9 +231,6 @@ class DeclarationController(
     for {
       htmlForPDF     <- createHtmlForPdf(maybeAccessCode, cache, data, lang)
       emailParameter <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
-      _ = Logger.logger.info(s"form: ${cache.form.formData.fields}")
-      sf = StructuredFormDataBuilder(cache.form, cache.formTemplate)
-      _ = Logger.logger.info(s"StructuredFormData: $sf")
       _ <- GformSubmission
             .handleSubmission(
               config,
@@ -248,7 +241,7 @@ class DeclarationController(
               maybeAccessCode,
               CustomerId(customerId),
               htmlForPDF,
-              sf
+              StructuredFormDataBuilder(cache.form, cache.formTemplate)
             )
     } yield ()
 
