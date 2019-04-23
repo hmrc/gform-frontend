@@ -64,6 +64,32 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
   }
 
+  it should "change to upper case when toUpperCase is true" in {
+    val inputData = mkData(
+      "a" -> "abc",
+      "b" -> "def",
+      "c" -> "ghi"
+    )
+
+    val expectedOutputData = mkData(
+      "a" -> "ABC",
+      "b" -> "def",
+      "c" -> "ghi"
+    )
+
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", Text(BasicText, Value, DisplayWidth.DEFAULT, IsUpperCase)),
+          mkFormComponent("b", Text(BasicText, Value, DisplayWidth.DEFAULT, IsNotUpperCase)),
+          mkFormComponent("c", Text(BasicText, Value, DisplayWidth.DEFAULT))
+        )
+      )
+    )
+
+    verify(inputData, expectedOutputData, sections)
+  }
+
   it should "recalculate IdNumberValue for HmrcTaxPeriod component" in {
 
     val inputData = mkData(

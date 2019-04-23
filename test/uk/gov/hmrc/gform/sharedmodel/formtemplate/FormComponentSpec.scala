@@ -83,6 +83,18 @@ class FormComponentSpec extends Spec {
 
   }
 
+  it should "be able to recognise when a text component needs to be capitalised" in {
+    val toBeCapitalised =
+      mkFormComponent("anything", Text(BasicText, Value, DisplayWidth.DEFAULT, IsUpperCase), "anything", "anything")
+    val toNotBeCapitalised =
+      mkFormComponent("anything", Text(BasicText, Value, DisplayWidth.DEFAULT, IsNotUpperCase), "anything", "anything")
+    val upperCaseresult = IsCapitalised.unapply(toBeCapitalised)
+    val lowerCaseResult = IsCapitalised.unapply(toNotBeCapitalised)
+
+    upperCaseresult shouldBe Some()
+    lowerCaseResult shouldBe None
+  }
+
   it should "expand Group with multiple fields" in {
     val max = 3
 
