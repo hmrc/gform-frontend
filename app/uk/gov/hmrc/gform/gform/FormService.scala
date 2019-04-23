@@ -51,7 +51,7 @@ object FormService {
             formComponentValidation.formComponent -> formComponentValidation.formFieldValidationResult)
           .toMap)
     val formComponents =
-      if (isFormValid) toUpperCase(removeCommas(validationResult)) else validationResult
+      if (isFormValid) removeCommas(validationResult) else validationResult
 
     FormValidationOutcome(
       isFormValid,
@@ -60,20 +60,5 @@ object FormService {
       }),
       validatedType
     )
-  }
-
-  private def toUpperCase(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
-    formValidatedData.map(isTextUpperCase)
-
-  def isTextUpperCase(formComponentValidation: FormComponentValidation): FormComponentValidation =
-    formComponentValidation.formComponent match {
-      case fc if fc.isUpperCase =>
-        FormComponentValidation(fc, makeUpperCase(formComponentValidation.formFieldValidationResult))
-      case _ => formComponentValidation
-    }
-
-  private def makeUpperCase(ffvr: FormFieldValidationResult) = ffvr match {
-    case FieldOk(fieldValue, value) => FieldOk(fieldValue, value.toUpperCase)
-    case _                          => ffvr
   }
 }
