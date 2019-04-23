@@ -191,8 +191,20 @@ class Recalculation[F[_]: Monad, E](
       } yield (visSet, recalculatedData)
     }
 
+    val data2 = data.map {
+      case (fcId, values) =>
+        fcLookup.get(fcId) match {
+          case Some(fc) =>
+            fc match {
+              case IsCapitalised(_) => (fcId, values.map(_.toUpperCase()))
+              case _                => (fcId, values)
+            }
+          case _ => (fcId, values)
+        }
+    }
+
     val contextE: Either[GraphException, Context] =
-      Right((Set.empty, RecData.fromData(data)))
+      Right((Set.empty, RecData.fromData(data2)))
 
     val genesisContext: EitherT[F, GraphException, Context] =
       EitherT(contextE.pure[F])
@@ -262,7 +274,6 @@ class Recalculation[F[_]: Monad, E](
     thirdPartyData: ThirdPartyData,
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[RecalculationOp] =
     fc match {
-      case IsCapitalised(_) => capitalise(fc, dataLookup)
       case HasExpr(SingleExpr(expr)) =>
         val conv: Convertible[F] =
           booleanExprEval.evaluator
@@ -276,15 +287,6 @@ class Recalculation[F[_]: Monad, E](
           formTemplate)
       case _ => RecalculationOp.noChange.pure[F]
     }
-
-  private def capitalise(fc: FormComponent, dataLookup: RecData) = {
-    val optionOfOp: Option[RecalculationOp] = for {
-      ss    <- dataLookup.data.get(fc.id)
-      value <- ss.headOption
-    } yield RecalculationOp.newValue(value.toUpperCase)
-
-    (optionOfOp getOrElse RecalculationOp.noChange).pure[F]
-  }
 }
 
 class Evaluator[F[_]: Monad](

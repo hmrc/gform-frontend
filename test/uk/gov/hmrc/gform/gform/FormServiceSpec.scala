@@ -93,21 +93,4 @@ class FormServiceSpec extends Spec {
         .getCurrentValue shouldBe Some("1,000.25")
     }
   }
-
-  private val textWithoutUppercase = Text(BasicText, Expr.additionIdentityExpr)
-  private val textWithUppercase = Text(BasicText, Expr.additionIdentityExpr, DisplayWidth.DEFAULT, IsUpperCase)
-
-  "isTextUpperCase" should "return a formValidationResult if the toUpperCase attribute is set to false" in {
-    forAll(genFormComponent.map(e => e.copy(`type` = textWithoutUppercase))) { formComponent =>
-      FormService.isTextUpperCase(FormComponentValidation(formComponent, FieldOk(formComponent, "abcd"))) shouldBe
-        FormComponentValidation(formComponent, FieldOk(formComponent, "abcd"))
-    }
-  }
-
-  it should "change the text to uppercase if the toUpperCase attribute is set to true" in {
-    forAll(genFormComponent.map(e => e.copy(`type` = textWithUppercase))) { formComponent =>
-      FormService.isTextUpperCase(FormComponentValidation(formComponent, FieldOk(formComponent, "abcd"))) shouldBe
-        FormComponentValidation(formComponent, FieldOk(formComponent, "ABCD"))
-    }
-  }
 }
