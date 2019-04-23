@@ -58,7 +58,8 @@ class SubmissionDataTest extends Spec {
           |       "value": {
           |         "TextNode" : {
           |           "value" : "fooValue"
-          |         }
+          |         },
+          |         "alternativeFieldNames":{}
           |       }
           |     }
           |   ]

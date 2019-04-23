@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel.structuredform
 
-import play.api.libs.json.OFormat
 import julienrf.json.derived
+import play.api.libs.json.OFormat
 
 sealed trait StructuredFormValue extends Product with Serializable
 

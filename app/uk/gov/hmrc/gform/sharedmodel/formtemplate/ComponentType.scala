@@ -23,12 +23,18 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
+import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
 import scala.collection.immutable._
 
 sealed trait MultiField {
+
   def fields(formComponentId: FormComponentId): NonEmptyList[FormComponentId]
+
+  def alternateNamesFor(fcId: FormComponentId): Map[StructuredFormDataFieldNamePurpose, FieldName] =
+    Map(RoboticsXml -> RoboticsXml.replaceStreetWithLine(fcId))
 }
+
 sealed trait ComponentType
 
 case class Text(
