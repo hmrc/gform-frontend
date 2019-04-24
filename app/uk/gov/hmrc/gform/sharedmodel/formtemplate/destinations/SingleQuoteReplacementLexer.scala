@@ -21,6 +21,11 @@ import scala.util.parsing.combinator.RegexParsers
 object SingleQuoteReplacementLexer extends RegexParsers {
   override def skipWhitespace = false
 
+  private def powerLiteral: Parser[String] =
+    "^" ~> """[^\^]*""".r <~ "^" ^^ { s =>
+      s""""$s""""
+    }
+
   private def stringLiteral: Parser[String] = {
     val digit = s"\\d"
     val hexDigit = s"($digit|[A-Fa-f])"
@@ -35,17 +40,17 @@ object SingleQuoteReplacementLexer extends RegexParsers {
     val escapedNonUnicodeCharacter = raw"""\\[\\/bfnrt]""".r
     val escapedUnicodeCharacter = raw"""\\u$hexDigit{4}""".r
     val escapedCharacter: Parser[String] = escapedSingleQuote | escapedNonUnicodeCharacter | escapedUnicodeCharacter
-    val character: Parser[String] = normalCharacter | escapedCharacter | unescapedDoubleQuote
+    val character: Parser[String] = powerLiteral | normalCharacter | escapedCharacter | unescapedDoubleQuote
 
     "'" ~> rep(character) <~ "'" ^^ { s =>
       "\"" + s.mkString("") + "\""
     }
   }
 
-  def nonStringLiteral: Parser[String] = raw"""[^']+""".r
+  def nonStringLiteral: Parser[String] = raw"""[^'^]+""".r
 
   private def tokens: Parser[List[String]] =
-    phrase(rep1(stringLiteral | nonStringLiteral))
+    phrase(rep1(powerLiteral | stringLiteral | nonStringLiteral))
 
   def apply(code: String): Either[String, String] =
     parse(tokens, code) match {
