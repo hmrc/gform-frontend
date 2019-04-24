@@ -91,8 +91,8 @@ class FormComponentSpec extends Spec {
     val upperCaseresult = IsCapitalised.unapply(toBeCapitalised)
     val lowerCaseResult = IsCapitalised.unapply(toNotBeCapitalised)
 
-    upperCaseresult shouldBe Some()
-    lowerCaseResult shouldBe None
+    upperCaseresult shouldBe true
+    lowerCaseResult shouldBe false
   }
 
   it should "expand Group with multiple fields" in {
