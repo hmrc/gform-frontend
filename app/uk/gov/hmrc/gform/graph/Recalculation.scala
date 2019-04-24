@@ -83,7 +83,25 @@ class Recalculation[F[_]: Monad, E](
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, me: MonadError[F, E]): F[FormDataRecalculated] =
-    recalculateFormData_(data, formTemplate, retrievals, thirdPartyData, envelopeId).value.flatMap {
+    recalculateFormDataWithLookup(
+      data,
+      formTemplate,
+      retrievals,
+      thirdPartyData,
+      envelopeId,
+      Map.empty
+    )
+
+  def recalculateFormDataWithLookup(
+    data: Data,
+    formTemplate: FormTemplate,
+    retrievals: MaterialisedRetrievals,
+    thirdPartyData: ThirdPartyData,
+    envelopeId: EnvelopeId,
+    additionalFcLookup: Map[FormComponentId, FormComponent])(
+    implicit hc: HeaderCarrier,
+    me: MonadError[F, E]): F[FormDataRecalculated] =
+    recalculateFormData_(data, formTemplate, retrievals, thirdPartyData, envelopeId, additionalFcLookup).value.flatMap {
       case Left(graphException) => me.raiseError(error(graphException))
       case Right(fd)            => fd.pure[F]
     }
@@ -93,11 +111,13 @@ class Recalculation[F[_]: Monad, E](
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): EitherT[F, GraphException, FormDataRecalculated] = {
+    envelopeId: EnvelopeId,
+    additionalFcLookup: Map[FormComponentId, FormComponent])(
+    implicit hc: HeaderCarrier): EitherT[F, GraphException, FormDataRecalculated] = {
 
     val graph: Graph[GraphNode, DiEdge] = DependencyGraph.toGraph(formTemplate, data)
 
-    val fcLookup: Map[FormComponentId, FormComponent] = formTemplate.expandFormTemplate(data).fcsLookup(data)
+    val fcLookup = formTemplate.expandFormTemplate(data).fcsLookup(data) ++ additionalFcLookup
 
     val orderedGraph: Either[GraphException, Traversable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDepencyGraph(graph)
@@ -196,8 +216,8 @@ class Recalculation[F[_]: Monad, E](
         fcLookup.get(fcId) match {
           case Some(fc) =>
             fc match {
-              case IsCapitalised(_) => (fcId, values.map(_.toUpperCase()))
-              case _                => (fcId, values)
+              case IsCapitalised() => (fcId, values.map(_.toUpperCase()))
+              case _               => (fcId, values)
             }
           case _ => (fcId, values)
         }

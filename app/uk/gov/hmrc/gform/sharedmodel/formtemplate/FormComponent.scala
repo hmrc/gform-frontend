@@ -123,10 +123,10 @@ object IsText {
 }
 
 object IsCapitalised {
-  def unapply(fc: FormComponent): Option[Unit] =
+  def unapply(fc: FormComponent): Boolean =
     fc.`type` match {
-      case t @ Text(_, _, _, IsUpperCase) => Some(())
-      case _                              => None
+      case t @ Text(_, _, _, IsUpperCase) => true
+      case _                              => false
     }
 }
 

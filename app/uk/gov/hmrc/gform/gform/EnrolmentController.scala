@@ -138,7 +138,16 @@ class EnrolmentController(
               val allFields = Fields.flattenGroups(enrolmentSection.fields)
               for {
                 data <- recalculation
-                         .recalculateFormData(dataRaw, formTemplate, retrievals, ThirdPartyData.empty, EnvelopeId(""))
+                         .recalculateFormDataWithLookup(
+                           dataRaw,
+                           formTemplate,
+                           retrievals,
+                           ThirdPartyData.empty,
+                           EnvelopeId(""),
+                           enrolmentSection.fields
+                             .map(fc => fc.id -> fc)
+                             .toMap
+                         )
                 validationResult <- validationService
                                      .validateComponents(
                                        allFields,
