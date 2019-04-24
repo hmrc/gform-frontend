@@ -31,8 +31,11 @@ sealed trait MultiField {
 
   def fields(formComponentId: FormComponentId): NonEmptyList[FormComponentId]
 
-  def alternateNamesFor(fcId: FormComponentId): Map[StructuredFormDataFieldNamePurpose, FieldName] =
-    Map(RoboticsXml -> RoboticsXml.replaceStreetWithLine(fcId))
+  def alternateNamesFor(fcId: FormComponentId): Map[StructuredFormDataFieldNamePurpose, FieldName] = this match {
+    case Address(_) => Map(RoboticsXml -> RoboticsXml.replaceStreetWithLine(fcId))
+    case _          => Map.empty
+
+  }
 }
 
 sealed trait ComponentType
