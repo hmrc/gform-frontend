@@ -16,14 +16,22 @@
 
 package uk.gov.hmrc.gform.auth
 
+import cats.Functor
 import cats.data.NonEmptyList
+import cats.syntax.functor._
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
+import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
+import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.http.HttpResponse
 
 trait EnrolmentConnect[F[_]] {
-  def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals): F[HttpResponse]
+  def enrolGGUser(
+    request: TaxEnrolment,
+    service: ServiceId,
+    retrievals: MaterialisedRetrievals): F[ServiceCallResponse[TaxEnrolmentsResponse]]
 }
 
 trait GGConnect[F[_]] {
@@ -35,7 +43,7 @@ class EnrolmentService(
   portalId: String
 ) {
 
-  def enrolUser[F[_]](
+  def enrolUser[F[_]: Functor](
     serviceId: ServiceId,
     identifiers: NonEmptyList[Identifier],
     verifiers: List[Verifier],
@@ -44,13 +52,16 @@ class EnrolmentService(
     implicit
     EC: EnrolmentConnect[F],
     GGC: GGConnect[F]
-  ): F[HttpResponse] =
+  ): F[ServiceCallResponse[TaxEnrolmentsResponse]] =
     if (useTaxEnrolments) {
       val request = buildTaxEnrolmentsRequest(identifiers, verifiers)
       EC.enrolGGUser(request, serviceId, retrievals)
     } else {
       val request = buildGGEnrolmentRequest(serviceId, serviceId.value, identifiers, verifiers)
-      GGC.enrolGGUser(request)
+      val httpResponse: F[HttpResponse] = GGC.enrolGGUser(request)
+
+      // This is ugly hack, to avoid need for coproduct-like type on the output
+      httpResponse.map(_ => ServiceResponse(TaxEnrolmentsResponse.Success))
     }
 
   private def buildGGEnrolmentRequest(

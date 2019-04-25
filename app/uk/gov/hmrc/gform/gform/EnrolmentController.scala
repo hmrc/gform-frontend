@@ -38,8 +38,10 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processRespo
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -86,7 +88,7 @@ class EnrolmentController(
       def enrolGGUser(
         request: TaxEnrolment,
         service: ServiceId,
-        retrievals: MaterialisedRetrievals): EnrolM[HttpResponse] =
+        retrievals: MaterialisedRetrievals): EnrolM[ServiceCallResponse[TaxEnrolmentsResponse]] =
         liftEM(taxEnrolmentConnector.enrolGGUser(request, service, retrievals))
     }
 
@@ -177,7 +179,6 @@ class EnrolmentController(
                           enrolmentResultProcessor.processEnrolmentResult
                         )
                         .run(Env(formTemplate, retrievals, data))
-                        .recoverWith(handleEnrolmentException(formTemplate, lang))
               } yield res
             }
             get(dataRaw, FormComponentId("save")) match {
@@ -223,8 +224,12 @@ class EnrolmentController(
 
     def tryEnrolment(verifiers: List[Verifier], identifiers: NonEmptyList[Identifier]): F[CheckEnrolmentsResult] =
       for {
-        httpResponse <- enrolmentService.enrolUser(serviceId, identifiers, verifiers, retrievals)
-        result       <- if (httpResponse.status == 409) EnrolmentConflict.pure[F] else checkEnrolment(identifiers)
+        enrolmentResponse <- enrolmentService.enrolUser[F](serviceId, identifiers, verifiers, retrievals)
+        result <- enrolmentResponse match {
+                   case ServiceResponse(TaxEnrolmentsResponse.Success)  => checkEnrolment(identifiers)
+                   case ServiceResponse(TaxEnrolmentsResponse.Conflict) => EnrolmentConflict.pure[F]
+                   case _                                               => EnrolmentFailed.pure[F]
+                 }
       } yield result
 
     validationResult match {
@@ -307,15 +312,5 @@ class EnrolmentController(
       verifiers         <- allVerifiers
       purgedIdentifiers <- purgeEmpty[F](identifiers)
     } yield (purgedIdentifiers, verifiers)
-  }
-
-  private def handleEnrolmentException(
-    formTemplate: FormTemplate,
-    lang: Option[String]
-  )(implicit hc: HeaderCarrier, request: Request[_]): PartialFunction[Throwable, Future[Result]] = {
-    case _ =>
-      Future.successful(
-        Redirect(routes.FormController.dashboard(formTemplate._id, lang)).withNewSession
-      )
   }
 }
