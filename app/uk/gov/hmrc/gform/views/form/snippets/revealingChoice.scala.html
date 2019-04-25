@@ -27,7 +27,7 @@
 @import play.twirl.api.Html
 
 @(fieldValue: FormComponent,
-optionsAndHiddenField: List[(String,List[Html])],
+optionsAndHiddenField: NonEmptyList[(String,List[Html])],
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 index: Int,
@@ -59,7 +59,7 @@ formLevelHeading: Boolean
 
         @inline_error_map(fieldValue, validationResult)
 
-          @optionsAndHiddenField.zipWithIndex.map{ case (optionsAndHiddenField, index) =>
+          @optionsAndHiddenField.zipWithIndex.toList.map{ case (optionsAndHiddenField, index) =>
           <div class="multiple-choice"
                @if(optionsAndHiddenField._2.size>0) {
                data-target="fields-@{fieldValue.id.appendIndex(index)}"

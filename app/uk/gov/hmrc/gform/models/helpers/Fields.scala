@@ -52,7 +52,7 @@ object Fields {
           }
         }
       case FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) |
-          Choice(_, _, _, _, _) | RevealingChoice(_, _, _) | HmrcTaxPeriod(_, _, _) =>
+          Choice(_, _, _, _, _) | RevealingChoice(_) | HmrcTaxPeriod(_, _, _) =>
         List[(FormComponentId, FormFieldValidationResult)]()
     }
   }
@@ -100,8 +100,8 @@ object Fields {
             .fold[FormFieldValidationResult](FieldOk(fieldValue, formField.value))(errors =>
               FieldError(fieldValue, formField.value, errors))
         }
-      case Choice(_, _, _, _, _)    => evalChoice(fieldValue, gformErrors)(dataGetter)
-      case RevealingChoice(_, _, _) => evalChoice(fieldValue, gformErrors)(dataGetter)
+      case Choice(_, _, _, _, _) => evalChoice(fieldValue, gformErrors)(dataGetter)
+      case RevealingChoice(_)    => evalChoice(fieldValue, gformErrors)(dataGetter)
       case FileUpload() =>
         formFields.get(fieldValue.id).map { formField =>
           val fileName = envelope.files.find(_.fileId.value == formField.id.value).map(_.fileName).getOrElse("")
@@ -149,8 +149,8 @@ object Fields {
         case Address(_)    => Address.fields(fv.id).toList.map(getFieldData)
         case Date(_, _, _) => Date.fields(fv.id).toList.map(getFieldData)
         case UkSortCode(_) => UkSortCode.fields(fv.id).toList.map(getFieldData)
-        case RevealingChoice(_, _, hiddenField) =>
-          List(getFieldData(fv.id)) ++ getFormFields(hiddenField.flatten)
+        case RevealingChoice(options) =>
+          List(getFieldData(fv.id)) ++ getFormFields(options.toList.flatMap(_.revealingFields))
         case Text(_, _, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) | HmrcTaxPeriod(_, _, _) =>
           List(getFieldData(fv.id))
         case FileUpload()             => List(getFieldData(fv.id))

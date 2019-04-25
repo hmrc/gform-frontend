@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.gform.validation
 
-import akka.actor.FSM.Failure
-import akka.actor.Status.Success
 import cats.Monoid
 import cats.data.Validated
 import cats.implicits._
@@ -259,14 +257,15 @@ object ComponentValidator {
     revealingChoice: RevealingChoice,
     componentsValidator: ComponentsValidator)(
     data: FormDataRecalculated)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    val validatedChoice = validateChoice(fieldValue)(data)
-    val choiceIndex = data.data.get(fieldValue.id).toList.flatten.headOption
-    val listOfHiddenFields = choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.hiddenField.get }
-    val hiddenFieldValidations: Future[List[ValidatedType[Unit]]] =
-      listOfHiddenFields.toList.flatten.traverse(hiddenField =>
-        componentsValidator.validate(hiddenField, listOfHiddenFields.toList.flatten))
+    val validatedChoice: ValidatedType[Unit] = validateChoice(fieldValue)(data)
 
-    if (validatedChoice == validationSuccess) {
+    if (validatedChoice === validationSuccess) {
+      val choiceIndex = data.data.get(fieldValue.id).toList.flatten.headOption
+      val listOfHiddenFields =
+        choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.options.get(_) }.map(_.revealingFields)
+      val hiddenFieldValidations =
+        listOfHiddenFields.toList.flatten.traverse(hiddenField =>
+          componentsValidator.validate(hiddenField, listOfHiddenFields.toList.flatten))
       hiddenFieldValidations.map(Monoid[ValidatedType[Unit]].combineAll)
     } else
       Future(validatedChoice)

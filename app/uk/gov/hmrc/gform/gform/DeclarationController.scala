@@ -244,7 +244,6 @@ class DeclarationController(
     for {
       htmlForPDF     <- createHtmlForPdf(maybeAccessCode, cache, data, lang)
       emailParameter <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
-      _ = println(StructuredFormDataBuilder(cache.form, cache.formTemplate))
       _ <- GformSubmission
             .handleSubmission(
               config,

@@ -183,8 +183,11 @@ object SummaryRenderingService {
             choice(fieldValue, selections, changeButton)
 
           // NEEDS TO BE CHANGED
-          case RevealingChoice(options, _, hiddenField) =>
-            val selections: List[(String, Int)] = options.zipWithIndex
+          case RevealingChoice(os) =>
+            import cats.implicits._
+            val selections: List[(String, Int)] = os
+              .map(_.choice)
+              .zipWithIndex
               .map {
                 case (option, index) =>
                   validate(fieldValue)
@@ -192,12 +195,13 @@ object SummaryRenderingService {
                     .map(_ => (option, index))
               }
               .collect { case Some(selection) => selection }
-            val hiddenFieldInfo: List[Html] = selections
-              .flatMap {
-                case (_, index) =>
-                  hiddenField(index)
-              }
-              .map(valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga, lang))
+
+            val hiddenFieldInfo = for {
+              (_, index) <- selections
+              element    <- os.get(index).toList
+              field      <- element.revealingFields
+            } yield valueToHtml(field, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga, lang)
+
             val listOfHtml = choice(fieldValue, selections.map { _._1 }, changeButton) :: hiddenFieldInfo
             revealingChoice(fieldValue, listOfHtml, changeButton)
 

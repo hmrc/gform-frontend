@@ -400,8 +400,7 @@ class StructuredFormDataBuilderSpec extends Spec {
   def createRevealingChoice(id: String, selectedFields: FormComponent*): FormComponent =
     createFormComponent(
       id,
-      RevealingChoice(List("Foo"), Nil, List(selectedFields.toList))
-    )
+      RevealingChoice(NonEmptyList.of(RevealingChoiceElement("Foo", selectedFields.toList, true))))
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

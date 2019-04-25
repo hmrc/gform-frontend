@@ -72,8 +72,9 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate) {
     }
 
   private def revealedChoiceFields(revealingChoice: RevealingChoice, selection: Int): List[Field] =
-    revealingChoice
-      .hiddenField(selection)
+    revealingChoice.options
+      .toList(selection)
+      .revealingFields
       .flatMap { component =>
         buildNonGroupField(component, false)
       }
