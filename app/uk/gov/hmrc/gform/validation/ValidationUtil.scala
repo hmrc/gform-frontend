@@ -27,7 +27,6 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined 
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ValidationUtil.IsTextOrTextArea
 
 object ValidationUtil {
 
@@ -80,7 +79,7 @@ object ValidationUtil {
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
           }
         }
-      case Choice(_, _, _, _, _) | RevealingChoice(_, _, _) | FileUpload() | Group(_, _, _, _, _, _) |
+      case Choice(_, _, _, _, _) | RevealingChoice(_) | FileUpload() | Group(_, _, _, _, _, _) |
           InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) | HmrcTaxPeriod(_, _, _) =>
         List.empty[(FormComponentId, FormFieldValidationResult)]
     }
@@ -170,10 +169,10 @@ object ValidationUtil {
             }
             ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
         }
-      case revealingChoice @ RevealingChoice(_, _, _) =>
-        val choiceIndex = dataGetter(fieldValue.id).headOption
+      case RevealingChoice(options) =>
+        val choiceIndex: Option[String] = dataGetter(fieldValue.id).headOption
         val listOfHiddenFields =
-          choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.hiddenField.get }
+          choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap(options.get(_)).map(_.revealingFields)
         val listOfValidatedHiddenFields =
           listOfHiddenFields.toList.flatten.map(formComponent => matchComponentType(formComponent))
         gFormErrors.get(fieldValue.id) match {
@@ -181,7 +180,7 @@ object ValidationUtil {
             FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
           case None =>
             val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
-              selectedValue.map { index =>
+              selectedValue.map { _ =>
                 fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
               }.toMap
             }

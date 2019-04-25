@@ -488,14 +488,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           maybeValidated,
           ei,
           data)
-      case RevealingChoice(options, selections, hiddenField) =>
+      case RevealingChoice(options) =>
         htmlForRevealingChoice(
           formComponent,
           formTemplateId,
-          hiddenField,
-          index,
           options,
-          selections,
+          index,
           maybeValidated,
           ei,
           data,
@@ -660,10 +658,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     private def htmlForRevealingChoice(
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
-    hiddenField: List[List[FormComponent]],
+    options: NonEmptyList[RevealingChoiceElement],
     index: Int,
-    options: List[String],
-    selections: List[Int],
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
@@ -671,13 +667,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     obligations: Obligations)(implicit request: Request[_], message: Messages) = {
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     val prepopValues = ei.fieldData.data.get(fieldValue.id) match {
-      case None    => selections.map(_.toString).toSet
+      case None    => options.filter(_.selected).map(_.choice).toSet
       case Some(_) => Set.empty[String] // Don't prepop something we already submitted
     }
-    val htmlForHiddenField =
-      hiddenField.map(
-        _.map(htmlFor(_, formTemplateId, index, ei, data, validatedType, lang, obligations = obligations)))
-    val revealingChoicesList = options zip htmlForHiddenField
+    val revealingChoicesList =
+      options.map(
+        o =>
+          (
+            o.choice,
+            o.revealingFields.map(
+              htmlFor(_, formTemplateId, index, ei, data, validatedType, lang, obligations = obligations))))
+
     html.form.snippets
       .revealingChoice(
         fieldValue,

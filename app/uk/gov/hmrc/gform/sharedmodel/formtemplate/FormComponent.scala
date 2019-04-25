@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
+import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.LabelHelper
@@ -36,7 +37,7 @@ case class ExpandedFormComponent(expandedFormComponents: List[FormComponent]) ex
     def recurse(formComponent: FormComponent): List[FormComponentId] =
       formComponent match {
         case IsMultiField(mf)      => mf.fields(formComponent.id).toList
-        case IsRevealingChoice(rc) => rc.hiddenField.flatten.flatMap(recurse)
+        case IsRevealingChoice(rc) => rc.options.toList.flatMap(_.revealingFields.flatMap(recurse))
         case _                     => List(formComponent.id)
       }
 
@@ -68,31 +69,46 @@ case class FormComponent(
       shortName = LabelHelper.buildRepeatingLabel(field.shortName, i))
   }
 
+  import cats.implicits._
   private def expandByData(fc: FormComponent, data: Data): List[FormComponent] =
     expand(
       fc,
-      (fields, group, index) => {
+      (group, index) => {
         val ids: List[FormComponentId] = groupIndex(index + 1, group)
         val toExpand: Boolean = ids.forall(data.contains)
-        if (index == 0 || toExpand) fields.map(addFieldIndex(_, index))
+        if (index == 0 || toExpand) group.fields.map(addFieldIndex(_, index))
         else Nil
-      }
+      },
+      revealingChoice =>
+        data
+          .get(fc.id)
+          .toSeq
+          .flatten
+          .headOption
+          .filterNot(_.isEmpty)
+          .map(_.toLong)
+          .flatMap(i => revealingChoice.options.get(i).map(_.revealingFields))
+          .getOrElse(Nil)
     )
 
   private def expandAll(fc: FormComponent): List[FormComponent] =
-    expand(fc, (fields, _, index) => fields.map(addFieldIndex(_, index)))
+    expand(
+      fc,
+      (group, index) => group.fields.map(addFieldIndex(_, index)),
+      revealingChoice => revealingChoice.options.toList.flatMap(_.revealingFields)
+    )
 
   private def expand(
     fc: FormComponent,
-    f: (List[FormComponent], Group, Int) => List[FormComponent]): List[FormComponent] =
+    groupExpander: (Group, Int) => List[FormComponent],
+    revealingChoiceExpander: RevealingChoice => List[FormComponent]): List[FormComponent] =
     fc.`type` match {
-      case group @ Group(fields, _, max, _, _, _) =>
+      case group: Group =>
         val expandedFields: List[FormComponent] =
-          (0 until max.getOrElse(1)).toList.flatMap(f(fields, group, _))
-        expandedFields.flatMap(expand(_, f)) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
-      case r @ RevealingChoice(options, _, hiddenField) =>
-        fc :: options.zipWithIndex.flatMap { case (_, index) => hiddenField(index) }
-      case _ => fc :: Nil
+          (0 until group.repeatsMax.getOrElse(1)).toList.flatMap(groupExpander(group, _))
+        expandedFields.flatMap(expand(_, groupExpander, revealingChoiceExpander)) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
+      case revealingChoice: RevealingChoice => fc :: revealingChoiceExpander(revealingChoice)
+      case _                                => fc :: Nil
     }
 
   private def expandWithCtx(fc: FormComponent): List[FormComponentWithCtx] =
@@ -172,11 +188,7 @@ object IsChoice {
 }
 
 object IsRevealingChoice {
-  def unapply(fc: FormComponent): Option[RevealingChoice] =
-    fc.`type` match {
-      case r @ RevealingChoice(_, _, _) => Some(r)
-      case _                            => None
-    }
+  def unapply(fc: FormComponent): Option[RevealingChoice] = fc.`type`.cast[RevealingChoice]
 }
 
 object IsAddress {
