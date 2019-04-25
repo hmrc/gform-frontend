@@ -37,10 +37,10 @@ object ComponentValidator {
   def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
     data: FormDataRecalculated): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(data, fieldValue), constraint) match {
-      case (true, Nil, _)               => validationFailure(fieldValue, "must be entered")
-      case (_, _, AnyText)              => validationSuccess
-      case (_, value :: Nil, ShortText) => shortTextValidation(fieldValue, value)
-      case (_, value :: Nil, BasicText) => textValidation(fieldValue, value)
+      case (true, Nil, _)                         => validationFailure(fieldValue, "must be entered")
+      case (_, _, AnyText)                        => validationSuccess
+      case (_, value :: Nil, ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
+      case (_, value :: Nil, BasicText)           => textValidation(fieldValue, value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) =>
         textValidationWithConstraints(fieldValue, value, min, max)
       case (_, value :: Nil, Sterling(_)) =>
@@ -191,9 +191,13 @@ object ComponentValidator {
           "can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens")
     }
 
-  private def shortTextValidation(fieldValue: FormComponent, value: String) = {
-    val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]{0,1000}""".r
+  private[validation] def shortTextValidation(fieldValue: FormComponent, value: String, min: Int, max: Int) = {
+    val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]*""".r
     value match {
+      case tooLong if tooLong.length > max =>
+        validationFailure(fieldValue, s"has more than $max characters")
+      case tooShort if tooShort.length < min =>
+        validationFailure(fieldValue, s"has fewer than $min characters")
       case ShortTextValidation() => validationSuccess
       case _ =>
         validationFailure(
