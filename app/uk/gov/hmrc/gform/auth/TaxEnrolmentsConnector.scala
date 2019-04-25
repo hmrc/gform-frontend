@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.gform.auth
 
+import play.api.Logger
 import play.api.libs.json.Json
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.ServiceId
+import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
@@ -38,7 +41,7 @@ object TaxEnrolment {
 class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
   def enrolGGUser(request: TaxEnrolment, service: ServiceId, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[HttpResponse] = {
+    ec: ExecutionContext): Future[ServiceCallResponse[TaxEnrolmentsResponse]] = {
     val groupId = retrievals.groupId
     val identifiers = request.identifiers.sortBy(_.key)
 
@@ -46,9 +49,26 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
       .map(identifier => identifier.key + "~" + identifier.value)
       .mkString("~")
 
-    http.POST(
-      s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
-      TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment")
-    )
+    http
+      .doPost(
+        s"$baseUrl/tax-enrolments/groups/$groupId/enrolments/$enrolmentKey",
+        TaxEnrolmentPayload(request.verifiers, "principal", retrievals.ggCredId, "gform-enrolment"),
+        List.empty[(String, String)]
+      )
+      .map { httpResponse =>
+        httpResponse.status match {
+          case 201 => ServiceResponse(TaxEnrolmentsResponse.Success)
+          case 409 => ServiceResponse(TaxEnrolmentsResponse.Conflict)
+          case other =>
+            Logger.error(s"Problem when calling tax enrolment, Http status: $other, body: ${httpResponse.body}")
+            CannotRetrieveResponse
+        }
+      }
+      .recover {
+        case ex =>
+          Logger.error("Unknown problem when calling tax enrolment", ex)
+          CannotRetrieveResponse
+      }
+
   }
 }

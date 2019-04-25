@@ -84,6 +84,7 @@ class AuthenticatedRequestActions(
       .retrieve(Retrievals.allEnrolments) {
         case enrolments => checkIdentifiers(identifiers)(enrolments).pure[Future]
       }
+      .recoverWith { case _ => EnrolmentFailed.pure[Future] }
   }
 
   private def toIdentifier(ei: EnrolmentIdentifier): Identifier = Identifier(ei.key, ei.value)

@@ -82,7 +82,7 @@ class EnrolmentResultProcessor(
 
     def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[Html]) = see match {
       case RegimeIdNotMatch(identifierRecipe) =>
-        val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set("RegimeId do not match"))
+        val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set("RegimeId does not match"))
         (Invalid(regimeIdError), List.empty)
       case NoIdentifierProvided =>
         val globalError = html.form.errors.error_global("At least on identifier must be provided")
