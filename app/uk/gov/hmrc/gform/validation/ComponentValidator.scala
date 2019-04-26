@@ -152,22 +152,22 @@ object ComponentValidator {
   }
 
   private def checkNonUkCountryCode(fieldValue: FormComponent, value: String) = {
-    val countryCode = "[A-Z]+".r
+    val ValidCountryCode = "[A-Z]+".r
     val errorMSG = "is not a valid non UK country code"
     if (value == "UK") validationFailure(fieldValue, "is not a valid non UK country code")
-    else sharedTextComponentValidator(fieldValue, value, 2, 2, countryCode, errorMSG)
+    else sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, errorMSG)
   }
 
   private def checkCountryCode(fieldValue: FormComponent, value: String) = {
-    val countryCode = "[A-Z]+".r
+    val ValidCountryCode = "[A-Z]+".r
     val errorMSG = "is not a valid country code"
-    sharedTextComponentValidator(fieldValue, value, 2, 2, countryCode, errorMSG)
+    sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, errorMSG)
   }
 
   private def checkId(fieldValue: FormComponent, value: String) = {
-    val UTR = "[0-9]{10}".r
+    val ValidUTR = "[0-9]{10}".r
     value match {
-      case UTR()                => validationSuccess
+      case ValidUTR()                => validationSuccess
       case x if Nino.isValid(x) => validationSuccess
       case _                    => validationFailure(fieldValue, "is not a valid Id")
     }
@@ -188,16 +188,16 @@ object ComponentValidator {
   }
 
   private[validation] def shortTextValidation(fieldValue: FormComponent, value: String, min: Int, max: Int) = {
-    val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]+""".r
+    val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
     val errorMSG = "can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
-    sharedTextComponentValidator(fieldValue, value, min, max, ShortTextValidation, errorMSG)
+    sharedTextComponentValidator(fieldValue, value, min, max, ValidShortText, errorMSG)
   }
 
   private def textValidation(fieldValue: FormComponent, value: String) = {
-    val TextValidation = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
+    val ValidText = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
     val errorMSG =
       "can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
-    sharedTextComponentValidator(fieldValue, value, 0, 100000, TextValidation, errorMSG)
+    sharedTextComponentValidator(fieldValue, value, 0, 100000, ValidText, errorMSG)
   }
 
   def validateChoice(fieldValue: FormComponent)(data: FormDataRecalculated): ValidatedType[Unit] = {
