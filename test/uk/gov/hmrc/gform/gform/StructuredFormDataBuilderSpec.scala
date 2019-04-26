@@ -89,8 +89,7 @@ class StructuredFormDataBuilderSpec extends Spec {
           arrayNode(
             textNode("fieldValue1"),
             textNode("fieldValue2")
-          ),
-          Map.empty))
+          )))
     )
   }
 
@@ -111,8 +110,7 @@ class StructuredFormDataBuilderSpec extends Spec {
           arrayNode(
             arrayNode(textNode("value1"), textNode("value2")),
             arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
-          ),
-          Map.empty))
+          )))
     )
   }
 
@@ -267,8 +265,7 @@ class StructuredFormDataBuilderSpec extends Spec {
             field("uk", textNode("5"), roboticsXmlPurposeMap("uk")),
             field("postcode", textNode("6"), roboticsXmlPurposeMap("postcode")),
             field("country", textNode("7"), roboticsXmlPurposeMap("country"))
-          ),
-          Map.empty
+          )
         ))
     )
   }
