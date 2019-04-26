@@ -108,6 +108,41 @@ class ComponentValidatorSpec extends Spec with Matchers with GraphSpec {
       result.isInvalid shouldBe true
     }
   }
+  val shortTextComponent = FormComponent(
+    FormComponentId("formComponent"),
+    Text(ShortText(3, 5), Value),
+    "formComponentLabel",
+    None,
+    None,
+    None,
+    true,
+    true,
+    false,
+    true,
+    false,
+    None)
+
+  "validateShortText" should "return invalid if character count is too big" in {
+    val shortTextTooLong = "abcdefghij"
+    val result = ComponentValidator.shortTextValidation(shortTextComponent, shortTextTooLong, 3, 5)
+    result.isInvalid shouldBe true
+  }
+  "validateShortText" should "return invalid if character count is too small" in {
+    val shortTextTooShort = "a"
+    val result = ComponentValidator.shortTextValidation(shortTextComponent, shortTextTooShort, 3, 5)
+    result.isInvalid shouldBe true
+  }
+  "validateShortText" should "return valid if the character count is within range" in {
+    val shortTextWithinRange = "abcd"
+    val result = ComponentValidator.shortTextValidation(shortTextComponent, shortTextWithinRange, 3, 5)
+    result.isValid shouldBe true
+  }
+  "validateShortText" should "return invalid if incorrect character are entered" in {
+    val shortTextIncorrectChars = "a[]*"
+    val result =
+      ComponentValidator.shortTextValidation(shortTextComponent, shortTextIncorrectChars, 3, 5)
+    result.isInvalid shouldBe true
+  }
 
   "it" should "return valid when character count is less than 4 and contains a special character" in {
     val lessThan4WithPlus = numberWithPlus.map(string => string.substring(0, 4))
