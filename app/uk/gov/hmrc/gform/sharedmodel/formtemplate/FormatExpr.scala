@@ -206,8 +206,6 @@ object Sterling {
 object TextConstraint {
   val defaultWholeDigits = 11
   val defaultFactionalDigits = 2
-  val defaultShortTextMinChars = 0
-  val defaultShortTextMaxChars = 1000
 
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
 
