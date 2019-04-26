@@ -68,10 +68,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       objectStructure(
         field(
           "field",
-          objectStructure(
-            field("day", textNode("1")),
-            field("month", textNode("2")),
-            field("year", textNode("3"))),
+          objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3"))),
           Map.empty))
     )
   }
@@ -140,14 +137,8 @@ class StructuredFormDataBuilderSpec extends Spec {
         field(
           "field",
           arrayNode(
-            objectStructure(
-              field("day", textNode("1")),
-              field("month", textNode("2")),
-              field("year", textNode("3"))),
-            objectStructure(
-              field("day", textNode("4")),
-              field("month", textNode("5")),
-              field("year", textNode("6")))
+            objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3"))),
+            objectStructure(field("day", textNode("4")), field("month", textNode("5")), field("year", textNode("6")))
           ),
           Map.empty
         )
@@ -220,14 +211,8 @@ class StructuredFormDataBuilderSpec extends Spec {
         field(
           "field",
           arrayNode(
-            objectStructure(
-              field("day", textNode("1")),
-              field("month", textNode("2")),
-              field("year", textNode("3"))),
-            objectStructure(
-              field("day", textNode("4")),
-              field("month", textNode("5")),
-              field("year", textNode("6")))
+            objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3"))),
+            objectStructure(field("day", textNode("4")), field("month", textNode("5")), field("year", textNode("6")))
           ),
           Map.empty
         )
