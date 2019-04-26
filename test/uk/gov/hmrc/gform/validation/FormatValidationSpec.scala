@@ -281,10 +281,10 @@ class FormatValidationSpec extends Spec with GraphSpec {
     BasicText,
     "sample label can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
   )
-  "ShortText" should "return valid with shortText" in createSuccessTest("this is test text", ShortText())
+  "ShortText" should "return valid with shortText" in createSuccessTest("this is test text", ShortText.default)
   "ShortText" should "return invalid with too long of text" in createFailTest(
     List.fill(1001)("a").mkString,
-    ShortText(),
+    ShortText.default,
     "sample label has more than 1000 characters"
   )
   "ShortText(min, max)" should "return valid with in ShortText" in createSuccessTest(
