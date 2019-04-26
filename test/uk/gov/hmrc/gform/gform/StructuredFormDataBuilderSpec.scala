@@ -21,7 +21,7 @@ import org.scalatest.Assertion
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
+import uk.gov.hmrc.gform.sharedmodel.structuredform._
 
 class StructuredFormDataBuilderSpec extends Spec {
   "apply(Form, FormTemplate)" must "create the correct JSON for simple fields in non-repeating sections/groups" in {
@@ -34,9 +34,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       createForm(
         "field" -> "fieldValue"
       ),
-      objectStructure(
-        "field" -> textNode("fieldValue")
-      )
+      objectStructure(field("field", textNode("fieldValue")))
     )
   }
 
@@ -50,9 +48,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       createForm(
         "field" -> "value1,value2"
       ),
-      objectStructure(
-        "field" -> arrayNode(textNode("value1"), textNode("value2"))
-      )
+      objectStructure(field("field", arrayNode(textNode("value1"), textNode("value2"))))
     )
   }
 
@@ -70,12 +66,9 @@ class StructuredFormDataBuilderSpec extends Spec {
         "field-year"  -> "3"
       ),
       objectStructure(
-        "field" -> objectStructure(
-          "day"   -> textNode("1"),
-          "month" -> textNode("2"),
-          "year"  -> textNode("3")
-        )
-      )
+        field(
+          "field",
+          objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3")))))
     )
   }
 
@@ -91,11 +84,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "2_field" -> "fieldValue2"
       ),
       objectStructure(
-        "field" -> arrayNode(
-          textNode("fieldValue1"),
-          textNode("fieldValue2")
-        )
-      )
+        field(
+          "field",
+          arrayNode(
+            textNode("fieldValue1"),
+            textNode("fieldValue2")
+          )))
     )
   }
 
@@ -111,11 +105,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "2_field" -> "value1,value3, value4"
       ),
       objectStructure(
-        "field" -> arrayNode(
-          arrayNode(textNode("value1"), textNode("value2")),
-          arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
-        )
-      )
+        field(
+          "field",
+          arrayNode(
+            arrayNode(textNode("value1"), textNode("value2")),
+            arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
+          )))
     )
   }
 
@@ -136,16 +131,11 @@ class StructuredFormDataBuilderSpec extends Spec {
         "3_field-year"  -> "6"
       ),
       objectStructure(
-        "field" -> arrayNode(
-          objectStructure(
-            "day"   -> textNode("1"),
-            "month" -> textNode("2"),
-            "year"  -> textNode("3")
-          ),
-          objectStructure(
-            "day"   -> textNode("4"),
-            "month" -> textNode("5"),
-            "year"  -> textNode("6")
+        field(
+          "field",
+          arrayNode(
+            objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3"))),
+            objectStructure(field("day", textNode("4")), field("month", textNode("5")), field("year", textNode("6")))
           )
         )
       )
@@ -164,11 +154,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "2_field" -> "fieldValue2"
       ),
       objectStructure(
-        "field" -> arrayNode(
-          textNode("fieldValue1"),
-          textNode("fieldValue2")
-        )
-      )
+        field(
+          "field",
+          arrayNode(
+            textNode("fieldValue1"),
+            textNode("fieldValue2")
+          )))
     )
   }
 
@@ -184,9 +175,12 @@ class StructuredFormDataBuilderSpec extends Spec {
         "2_field" -> "value1,value3, value4"
       ),
       objectStructure(
-        "field" -> arrayNode(
-          arrayNode(textNode("value1"), textNode("value2")),
-          arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
+        field(
+          "field",
+          arrayNode(
+            arrayNode(textNode("value1"), textNode("value2")),
+            arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
+          )
         )
       )
     )
@@ -209,16 +203,11 @@ class StructuredFormDataBuilderSpec extends Spec {
         "3_field-year"  -> "6"
       ),
       objectStructure(
-        "field" -> arrayNode(
-          objectStructure(
-            "day"   -> textNode("1"),
-            "month" -> textNode("2"),
-            "year"  -> textNode("3")
-          ),
-          objectStructure(
-            "day"   -> textNode("4"),
-            "month" -> textNode("5"),
-            "year"  -> textNode("6")
+        field(
+          "field",
+          arrayNode(
+            objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3"))),
+            objectStructure(field("day", textNode("4")), field("month", textNode("5")), field("year", textNode("6")))
           )
         )
       )
@@ -240,10 +229,44 @@ class StructuredFormDataBuilderSpec extends Spec {
         "decField" -> "decFieldValue"
       ),
       objectStructure(
-        "field"    -> textNode("fieldValue"),
-        "ackField" -> textNode("ackFieldValue"),
-        "decField" -> textNode("decFieldValue")
+        field("field", textNode("fieldValue")),
+        field("ackField", textNode("ackFieldValue")),
+        field("decField", textNode("decFieldValue"))
       )
+    )
+  }
+
+  it must "provide the correct alternative field names for robotic XML" in {
+    def roboticsXmlPurposeMap(fieldName: String) = createStructuredPurposeMap(RoboticsXml, FieldName(fieldName))
+
+    validate(
+      createFormTemplate(
+        createNonRepeatingSection(
+          createAddress("field")
+        )
+      ),
+      createForm(
+        "field-street1"  -> "1",
+        "field-street2"  -> "2",
+        "field-street3"  -> "3",
+        "field-street4"  -> "4",
+        "field-uk"       -> "5",
+        "field-postcode" -> "6",
+        "field-country"  -> "7"
+      ),
+      objectStructure(
+        field(
+          "field",
+          objectStructure(
+            field("street1", textNode("1"), roboticsXmlPurposeMap("line1")),
+            field("street2", textNode("2"), roboticsXmlPurposeMap("line2")),
+            field("street3", textNode("3"), roboticsXmlPurposeMap("line3")),
+            field("street4", textNode("4"), roboticsXmlPurposeMap("line4")),
+            field("uk", textNode("5"), roboticsXmlPurposeMap("uk")),
+            field("postcode", textNode("6"), roboticsXmlPurposeMap("postcode")),
+            field("country", textNode("7"), roboticsXmlPurposeMap("country"))
+          )
+        ))
     )
   }
 
@@ -350,12 +373,24 @@ class StructuredFormDataBuilderSpec extends Spec {
   def createDate(id: String): FormComponent =
     createFormComponent(id, Date(AnyDate, Offset(0), None))
 
-  private def objectStructure(fields: (String, StructuredFormValue)*): StructuredFormValue =
-    StructuredFormValue.ObjectStructure(fields.map { case (n, v) => Field(FieldName(n), v) }.toList)
+  def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
+
+  def createStructuredPurposeMap(
+    purpose: StructuredFormDataFieldNamePurpose,
+    fieldNames: FieldName*): Map[StructuredFormDataFieldNamePurpose, FieldName] = fieldNames.map(purpose -> _).toMap
+
+  private def objectStructure(fields: Field*): StructuredFormValue =
+    StructuredFormValue.ObjectStructure(fields.map { case Field(n, v, a) => Field(n, v, a) } toList)
 
   private def textNode(value: String): StructuredFormValue =
     StructuredFormValue.TextNode(value)
 
   private def arrayNode(values: StructuredFormValue*): StructuredFormValue =
     StructuredFormValue.ArrayNode(values.toList)
+
+  private def field(
+    name: String,
+    value: StructuredFormValue,
+    alternateFieldNames: Map[StructuredFormDataFieldNamePurpose, FieldName] = Map.empty) =
+    Field(FieldName(name), value, alternateFieldNames)
 }

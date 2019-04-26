@@ -78,27 +78,34 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate) {
       }
       .map(sequence)
       .map { v =>
-        if (repeatable) buildRepeatableComposite(baseField.id, v)
-        else buildNonRepeatableComposite(baseField.id, v.head)
+        if (repeatable) buildRepeatableComposite(baseField.id, v, mf)
+        else buildNonRepeatableComposite(baseField.id, v.head, mf)
       }
 
   private def buildRepeatableComposite(
     baseFieldId: FormComponentId,
-    values: NonEmptyList[NonEmptyList[(FormComponentId, String)]]): Field =
+    values: NonEmptyList[NonEmptyList[(FormComponentId, String)]],
+    mf: MultiField): Field =
     Field(
       FieldName(baseFieldId.value),
-      ArrayNode(values.toList.map { buildObjectStructureForComposite(baseFieldId, _) }))
+      ArrayNode(values.toList.map { buildObjectStructureForComposite(baseFieldId, _, mf) }),
+      Map.empty
+    )
 
   private def buildNonRepeatableComposite(
     baseFieldId: FormComponentId,
-    fields: NonEmptyList[(FormComponentId, String)]): Field =
-    Field(FieldName(baseFieldId.value), buildObjectStructureForComposite(baseFieldId, fields))
+    fields: NonEmptyList[(FormComponentId, String)],
+    mf: MultiField): Field =
+    Field(FieldName(baseFieldId.value), buildObjectStructureForComposite(baseFieldId, fields, mf), Map.empty)
 
   private def buildObjectStructureForComposite(
     baseFieldId: FormComponentId,
-    fields: NonEmptyList[(FormComponentId, String)]) =
+    fields: NonEmptyList[(FormComponentId, String)],
+    mf: MultiField) =
     ObjectStructure(fields.map {
-      case (k, v) => Field(FieldName(k.stripBase(baseFieldId).value), TextNode(v))
+      case (k, v) =>
+        val strippedId = k.stripBase(baseFieldId).value
+        Field(FieldName(strippedId), TextNode(v), mf.alternateNamesFor(FormComponentId(strippedId)))
     }.toList)
 
   private def buildSimpleField(
@@ -110,10 +117,10 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate) {
     else buildNonRepeatingSimpleField(field, values.head, multiValue)
 
   private def buildNonRepeatingSimpleField(field: FormComponent, value: String, multiValue: Boolean): Field =
-    Field(FieldName(field.id.value), buildNode(value, multiValue))
+    Field(FieldName(field.id.value), buildNode(value, multiValue), Map.empty)
 
   private def buildRepeatingSimpleField(field: FormComponent, value: NonEmptyList[String], multiValue: Boolean): Field =
-    Field(FieldName(field.id.value), ArrayNode(value.toList.map(buildNode(_, multiValue))))
+    Field(FieldName(field.id.value), ArrayNode(value.toList.map(buildNode(_, multiValue))), Map.empty)
 
   private def buildNode(value: String, multiValue: Boolean): StructuredFormValue =
     if (multiValue) choicesToArray(value)

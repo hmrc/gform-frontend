@@ -16,16 +16,15 @@
 
 package uk.gov.hmrc.gform.sharedmodel.structuredform
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import play.api.libs.json.Format
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ ADTFormat, FormComponentId }
 
-sealed trait StructuredFormValue extends Product with Serializable
+trait StructuredFormDataFieldNamePurpose
+case object RoboticsXml extends StructuredFormDataFieldNamePurpose
 
-object StructuredFormValue {
-  case class ObjectStructure(fields: List[Field]) extends StructuredFormValue
-  case class TextNode(value: String) extends StructuredFormValue
-  case class ArrayNode(elements: List[StructuredFormValue]) extends StructuredFormValue
+object StructuredFormDataFieldNamePurpose {
+  val roboticsXml = "RoboticsXml"
 
-  implicit val oFormat: OFormat[StructuredFormValue] = derived.oformat[StructuredFormValue]
-  implicit val objectStructureFormat: OFormat[ObjectStructure] = derived.oformat[ObjectStructure]
+  implicit val format: Format[StructuredFormDataFieldNamePurpose] =
+    ADTFormat.formatEnumeration(roboticsXml -> RoboticsXml)
 }

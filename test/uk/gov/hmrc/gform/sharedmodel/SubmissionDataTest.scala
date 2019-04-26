@@ -27,7 +27,8 @@ class SubmissionDataTest extends Spec {
     val submissionData = SubmissionData(
       htmlForm,
       Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
-      StructuredFormValue.ObjectStructure(List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue")))),
+      StructuredFormValue.ObjectStructure(
+        List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue"), Map.empty))),
       EmailParametersRecalculated(
         Map(
           EmailTemplateVariable("variable1") -> EmailParameterValue("value1"),
@@ -59,7 +60,8 @@ class SubmissionDataTest extends Spec {
           |         "TextNode" : {
           |           "value" : "fooValue"
           |         }
-          |       }
+          |       },
+          |         "alternativeFieldNames":{}
           |     }
           |   ]
           |  },

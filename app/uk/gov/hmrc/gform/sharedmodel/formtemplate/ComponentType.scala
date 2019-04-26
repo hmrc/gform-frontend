@@ -23,12 +23,18 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
+import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
 import scala.collection.immutable._
 
 sealed trait MultiField {
+
   def fields(formComponentId: FormComponentId): NonEmptyList[FormComponentId]
+
+  def alternateNamesFor(fcId: FormComponentId): Map[StructuredFormDataFieldNamePurpose, FieldName] = Map.empty
+
 }
+
 sealed trait ComponentType
 
 case class Text(
@@ -66,6 +72,10 @@ case object Date {
 
 case class Address(international: Boolean) extends ComponentType with MultiField {
   override def fields(id: FormComponentId): NonEmptyList[FormComponentId] = Address.fields(id)
+
+  override def alternateNamesFor(fcId: FormComponentId): Map[StructuredFormDataFieldNamePurpose, FieldName] =
+    Map(RoboticsXml -> FieldName(fcId.value.replace("street", "line")))
+
 }
 
 case object Address {
@@ -73,6 +83,7 @@ case object Address {
   val optionalFields = (id: FormComponentId) =>
     List("street2", "street3", "street4", "uk", "postcode", "country").map(id.withSuffix)
   val fields = (id: FormComponentId) => NonEmptyList.fromListUnsafe(mandatoryFields(id) ++ optionalFields(id))
+
 }
 
 object DisplayWidth extends Enumeration {

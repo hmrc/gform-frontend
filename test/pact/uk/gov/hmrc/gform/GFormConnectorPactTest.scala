@@ -36,7 +36,8 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
       SubmissionData(
         htmlForm,
         Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
-        StructuredFormValue.ObjectStructure(List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue")))),
+        StructuredFormValue.ObjectStructure(
+          List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue"), Map.empty))),
         EmailParametersRecalculated(Map(EmailTemplateVariable("variable") -> EmailParameterValue("value")))
       )
 
