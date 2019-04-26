@@ -107,20 +107,6 @@ class ComponentsValidator(
 
 object ComponentsValidator {
 
-  def validatorHelper(
-    fieldValueConstraint: Int,
-    fieldValue: FormComponent,
-    value: String,
-    min: Int,
-    max: Int): Validated[Map[FormComponentId, Set[String]], Unit] =
-    fieldValueConstraint match {
-      case tooLong if tooLong > max =>
-        validationFailure(fieldValue, s"has more than $max characters")
-      case tooShort if tooShort < min =>
-        validationFailure(fieldValue, s"has less than $min characters")
-      case _ => validationSuccess
-    }
-
   def validF(implicit ec: ExecutionContext) =
     validationSuccess.pure[Future]
 

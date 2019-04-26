@@ -176,7 +176,14 @@ class FormatValidationSpec extends Spec with GraphSpec {
     "ABCD111111111",
     UkVrn,
     "sample label is not a valid VRN")
-  "UkVrn" should "return invalid if too short" in createFailTest("GB123", UkVrn, "sample label is not a valid VRN")
+  "UkVrn" should "return invalid if too short" in createFailTest(
+    "GB123",
+    UkVrn,
+    "sample label has fewer than 7 characters")
+  "UkVrn" should "return invalid if too long" in createFailTest(
+    "GB1234567887548876554",
+    UkVrn,
+    "sample label has more than 14 characters")
 
   "CompanyRegistrationNumber" should "return valid Company Registration Number with 8 digits" in createSuccessTest(
     "12345678",
@@ -191,11 +198,11 @@ class FormatValidationSpec extends Spec with GraphSpec {
   "CompanyRegistrationNumber" should "return invalid if too short" in createFailTest(
     "SO1234",
     CompanyRegistrationNumber,
-    "sample label is not a valid Company Registration Number")
+    "sample label has fewer than 8 characters")
   "CompanyRegistrationNumber" should "return invalid if too long" in createFailTest(
     "SO1234567890",
     CompanyRegistrationNumber,
-    "sample label is not a valid Company Registration Number")
+    "sample label has more than 8 characters")
   "CompanyRegistrationNumber" should "return invalid if too many letters at the start" in createFailTest(
     "BNR12345",
     CompanyRegistrationNumber,
@@ -231,15 +238,15 @@ class FormatValidationSpec extends Spec with GraphSpec {
   "EORI" should "return invalid without one of the previous conditions" in createFailTest(
     "K8765432",
     EORI,
-    "sample label is not a valid EORI")
+    "sample label has fewer than 9 characters")
   "EORI" should "return invalid as too many characters in data" in createFailTest(
     "XB1234567891123456",
     EORI,
-    "sample label is not a valid EORI")
+    "sample label has more than 17 characters")
   "EORI" should "return invalid as too few letters in data" in createFailTest(
     "GB123456",
     EORI,
-    "sample label is not a valid EORI")
+    "sample label has fewer than 9 characters")
   "EORI" should "return invalid as starts with number" in createFailTest(
     "1XFR1234567893456",
     EORI,
@@ -261,23 +268,27 @@ class FormatValidationSpec extends Spec with GraphSpec {
   "NonUkCountryCode" should "return invalid if it's too short" in createFailTest(
     "U",
     NonUkCountryCode,
-    "sample label is not a valid non UK country code")
+    "sample label has fewer than 2 characters")
   "NonUkCountryCode" should "return invalid if it's too long" in createFailTest(
     "USA",
     NonUkCountryCode,
-    "sample label is not a valid non UK country code")
+    "sample label has more than 2 characters")
   "Country Code" should "return valid if it's any valid country code" in createSuccessTest("UK", CountryCode)
   "Country Code" should "return invalid if it's too long" in createFailTest(
     "UTT",
     CountryCode,
-    "sample label is not a valid country code")
+    "sample label has more than 2 characters")
   "Country Code" should "return invalid if it's too short" in createFailTest(
     "U",
     CountryCode,
-    "sample label is not a valid country code")
+    "sample label has fewer than 2 characters")
   "BasicText" should "return valid with text" in createSuccessTest("This is test text", BasicText)
-  "BasicText" should "return invalid with invalid text" in createFailTest(
+  "BasicText" should "return invalid with too many characters" in createFailTest(
     List.fill[String](100001)("a").mkString,
+    BasicText,
+    "sample label has more than 100000 characters")
+  "BasicText" should "return invalid withe invalid characters" in createFailTest(
+    List.fill[String](5)("%").mkString,
     BasicText,
     "sample label can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
   )

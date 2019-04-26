@@ -26,6 +26,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
 
+import scala.util.matching.Regex
+
 object ComponentValidator {
 
   private def textData(formData: FormDataRecalculated, fieldValue: FormComponent) =
@@ -106,8 +108,11 @@ object ComponentValidator {
     }
   }
 
-  private def textValidationWithConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int) =
-    ComponentsValidator.validatorHelper(value.length, fieldValue, value, min, max)
+  private def textValidationWithConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int) = {
+    val ValidText = ".+".r
+    val errorMSG = "is not valid"
+    sharedTextComponentValidator(fieldValue, value, min, max, ValidText, errorMSG)
+  }
 
   private def email(fieldValue: FormComponent, value: String) =
     if (EmailAddress.isValid(value)) validationSuccess
@@ -120,6 +125,10 @@ object ComponentValidator {
     val Health = "GBHA[5-9][0-9]{2}".r
     val str = value.replace(" ", "")
     str match {
+      case tooLong if tooLong.length > 14 =>
+        validationFailure(fieldValue, s"has more than 14 characters")
+      case tooShort if tooShort.length < 7 =>
+        validationFailure(fieldValue, s"has fewer than 7 characters")
       case Standard()   => validationSuccess
       case Branch()     => validationSuccess
       case Government() => validationSuccess
@@ -131,35 +140,28 @@ object ComponentValidator {
   private def checkCompanyRegistrationNumber(fieldValue: FormComponent, value: String) = {
     val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
     val str = value.replace(" ", "")
-    str match {
-      case ValidCRN() => validationSuccess
-      case _          => validationFailure(fieldValue, "is not a valid Company Registration Number")
-    }
+    val errorMSG = "is not a valid Company Registration Number"
+    sharedTextComponentValidator(fieldValue, str, 8, 8, ValidCRN, errorMSG)
   }
 
   private def checkEORI(fieldValue: FormComponent, value: String) = {
-    val ValidCRN = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
+    val ValidEORI = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
     val str = value.replace(" ", "")
-    str match {
-      case ValidCRN() => validationSuccess
-      case _          => validationFailure(fieldValue, "is not a valid EORI")
-    }
+    val errorMSG = "is not a valid EORI"
+    sharedTextComponentValidator(fieldValue, str, 9, 17, ValidEORI, errorMSG)
   }
 
   private def checkNonUkCountryCode(fieldValue: FormComponent, value: String) = {
-    val countryCode = "[A-Z]{2}".r
-    value match {
-      case countryCode() if value != "UK" => validationSuccess
-      case _                              => validationFailure(fieldValue, "is not a valid non UK country code")
-    }
+    val countryCode = "[A-Z]+".r
+    val errorMSG = "is not a valid non UK country code"
+    if (value == "UK") validationFailure(fieldValue, "is not a valid non UK country code")
+    else sharedTextComponentValidator(fieldValue, value, 2, 2, countryCode, errorMSG)
   }
 
   private def checkCountryCode(fieldValue: FormComponent, value: String) = {
-    val countryCode = "[A-Z]{2}".r
-    value match {
-      case countryCode() => validationSuccess
-      case _             => validationFailure(fieldValue, "is not a valid country code")
-    }
+    val countryCode = "[A-Z]+".r
+    val errorMSG = "is not a valid country code"
+    sharedTextComponentValidator(fieldValue, value, 2, 2, countryCode, errorMSG)
   }
 
   private def checkId(fieldValue: FormComponent, value: String) = {
@@ -173,51 +175,29 @@ object ComponentValidator {
 
   def validatePhoneNumber(
     fieldValue: FormComponent,
-    value: String): Validated[Map[FormComponentId, Set[String]], Unit] =
-    value.length match {
-      case tooLong if tooLong > TelephoneNumber.maximumLength =>
-        validationFailure(fieldValue, s"has more than ${TelephoneNumber.maximumLength} characters")
-      case tooShort if tooShort < TelephoneNumber.minimumLength =>
-        validationFailure(fieldValue, s"has fewer than ${TelephoneNumber.minimumLength} characters")
-      case _ => validatePhoneNumberContent(value, fieldValue)
-    }
-
-  private def validatePhoneNumberContent(value: String, fieldValue: FormComponent) =
-    value match {
-      case TelephoneNumber.phoneNumberValidation() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          "can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens")
-    }
+    value: String): Validated[Map[FormComponentId, Set[String]], Unit] = {
+    val errorMSG =
+      "can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens"
+    sharedTextComponentValidator(
+      fieldValue,
+      value,
+      TelephoneNumber.minimumLength,
+      TelephoneNumber.maximumLength,
+      TelephoneNumber.phoneNumberValidation,
+      errorMSG)
+  }
 
   private[validation] def shortTextValidation(fieldValue: FormComponent, value: String, min: Int, max: Int) = {
-    val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]*""".r
-    value match {
-      case tooLong if tooLong.length > max =>
-        validationFailure(fieldValue, s"has more than $max characters")
-      case tooShort if tooShort.length < min =>
-        validationFailure(fieldValue, s"has fewer than $min characters")
-      case ShortTextValidation() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          "can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
-        )
-    }
+    val ShortTextValidation = """[A-Za-z0-9\'\-\.\&\s]+""".r
+    val errorMSG = "can only include letters, numbers, spaces, hyphens, ampersands and apostrophes"
+    sharedTextComponentValidator(fieldValue, value, min, max, ShortTextValidation, errorMSG)
   }
 
   private def textValidation(fieldValue: FormComponent, value: String) = {
-    val TextValidation =
-      """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]{0,100000}""".r
-    value match {
-      case TextValidation() => validationSuccess
-      case _ =>
-        validationFailure(
-          fieldValue,
-          "can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
-        )
-    }
+    val TextValidation = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
+    val errorMSG =
+      "can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores"
+    sharedTextComponentValidator(fieldValue, value, 0, 100000, TextValidation, errorMSG)
   }
 
   def validateChoice(fieldValue: FormComponent)(data: FormDataRecalculated): ValidatedType[Unit] = {
@@ -238,4 +218,19 @@ object ComponentValidator {
 
   private def filterCommas(number: String) = number.filterNot(c => c == ',')
 
+  private def sharedTextComponentValidator(
+    fieldValue: FormComponent,
+    value: String,
+    min: Int,
+    max: Int,
+    regex: Regex,
+    errorMSG: String) =
+    value match {
+      case tooLong if tooLong.length > max =>
+        validationFailure(fieldValue, s"has more than $max characters")
+      case tooShort if tooShort.length < min =>
+        validationFailure(fieldValue, s"has fewer than $min characters")
+      case regex() => validationSuccess
+      case _       => validationFailure(fieldValue, errorMSG)
+    }
 }
