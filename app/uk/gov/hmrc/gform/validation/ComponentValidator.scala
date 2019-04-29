@@ -154,7 +154,7 @@ object ComponentValidator {
   private def checkNonUkCountryCode(fieldValue: FormComponent, value: String) = {
     val ValidCountryCode = "[A-Z]+".r
     val errorMSG = "is not a valid non UK country code"
-    if (value == "UK") validationFailure(fieldValue, "is not a valid non UK country code")
+    if (value == "UK") validationFailure(fieldValue, errorMSG)
     else sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, errorMSG)
   }
 
@@ -167,7 +167,7 @@ object ComponentValidator {
   private def checkId(fieldValue: FormComponent, value: String) = {
     val ValidUTR = "[0-9]{10}".r
     value match {
-      case ValidUTR()                => validationSuccess
+      case ValidUTR()           => validationSuccess
       case x if Nino.isValid(x) => validationSuccess
       case _                    => validationFailure(fieldValue, "is not a valid Id")
     }
@@ -221,15 +221,15 @@ object ComponentValidator {
   private def sharedTextComponentValidator(
     fieldValue: FormComponent,
     value: String,
-    min: Int,
-    max: Int,
+    minChars: Int,
+    maxChars: Int,
     regex: Regex,
     errorMSG: String) =
     value match {
-      case tooLong if tooLong.length > max =>
-        validationFailure(fieldValue, s"has more than $max characters")
-      case tooShort if tooShort.length < min =>
-        validationFailure(fieldValue, s"has fewer than $min characters")
+      case tooLong if tooLong.length > maxChars =>
+        validationFailure(fieldValue, s"has more than $maxChars characters")
+      case tooShort if tooShort.length < minChars =>
+        validationFailure(fieldValue, s"has fewer than $minChars characters")
       case regex() => validationSuccess
       case _       => validationFailure(fieldValue, errorMSG)
     }
