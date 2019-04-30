@@ -128,7 +128,7 @@ object DateValidationLogic {
   }
 
   def isNumeric(str: String, timeUnitLabel: String, label: String): ValidatedNumeric =
-    if (str.length == 0) Invalid(s"$label must be entered")
+    if (str.isEmpty) Invalid(s"$label must be entered")
     else
       Try(str.toInt) match {
         case Success(x) => Valid(x)
