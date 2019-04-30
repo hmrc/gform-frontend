@@ -618,6 +618,49 @@ class DateValidationSpec extends FlatSpec with Matchers with EitherMatchers with
       ))
   }
 
+  "Date validations" should "return suitable error if empty" in {
+    val date = Date(AnyDate, Offset(0), None)
+
+    val fieldValue = FormComponent(
+      FormComponentId("accPeriodStartDate"),
+      date,
+      "sample label",
+      None,
+      None,
+      None,
+      false,
+      false,
+      false,
+      true,
+      false,
+      None)
+
+    val fieldValues = List(fieldValue)
+
+    val data = mkFormDataRecalculated(
+      Map(
+        FormComponentId("accPeriodStartDate-day")   -> Seq(""),
+        FormComponentId("accPeriodStartDate-month") -> Seq(""),
+        FormComponentId("accPeriodStartDate-year")  -> Seq("")
+      ))
+
+    val result: ValidatedType[Unit] = new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ThirdPartyData.empty,
+      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
+
+    result.toEither should beLeft(
+      Map(
+        fieldValue.id.withSuffix("day")   -> Set("sample label must be entered"),
+        fieldValue.id.withSuffix("month") -> Set("sample label must be entered"),
+        fieldValue.id.withSuffix("year")  -> Set("sample label must be entered")
+      ))
+  }
+
   "Date validations" should "fail if field ids are using wrong separator" in {
     val date = Date(AnyDate, Offset(0), None)
 
