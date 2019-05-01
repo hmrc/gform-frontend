@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
+import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.validated._
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
@@ -238,11 +239,11 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     def reassignFieldValue(id: String, validationResult: FormFieldValidationResult): FormFieldValidationResult =
       validationResult match {
         case fieldError: FieldError =>
-          val newFieldValue = fieldError.formComponent.copy(id = FormComponentId(id))
-          fieldError.copy(formComponent = newFieldValue)
+          val newFieldValue = fieldError.fieldValue.copy(id = FormComponentId(id))
+          fieldError.copy(fieldValue = newFieldValue)
         case fieldGlobalError: FieldGlobalError =>
-          val newFieldValue = fieldGlobalError.formComponent.copy(id = FormComponentId(id))
-          fieldGlobalError.copy(formComponent = newFieldValue)
+          val newFieldValue = fieldGlobalError.fieldValue.copy(id = FormComponentId(id))
+          fieldGlobalError.copy(fieldValue = newFieldValue)
         case err => err
       }
 
@@ -254,10 +255,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   private def sortValidationList(
     component: ComponentField)(a: FormFieldValidationResult, b: FormFieldValidationResult): Boolean =
-    component.formComponent.`type` match {
+    component.fieldValue.`type` match {
       case _: Address => // currently only required for address as other components are in order
-        val indexedFields = Address.fields(component.formComponent.id).toList.zipWithIndex.toMap
-        indexedFields.getOrElse(a.formComponent.id, -1) < indexedFields.getOrElse(b.formComponent.id, -1)
+        val indexedFields = Address.fields(component.fieldValue.id).toList.zipWithIndex.toMap
+        indexedFields.getOrElse(a.fieldValue.id, -1) < indexedFields.getOrElse(b.fieldValue.id, -1)
       case _ => false // keep the order for other components
     }
 
@@ -474,8 +475,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case Address(international) => htmlForAddress(formComponent, international, index, maybeValidated, ei, data)
       case Text(Lookup(register), _, _, _) =>
         renderLookup(formComponent, register, index, maybeValidated, ei, data, isHidden)
-      case t @ Text(_, _, _, _)  => renderText(messages)(t, formComponent, index, maybeValidated, ei, data, isHidden)
-      case t @ TextArea(_, _, _) => renderTextArea(messages)(t, formComponent, index, maybeValidated, ei, data, isHidden)
+      case t @ Text(_, _, _, _) => renderText(messages)(t, formComponent, index, maybeValidated, ei, data, isHidden)
+      case t @ TextArea(_, _, _) =>
+        renderTextArea(messages)(t, formComponent, index, maybeValidated, ei, data, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(
           formComponent,
@@ -655,7 +657,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     }
   }
 
-    private def htmlForRevealingChoice(
+  private def htmlForRevealingChoice(
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     options: NonEmptyList[RevealingChoiceElement],
@@ -666,31 +668,23 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     lang: Option[String],
     obligations: Obligations)(implicit request: Request[_], message: Messages) = {
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val prepopValues = ei.fieldData.data.get(fieldValue.id) match {
-      case None    => options.filter(_.selected).map(_.choice).toSet
-      case Some(_) => Set.empty[String] // Don't prepop something we already submitted
-    }
     val revealingChoicesList =
-      options.map(
-        o =>
-          (
-            o.choice,
-            o.revealingFields.map(
-              htmlFor(_, formTemplateId, index, ei, data, validatedType, lang, obligations = obligations))))
+      options.map { o =>
+        val isSelected: Int => Boolean =
+          index => ei.fieldData.data.get(fieldValue.id).flatMap(_.headOption).fold(o.selected)(_ === index.toString)
+        (
+          o.choice,
+          isSelected,
+          o.revealingFields.map(
+            htmlFor(_, formTemplateId, index, ei, data, validatedType, lang, obligations = obligations)))
+      }
 
     html.form.snippets
-      .revealingChoice(
-        fieldValue,
-        revealingChoicesList,
-        prepopValues,
-        validatedValue,
-        index,
-        ei.section.title,
-        ei.formLevelHeading)
+      .revealingChoice(fieldValue, revealingChoicesList, validatedValue, index, ei.section.title, ei.formLevelHeading)
   }
   case class RevealingChoiceComponents(option: String, hiddenField: List[FormComponent])
 
-    private def renderLookup(
+  private def renderLookup(
     fieldValue: FormComponent,
     register: Register,
     index: Int,
@@ -762,7 +756,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
     if (isHidden)
       html.form.snippets
-        .hidden_field_populated(List(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
+        .hidden_field_populated(
+          List(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
     else {
       formComponent.presentationHint match {
         case Some(xs) if xs.contains(TotalValue) =>

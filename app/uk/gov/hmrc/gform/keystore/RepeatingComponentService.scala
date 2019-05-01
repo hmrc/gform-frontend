@@ -210,13 +210,13 @@ object RepeatingComponentService {
         }
 
     section match {
-      case s: Section => s.expandSection(data).expandedFormComponents.flatMap(_.expandedFormComponents)
+      case s: Section => s.expandSection(data).expandedFormComponents.flatMap(_.formComponents)
       case _          => loop(section.fields)
     }
   }
 
   def atomicFieldsFull(section: Section): List[FormComponent] =
-    section.expandSectionFull.expandedFormComponents.flatMap(_.expandedFormComponents)
+    section.expandSectionFull.expandedFormComponents.flatMap(_.formComponents)
 
   def atomicFieldsFullWithCtx(section: Section): List[FormComponentWithCtx] =
     section.expandSectionFullWithCtx

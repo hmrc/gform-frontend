@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
 import org.scalatest.Assertion
+import org.scalactic.source.Position
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -227,11 +228,17 @@ class StructuredFormDataBuilderSpec extends Spec {
         "revealedField2" -> "revealedField2Value"
       ),
       objectStructure(
-        "field" -> objectStructure(
-          "choice" -> textNode("0"),
-          "revealed" -> objectStructure(
-            "revealedField1" -> textNode("revealedField1Value"),
-            "revealedField2" -> textNode("revealedField2Value")
+        Field(
+          FieldName("field"),
+          objectStructure(
+            Field(FieldName("choice"), textNode("Foo")),
+            Field(
+              FieldName("revealed"),
+              objectStructure(
+                Field(FieldName("revealedField1"), textNode("revealedField1Value")),
+                Field(FieldName("revealedField2"), textNode("revealedField2Value"))
+              )
+            )
           )
         )
       )
@@ -294,7 +301,8 @@ class StructuredFormDataBuilderSpec extends Spec {
     )
   }
 
-  private def validate(formTemplate: FormTemplate, formData: Form, expected: StructuredFormValue): Assertion =
+  private def validate(formTemplate: FormTemplate, formData: Form, expected: StructuredFormValue)(
+    implicit position: Position): Assertion =
     StructuredFormDataBuilder(formData, formTemplate) shouldBe expected
 
   def createForm(fields: (String, String)*): Form =

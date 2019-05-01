@@ -14,11 +14,6 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.views.html.localisation
+@(selections: List[Html])
 
-@(fieldValue: FormComponent, selections: List[Html], changeButton: Html)
-
-    @selections.map{selection =>
-      @selection
-      }
+    @selections

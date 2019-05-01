@@ -169,12 +169,10 @@ object ValidationUtil {
             }
             ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
         }
-      case RevealingChoice(options) =>
-        val choiceIndex: Option[String] = dataGetter(fieldValue.id).headOption
-        val listOfHiddenFields =
-          choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap(options.get(_)).map(_.revealingFields)
+      case rc @ RevealingChoice(options) =>
+        val listOfHiddenFields = RevealingChoice.slice(fieldValue.id)(data.data)(rc)
         val listOfValidatedHiddenFields =
-          listOfHiddenFields.toList.flatten.map(formComponent => matchComponentType(formComponent))
+          listOfHiddenFields.map(formComponent => matchComponentType(formComponent))
         gFormErrors.get(fieldValue.id) match {
           case Some(errors) =>
             FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
@@ -215,122 +213,6 @@ object ValidationUtil {
 
     val resultErrors: List[FormFieldValidationResult] = atomicFields.map { fieldValue =>
       matchComponentType(fieldValue)
-    /* fieldValue.`type` match {
-        case sortCode @ UkSortCode(_) =>
-          val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
-            evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
-          val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
-            evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
-
-          val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
-            kv._1.value -> kv._2
-          }.toMap
-
-          ComponentField(fieldValue, dataMap)
-        case address @ Address(_) =>
-          val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
-            evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
-          val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
-            evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
-
-          val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
-            kv._1.value -> kv._2
-          }.toMap
-
-          ComponentField(fieldValue, dataMap)
-
-        case date @ Date(_, _, _) =>
-          val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
-            evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
-
-          val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
-            evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
-
-          val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
-            kv._1.value -> kv._2
-          }.toMap
-
-          ComponentField(fieldValue, dataMap)
-
-        case IsTextOrTextArea(constraint) =>
-          val data = constraint match {
-            case UkVrn | CompanyRegistrationNumber | EORI =>
-              dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
-            case _ => dataGetter(fieldValue.id).headOption.getOrElse("")
-          }
-          gFormErrors
-            .get(fieldValue.id)
-            .fold[FormFieldValidationResult](
-              FieldOk(fieldValue, data)
-            )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
-        case Group(_, _, _, _, _, _) => {
-          FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
-        }
-
-        case Choice(_, _, _, _, _) =>
-          gFormErrors.get(fieldValue.id) match {
-            case Some(errors) =>
-              FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
-            case None =>
-              val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
-                selectedValue.map { index =>
-                  fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
-                }.toMap
-              }
-              ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
-          }
-        case revealingChoice @ RevealingChoice(_, _, _) =>
-          val choiceIndex = dataGetter(fieldValue.id).headOption
-          val listOfHiddenFields =
-            choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.hiddenField.get }
-          listOfHiddenFields.toList.flatten.map(k => k.id).map { component =>
-            gFormErrors.get(component) match {
-              case Some(errors) =>
-                FieldError(fieldValue, dataGetter(component).headOption.getOrElse(""), errors)
-              case None =>
-                val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
-                  selectedValue.map { index =>
-                    fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
-                  }.toMap
-                }
-                ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
-            }
-          }
-          gFormErrors.get(fieldValue.id) match {
-            case Some(errors) =>
-              FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
-            case None =>
-              val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
-                selectedValue.map { index =>
-                  fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
-                }.toMap
-              }
-              ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
-          }
-        case FileUpload() => {
-          val fileName =
-            envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("Upload document")
-          gFormErrors.get(fieldValue.id) match {
-            case Some(errors) => FieldError(fieldValue, fileName, errors)
-            case None         => FieldOk(fieldValue, fileName)
-          }
-        }
-        case InformationMessage(_, infoText) => FieldOk(fieldValue, "")
-        case HmrcTaxPeriod(_, _, _) =>
-          gFormErrors.get(fieldValue.id) match {
-            case Some(errors) =>
-              FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
-            case None =>
-              val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
-                selectedValue.map { index =>
-                  fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
-                }.toMap
-
-              }
-              ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
-          }
-      }*/
-
     }
     resultErrors
   }

@@ -28,6 +28,7 @@ import java.text.NumberFormat
 import java.util.Locale
 
 import scala.language.higherKinds
+import scala.util.{ Failure, Success, Try }
 import scalax.collection.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
@@ -119,11 +120,30 @@ class Recalculation[F[_]: Monad, E](
 
     val fcLookup = formTemplate.expandFormTemplate(data).formComponentsLookup(data) ++ additionalFcLookup
 
+    val revealingChoices: List[(FormComponent, RevealingChoice)] = fcLookup.values.toList.collect {
+      case fc @ IsRevealingChoice(rc) => (fc, rc)
+    }
+
+    val reverseRevealingChoiceLookup: Map[FormComponentId, (FormComponent, RevealingChoice)] = revealingChoices
+      .map {
+        case (fc, rc) =>
+          rc.options.toList.flatMap(_.revealingFields).map(rcFc => (rcFc.id, (fc, rc))).toMap
+      }
+      .foldLeft(Map.empty[FormComponentId, (FormComponent, RevealingChoice)])(_ ++ _)
+
     val orderedGraph: Either[GraphException, Traversable[(Int, List[GraphNode])]] = DependencyGraph
       .constructDependencyGraph(graph)
       .leftMap(node => NoTopologicalOrder(node.toOuter, graph))
 
     val orderedGraphT: EitherT[F, GraphException, Traversable[(Int, List[GraphNode])]] = EitherT(orderedGraph.pure[F])
+
+    def isHiddenOnRevealingChoice(fcId: FormComponentId): Boolean =
+      fcLookup.get(fcId).fold(false) { fc =>
+        reverseRevealingChoiceLookup.get(fc.id).fold(false) {
+          case (fcRc, rc) =>
+            !RevealingChoice.slice(fcRc.id)(data)(rc).map(_.id).contains(fcId)
+        }
+      }
 
     /**
       * Adds invisible nodes to invisibility set and returns nodes to recalculate for current Graph layer
@@ -135,7 +155,7 @@ class Recalculation[F[_]: Monad, E](
       val (visibilitySet, nodesToRecalculate) = acc
       gn match {
         case s @ SimpleGN(fcId) =>
-          if (booleanExprEval.evaluator.isHidden(fcId, visibilitySet)) {
+          if (booleanExprEval.evaluator.isHidden(fcId, visibilitySet) || isHiddenOnRevealingChoice(fcId)) {
             (visibilitySet ++ Set(s), fcId :: nodesToRecalculate).pure[F]
           } else
             (visibilitySet, fcId :: nodesToRecalculate).pure[F]

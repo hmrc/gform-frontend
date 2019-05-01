@@ -27,8 +27,7 @@
 @import play.twirl.api.Html
 
 @(fieldValue: FormComponent,
-optionsAndHiddenField: NonEmptyList[(String,List[Html])],
-prepop: Set[String],
+optionsSelectionsAndHiddenFields: NonEmptyList[(String, Int => Boolean, List[Html])],
 validationResult: Option[FormFieldValidationResult],
 index: Int,
 sectionTitle: String,
@@ -54,35 +53,34 @@ formLevelHeading: Boolean
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id.value}-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.getOrElse("")}</span>
         }
 
         @inline_error_map(fieldValue, validationResult)
 
-          @optionsAndHiddenField.zipWithIndex.toList.map{ case (optionsAndHiddenField, index) =>
-          <div class="multiple-choice"
-               @if(optionsAndHiddenField._2.size>0) {
-               data-target="fields-@{fieldValue.id.appendIndex(index)}"
-               }>
-              <input id="@{fieldValue.id.appendIndex(index)}"
-                     name="@{fieldValue.id}"
-                     value="@index"
-                     type="radio"
-                     @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
-                     index.toString)).orElse(prepop.find(_== index.toString)).map(_=> "checked").getOrElse("")
-              />
+          @optionsSelectionsAndHiddenFields.zipWithIndex.toList.map { case ((option, isSelected, hiddenFields), index) =>
+	    @defining(fieldValue.id.appendIndex(index)) { fcId =>
+              <div class="multiple-choice"
+                   @if(hiddenFields.nonEmpty) {
+                     data-target="fields-@fcId"
+                   }>
+                  <input id="@fcId"
+                         name="@{fieldValue.id}"
+                         value="@index"
+                         type="radio"
+			 @{if(isSelected(index)) "checked" else ""}
+                  />
 
-              <label for="@{fieldValue.id.appendIndex(index)}">
-                @optionsAndHiddenField._1
-              </label>
-          </div>
-        <div id="fields-@{fieldValue.id.appendIndex(index)}"
-             class="panel panel-indent js-hidden"
-             aria-hidden="true">
-            @optionsAndHiddenField._2.map{formComponent =>
-            @formComponent
+                  <label for="@fcId">
+                    @option
+                  </label>
+              </div>
+              <div id="fields-@fcId"
+                   class="panel panel-indent js-hidden"
+                   aria-hidden="true">
+                  @hiddenFields
+              </div>
             }
-        </div>
-          }
+	  }
       </fieldset>
 </div>

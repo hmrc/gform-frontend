@@ -256,19 +256,19 @@ object ComponentValidator {
     fieldValue: FormComponent,
     revealingChoice: RevealingChoice,
     componentsValidator: ComponentsValidator)(
-    data: FormDataRecalculated)(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+    data: FormDataRecalculated)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages) = {
     val validatedChoice: ValidatedType[Unit] = validateChoice(fieldValue)(data)
 
     if (validatedChoice === validationSuccess) {
-      val choiceIndex = data.data.get(fieldValue.id).toList.flatten.headOption
-      val listOfHiddenFields =
-        choiceIndex.filterNot(_.isEmpty).map(_.toLong).flatMap { revealingChoice.options.get(_) }.map(_.revealingFields)
+
+      val revealingFields = RevealingChoice.slice(fieldValue.id)(data.data)(revealingChoice)
+
       val hiddenFieldValidations =
-        listOfHiddenFields.toList.flatten.traverse(hiddenField =>
-          componentsValidator.validate(hiddenField, listOfHiddenFields.toList.flatten))
+        revealingFields.traverse(revealingField => componentsValidator.validate(revealingField, revealingFields))
+
       hiddenFieldValidations.map(Monoid[ValidatedType[Unit]].combineAll)
     } else
-      Future(validatedChoice)
+      Future.successful(validatedChoice)
   }
 
   private def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =

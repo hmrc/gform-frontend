@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsS
 
 case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
   val allFormComponents: List[FormComponent] =
-    expandedSection.flatMap(_.expandedFormComponents.flatMap(_.expandedFormComponents))
+    expandedSection.flatMap(_.expandedFormComponents.flatMap(_.formComponents))
   val allFormComponentIds: List[FormComponentId] = expandedSection.flatMap(_.expandedFormComponents.flatMap(_.allIds))
   def formComponentsLookup(data: Data): Map[FormComponentId, FormComponent] =
     allFormComponents.flatMap(fc => fc.expandFormComponent(data).allIds.map(_ -> fc)).toMap
