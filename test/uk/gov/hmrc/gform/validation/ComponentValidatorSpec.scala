@@ -76,9 +76,9 @@ class ComponentValidatorSpec extends Spec with Matchers with GraphSpec {
     false,
     None)
 
-  "validatePhoneNumber" should "return valid when character count is less than 4 and contains a special character" in {
-    val lessThan4WithPlus = numberWithPlus.map(string => string.substring(0, 4))
-    forAll(lessThan4WithPlus) { phoneNumber =>
+  "validatePhoneNumber" should "return valid when character count is less than 7 and contains a special character" in {
+    val lessThan7WithPlus = numberWithPlus.map(string => string.substring(0, 7))
+    forAll(lessThan7WithPlus) { phoneNumber =>
       val result = ComponentValidator.validatePhoneNumber(formComponent, phoneNumber)
       result.isValid shouldBe true
     }
@@ -94,26 +94,18 @@ class ComponentValidatorSpec extends Spec with Matchers with GraphSpec {
     }
   }
 
-  it should "return valid when character count is between 4-25" in {
+  it should "return valid when character count is between 7-25" in {
     forAll(numberWithoutPlus) { phoneNumber =>
       val result = ComponentValidator.validatePhoneNumber(formComponent, phoneNumber)
       result.isValid shouldBe true
     }
   }
 
-  it should "return invalid when character count is less than 4" in {
-    val invalidNumber = numberWithoutPlus.map(string => string.substring(0, 3))
+  it should "return invalid when character count is less than 7" in {
+    val invalidNumber = numberWithoutPlus.map(string => string.substring(0, 6))
     forAll(invalidNumber) { phoneNumber =>
       val result = ComponentValidator.validatePhoneNumber(formComponent, phoneNumber)
       result.isInvalid shouldBe true
-    }
-  }
-
-  "it" should "return valid when character count is less than 4 and contains a special character" in {
-    val lessThan4WithPlus = numberWithPlus.map(string => string.substring(0, 4))
-    forAll(lessThan4WithPlus) { phoneNumber =>
-      val result = ComponentValidator.validatePhoneNumber(formComponent, phoneNumber)
-      result.isValid shouldBe true
     }
   }
 

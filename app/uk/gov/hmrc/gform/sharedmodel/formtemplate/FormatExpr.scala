@@ -185,7 +185,7 @@ final case object UkBankAccountNumber extends TextConstraint
 final case object UkSortCodeFormat extends TextConstraint
 
 case object TelephoneNumber extends TextConstraint {
-  val minimumLength = 4
+  val minimumLength = 7
   val maximumLength = 25
   val phoneNumberValidation = """^[\+A-Z0-9 )/(*#-]+$""".r
 }
