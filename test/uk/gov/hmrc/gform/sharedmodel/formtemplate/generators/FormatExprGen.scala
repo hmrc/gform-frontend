@@ -70,7 +70,7 @@ trait FormatExprGen {
 
   def telephoneNumberGen(phoneNumberType: PhoneNumberType): Gen[String] =
     for {
-      phoneNumberRange <- Gen.choose(4, 25)
+      phoneNumberRange <- Gen.choose(7, 25)
       elems            <- telephoneNumberHelper(phoneNumberRange, phoneNumberType)
 
     } yield elems.mkString

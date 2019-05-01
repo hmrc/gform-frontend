@@ -293,17 +293,17 @@ object DateValidation {
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val dayLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("day")
-    val monthLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("month")
-    val yearLabel = messagePrefix(formComponent, formComponentId, otherFormComponent) + " " + localisation("year")
-
-    val d = isNumeric(day, dayLabel)
+    val label = messagePrefix(formComponent, formComponentId, otherFormComponent)
+    val dayLabel = label + " " + localisation("day")
+    val monthLabel = label + " " + localisation("month")
+    val yearLabel = label + " " + localisation("year")
+    val d = isNumeric(day, dayLabel, label)
       .andThen(y => isWithinBounds(y, 31, dayLabel))
       .leftMap(er => Map(formComponentId.withSuffix("day") -> Set(errorMessage.getOrElse(er))))
-    val m = isNumeric(month, monthLabel)
+    val m = isNumeric(month, monthLabel, label)
       .andThen(y => isWithinBounds(y, 12, monthLabel))
       .leftMap(er => Map(formComponentId.withSuffix("month") -> Set(errorMessage.getOrElse(er))))
-    val y = isNumeric(year, yearLabel)
+    val y = isNumeric(year, yearLabel, label)
       .andThen(y => hasValidNumberOfDigits(y, 4, yearLabel))
       .leftMap(er => Map(formComponentId.withSuffix("year") -> Set(errorMessage.getOrElse(er))))
 

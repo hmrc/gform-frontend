@@ -127,11 +127,13 @@ object DateValidationLogic {
     result.trim
   }
 
-  def isNumeric(str: String, label: String): ValidatedNumeric =
-    Try(str.toInt) match {
-      case Success(x) => Valid(x)
-      case Failure(_) => Invalid(s"$label must be numeric")
-    }
+  def isNumeric(str: String, timeUnitLabel: String, label: String): ValidatedNumeric =
+    if (str.isEmpty) Invalid(s"$label must be entered")
+    else
+      Try(str.toInt) match {
+        case Success(x) => Valid(x)
+        case Failure(_) => Invalid(s"$timeUnitLabel must be numeric")
+      }
 
   def isWithinBounds(number: Int, dayOrMonth: Int, label: String): ValidatedNumeric =
     number match {
