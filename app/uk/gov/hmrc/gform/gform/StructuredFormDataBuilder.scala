@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
 import cats.instances.option._
+import cats.syntax.foldable._
 import cats.syntax.option._
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -61,20 +62,24 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate) {
     }
 
   private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice): List[Field] =
-    formValuesByUnindexedId.get(id).map(_.head).toList.map { selection =>
+    formValuesByUnindexedId.get(id).map(_.head).toList.map { selectionStr =>
+      val selection = selectionStr.toInt
+      val maybeRevealingChoiceElement = revealingChoice.options.get(selection)
       Field(
         FieldName(id.value),
         ObjectStructure(
-          List(
-            Field(FieldName("choice"), TextNode(selection)),
-            Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(revealingChoice, selection.toInt)))))
+          maybeRevealingChoiceElement.fold(List.empty[Field]) { rcElement =>
+            List(
+              Field(FieldName("choice"), TextNode(rcElement.choice)),
+              Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(rcElement)))
+            )
+          }
+        )
       )
     }
 
-  private def revealedChoiceFields(revealingChoice: RevealingChoice, selection: Int): List[Field] =
-    revealingChoice.options
-      .toList(selection)
-      .revealingFields
+  private def revealedChoiceFields(rcElement: RevealingChoiceElement): List[Field] =
+    rcElement.revealingFields
       .flatMap { component =>
         buildNonGroupField(component, false)
       }

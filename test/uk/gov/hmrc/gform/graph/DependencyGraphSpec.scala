@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.graph
 
+import cats.data.NonEmptyList
 import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -60,6 +61,26 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
     layers(sections) shouldBe List(
       (0, List("b")),
       (1, List("a"))
+    )
+  }
+
+  it should "handle RevealingChoice component" in {
+    val sections = List(
+      mkSection(
+        List(
+          mkFormComponent("a", Value),
+          mkFormComponent(
+            "b",
+            RevealingChoice(
+              NonEmptyList.one(RevealingChoiceElement("Yes", mkFormComponent("c", FormCtx("a")) :: Nil, false)))),
+          mkFormComponent("d", FormCtx("c"))
+        )
+      )
+    )
+    layers(sections) shouldBe List(
+      (0, List("d")),
+      (1, List("c")),
+      (2, List("a"))
     )
   }
 
@@ -221,6 +242,26 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
       (3, List("c")),
       (4, List("includeIf_2")),
       (5, List("a", "b"))
+    )
+  }
+
+  it should "handle includeIf's boolean expression with revealingChoice" in {
+
+    val includeIf = IncludeIf(Equals(FormCtx("a"), Constant("0")))
+
+    val sections =
+      mkSection(
+        List(
+          mkFormComponent(
+            "a",
+            RevealingChoice(
+              NonEmptyList.one(RevealingChoiceElement("Yes", mkFormComponent("b", Value) :: Nil, false)))))) ::
+        mkSectionIncludeIf(List(mkFormComponent("c", Value)), includeIf) :: Nil
+
+    layers(sections) shouldBe List(
+      (0, List("c")),
+      (1, List("includeIf_1")),
+      (2, List("a"))
     )
   }
 

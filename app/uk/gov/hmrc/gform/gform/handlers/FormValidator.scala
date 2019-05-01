@@ -83,7 +83,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     val section = sections(sectionNumber.value)
     val nonSubmittedYet = nonSubmittedFCsOfNonGroup(formDataRecalculated, section)
     val allFC = submittedFCs(formDataRecalculated, sections.flatMap(_.expandSection(formDataRecalculated.data).allFCs)) ++ nonSubmittedYet
-    val sectionFields = submittedFCs(formDataRecalculated, section.expandSection(formDataRecalculated.data).allFCs) ++ nonSubmittedYet
+    val sectionFields = submittedFCs(formDataRecalculated, section.expandSectionRc(formDataRecalculated.data).allFCs) ++ nonSubmittedYet
 
     for {
       envelope <- envelopeF(envelopeId)

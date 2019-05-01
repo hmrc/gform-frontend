@@ -50,6 +50,9 @@ case class Section(
   def expandSection(data: Data): ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponent(data)), includeIf) // TODO expand sections
 
+  def expandSectionRc(data: Data): ExpandedSection =
+    ExpandedSection(fields.map(_.expandFormComponentRc(data)), includeIf) // TODO expand sections
+
   val expandSectionFull: ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponentFull), includeIf) // TODO expand sections
 

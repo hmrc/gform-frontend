@@ -467,9 +467,6 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
   }
 
-  private def mkData(fcIds: String*) =
-    fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap
-
   private def mkFormDataRecalculated(fcIds: String*): FormDataRecalculated =
     FormDataRecalculated.empty.copy(
       recData = RecData.fromData(fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap))

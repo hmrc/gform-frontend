@@ -65,7 +65,7 @@ object ExpandUtils {
 
     val fieldsInGroups: List[A] = groups.flatMap(_.fields).collect(pf)
 
-    val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent(data.data).expandedFormComponents)
+    val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent(data.data).formComponents)
     val filtered = formComponents.filter(fc => pf.lift(fc).isDefined)
 
     val fcIds: Set[FormComponentId] = data.data.keys.toSet
@@ -226,7 +226,7 @@ object ExpandUtils {
     val gFC: Set[FormComponentId] = gFCIds.toSet
 
     val presentOnPage: List[FormComponent] =
-      submittedFCs(data, topFieldValue.expandFormComponent(data.data).expandedFormComponents)
+      submittedFCs(data, topFieldValue.expandFormComponent(data.data).formComponents)
 
     val baseFieldPresentOnPage = {
       val alreadyPresent = presentOnPage.map(_.id).toSet

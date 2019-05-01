@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.models.ExpandUtils._
 object Fields {
 
   def evaluateWithSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
-    dGetter: (FormComponentId) => List[FormField]): List[(FormComponentId, FormFieldValidationResult)] = {
+    dGetter: FormComponentId => Option[FormField]): List[(FormComponentId, FormFieldValidationResult)] = {
     val data: FormComponentId => String = id => dGetter(id).headOption.map(_.value).getOrElse("")
     fieldValue.`type` match {
       case UkSortCode(_) =>
@@ -58,7 +58,7 @@ object Fields {
   }
 
   def evaluateWithoutSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
-    dGetter: (FormComponentId) => List[FormField]): (FormComponentId, FormFieldValidationResult) = {
+    dGetter: FormComponentId => Option[FormField]): (FormComponentId, FormFieldValidationResult) = {
 
     val data = dGetter(fieldValue.id).headOption.map(_.value).getOrElse("")
     gformErrors.get(fieldValue.id) match {
@@ -69,7 +69,7 @@ object Fields {
   }
 
   def evaluateComponent(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
-    dGetter: (FormComponentId) => List[FormField]) =
+    dGetter: FormComponentId => Option[FormField]) =
     (evaluateWithoutSuffix(fieldValue, gformErrors)(dGetter) :: evaluateWithSuffix(fieldValue, gformErrors)(dGetter))
       .map(kv => kv._1.value -> kv._2)
       .toMap
@@ -82,7 +82,7 @@ object Fields {
     val formFields: Map[FormComponentId, FormField] =
       toFormField(formFieldMap, fieldValues).map(hf => hf.id -> hf).toMap
 
-    val dataGetter: FormComponentId => List[FormField] = fId => formFields.get(fId).toList
+    val dataGetter: FormComponentId => Option[FormField] = fId => formFields.get(fId)
 
     def componentField(list: List[FormComponentId]) = {
       val data = evaluateComponent(fieldValue, gformErrors)(dataGetter)
@@ -116,24 +116,23 @@ object Fields {
   }
 
   def evalChoice(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
-    dGetter: (FormComponentId) => List[FormField]) = gformErrors.get(fieldValue.id) match {
-    case None =>
-      val data = dGetter(fieldValue.id).flatMap { formField =>
-        formField.value
-          .split(",")
-          .toList
-          .map(selectedIndex => fieldValue.id.value + selectedIndex -> FieldOk(fieldValue, selectedIndex))
-      }.toMap
+    dGetter: FormComponentId => Option[FormField]) =
+    dGetter(fieldValue.id).fold(Option.empty[FormFieldValidationResult]) { formField =>
+      val data = formField.value
+        .split(",")
+        .toList
+        .map { selectedIndex =>
+          val validationResult = gformErrors
+            .get(fieldValue.id)
+            .fold[FormFieldValidationResult](
+              FieldOk(fieldValue, selectedIndex)
+            )(FieldError(fieldValue, selectedIndex, _))
+
+          fieldValue.id.value + selectedIndex -> validationResult
+        }
+        .toMap
       Some(ComponentField(fieldValue, data))
-    case Some(errors) =>
-      val data = dGetter(fieldValue.id).flatMap { formField =>
-        formField.value
-          .split(",")
-          .toList
-          .map(selectedIndex => fieldValue.id.value + selectedIndex -> FieldError(fieldValue, selectedIndex, errors))
-      }.toMap
-      Some(ComponentField(fieldValue, data))
-  }
+    }
 
   def toFormField(fieldData: FormDataRecalculated, templateFields: List[FormComponent]): List[FormField] = {
     val getFieldData: FormComponentId => FormField = fieldId => {
@@ -149,9 +148,10 @@ object Fields {
         case Address(_)    => Address.fields(fv.id).toList.map(getFieldData)
         case Date(_, _, _) => Date.fields(fv.id).toList.map(getFieldData)
         case UkSortCode(_) => UkSortCode.fields(fv.id).toList.map(getFieldData)
-        case RevealingChoice(options) =>
-          List(getFieldData(fv.id)) ++ getFormFields(options.toList.flatMap(_.revealingFields))
-        case Text(_, _, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) | HmrcTaxPeriod(_, _, _) =>
+        /* case RevealingChoice(options) =>
+         *   List(getFieldData(fv.id)) ++ getFormFields(options.toList.flatMap(_.revealingFields)) */ // This causes double hidden field rendering for fields from RevealingChoice
+        case Text(_, _, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) | HmrcTaxPeriod(_, _, _) |
+            RevealingChoice(_) =>
           List(getFieldData(fv.id))
         case FileUpload()             => List(getFieldData(fv.id))
         case InformationMessage(_, _) => List(getFieldData(fv.id))

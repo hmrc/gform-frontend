@@ -182,28 +182,24 @@ object SummaryRenderingService {
 
             choice(fieldValue, selections, changeButton)
 
-          // NEEDS TO BE CHANGED
-          case RevealingChoice(os) =>
-            import cats.implicits._
-            val selections: List[(String, Int)] = os
+          case rc @ RevealingChoice(os) =>
+            val selections: List[String] = os
               .map(_.choice)
               .zipWithIndex
               .map {
                 case (option, index) =>
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => (option, index))
+                    .map(_ => option)
               }
               .collect { case Some(selection) => selection }
 
             val hiddenFieldInfo = for {
-              (_, index) <- selections
-              element    <- os.get(index).toList
-              field      <- element.revealingFields
+              field <- RevealingChoice.slice(fieldValue.id)(data.data)(rc)
             } yield valueToHtml(field, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga, lang)
 
-            val listOfHtml = choice(fieldValue, selections.map { _._1 }, changeButton) :: hiddenFieldInfo
-            revealingChoice(fieldValue, listOfHtml, changeButton)
+            val listOfHtml = choice(fieldValue, selections, changeButton) :: hiddenFieldInfo
+            revealingChoice(listOfHtml)
 
           case f @ FileUpload()         => file_upload(fieldValue, f, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")
