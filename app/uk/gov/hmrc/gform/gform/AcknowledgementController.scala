@@ -28,10 +28,9 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.mappings.HMRCOBTDSORG
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId, NeedsReview, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -64,7 +63,7 @@ class AcknowledgementController(
   ) =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
       cache.form.status match {
-        case Submitted =>
+        case Submitted | NeedsReview =>
           renderer
             .renderAcknowledgementSection(
               maybeAccessCode,

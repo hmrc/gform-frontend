@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 case class Field(
   name: FieldName,
   value: StructuredFormValue,
-  alternativeFieldNames: Map[StructuredFormDataFieldNamePurpose, FieldName]) {
+  alternativeFieldNames: Map[StructuredFormDataFieldNamePurpose, FieldName] = Map.empty) {
 
   def nameFor(structuredFormDataFieldNamePurpose: StructuredFormDataFieldNamePurpose): FieldName =
     alternativeFieldNames.getOrElse(structuredFormDataFieldNamePurpose, name)
