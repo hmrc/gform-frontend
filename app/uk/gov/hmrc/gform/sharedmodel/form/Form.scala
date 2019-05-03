@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
+import cats.Eq
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -64,13 +65,28 @@ case class Form(
   status: FormStatus,
   visitsIndex: VisitIndex,
   thirdPartyData: ThirdPartyData,
-  envelopeExpiryDate: Option[EnvelopeExpiryDate]
+  envelopeExpiryDate: Option[EnvelopeExpiryDate],
+  destinationSubmissionInfo: Option[DestinationSubmissionInfo] = None
 )
 
 object Form {
 
   private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
     (__ \ "thirdPartyData").read[ThirdPartyData]
+
+  private val destinationSubmissionInfoOptionFormat: OFormat[Option[DestinationSubmissionInfo]] =
+    new OFormat[Option[DestinationSubmissionInfo]] {
+      override def writes(o: Option[DestinationSubmissionInfo]): JsObject = o match {
+        case None      => Json.obj()
+        case Some(dsi) => Json.obj("destinationSubmissionInfo" -> Json.toJson(dsi))
+      }
+
+      override def reads(json: JsValue): JsResult[Option[DestinationSubmissionInfo]] =
+        json.\("destinationSubmissionInfo").asOpt[DestinationSubmissionInfo] match {
+          case Some(x) => JsSuccess(Some(x))
+          case None    => JsSuccess(None)
+        }
+    }
 
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
@@ -81,7 +97,8 @@ object Form {
       FormStatus.format and
       VisitIndex.format and
       thirdPartyDataWithFallback and
-      EnvelopeExpiryDate.optionFormat
+      EnvelopeExpiryDate.optionFormat and
+      destinationSubmissionInfoOptionFormat
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](
@@ -94,7 +111,8 @@ object Form {
         FormStatus.format.writes(form.status) ++
         VisitIndex.format.writes(form.visitsIndex) ++
         Json.obj("thirdPartyData" -> ThirdPartyData.format.writes(form.thirdPartyData)) ++
-        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate)
+        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
+        destinationSubmissionInfoOptionFormat.writes(form.destinationSubmissionInfo)
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)
@@ -106,8 +124,11 @@ case object InProgress extends FormStatus
 case object Summary extends FormStatus
 case object Validated extends FormStatus
 case object Signed extends FormStatus
+case object NeedsReview extends FormStatus
 case object Submitted extends FormStatus
 
 object FormStatus {
+  implicit val equal: Eq[FormStatus] = Eq.fromUniversalEquals
+
   implicit val format: OFormat[FormStatus] = derived.oformat
 }

@@ -21,7 +21,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.formtemplate
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationTest, Destinations }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationTest, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
 case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
@@ -59,19 +59,6 @@ case class FormTemplate(
 ) {
   def expandFormTemplate(data: Data): ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSection(data)))
   val expandFormTemplateFull: ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSectionFull))
-
-  @deprecated(message = "This is replaced by the new destinations field.", since = "20181219")
-  def dmsSubmission: DmsSubmission = destinations match {
-    case dms: Destinations.DmsSubmission => dms
-    case Destinations.DestinationList(l) =>
-      val hmrcDms = l.collect { case d: Destination.HmrcDms => d }.head
-      import hmrcDms._
-      DmsSubmission(
-        dmsFormId = dmsFormId,
-        customerId = customerId,
-        classificationType = classificationType,
-        businessArea = businessArea)
-  }
 }
 
 object FormTemplate {

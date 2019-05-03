@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.gform
 
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.future._
+import cats.instances.list._
+import cats.syntax.traverse._
 import cats.syntax.validated._
 import org.jsoup.Jsoup
 import play.api.Logger
@@ -45,6 +47,7 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationWithCustomerId, Destinations }
 
 import scala.concurrent.Future
 
@@ -215,12 +218,22 @@ class DeclarationController(
       )
 
   private def evaluateSubmissionReference(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
-    authService.evaluateSubmissionReference(
-      cache.formTemplate.dmsSubmission.customerId,
-      cache.retrievals,
-      cache.formTemplate,
-      formDataMap(cache.form.formData),
-      cache.form.envelopeId)
+    customerIds(cache.formTemplate.destinations)
+      .traverse { cid =>
+        authService.evaluateSubmissionReference(
+          cid,
+          cache.retrievals,
+          cache.formTemplate,
+          formDataMap(cache.form.formData),
+          cache.form.envelopeId)
+      }
+      .map(_.filter(!_.isEmpty).headOption.getOrElse(""))
+
+  private def customerIds(destinations: Destinations) = destinations match {
+    case d: Destinations.DmsSubmission => List(d.customerId)
+    case ds: Destinations.DestinationList =>
+      ds.destinations.collect { case (d: DestinationWithCustomerId) => d.customerId }
+  }
 
   private def handleSubmission(
     maybeAccessCode: Option[AccessCode],

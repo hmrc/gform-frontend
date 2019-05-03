@@ -20,6 +20,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.generators.{ EnvelopeExpiryDateGen, ThirdPartyDataGen }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
+import uk.gov.hmrc.gform.sharedmodel.generators.DestinationSubmissionInfoGen
 
 trait FormGen {
   def formIdGen: Gen[FormId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormId(_))
@@ -35,15 +36,16 @@ trait FormGen {
 
   def formGen: Gen[Form] =
     for {
-      formId         <- formIdGen
-      envelopeId     <- envelopeIdGen
-      userId         <- userIdGen
-      formTemplateId <- FormTemplateGen.formTemplateIdGen
-      formData       <- formDataGen
-      status         <- formStatusGen
-      visitIndex     <- VisitIndexGen.visitIndexGen
-      thirdPartyData <- ThirdPartyDataGen.thirdPartyDataGen
-      expiryDate     <- Gen.option(EnvelopeExpiryDateGen.envelopeExpiryDateGen)
+      formId                    <- formIdGen
+      envelopeId                <- envelopeIdGen
+      userId                    <- userIdGen
+      formTemplateId            <- FormTemplateGen.formTemplateIdGen
+      formData                  <- formDataGen
+      status                    <- formStatusGen
+      visitIndex                <- VisitIndexGen.visitIndexGen
+      thirdPartyData            <- ThirdPartyDataGen.thirdPartyDataGen
+      expiryDate                <- Gen.option(EnvelopeExpiryDateGen.envelopeExpiryDateGen)
+      destinationSubmissionInfo <- Gen.option(DestinationSubmissionInfoGen.destinationSubmissionInfoGen)
     } yield
       Form(
         formId,
@@ -54,7 +56,8 @@ trait FormGen {
         status,
         visitIndex,
         thirdPartyData,
-        expiryDate
+        expiryDate,
+        destinationSubmissionInfo
       )
 }
 
