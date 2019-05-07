@@ -519,6 +519,7 @@ trait ExampleAuthContext {
       groupIdentifier = "TestGroupId"
     )
 }
+import play.api.i18n.Lang
 
 trait ExampleFrontendAppConfig {
   val frontendAppConfig = FrontendAppConfig(
@@ -534,6 +535,7 @@ trait ExampleFrontendAppConfig {
     whitelistEnabled = true,
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
-    authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""))
+    authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
+    getAvailableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   )
 }

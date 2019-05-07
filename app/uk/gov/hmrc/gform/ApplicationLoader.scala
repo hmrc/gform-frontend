@@ -99,7 +99,7 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     graphModule
   )
 
-  private val gformModule = new GformModule(
+  private lazy val gformModule = new GformModule(
     configModule,
     wSHttpModule,
     controllersModule,

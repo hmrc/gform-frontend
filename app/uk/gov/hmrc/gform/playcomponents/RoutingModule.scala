@@ -46,7 +46,7 @@ class RoutingModule(
   //This must be called before `controllers.template.routes` gets read be classloader ...
   template.RoutesPrefix.setPrefix("/template")
 
-  private val appRoutes: app.Routes = new app.Routes(
+  private lazy val appRoutes: app.Routes = new app.Routes(
     controllersModule.errorHandler,
     gformModule.formController,
     gformModule.summaryController,
@@ -56,10 +56,11 @@ class RoutingModule(
     gformModule.enrolmentController,
     gformModule.agentEnrolmentController,
     new Assets(controllersModule.errorHandler),
-    fileUploadModule.fileUploadController
+    fileUploadModule.fileUploadController,
+    gformModule.languageSwitchController
   )
 
-  private val prodRoutes: prod.Routes = new prod.Routes(
+  private lazy val prodRoutes: prod.Routes = new prod.Routes(
     controllersModule.errorHandler,
     appRoutes,
     new controllers.template.Template(controllersModule.errorHandler),
@@ -75,7 +76,7 @@ class RoutingModule(
       testOnlyModule.testOnlyController
     )
 
-  val router: Router = {
+  lazy val router: Router = {
     val key = "application.router"
     val property = configModule.typesafeConfig.getString(key)
     property match {
@@ -92,7 +93,7 @@ class RoutingModule(
     }
   }
 
-  val httpRequestHandler: HttpRequestHandler = new CustomHttpRequestHandler(
+  lazy val httpRequestHandler: HttpRequestHandler = new CustomHttpRequestHandler(
     router,
     controllersModule.errorHandler,
     playBuiltInsModule.builtInComponents.httpConfiguration,
