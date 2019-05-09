@@ -14,28 +14,49 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.lookup.ShowAll
+@import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, FormComponent, Register, FormComponentId}
+@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
-@import uk.gov.hmrc.gform.views.form.snippets.LookUpParams
 
-@(params: LookUpParams)
+@(
+  fieldValue: FormComponent,
+  showAll: ShowAll,
+  register: Register,
+  formTemplateId: FormTemplateId,
+  formLevelHeading: Boolean,
+  prepop: Option[String],
+  validationResult: Option[FormFieldValidationResult],
+  index: Int
+)
 
-@label = {
-  <label class="@{if(!params.formLevelHeading){"h1-heading"} else {"form-label"}}" for="@{params.id}">
-    @params.label
+@display(fcId: FormComponentId) = {
+  <label class="@{if(formLevelHeading) { "form-label" } else { "h1-heading" }}" for="@fcId.value">
+    @LabelHelper.buildRepeatingLabel(fieldValue, index)
   </label>
 }
 
-@if(!params.formLevelHeading) { <h1>@label</h1> } else { @label }
+@defining(fieldValue.id, prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")) { case (fcId, prepopValue) =>
 
-@params.helpText
+  @if(formLevelHeading) { @display(fcId) } else { <h1>@display(fcId)</h1> }
 
-@inline_error_map(params.fieldValue, params.validationResult)
+  @if(fieldValue.helpText.nonEmpty) {
+    <span class="form-hint" id="@{fcId.value}-hint">
+      @{fieldValue.helpText}
+    </span>
+  }
 
-<div
- id="@{params.id}-container"
- class="lookup"
- data-field-id="@params.id"
- data-value="@params.value"
- data-lookup="@params.lookup"
- data-show-all="@params.showAll">
-</div>
+  @inline_error_map(fieldValue, validationResult)
+
+  <div
+    id="@{fcId.value}"
+    class="lookup"
+    data-field-id="@fcId.value"
+    data-value="@prepopValue"
+    data-lookup="@register.asString"
+    data-formTemplateId="@formTemplateId.value"
+    data-show-all="@showAll.enabled">
+  </div>
+
+}

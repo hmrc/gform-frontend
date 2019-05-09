@@ -22,6 +22,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -32,6 +33,8 @@ class NumberValidationSpec(implicit messages: Messages) extends Spec with TableD
 
   trait Test extends ExampleData {
     def value: String
+
+    private val lookupRegistry = new LookupRegistry(Map.empty)
 
     override def `formField - number` = FormField(`fieldId - number`, value)
 
@@ -62,8 +65,9 @@ class NumberValidationSpec(implicit messages: Messages) extends Spec with TableD
         retrievals,
         booleanExprEval,
         ThirdPartyData.empty,
-        ExampleData.formTemplate)
-        .validate(fieldValue, fieldValues)
+        ExampleData.formTemplate,
+        lookupRegistry
+      ).validate(fieldValue, fieldValues)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }

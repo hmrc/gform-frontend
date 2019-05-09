@@ -16,19 +16,18 @@
 
 package uk.gov.hmrc.gform.validation
 
-import cats.implicits._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _ }
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import cats.data.Validated
+import cats.implicits._
 import play.api.i18n.Messages
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService, Infected }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData, Validated => _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ getCompanionFieldComponent, validationFailure, validationSuccess }
-
-import scala.concurrent.{ ExecutionContext, Future }
 
 class ComponentsValidator(
   data: FormDataRecalculated,
@@ -37,7 +36,8 @@ class ComponentsValidator(
   retrievals: MaterialisedRetrievals,
   booleanExpr: BooleanExprEval[Future],
   thirdPartyData: ThirdPartyData,
-  formTemplate: FormTemplate)(
+  formTemplate: FormTemplate,
+  lookupRegistry: LookupRegistry)(
   implicit ec: ExecutionContext,
   messages: Messages
 ) {
@@ -71,11 +71,11 @@ class ComponentsValidator(
       case text @ Text(constraint, _, _, _) =>
         validIf(
           ComponentValidator
-            .validateText(fieldValue, constraint, retrievals)(data))
+            .validateText(fieldValue, constraint, retrievals)(data, lookupRegistry))
       case TextArea(constraint, _, _) =>
         validIf(
           ComponentValidator
-            .validateText(fieldValue, constraint, retrievals)(data))
+            .validateText(fieldValue, constraint, retrievals)(data, lookupRegistry))
       case address @ Address(_) => validIf(new AddressValidation().validateAddress(fieldValue, address)(data))
       case c @ Choice(_, _, _, _, _) =>
         validIf(ComponentValidator.validateChoice(fieldValue)(data))

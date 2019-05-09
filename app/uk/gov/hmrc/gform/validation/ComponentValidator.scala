@@ -22,6 +22,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupId, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -37,11 +38,33 @@ object ComponentValidator {
       case None    => Nil
     }
 
+  private def lookupValidation(
+    fieldValue: FormComponent,
+    lookupRegistry: LookupRegistry,
+    register: Register,
+    lookupLabel: LookupLabel) = {
+
+    def existsLabel(options: Map[LookupLabel, LookupId]) =
+      if (options.contains(lookupLabel))
+        validationSuccess
+      else
+        validationFailure(fieldValue, lookupLabel.label + " is invalid")
+
+    lookupRegistry.get(register) match {
+      case Some(AjaxLookup(options, _, _)) => existsLabel(options)
+      case Some(RadioLookup(options))      => existsLabel(options)
+      case None                            => validationFailure(fieldValue, "Invalid register " + register)
+    }
+  }
+
   def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
-    data: FormDataRecalculated)(implicit messages: Messages): ValidatedType[Unit] =
+    data: FormDataRecalculated,
+    lookupRegistry: LookupRegistry)(implicit messages: Messages): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(data, fieldValue), constraint) match {
-      case (true, Nil, _)                         => validationFailure(fieldValue, messages("generic.error.required"))
-      case (_, _, AnyText)                        => validationSuccess
+      case (true, Nil, _)  => validationFailure(fieldValue, messages("generic.error.required"))
+      case (_, _, AnyText) => validationSuccess
+      case (_, value :: Nil, Lookup(register)) =>
+        lookupValidation(fieldValue, lookupRegistry, register, LookupLabel(value))
       case (_, value :: Nil, ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
       case (_, value :: Nil, BasicText)           => textValidation(fieldValue, value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) =>

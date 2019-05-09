@@ -96,9 +96,8 @@ object DisplayWidth extends Enumeration {
 
 sealed trait UpperCaseBoolean
 
-object IsUpperCase extends UpperCaseBoolean
-
-object IsNotUpperCase extends UpperCaseBoolean
+case object IsUpperCase extends UpperCaseBoolean
+case object IsNotUpperCase extends UpperCaseBoolean
 
 object UpperCaseBoolean {
   implicit val format: OFormat[UpperCaseBoolean] = derived.oformat

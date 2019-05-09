@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.models.helpers
 
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
@@ -161,13 +162,14 @@ object Fields {
   def getHiddenTemplateFields(
     section: Section,
     dynamicSections: List[Section],
-    data: FormDataRecalculated): (List[FormComponent], FormDataRecalculated) = {
+    data: FormDataRecalculated,
+    lookupExtractors: LookupExtractors): (List[FormComponent], FormDataRecalculated) = {
     val renderList: List[Section] = dynamicSections.filterNot(_ == section)
     val sectionAtomicFields: List[FormComponent] = renderList.flatMap(_.expandSection(data.data).allFCs)
 
     val submitted = submittedFCs(data, sectionAtomicFields)
-    val alwaysEmptyHiddenGroup = getAlwaysEmptyHiddenGroup(data, section)
-    val alwaysEmptyHidden = getAlwaysEmptyHidden(section)
+    val alwaysEmptyHiddenGroup = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
+    val alwaysEmptyHidden = getAlwaysEmptyHidden(section, lookupExtractors)
     val hiddenFUs = hiddenFileUploads(section)
 
     val idsToRenderAsEmptyHidden = (alwaysEmptyHiddenGroup ++ alwaysEmptyHidden).map(_.id)

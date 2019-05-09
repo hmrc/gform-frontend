@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.gform.validation
 
-import java.time.LocalDate
-
 import cats.instances.future._
 import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
+import java.time.LocalDate
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
@@ -28,8 +27,9 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -39,7 +39,21 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class DateValidationSpec(implicit messages: Messages)
     extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
   val retrievals = mock[MaterialisedRetrievals]
+
+  private val lookupRegistry = new LookupRegistry(Map.empty)
+
   implicit lazy val hc = HeaderCarrier()
+
+  private def mkComponentsValidator(data: FormDataRecalculated): ComponentsValidator =
+    new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ThirdPartyData.empty,
+      ExampleData.formTemplate,
+      lookupRegistry)
 
   private def mkFormComponent(date: Date) =
     FormComponent(
@@ -73,14 +87,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedDate, speccedDateList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedDate, speccedDateList).futureValue
 
     result.value shouldBe (())
   }
@@ -102,16 +109,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beRight(())
   }
@@ -133,16 +131,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -164,16 +153,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be after 21 June 2017")))
   }
@@ -195,16 +175,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -226,16 +197,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -257,16 +219,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -288,16 +241,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -319,16 +263,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -350,16 +285,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -381,16 +307,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -412,16 +329,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -443,16 +351,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.value shouldBe (())
   }
@@ -472,16 +371,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq("2020")
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the last day of the month")))
   }
@@ -501,16 +391,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq("2020")
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the first day of the month")))
   }
@@ -530,16 +411,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq("2017")
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(
       Map(fieldValue.id.withSuffix("day") -> Set(s"sample label day must not be greater than 31")))
@@ -560,16 +432,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq("222017")
       ))
 
-    val result = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
-      .futureValue
+    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(
       Map(fieldValue.id.withSuffix("year") -> Set(s"sample label year must be a 4 digit number")))
@@ -604,14 +467,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq(LocalDate.now().getYear.toString)
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -646,14 +502,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate-year")  -> Seq("")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -689,14 +538,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate.year")  -> Seq("1970")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("sample label is missing")))
   }
@@ -727,14 +569,7 @@ class DateValidationSpec(implicit messages: Messages)
         FormComponentId("accPeriodStartDate.year")  -> Seq("1970")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("New error message")))
   }

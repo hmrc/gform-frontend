@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.{ Data, RecData }
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked }
@@ -41,7 +42,9 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
 
   val retrievals = authContext
 
-  val testService = new SectionRenderingService(frontendAppConfig)
+  private val lookupRegistry = new LookupRegistry(Map.empty)
+
+  val testService = new SectionRenderingService(frontendAppConfig, lookupRegistry)
 
   "SectionRenderingService" should "generate first page" in {
     val generatedHtml = testService
@@ -353,7 +356,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
 
   it should "hide add-group button when limit has been reached (repeating groups)" in new ExampleData {
 
-    val thisTestService = new SectionRenderingService(frontendAppConfig)
+    val thisTestService = new SectionRenderingService(frontendAppConfig, lookupRegistry)
 
     override def `group - type` = Group(
       fields = List(`fieldValue - firstName`),

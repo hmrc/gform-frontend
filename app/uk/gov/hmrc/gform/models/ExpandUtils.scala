@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
+import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -47,11 +48,15 @@ object ExpandUtils {
     }
   }
 
-  def getAlwaysEmptyHiddenGroup(data: FormDataRecalculated, section: Section): List[FormComponent] = {
+  def getAlwaysEmptyHiddenGroup(
+    data: FormDataRecalculated,
+    section: Section,
+    lookupExtractors: LookupExtractors): List[FormComponent] = {
     val aeh = alwaysEmptyHidden(data, section) _
-    aeh({ case IsInformationMessage(info) => info }) ++ // It is safe to include hidden fields for info messages, since they are not submissible
-      aeh({ case IsChoice(choice)         => choice }) ++
-      aeh({ case IsFileUpload()           => () })
+    aeh({ case IsInformationMessage(info)               => info }) ++ // It is safe to include hidden fields for info messages, since they are not submissible
+      aeh({ case IsChoice(choice)                       => choice }) ++
+      aeh({ case lookupExtractors.IsRadioLookup(lookup) => lookup }) ++
+      aeh({ case IsFileUpload()                         => () })
   }
 
   private def alwaysEmptyHidden[A](data: FormDataRecalculated, section: Section)(
@@ -71,10 +76,11 @@ object ExpandUtils {
     filtered.take(Math.max(fieldsInGroups.size, present.size))
   }
 
-  def getAlwaysEmptyHidden(section: Section): List[FormComponent] =
+  def getAlwaysEmptyHidden(section: Section, lookupExtractors: LookupExtractors): List[FormComponent] =
     section.fields.filter {
-      case IsChoice(_) => true
-      case _           => false
+      case IsChoice(_)                       => true
+      case lookupExtractors.IsRadioLookup(_) => true
+      case _                                 => false
     }
 
   def hiddenFileUploads(section: Section): List[FormComponent] =
@@ -150,7 +156,8 @@ object ExpandUtils {
 
   def addNextGroup(
     maybeGroupFc: Option[FormComponent],
-    data: FormDataRecalculated): (FormDataRecalculated, Option[String]) =
+    data: FormDataRecalculated,
+    lookupExtractors: LookupExtractors): (FormDataRecalculated, Option[String]) =
     maybeGroupFc match {
       case Some(groupFC @ IsGroup(group)) =>
         // We do not have and an index we are adding. We need to derive it from data
@@ -170,12 +177,13 @@ object ExpandUtils {
           }
           .headOption
           .map {
-            case fc @ IsDate(_)          => Date.fields(fc.id).head
-            case fc @ IsAddress(_)       => Address.fields(fc.id).head
-            case fc @ IsUkSortCode(_)    => UkSortCode.fields(fc.id).head
-            case fc @ IsChoice(_)        => fc.id.appendIndex(0)
-            case fc @ IsHmrcTaxPeriod(_) => fc.id
-            case fc                      => fc.id
+            case fc @ IsDate(_)                          => Date.fields(fc.id).head
+            case fc @ IsAddress(_)                       => Address.fields(fc.id).head
+            case fc @ IsUkSortCode(_)                    => UkSortCode.fields(fc.id).head
+            case fc @ IsChoice(_)                        => fc.id.appendIndex(0)
+            case fc @ lookupExtractors.IsRadioLookup(tt) => fc.id.appendIndex(0)
+            case fc @ IsHmrcTaxPeriod(_)                 => fc.id
+            case fc                                      => fc.id
           } map (fcId => index + "_" + fcId.value)
 
         (data.copy(recData = data.recData.copy(data = newData)), anchor)

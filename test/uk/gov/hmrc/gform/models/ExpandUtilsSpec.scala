@@ -22,11 +22,14 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import ExpandUtils._
 import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class ExpandUtilsSpec extends FlatSpec with Matchers {
+
+  private val lookupExtractors = new LookupExtractors(Map.empty)
 
   "submittedFCs" should "FormComponents reconstructed from data and ignore unrelated FormComponents" in {
     val data = mkFormDataRecalculated(
@@ -133,8 +136,8 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val data1Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1 ++ expected1))
     val data2Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2 ++ expected2))
 
-    addNextGroup(Some(group), data1) shouldBe ((data1Expected, Some("1_a")))
-    addNextGroup(Some(group), data2) shouldBe ((data2Expected, Some("2_a")))
+    addNextGroup(Some(group), data1, lookupExtractors) shouldBe ((data1Expected, Some("1_a")))
+    addNextGroup(Some(group), data2, lookupExtractors) shouldBe ((data2Expected, Some("2_a")))
   }
 
   it should "add group containing Date component" in {
@@ -154,8 +157,8 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     val data1Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1 ++ expected1))
     val data2Expected = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2 ++ expected2))
 
-    addNextGroup(Some(group), data1) shouldBe ((data1Expected, Some("1_a-day")))
-    addNextGroup(Some(group), data2) shouldBe ((data2Expected, Some("2_a-day")))
+    addNextGroup(Some(group), data1, lookupExtractors) shouldBe ((data1Expected, Some("1_a-day")))
+    addNextGroup(Some(group), data2, lookupExtractors) shouldBe ((data2Expected, Some("2_a-day")))
   }
 
   "removeGroupFromData" should "remove group fields at particular index from data, and keep unrelated fields untouched" in {
@@ -477,7 +480,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a")
 
-    val res = getAlwaysEmptyHiddenGroup(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
     res shouldBe empty
   }
@@ -492,7 +495,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = FormDataRecalculated.empty
 
-    val res = getAlwaysEmptyHiddenGroup(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
     val expectedChoice = "a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -510,7 +513,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a")
 
-    val res = getAlwaysEmptyHiddenGroup(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
     val expectedChoice = "a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -528,7 +531,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a", "1_a", "2_a")
 
-    val res = getAlwaysEmptyHiddenGroup(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
     val expectedChoice = "a" :: "1_a" :: "2_a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -547,7 +550,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a", "b")
 
-    val res = getAlwaysEmptyHiddenGroup(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
     val expectedChoice = "a" :: "b" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -567,7 +570,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a", "b", "c", "1_a", "1_b", "1_c")
 
-    val res = getAlwaysEmptyHiddenGroup(data, section)
+    val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
     val expectedChoice = "a" :: "b" :: "1_a" :: "1_b" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
 
@@ -588,7 +591,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
 
-    val emptyHidden = getAlwaysEmptyHiddenGroup(data, section)
+    val emptyHidden = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
     val expectedChoice = "a" :: "1_a" :: Nil map (id => mkFormComponent(FormComponentId(id), choice))
     val expectedInfo = "b" :: "1_b" :: Nil map (id => mkFormComponent(FormComponentId(id), informationMessage))
@@ -613,7 +616,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a", "b", "c", "1_a", "1_b", "1_c", "e", "f")
 
-    val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data)
+    val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data, lookupExtractors)
 
     val expectedFC = List(
       "e"   -> Text(AnyText, Value),
@@ -649,7 +652,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
 
     val data = mkFormDataRecalculated("a", "b", "c")
 
-    val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data)
+    val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data, lookupExtractors)
 
     val expectedData = mkFormDataRecalculated(
       Map(

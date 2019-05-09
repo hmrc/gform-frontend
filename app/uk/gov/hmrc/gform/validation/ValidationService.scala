@@ -23,6 +23,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -37,7 +38,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 class ValidationService(
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
-  booleanExpr: BooleanExprEval[Future]
+  booleanExpr: BooleanExprEval[Future],
+  lookupRegistry: LookupRegistry
 )(implicit ec: ExecutionContext) {
 
   private def validateFieldValue(
@@ -48,7 +50,15 @@ class ValidationService(
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate)(implicit hc: HeaderCarrier, messages: Messages): Future[ValidatedType[Unit]] =
-    new ComponentsValidator(data, fileUploadService, envelopeId, retrievals, booleanExpr, thirdPartyData, formTemplate)
+    new ComponentsValidator(
+      data,
+      fileUploadService,
+      envelopeId,
+      retrievals,
+      booleanExpr,
+      thirdPartyData,
+      formTemplate,
+      lookupRegistry)
       .validate(fieldValue, fieldValues)
 
   def validateComponents(

@@ -19,14 +19,21 @@ package uk.gov.hmrc.gform.binders
 import cats.implicits._
 import play.api.libs.json._
 import play.api.mvc.{ PathBindable, QueryStringBindable }
+import uk.gov.hmrc.gform.models.LookupQuery
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, SeNo, SeYes, SectionNumber, SectionTitle4Ga, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register, SeNo, SeYes, SectionNumber, SectionTitle4Ga, SuppressErrors }
 
 import scala.util.Try
 object ValueClassBinder {
 
-  //You need to name it somethingBinder, or else play can't find them
+  implicit val lookupQueryBinder: PathBindable[LookupQuery] =
+    mkPathBindable(
+      query => if (query.isEmpty) LookupQuery.Empty.asRight else LookupQuery.Value(query).asRight,
+      _.asString)
+  implicit val registerBinder: PathBindable[Register] = mkPathBindable(
+    lookup => Register.fromString(lookup).fold[Either[String, Register]](Left(s"Unknown lookup: $lookup"))(Right.apply),
+    _.asString)
   implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
@@ -93,10 +100,11 @@ object ValueClassBinder {
         }
     }
 
-  def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: QueryStringBindable[String]) =
+  private def valueClassQueryBinder[A: Reads](fromAtoString: A => String)(
+    implicit stringBinder: QueryStringBindable[String]) =
     new QueryStringBindable[A] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, A]] =
-        stringBinder.bind(key, params).map(_.right.flatMap(parseString[A]))
+        stringBinder.bind(key, params).map(_.flatMap(parseString[A]))
 
       override def unbind(key: String, a: A): String =
         stringBinder.unbind(key, fromAtoString(a))
@@ -108,12 +116,17 @@ object ValueClassBinder {
       case JsError(_)      => Left("No valid value in url binding: " + str)
     }
 
-  def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) =
+  private def valueClassBinder[A: Reads](fromAtoString: A => String)(implicit stringBinder: PathBindable[String]) =
+    mkPathBindable(parseString[A], fromAtoString)
+
+  private def mkPathBindable[A](fromStringToA: String => Either[String, A], fromAtoString: A => String)(
+    implicit stringBinder: PathBindable[String]) =
     new PathBindable[A] {
       override def bind(key: String, value: String): Either[String, A] =
-        stringBinder.bind(key, value).right.flatMap(parseString[A])
+        stringBinder.bind(key, value).flatMap(fromStringToA)
 
       override def unbind(key: String, a: A): String =
         stringBinder.unbind(key, fromAtoString(a))
     }
+
 }
