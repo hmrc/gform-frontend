@@ -82,7 +82,6 @@ object AddressValidation {
   private def postcodeLengthValidation(value: String, fieldValue: FormComponent) =
     postcodeValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
-  //val addressLineValidationL: (FormComponent, FormComponentId) => (Seq[String] => ValidatedType[Unit]) = tuple => (xs => Valid)
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
     xs: Seq[String]): ValidatedType[Unit] = {
     def combineErrors(str: String) = Map(fieldId -> errors(fieldValue, str)).invalid
