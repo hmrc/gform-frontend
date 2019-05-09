@@ -33,16 +33,23 @@ object AddressValidation {
 
     def streetValidation(streetName: String) = lengthValidation(streetName, fieldValue)(addressValueOf(streetName))
 
-    val combinedValidation =
-      Monoid[ValidatedType[Unit]].combine(validateRequiredFieldSub("street1", "line 1"), streetValidation("street1"))
+    def UKStreetValidation(streetName: String) = UKLengthValidation(streetName, fieldValue)(addressValueOf(streetName))
+
+    val combinedValidation = addressValueOf("uk") match {
+      case "true" :: Nil =>
+        Monoid[ValidatedType[Unit]]
+          .combine(validateRequiredFieldSub("street1", "Building and street"), UKStreetValidation("street1"))
+      case _ =>
+        Monoid[ValidatedType[Unit]].combine(validateRequiredFieldSub("street1", "line 1"), streetValidation("street1"))
+    }
 
     val validatedResult: List[ValidatedType[Unit]] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
           combinedValidation,
-          streetValidation("street2"),
-          streetValidation("street3"),
-          streetValidation("street4"),
+          UKStreetValidation("street2"),
+          UKStreetValidation("street3"),
+          UKStreetValidation("street4"),
           validateRequiredFieldSub("postcode", "postcode"),
           validateForbiddenField("country", fieldValue)(addressValueOf("country")),
           postcodeLengthValidation("postcode", fieldValue)(addressValueOf("postcode"))
@@ -70,6 +77,9 @@ object AddressValidation {
   private def lengthValidation(value: String, fieldValue: FormComponent) =
     addressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
+  private def UKLengthValidation(value: String, fieldValue: FormComponent) =
+    UKAddressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
+
   private def postcodeLengthValidation(value: String, fieldValue: FormComponent) =
     postcodeValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
@@ -85,6 +95,32 @@ object AddressValidation {
           fieldId -> errors(
             fieldValue,
             s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")).invalid
+      case _ => validationSuccess
+    }
+  }
+
+  private def UKAddressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
+    xs: Seq[String]): ValidatedType[Unit] = {
+    val First = "[1]$".r.unanchored
+    val Second = "[2]$".r.unanchored
+    val Third = "[3]$".r.unanchored
+    val Fourth = "[4]$".r.unanchored
+    (xs.filterNot(_.isEmpty()), fieldId.value) match {
+      case (Nil, _) => validationSuccess
+      case (value :: Nil, First()) if value.length > ValidationValues.addressLine =>
+        Map(
+          fieldId -> errors(
+            fieldValue,
+            s"Building and street is longer than ${ValidationValues.addressLine} characters")).invalid
+      case (value :: Nil, Second()) if value.length > ValidationValues.addressLine =>
+        Map(
+          fieldId -> errors(
+            fieldValue,
+            s"Building and street line 2 is longer than ${ValidationValues.addressLine} characters")).invalid
+      case (value :: Nil, Third()) if value.length > ValidationValues.addressLine =>
+        Map(fieldId -> errors(fieldValue, s"Town or city is longer than ${ValidationValues.addressLine} characters")).invalid
+      case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
+        Map(fieldId -> errors(fieldValue, s"County is longer than ${ValidationValues.addressLine4} characters")).invalid
       case _ => validationSuccess
     }
   }
