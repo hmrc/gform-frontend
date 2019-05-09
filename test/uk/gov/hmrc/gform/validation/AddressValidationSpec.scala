@@ -26,8 +26,9 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -43,7 +44,20 @@ class AddressValidationSpec(implicit messages: Messages)
     FormComponent(FormComponentId("x"), baseAddress, "l", None, None, None, true, true, false, true, false, None)
   val tempList: List[FormComponent] = List(baseListItem, baseListItem)
 
+  private val lookupRegistry = new LookupRegistry(Map.empty)
+
   implicit lazy val hc = HeaderCarrier()
+
+  private def mkComponentsValidator(data: FormDataRecalculated): ComponentsValidator =
+    new ComponentsValidator(
+      data,
+      mock[FileUploadService],
+      EnvelopeId("whatever"),
+      retrievals,
+      booleanExprEval,
+      ThirdPartyData.empty,
+      ExampleData.formTemplate,
+      lookupRegistry)
 
   "non-international" should "accept uk, street1, street3, streep 3, street4 and postcode" in {
     val address = Address(international = false)
@@ -62,14 +76,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-street4")  -> Seq("S4"),
         FormComponentId("x-postcode") -> Seq("P1 1P")
       ))
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.value should be(())
   }
@@ -87,14 +94,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-postcode") -> Seq("P1 1P")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.value should be(())
   }
@@ -114,14 +114,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-street4")  -> Seq("S4"),
         FormComponentId("x-postcode") -> Seq("BN11 7YHP")
       ))
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode is longer than 8 characters")))
@@ -139,14 +132,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-postcode") -> Seq("P1 1P")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(speccedAddress.id.withSuffix("street1") -> Set("l Building and street must be entered")))
@@ -171,7 +157,8 @@ class AddressValidationSpec(implicit messages: Messages)
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+      ExampleData.formTemplate,
+      lookupRegistry).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered")))
   }
@@ -189,14 +176,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-country") -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.value should be(())
   }
@@ -213,14 +193,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-street1") -> Seq("S")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("l Country must be entered")))
   }
@@ -239,14 +212,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-country")  -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l must not be entered")))
   }
@@ -264,14 +230,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-country") -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -293,14 +252,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x@country") -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -334,14 +286,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x@country") -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -367,14 +312,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-postcode") -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beRight(())
   }
@@ -392,14 +330,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-postcode") -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beRight(())
   }
@@ -420,14 +351,7 @@ class AddressValidationSpec(implicit messages: Messages)
         FormComponentId("x-postcode") -> Seq("C")
       ))
 
-    val result: ValidatedType[Unit] = new ComponentsValidator(
-      data,
-      mock[FileUploadService],
-      EnvelopeId("whatever"),
-      retrievals,
-      booleanExprEval,
-      ThirdPartyData.empty,
-      ExampleData.formTemplate).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.toEither should beLeft(
       Map(

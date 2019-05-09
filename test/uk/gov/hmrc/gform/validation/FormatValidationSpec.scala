@@ -21,6 +21,7 @@ import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -322,6 +323,8 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   implicit lazy val hc = HeaderCarrier()
 
+  private val lookupRegistry = new LookupRegistry(Map.empty)
+
   private def validator(
     fieldValue: FormComponent,
     fieldValues: List[FormComponent],
@@ -333,8 +336,9 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
-      ExampleData.formTemplate)
-      .validate(fieldValue, fieldValues)
+      ExampleData.formTemplate,
+      lookupRegistry
+    ).validate(fieldValue, fieldValues)
       .futureValue
 
   private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Value))

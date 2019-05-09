@@ -179,6 +179,7 @@ final case class PositiveNumber(
 case object BasicText extends TextConstraint
 case class ShortText(min: Int, max: Int) extends TextConstraint
 object ShortText { val default = ShortText(0, 1000) }
+case class Lookup(register: Register) extends TextConstraint
 case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
 final case class Sterling(roundingMode: RoundingMode) extends TextConstraint
 final case object UkBankAccountNumber extends TextConstraint
@@ -210,6 +211,44 @@ object TextConstraint {
   implicit val format: OFormat[TextConstraint] = derived.oformat[TextConstraint]
 
   def filterNumberValue(s: String): String = s.filterNot(c => (c == '£'))
+}
+
+sealed trait Register {
+  def asString: String = this match {
+    case Register.CashType      => "cashType"
+    case Register.Country       => "country"
+    case Register.Currency      => "currency"
+    case Register.Intent        => "intent"
+    case Register.Intercept     => "intercept"
+    case Register.Origin        => "origin"
+    case Register.Port          => "port"
+    case Register.TransportMode => "transportMode"
+  }
+}
+
+object Register {
+  case object CashType extends Register
+  case object Country extends Register
+  case object Currency extends Register
+  case object Intent extends Register
+  case object Intercept extends Register
+  case object Origin extends Register
+  case object Port extends Register
+  case object TransportMode extends Register
+
+  implicit val format: OFormat[Register] = derived.oformat
+
+  def fromString(str: String): Option[Register] = str match {
+    case "cashType"      => Some(Register.CashType)
+    case "country"       => Some(Register.Country)
+    case "currency"      => Some(Register.Currency)
+    case "intent"        => Some(Register.Intent)
+    case "intercept"     => Some(Register.Intercept)
+    case "origin"        => Some(Register.Origin)
+    case "port"          => Some(Register.Port)
+    case "transportMode" => Some(Register.TransportMode)
+    case _               => None
+  }
 }
 
 object TextExpression {

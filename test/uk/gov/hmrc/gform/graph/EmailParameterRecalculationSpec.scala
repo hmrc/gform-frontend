@@ -34,8 +34,6 @@ class EmailParameterRecalculationSpec(implicit ec: ExecutionContext) extends Fla
 
     val emailParameters = List(EmailParameter("templateVarId", FormCtx("${fieldId}")))
 
-    ExampleData.formDataRecalculated
-
     val data: Data = Map(FormComponentId("templateVarIdUniqueEmailParameter") -> Seq("value"))
 
     emailParameterRecalculation

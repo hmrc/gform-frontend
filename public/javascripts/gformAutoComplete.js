@@ -9,8 +9,8 @@
     // is used
     var baseLookupUrl = global.gform.baseLookupUrl || "/submissions/lookup/";
 
-    function generateSourceFn (lookup) {
-      var URL = baseLookupUrl + lookup;
+    function generateSourceFn (lookup, formTemplateId) {
+      var URL = baseLookupUrl + formTemplateId + "/" + lookup;
       return function (query, populateResults) {
         return $.get(URL + '/' + encodeURIComponent(query))
           .then(populateResults)
@@ -19,53 +19,30 @@
 
     function setUpAutoComplete ($container) {
       var lookup = $container.attr('data-lookup');
+      var formTemplateId = $container.attr('data-formTemplateId');
       var id = $container.attr('data-field-id');
       var value = $container.attr('data-value');
       var showAll = $container.attr('data-show-all');
-      function blockAutoFill ($input) {
-        var val = $input.val();
-        $input
-          .attr('name', 'random' + Date.now())
-          .val(val)
-      }
-
-      function resetInput ($input) {
-        var val = $input.val();
-        $input
-          .attr('name', $input.attr('id'))
-          .attr('autocomplete', 'lookup' + Date.now())
-          .val(val)
-      }
 
       // this is the method provided by accessible-autocomplete.min.js
       window.accessibleAutocomplete({
         element: $container[0],
         id: id,
-        source: generateSourceFn(lookup),
+	name: id,
+        source: generateSourceFn(lookup, formTemplateId),
         showNoOptionsFound: false,
         defaultValue: value,
         showAllValues: showAll
       });
 
       var checkInput = window.setInterval(function () {
-        var $input = $('#' + id);
+        var $input = $('input#' + id);
         if ($input.length) {
           window.clearInterval(checkInput);
-          resetInput($input)
+          $input
+            .attr('autocomplete', 'off')
         }
       }, 200);
-
-      function handleBlockAutoFill (e) {
-        blockAutoFill($(e.currentTarget))
-      }
-
-      function handleResetInput (e) {
-        resetInput($(e.currentTarget))
-      }
-
-      $container
-        .on('focus', 'input', handleBlockAutoFill)
-        .on('blur', 'input', handleResetInput)
     }
 
     function init () {
@@ -83,7 +60,7 @@
   }
 
   GformAutoComplete.prototype.init = function () {
-    this.GformAutoComplete()
+    self.GformAutoComplete()
   };
 
   GOVUK.GformAutoComplete = GformAutoComplete;

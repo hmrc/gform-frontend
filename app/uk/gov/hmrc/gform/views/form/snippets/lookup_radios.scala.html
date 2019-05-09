@@ -14,32 +14,56 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.lookup.LookupLabel
+@import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
+@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
-@import uk.gov.hmrc.gform.views.form.snippets.LookUpParams
 
-@(params: LookUpParams)
-<fieldset class="inline" @if(params.fieldValue.helpText.nonEmpty) { aria-describedby="@{params.fieldValue.id.value}-hint" }>
+@(
+  fieldValue: FormComponent,
+  options: List[LookupLabel],
+  formLevelHeading: Boolean,
+  prepop: Option[String],
+  validationResult: Option[FormFieldValidationResult],
+  index: Int)
+
+@defining(
+  fieldValue.id,
+  prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse(""),
+  LabelHelper.buildRepeatingLabel(fieldValue, index)
+) { case (fcId, selectedValue, label) =>
+
+<fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
   <legend class="form-label">
-    @if(!params.formLevelHeading) { <h1>@params.label</h1> } else { @params.label }
+    @if(formLevelHeading) { @label } else { <h1>@label</h1> }
   </legend>
 
-  @params.helpText
+  @if(fieldValue.helpText.nonEmpty) {
+    <span class="form-hint" id="@{fcId.value}-hint">
+      @{fieldValue.helpText}
+    </span>
+  }
 
-  @inline_error_map(params.fieldValue, params.validationResult)
+  @inline_error_map(fieldValue, validationResult)
 
-  @for((item, index) <- params.options.zipWithIndex) {
-    <div class="multiple-choice inline">
-      <input
-        id="@{params.id}_@{index}"
-        name="@params.id"
-        value="@item.value"
-        type="radio"
-        @if(params.value.toString() == item.value) {checked="checked"}
-      />
+  @for((item, itemIndex) <- options.zipWithIndex) {
+    @defining(item.label, fcId.value + itemIndex) { case (label, id) =>
+      <div class="multiple-choice">
+        <input
+          id="@id"
+          name="@fcId.value"
+          value="@label"
+          type="radio"
+          @if(selectedValue == label) {checked="checked"}
+        />
 
-      <label for="@{params.id}_@{index}">
-        @item.label
-      </label>
-    </div>
+        <label for="@id">
+          @label
+        </label>
+      </div>
+    }
   }
 </fieldset>
+
+}

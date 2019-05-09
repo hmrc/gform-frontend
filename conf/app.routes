@@ -34,4 +34,8 @@ DELETE        /api/forms/:formTemplateId/:maybeAccessCode/deleteFile/:fileId    
 
 GET           /exit-survey/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.AcknowledgementController.exitSurvey(formTemplateId: FormTemplateId, lang:Option[String], maybeAccessCode: Option[AccessCode])
 
+
 GET           /language/:lang                                                                                    uk.gov.hmrc.gform.gform.LanguageSwitchController.switchToLanguage(lang: String)
+
+GET           /lookup/:formTemplateId/:register/                                                                 uk.gov.hmrc.gform.gform.LookupController.lookupAll(formTemplateId: FormTemplateId, register: Register)
+GET           /lookup/:formTemplateId/:register/:query                                                           uk.gov.hmrc.gform.gform.LookupController.lookup(formTemplateId: FormTemplateId, register: Register, query: LookupQuery)

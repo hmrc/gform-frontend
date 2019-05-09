@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.views.form.snippets
+package uk.gov.hmrc.gform.lookup
 
-import play.twirl.api.Html
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 
-case class LookUpParams(
-  id: String,
-  value: Html,
-  label: Html,
-  helpText: Html,
-  options: List[LookUpOption],
-  fieldValue: FormComponent,
-  validationResult: Option[FormFieldValidationResult],
-  formLevelHeading: Boolean,
-  inputClasses: String,
-  lookup: String,
-  showAll: Boolean
-)
-
-case class LookUpOption(
-  value: String,
-  label: String
-)
+class LookupRegistry(lookup: Map[Register, LookupType]) {
+  def get(register: Register): Option[LookupType] = lookup.get(register)
+  val extractors: LookupExtractors = new LookupExtractors(lookup)
+}

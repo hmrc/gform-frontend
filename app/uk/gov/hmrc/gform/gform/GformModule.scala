@@ -27,9 +27,11 @@ import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ProcessDataService
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
@@ -45,13 +47,15 @@ class GformModule(
   validationModule: ValidationModule,
   auditingModule: AuditingModule,
   playBuiltInsModule: PlayBuiltInsModule,
-  graphModule: GraphModule
+  graphModule: GraphModule,
+  lookupRegistry: LookupRegistry
 )(
   implicit ec: ExecutionContext
 ) {
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
-    configModule.frontendAppConfig
+    configModule.frontendAppConfig,
+    lookupRegistry
   )
 
   val enrolmentController = new EnrolmentController(
@@ -80,7 +84,8 @@ class GformModule(
     sectionRenderingService,
     gformBackendModule.gformConnector,
     processDataService,
-    new FormControllerRequestHandler(new FormValidator())
+    new FormControllerRequestHandler(new FormValidator()),
+    lookupRegistry.extractors
   )
 
   val summaryController: SummaryController = new SummaryController(
@@ -135,4 +140,8 @@ class GformModule(
   val languageSwitchController: LanguageSwitchController =
     new LanguageSwitchController(configModule.frontendAppConfig, playBuiltInsModule.messagesApi)
 
+  val lookupController = new LookupController(
+    controllersModule.authenticatedRequestActions,
+    lookupRegistry
+  )
 }

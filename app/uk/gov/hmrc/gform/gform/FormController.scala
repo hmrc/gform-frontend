@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, NotToBeRedirected, ToBeRedirected }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
+import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.gform.{ ForceReload, FormValidationOutcome, NoSpecificAction, ObligationsAction }
 import uk.gov.hmrc.gform.models.{ AgentAccessCode, ProcessData, ProcessDataService }
@@ -61,7 +62,8 @@ class FormController(
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future, Throwable],
-  handler: FormControllerRequestHandler
+  handler: FormControllerRequestHandler,
+  lookupExtractors: LookupExtractors
 ) extends FrontendController {
 
   import i18nSupport._
@@ -487,7 +489,7 @@ class FormController(
         val startPos = groupId.indexOf('-') + 1
         val groupComponentId = FormComponentId(groupId.substring(startPos))
         val maybeGroupFc = findFormComponent(groupComponentId, processData.sections)
-        val (updatedData, anchor) = addNextGroup(maybeGroupFc, processData.data)
+        val (updatedData, anchor) = addNextGroup(maybeGroupFc, processData.data, lookupExtractors)
 
         handleGroup(processData.copy(data = updatedData), anchor.map("#" + _).getOrElse(""))
       }

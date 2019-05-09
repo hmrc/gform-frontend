@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
 import uk.gov.hmrc.gform.models.helpers.Javascript._
@@ -48,6 +49,7 @@ import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, Se
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, SimpleGN }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -76,7 +78,7 @@ case class Errors(html: Html) extends HasErrors
 
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
-class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
+class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegistry: LookupRegistry)(
   implicit ec: ExecutionContext
 ) {
 
@@ -155,7 +157,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     val allAtomicFields = dynamicSections.flatMap(RepeatingComponentService.atomicFieldsFull)
     val javascript =
       createJavascript(dynamicSections.flatMap(_.fields), sectionAtomicFields, allAtomicFields, dependencies)
-    val (hiddenTemplateFields, fieldDataUpd) = Fields.getHiddenTemplateFields(section, dynamicSections, fieldData)
+    val (hiddenTemplateFields, fieldDataUpd) =
+      Fields.getHiddenTemplateFields(section, dynamicSections, fieldData, lookupRegistry.extractors)
     val hiddenSnippets = Fields
       .toFormField(fieldDataUpd, hiddenTemplateFields)
       .map(formField => html.form.snippets.hidden_field(formField))
@@ -469,8 +472,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       case Date(_, offset, dateValue) =>
         htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, data, isHidden)
       case Address(international) => htmlForAddress(fieldValue, international, index, maybeValidated, ei, data)
-      case t @ Text(_, _, _, _)   => renderText(messages)(t, fieldValue, index, maybeValidated, ei, data, isHidden)
-      case t @ TextArea(_, _, _)  => renderTextArea(messages)(t, fieldValue, index, maybeValidated, ei, data, isHidden)
+      case Text(Lookup(register), _, _, _) =>
+        renderLookup(fieldValue, register, index, maybeValidated, ei, data, isHidden)
+      case t @ Text(_, _, _, _)  => renderText(messages)(t, fieldValue, index, maybeValidated, ei, data, isHidden)
+      case t @ TextArea(_, _, _) => renderTextArea(messages)(t, fieldValue, index, maybeValidated, ei, data, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(
           fieldValue,
@@ -637,6 +642,47 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
           index,
           ei.section.title)
     }
+  }
+
+  private def renderLookup(
+    fieldValue: FormComponent,
+    register: Register,
+    index: Int,
+    validatedType: ValidatedType[ValidationResult],
+    ei: ExtraInfo,
+    data: FormDataRecalculated,
+    isHidden: Boolean
+  ): Html = {
+
+    val prepopValue = ei.fieldData.data.get(fieldValue.id).flatMap(_.headOption)
+    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
+    if (isHidden)
+      html.form.snippets
+        .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue.getOrElse(""))))
+    else
+      lookupRegistry.get(register) match {
+        case None => Html("") // Ups
+        case Some(AjaxLookup(_, _, showAll)) =>
+          html.form.snippets.lookup_autosuggest(
+            fieldValue,
+            showAll,
+            register,
+            ei.formTemplate._id,
+            ei.formLevelHeading,
+            prepopValue,
+            validatedValue,
+            index
+          )
+        case Some(RadioLookup(options)) =>
+          html.form.snippets.lookup_radios(
+            fieldValue,
+            options.keys.toList.sortBy(_.label),
+            ei.formLevelHeading,
+            prepopValue,
+            validatedValue,
+            index
+          )
+      }
   }
 
   private type RenderTemplate[T] =

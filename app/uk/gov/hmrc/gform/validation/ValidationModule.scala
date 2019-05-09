@@ -22,11 +22,14 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
+import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 
 class ValidationModule(
   fileUploadModule: FileUploadModule,
   gformBackendModule: GformBackendModule,
-  graphModule: GraphModule
+  graphModule: GraphModule,
+  lookupRegistry: LookupRegistry
 )(
   implicit ec: ExecutionContext
 ) {
@@ -34,6 +37,7 @@ class ValidationModule(
   val validationService = new ValidationService(
     fileUploadModule.fileUploadService,
     gformBackendModule.gformConnector,
-    graphModule.booleanExprEval
+    graphModule.booleanExprEval,
+    lookupRegistry
   )
 }

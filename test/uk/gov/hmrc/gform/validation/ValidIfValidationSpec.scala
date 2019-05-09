@@ -21,6 +21,7 @@ import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -60,6 +61,8 @@ class ValidIfValidationSpec(implicit messages: Messages) extends Spec with Graph
   trait Test extends ExampleData {
     def value: String = ""
 
+    private val lookupRegistry = new LookupRegistry(Map.empty)
+
     override def `formField - number` = FormField(`fieldId - number`, value)
 
     override def `fieldValue - number` = FormComponent(
@@ -91,7 +94,8 @@ class ValidIfValidationSpec(implicit messages: Messages) extends Spec with Graph
         retrievals,
         booleanExprEval,
         ThirdPartyData.empty,
-        ExampleData.formTemplate
+        ExampleData.formTemplate,
+        lookupRegistry
       ).validate(fieldValue, fieldValues)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()

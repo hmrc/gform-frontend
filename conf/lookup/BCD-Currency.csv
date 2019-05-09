@@ -1,0 +1,172 @@
+CurrencyCode,Name,CountryCode
+AED,United Arab Emirates Dirham,AE
+AFN,Afghanistan Afghani,AF
+ALL,Albania Lek,AL
+AMD,Armenia Dram,AM
+ANG,Netherlands Antilles Guilder,CW
+AOA,Angola Kwanza,AO
+ARS,Argentina Peso,AR
+AUD,Australia Dollar,AU
+AWG,Aruba Florin,AW
+AZM,Azerbaijani manat,AZ
+AZN,Azerbaijan Manat,AZ
+BAM,Bosnia and Herzegovina Convertible Mark,BA
+BBD,Barbados Dollar,BB
+BDT,Bangladesh Taka,BD
+BGN,Bulgaria Lev,BG
+BHD,Bahrain Dinar,BH
+BIF,Burundi Franc,BI
+BMD,Bermuda Dollar,BM
+BND,Brunei Darussalam Dollar,BN
+BOB,Bolivia Boliviano,BO
+BRL,Brazil Real,BR
+BSD,Bahamas Dollar,BS
+BTN,Bhutan Ngultrum,BT
+BWP,Botswana Pula,BW
+BYR,Belarus Ruble,BY
+BZD,Belize Dollar,BZ
+CAD,Canada Dollar,CA
+CDF,Congo Franc,CG
+CHF,Switzerland Franc,CH
+CLP,Chile Peso,CL
+CNY,China Yuan Renminbi,CN
+COP,Colombia Peso,CO
+CRC,Costa Rica Colon,CR
+CUC,Cuba Convertible Peso,NULL
+CUP,Cuba Peso,CU
+CVE,Cape Verde Escudo,CV
+CYP,Pounds,CP
+CZK,Czech Republic Koruna,CZ
+DEM,Deutsche Mark,DE
+DJF,Djibouti Franc,DJ
+DKK,Denmark Krone,DK
+DOP,Dominican Republic Peso,DO
+DZD,Algeria Dinar,DZ
+EGP,Egypt Pound,EG
+ERN,Eritrea Nakfa,ER
+ESP,Spanish Peseta,ES
+ETB,Ethiopia Birr,ET
+EUR,Euro,NULL
+FJD,Fiji Dollar,FJ
+FKP,Falkland Islands (Malvinas) Pound,FK
+GBP,United Kingdom Pound,UK
+GEL,Georgia Lari,GE
+GGP,Guernsey Pound,GG
+GHS,Ghana Cedi,GH
+GIP,Gibraltar Pound,GI
+GMD,Gambia Dalasi,GM
+GNF,Guinea Franc,GN
+GTQ,Guatemala Quetzal,GT
+GYD,Guyana Dollar,GY
+HKD,Hong Kong Dollar,HK
+HNL,Honduras Lempira,HN
+HRK,Croatia Kuna,HR
+HTG,Haiti Gourde,HT
+HUF,Hungary Forint,HU
+IDR,Indonesia Rupiah,ID
+IEP,Irish Pound,IE
+ILS,Israel New Sheqel,IL
+IMP,Isle of Man Pound,IM
+INR,India Rupee,IN
+IQD,Iraq Dinar,IQ
+IRR,Iran Rial,IR
+ISK,Iceland Krona,IS
+JEP,Jersey Pound,JE
+JMD,Jamaica Dollar,JM
+JOD,Jordan Dinar,JO
+JPY,Japan Yen,JP
+KES,Kenya Shilling,KE
+KGS,Kyrgyzstan Som,KG
+KHR,Cambodia Riel,KH
+KMF,Comoros Franc,KM
+KPW,Korea (North) Won,KP
+KRW,Korea (South) Won,KR
+KWD,Kuwait Dinar,KW
+KYD,Cayman Islands Dollar,KY
+KZT,Kazakhstan Tenge,KZ
+LAK,Laos Kip,LA
+LBP,Lebanon Pound,LB
+LKR,Sri Lanka Rupee,LK
+LRD,Liberia Dollar,LR
+LSL,Lesotho Loti,LS
+LTL,Lithuania Litas,LT
+LVL,Latvia Lat,LV
+LYD,Libya Dinar,LY
+MAD,Morocco Dirham,MA
+MDL,Moldova Leu,MD
+MGA,Madagascar Ariary,MG
+MKD,Macedonia Denar,MK
+MMK,Myanmar Kyat,MM
+MNT,Mongolia Tugrik,MN
+MOP,Macau Pataca,MO
+MRO,Mauritania Ouguiya,MR
+MUR,Mauritius Rupee,MU
+MVR,Maldives Rufiyaa,MV
+MWK,Malawi Kwacha,MW
+MXN,Mexico Peso,MX
+MYR,Malaysia Ringgit,MY
+MZN,Mozambique Metical,MZ
+NAD,Namibia Dollar,NA
+NGN,Nigeria Naira,NG
+NIO,Nicaragua Cordoba,NI
+NOK,Norway Krone,NO
+NPR,Nepal Rupee,NP
+NZD,New Zealand Dollar,NZ
+OMR,Oman Rial,OM
+PAB,Panama Balboa,PA
+PEN,Peru Nuevo Sol,PE
+PGK,Papua New Guinea Kina,PG
+PHP,Philippines Peso,PH
+PKR,Pakistan Rupee,PK
+PLN,Poland Zloty,PL
+PYG,Paraguay Guarani,PY
+QAR,Qatar Riyal,QA
+RON,Romania New Leu,RO
+RSD,Serbia Dinar,XS
+RUB,Russia Ruble,RU
+RWF,Rwanda Franc,RW
+SAR,Saudi Arabia Riyal,SA
+SBD,Solomon Islands Dollar,SB
+SCR,Seychelles Rupee,SC
+SDG,Sudan Pound,SD
+SEK,Sweden Krona,SE
+SGD,Singapore Dollar,SG
+SHP,Saint Helena Pound,SH
+SLL,Sierra Leone Leone,SL
+SOS,Somalia Shilling,SO
+SRD,Suriname Dollar,SR
+SSP,South Sudan Pound,SS
+STD,Sao Tome and Principe Dobra,ST
+SVC,El Salvador Colon,SV
+SYP,Syria Pound,SY
+SZL,Swaziland Lilangeni,SZ
+THB,Thailand Baht,TH
+TJS,Tajikistan Somoni,TJ
+TMT,Turkmenistan New Manat,TM
+TND,Tunisia Dinar,TN
+TOP,Tonga Pa''anga,TO
+TRY,Turkey Lira,TR
+TTD,Trinidad and Tobago Dollar,TT
+TVD,Tuvalu Dollar,TV
+TWD,Taiwan New Dollar,TW
+TZS,Tanzania Shilling,TZ
+UAH,Ukraine Hryvnia,UA
+UGX,Uganda Shilling,UG
+USD,United States Dollar,US
+UYU,Uruguay Peso,UY
+UZS,Uzbekistan Som,UZ
+VEF,Venezuela Bolivar,VE
+VND,Vietnam Dong,VN
+VUV,Vanuatu Vatu,VU
+WST,Samoa Tala,WS
+XAF,CFA Franc BEAC,CM
+XAG,Silver Ounce,NULL
+XAU,Gold Ounce,NULL
+XCD,East Caribbean Dollar,AG
+XOF,CFA Franc BCEAO,BJ
+XPF,CFP Franc,PF
+YER,Yemen Rial,YE
+ZAR,South Africa Rand,ZA
+ZMW,Zambia Kwacha,ZM
+ZWD,Zimbabwe Dollar,ZW
+ZZZ,Euro Combined Currency,NULL
