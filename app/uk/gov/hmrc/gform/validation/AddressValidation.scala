@@ -33,16 +33,22 @@ object AddressValidation {
 
     def streetValidation(streetName: String) = lengthValidation(streetName, fieldValue)(addressValueOf(streetName))
 
-    val combinedValidation =
-      Monoid[ValidatedType[Unit]].combine(validateRequiredFieldSub("street1", "line 1"), streetValidation("street1"))
+    def ukStreetValidation(streetName: String) = ukLengthValidation(streetName, fieldValue)(addressValueOf(streetName))
+
+    val combinedValidation = Monoid[ValidatedType[Unit]].combineAll(addressValueOf("uk") match {
+      case "true" :: Nil =>
+        List(validateRequiredFieldSub("street1", "Building and street"), ukStreetValidation("street1"))
+      case _ =>
+        List(validateRequiredFieldSub("street1", "line 1"), streetValidation("street1"))
+    })
 
     val validatedResult: List[ValidatedType[Unit]] = addressValueOf("uk") match {
       case "true" :: Nil =>
         List(
           combinedValidation,
-          streetValidation("street2"),
-          streetValidation("street3"),
-          streetValidation("street4"),
+          ukStreetValidation("street2"),
+          ukStreetValidation("street3"),
+          ukStreetValidation("street4"),
           validateRequiredFieldSub("postcode", "postcode"),
           validateForbiddenField("country", fieldValue)(addressValueOf("country")),
           postcodeLengthValidation("postcode", fieldValue)(addressValueOf("postcode"))
@@ -70,21 +76,43 @@ object AddressValidation {
   private def lengthValidation(value: String, fieldValue: FormComponent) =
     addressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
+  private def ukLengthValidation(value: String, fieldValue: FormComponent) =
+    ukAddressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
+
   private def postcodeLengthValidation(value: String, fieldValue: FormComponent) =
     postcodeValidation(fieldValue, fieldValue.id.withSuffix(value)) _
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
     xs: Seq[String]): ValidatedType[Unit] = {
+    def combineErrors(str: String) = Map(fieldId -> errors(fieldValue, str)).invalid
     val Fourth = "[4]$".r.unanchored
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => validationSuccess
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
-        Map(fieldId -> errors(fieldValue, s"line 4 is longer than ${ValidationValues.addressLine4} characters")).invalid
+        combineErrors(s"line 4 is longer than ${ValidationValues.addressLine4} characters")
       case (value :: Nil, _) if value.length > ValidationValues.addressLine =>
-        Map(
-          fieldId -> errors(
-            fieldValue,
-            s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")).invalid
+        combineErrors(s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")
+      case _ => validationSuccess
+    }
+  }
+
+  private def ukAddressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
+    xs: Seq[String]): ValidatedType[Unit] = {
+    def combineErrors(str: String) = Map(fieldId -> errors(fieldValue, str)).invalid
+    val First = "[1]$".r.unanchored
+    val Second = "[2]$".r.unanchored
+    val Third = "[3]$".r.unanchored
+    val Fourth = "[4]$".r.unanchored
+    (xs.filterNot(_.isEmpty()), fieldId.value) match {
+      case (Nil, _) => validationSuccess
+      case (value :: Nil, First()) if value.length > ValidationValues.addressLine =>
+        combineErrors(s"Building and street is longer than ${ValidationValues.addressLine} characters")
+      case (value :: Nil, Second()) if value.length > ValidationValues.addressLine =>
+        combineErrors(s"Building and street line 2 is longer than ${ValidationValues.addressLine} characters")
+      case (value :: Nil, Third()) if value.length > ValidationValues.addressLine =>
+        combineErrors(s"Town or city is longer than ${ValidationValues.addressLine} characters")
+      case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
+        combineErrors(s"County is longer than ${ValidationValues.addressLine4} characters")
       case _ => validationSuccess
     }
   }
