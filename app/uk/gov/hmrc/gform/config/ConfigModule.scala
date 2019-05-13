@@ -20,6 +20,7 @@ import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import net.ceedubs.ficus.Ficus._
 import play.api.{ Configuration, Environment }
 import play.api.Mode.Mode
+import play.api.i18n.Lang
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.config.{ ControllerConfig, ServicesConfig }
 
@@ -54,6 +55,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
     val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
 
+  val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
+
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
       JSConfig(
@@ -80,7 +83,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       authModule = AuthModule(
         getJSConfig("auth-module.legacyEEITTAuth"),
         getJSConfig("auth-module.hmrc"),
-        getJSConfig("auth-module.anonymous"))
+        getJSConfig("auth-module.anonymous")),
+      availableLanguages = availableLanguages
     )
   }
 }

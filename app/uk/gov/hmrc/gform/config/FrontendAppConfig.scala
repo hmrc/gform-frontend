@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.config
+import play.api.i18n.Lang
 
 case class FrontendAppConfig(
   assetsPrefix: String,
@@ -29,5 +30,6 @@ case class FrontendAppConfig(
   whitelistEnabled: Boolean,
   googleTagManagerIdAvailable: Boolean,
   googleTagManagerId: String,
-  authModule: AuthModule
+  authModule: AuthModule,
+  availableLanguages: Map[String, Lang]
 )

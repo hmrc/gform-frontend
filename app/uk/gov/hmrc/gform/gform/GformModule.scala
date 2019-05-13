@@ -131,4 +131,8 @@ class GformModule(
     authModule.authService,
     graphModule.recalculation
   )
+
+  val languageSwitchController: LanguageSwitchController =
+    new LanguageSwitchController(configModule.frontendAppConfig, playBuiltInsModule.messagesApi)
+
 }

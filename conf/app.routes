@@ -33,3 +33,5 @@ GET           /keep-alive                                                       
 DELETE        /api/forms/:formTemplateId/:maybeAccessCode/deleteFile/:fileId                                     uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formTemplateId: FormTemplateId, lang:Option[String], maybeAccessCode: Option[AccessCode], fileId: FileId)
 
 GET           /exit-survey/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.AcknowledgementController.exitSurvey(formTemplateId: FormTemplateId, lang:Option[String], maybeAccessCode: Option[AccessCode])
+
+GET           /language/:lang                                                                                    uk.gov.hmrc.gform.gform.LanguageSwitchController.switchToLanguage(lang: String)

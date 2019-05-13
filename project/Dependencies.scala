@@ -28,7 +28,8 @@ object Dependencies {
     "uk.gov.hmrc" %% "play-config" % "7.3.0",
     "org.scala-graph" %% "graph-core" % "1.12.5",
     "uk.gov.hmrc" %% "csp-client" % "3.4.0",
-    "com.softwaremill.quicklens" %% "quicklens" % "1.4.11"
+    "com.softwaremill.quicklens" %% "quicklens" % "1.4.11",
+    "uk.gov.hmrc" %% "play-language" % "3.4.0"
   )
 
   def test(scope: String = "test") = Seq(

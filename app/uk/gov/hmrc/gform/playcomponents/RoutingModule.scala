@@ -56,7 +56,8 @@ class RoutingModule(
     gformModule.enrolmentController,
     gformModule.agentEnrolmentController,
     new Assets(controllersModule.errorHandler),
-    fileUploadModule.fileUploadController
+    fileUploadModule.fileUploadController,
+    gformModule.languageSwitchController
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(
