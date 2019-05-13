@@ -23,11 +23,10 @@ import uk.gov.hmrc.play.language.LanguageUtils
 
 class LanguageSwitchController(config: FrontendAppConfig, implicit val messagesApi: MessagesApi)
     extends Controller with I18nSupport {
+
   protected def fallbackURL: String = "/"
 
   protected def languageMap: Map[String, Lang] = config.availableLanguages
-
-  def switchToLang: String => Action[AnyContent] = (lang: String) => switchToLanguage(lang)
 
   def switchToLanguage(language: String): Action[AnyContent] = Action { implicit request =>
     val lang = languageMap.getOrElse(language, Lang("en"))

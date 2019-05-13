@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
-import uk.gov.hmrc.gform.InjectionDodge
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auditing.AuditingModule
@@ -133,7 +132,7 @@ class GformModule(
     graphModule.recalculation
   )
 
-  lazy val languageSwitchController: LanguageSwitchController =
+  val languageSwitchController: LanguageSwitchController =
     new LanguageSwitchController(configModule.frontendAppConfig, playBuiltInsModule.messagesApi)
 
 }
