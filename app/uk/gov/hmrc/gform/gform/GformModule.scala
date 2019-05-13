@@ -134,6 +134,6 @@ class GformModule(
   )
 
   lazy val languageSwitchController: LanguageSwitchController =
-    new LanguageSwitchController(configModule.frontendAppConfig, playBuiltInsModule.messagesApi, null)
+    new LanguageSwitchController(configModule.frontendAppConfig, playBuiltInsModule.messagesApi)
 
 }

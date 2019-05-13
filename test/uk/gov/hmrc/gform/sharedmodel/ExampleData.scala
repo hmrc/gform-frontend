@@ -536,6 +536,6 @@ trait ExampleFrontendAppConfig {
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
     authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
-    getAvailableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
+    availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   )
 }

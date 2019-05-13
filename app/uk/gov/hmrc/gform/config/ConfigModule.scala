@@ -55,7 +55,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
     val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
 
-  val getAvailableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
+  val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
@@ -84,7 +84,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
         getJSConfig("auth-module.legacyEEITTAuth"),
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous")),
-      getAvailableLanguages = getAvailableLanguages
+      availableLanguages = availableLanguages
     )
   }
 }

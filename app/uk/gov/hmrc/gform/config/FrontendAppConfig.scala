@@ -31,5 +31,5 @@ case class FrontendAppConfig(
   googleTagManagerIdAvailable: Boolean,
   googleTagManagerId: String,
   authModule: AuthModule,
-  getAvailableLanguages: Map[String, Lang]
+  availableLanguages: Map[String, Lang]
 )
