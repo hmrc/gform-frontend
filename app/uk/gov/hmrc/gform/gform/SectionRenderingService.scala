@@ -499,7 +499,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     validatedType: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     obligations: Obligations,
-    hmrcTP: HmrcTaxPeriod) = {
+    hmrcTP: HmrcTaxPeriod)(implicit messages: Messages) = {
 
     val taxPeriodOptions: List[OptionParams] = obligations match {
       case RetrievedObligations(listOfObligations) =>
@@ -711,7 +711,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     index: Int,
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
-    data: FormDataRecalculated) = {
+    data: FormDataRecalculated)(implicit messages: Messages) = {
     val fieldValues = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     html.form.snippets
       .field_template_address(international, fieldValue, fieldValues, index, ei.section.title, ei.formLevelHeading)
