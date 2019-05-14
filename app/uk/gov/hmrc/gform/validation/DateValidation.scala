@@ -65,7 +65,7 @@ class DateValidation(implicit messages: Messages) {
   }
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
-    data: FormDataRecalculated): ValidatedType[Unit] =
+    data: FormDataRecalculated)(implicit messages: Messages): ValidatedType[Unit] =
     date.constraintType match {
 
       case AnyDate =>

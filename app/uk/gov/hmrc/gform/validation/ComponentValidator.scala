@@ -140,7 +140,7 @@ object ComponentValidator {
   private def checkCompanyRegistrationNumber(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
     val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
     val str = value.replace(" ", "")
-    val errorMSG = "is not a valid Company Registration Number"
+    val errorMSG = messages("generic.crn.error.invalid")
     sharedTextComponentValidator(fieldValue, str, 8, 8, ValidCRN, errorMSG)
   }
 

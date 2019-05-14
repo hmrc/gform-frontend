@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.validation
 import cats.Monoid
 import cats.implicits._
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, UkSortCode }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -24,7 +25,8 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure,
 
 object SortCodeValidation {
 
-  def validateSortCode(fieldValue: FormComponent, sC: UkSortCode, mandatory: Boolean)(data: FormDataRecalculated) =
+  def validateSortCode(fieldValue: FormComponent, sC: UkSortCode, mandatory: Boolean)(data: FormDataRecalculated)(
+    implicit messages: Messages) =
     Monoid[ValidatedType[Unit]].combineAll(
       UkSortCode
         .fields(fieldValue.id)
@@ -33,23 +35,23 @@ object SortCodeValidation {
           val sortCode: Seq[String] = data.data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
-              validationFailure(fieldValue, "values must be two digit numbers")
+              validationFailure(fieldValue, messages("generic.error.sortcode"))
             case (Nil, false)      => validationSuccess
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
           }
         }
     )
 
-  def checkLength(fieldValue: FormComponent, value: String, desiredLength: Int) = {
+  def checkLength(fieldValue: FormComponent, value: String, desiredLength: Int)(implicit messages: Messages) = {
     val WholeShape = s"[0-9]{$desiredLength}".r
     val x = "y"
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
       case FractionalShape(_, _, _) =>
-        validationFailure(fieldValue, "must be a whole number")
+        validationFailure(fieldValue, messages("generic.error.wholeNumber"))
       case WholeShape() => validationSuccess
       case _ =>
-        validationFailure(fieldValue, s"must be $desiredLength numbers")
+        validationFailure(fieldValue, messages("generic.error.sortcode"))
     }
   }
 }

@@ -73,7 +73,7 @@ object SummaryRenderingService {
     envelope: Envelope,
     lang: Option[String],
     obligations: Obligations
-  ): List[Html] = {
+  )(implicit messages: Messages): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent]): List[Html] = {
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {

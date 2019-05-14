@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
-import play.api.i18n.Messages
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.getError

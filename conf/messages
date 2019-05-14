@@ -2,8 +2,11 @@
 global.error.InternalServerError500.title=We’re experiencing technical difficulties
 global.error.InternalServerError500.heading=We’re experiencing technical difficulties
 global.error.InternalServerError500.message=Try signing in again in a few minutes.
-## Landfill Tax Form ##
-lt.ltDetails.telephoneHint                  = A telephone number must be longer than 3 digits.
+
+generic.saveAndComeBackLater=Save and come back later
+
+button.continue=Continue
+button.saveAndContinue=Save and continue
 
 # Error summary
 error.summary.heading=There is a problem
@@ -11,6 +14,9 @@ error.summary.heading=There is a problem
 
 # Field labelled errors
 field.error.required={0} must be entered
+field.error.number={0} must be a number
+field.error.exactDigits={0} must be a {1} digit number
+field.error.notGreaterThan={0} must not be greater than {1}
 choice.error.required={0} must be selected
 
 # Generic error suffixes
@@ -32,9 +38,12 @@ generic.error.maxDecimals=must be no more than {0} decimal places
 generic.error.invalid=is not valid
 generic.vrn.error.pattern=is not a valid VRN
 generic.eori.error.pattern=is not a valid EORI number
+generic.crn.error.invalid=is not a valid Company Registration Number
 generic.nonUKCountryCode.error.pattern=is not a valid non UK country code
 generic.countryCode.error.pattern=is not a valid country code
 generic.governmentId.error.pattern=is not valid
+generic.error.sortcode=must be made of 3 sets of 2 numbers
+generic.error.exactNumbers=must be {0} numbers
 
 generic.shortText.error.pattern=can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern=can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
@@ -56,24 +65,24 @@ user.recruitment.dismiss=No thanks
 decision.error.required=Select whether you would like to continue with your existing {0} or delete and start again
 
 # UK Address
-ukAddress.line1.label=Building and street
-ukAddress.line2.label=Building and street line 2
-ukAddress.line3.label=Town or city
-ukAddress.line4.label=County
-ukAddress.postcode.label=Postcode
+ukAddress.line1.label=building and street
+ukAddress.line2.label=building and street line 2
+ukAddress.line3.label=town or city
+ukAddress.line4.label=county
+ukAddress.postcode.label=postcode
 
-ukAddress.line1.error.maxLength=Building and street must be no more than {0} characters
-ukAddress.line2.error.maxLength=Building and street must be no more than {0} characters
-ukAddress.line3.error.maxLength=Town or city must be no more than {0} characters
-ukAddress.line4.error.maxLength=County must be no more than {0} characters
-ukAddress.postcode.error.maxLength=Postcode must be no more than {0} characters
+ukAddress.line1.error.maxLength=building and street must be no more than {0} characters
+ukAddress.line2.error.maxLength=building and street must be no more than {0} characters
+ukAddress.line3.error.maxLength=town or city must be no more than {0} characters
+ukAddress.line4.error.maxLength=county must be no more than {0} characters
+ukAddress.postcode.error.maxLength=postcode must be no more than {0} characters
 
 # International Address
-internationalAddress.line1.label=Line 1
-internationalAddress.line2.label=Line 2
-internationalAddress.line3.label=Line 3
-internationalAddress.line4.label=Line 4
-internationalAddress.country.label=Country
+internationalAddress.line1.label=line 1
+internationalAddress.line2.label=line 2
+internationalAddress.line3.label=line 3
+internationalAddress.line4.label=line 4
+internationalAddress.country.label=country
 
 # Generic address
 address.line4.error.maxLength=line 4 must be no more than {0} characters
@@ -83,3 +92,26 @@ address.line.error.maxLength=line {0} must be no more than {1} characters
 date.day=day
 date.month=month
 date.year=year
+date.ordinal.th=th
+date.ordinal.st=st
+date.ordinal.rd=rd
+date.ordinal.nd=nd
+date.ofAnyMonth=of any month 
+date.ofTheMonth=of the month 
+date.firstDay=the first day 
+date.lastDay=the last day 
+date.exactDay=the {0}
+date.inYear=in {0}
+date.inMonth=in {0}
+date.ofMonth=of {0}
+date.before=must be before {0}
+date.after=must be after {0}
+date.exactDate=must be {0}
+
+# Summary
+summary.title=Check your answers
+summary.intro=Make sure that the information you have given is correct before submitting your {0}
+summary.nowSend=Now send your {0}
+summary.printMsg=You can print this summary page then come back later to complete your {0}
+summary.printLinkText=Print this summary page
+summary.change=Change

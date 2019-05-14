@@ -34,7 +34,7 @@
 )(implicit request: Request[_],
         messages: Messages
 )
-@heading = @{"Check your answers"}
+@heading = @{messages("summary.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -60,7 +60,7 @@
         @heading
       </h1>
       <p>
-        Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
+        @messages("summary.intro", formCategory.getString)
       </p>
     </div>
 
@@ -71,13 +71,13 @@
 
         <div class="print-hidden">
           <h2>
-            Now send your @{formCategory.getString}
+            @messages("summary.nowSend", formCategory.getString)
           </h2>
           <p>
-            You can print this summary page then come back later to complete your @{formCategory.getString}.
+            @messages("summary.printMsg", formCategory.getString).
           </p>
           <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode, lang).url">Print this summary page</a>
+            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode, lang).url">@messages("summary.printLinkText")</a>
           </p>
         </div>
 
@@ -85,14 +85,14 @@
 
         <div class="print-hidden">
             <div class="form-group">
-                <button type="submit" class="button" value="Declaration">@continueLabel</button>
+                <button type="submit" class="button" value="Declaration">@messages("button.continue")</button>
             </div>
             <div class="js-visible">
-		@if(renderComeBackLater) {
-		  <div class="form-group">
-		    <a href="#" id="saveComeBackLaterExit">Save and come back later</a>
-                  </div>
-		}
+              @if(renderComeBackLater) {
+                <div class="form-group">
+                  <a href="#" id="saveComeBackLaterExit">@messages("generic.saveAndComeBackLater")</a>
+                </div>
+              }
             </div>
         </div>
     </form>
