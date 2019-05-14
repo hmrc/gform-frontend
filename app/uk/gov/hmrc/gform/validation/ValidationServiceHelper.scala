@@ -17,12 +17,12 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
+import play.api.i18n.Messages
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ComponentsValidator.getError
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.getError
 
-case object ValidationServiceHelper {
-
+object ValidationServiceHelper {
   def getCompanionFieldComponent(formComponent: Date, formComponentList: List[FormComponent]): Option[FormComponent] =
     (for {
       dateConstraints <- formComponent.constraintType.cast[DateConstraints].toSeq
@@ -33,7 +33,7 @@ case object ValidationServiceHelper {
     } yield formComponent).headOption
 
   val validationSuccess = ().valid
+
   def validationFailure(fieldValue: FormComponent, errorMsg: String) =
     getError(fieldValue, errorMsg)
-
 }

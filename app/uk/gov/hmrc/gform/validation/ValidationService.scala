@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.validation
 import cats.data._
 import cats.implicits._
 import cats.Monoid
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -46,7 +47,7 @@ class ValidationService(
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] =
+    formTemplate: FormTemplate)(implicit hc: HeaderCarrier, messages: Messages): Future[ValidatedType[Unit]] =
     new ComponentsValidator(data, fileUploadService, envelopeId, retrievals, booleanExpr, thirdPartyData, formTemplate)
       .validate(fieldValue, fieldValues)
 
@@ -56,13 +57,14 @@ class ValidationService(
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    formTemplate: FormTemplate)(implicit hc: HeaderCarrier): Future[ValidatedType[Unit]] =
+    formTemplate: FormTemplate)(implicit hc: HeaderCarrier, messages: Messages): Future[ValidatedType[Unit]] =
     fieldValues
       .traverse(fv => validateFieldValue(fv, fieldValues, data, envelopeId, retrievals, thirdPartyData, formTemplate))
       .map(Monoid[ValidatedType[Unit]].combineAll)
 
   private def validateUsingValidators(section: Section, data: FormDataRecalculated)(
-    implicit hc: HeaderCarrier): Future[ValidatedType[ValidationResult]] = {
+    implicit hc: HeaderCarrier,
+    messages: Messages): Future[ValidatedType[ValidationResult]] = {
     val sv: Option[Validator] = section.validators
     section.validators
       .map(validateUsingSectionValidators(_, data))
@@ -76,7 +78,9 @@ class ValidationService(
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
-    data: FormDataRecalculated)(implicit hc: HeaderCarrier): Future[ValidatedType[ValidationResult]] = {
+    data: FormDataRecalculated)(
+    implicit hc: HeaderCarrier,
+    messages: Messages): Future[ValidatedType[ValidationResult]] = {
     val eT = for {
       _ <- EitherT(
             validateComponents(sectionFields, data, envelopeId, retrievals, thirdPartyData, formTemplate).map(
@@ -97,7 +101,8 @@ class ValidationService(
       .map(ffvr => ffvr.fieldValue -> ffvr)
 
   private def validateUsingSectionValidators(v: Validator, data: FormDataRecalculated)(
-    implicit hc: HeaderCarrier): Future[ValidatedType[ValidationResult]] = {
+    implicit hc: HeaderCarrier,
+    messages: Messages): Future[ValidatedType[ValidationResult]] = {
     def dataGetter(fieldId: FormComponentId): String =
       data.data.get(fieldId).toList.flatten.headOption.getOrElse("")
 

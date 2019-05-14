@@ -212,7 +212,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
   private def generatePageLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
     globalErrors: List[Html]
-  ): HasErrors = {
+  )(implicit messages: Messages): HasErrors = {
 
     val allValidationResults = listValidation.flatMap {
       case componentField: ComponentField => parseFormFieldValidationResult(componentField)

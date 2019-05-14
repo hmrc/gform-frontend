@@ -20,7 +20,7 @@ import org.slf4j.MDC
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.http._
-import play.api.i18n.I18nComponents
+import play.api.i18n.{ I18nComponents, Messages }
 import play.api.inject.{ Injector, SimpleInjector }
 import play.api.mvc.EssentialFilter
 import play.api.routing.Router
