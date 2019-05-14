@@ -725,7 +725,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    isHidden: Boolean = false) = {
+    isHidden: Boolean = false)(implicit messages: Messages) = {
     val prepopValues: Option[DateExpr] = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
 
     if (isHidden) {
