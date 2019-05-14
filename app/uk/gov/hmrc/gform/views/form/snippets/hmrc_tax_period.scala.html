@@ -32,7 +32,7 @@ validationResult: Option[FormFieldValidationResult],
 index: Int,
 formLevelHeading: Boolean,
 setValue: String
-)
+)(implicit messages: Messages)
 
 @hasErrors = @{
 validationResult.exists(_.isNotOk)
@@ -43,7 +43,7 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
 }
 
 @dateRangeLabel(fromDate:LocalDate, toDate:LocalDate)=@{
-localisation("From")+" "+formatDate(fromDate)+" "+localisation("to")+" "+formatDate(toDate)
+  messages("generic.From")+" "+formatDate(fromDate)+" "+messages("generic.to")+" "+formatDate(toDate)
 }
 
 
@@ -59,13 +59,15 @@ localisation("From")+" "+formatDate(fromDate)+" "+localisation("to")+" "+formatD
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-        <span class="form-hint" id="@{fieldValue.id.value}-hint">
-        @localisation(fieldValue.helpText.getOrElse(""))
-      </span>
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">
+            @{fieldValue.helpText.getOrElse("")}
+          </span>
         }
 
         @inline_error_map(fieldValue, validationResult)
-        @if(options.size < 1){<h1>There are no options to display for this user</h1>}
+        @if(options.size < 1){
+          <h2>@messages("taxPeriod.noResults")</h2>
+        }
         @for(option <- options) {
         <div class="multiple-choice">
             <input

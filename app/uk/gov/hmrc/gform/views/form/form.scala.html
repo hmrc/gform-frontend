@@ -38,19 +38,19 @@
         messages: Messages
 )
 
-@heading = @{localisation(page.sectionTitle)}
+@heading = @{page.sectionTitle}
 
 @backLink = {
     @if(isDeclaration) {
-        <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back" >Back</a>
+        <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back">@messages("linkText.back")</a>
     } else {
-        <a href="#" class="link-back js-visible" id="backButton">Back</a>
+        <a href="#" class="link-back js-visible" id="backButton">@messages("linkText.back")</a>
     }
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
-    serviceName = localisation(formTemplate.formName),
+    serviceName = formTemplate.formName,
     containsErrors = pageLevelError.hasErrors,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     frontendAppConfig = frontendAppConfig,
@@ -65,13 +65,13 @@
     @pageLevelError.render
 
     @if(page.progressIndicator.isDefined){
-      <span id="progress-indicator" class="heading-caption">@localisation(page.progressIndicator.get)</span>
+      <span id="progress-indicator" class="heading-caption">@{page.progressIndicator.get}</span>
     }
 
     @if(shouldDisplayHeading) {
       <h1 class="h1-heading form-title">@heading</h1>
       @if(page.sectionDescription.exists(_.trim.nonEmpty)){
-        <p class="page-description">@localisation(page.sectionDescription.get)</p>
+        <p class="page-description">@{page.sectionDescription.get}</p>
       }
     }
 
@@ -93,13 +93,13 @@
 
         @if(shouldDisplayContinue) {
           <div class="form-group">
-              <button type="submit" class="button" value="Continue">@page.continueLabel</button>
+              <button type="submit" class="button" value="Continue">@messages("button.saveAndContinue")</button>
           </div>
 	}
         <div class="js-visible">
           @if(page.renderComeBackLater) {
           <div class="form-group">
-              <a href="#" id="saveComeBackLater">Save and come back later</a>
+              <a href="#" id="saveComeBackLater">@messages("linkText.saveAndComeBackLater")</a>
           </div>
           }
         </div>

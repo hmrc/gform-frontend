@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html._
 
-@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
+@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit messages: Messages)
 
 @safeId(id: String) = @{
   fieldValue.id.withSuffix(id).toString
@@ -40,7 +40,7 @@
 
 
 @label = {
-  @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+  @LabelHelper.buildRepeatingLabel(fieldValue, index)
 }
 
 <fieldset id="@{fieldValue.id.value}-fieldset" role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
@@ -53,7 +53,7 @@
       <div class="form-group">
           <fieldset class="inline">
               <legend class="form-label">
-                  @localisation("Is this a UK address?")
+                  @messages("address.isUK")
               </legend>
 
               <div class="multiple-choice" data-target="@groupId(s"${fieldValue.id.value}-local")">
@@ -68,7 +68,7 @@
                     @if(!internationalSelected) {
                         checked="checked"
                     }/>
-                  <label for="@groupId(s"${fieldValue.id.value}-international-yes")">@localisation("Yes")</label>
+                  <label for="@groupId(s"${fieldValue.id.value}-international-yes")">@messages("generic.Yes")</label>
               </div>
 
               <div class="multiple-choice" data-target="@groupId(s"${fieldValue.id.value}-international")">
@@ -84,7 +84,7 @@
                         checked="checked"
                     }/>
 
-                  <label for="@groupId(s"${fieldValue.id.value}-international-no")">@localisation("No")</label>
+                  <label for="@groupId(s"${fieldValue.id.value}-international-no")">@messages("generic.No")</label>
               </div>
           </fieldset>
       </div>
@@ -94,7 +94,7 @@
 
 
       @if(fieldValue.helpText.nonEmpty) {
-      <div class="form-hint" id="@{fieldValue.id.value}-hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+      <div class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.getOrElse("")}</div>
       }
 
       @safeError(suffix : String) = @{
@@ -106,10 +106,10 @@
       <div class="form-group@if(safeError("street1").nonEmpty){ form-group-error }">
           <label class="form-label" data-address-line="1" for="@groupId(safeId("street1"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
-              @localisation("Building and street")
+              @messages("ukAddress.line1")
             </span>
             <span data-address-label="international"@if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
-            @localisation("Address 1")
+              @messages("internationalAddress.line1")
             </span>
           </label>
 
@@ -124,10 +124,10 @@
       <div class="form-group@if(safeError("street2").nonEmpty){ form-group-error }">
           <label class="form-label" data-address-line="2" for="@groupId(safeId("street2"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
-              @localisation("Building and street line 2 (optional)")
+              @messages("ukAddress.line2")
             </span>
             <span data-address-label="international"@if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
-              @localisation("Address 2 (optional)")
+              @messages("internationalAddress.line2")
             </span>
           </label>
           @safeError("street2")
@@ -141,10 +141,10 @@
       <div class="form-group@if(safeError("street3").nonEmpty){ form-group-error }">
           <label class="form-label" data-address-line="3" for="@groupId(safeId("street3"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
-            @localisation("Town or city (optional)")
+            @messages("ukAddress.line3")
             </span>
             <span data-address-label="international"@if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
-            @localisation("Address 3 (optional)")
+            @messages("internaionalAddress.line3")
             </span>
           </label>
 
@@ -159,10 +159,10 @@
       <div class="form-group@if(safeError("street4").nonEmpty){ form-group-error }">
           <label class="form-label" data-address-line="4" for="@groupId(safeId("street4"))">
             <span data-address-label="uk"@if(internationalSelected){ class="js-hidden" aria-hidden="true"}>
-              @localisation("County (optional)")
+              @messages("ukAddress.line4")
             </span>
             <span data-address-label="international"@if(!internationalSelected){ class="js-hidden" aria-hidden="true"}>
-              @localisation("Address 4 (optional)")
+              @messages("internationalAddress.line4")
             </span>
           </label>
 
@@ -179,7 +179,7 @@
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
           <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">
             <span data-address-label="uk">
-            @localisation("Postcode")
+            @messages("ukAddress.postcode")
             </span>
           </label>
 
@@ -196,7 +196,7 @@
         <div class="form-group@if(safeError("country").nonEmpty){ form-group-error }">
           <label class="form-label" data-address-line="country" for="@groupId(safeId("country"))">
             <span data-address-label="international">
-              @localisation("Country")
+              @messages("internationalAddress.country")
             </span>
           </label>
 
@@ -212,7 +212,7 @@
         <div class="form-group@if(safeError("postcode").nonEmpty){ form-group-error }">
           <label class="form-label" data-address-line="postcode" for="@groupId(safeId("postcode"))">
             <span data-address-label="uk">
-              @localisation("Postcode")
+              @messages("ukAddress.postcode")
             </span>
           </label>
 
