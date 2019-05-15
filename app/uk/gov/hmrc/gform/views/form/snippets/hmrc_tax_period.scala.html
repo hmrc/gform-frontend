@@ -17,35 +17,31 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 @import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
 @import uk.gov.hmrc.gform.gform.OptionParams
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 @import java.time.LocalDate
-@(inputType: String,
-fieldValue: FormComponent,
-options: List[OptionParams],
-prepop: Set[String],
-validationResult: Option[FormFieldValidationResult],
-index: Int,
-formLevelHeading: Boolean,
-setValue: String
+
+@(
+  inputType: String,
+  fieldValue: FormComponent,
+  options: List[OptionParams],
+  prepop: Set[String],
+  validationResult: Option[FormFieldValidationResult],
+  index: Int,
+  formLevelHeading: Boolean,
+  setValue: String
 )(implicit messages: Messages)
 
-@hasErrors = @{
-validationResult.exists(_.isNotOk)
-}
+@hasErrors = @{validationResult.exists(_.isNotOk)}
 
-@legend = @{
-LabelHelper.buildRepeatingLabel(fieldValue, index)
-}
+@legend = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
 
-@dateRangeLabel(fromDate:LocalDate, toDate:LocalDate)=@{
+@dateRangeLabel(fromDate:LocalDate, toDate:LocalDate) = @{
   messages("generic.From")+" "+formatDate(fromDate)+" "+messages("generic.to")+" "+formatDate(toDate)
 }
-
 
 <div class="form-group@if(hasErrors) { form-group-error}">
     <fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
@@ -71,16 +67,16 @@ LabelHelper.buildRepeatingLabel(fieldValue, index)
         @for(option <- options) {
         <div class="multiple-choice">
             <input
-                    id="@{fieldValue.id.value}-@{option.value}"
-                    name="@{fieldValue.id.value}"
-                    value="@{option.value}"
-                    type="radio"
-                    @if(option.value == setValue) { checked="checked" }
-                    role="@inputType"
+              id="@{fieldValue.id.value}-@{option.value}"
+              name="@{fieldValue.id.value}"
+              value="@{option.value}"
+              type="radio"
+              @if(option.value == setValue) { checked="checked" }
+              role="@inputType"
             />
 
             <label for="@{fieldValue.id.value}-@{option.value}">
-                @dateRangeLabel(option.fromDate, option.toDate)
+              @dateRangeLabel(option.fromDate, option.toDate)
             </label>
         </div>
         }

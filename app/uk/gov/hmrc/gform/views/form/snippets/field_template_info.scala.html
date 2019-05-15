@@ -16,15 +16,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.InfoType
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.StandardInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LongInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ImportantInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.BannerInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.views.html._
-
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ InfoType, StandardInfo, LongInfo, ImportantInfo, BannerInfo, FormComponent, NoFormat }
 
 @(fieldValue: FormComponent, infoType: InfoType, text: Html, index: Int)(implicit messages: Messages)
 

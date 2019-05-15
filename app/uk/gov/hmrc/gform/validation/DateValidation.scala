@@ -27,7 +27,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil._
-import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.gform.validation.DateValidationLogic._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, messagePrefix }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
@@ -283,7 +282,7 @@ class DateValidation(implicit messages: Messages) {
         }
 
       case _ =>
-        validationFailure(formComponent, "is missing")
+        validationFailure(formComponent, messages("date.isMissing"))
     }
   }
 
@@ -297,9 +296,9 @@ class DateValidation(implicit messages: Messages) {
     year: String): ValidatedConcreteDate = {
 
     val label = messagePrefix(formComponent, formComponentId, otherFormComponent)
-    val dayLabel = label + " " + localisation("day")
-    val monthLabel = label + " " + localisation("month")
-    val yearLabel = label + " " + localisation("year")
+    val dayLabel = label + " " + messages("date.day")
+    val monthLabel = label + " " + messages("date.month")
+    val yearLabel = label + " " + messages("date.year")
     val d = isNumeric(day, dayLabel, label)
       .andThen(y => isWithinBounds(y, 31, dayLabel))
       .leftMap(er => Map(formComponentId.withSuffix("day") -> Set(errorMessage.getOrElse(er))))

@@ -20,7 +20,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
 @(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int, formLevelHeading: Boolean)(implicit messages: Messages)
@@ -52,7 +51,7 @@ fieldValue.id.withSuffix(id).toString
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id}-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+          <span class="form-hint" id="@{fieldValue.id}-hint">@fieldValue.helpText.getOrElse("")</span>
         }
 
           @inline_error_map(fieldValue, validationResult)

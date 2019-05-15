@@ -19,14 +19,10 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.ops.FormComponentOps
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit messages: Messages)
 
 @hasErrors = @{
@@ -41,7 +37,7 @@
 
 @sterlingHelp =@{
     if (fieldValue.isSterling){
-            <span class="visuallyhidden"> messages("assistive.text.sterling")</span>
+      <span class="visuallyhidden"> messages("assistive.text.sterling")</span>
     }
 }
 

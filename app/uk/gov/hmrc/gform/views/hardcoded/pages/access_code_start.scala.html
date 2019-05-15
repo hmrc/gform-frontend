@@ -24,14 +24,14 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-        formTemplate: FormTemplate,
-        accessCodeForm: play.api.data.Form[uk.gov.hmrc.gform.gform.AccessCodeForm],
-        lang: Option[String],
-        frontendAppConfig: FrontendAppConfig
+  formTemplate: FormTemplate,
+  accessCodeForm: play.api.data.Form[uk.gov.hmrc.gform.gform.AccessCodeForm],
+  lang: Option[String],
+  frontendAppConfig: FrontendAppConfig
 )(
-        implicit
-        request: Request[_],
-        messages: Messages
+  implicit
+  request: Request[_],
+  messages: Messages
 )
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
@@ -44,12 +44,12 @@
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig,
-    containsErrors = hasErrors,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  frontendAppConfig = frontendAppConfig,
+  containsErrors = hasErrors,
+  authConfig = Some(formTemplate.authConfig)
 ) {
 
   @if(hasErrors) {

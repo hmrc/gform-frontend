@@ -26,7 +26,6 @@
 @import java.text.NumberFormat
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 @import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 
 @(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
 
@@ -46,4 +45,3 @@
   </span>
   @(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop.getOrElse("")))))
 </div>
-

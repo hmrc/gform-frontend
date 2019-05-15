@@ -21,7 +21,6 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
@@ -33,7 +32,7 @@ class AddressValidation(implicit messages: Messages) {
     val addressValueOf: String => Seq[String] = suffix => data.data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
 
     def validateRequiredFieldSub(value: String, str: String) =
-      validateRequiredField(value, localisation(str), fieldValue)(addressValueOf(value))
+      validateRequiredField(value, str, fieldValue)(addressValueOf(value))
 
     def streetValidation(streetName: String) = lengthValidation(streetName, fieldValue)(addressValueOf(streetName))
 

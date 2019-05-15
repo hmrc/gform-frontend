@@ -17,7 +17,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form.FormId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormCategory}
-@import uk.gov.hmrc.gform.views.html.localisation
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
@@ -37,7 +36,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
-    serviceName = localisation(formTemplate.formName),
+    serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     bodyClasses = None,
     frontendAppConfig = frontendAppConfig,
@@ -50,7 +49,7 @@
         HM Revenue &amp; Customs
       </span>
       <h1>
-        @{localisation(formTemplate.formName)}
+        @{formTemplate.formName}
       </h1>
     </div>
 
