@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.gform.validation
 
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 
-class ValidationServiceHelperSpec extends Spec {
+class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
 
   "when given a data and a List of field components that is corespondes to the refrence in date" should "return the form component from the List" in {
     val formComponentId = FormComponentId("1")

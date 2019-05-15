@@ -22,6 +22,7 @@ import cats.scalatest.ValidatedValues._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
@@ -33,7 +34,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class AddressValidationSpec extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
+class AddressValidationSpec(implicit messages: Messages)
+    extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
   val retrievals = mock[MaterialisedRetrievals]
 
   val baseAddress = Address(international = false)

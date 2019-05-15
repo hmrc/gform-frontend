@@ -21,6 +21,7 @@ import cats.data.Validated.Valid
 import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
+import play.api.i18n.Messages
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -38,7 +39,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import scala.collection.immutable.List
 import uk.gov.hmrc.http.HeaderCarrier
 
-class SummarySpec extends Spec {
+class SummarySpec(implicit messages: Messages) extends Spec {
 
   trait Test extends ExampleData {
     override def dmsSubmission =

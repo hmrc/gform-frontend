@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.gform.validation
 import org.scalatest.Matchers
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ FormComponentGen, FormatExprGen }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.ComponentTypeGen._
 
-class ComponentValidatorSpec extends Spec with Matchers with GraphSpec {
+class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matchers with GraphSpec {
 
   "validateChoice" should "be invalid when form component is mandatory + the data associated with the id is empty" in {
     forAll(FormComponentGen.formComponentGen(), choiceGen) { (formComponent, choice) =>

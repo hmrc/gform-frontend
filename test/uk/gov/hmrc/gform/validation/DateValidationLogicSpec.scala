@@ -17,9 +17,10 @@
 package uk.gov.hmrc.gform.validation
 
 import org.scalatest.{ FlatSpec, Matchers }
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class DateValidationLogicSpec extends FlatSpec with Matchers {
+class DateValidationLogicSpec(implicit messages: Messages) extends FlatSpec with Matchers {
 
   "DateValidationLogic.incorrectDate with precisely yyyy-04-dd" should "return message: must be in April" in {
 
