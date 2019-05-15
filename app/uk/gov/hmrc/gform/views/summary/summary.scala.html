@@ -31,9 +31,8 @@
     renderComeBackLater: Boolean,
     continueLabel: String,
     frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_],
-        messages: Messages
-)
+)(implicit request: Request[_], messages: Messages)
+
 @heading = @{messages("summary.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(

@@ -27,7 +27,7 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
+@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit messages: Messages)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -41,7 +41,7 @@
 
 @sterlingHelp =@{
     if (fieldValue.isSterling){
-            <span class="visuallyhidden"> in pounds sterling, do not enter the pound sign</span>
+            <span class="visuallyhidden"> messages("assistive.text.sterling")</span>
     }
 }
 
@@ -61,7 +61,7 @@
 
 @label = {
   <label class="@{if(!formLevelHeading){"h1-heading"} else {"form-label"}}@if(fieldValue.derived){ js-hidden}" for="@{fieldValue.id}">
-    @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
+    @LabelHelper.buildRepeatingLabel(fieldValue, index)
     @sterlingHelp
   </label>
   }

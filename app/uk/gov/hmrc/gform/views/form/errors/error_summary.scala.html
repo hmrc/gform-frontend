@@ -14,35 +14,33 @@
  * limitations under the License.
  *@
 
-@(form: Form[_], formCategory: String)(implicit Messages: Messages)
+@(form: Form[_], formCategory: String)(implicit messages: Messages)
 
 <div
   class="error-summary"
   id="error-summary-display"
   role="alert"
   aria-labelledby="error-summary-heading"
-  tabindex="-1"
->
+  tabindex="-1">
 
   <h2
     id="error-summary-heading"
-    class="heading-medium error-summary-heading"
-  >
-    @Messages("error.summary.heading")
+    class="heading-medium error-summary-heading">
+    @messages("error.summary.heading")
   </h2>
 
   <ul class="error-summary-list">
     @form.errors.map { error =>
       <li>
         <a href="#@error.key" data-focuses="@error.key" class="js-hidden">
-          @Messages(s"${error.key}.${error.message}", formCategory)
+          @messages(s"${error.key}.${error.message}", formCategory)
         </a>
       </li>
     }
     @form.globalErrors.map { error =>
       <li>
         <a href="#@error.key" data-focuses="@error.key" class="js-hidden">
-        @Messages(s"${error.key}.${error.message}")
+          @messages(s"${error.key}.${error.message}")
         </a>
       </li>
     }

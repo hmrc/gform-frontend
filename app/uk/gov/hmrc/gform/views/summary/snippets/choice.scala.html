@@ -15,13 +15,12 @@
  *@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.views.html.localisation
 
 @(fieldValue: FormComponent, selections: List[String], changeButton: Html)
 
 <div>
   <dt class="cya-question">
-    @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+    @fieldValue.shortName.getOrElse(fieldValue.label)
   </dt>
   <dd class="cya-answer">
     @selections.map{ selection => @selection<br> }

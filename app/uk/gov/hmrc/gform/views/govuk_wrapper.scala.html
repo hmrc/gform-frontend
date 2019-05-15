@@ -91,7 +91,7 @@
 
 @navLinks = {
   @if(authTimeout.signOutUrl != "") {
-    <li><a href="@{authTimeout.signOutUrl}" id="signOut">Sign out</a></li>
+    <li><a href="@{authTimeout.signOutUrl}" id="signOut">@messages("linkText.signOut")</a></li>
   } else {
     None
   }

@@ -24,7 +24,7 @@
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
-@(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, formLevelHeading: Boolean)
+@(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, formLevelHeading: Boolean)(implicit messages: Messages)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -52,7 +52,7 @@
             <div class="form-group push">
               <label
                 for="@fieldId"
-                class="visuallyhidden">Sort code part @fieldNumber</label>
+                class="visuallyhidden">@messages("sortcode.part", fieldNumber)</label>
               <input
                 type="number"
                 name="@fieldId"

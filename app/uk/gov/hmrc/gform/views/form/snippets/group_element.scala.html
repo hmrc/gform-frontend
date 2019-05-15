@@ -14,26 +14,25 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.views.html._
+@import uk.gov.hmrc.gform.models.GroupHelper
 
-@(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)
+@(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)(implicit messages: Messages)
 
 @label = @{
-  if(groupField.repeatLabel.isDefined) localisation(GroupHelper.buildRepeatLabel(groupField, instance)) else ""
+  if(groupField.repeatLabel.isDefined) GroupHelper.buildRepeatLabel(groupField, instance) else ""
 }
 
 <fieldset class="section-repeating">
   @if(label.nonEmpty) {
     <legend class="h2-heading">@label</legend>
   }
-  @{snippets}
+  @snippets
   @if(!disableRemoveButton) {
     <a class="removeRepeatingSection" href="RemoveGroup-@{instance}_@{fieldValue.id}">
-      @localisation(s"Remove $label")
+      @messages("linkText.removeRepeatedGroup", label)
     </a>
   }
 </fieldset>

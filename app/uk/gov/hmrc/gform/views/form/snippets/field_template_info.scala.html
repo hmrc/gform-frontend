@@ -26,7 +26,7 @@
 @import uk.gov.hmrc.gform.views.html._
 
 
-@(fieldValue: FormComponent, infoType: InfoType, text: Html, index: Int)
+@(fieldValue: FormComponent, infoType: InfoType, text: Html, index: Int)(implicit messages: Messages)
 
 <div class="subsection">
   @infoType match {
@@ -51,7 +51,7 @@
     case ImportantInfo => {
       <div class="notice">
         <i class="icon icon-important">
-          <span class="visually-hidden">Warning</span>
+          <span class="visually-hidden">@messages("generic.Warning")</span>
         </i>
         <div class="notice-content">
           @text

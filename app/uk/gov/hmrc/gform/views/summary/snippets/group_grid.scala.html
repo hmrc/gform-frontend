@@ -14,7 +14,6 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.views.html.localisation
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
@@ -23,7 +22,7 @@
 
   <div>
     <dt class="cya-question">
-      @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+      @fieldValue.shortName.getOrElse(fieldValue.label)
     </dt>
     <dd class="cya-answer">
       @fields.map{ f => @TextFormatter.formatText(f)<br> }

@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@(warning: String)
+@(warning: String)(implicit messages: Messages)
 <style>
     .govuk-warning-text {
       font-family: "nta",Arial,sans-serif;
@@ -92,7 +92,7 @@
 <div class="govuk-warning-text">
   <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
   <strong class="govuk-warning-text__text">
-    <span class="govuk-warning-text__assistive">@uk.gov.hmrc.gform.views.html.localisation("Warning")</span>
+    <span class="govuk-warning-text__assistive">@messages("generic.Warning")</span>
     @warning
   </strong>
 </div>
