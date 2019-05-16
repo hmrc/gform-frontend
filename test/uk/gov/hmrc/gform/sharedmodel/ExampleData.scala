@@ -536,6 +536,7 @@ trait ExampleFrontendAppConfig {
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
     authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
-    availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
+    availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
+    routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage
   )
 }
