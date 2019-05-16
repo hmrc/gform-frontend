@@ -18,12 +18,16 @@
 
 @(fieldValue: FormComponent, selections: List[String], changeButton: Html)
 
+@selectedHtml = @{
+  selections.map{ selection => <p>{selection}</p> }
+}
+
 <div>
   <dt class="cya-question">
     @fieldValue.shortName.getOrElse(fieldValue.label)
   </dt>
   <dd class="cya-answer">
-    @selections.map{ selection => @selection<br> }
+    @selectedHtml
   </dd>
   <dd class="cya-change">@changeButton</dd>
 </div>
