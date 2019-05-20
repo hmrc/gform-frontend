@@ -80,14 +80,21 @@ class AuthService(
       case Some((_, jwt)) => {
         val decoder = Base64.getDecoder
         val splitJwt = jwt.split("\\.")
-        if (!(jwt.split("\\.").length == 3)) {
+        if (!(splitJwt.length == 3)) {
           Logger.error(s"Corrupt JWT received from AWS ALB: [$jwt]")
           AuthBlocked("You are not authorized to access this service")
         } else {
           val payload = new String(decoder.decode(splitJwt(1)))
           Json.parse(payload) \ "username" match {
-            case JsDefined(value) => AuthSuccessful(AWSALBRetrievals(value.as[String]))
-            case JsUndefined()    => AuthBlocked("Username does not exist in JWT")
+            case JsDefined(value) =>
+              value.asOpt[String] match {
+                case Some(username) => AuthSuccessful(AWSALBRetrievals(username))
+                case None => {
+                  Logger.error(s"Corrupt JWT received from AWS ALB: [$jwt]")
+                  AuthBlocked("You are not authorized to access this service")
+                }
+              }
+            case JsUndefined() => AuthBlocked("Username does not exist in JWT")
           }
         }
       }
