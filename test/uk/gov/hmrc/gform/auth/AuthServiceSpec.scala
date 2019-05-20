@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 
 import scala.concurrent.Future
@@ -128,8 +128,11 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   val authConfigEnrolment = HmrcAgentWithEnrolmentModule(RequireMTDAgentEnrolment, enrolmentAuthCheck)
   val formTemplateEnrolment = formTemplate.copy(authConfig = authConfigEnrolment)
 
-  val authEeitt = EeittModule(RegimeId("TT"))
+  val authEeitt: AuthConfig = EeittModule(RegimeId("TT"))
   val formTemplateEeitt = formTemplate.copy(authConfig = authEeitt)
+
+  val authAWSALB: AuthConfig = AWSALBAuth
+  val formTemplateAWSALB = formTemplate.copy(authConfig = authAWSALB)
 
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
@@ -246,6 +249,23 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     val result =
       authService.authenticateAndAuthorise(formTemplateEeitt, lang, requestUri, getAffinityGroup, ggAuthorisedRedirect)
     result.futureValue should be(AuthRedirect(""))
+  }
+
+  it should "not authorise an Ofsted user when they have not been successfully authenticated by the AWS ALB" in {
+    val result =
+      authService
+        .authenticateAndAuthorise(formTemplateAWSALB, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+    result.futureValue should be(AuthBlocked("You are not authorized to access this service"))
+  }
+
+  it should "authorise an Ofsted user when they have been successfully authenticated by the AWS ALB" in {
+    val jwt =
+      "eyJ0eXAiOiJKV1QiLCJraWQiOiI5MTgyZjVlZS0xMTBiLTQ3NWItOWUzNC02OTcyZjdjMTFhYjQiLCJhbGciOiJFUzI1NiIsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAuZXUtd2VzdC0yLmFtYXpvbmF3cy5jb20vZXUtd2VzdC0yX0dpSDBTWTBqOSIsImNsaWVudCI6InZjdWZ1Zm05YjdvaTVzazJkdW1mZXJnbG8iLCJzaWduZXIiOiJhcm46YXdzOmVsYXN0aWNsb2FkYmFsYW5jaW5nOmV1LXdlc3QtMjo0MjAyMDgyNTUwODg6bG9hZGJhbGFuY2VyL2FwcC9hbGItZ2Zvcm1zLXFhLW9mc3RlZC8xZWRiY2FjNmQxNjVjYzkyIiwiZXhwIjoxNTU4MDg1ODQxfQ==.eyJzdWIiOiIyMGU5YjI0My03NDcxLTQwODEtYmUxZS1mY2I1ZGEzM2ZkNWEiLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJlbWFpbCI6Im1pa2FpbC5raGFuQGRpZ2l0YWwuaG1yYy5nb3YudWsiLCJ1c2VybmFtZSI6IjIwZTliMjQzLTc0NzEtNDA4MS1iZTFlLWZjYjVkYTMzZmQ1YSIsImV4cCI6MTU1ODA4NTg0MSwiaXNzIjoiaHR0cHM6Ly9jb2duaXRvLWlkcC5ldS13ZXN0LTIuYW1hem9uYXdzLmNvbS9ldS13ZXN0LTJfR2lIMFNZMGo5In0=.7mBYP9FKoIPf7JBZ9qMcm90n1UNICrWyCBadi5xcjs0pKGGWFlDZLVKmvHSmpCK731JCrz49VPwDQYfsY_I_UA=="
+    implicit val hc: HeaderCarrier = HeaderCarrier(otherHeaders = Seq(("x-amzn-oidc-data" -> jwt)))
+    val result =
+      authService
+        .authenticateAndAuthorise(formTemplateAWSALB, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+    result.futureValue should be(AuthSuccessful(AWSALBRetrievals("20e9b243-7471-4081-be1e-fcb5da33fd5a")))
   }
 
   forAll(taxTypeTable) { (enrolment, serviceName, identifiers, value) =>
