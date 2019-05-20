@@ -25,7 +25,7 @@ import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.Helpers.mkData
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, IdNumberValue, RecalculatedTaxPeriodKey }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -412,7 +412,12 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
   it should "not recalculate sections which are invisible based on choice component" in {
 
     val text = Text(AnyText, Value)
-    val choice = Choice(YesNo, NonEmptyList.of("yes", "no"), Vertical, List.empty, None)
+    val choice = Choice(
+      YesNo,
+      NonEmptyList.of(LocalisedString(Map(LangADT.En -> "yes")), LocalisedString(Map(LangADT.En -> "no"))),
+      Vertical,
+      List.empty,
+      None)
 
     val formComponentIds = Table(
       // format: off

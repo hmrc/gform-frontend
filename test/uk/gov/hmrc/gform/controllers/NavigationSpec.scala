@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.controllers
 import cats.instances.option._
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -37,7 +37,7 @@ class NavitagionSpec extends Spec with GraphSpec {
   def mkFormComponent(formComponentId: FormComponentId): FormComponent = FormComponent(
     id = formComponentId,
     `type` = Text(AnyText, Value),
-    label = "",
+    label = LocalisedString(Map(LangADT.En -> "")),
     helpText = None,
     shortName = None,
     validIf = None,
@@ -49,18 +49,19 @@ class NavitagionSpec extends Spec with GraphSpec {
     presentationHint = None
   )
 
-  def makeSection(title: String, formComponent: FormComponent, includeIf: Option[IncludeIf] = None): Section = Section(
-    title = title,
-    description = None,
-    shortName = None,
-    includeIf = includeIf,
-    repeatsMax = None,
-    repeatsMin = None,
-    validators = None,
-    fields = formComponent :: Nil,
-    continueLabel = None,
-    continueIf = None
-  )
+  def makeSection(title: LocalisedString, formComponent: FormComponent, includeIf: Option[IncludeIf] = None): Section =
+    Section(
+      title = title,
+      description = None,
+      shortName = None,
+      includeIf = includeIf,
+      repeatsMax = None,
+      repeatsMin = None,
+      validators = None,
+      fields = formComponent :: Nil,
+      continueLabel = None,
+      continueIf = None
+    )
 
   def getAvailableSectionNumbers(sectionsData: List[Section], formData: Map[FormComponentId, String]) = {
     val res = recalculation.recalculateFormData(
@@ -76,6 +77,9 @@ class NavitagionSpec extends Spec with GraphSpec {
     }.availableSectionNumbers
   }
 
+  private def toLocalisedString(string: String) =
+    LocalisedString(Map(LangADT.En -> string))
+
   def dependsOn(fcId: FormComponentId): Option[IncludeIf] = Some(IncludeIf(Equals(FormCtx(fcId.value), Constant("1"))))
 
   val fcId1 = FormComponentId("fcId1")
@@ -84,17 +88,17 @@ class NavitagionSpec extends Spec with GraphSpec {
   val fcId4 = FormComponentId("fcId4")
   val fcId5 = FormComponentId("fcId5")
 
-  val section1 = makeSection("Page 1", mkFormComponent(fcId1))
-  val section2 = makeSection("Page 2", mkFormComponent(fcId2), dependsOn(fcId1))
-  val section3 = makeSection("Page 3", mkFormComponent(fcId3), dependsOn(fcId2))
-  val section4 = makeSection("Page 4", mkFormComponent(fcId4), dependsOn(fcId3))
-  val section5 = makeSection("Page 5", mkFormComponent(fcId5))
+  val section1 = makeSection(toLocalisedString("Page 1"), mkFormComponent(fcId1))
+  val section2 = makeSection(toLocalisedString("Page 2"), mkFormComponent(fcId2), dependsOn(fcId1))
+  val section3 = makeSection(toLocalisedString("Page 3"), mkFormComponent(fcId3), dependsOn(fcId2))
+  val section4 = makeSection(toLocalisedString("Page 4"), mkFormComponent(fcId4), dependsOn(fcId3))
+  val section5 = makeSection(toLocalisedString("Page 5"), mkFormComponent(fcId5))
 
   val sections = section1 :: section2 :: section3 :: section4 :: section5 :: Nil
 
   "Single page form" should "have section number 0 visible" in {
     val single = FormComponentId("single")
-    val singleSection = makeSection("Single Page", mkFormComponent(single))
+    val singleSection = makeSection(toLocalisedString("Single Page"), mkFormComponent(single))
     val result = getAvailableSectionNumbers(singleSection :: Nil, Map.empty)
 
     result shouldBe List(SectionNumber(0))

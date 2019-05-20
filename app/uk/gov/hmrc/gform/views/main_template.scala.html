@@ -16,11 +16,12 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner, AuthConfig}
+@import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
 @import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default, FormTemplateId}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default }
 
 @(title: String,
   serviceName: String,
@@ -35,7 +36,7 @@
   authConfig: Option[AuthConfig],
   webChat: Option[WebChat] = None,
   formCategory: FormCategory = Default,
-  templateId: FormTemplateId
+  languages: AvailableLanguages = AvailableLanguages.default
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
 @serviceInfo = {}
@@ -101,5 +102,5 @@
   scriptElem = Some(mainScripts),
   authConfig = authConfig,
   includeHMRCBranding = formCategory.isHmrc,
-  templateId = templateId
+  formLanguages = languages
 )

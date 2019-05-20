@@ -26,7 +26,6 @@
     snippets: List[Html],
     maybeAccessCode: Option[AccessCode],
     formCategory: FormCategory,
-    lang: Option[String],
     renderComeBackLater: Boolean,
     continueLabel: String,
     frontendAppConfig: FrontendAppConfig
@@ -43,7 +42,7 @@
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
   formCategory = formTemplate.formCategory,
-  templateId = formTemplate._id
+  languages = formTemplate.languages
 ) {
 
     <div class="cya-intro">
@@ -55,7 +54,7 @@
       </p>
     </div>
 
-    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode, lang).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
+    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
         @CSRF.formField
       	@snippets
@@ -68,7 +67,7 @@
             @messages("summary.printMsg", formCategory.getString).
           </p>
           <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode, lang).url">@messages("summary.printLinkText")</a>
+            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url">@messages("summary.printLinkText")</a>
           </p>
         </div>
 

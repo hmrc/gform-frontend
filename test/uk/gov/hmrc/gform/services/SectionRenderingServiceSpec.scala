@@ -30,12 +30,12 @@ import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, NotChecked }
 
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
 
-class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithFakeApp {
+class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) extends SpecWithFakeApp {
 
   implicit val request =
     FakeRequest().copyFakeRequest(tags = Map("CSRF_TOKEN_NAME" -> "csrfToken", "CSRF_TOKEN" -> "o'ight mate?"))
@@ -70,7 +70,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         Nil,
         retrievals,
         VisitIndex.empty,
-        None,
         NotChecked
       )
 
@@ -117,7 +116,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         Nil,
         retrievals,
         VisitIndex.empty,
-        None,
         NotChecked
       )
 
@@ -153,12 +151,11 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         Envelope(Nil),
         envelopeId,
         ValidationResult.empty.valid,
-        List(allSections.head.copy(progressIndicator = Some("Progress Indicator"))),
+        List(allSections.head.copy(progressIndicator = Some(LocalisedString(Map(LangADT.En -> "Progress Indicator"))))),
         0,
         Nil,
         retrievals,
         VisitIndex.empty,
-        None,
         NotChecked
       )
 
@@ -190,7 +187,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         Nil,
         retrievals,
         VisitIndex.empty,
-        None,
         NotChecked
       )
 
@@ -250,7 +246,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
       FormComponent(
         id = FormComponentId("testInfoField"),
         `type` = InformationMessage(StandardInfo, markdown),
-        label = "This is the field label",
+        label = LocalisedString(Map(LangADT.En -> "This is the field label")),
         helpText = None,
         shortName = None,
         validIf = None,
@@ -284,7 +280,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         Nil,
         retrievals,
         VisitIndex.empty,
-        None,
         NotChecked
       )
 
@@ -339,7 +334,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         Nil,
         retrievals,
         VisitIndex.empty,
-        None,
         NotChecked
       )
 
@@ -391,7 +385,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         Nil,
         retrievals,
         VisitIndex.empty,
-        None,
         NotChecked
       )
 
@@ -414,8 +407,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
-        Nil,
-        None
+        Nil
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -438,8 +430,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
-        Nil,
-        None
+        Nil
       )
 
     val doc = Jsoup.parse(generatedHtml.body)
@@ -462,8 +453,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
-        Nil,
-        None
+        Nil
       )
 
     val doc = Jsoup.parse(generatedHtml.body)

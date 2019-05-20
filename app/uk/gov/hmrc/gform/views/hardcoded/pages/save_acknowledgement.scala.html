@@ -28,7 +28,6 @@
     envelopeExpiryDate: Option[EnvelopeExpiryDate],
     formTemplate: FormTemplate,
     call: Call,
-    lang: Option[String],
     frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages)
 
@@ -37,14 +36,14 @@
 @expiryDate = @{envelopeExpiryDate.fold("for 30 days")("until " + _.ldt.format(formatter))}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = heading,
-  serviceName = formTemplate.formName,
-  bodyClasses = None,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-  frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  templateId = formTemplate._id
+    title = heading,
+    serviceName = formTemplate.formName,
+    bodyClasses = None,
+    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+    frontendAppConfig = frontendAppConfig,
+    authConfig = Some(formTemplate.authConfig),
+    languages = formTemplate.languages,
+    formCategory = formTemplate.formCategory
 ) {
 <div class = "transaction-banner--complete">
     <h1 class ="transaction-banner__heading">@heading</h1>
@@ -63,7 +62,7 @@
    </li>
    <li>
      delete and
-      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id, None, lang)">
+      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id, None)">
         start again
       </a>
    </li>

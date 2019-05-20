@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.helpers.Extractors._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, NotChecked }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
@@ -39,14 +39,17 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import scala.collection.immutable.List
 import uk.gov.hmrc.http.HeaderCarrier
 
-class SummarySpec(implicit messages: Messages) extends Spec {
+class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
+
+  private def toLocalisedString(string: String) =
+    LocalisedString(Map(LangADT.En -> string))
 
   trait Test extends ExampleData {
     override def dmsSubmission =
       DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
     def section0 =
       Section(
-        "Your details",
+        toLocalisedString("Your details"),
         None,
         None,
         None,
@@ -58,7 +61,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
           FormComponent(
             `fieldId - iptRegNum`,
             Text(AnyText, Value),
-            "Insurance Premium Tax (IPT) number",
+            toLocalisedString("Insurance Premium Tax (IPT) number"),
             None,
             None,
             None,
@@ -73,7 +76,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       )
     def section1 =
       Section(
-        "About you",
+        toLocalisedString("About you"),
         None,
         None,
         None,
@@ -85,7 +88,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
           FormComponent(
             `fieldId - firstName`,
             Text(AnyText, Value),
-            "First Name",
+            toLocalisedString("First Name"),
             None,
             None,
             None,
@@ -100,7 +103,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       )
     def section2 =
       Section(
-        "Business details",
+        toLocalisedString("Business details"),
         None,
         None,
         None,
@@ -112,7 +115,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
           FormComponent(
             `fieldId - businessName`,
             Text(AnyText, Value),
-            "Name of business",
+            toLocalisedString("Name of business"),
             None,
             None,
             None,
@@ -143,7 +146,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
 
   "Summary" should "display the summary sections" in new Test {
     val render = SummaryRenderingService
-      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, None, NotChecked)
+      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, NotChecked)
     render.size should be(9)
     extractAllTestStringValues(render) should be(List("Your details", "About you", "Business details"))
   }
@@ -153,7 +156,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
 
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
 
     val testStringValues = extractAllHrefs(render)
 
@@ -162,10 +165,10 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val expectedResult = List(
       callUrlEscaped(
         routes.FormController
-          .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), None, SeYes)),
+          .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), SeYes)),
       callUrlEscaped(
         routes.FormController
-          .form(formTemplate._id, Some(accessCode), SectionNumber(1), SectionTitle4Ga("About-you"), None, SeYes))
+          .form(formTemplate._id, Some(accessCode), SectionNumber(1), SectionTitle4Ga("About-you"), SeYes))
     )
 
     testStringValues(0) should startWith(expectedResult(0))
@@ -175,7 +178,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
   it should "display values for each field type with a submissible field, " in new Test {
 
     val section = Section(
-      "Personal details",
+      toLocalisedString("Personal details"),
       None,
       None,
       None,
@@ -187,7 +190,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
         FormComponent(
           FormComponentId("Surname"),
           Text(AnyText, Value),
-          "Surname",
+          toLocalisedString("Surname"),
           None,
           None,
           None,
@@ -200,7 +203,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
         FormComponent(
           FormComponentId("Info"),
           Text(AnyText, Value),
-          "Info",
+          toLocalisedString("Info"),
           None,
           None,
           None,
@@ -215,7 +218,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
         FormComponent(
           FormComponentId("BirthDate"),
           Date(AnyDate, Offset(0), None),
-          "Birth date",
+          toLocalisedString("Birth date"),
           None,
           None,
           None,
@@ -228,7 +231,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
         FormComponent(
           FormComponentId("HomeAddress"),
           Address(international = false),
-          "Home address",
+          toLocalisedString("Home address"),
           None,
           None,
           None,
@@ -262,7 +265,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
 
     override def fieldValues = formTemplate.sections.flatMap(_.fields)
     val render = SummaryRenderingService
-      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, None, NotChecked)
+      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, NotChecked)
     val testStringValues = extractAllTestStringValues(render)
     testStringValues should be(
       List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
@@ -272,7 +275,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
   it should "display the title when shortName is not present in the section" in new Test {
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toLowerCase should include("your details")
@@ -280,11 +283,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
 
   it should "display the shortName as section title if present" in new Test {
     val shortName = "THIS_IS_A_VERY_VERY_VERY_SHORT_NAME"
-    val section = section0.copy(shortName = Some(shortName))
+    val section = section0.copy(shortName = Some(toLocalisedString(shortName)))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toUpperCase should include(shortName)
@@ -295,8 +298,8 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Address(false),
-      label = "label",
-      shortName = Some(shortName),
+      label = toLocalisedString("label"),
+      shortName = Some(toLocalisedString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -306,11 +309,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("Address section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(shortName) shouldBe true
   }
@@ -320,7 +323,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Address(false),
-      label = label,
+      label = toLocalisedString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -330,11 +333,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       derived = true,
       errorMessage = None
     )
-    val section = section0.copy(fields = List(addressField), shortName = Some("Address section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("Address section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(label) shouldBe true
   }
@@ -344,8 +347,8 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Text(AnyText, Constant("DA")),
-      label = "label",
-      shortName = Some(shortName),
+      label = toLocalisedString("label"),
+      shortName = Some(toLocalisedString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -355,11 +358,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -369,7 +372,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Text(AnyText, Constant("DA")),
-      label = label,
+      label = toLocalisedString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -380,11 +383,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -393,9 +396,9 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val shortName = "JUST_A_VERY_SHORT_NAME"
     val addressField = FormComponent(
       id = FormComponentId("anId"),
-      `type` = Choice(Radio, NonEmptyList.of("u"), Vertical, List(), None),
-      label = "label",
-      shortName = Some(shortName),
+      `type` = Choice(Radio, NonEmptyList.of(LocalisedString(Map(LangADT.En -> "u"))), Vertical, List(), None),
+      label = toLocalisedString("label"),
+      shortName = Some(toLocalisedString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -405,11 +408,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -418,8 +421,8 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val label = "THIS_IS_A_LABEL"
     val addressField = FormComponent(
       id = FormComponentId("anId"),
-      `type` = Choice(Radio, NonEmptyList.of("u"), Vertical, List(), None),
-      label = label,
+      `type` = Choice(Radio, NonEmptyList.of(LocalisedString(Map(LangADT.En -> "u"))), Vertical, List(), None),
+      label = toLocalisedString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -430,12 +433,12 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -445,8 +448,8 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Date(AnyDate, Offset(0), None),
-      label = "label",
-      shortName = Some(shortName),
+      label = toLocalisedString("label"),
+      shortName = Some(toLocalisedString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -456,11 +459,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -470,7 +473,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Date(AnyDate, Offset(0), None),
-      label = label,
+      label = toLocalisedString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -481,11 +484,11 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some("A section"))
+    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -503,7 +506,6 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       Some(accessCode),
       formTemplate,
       envelope,
-      None,
       NotChecked
     )
     renderWithDataMatching.size shouldBe 3
@@ -515,7 +517,6 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       Some(accessCode),
       formTemplate,
       envelope,
-      None,
       NotChecked
     )
     renderWithDataMismatch.size shouldBe 0
@@ -529,7 +530,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
         List(),
         Horizontal
       ),
-      "Test!group-label!Test",
+      toLocalisedString("Test!group-label!Test"),
       None,
       None,
       None,
@@ -540,16 +541,17 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       false,
       None
     )
-    override def section0 = Section("", None, None, None, None, None, None, None, List(groupFieldValue), None, None)
+    override def section0 =
+      Section(toLocalisedString(""), None, None, None, None, None, None, None, List(groupFieldValue), None, None)
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     val render0 =
       SummaryRenderingService
-        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, None, NotChecked)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     extractAllTestStringValues(render0) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
       sections = List(
         Section(
-          "",
+          toLocalisedString(""),
           None,
           None,
           None,
@@ -557,9 +559,10 @@ class SummarySpec(implicit messages: Messages) extends Spec {
           None,
           None,
           None,
-          List(groupFieldValue.copy(shortName = Some("Test!group-shortname!Test"))),
+          List(groupFieldValue.copy(shortName = Some(toLocalisedString("Test!group-shortname!Test")))),
           None,
-          None))
+          None
+        ))
     )
 
     val filedValues1 = formTemplate.sections.flatMap(_.fields)
@@ -570,7 +573,6 @@ class SummarySpec(implicit messages: Messages) extends Spec {
         Some(accessCode),
         formTemplateWGroupWithShortname,
         envelope,
-        None,
         NotChecked)
     extractAllTestStringValues(render1) should be(List("group-shortname"))
   }
@@ -591,7 +593,6 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       Some(accessCode),
       formTemplate,
       envelope,
-      None,
       NotChecked
     )
     val htmls = summaryForRender
@@ -601,7 +602,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       val doc = Jsoup.parse(htmlAheadOfSection0.toString)
       val urlOfHrefToSection0 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
-        .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), None, SeYes)
+        .form(formTemplate._id, Some(accessCode), SectionNumber(0), SectionTitle4Ga("Your-details"), SeYes)
         .url
       urlOfHrefToSection0 shouldBe targetUrl
     }
@@ -610,7 +611,7 @@ class SummarySpec(implicit messages: Messages) extends Spec {
       val doc = Jsoup.parse(htmlAheadOfSection2.toString)
       val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
-        .form(formTemplate._id, Some(accessCode), SectionNumber(2), SectionTitle4Ga("Business-details"), None, SeYes)
+        .form(formTemplate._id, Some(accessCode), SectionNumber(2), SectionTitle4Ga("Business-details"), SeYes)
         .url
       urlOfHrefToSection2 shouldBe targetUrl
     }

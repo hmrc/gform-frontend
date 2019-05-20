@@ -17,10 +17,14 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
 object FormTemplateBuilder {
+  private def toLocalisedString(string: String) =
+    LocalisedString(Map(LangADT.En -> string))
+
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
     Group(
       formComponents,
@@ -33,7 +37,7 @@ object FormTemplateBuilder {
 
   def mkSection(formComponents: List[FormComponent]) =
     Section(
-      "Section Name",
+      toLocalisedString("Section Name"),
       None,
       None,
       None,
@@ -48,7 +52,7 @@ object FormTemplateBuilder {
 
   def mkSectionIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf) =
     Section(
-      "Section Name",
+      toLocalisedString("Section Name"),
       None,
       None,
       None,
@@ -61,11 +65,13 @@ object FormTemplateBuilder {
       None
     )
 
+  val ls = LocalisedString(Map(LangADT.En -> "Label"))
+
   def mkFormComponent(fcId: String, ct: ComponentType) =
     FormComponent(
       FormComponentId(fcId),
       ct,
-      "Label",
+      ls,
       None,
       None,
       None,
@@ -82,7 +88,7 @@ object FormTemplateBuilder {
     FormComponent(
       FormComponentId(fcId),
       ct,
-      "Label",
+      ls,
       None,
       None,
       None,
@@ -119,12 +125,12 @@ object FormTemplateBuilder {
     None,
     sections,
     AcknowledgementSection(
-      "Acknowledgement Page",
-      Some("this page is to acknowledge submission"),
-      Some("shortName for acknowledgement"),
+      toLocalisedString("Acknowledgement Page"),
+      Some(toLocalisedString("this page is to acknowledge submission")),
+      Some(toLocalisedString("shortName for acknowledgement")),
       List.empty[FormComponent]
     ),
-    DeclarationSection("Declaration", None, None, Nil)
+    DeclarationSection(toLocalisedString("Declaration"), None, None, Nil)
   )
 
 }

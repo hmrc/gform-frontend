@@ -24,6 +24,8 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import play.twirl.api.Html
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+
 
 @(inputType: String,
 fieldValue: FormComponent,
@@ -35,14 +37,14 @@ optionHelpText: List[Html],
 index: Int,
 sectionTitle: String,
 formLevelHeading: Boolean
-)
+)(implicit l: LangADT)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
 
 @label = @{
-  LabelHelper.buildRepeatingLabel(fieldValue, index)
+  LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
@@ -56,7 +58,7 @@ formLevelHeading: Boolean
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id.value}-hint">@fieldValue.helpText.getOrElse("")</span>
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">@fieldValue.helpText.map(ls=>ls.value(l)).getOrElse("")</span>
         }
 
         @inline_error_map(fieldValue, validationResult)

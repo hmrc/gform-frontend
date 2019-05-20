@@ -25,11 +25,10 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-  formTemplate: FormTemplate,
-  form: data.Form[_],
-  maybeAccessCode: Option[AccessCode],
-  lang: Option[String],
-  frontendAppConfig: FrontendAppConfig
+        formTemplate: FormTemplate,
+        form: data.Form[_],
+        maybeAccessCode: Option[AccessCode],
+        frontendAppConfig: FrontendAppConfig
 )(
   implicit
   request: Request[_],
@@ -46,14 +45,14 @@
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   formCategory = formTemplate.formCategory,
-  templateId = formTemplate._id
+  languages = formTemplate.languages
 ) {
 
   @if(form.hasErrors) {
       @error_summary(form, formCat)
   }
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, maybeAccessCode, lang).url}" method="POST">
+  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, maybeAccessCode).url}" method="POST">
 
     @{CSRF.formField}
 

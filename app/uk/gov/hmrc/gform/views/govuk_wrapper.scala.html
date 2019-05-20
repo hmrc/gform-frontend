@@ -19,8 +19,9 @@
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous }
 @import uk.gov.hmrc.gform.config.JSConfig
+@import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -38,7 +39,7 @@
   authConfig: Option[AuthConfig],
   navLinks: Option[Html] = None,
   includeHMRCBranding: Boolean,
-  templateId: FormTemplateId
+  formLanguages: AvailableLanguages = AvailableLanguages.default
 )(implicit messages: Messages)
 
 @scriptElement = {
@@ -79,24 +80,18 @@
       <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
     }
     <script>
-      window.getCookie = function (name) {
-        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        if (match) return match[2];
-      };
       window.gform = window.gform || {};
       window.gform.baseLookupUrl = "/submissions/lookup/";
-      window.gform.lang = window.getCookie("PLAY_LANG") || "en";
     </script>
     @if(authTimeout.timeoutEnabled) {
       <script>
-          window.gform = window.gform || {};
-          window.gform.config = {
-            timeoutEnabled: @authTimeout.timeoutEnabled,
-            timeout: @authTimeout.timeout,
-            countdown: @authTimeout.countdown,
-            keep_alive_url: "@authTimeout.keepAliveUrl",
-            logout_url: "@authTimeout.signOutUrl/@templateId.value"
-          }
+        window.gform.config = {
+          timeoutEnabled: @authTimeout.timeoutEnabled,
+          timeout: @authTimeout.timeout,
+          countdown: @authTimeout.countdown,
+          keep_alive_url: "@authTimeout.keepAliveUrl",
+          logout_url: "@authTimeout.signOutUrl"
+        }
       </script>
     }
 
@@ -105,7 +100,7 @@
 
 @navLinks = {
   @if(authTimeout.signOutUrl != "") {
-    <li><a href="@{authTimeout.signOutUrl}/@{templateId.value}" id="signOut">@messages("linkText.signOut")</a></li>
+    <li><a href="@{authTimeout.signOutUrl}" id="signOut">@messages("linkText.signOut")</a></li>
   } else {
     None
   }
@@ -140,6 +135,9 @@
 
 @footerTop = {}
 @footerLinks = {}
+@size = @{formLanguages.languages.size}
+@formLanguageSet = @{formLanguages.languages.map(l => l.langADTToString)}
+@appLanguageSet = @{appConfig.availableLanguages.map{case(s,l) => l.code}.toSet}
 
 @betaBanner = {
   @developmentPhase match {
@@ -164,7 +162,7 @@
   }
 }
 
-@formSupportsLanguages = @{false}
+@formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
 @serviceHeader = {
   @serviceInfoContent

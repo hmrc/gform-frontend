@@ -107,12 +107,12 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
       |    "HmrcSimpleModule": {}
       |  },
       |  "declarationSection": {
-      |    "title": "Mr",
+      |    "title": {"en" : "Mr"},
       |    "fields": []
       |  },
       |  "submitErrorUrl": "business",
       |  "acknowledgementSection": {
-      |    "title": "Mr",
+      |    "title": {"en" : "Mr"},
       |    "fields": []
       |  },
       |  "destinations": {
@@ -129,7 +129,8 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
       |      "businessArea": "BA"
       |    }
       |  },
-      |  "emailTemplateId": "classification"
+      |  "emailTemplateId": "classification",
+      |  "languages":["en"]
       |}
     """.stripMargin
 
