@@ -99,9 +99,6 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
           identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")))))
     )
 
-  val materialisedRetrievalsAWSALB =
-    materialisedRetrievalsBuilder(Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual), enrolments)
-
   val requestUri = "/submissions/test"
 
   private def factory[A](a: A): PartialFunction[Throwable, AuthResult] => Predicate => Future[A] =
@@ -135,7 +132,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   val formTemplateEeitt = formTemplate.copy(authConfig = authEeitt)
 
   val authAWSALB: AuthConfig = AWSALBAuth
-  val formTemplateAWSALBMissingHTTPHeader = formTemplate.copy(authConfig = authAWSALB)
+  val formTemplateAWSALB = formTemplate.copy(authConfig = authAWSALB)
 
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
@@ -257,12 +254,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   it should "not authorise an Ofsted user when they have not been successfully authenticated by the AWS ALB" in {
     val result =
       authService
-        .authenticateAndAuthorise(
-          formTemplateAWSALBMissingHTTPHeader,
-          lang,
-          requestUri,
-          getAffinityGroup,
-          ggAuthorisedSuccessful)
+        .authenticateAndAuthorise(formTemplateAWSALB, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(AuthBlocked("You are not authorized to access this service"))
   }
 
@@ -272,12 +264,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     implicit val hc: HeaderCarrier = HeaderCarrier(otherHeaders = Seq(("x-amzn-oidc-data" -> jwt)))
     val result =
       authService
-        .authenticateAndAuthorise(
-          formTemplateAWSALBMissingHTTPHeader,
-          lang,
-          requestUri,
-          getAffinityGroup,
-          ggAuthorisedSuccessful)
+        .authenticateAndAuthorise(formTemplateAWSALB, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(AuthSuccessful(AWSALBRetrievals("20e9b243-7471-4081-be1e-fcb5da33fd5a")))
   }
 

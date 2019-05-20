@@ -57,7 +57,7 @@ class AuthService(
           .fold[AuthResult](AuthAnonymousSession(gform.routes.FormController.dashboard(formTemplate._id, lang)))(
             sessionId => AuthSuccessful(AnonymousRetrievals(sessionId)))
           .pure[Future]
-      case AWSALBAuth            => performAWSALBAuth(formTemplate, lang).pure[Future]
+      case AWSALBAuth            => performAWSALBAuth().pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
       case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -72,8 +72,7 @@ class AuthService(
         performAgent(agentAccess, formTemplate, lang, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
     }
 
-  private def performAWSALBAuth(formTemplate: FormTemplate, lang: Option[String])(
-    implicit hc: HeaderCarrier): AuthResult = {
+  private def performAWSALBAuth()(implicit hc: HeaderCarrier): AuthResult = {
     val encodedJWT: Seq[(String, String)] = hc.otherHeaders.filter(header => header._1 == "x-amzn-oidc-data")
 
     encodedJWT.headOption match {
