@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ProcessDataService
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationModule
@@ -85,7 +86,8 @@ class GformModule(
     gformBackendModule.gformConnector,
     processDataService,
     new FormControllerRequestHandler(new FormValidator()),
-    lookupRegistry.extractors
+    lookupRegistry.extractors,
+    playBuiltInsModule.langs
   )
 
   val summaryController: SummaryController = new SummaryController(

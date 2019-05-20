@@ -17,8 +17,9 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.play.views.html.helpers._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, validationResultO: Option[FormFieldValidationResult], changeButton: Html)
+@(fieldValue: FormComponent, validationResultO: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT)
 
     @validationResult = @{
         //it's always there, TODO: change template signature
@@ -35,7 +36,7 @@
 
     <div>
       <dt class="cya-question@{if(validationResult.isNotOk) " summary--error"}">
-        @fieldValue.shortName.getOrElse(fieldValue.label)
+        @fieldValue.shortName.getOrElse(fieldValue.label.value(l))
       </dt>
 
       <dd class="cya-answer">

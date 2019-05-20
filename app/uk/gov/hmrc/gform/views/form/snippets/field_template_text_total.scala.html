@@ -26,18 +26,20 @@
 @import java.text.NumberFormat
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 @import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
+
+@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l:LangADT)
 
 @validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
 @currentSterling = @{ toBigDecimalDefault(validatedValue) }
 @validatedSterling = @{ currencyFormat.format(currentSterling) }
-@label = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+@label = @{LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)}
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
   @inline_error_map(fieldValue, validationResult)
   <span class="heading-small" aria-live="polite">
-    @if(label.nonEmpty) { @label } else { @fieldValue.label }
+    @if(label.nonEmpty) { label } else { fieldValue.label.value(l) }
 
     <span id="@{fieldValue.id}-total">
       @if(fieldValue.isSterling){ @validatedSterling } else { @validatedValue }

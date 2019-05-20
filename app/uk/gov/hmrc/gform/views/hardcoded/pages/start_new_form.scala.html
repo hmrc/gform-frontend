@@ -23,10 +23,9 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-  formTemplate: FormTemplate,
-  accessCode: AgentAccessCode,
-  lang: Option[String],
-  frontendAppConfig: FrontendAppConfig
+        formTemplate: FormTemplate,
+        accessCode: AgentAccessCode,
+        frontendAppConfig: FrontendAppConfig
 )(
   implicit
   request: Request[_],
@@ -41,7 +40,8 @@
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory
+  formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages
 ) {
 
   <div class = "transaction-banner--complete">
@@ -74,7 +74,7 @@
     @messages("accessCode.new.willExpire", formCat).
   </p>
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang)}" method="POST">
+  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id)}" method="POST">
     @{CSRF.formField}
     <input type="hidden" name="@{AgentAccessCode.key}" value="@{accessCode.value}">
     <input type="hidden" name="@{AgentAccessCode.optionKey}" value="@{AgentAccessCode.optionAccess}">

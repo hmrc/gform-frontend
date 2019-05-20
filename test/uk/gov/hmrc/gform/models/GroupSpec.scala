@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.models
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class GroupSpec extends Spec {
@@ -35,7 +36,7 @@ class GroupSpec extends Spec {
         FormComponent(
           FormComponentId("tid"),
           Text(AnyText, Value),
-          "tlabel",
+          LocalisedString(Map(LangADT.En -> "tlabel")),
           None,
           None,
           None,

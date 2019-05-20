@@ -22,6 +22,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupId, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -42,7 +43,7 @@ object ComponentValidator {
     fieldValue: FormComponent,
     lookupRegistry: LookupRegistry,
     register: Register,
-    lookupLabel: LookupLabel)(implicit messages: Messages) = {
+    lookupLabel: LookupLabel)(implicit messages: Messages, l: LangADT) = {
 
     def existsLabel(options: Map[LookupLabel, LookupId]) =
       if (options.contains(lookupLabel))
@@ -59,7 +60,7 @@ object ComponentValidator {
 
   def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
     data: FormDataRecalculated,
-    lookupRegistry: LookupRegistry)(implicit messages: Messages): ValidatedType[Unit] =
+    lookupRegistry: LookupRegistry)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(data, fieldValue), constraint) match {
       case (true, Nil, _) =>
         val key = fieldValue match {
@@ -100,7 +101,8 @@ object ComponentValidator {
     }
 
   private def validateBankAccountFormat(fieldValue: FormComponent, value: String)(
-    implicit messages: Messages): ValidatedType[Unit] = {
+    implicit messages: Messages,
+    l: LangADT): ValidatedType[Unit] = {
     val ukBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
     val str = value.replace(" ", "")
     str match {
@@ -115,7 +117,7 @@ object ComponentValidator {
     value: String,
     maxWhole: Int,
     maxFractional: Int,
-    mustBePositive: Boolean)(implicit messages: Messages): ValidatedType[Unit] = {
+    mustBePositive: Boolean)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] = {
     val WholeShape = "([+-]?)(\\d+(,\\d{3})*?)[.]?".r
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
@@ -147,17 +149,18 @@ object ComponentValidator {
   }
 
   private def textValidationWithConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(
-    implicit messages: Messages) = {
+    implicit messages: Messages,
+    l: LangADT) = {
     val ValidText = ".+".r
     val errorMSG = messages("generic.error.invalid")
     sharedTextComponentValidator(fieldValue, value, min, max, ValidText, errorMSG)
   }
 
-  private def email(fieldValue: FormComponent, value: String)(implicit messages: Messages) =
+  private def email(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) =
     if (EmailAddress.isValid(value)) validationSuccess
     else validationFailure(fieldValue, messages("generic.error.invalid"))
 
-  private def checkVrn(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
+  private def checkVrn(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val Standard = "GB[0-9]{9}".r
     val Branch = "GB[0-9]{12}".r
     val Government = "GBGD[0-4][0-9]{2}".r
@@ -176,34 +179,38 @@ object ComponentValidator {
     }
   }
 
-  private def checkCompanyRegistrationNumber(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
+  private def checkCompanyRegistrationNumber(fieldValue: FormComponent, value: String)(
+    implicit messages: Messages,
+    l: LangADT) = {
     val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
     val str = value.replace(" ", "")
     val errorMSG = messages("generic.crn.error.invalid")
     sharedTextComponentValidator(fieldValue, str, 8, 8, ValidCRN, errorMSG)
   }
 
-  private def checkEORI(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
+  private def checkEORI(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val ValidEORI = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
     val str = value.replace(" ", "")
     val errorMSG = messages("generic.eori.error.pattern")
     sharedTextComponentValidator(fieldValue, str, 9, 17, ValidEORI, errorMSG)
   }
 
-  private def checkNonUkCountryCode(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
+  private def checkNonUkCountryCode(fieldValue: FormComponent, value: String)(
+    implicit messages: Messages,
+    l: LangADT) = {
     val ValidCountryCode = "[A-Z]+".r
     val errorMSG = messages("generic.nonUKCountryCode.error.pattern")
     if (value == "UK") validationFailure(fieldValue, errorMSG)
     else sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, errorMSG)
   }
 
-  private def checkCountryCode(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
+  private def checkCountryCode(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val ValidCountryCode = "[A-Z]+".r
     val errorMSG = messages("generic.countryCode.error.pattern")
     sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, errorMSG)
   }
 
-  private def checkId(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
+  private def checkId(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val ValidUTR = "[0-9]{10}".r
     value match {
       case ValidUTR()           => validationSuccess
@@ -213,7 +220,8 @@ object ComponentValidator {
   }
 
   def validatePhoneNumber(fieldValue: FormComponent, value: String)(
-    implicit messages: Messages): Validated[Map[FormComponentId, Set[String]], Unit] = {
+    implicit messages: Messages,
+    l: LangADT): Validated[Map[FormComponentId, Set[String]], Unit] = {
     val errorMSG = messages("generic.error.telephoneNumber")
     sharedTextComponentValidator(
       fieldValue,
@@ -225,20 +233,21 @@ object ComponentValidator {
   }
 
   private[validation] def shortTextValidation(fieldValue: FormComponent, value: String, min: Int, max: Int)(
-    implicit messages: Messages) = {
+    implicit messages: Messages,
+    l: LangADT) = {
     val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
     val errorMSG = messages("generic.shortText.error.pattern")
     sharedTextComponentValidator(fieldValue, value, min, max, ValidShortText, errorMSG)
   }
 
-  private def textValidation(fieldValue: FormComponent, value: String)(implicit messages: Messages) = {
+  private def textValidation(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val ValidText = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
     val errorMSG = messages("generic.longText.error.pattern")
     sharedTextComponentValidator(fieldValue, value, 0, 100000, ValidText, errorMSG)
   }
 
-  def validateChoice(fieldValue: FormComponent)(data: FormDataRecalculated)(
-    implicit messages: Messages): ValidatedType[Unit] = {
+  def validateChoice(fieldValue: FormComponent)(
+    data: FormDataRecalculated)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] = {
     val choiceValue = data.data.get(fieldValue.id).toList.flatten.headOption
 
     (fieldValue.mandatory, choiceValue) match {
@@ -262,7 +271,7 @@ object ComponentValidator {
     minChars: Int,
     maxChars: Int,
     regex: Regex,
-    errorMSG: String)(implicit messages: Messages) =
+    errorMSG: String)(implicit messages: Messages, l: LangADT) =
     value match {
       case tooLong if tooLong.length > maxChars =>
         validationFailure(fieldValue, messages("generic.error.maxLength", maxChars))

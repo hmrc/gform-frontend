@@ -16,13 +16,14 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, snippets: List[Html], orientation: Orientation, isLabel: Boolean)
+@(fieldValue: FormComponent, snippets: List[Html], orientation: Orientation, isLabel: Boolean)(implicit l:LangADT)
 
 @if(isLabel){
  <div>
   <dt class="summary-group-label">
-    @fieldValue.shortName.getOrElse(fieldValue.label)
+    @fieldValue.shortName.map(ls=>ls.value(l)).getOrElse(fieldValue.label.value(l))
   </dt>
  </div>
 }

@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -694,7 +695,12 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     mkSection(mkFormComponent(FormComponentId("dummy"), group) :: Nil)
   }
 
-  val choice = Choice(YesNo, NonEmptyList.of("yes", "no"), Vertical, List.empty, None)
+  val choice = Choice(
+    YesNo,
+    NonEmptyList.of(LocalisedString(Map(LangADT.En -> "yes")), LocalisedString(Map(LangADT.En -> "no"))),
+    Vertical,
+    List.empty,
+    None)
   val informationMessage = InformationMessage(StandardInfo, "info-text")
 
   def mkGroup(groupIds: List[FormComponentId]) =
@@ -731,7 +737,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     FormComponent(
       fcId,
       ct,
-      "some-component",
+      LocalisedString(Map(LangADT.En -> "some-component")),
       None,
       None,
       None,

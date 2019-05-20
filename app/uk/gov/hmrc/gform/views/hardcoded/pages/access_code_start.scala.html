@@ -26,7 +26,6 @@
 @(
   formTemplate: FormTemplate,
   accessCodeForm: play.api.data.Form[uk.gov.hmrc.gform.gform.AccessCodeForm],
-  lang: Option[String],
   frontendAppConfig: FrontendAppConfig
 )(
   implicit
@@ -50,7 +49,8 @@
   frontendAppConfig = frontendAppConfig,
   containsErrors = hasErrors,
   authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory
+  formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages
 ) {
 
   @if(hasErrors) {
@@ -69,7 +69,7 @@
     @messages("accessCode.p2", formCat).
   </p>
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang)}" method="POST" novalidate="novalidate">
+  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id)}" method="POST" novalidate="novalidate">
 
     @{CSRF.formField}
 

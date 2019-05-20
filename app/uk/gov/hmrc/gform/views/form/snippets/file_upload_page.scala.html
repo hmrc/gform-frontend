@@ -22,6 +22,7 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
         maybeAccessCode: Option[AccessCode],
@@ -30,12 +31,12 @@
         fileId: FileId,
         formTemplate: FormTemplate,
         actionUrl: String,
-        lang : Option[String],
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
         request: Request[_],
-        messages: Messages
+        messages: Messages,
+        l: LangADT
 )
 
 @heading = @{"Upload document"}
@@ -45,7 +46,8 @@
     serviceName = formTemplate.formName,
     developmentPhase = ResearchBanner,
     frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+    authConfig = Some(formTemplate.authConfig),
+    languages = formTemplate.languages
 ) {
     <h1 class="h1-heading">@heading</h1>
 
@@ -63,5 +65,5 @@
       </div>
     </form>
 
-    <a href="@{routes.FormController.form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang, SeYes)}">back to form</a>
+    <a href="@{routes.FormController.form(formTemplate._id, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes)}">back to form</a>
 }

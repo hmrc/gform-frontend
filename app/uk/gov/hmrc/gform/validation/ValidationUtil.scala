@@ -17,14 +17,15 @@
 package uk.gov.hmrc.gform.validation
 
 import java.time.LocalDate
-import cats.implicits._
 
+import cats.implicits._
 import cats.Monoid
 import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
 import play.api.Logger
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -211,16 +212,15 @@ object ValidationUtil {
       }
   }
 
-  def validateFileUploadHasScannedFiles(
-    fieldValues: List[FormComponent],
-    e: Envelope): Validated[GformError, ValidationResult] = {
+  def validateFileUploadHasScannedFiles(fieldValues: List[FormComponent], e: Envelope)(
+    implicit l: LangADT): Validated[GformError, ValidationResult] = {
     val fileUploads: Map[FormComponentId, FormComponent] = fieldValues.collect {
       case fv @ FormComponent(id, _: FileUpload, _, _, _, _, _, _, _, _, _, _, _) => id -> fv
     }.toMap
 
     //TODO: below code was borrowed from components validator. make it reusable in ValidationUtil
     def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
-      Set(fieldValue.errorMessage.getOrElse(defaultErr))
+      Set(fieldValue.errorMessage.map(localisedString => localisedString.value(l)).getOrElse(defaultErr))
     def getError(
       fieldValue: FormComponent,
       defaultMessage: String): Validated[Map[FormComponentId, Set[String]], Nothing] =

@@ -19,6 +19,7 @@ import java.time.{ LocalDate, LocalDateTime }
 
 import cats.data.NonEmptyList
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
 trait PrimitiveGen {
   def nonEmptyAlphaNumStrGen: Gen[String] = Gen.alphaNumStr.filter(_.nonEmpty)

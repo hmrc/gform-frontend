@@ -17,12 +17,13 @@
 package uk.gov.hmrc.gform.validation
 import org.scalatest.Matchers
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ FormComponentGen, FormatExprGen }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.ComponentTypeGen._
 
-class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matchers with GraphSpec {
+class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Spec with Matchers with GraphSpec {
 
   "validateChoice" should "be invalid when form component is mandatory + the data associated with the id is empty" in {
     forAll(FormComponentGen.formComponentGen(), choiceGen) { (formComponent, choice) =>
@@ -66,7 +67,7 @@ class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matc
   private val formComponent = FormComponent(
     FormComponentId("formComponent"),
     telephoneConstraint,
-    "formComponentLabel",
+    LocalisedString(Map(LangADT.En -> "formComponentLabel")),
     None,
     None,
     None,
@@ -75,7 +76,8 @@ class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matc
     false,
     true,
     false,
-    None)
+    None
+  )
 
   "validatePhoneNumber" should "return valid when character count is less than 7 and contains a special character" in {
     val lessThan7WithPlus = numberWithPlus.map(string => string.substring(0, 7))
@@ -113,7 +115,7 @@ class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matc
   val shortTextComponent = FormComponent(
     FormComponentId("formComponent"),
     Text(ShortText(3, 5), Value),
-    "formComponentLabel",
+    LocalisedString(Map(LangADT.En -> "formComponentLabel")),
     None,
     None,
     None,
@@ -122,7 +124,8 @@ class ComponentValidatorSpec(implicit messages: Messages) extends Spec with Matc
     false,
     true,
     false,
-    None)
+    None
+  )
 
   "validateShortText" should "return invalid if character count is too big" in {
     val shortTextTooLong = "abcdefghij"

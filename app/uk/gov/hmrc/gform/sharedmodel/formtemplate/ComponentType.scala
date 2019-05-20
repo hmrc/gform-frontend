@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
@@ -105,10 +105,10 @@ object UpperCaseBoolean {
 
 case class Choice(
   `type`: ChoiceType,
-  options: NonEmptyList[String],
+  options: NonEmptyList[LocalisedString],
   orientation: Orientation,
   selections: List[Int],
-  optionHelpText: Option[List[String]]
+  optionHelpText: Option[List[LocalisedString]]
 ) extends ComponentType
 
 sealed trait ChoiceType

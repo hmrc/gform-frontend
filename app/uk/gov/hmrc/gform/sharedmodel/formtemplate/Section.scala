@@ -19,13 +19,14 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import play.api.libs.json._
 import uk.gov.hmrc.gform.graph.Data
+import uk.gov.hmrc.gform.sharedmodel.LocalisedString
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
 import scala.collection.immutable.List
 
 sealed trait BaseSection {
-  def title: String
-  def shortName: Option[String]
+  def title: LocalisedString
+  def shortName: Option[LocalisedString]
   def fields: List[FormComponent]
 }
 
@@ -35,16 +36,16 @@ case class ExpandedSection(expandedFCs: List[ExpandedFormComponent], includeIf: 
 }
 
 case class Section(
-  title: String,
-  description: Option[String],
-  shortName: Option[String],
-  progressIndicator: Option[String] = None,
+  title: LocalisedString,
+  description: Option[LocalisedString],
+  shortName: Option[LocalisedString],
+  progressIndicator: Option[LocalisedString] = None,
   includeIf: Option[IncludeIf],
   repeatsMax: Option[TextExpression],
   repeatsMin: Option[TextExpression],
   validators: Option[Validator], //TODO List instead of Option
   fields: List[FormComponent],
-  continueLabel: Option[String],
+  continueLabel: Option[LocalisedString],
   continueIf: Option[ContinueIf]
 ) extends BaseSection {
   def expandSection(data: Data): ExpandedSection =
@@ -61,9 +62,9 @@ object Section {
 }
 
 case class DeclarationSection(
-  title: String,
-  description: Option[String],
-  shortName: Option[String],
+  title: LocalisedString,
+  description: Option[LocalisedString],
+  shortName: Option[LocalisedString],
   fields: List[FormComponent]
 ) extends BaseSection
 
@@ -72,9 +73,9 @@ object DeclarationSection {
 }
 
 case class AcknowledgementSection(
-  title: String,
-  description: Option[String],
-  shortName: Option[String],
+  title: LocalisedString,
+  description: Option[LocalisedString],
+  shortName: Option[LocalisedString],
   fields: List[FormComponent]
 ) extends BaseSection
 
@@ -83,8 +84,8 @@ object AcknowledgementSection {
 }
 
 case class EnrolmentSection(
-  title: String,
-  shortName: Option[String],
+  title: LocalisedString,
+  shortName: Option[LocalisedString],
   fields: List[FormComponent],
   identifiers: NonEmptyList[IdentifierRecipe],
   verifiers: List[VerifierRecipe]

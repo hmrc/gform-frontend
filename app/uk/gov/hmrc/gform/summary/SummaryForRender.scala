@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -43,22 +43,21 @@ object SummaryRenderingService {
     formFields: FormDataRecalculated,
     maybeAccessCode: Option[AccessCode],
     envelope: Envelope,
-    lang: Option[String],
     retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations
   )(
     implicit
     request: Request[_],
-    messages: Messages): Html = {
+    messages: Messages,
+    l: LangADT): Html = {
     val sfr =
-      summaryForRender(validatedType, formFields, maybeAccessCode, formTemplate, envelope, lang, obligations)
+      summaryForRender(validatedType, formFields, maybeAccessCode, formTemplate, envelope, obligations)
     summary(
       formTemplate,
       sfr,
       maybeAccessCode,
       formTemplate.formCategory,
-      lang,
       retrievals.renderSaveAndComeBackLater,
       retrievals.continueLabel,
       frontendAppConfig
@@ -71,11 +70,10 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     envelope: Envelope,
-    lang: Option[String],
     obligations: Obligations
-  )(implicit messages: Messages): List[Html] = {
+  )(implicit messages: Messages, l: LangADT): List[Html] = {
 
-    def renderHtmls(sections: List[Section], fields: List[FormComponent]): List[Html] = {
+    def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
         val gformErrors = validatedType match {
           case Invalid(errors) => errors
@@ -90,8 +88,7 @@ object SummaryRenderingService {
         maybeAccessCode: Option[AccessCode],
         title: String,
         sectionNumber: SectionNumber,
-        sectionTitle4Ga: SectionTitle4Ga,
-        lang: Option[String]): Html = {
+        sectionTitle4Ga: SectionTitle4Ga): Html = {
 
         val changeButton = change_button(
           formTemplateId,
@@ -99,12 +96,12 @@ object SummaryRenderingService {
           title,
           sectionNumber,
           sectionTitle4Ga,
-          lang,
           fieldValue
         )
 
-        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint]): Html = {
-          val isLabel = fieldValue.shortName.getOrElse(fieldValue.label).nonEmpty
+        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(
+          implicit l: LangADT): Html = {
+          val isLabel = fieldValue.shortName.map(ls => ls.value(l)).getOrElse(fieldValue.label.value(l)).nonEmpty
 
           fieldValue.`type` match {
             case groupField: Group
@@ -144,8 +141,7 @@ object SummaryRenderingService {
                   maybeAccessCode,
                   title,
                   sectionNumber,
-                  sectionTitle4Ga,
-                  lang
+                  sectionTitle4Ga
                 )
               })
               group(fieldValue, htmlList, orientation, isLabel)
@@ -157,8 +153,7 @@ object SummaryRenderingService {
                 maybeAccessCode,
                 title,
                 sectionNumber,
-                sectionTitle4Ga,
-                lang
+                sectionTitle4Ga
               )
           }
         }
@@ -175,7 +170,7 @@ object SummaryRenderingService {
                 case (option, index) =>
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option)
+                    .map(_ => option.value(l))
               }
               .collect { case Some(selection) => selection }
 
@@ -204,8 +199,8 @@ object SummaryRenderingService {
       sectionsToRender
         .flatMap {
           case (section, index) =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title)
-            val begin = begin_section(section.shortName.getOrElse(section.title))
+            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title.value(l))
+            val begin = begin_section(section.shortName.getOrElse(section.title).value(l))
             val end = end_section()
 
             val middle =
@@ -216,10 +211,9 @@ object SummaryRenderingService {
                     _,
                     formTemplate._id,
                     maybeAccessCode,
-                    section.shortName.getOrElse(section.title),
+                    section.shortName.getOrElse(section.title).value(l),
                     SectionNumber(index),
-                    sectionTitle4Ga,
-                    lang))
+                    sectionTitle4Ga))
             begin +: middle :+ end
         }
 

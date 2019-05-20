@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.data.NonEmptyList
 import org.scalatest.Assertion
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
@@ -307,9 +308,11 @@ class StructuredFormDataBuilderSpec extends Spec {
       null,
       null,
       List(section),
-      acknowledgementSection.getOrElse(AcknowledgementSection("Ack", None, None, Nil)),
-      declarationSection.getOrElse(DeclarationSection("Decl", None, None, Nil)),
-      null
+      acknowledgementSection.getOrElse(
+        AcknowledgementSection(LocalisedString(Map(LangADT.En                        -> "Ack")), None, None, Nil)),
+      declarationSection.getOrElse(DeclarationSection(LocalisedString(Map(LangADT.En -> "Decl")), None, None, Nil)),
+      null,
+      AvailableLanguages.default
     )
 
   def createNonRepeatingSection(fields: FormComponent*): Section =
@@ -352,23 +355,39 @@ class StructuredFormDataBuilderSpec extends Spec {
     FormComponent(
       FormComponentId(id),
       componentType,
-      "",
+      LocalisedString(Map(LangADT.En -> "")),
+      None,
+      None,
       null,
-      null,
-      null,
       true,
       true,
       true,
       true,
       true,
-      null
+      None
     )
+  private def toLocalisedString(string: String) =
+    LocalisedString(Map(LangADT.En -> string))
 
   def createMultiChoice(id: String): FormComponent =
-    createFormComponent(id, Choice(Checkbox, NonEmptyList.of("One", "Two", "Three"), Vertical, Nil, None))
+    createFormComponent(
+      id,
+      Choice(
+        Checkbox,
+        NonEmptyList.of(toLocalisedString("One"), toLocalisedString("Two"), toLocalisedString("Three")),
+        Vertical,
+        Nil,
+        None))
 
   def createRadio(id: String): FormComponent =
-    createFormComponent(id, Choice(Radio, NonEmptyList.of("One", "Two", "Three"), Vertical, Nil, None))
+    createFormComponent(
+      id,
+      Choice(
+        Radio,
+        NonEmptyList.of(toLocalisedString("One"), toLocalisedString("Two"), toLocalisedString("Three")),
+        Vertical,
+        Nil,
+        None))
 
   def createDate(id: String): FormComponent =
     createFormComponent(id, Date(AnyDate, Offset(0), None))

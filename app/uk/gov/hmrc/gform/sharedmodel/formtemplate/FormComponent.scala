@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.json._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString }
 
 sealed trait FormComponentWithCtx {
   def id: FormComponentId = this match {
@@ -44,16 +44,16 @@ case class ExpandedFormComponent(expandedFC: List[FormComponent]) extends AnyVal
 case class FormComponent(
   id: FormComponentId,
   `type`: ComponentType,
-  label: String,
-  helpText: Option[String],
-  shortName: Option[String],
+  label: LocalisedString,
+  helpText: Option[LocalisedString],
+  shortName: Option[LocalisedString],
   validIf: Option[ValidIf],
   mandatory: Boolean,
   editable: Boolean,
   submissible: Boolean,
   derived: Boolean,
   onlyShowOnSummary: Boolean = false,
-  errorMessage: Option[String],
+  errorMessage: Option[LocalisedString],
   presentationHint: Option[List[PresentationHint]] = None
 ) {
 
