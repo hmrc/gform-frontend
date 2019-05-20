@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.prop.TableDrivenPropertyChecks
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
@@ -27,7 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-class NumberValidationSpec extends Spec with TableDrivenPropertyChecks with GraphSpec {
+class NumberValidationSpec(implicit messages: Messages) extends Spec with TableDrivenPropertyChecks with GraphSpec {
 
   trait Test extends ExampleData {
     def value: String

@@ -20,19 +20,19 @@ import java.util.Base64
 
 import cats.implicits._
 import play.api.Logger
-import play.api.libs.json.{JsDefined, JsUndefined, Json}
+import play.api.libs.json.{ JsDefined, JsUndefined, Json }
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector => _, _}
+import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.{AuthContextPrepop, EeittService}
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Enrolment => _, _}
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthService(
   appConfig: AppConfig,

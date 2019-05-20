@@ -32,7 +32,7 @@
   frontendAppConfig: FrontendAppConfig,
   authConfig: Option[AuthConfig],
   webChat: Option[WebChat] = None
-)(mainContent: Html)(implicit request : Request[_], messagesApi: Messages)
+)(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
 @serviceInfoContent = {}
 
@@ -64,13 +64,13 @@
   @if(webChat.nonEmpty) {
     <nav class="govuk-related-items" style="border-top: 5px solid #005ea5;">
       <h2 class="heading-medium" id="subsection-title">
-        Webchat service
+        @messages("webchat.title")
       </h2>
       <ul class="section__ul--link-list sidebar__list">
         <li class="sidebar__list-item">
           <a href="#chat" onclick="openChat();
           return false">
-            Chat online with an advisor
+            @messages("webchat.chatOnline")
           </a>
         </li>
       </ul>

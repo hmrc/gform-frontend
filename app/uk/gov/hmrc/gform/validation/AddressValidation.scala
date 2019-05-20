@@ -17,19 +17,22 @@
 package uk.gov.hmrc.gform.validation
 import cats.Monoid
 import cats.implicits._
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.ComponentsValidator.{ errors, validateForbidden, validateRequired }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.views.html.localisation
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
-object AddressValidation {
+
+class AddressValidation(implicit messages: Messages) {
+
+  val cvh = new ComponentsValidatorHelper()
 
   def validateAddress(fieldValue: FormComponent, address: Address)(data: FormDataRecalculated): ValidatedType[Unit] = {
     val addressValueOf: String => Seq[String] = suffix => data.data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
 
     def validateRequiredFieldSub(value: String, str: String) =
-      validateRequiredField(value, localisation(str), fieldValue)(addressValueOf(value))
+      validateRequiredField(value, str, fieldValue)(addressValueOf(value))
 
     def streetValidation(streetName: String) = lengthValidation(streetName, fieldValue)(addressValueOf(streetName))
 
@@ -37,9 +40,11 @@ object AddressValidation {
 
     val combinedValidation = Monoid[ValidatedType[Unit]].combineAll(addressValueOf("uk") match {
       case "true" :: Nil =>
-        List(validateRequiredFieldSub("street1", "Building and street"), ukStreetValidation("street1"))
+        List(validateRequiredFieldSub("street1", messages("ukAddress.line1.label")), ukStreetValidation("street1"))
       case _ =>
-        List(validateRequiredFieldSub("street1", "line 1"), streetValidation("street1"))
+        List(
+          validateRequiredFieldSub("street1", messages("internationalAddress.line1.label")),
+          streetValidation("street1"))
     })
 
     val validatedResult: List[ValidatedType[Unit]] = addressValueOf("uk") match {
@@ -49,7 +54,7 @@ object AddressValidation {
           ukStreetValidation("street2"),
           ukStreetValidation("street3"),
           ukStreetValidation("street4"),
-          validateRequiredFieldSub("postcode", "postcode"),
+          validateRequiredFieldSub("postcode", messages("ukAddress.postcode.label")),
           validateForbiddenField("country", fieldValue)(addressValueOf("country")),
           postcodeLengthValidation("postcode", fieldValue)(addressValueOf("postcode"))
         )
@@ -60,7 +65,7 @@ object AddressValidation {
           streetValidation("street3"),
           streetValidation("street4"),
           validateForbiddenField("postcode", fieldValue)(addressValueOf("postcode")),
-          validateRequiredFieldSub("country", "Country")
+          validateRequiredFieldSub("country", messages("internationalAddress.country.label"))
         )
     }
 
@@ -68,10 +73,10 @@ object AddressValidation {
   }
 
   private def validateRequiredField(value: String, errorPrefix: String, fieldValue: FormComponent) =
-    validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix)) _
+    cvh.validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix)) _
 
   private def validateForbiddenField(value: String, fieldValue: FormComponent) =
-    validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
+    cvh.validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
 
   private def lengthValidation(value: String, fieldValue: FormComponent) =
     addressLineValidation(fieldValue, fieldValue.id.withSuffix(value)) _
@@ -89,9 +94,10 @@ object AddressValidation {
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => validationSuccess
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
-        combineErrors(s"line 4 is longer than ${ValidationValues.addressLine4} characters")
+        combineErrors(messages("address.line4.error.maxLength", ValidationValues.addressLine4))
       case (value :: Nil, _) if value.length > ValidationValues.addressLine =>
-        combineErrors(s"line ${fieldId.value.takeRight(1)} is longer than ${ValidationValues.addressLine} characters")
+        combineErrors(
+          messages("address.line.error.maxLength", fieldId.value.takeRight(1), ValidationValues.addressLine))
       case _ => validationSuccess
     }
   }
@@ -106,13 +112,13 @@ object AddressValidation {
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => validationSuccess
       case (value :: Nil, First()) if value.length > ValidationValues.addressLine =>
-        combineErrors(s"Building and street is longer than ${ValidationValues.addressLine} characters")
+        combineErrors(messages("ukAddress.line1.error.maxLength", ValidationValues.addressLine))
       case (value :: Nil, Second()) if value.length > ValidationValues.addressLine =>
-        combineErrors(s"Building and street line 2 is longer than ${ValidationValues.addressLine} characters")
+        combineErrors(messages("ukAddress.line2.error.maxLength", ValidationValues.addressLine))
       case (value :: Nil, Third()) if value.length > ValidationValues.addressLine =>
-        combineErrors(s"Town or city is longer than ${ValidationValues.addressLine} characters")
+        combineErrors(messages("ukAddress.line3.error.maxLength", ValidationValues.addressLine))
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
-        combineErrors(s"County is longer than ${ValidationValues.addressLine4} characters")
+        combineErrors(messages("ukAddress.line4.error.maxLength", ValidationValues.addressLine4))
       case _ => validationSuccess
     }
   }
@@ -121,7 +127,9 @@ object AddressValidation {
     xs: Seq[String]): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty) match {
       case value :: Nil if value.length > ValidationValues.postcodeLimit =>
-        Map(fieldId -> errors(fieldValue, s"postcode is longer than ${ValidationValues.postcodeLimit} characters")).invalid
+        Map(
+          fieldId ->
+            errors(fieldValue, messages("ukAddress.postcode.error.maxLength", ValidationValues.postcodeLimit))).invalid
       case _ => validationSuccess
     }
 }

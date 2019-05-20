@@ -32,8 +32,8 @@
         request: Request[_],
         messages: Messages
 )
-@formCat = @{formCategory(formTemplate)}
-@heading = @{localisation("Make a note of your temporary access key")}
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@heading = @{messages("accessCode.new.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -53,24 +53,24 @@
   </div>
 
   <h2>
-    @localisation("What you can do next")
+    @messages("accessCode.whatYouCanDoNext")
   </h2>
 
   <div class="panel panel-border-wide">
     <p>
-      @localisation("Keep a note of your temporary access key:")
-      <strong>@localisation(s"${accessCode.value}")</strong>.
-      @localisation(s"You will be asked for this each time you come back to continue working on this $formCat.")
+      @messages("accessCode.new.keepNote").
+      <strong>@{accessCode.value}</strong>.
+      @messages("accessCode.new.youWillBeAsked", formCat).
     </p>
   </div>
 
 
   <p>
-    @localisation("This temporary access key is valid for 28 days.")
+    @messages("accessCode.new.validFor").
   </p>
 
   <p>
-    @localisation(s"Once you have submitted this $formCat the temporary access key will expire.")
+    @messages("accessCode.new.willExpire", formCat).
   </p>
 
   <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang)}" method="POST">
@@ -78,7 +78,7 @@
     <input type="hidden" name="@{AgentAccessCode.key}" value="@{accessCode.value}">
     <input type="hidden" name="@{AgentAccessCode.optionKey}" value="@{AgentAccessCode.optionAccess}">
     <div class="form-group">
-      <input type="submit" class="button" value="@localisation("Continue")" />
+      <input type="submit" class="button" value="@{messages("button.continue")}" />
     </div>
   </form>
 }

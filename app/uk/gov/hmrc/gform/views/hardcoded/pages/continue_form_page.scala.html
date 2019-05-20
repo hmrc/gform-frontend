@@ -22,7 +22,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.views.html.form.errors._
-@import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
@@ -37,8 +36,8 @@
         messages: Messages
 )
 
-@formCat = @{formCategory(formTemplate)}
-@heading = @{"Would you like to continue your " + formCat + " or start again?"}
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@heading = @{messages("continueDelete.title", formCat)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -48,42 +47,43 @@
     authConfig = Some(formTemplate.authConfig)
 ) {
 
-@if(form.hasErrors) {
-    @error_summary(form, formCat)
-}
+  @if(form.hasErrors) {
+      @error_summary(form, formCat)
+  }
 
-<h1>@heading</h1>
-
-<form action=@uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, maybeAccessCode, lang) method="POST">
+  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.decision(formTemplate._id, maybeAccessCode, lang).url}" method="POST">
 
     @{CSRF.formField}
 
     <div class="form-group @if(form.hasErrors){form-group-error}">
         <fieldset id="options">
-            <legend class="visuallyhidden">
-                Would you like to continue your @formCat or delete your details and start again?
+            <legend>
+              <h1>
+                @heading
+              </h1>
             </legend>
             @if(form.hasErrors) {
               <span class="error-message" id="decision-inline-error">
-                  @Messages(s"${form.error("decision").get.key}.${form.error("decision").get.message}",formCat)
+                  @messages(s"${form.error("decision").get.key}.${form.error("decision").get.message}",formCat)
              </span>
             }
             <div class="multiple-choice">
                 <input id="continue" type="radio" name="decision" value="continue" />
 
-                <label for="continue">Continue my @formCat</label>
+                <label for="continue">@messages("continueDelete.continue", formCat)</label>
             </div>
 
             <div class="multiple-choice">
                 <input id="delete" type="radio" name="decision" value="delete" />
 
-                <label for="delete">Delete my details and start again</label>
+                <label for="delete">@messages("continueDelete.delete")</label>
             </div>
         </fieldset>
     </div>
 
     <div class="form-group">
-        <input type="submit" class="button" value="Continue" />
+        <input type="submit" class="button" value="@{messages("button.continue")}" />
     </div>
-</form>
+
+  </form>
 }

@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
@@ -28,7 +29,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.List
 
-class ValidIfValidationSpec extends Spec with GraphSpec {
+class ValidIfValidationSpec(implicit messages: Messages) extends Spec with GraphSpec {
 
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   "Valid if " should "return no errors for valid if it's condition is met" in new Test {

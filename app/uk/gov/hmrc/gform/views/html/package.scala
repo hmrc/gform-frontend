@@ -20,13 +20,6 @@ import play.twirl.api.{ Html, HtmlFormat }
 
 package object html {
 
-  // No lang support yet
-  def localisation(str: String): String =
-    str.split('|') match {
-      case Array()      => ""
-      case Array(s, _*) => s.trim
-    }
-
   def summaryTextArea(str: String): Html = {
     val replaceBy = "<br/>"
     val escaped = HtmlFormat.escape(str).body

@@ -91,7 +91,7 @@
 
 @navLinks = {
   @if(authTimeout.signOutUrl != "") {
-    <li><a href="@{authTimeout.signOutUrl}" id="signOut">Sign out</a></li>
+    <li><a href="@{authTimeout.signOutUrl}" id="signOut">@messages("linkText.signOut")</a></li>
   } else {
     None
   }
@@ -158,10 +158,15 @@
       serviceInfoContent = Some(serviceInfoContent))
 }
 
+@formSupportsLanguages = @{false}
+
 @mainContentHeader = {
-    @if(contentHeader.isDefined) {
-        @uiLayouts.main_content_header(contentHeader = contentHeader.get)
-    }
+  @if(formSupportsLanguages) {
+    @uiLayouts.main_content_header(contentHeader = views.html.language_selection(
+      appConfig.availableLanguages,
+      appConfig.routeToSwitchLanguage,
+      Some("label--inline-right")))
+  }
 }
 
 @getHelpForm = @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}

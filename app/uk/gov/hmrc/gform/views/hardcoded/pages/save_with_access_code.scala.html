@@ -14,12 +14,10 @@
  * limitations under the License.
  *@
 
-@import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
 
@@ -30,8 +28,8 @@
         frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages)
 
-@formCat = @{formCategory(formTemplate)}
-@heading = @{localisation(s"Your $formCat has been saved")}
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@heading = @{messages("accessCode.saved.title", formCat)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -46,37 +44,41 @@
       @heading
     </h1>
     <span class="h1-heading">
-      @localisation("Make a note of your temporary access key:")
+      @messages("accessCode.new.keepNote")
       <br>
       @accessCode.value
     </span>
   </div>
 
-  <h2>@localisation("What you can do next")</h2>
+  <h2>
+    @messages("accessCode.whatYouCanDoNext")
+  </h2>
 
   <div class="panel panel-border-wide">
     <p>
-      @localisation("Keep a note of this temporary access key:")
+      @messages("accessCode.new.keepNote")
       <strong>@accessCode.value</strong>.
-      @localisation(s"You will be asked for it each time you come back to continue working on this $formCat.")
+      @messages("accessCode.new.youWillBeAsked", formCat)
     </p>
   </div>
 
   <p>
-    @localisation(s"It is valid for 28 days. Once you have submitted your $formCat the temporary access key will expire.")
+    @messages("accessCode.new.validFor"). @messages("accessCode.new.willExpire", formCat)
   </p>
 
-  @govuk_warning_text(localisation(s"For us to consider your $formCat, you’ll need to submit it."))
+  @govuk_warning_text(messages("accessCode.mustSubmit", formCat))
 
-  <p>You can:</p>
+  <p>
+    @messages("accessCode.youCan")
+  </p>
 
   <ul class = "bullets">
     <li>
-      @localisation("exit this page")
+      @messages("accessCode.exit")
     </li>
     <li>
       <a href="@uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id, lang)">
-        @localisation(s"work on another $formCat")
+        @messages("accessCode.workOnAnother", formCat)
       </a>
     </li>
   </ul>

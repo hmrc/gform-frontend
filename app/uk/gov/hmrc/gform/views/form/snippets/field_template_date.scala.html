@@ -20,10 +20,9 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int, formLevelHeading: Boolean)
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], prepop: Option[DateExpr], index: Int, formLevelHeading: Boolean)(implicit messages: Messages)
 
 @safeId(id: String) = @{
 fieldValue.id.withSuffix(id).toString
@@ -52,14 +51,14 @@ fieldValue.id.withSuffix(id).toString
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id}-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+          <span class="form-hint" id="@{fieldValue.id}-hint">@fieldValue.helpText.getOrElse("")</span>
         }
 
           @inline_error_map(fieldValue, validationResult)
 
           <div class="form-date">
               <div class="form-group">
-                  <label class="form-label" for="@{fieldValue.id}-day" data-context="@fieldLabel day">Day</label>
+                  <label class="form-label" for="@{fieldValue.id}-day" data-context="@fieldLabel day">@messages("date.Day")</label>
 
                   <input type="text"
                          name="@{fieldValue.id}-day"
@@ -70,7 +69,7 @@ fieldValue.id.withSuffix(id).toString
               </div>
 
               <div class="form-group">
-                  <label class="form-label" for="@{fieldValue.id}-month" data-context="@fieldLabel month">Month</label>
+                  <label class="form-label" for="@{fieldValue.id}-month" data-context="@fieldLabel month">@messages("date.Month")</label>
 
                   <input type="text"
                          name="@{fieldValue.id}-month"
@@ -81,7 +80,7 @@ fieldValue.id.withSuffix(id).toString
               </div>
 
               <div class="form-group form-group-year">
-                  <label class="form-label" for="@{fieldValue.id}-year" data-context="@fieldLabel year">Year</label>
+                  <label class="form-label" for="@{fieldValue.id}-year" data-context="@fieldLabel year">@messages("date.Year")</label>
 
                   <input type="text"
                          name="@{fieldValue.id}-year"
