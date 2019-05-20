@@ -23,9 +23,9 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.GraphSpec
-import uk.gov.hmrc.gform.Helpers.mkData
+import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, IdNumberValue, RecalculatedTaxPeriodKey }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -412,7 +412,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
   it should "not recalculate sections which are invisible based on choice component" in {
 
     val text = Text(AnyText, Value)
-    val choice = Choice(YesNo, NonEmptyList.of("yes", "no"), Vertical, List.empty, None)
+    val choice =
+      Choice(YesNo, NonEmptyList.of(toLocalisedString("yes"), toLocalisedString("no")), Vertical, List.empty, None)
 
     val formComponentIds = Table(
       // format: off
@@ -522,8 +523,14 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         List(mkFormComponent(
           "c",
           RevealingChoice(NonEmptyList.of(
-            RevealingChoiceElement("Yes", mkFormComponent("d", Add(FormCtx("a"), FormCtx("b"))) :: Nil, false),
-            RevealingChoiceElement("No", mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))) :: Nil, false)
+            RevealingChoiceElement(
+              toLocalisedString("Yes"),
+              mkFormComponent("d", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
+              false),
+            RevealingChoiceElement(
+              toLocalisedString("No"),
+              mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
+              false)
           ))
         ))) :: Nil
 
@@ -547,8 +554,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         List(mkFormComponent(
           "rc",
           RevealingChoice(NonEmptyList.of(
-            RevealingChoiceElement("Yes", mkFormComponent("a", Value) :: Nil, false),
-            RevealingChoiceElement("No", mkFormComponent("b", Value) :: Nil, false)
+            RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("a", Value) :: Nil, false),
+            RevealingChoiceElement(toLocalisedString("No"), mkFormComponent("b", Value) :: Nil, false)
           ))
         ))) ::
         mkSection(List(mkFormComponent("res", Add(FormCtx("a"), FormCtx("b"))))) ::

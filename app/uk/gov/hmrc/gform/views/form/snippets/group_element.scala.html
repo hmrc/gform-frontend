@@ -18,11 +18,13 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.models.GroupHelper
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)(implicit messages: Messages)
+
+@(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)(implicit messages: Messages, l: LangADT)
 
 @label = @{
-  if(groupField.repeatLabel.isDefined) GroupHelper.buildRepeatLabel(groupField, instance) else ""
+  if(groupField.repeatLabel.isDefined) GroupHelper.buildRepeatLabel(groupField, instance).value else ""
 }
 
 <fieldset class="section-repeating">

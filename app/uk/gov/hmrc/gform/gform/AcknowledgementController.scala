@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormId, NeedsReview, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.Submission
@@ -56,10 +56,9 @@ class AcknowledgementController(
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
-    lang: Option[String],
     eventId: String
   ) =
-    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       import i18nSupport._
       cache.form.status match {
         case Submitted | NeedsReview =>
@@ -68,7 +67,6 @@ class AcknowledgementController(
               maybeAccessCode,
               cache.formTemplate,
               cache.retrievals,
-              lang,
               eventId,
               cache.form.envelopeId)
             .map(Ok(_))
@@ -79,15 +77,14 @@ class AcknowledgementController(
   def downloadPDF(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
-    lang: Option[String],
     eventId: String): Action[AnyContent] =
-    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       import i18nSupport._
       cache.form.status match {
         case Submitted =>
           // format: OFF
         for {
-          summaryHtml  <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
+          summaryHtml  <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache)
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
@@ -115,7 +112,7 @@ class AcknowledgementController(
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]],
     envelopeId: EnvelopeId
-  )(implicit hc: HeaderCarrier, messages: Messages): Future[String] = {
+  )(implicit hc: HeaderCarrier, messages: Messages, curLang: LangADT): Future[String] = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime =
@@ -134,7 +131,7 @@ class AcknowledgementController(
     val declarationExtraData = cya_section(
       messages("submission.declaration.details"),
       HtmlFormat.fill(declaration.map {
-        case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
+        case (formDecFields, formData) => cya_row(formDecFields.label.value, formData.mkString)
       })
     ).toString()
 
@@ -147,10 +144,7 @@ class AcknowledgementController(
     Future(doc.html.replace("£", "&pound;"))
   }
 
-  def exitSurvey(
-    formTemplateId: FormTemplateId,
-    lang: Option[String],
-    maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     Action.async { implicit request =>
       Future.successful(Redirect(s"/feedback/${formTemplateId.value}").withNewSession)
     }

@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   formId: FormId,
@@ -32,10 +33,10 @@
   validationResult: Option[FormFieldValidationResult],
   index: Int,
   formMaxAttachmentSizeMB: Int
-)(implicit messages: Messages)
+)(implicit messages: Messages, l:LangADT)
 
 @label = @{
-  if (fieldValue.label.nonEmpty) { fieldValue.label } else { messages("file.upload") }
+  if (fieldValue.label.value.nonEmpty) { fieldValue.label.value } else { messages("file.upload") }
 }
 
 @currentValue = @{
@@ -58,7 +59,7 @@
 
     @if(fieldValue.helpText.nonEmpty) {
       <span class="form-hint" id="@{fileId}-hint">
-        @{fieldValue.helpText}
+        @{fieldValue.helpText.map(ls => ls.value)}
       </span>
     }
 
@@ -81,7 +82,7 @@
   <div id="@fileId-files" class="@{"uploaded-files" + {if(cv != "") " subsection" else "" }}">
     @if(cv != ""){
       <span href="#">@cv</span>
-      <a 
+      <a
         href="#"
         class="delete-file"
         data-file-id="@fileId"

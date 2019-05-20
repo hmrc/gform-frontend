@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.graph
 import cats.data.NonEmptyList
 import org.scalactic.source.Position
 import org.scalatest.{ FlatSpec, Matchers }
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph._
 import FormTemplateBuilder._
@@ -72,7 +73,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
           mkFormComponent(
             "b",
             RevealingChoice(
-              NonEmptyList.one(RevealingChoiceElement("Yes", mkFormComponent("c", FormCtx("a")) :: Nil, false)))),
+              NonEmptyList.one(
+                RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("c", FormCtx("a")) :: Nil, false)))),
           mkFormComponent("d", FormCtx("c"))
         )
       )
@@ -254,8 +256,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
         List(
           mkFormComponent(
             "a",
-            RevealingChoice(
-              NonEmptyList.one(RevealingChoiceElement("Yes", mkFormComponent("b", Value) :: Nil, false)))))) ::
+            RevealingChoice(NonEmptyList.one(
+              RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("b", Value) :: Nil, false)))))) ::
         mkSectionIncludeIf(List(mkFormComponent("c", Value)), includeIf) :: Nil
 
     layers(sections) shouldBe List(

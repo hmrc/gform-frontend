@@ -19,36 +19,38 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+@import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString , LangADT}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+@import uk.gov.hmrc.gform.sharedmodel.{LangADT, LocalisedString}
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import play.twirl.api.Html
 
 @(fieldValue: FormComponent,
-optionsSelectionsAndHiddenFields: NonEmptyList[(String, Int => Boolean, List[Html])],
+optionsSelectionsAndHiddenFields: NonEmptyList[(LocalisedString, Int => Boolean, List[Html])],
 validationResult: Option[FormFieldValidationResult],
 index: Int,
-sectionTitle: String,
+sectionTitle: LocalisedString,
 formLevelHeading: Boolean
-)
+)(implicit l:LangADT)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
 
 @label = @{
-  LabelHelper.buildRepeatingLabel(fieldValue, index)
+  LabelHelper.buildRepeatingLabel(fieldValue.label, index)
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
     <fieldset @if(fieldValue.helpText.nonEmpty){ aria-describedby="@{fieldValue.id.value}-hint" }>
-        <legend class="form-label">
+        <legend class="form-label.value">
           @if(!formLevelHeading) {
-            <h1>@label</h1>
+            <h1>@label.value</h1>
           } else {
-            @label
+            @label.value
           }
         </legend>
 
@@ -72,7 +74,7 @@ formLevelHeading: Boolean
                   />
 
                   <label for="@fcId">
-                    @option
+                    @option.value
                   </label>
               </div>
               <div id="fields-@fcId"

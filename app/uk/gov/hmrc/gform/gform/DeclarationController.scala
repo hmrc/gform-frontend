@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestAc
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, RecData, Recalculation }
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -67,21 +67,17 @@ class DeclarationController(
 
   import i18nSupport._
 
-  def showDeclaration(
-    maybeAccessCode: Option[AccessCode],
-    formTemplateId: FormTemplateId,
-    lang: Option[String]): Action[AnyContent] =
-    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
+  def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       Future.successful(cache.form.status match {
-        case Validated => Ok(renderDeclarationSection(cache, maybeAccessCode, lang))
+        case Validated => Ok(renderDeclarationSection(cache, maybeAccessCode))
         case _         => BadRequest
       })
     }
 
-  private def renderDeclarationSection(
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    lang: Option[String])(implicit request: Request[_]) =
+  private def renderDeclarationSection(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
+    implicit request: Request[_],
+    l: LangADT) =
     renderer
       .renderDeclarationSection(
         maybeAccessCode,
@@ -90,17 +86,13 @@ class DeclarationController(
         cache.retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
-        Nil,
-        lang)
+        Nil)
 
-  def submitDeclaration(
-    formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode],
-    lang: Option[String]): Action[AnyContent] =
-    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cacheOrig =>
+  def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cacheOrig =>
       processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
         get(dataRaw, FormComponentId("save")) match {
-          case "Continue" :: Nil => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode, lang)
+          case "Continue" :: Nil => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)
           case _                 => Future.successful(BadRequest("Cannot determine action"))
         }
       }
@@ -109,19 +101,19 @@ class DeclarationController(
   private def continueToSubmitDeclaration(
     cache: AuthCacheWithForm,
     dataRaw: Map[FormComponentId, Seq[String]],
-    maybeAccessCode: Option[AccessCode],
-    lang: Option[String])(implicit request: Request[_]) = {
+    maybeAccessCode: Option[AccessCode])(implicit request: Request[_], l: LangADT) = {
 
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
     for {
       cacheWithHiddenSectionDataRemoved <- removeHiddenSectionData(cache)
       valRes                            <- validateComponents(cacheWithHiddenSectionDataRemoved, declarationData)
-      response                          <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData, lang)
+      response                          <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
     } yield response
   }
 
   private def validateComponents(cache: AuthCacheWithForm, declarationData: FormDataRecalculated)(
-    implicit hc: HeaderCarrier) =
+    implicit hc: HeaderCarrier,
+    l: LangADT) =
     validationService.validateComponents(
       Fields.flattenGroups(cache.formTemplate.declarationSection.fields),
       declarationData,
@@ -155,39 +147,32 @@ class DeclarationController(
     valType: ValidatedType[Unit],
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    data: FormDataRecalculated,
-    lang: Option[String]
-  )(implicit request: Request[_]) = valType match {
-    case Valid(())                     => processValid(cache, data, maybeAccessCode, lang)
-    case validationResult @ Invalid(_) => processInvalid(maybeAccessCode, cache, data, lang, validationResult)
+    data: FormDataRecalculated
+  )(implicit request: Request[_], l: LangADT) = valType match {
+    case Valid(())                     => processValid(cache, data, maybeAccessCode)
+    case validationResult @ Invalid(_) => processInvalid(maybeAccessCode, cache, data, validationResult)
   }
 
   private def processInvalid(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    lang: Option[String],
-    validationResult: Invalid[GformError])(implicit request: Request[_]) =
-    Future.successful(Ok(createHtmlForInvalidSubmission(maybeAccessCode, cache, data, lang, validationResult)))
+    validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT) =
+    Future.successful(Ok(createHtmlForInvalidSubmission(maybeAccessCode, cache, data, validationResult)))
 
-  private def processValid(
-    cache: AuthCacheWithForm,
-    data: FormDataRecalculated,
-    maybeAccessCode: Option[AccessCode],
-    lang: Option[String])(implicit request: Request[_]) = {
+  private def processValid(cache: AuthCacheWithForm, data: FormDataRecalculated, maybeAccessCode: Option[AccessCode])(
+    implicit request: Request[_],
+    l: LangADT) = {
     val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
     for {
       _          <- updateUserData(updatedCache.form)
       customerId <- evaluateSubmissionReference(updatedCache)
-      _          <- handleSubmission(maybeAccessCode, updatedCache, data, lang, customerId)
-    } yield showAcknowledgement(updatedCache, maybeAccessCode, lang, customerId)
+      _          <- handleSubmission(maybeAccessCode, updatedCache, data, customerId)
+    } yield showAcknowledgement(updatedCache, maybeAccessCode, customerId)
   }
 
-  private def showAcknowledgement(
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    lang: Option[String],
-    customerId: String)(implicit request: Request[_]) = {
+  private def showAcknowledgement(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], customerId: String)(
+    implicit request: Request[_]) = {
     if (customerId.isEmpty)
       Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
 
@@ -195,7 +180,7 @@ class DeclarationController(
 
     Redirect(
       uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-        .showAcknowledgement(maybeAccessCode, cache.form.formTemplateId, lang, submissionEventId))
+        .showAcknowledgement(maybeAccessCode, cache.form.formTemplateId, submissionEventId))
   }
 
   private def auditSubmissionEvent(cache: AuthCacheWithForm, customerId: String)(implicit request: Request[_]) =
@@ -239,10 +224,9 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    lang: Option[String],
-    customerId: String)(implicit request: Request[_]) =
+    customerId: String)(implicit request: Request[_], l: LangADT) =
     for {
-      htmlForPDF     <- createHtmlForPdf(maybeAccessCode, cache, data, lang)
+      htmlForPDF     <- createHtmlForPdf(maybeAccessCode, cache, data)
       emailParameter <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
       _ <- GformSubmission
             .handleSubmission(
@@ -261,10 +245,9 @@ class DeclarationController(
   private def createHtmlForPdf(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    data: FormDataRecalculated,
-    lang: Option[String])(implicit request: Request[_]) =
+    data: FormDataRecalculated)(implicit request: Request[_], l: LangADT) =
     for {
-      summaryHtml <- summaryController.getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, lang)
+      summaryHtml <- summaryController.getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache)
     } yield
       addExtraDataToHTML(
         pdfService.sanitiseHtmlForPDF(summaryHtml, submitted = true),
@@ -280,8 +263,7 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    lang: Option[String],
-    validationResult: Invalid[GformError])(implicit request: Request[_]) =
+    validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT) =
     renderer.renderDeclarationSection(
       maybeAccessCode,
       cache.form,
@@ -289,8 +271,7 @@ class DeclarationController(
       cache.retrievals,
       validationResult,
       data,
-      getErrorMap(validationResult, data, cache.formTemplate),
-      lang)
+      getErrorMap(validationResult, data, cache.formTemplate))
 
   private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: FormDataRecalculated) = {
     val fieldNames = data.data.keySet.map(_.value)
@@ -321,7 +302,7 @@ class DeclarationController(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     data: FormDataRecalculated,
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): String = {
+    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier, l: LangADT): String = {
     val rows = cya_row("Submission reference", SubmissionRef(envelopeId).toString)
     val extraData = cya_section("Submission details", rows).toString()
     val declaration: List[(FormComponent, Seq[String])] = for {
@@ -329,7 +310,7 @@ class DeclarationController(
       formData             <- data.data.get(formTemplateDecField.id)
     } yield (formTemplateDecField, formData)
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
-      case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
+      case (formDecFields, formData) => cya_row(formDecFields.label.value, formData.mkString)
     })).toString()
     val doc = Jsoup.parse(html)
     doc.select("article[class*=content__body]").append(extraData)

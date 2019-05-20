@@ -20,8 +20,9 @@
 @import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.play.views.html.helpers.errorInline
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, fileUpload: FileUpload, validationResult: Option[FormFieldValidationResult], changeButton: Html)
+@(fieldValue: FormComponent, fileUpload: FileUpload, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
@@ -31,7 +32,7 @@
 
 <div>
   <dt class="cya-question@if(hasErrors) { summary--error}">
-    @fieldValue.shortName.getOrElse(fieldValue.label)
+    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
   <dd class="cya-answer">
     @{if(hasErrors) errors else validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")}

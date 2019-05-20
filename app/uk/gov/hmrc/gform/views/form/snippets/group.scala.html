@@ -18,6 +18,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+
 
 @(
   fieldValue: FormComponent,
@@ -27,13 +29,13 @@
   orientation: Orientation,
   disableAddButton: Boolean,
   index: Int
-)(implicit messages: Messages)
+)(implicit messages: Messages, l:LangADT)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
 
 @label = @{
   if(groupField.repeatsMax.isDefined) {
-    LabelHelper.buildRepeatingLabel(fieldValue, index)
+    LabelHelper.buildRepeatingLabel(fieldValue.label, index)
   } else {
     fieldValue.label
   }
@@ -41,15 +43,15 @@
 
 <div class="form-group">
 
-  @if(label.nonEmpty) {
+  @if(label.value.nonEmpty) {
     <h2 class="heading-section">
-      @label
+      @label.value
     </h2>
   }
 
   @if(maybeHelpText.isDefined) {
     <span class="form-hint">
-      @{maybeHelpText.get}
+      @{maybeHelpText}
     </span>
   }
 
@@ -57,7 +59,7 @@
 
   @if(groupField.repeatsMax.isDefined && !disableAddButton) {
     <a id="addRepeatingGroup" href="AddGroup-@fieldValue.id">
-      @groupField.repeatAddAnotherText.getOrElse(messages("linkText.addRepeatingGroup"))
+      @groupField.repeatAddAnotherText.map(ls=>ls.value).getOrElse(messages("linkText.addRepeatingGroup"))
     </a>
   }
 </div>

@@ -25,7 +25,6 @@
   supportContents: SectionRenderingInformation,
   formCategory: FormCategory,
   formTemplate: FormTemplate,
-  lang: Option[String],
   eventId: String,
   frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages)
@@ -41,6 +40,7 @@
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
   formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages,
   templateId = formTemplate._id
 ) {
 
@@ -65,7 +65,7 @@
 
   <p>
     <a
-      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, lang, eventId).url"
+      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, eventId).url"
       class="print-link print-hidden js-visible">
         @messages("ack.pdfLink", formCategory.getString)
     </a>
@@ -84,7 +84,7 @@
 
     <p>
       @messages("ack.feedbackText1")
-      <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a>
+      <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a>
       @messages("ack.feedbackText2").
     </p>
   }

@@ -24,7 +24,6 @@
 @(
         accessCode: AccessCode,
         formTemplate: FormTemplate,
-        lang: Option[String],
         frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages)
 
@@ -39,6 +38,7 @@
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages,
   templateId = formTemplate._id
 ) {
   <div class = "transaction-banner--complete">
@@ -79,7 +79,7 @@
       @messages("accessCode.exit")
     </li>
     <li>
-      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id, lang)">
+      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id)">
         @messages("accessCode.workOnAnother", formCat)
       </a>
     </li>

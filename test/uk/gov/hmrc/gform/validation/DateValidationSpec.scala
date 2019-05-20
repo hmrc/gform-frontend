@@ -20,15 +20,17 @@ import cats.instances.future._
 import cats.scalatest.EitherMatchers
 import cats.scalatest.ValidatedValues._
 import java.time.LocalDate
+
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -36,7 +38,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class DateValidationSpec(implicit messages: Messages)
+class DateValidationSpec(implicit messages: Messages, l: LangADT)
     extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
   val retrievals = mock[MaterialisedRetrievals]
 
@@ -59,7 +61,7 @@ class DateValidationSpec(implicit messages: Messages)
     FormComponent(
       FormComponentId("accPeriodStartDate"),
       date,
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       None,
@@ -447,7 +449,7 @@ class DateValidationSpec(implicit messages: Messages)
     val fieldValue = FormComponent(
       FormComponentId("accPeriodStartDate"),
       date,
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       None,
@@ -482,7 +484,7 @@ class DateValidationSpec(implicit messages: Messages)
     val fieldValue = FormComponent(
       FormComponentId("accPeriodStartDate"),
       date,
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       None,
@@ -518,7 +520,7 @@ class DateValidationSpec(implicit messages: Messages)
     val fieldValue = FormComponent(
       FormComponentId("accPeriodStartDate"),
       date,
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       None,
@@ -549,7 +551,7 @@ class DateValidationSpec(implicit messages: Messages)
     val fieldValue = FormComponent(
       FormComponentId("accPeriodStartDate"),
       date,
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       None,
@@ -558,7 +560,8 @@ class DateValidationSpec(implicit messages: Messages)
       false,
       true,
       false,
-      Some("New error message"))
+      Some(toLocalisedString("New error message"))
+    )
 
     val fieldValues = List(fieldValue)
 

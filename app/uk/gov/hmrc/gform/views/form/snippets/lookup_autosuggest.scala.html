@@ -33,7 +33,7 @@
 
 @display(fcId: FormComponentId) = {
   <label class="@{if(formLevelHeading) { "form-label" } else { "h1-heading" }}" for="@fcId.value">
-    @LabelHelper.buildRepeatingLabel(fieldValue, index)
+    @LabelHelper.buildRepeatingLabel(fieldValue.label, index)
   </label>
 }
 

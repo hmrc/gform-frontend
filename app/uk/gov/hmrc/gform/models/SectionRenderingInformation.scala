@@ -38,6 +38,5 @@ case class SectionRenderingInformation(
   continueLabel: String,
   formMaxAttachmentSizeMB: Int,
   contentTypes: scala.List[ContentType],
-  lang: Option[String],
   progressIndicator: Option[String] = None
 )

@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   fieldValue: FormComponent,
@@ -28,7 +29,7 @@
   optionHelpText: List[Html],
   index: Int,
   sectionTitle: String
-)
+)(implicit l:LangADT)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -39,15 +40,15 @@
     <div class="choice-list__item">
       <div class="choice-list__item__label">
         <h2 class="form-label">
-          @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+          @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
         </h2>
 
         @if(fieldValue.helpText.isDefined) {
-          <div class="form-field--hint">@fieldValue.helpText.getOrElse("")</div>
+          <div class="form-field--hint">@fieldValue.helpText.map(ls => ls.value).getOrElse("")</div>
         }
 
         @if(hasErrors) {
-          @errorInline(fieldValue.id.value, fieldValue.errorMessage.getOrElse("Please enter required data"), Seq("error-message"))
+          @errorInline(fieldValue.id.value, fieldValue.errorMessage.map(ls => ls.value).getOrElse("Please enter required data"), Seq("error-message"))
         }
       </div>
 

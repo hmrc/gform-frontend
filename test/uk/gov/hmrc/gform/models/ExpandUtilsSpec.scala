@@ -17,17 +17,18 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import org.scalatest.prop.PropertyChecks
 import org.scalatest.{ FlatSpec, Matchers }
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import ExpandUtils._
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class ExpandUtilsSpec extends FlatSpec with Matchers {
+class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
 
   private val lookupExtractors = new LookupExtractors(Map.empty)
 
@@ -691,8 +692,9 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     mkSection(mkFormComponent(FormComponentId("dummy"), group) :: Nil)
   }
 
-  val choice = Choice(YesNo, NonEmptyList.of("yes", "no"), Vertical, List.empty, None)
-  val informationMessage = InformationMessage(StandardInfo, "info-text")
+  val choice =
+    Choice(YesNo, NonEmptyList.of(toLocalisedString("yes"), toLocalisedString("no")), Vertical, List.empty, None)
+  val informationMessage = InformationMessage(StandardInfo, toLocalisedString("info-text"))
 
   def mkGroup(groupIds: List[FormComponentId]) =
     Group(
@@ -728,7 +730,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     FormComponent(
       fcId,
       ct,
-      "some-component",
+      toLocalisedString("some-component"),
       None,
       None,
       None,

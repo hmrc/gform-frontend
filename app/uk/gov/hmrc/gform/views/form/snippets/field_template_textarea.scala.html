@@ -21,8 +21,10 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
+
+@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l: LangADT)
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
@@ -52,7 +54,7 @@
 
 @label = {
   <label class="@{if(!formLevelHeading){"h1-heading"} else {"form-label"}}@if(fieldValue.derived){js-hidden}" for="@{fieldValue.id}">
-    @LabelHelper.buildRepeatingLabel(fieldValue, index)
+    @LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
   </label>
 }
 
@@ -62,7 +64,7 @@
 
   @if(fieldValue.helpText.nonEmpty) {
     <span class="form-hint @if(fieldValue.derived){js-hidden}" id="@{fieldValue.id.value}-hint">
-      @{fieldValue.helpText}
+      @{fieldValue.helpText.map(ls=>ls.value)}
     </span>
   }
 

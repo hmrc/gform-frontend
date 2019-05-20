@@ -17,7 +17,9 @@
 package uk.gov.hmrc.gform.validation
 
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 
@@ -28,7 +30,20 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
     val dateConstraints = DateConstraints(List(DateConstraint(After, DateField(formComponentId), OffsetDate(1))))
     val date = Date(dateConstraints, Offset(1), None)
     val formComponent =
-      FormComponent(formComponentId, date, "", None, None, None, false, false, false, false, false, None, None)
+      FormComponent(
+        formComponentId,
+        date,
+        toLocalisedString(""),
+        None,
+        None,
+        None,
+        false,
+        false,
+        false,
+        false,
+        false,
+        None,
+        None)
     getCompanionFieldComponent(date, List(formComponent)) shouldBe (Some(formComponent))
   }
   val beforeFormComponentId = FormComponentId("1")
@@ -42,7 +57,7 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
   val beforeFormComponent = FormComponent(
     beforeFormComponentId,
     beforeDate,
-    "",
+    toLocalisedString(""),
     None,
     None,
     None,
@@ -54,7 +69,20 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
     None,
     None)
   val afterFormComponent =
-    FormComponent(afterFormComponentId, afterDate, "", None, None, None, false, false, false, false, false, None, None)
+    FormComponent(
+      afterFormComponentId,
+      afterDate,
+      toLocalisedString(""),
+      None,
+      None,
+      None,
+      false,
+      false,
+      false,
+      false,
+      false,
+      None,
+      None)
   "when given a before form component" should "return refrence of after form component" in {
     getCompanionFieldComponent(beforeDate, List(beforeFormComponent, afterFormComponent)) shouldBe (Some(
       afterFormComponent))
@@ -71,7 +99,7 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
         FormComponent(
           formComponentId,
           beforeDate,
-          "",
+          toLocalisedString(""),
           None,
           None,
           None,

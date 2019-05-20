@@ -25,11 +25,10 @@
         title: String,
         sectionNumber: SectionNumber,
         sectionTitle4Ga: SectionTitle4Ga,
-        lang: Option[String],
         fieldValue: FormComponent)(implicit messages: Messages)
 
 @if(fieldValue.editable) {
- <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, lang, SeYes).url}">
+ <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes).url}">
   @messages("summary.change") <span class="visuallyhidden">@fieldValue.shortName.getOrElse(fieldValue.label)</span>
  </a>
 }

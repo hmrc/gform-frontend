@@ -20,6 +20,7 @@ import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.RepeatFormComponentIds
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -85,13 +86,18 @@ object RepeatingComponentService {
       }
 
     section.copy(
-      title = buildText(Some(section.title), index, data).getOrElse(""),
-      shortName = buildText(section.shortName, index, data),
+      title = buildText(section.title, index, data),
+      shortName = optBuildText(section.shortName, index, data),
       fields = section.fields.map(copyField)
     )
   }
 
-  private def buildText(template: Option[String], index: Int, data: FormDataRecalculated): Option[String] = {
+  private def optBuildText(
+    maybeLs: Option[LocalisedString],
+    index: Int,
+    data: FormDataRecalculated): Option[LocalisedString] = maybeLs.map(ls => buildText(ls, index, data))
+
+  private def buildText(ls: LocalisedString, index: Int, data: FormDataRecalculated): LocalisedString = {
 
     def evaluateTextExpression(str: String) = {
       val field = str.replaceFirst("""\$\{""", "").replaceFirst("""\}""", "")
@@ -118,10 +124,9 @@ object RepeatingComponentService {
       str.replace(expression, evaluatedText)
     }
 
-    template match {
-      case Some(inputText) => Some(getEvaluatedText(inputText).replace("$n", index.toString))
-      case _               => None
-    }
+    ls.copy(m = ls.m.map {
+      case (lang, message) => (lang, getEvaluatedText(message).replace("$n", index.toString))
+    })
   }
 
   //This Evaluation is for the repeating sections, this will not become values.

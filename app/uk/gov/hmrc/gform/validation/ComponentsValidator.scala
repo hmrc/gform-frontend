@@ -22,8 +22,9 @@ import play.api.i18n.Messages
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService, Infected }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData, Validated => _ }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -39,7 +40,8 @@ class ComponentsValidator(
   formTemplate: FormTemplate,
   lookupRegistry: LookupRegistry)(
   implicit ec: ExecutionContext,
-  messages: Messages
+  messages: Messages,
+  l: LangADT
 ) {
 
   val cvh = new ComponentsValidatorHelper()
@@ -114,7 +116,7 @@ class ComponentsValidator(
       }
 }
 
-class ComponentsValidatorHelper(implicit messages: Messages) {
+class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT) {
 
   def validF(implicit ec: ExecutionContext) =
     ValidationServiceHelper.validationSuccess.pure[Future]
@@ -148,18 +150,26 @@ class ComponentsValidatorHelper(implicit messages: Messages) {
 
 object ComponentsValidatorHelper {
 
-  def messagePrefix(fieldValue: FormComponent, workedOnId: FormComponentId, otherFormComponent: Option[FormComponent]) =
+  def messagePrefix(fieldValue: FormComponent, workedOnId: FormComponentId, otherFormComponent: Option[FormComponent])(
+    implicit l: LangADT) =
     otherFormComponent match {
-      case Some(x) if x.id === workedOnId => x.shortName.getOrElse(x.label)
-      case Some(x)                        => fieldValue.shortName.getOrElse(fieldValue.label)
-      case None                           => fieldValue.shortName.getOrElse(fieldValue.label)
+      case Some(x) if x.id === workedOnId => x.shortName.map { _.value }.getOrElse(x.label.value)
+      case Some(x) =>
+        fieldValue.shortName
+          .map { input =>
+            input.value
+          }
+          .getOrElse(fieldValue.label.value)
+      case None => fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
     }
 
-  def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
-    Set(fieldValue.errorMessage.getOrElse(messagePrefix(fieldValue, fieldValue.id, None) + " " + defaultErr))
+  def errors(fieldValue: FormComponent, defaultErr: String)(implicit l: LangADT): Set[String] =
+    Set(
+      fieldValue.errorMessage
+        .map(ls => ls.value)
+        .getOrElse(messagePrefix(fieldValue, fieldValue.id, None) + " " + defaultErr))
 
-  def getError(
-    fieldValue: FormComponent,
-    defaultMessage: String): Validated[Map[FormComponentId, Set[String]], Nothing] =
+  def getError(fieldValue: FormComponent, defaultMessage: String)(
+    implicit l: LangADT): Validated[Map[FormComponentId, Set[String]], Nothing] =
     Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
 }

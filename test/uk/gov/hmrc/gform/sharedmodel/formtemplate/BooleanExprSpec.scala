@@ -17,9 +17,10 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import org.scalatest.mockito.MockitoSugar.mock
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.BooleanExprGen
 import uk.gov.hmrc.http.HeaderCarrier
@@ -206,7 +207,7 @@ class BooleanExprSpec extends Spec with GraphSpec {
     def `fieldValue - zero` = FormComponent(
       `fieldId - zero`,
       Text(Number(), Constant("0")),
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       None,

@@ -22,8 +22,10 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, formLevelHeading: Boolean)(implicit messages: Messages)
+
+@(fieldValue: FormComponent, sC: UkSortCode, prepop: String, validationResult: Option[FormFieldValidationResult], index: Int, formLevelHeading: Boolean)(implicit messages: Messages, l: LangADT)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -31,20 +33,20 @@
 
 @inputClasses = @{if(hasErrors) "form-control form-control-error" else "form-control"}
 
-@label = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+@label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
 
 <div class="form-group @if(hasErrors) { form-group-error }">
-  <fieldset role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
+  <fieldset role="group" @if(fieldValue.helpText.map(ls=>ls.value).nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
     <legend>
      @if(!formLevelHeading) { <h1>@label</h1> } else { @label }
     </legend>
 
-    @if(fieldValue.helpText.nonEmpty) {
-      <span class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText}</span>
+    @if(fieldValue.helpText.map(ls=>ls.value).nonEmpty) {
+      <span class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.map(ls=>ls.value)}</span>
     }
 
     @inline_error_map(fieldValue, validationResult)
-    
+
     @UkSortCode.fields(fieldValue.id).toList.zipWithIndex.map{ case (fieldId, index) =>
       @defining(index + 1){ fieldNumber =>
         <div class="form-date">

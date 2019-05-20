@@ -15,8 +15,9 @@
  *@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, selections: List[String], changeButton: Html)
+@(fieldValue: FormComponent, selections: List[String], changeButton: Html)(implicit l:LangADT)
 
 @selectedHtml = @{
   selections.map{ selection => <p>{selection}</p> }
@@ -24,7 +25,7 @@
 
 <div>
   <dt class="cya-question">
-    @fieldValue.shortName.getOrElse(fieldValue.label)
+    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
   <dd class="cya-answer">
     @selectedHtml

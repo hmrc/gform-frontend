@@ -17,8 +17,9 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ InfoType, StandardInfo, LongInfo, ImportantInfo, BannerInfo, FormComponent, NoFormat }
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, infoType: InfoType, text: Html, index: Int)(implicit messages: Messages)
+@(fieldValue: FormComponent, infoType: InfoType, text: Html, index: Int)(implicit messages: Messages, l: LangADT)
 
 <div class="subsection">
   @infoType match {
@@ -30,7 +31,7 @@
 
     case LongInfo => {
       <details class="details" role="group">
-        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</summary>
+        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}</summary>
 
         <div class="details__inner" id="details-content-@{fieldValue.id}" aria-hidden="true">
           <div class="panel panel-border-narrow">
@@ -54,7 +55,7 @@
     case BannerInfo => {
       <div class="transaction-banner--complete panel-info">
         <p>
-          <strong class="text--bold">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</strong><br />
+          <strong class="text--bold">@{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}</strong><br />
           @text
         </p>
       </div>

@@ -26,7 +26,7 @@ class SignOutController(config: FrontendAppConfig, implicit val messagesApi: Mes
     extends Controller with I18nSupport {
   implicit val frontendConfig: FrontendAppConfig = config
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = Action { implicit request =>
-    val signBackInURL = routes.FormController.dashboard(formTemplateId, None).url
+    val signBackInURL = routes.FormController.dashboard(formTemplateId).url
     Redirect(routes.SignOutController.showSignedOutPage(signBackInURL)).withNewSession
   }
 

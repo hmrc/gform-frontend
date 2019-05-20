@@ -54,6 +54,7 @@ class ControllersModule(
     configModule.frontendAppConfig,
     authModule.authConnector,
     playBuiltInsModule.i18nSupport,
+    playBuiltInsModule.langs,
     errResponder
   )
 }
