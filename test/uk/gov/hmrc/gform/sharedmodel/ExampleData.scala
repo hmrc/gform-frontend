@@ -535,7 +535,11 @@ trait ExampleFrontendAppConfig {
     whitelistEnabled = true,
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
-    authModule = AuthModule(JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", ""), JSConfig(false, 0, 0, "", "")),
+    authModule = AuthModule(
+      JSConfig(false, 0, 0, "", ""),
+      JSConfig(false, 0, 0, "", ""),
+      JSConfig(false, 0, 0, "", ""),
+      JSConfig(false, 0, 0, "", "")),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   )
 }

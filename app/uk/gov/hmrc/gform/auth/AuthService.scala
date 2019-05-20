@@ -16,19 +16,23 @@
 
 package uk.gov.hmrc.gform.auth
 
+import java.util.Base64
+
 import cats.implicits._
+import play.api.Logger
+import play.api.libs.json.{JsDefined, JsUndefined, Json}
 import uk.gov.hmrc.auth.core.authorise._
-import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
+import uk.gov.hmrc.auth.core.{AffinityGroup, AuthConnector => _, _}
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
+import uk.gov.hmrc.gform.gform.{AuthContextPrepop, EeittService}
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{Enrolment => _, _}
 import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class AuthService(
   appConfig: AppConfig,
@@ -53,6 +57,7 @@ class AuthService(
           .fold[AuthResult](AuthAnonymousSession(gform.routes.FormController.dashboard(formTemplate._id, lang)))(
             sessionId => AuthSuccessful(AnonymousRetrievals(sessionId)))
           .pure[Future]
+      case AWSALBAuth            => performAWSALBAuth(formTemplate, lang).pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
       case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -66,6 +71,29 @@ class AuthService(
         }
         performAgent(agentAccess, formTemplate, lang, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
     }
+
+  private def performAWSALBAuth(formTemplate: FormTemplate, lang: Option[String])(
+    implicit hc: HeaderCarrier): AuthResult = {
+    val encodedJWT: Seq[(String, String)] = hc.otherHeaders.filter(header => header._1 == "x-amzn-oidc-data")
+
+    encodedJWT.headOption match {
+      case None => AuthBlocked("You are not authorized to access this service")
+      case Some((_, jwt)) => {
+        val decoder = Base64.getDecoder
+        val splitJwt = jwt.split("\\.")
+        if (!(jwt.split("\\.").length == 3)) {
+          Logger.error(s"Corrupt JWT received from AWS ALB: [$jwt]")
+          AuthBlocked("You are not authorized to access this service")
+        } else {
+          val payload = new String(decoder.decode(splitJwt(1)))
+          Json.parse(payload) \ "username" match {
+            case JsDefined(value) => AuthSuccessful(AWSALBRetrievals(value.as[String]))
+            case JsUndefined()    => AuthBlocked("Username does not exist in JWT")
+          }
+        }
+      }
+    }
+  }
 
   private def performEnrolment(
     formTemplate: FormTemplate,

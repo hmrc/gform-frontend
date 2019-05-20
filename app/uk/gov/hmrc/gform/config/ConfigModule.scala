@@ -83,7 +83,9 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       authModule = AuthModule(
         getJSConfig("auth-module.legacyEEITTAuth"),
         getJSConfig("auth-module.hmrc"),
-        getJSConfig("auth-module.anonymous")),
+        getJSConfig("auth-module.anonymous"),
+        getJSConfig("auth-module.awsAlbAuth")
+      ),
       availableLanguages = availableLanguages
     )
   }

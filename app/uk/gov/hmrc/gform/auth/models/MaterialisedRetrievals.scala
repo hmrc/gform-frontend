@@ -27,6 +27,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
     case AnonymousRetrievals(sessionId)                            => sessionId.value
     case AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _) => userDetails.groupIdentifier
+    case AWSALBRetrievals(username)                                => username
   }
 
   def ggCredId = this match {
@@ -81,6 +82,7 @@ case class AuthenticatedRetrievals(
 ) extends MaterialisedRetrievals {
   val affinityGroupName: String = affinityGroupNameO(affinityGroup)
 }
+case class AWSALBRetrievals(username: String) extends MaterialisedRetrievals
 
 object IsAgent {
   def unapply(materialisedRetrievals: MaterialisedRetrievals): Boolean = materialisedRetrievals match {
