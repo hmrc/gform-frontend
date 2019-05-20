@@ -22,6 +22,7 @@ import cats.data.Validated._
 import cats.data._
 import cats.implicits._
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
@@ -33,7 +34,7 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 import scala.util.{ Failure, Success, Try }
 
-class DateValidation(implicit messages: Messages) {
+class DateValidation(implicit messages: Messages, l: LangADT) {
 
   val cvh = new ComponentsValidatorHelper()
 
@@ -64,12 +65,12 @@ class DateValidation(implicit messages: Messages) {
   }
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
-    data: FormDataRecalculated)(implicit messages: Messages): ValidatedType[Unit] =
+    data: FormDataRecalculated)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] =
     date.constraintType match {
 
       case AnyDate =>
-        validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data, otherFieldValue).andThen(lDate =>
-          validationSuccess)
+        validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data, otherFieldValue)
+          .andThen(lDate => validationSuccess)
 
       case DateConstraints(dateConstraintList) =>
         val result = dateConstraintList.map {
@@ -101,7 +102,7 @@ class DateValidation(implicit messages: Messages) {
     concreteDate: ConcreteDate,
     offset: OffsetDate,
     data: FormDataRecalculated): Validated[GformError, Unit] =
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data).andThen(
+    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data).andThen(
       inputDate =>
         validateConcreteDate(
           fieldValue,
@@ -116,7 +117,7 @@ class DateValidation(implicit messages: Messages) {
     beforeAfterPrecisely: BeforeAfterPrecisely,
     offset: OffsetDate,
     data: FormDataRecalculated): Validated[GformError, Unit] =
-    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+    validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data)
       .andThen(
         inputDate =>
           validateToday(
@@ -136,7 +137,8 @@ class DateValidation(implicit messages: Messages) {
 
     val validateOtherDate = validateInputDate(fieldValue, dateField.value, None, data, otherFieldValue)
 
-    val validatedThisDate = validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage, data)
+    val validatedThisDate =
+      validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data)
 
     validateOtherDate.andThen { otherLocalDate =>
       validatedThisDate.andThen { thisLocalDate =>

@@ -19,10 +19,11 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
@@ -30,7 +31,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.immutable.List
 
-class ValidIfValidationSpec(implicit messages: Messages) extends Spec with GraphSpec {
+class ValidIfValidationSpec(implicit messages: Messages, l: LangADT) extends Spec with GraphSpec {
 
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
   "Valid if " should "return no errors for valid if it's condition is met" in new Test {
@@ -68,7 +69,7 @@ class ValidIfValidationSpec(implicit messages: Messages) extends Spec with Graph
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Value),
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       Some(ValidIf(Equals(FormCtx("number"), Constant("15")))),

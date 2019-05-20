@@ -24,10 +24,14 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import play.twirl.api.Html
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.sharedmodel.LocalisedString
+
+
 
 @(inputType: String,
 fieldValue: FormComponent,
-options: NonEmptyList[String],
+options: NonEmptyList[LocalisedString],
 orientation: Orientation,
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
@@ -35,28 +39,28 @@ optionHelpText: List[Html],
 index: Int,
 sectionTitle: String,
 formLevelHeading: Boolean
-)
+)(implicit l: LangADT)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }
 
 @label = @{
-  LabelHelper.buildRepeatingLabel(fieldValue, index)
+  LabelHelper.buildRepeatingLabel(fieldValue.label, index)
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
     <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
         <legend class="form-label">
           @if(!formLevelHeading) {
-            <h1>@label</h1>
+            <h1>@label.value</h1>
           } else {
-            @label
+            @label.value
           }
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id.value}-hint">@fieldValue.helpText.getOrElse("")</span>
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">@fieldValue.helpText.map(ls=>ls.value).getOrElse("")</span>
         }
 
         @inline_error_map(fieldValue, validationResult)
@@ -79,7 +83,7 @@ formLevelHeading: Boolean
               />
 
               <label for="@{fieldValue.id.appendIndex(index)}">
-                @option
+                @option.value
               </label>
           </div>
 

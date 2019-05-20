@@ -21,13 +21,14 @@
 @import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
  fieldValue: FormComponent,
  validationResult: Option[FormFieldValidationResult],
  changeButton: Html,
  maybeObligationDetail: Option[ObligationDetail]
-)(implicit messages: Messages)
+)(implicit messages: Messages, l:LangADT)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
@@ -36,7 +37,7 @@
 
 <div>
     <dt class="cya-question@if(hasErrors) { summary--error}">
-        @fieldValue.shortName.getOrElse(fieldValue.label)
+        @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
     </dt>
     <dd class="cya-answer">
         @{maybeObligationDetail.fold("Value Lost!") { od =>

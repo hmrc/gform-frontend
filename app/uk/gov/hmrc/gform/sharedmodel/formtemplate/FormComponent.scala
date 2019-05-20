@@ -23,7 +23,7 @@ import scala.util.Try
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.sharedmodel.LabelHelper
+import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString }
 
 sealed trait FormComponentWithCtx {
   def id: FormComponentId = this match {
@@ -50,16 +50,16 @@ case class ExpandedFormComponent(formComponents: List[FormComponent]) extends An
 case class FormComponent(
   id: FormComponentId,
   `type`: ComponentType,
-  label: String,
-  helpText: Option[String],
-  shortName: Option[String],
+  label: LocalisedString,
+  helpText: Option[LocalisedString],
+  shortName: Option[LocalisedString],
   validIf: Option[ValidIf],
   mandatory: Boolean,
   editable: Boolean,
   submissible: Boolean,
   derived: Boolean,
   onlyShowOnSummary: Boolean = false,
-  errorMessage: Option[String],
+  errorMessage: Option[LocalisedString],
   presentationHint: Option[List[PresentationHint]] = None
 ) {
 
@@ -67,7 +67,7 @@ case class FormComponent(
     val fieldToUpdate = if (index === 0) field else field.copy(id = FormComponentId(index + "_" + field.id.value))
     val i = index + 1
     fieldToUpdate.copy(
-      label = LabelHelper.buildRepeatingLabel(field, i),
+      label = LabelHelper.buildRepeatingLabel(field.label, i),
       shortName = LabelHelper.buildRepeatingLabel(field.shortName, i))
   }
 

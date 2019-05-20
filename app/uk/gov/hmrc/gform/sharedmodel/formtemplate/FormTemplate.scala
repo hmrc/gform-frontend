@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.formtemplate
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationTest, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 
@@ -56,7 +56,8 @@ case class FormTemplate(
   sections: List[Section],
   acknowledgementSection: AcknowledgementSection,
   declarationSection: DeclarationSection,
-  GFC579Ready: Option[String]
+  GFC579Ready: Option[String],
+  languages: AvailableLanguages
 ) {
   def expandFormTemplate(data: Data): ExpandedFormTemplate = ExpandedFormTemplate(sections.map(_.expandSection(data)))
 
@@ -85,7 +86,8 @@ object FormTemplate {
     sections: List[Section],
     acknowledgementSection: AcknowledgementSection,
     declarationSection: DeclarationSection,
-    GFC579Ready: Option[String]) {
+    GFC579Ready: Option[String],
+    languages: AvailableLanguages) {
     def toNewForm: FormTemplate =
       FormTemplate(
         _id: FormTemplateId,
@@ -106,7 +108,8 @@ object FormTemplate {
         sections: List[Section],
         acknowledgementSection: AcknowledgementSection,
         declarationSection: DeclarationSection,
-        GFC579Ready: Option[String]
+        GFC579Ready: Option[String],
+        languages: AvailableLanguages
       )
   }
 
@@ -149,7 +152,8 @@ object FormTemplate {
     sections: List[Section],
     acknowledgementSection: AcknowledgementSection,
     declarationSection: DeclarationSection,
-    GFC579Ready: Option[String] = Some("false")): FormTemplate =
+    GFC579Ready: Option[String] = Some("false"),
+    languages: AvailableLanguages = AvailableLanguages.default): FormTemplate =
     DeprecatedFormTemplateWithDmsSubmission(
       _id,
       formName,
@@ -168,6 +172,7 @@ object FormTemplate {
       sections,
       acknowledgementSection,
       declarationSection,
-      GFC579Ready
+      GFC579Ready,
+      languages
     ).toNewForm
 }

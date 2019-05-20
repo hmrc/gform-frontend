@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processRespo
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
@@ -100,8 +100,8 @@ class EnrolmentController(
 
   import i18nSupport._
 
-  def showEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.asyncGGAuth(formTemplateId) {
-    implicit request => cache =>
+  def showEnrolment(formTemplateId: FormTemplateId) =
+    auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => cache =>
       cache.formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
           Ok(
@@ -113,18 +113,17 @@ class EnrolmentController(
                 FormDataRecalculated.empty,
                 Nil,
                 Nil,
-                ValidationResult.empty.valid,
-                lang)
+                ValidationResult.empty.valid)
           ).pure[Future]
         case _ =>
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
             .flashing("formTitle" -> cache.formTemplate.formName)
             .pure[Future]
       }
-  }
+    }
 
-  def submitEnrolment(formTemplateId: FormTemplateId, lang: Option[String]) = auth.asyncGGAuth(formTemplateId) {
-    implicit request => cache =>
+  def submitEnrolment(formTemplateId: FormTemplateId) =
+    auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => cache =>
       import cache._
       val checkEnrolment: ServiceId => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
         serviceId => identifiers => EitherT.liftF(Kleisli(_ => auth.checkEnrolment(serviceId, identifiers)))
@@ -164,7 +163,6 @@ class EnrolmentController(
                   retrievals,
                   enrolmentSection,
                   data,
-                  lang,
                   frontendAppConfig)
                 res <- processValidation(
                         serviceId,
@@ -192,7 +190,7 @@ class EnrolmentController(
             )
         }
       }
-  }
+    }
 
   private def validateIdentifiers[F[_]: Applicative](
     identifiers: NonEmptyList[(IdentifierRecipe, Identifier)],

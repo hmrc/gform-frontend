@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.config.JSConfig
+@import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -38,6 +39,7 @@
   authConfig: Option[AuthConfig],
   navLinks: Option[Html] = None,
   includeHMRCBranding: Boolean,
+  formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId
 )(implicit messages: Messages)
 
@@ -140,6 +142,9 @@
 
 @footerTop = {}
 @footerLinks = {}
+@size = @{formLanguages.languages.size}
+@formLanguageSet = @{formLanguages.languages.map(l => l.langADTToString)}
+@appLanguageSet = @{appConfig.availableLanguages.map{case(s,l) => l.code}.toSet}
 
 @betaBanner = {
   @developmentPhase match {
@@ -164,7 +169,7 @@
   }
 }
 
-@formSupportsLanguages = @{false}
+@formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
 @serviceHeader = {
   @serviceInfoContent

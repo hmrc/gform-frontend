@@ -18,8 +18,9 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit messages: Messages)
+@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit messages: Messages, l: LangADT)
 
 @safeId(id: String) = @{
   fieldValue.id.withSuffix(id).toString
@@ -39,7 +40,7 @@
 
 
 @label = {
-  @LabelHelper.buildRepeatingLabel(fieldValue, index)
+  @LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
 }
 
 <fieldset id="@{fieldValue.id.value}-fieldset" role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
@@ -93,7 +94,7 @@
 
 
       @if(fieldValue.helpText.nonEmpty) {
-      <div class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.getOrElse("")}</div>
+      <div class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.map(ls=>ls.value).getOrElse("")}</div>
       }
 
       @safeError(suffix : String) = @{

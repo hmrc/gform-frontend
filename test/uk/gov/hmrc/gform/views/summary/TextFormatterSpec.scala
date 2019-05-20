@@ -17,7 +17,9 @@
 package uk.gov.hmrc.gform.views.summary
 
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FieldOk
 
@@ -26,7 +28,7 @@ class TextFormatterSpec(implicit messages: Messages) extends Spec {
   def getComponent(constraint: TextConstraint) = FormComponent(
     `fieldId - firstName`,
     Text(constraint, Value),
-    "First Name",
+    toLocalisedString("First Name"),
     None,
     None,
     None,

@@ -23,6 +23,7 @@
 @import uk.gov.hmrc.gform.gform.OptionParams
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 @import java.time.LocalDate
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   inputType: String,
@@ -33,11 +34,11 @@
   index: Int,
   formLevelHeading: Boolean,
   setValue: String
-)(implicit messages: Messages)
+)(implicit messages: Messages, l: LangADT)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
-@legend = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+@legend = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index)}
 
 @dateRangeLabel(fromDate:LocalDate, toDate:LocalDate) = @{
   messages("generic.From")+" "+formatDate(fromDate)+" "+messages("generic.to")+" "+formatDate(toDate)
@@ -56,7 +57,7 @@
 
         @if(fieldValue.helpText.nonEmpty) {
           <span class="form-hint" id="@{fieldValue.id.value}-hint">
-            @{fieldValue.helpText.getOrElse("")}
+            @{fieldValue.helpText.map(ls=>ls.value).getOrElse("")}
           </span>
         }
 

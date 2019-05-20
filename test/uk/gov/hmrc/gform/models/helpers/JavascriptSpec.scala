@@ -16,8 +16,10 @@
 
 package uk.gov.hmrc.gform.models.helpers
 
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.models.Dependecies
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 import Function.const
@@ -27,7 +29,19 @@ class JavascriptSpec extends Spec {
   private val c = Constant("5")
 
   def formComponent(id: String, value: Expr = c) =
-    FormComponent(FormComponentId(id), Text(AnyText, value), "", None, None, None, false, true, true, true, false, None)
+    FormComponent(
+      FormComponentId(id),
+      Text(AnyText, value),
+      toLocalisedString(""),
+      None,
+      None,
+      None,
+      false,
+      true,
+      true,
+      true,
+      false,
+      None)
 
   private def fieldJavascript(
     field: FormComponent,

@@ -20,16 +20,18 @@ import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-class NumberValidationSpec(implicit messages: Messages) extends Spec with TableDrivenPropertyChecks with GraphSpec {
+class NumberValidationSpec(implicit messages: Messages, l: LangADT)
+    extends Spec with TableDrivenPropertyChecks with GraphSpec {
 
   trait Test extends ExampleData {
     def value: String
@@ -41,7 +43,7 @@ class NumberValidationSpec(implicit messages: Messages) extends Spec with TableD
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Value),
-      "sample label",
+      toLocalisedString("sample label"),
       None,
       None,
       None,

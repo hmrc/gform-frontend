@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.graph
 import cats.MonadError
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,11 +38,13 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
         cache.form.envelopeId)
       .map(mapToParameterTemplateVariables)
 
+  private def toLocalisedString(string: String) = LocalisedString(Map(LangADT.En -> string))
+
   private def mkFormComponent(fcId: String, ct: ComponentType) =
     FormComponent(
       FormComponentId(fcId + "UniqueEmailParameter"),
       ct,
-      "UniqueEmailParameter",
+      toLocalisedString("UniqueEmailParameter"),
       None,
       None,
       None,
@@ -56,7 +59,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
 
   private def mkSection(formComponents: List[FormComponent]): Section =
     Section(
-      "Section Name",
+      toLocalisedString("Section Name"),
       None,
       None,
       None,

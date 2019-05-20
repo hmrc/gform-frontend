@@ -19,12 +19,15 @@ package uk.gov.hmrc.gform.gform
 import cats.data.NonEmptyList
 import org.scalatest.Assertion
 import org.scalactic.source.Position
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
 
 class StructuredFormDataBuilderSpec extends Spec {
+  implicit val l = LangADT.En
   "apply(Form, FormTemplate)" must "create the correct JSON for simple fields in non-repeating sections/groups" in {
     validate(
       createFormTemplate(
@@ -302,7 +305,8 @@ class StructuredFormDataBuilderSpec extends Spec {
   }
 
   private def validate(formTemplate: FormTemplate, formData: Form, expected: StructuredFormValue)(
-    implicit position: Position): Assertion =
+    implicit position: Position,
+    l: LangADT): Assertion =
     StructuredFormDataBuilder(formData, formTemplate) shouldBe expected
 
   def createForm(fields: (String, String)*): Form =
@@ -339,9 +343,10 @@ class StructuredFormDataBuilderSpec extends Spec {
       null,
       null,
       List(section),
-      acknowledgementSection.getOrElse(AcknowledgementSection("Ack", None, None, Nil)),
-      declarationSection.getOrElse(DeclarationSection("Decl", None, None, Nil)),
-      null
+      acknowledgementSection.getOrElse(AcknowledgementSection(toLocalisedString("Ack"), None, None, Nil)),
+      declarationSection.getOrElse(DeclarationSection(toLocalisedString("Decl"), None, None, Nil)),
+      null,
+      AvailableLanguages.default
     )
 
   def createNonRepeatingSection(fields: FormComponent*): Section =
@@ -384,23 +389,37 @@ class StructuredFormDataBuilderSpec extends Spec {
     FormComponent(
       FormComponentId(id),
       componentType,
-      "",
+      toLocalisedString(""),
+      None,
+      None,
       null,
-      null,
-      null,
       true,
       true,
       true,
       true,
       true,
-      null
+      None
     )
 
   def createMultiChoice(id: String): FormComponent =
-    createFormComponent(id, Choice(Checkbox, NonEmptyList.of("One", "Two", "Three"), Vertical, Nil, None))
+    createFormComponent(
+      id,
+      Choice(
+        Checkbox,
+        NonEmptyList.of(toLocalisedString("One"), toLocalisedString("Two"), toLocalisedString("Three")),
+        Vertical,
+        Nil,
+        None))
 
   def createRadio(id: String): FormComponent =
-    createFormComponent(id, Choice(Radio, NonEmptyList.of("One", "Two", "Three"), Vertical, Nil, None))
+    createFormComponent(
+      id,
+      Choice(
+        Radio,
+        NonEmptyList.of(toLocalisedString("One"), toLocalisedString("Two"), toLocalisedString("Three")),
+        Vertical,
+        Nil,
+        None))
 
   def createDate(id: String): FormComponent =
     createFormComponent(id, Date(AnyDate, Offset(0), None))
@@ -408,7 +427,7 @@ class StructuredFormDataBuilderSpec extends Spec {
   def createRevealingChoice(id: String, selectedFields: FormComponent*): FormComponent =
     createFormComponent(
       id,
-      RevealingChoice(NonEmptyList.of(RevealingChoiceElement("Foo", selectedFields.toList, true))))
+      RevealingChoice(NonEmptyList.of(RevealingChoiceElement(toLocalisedString("Foo"), selectedFields.toList, true))))
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

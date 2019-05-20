@@ -17,12 +17,13 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean, changeButton: Html)
+@(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean, changeButton: Html)(implicit l:LangADT)
 
   <div>
     <dt class="cya-question">
-      @fieldValue.shortName.getOrElse(fieldValue.label)
+      @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
     </dt>
     <dd class="cya-answer">
       @fields.map{ f => @TextFormatter.formatText(f)<br> }

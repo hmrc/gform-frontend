@@ -19,16 +19,17 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.UkSortCode
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
  fieldValue: FormComponent,
  validationResult: Option[FormFieldValidationResult],
  changeButton: Html
-)(implicit messages: Messages)
+)(implicit messages: Messages, l:LangADT)
 
 <div>
   <dt class="cya-question">
-    @fieldValue.shortName.getOrElse(fieldValue.label)
+    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
   <dd class="cya-answer">
     @UkSortCode.fields(fieldValue.id).toList.map{ fieldId =>

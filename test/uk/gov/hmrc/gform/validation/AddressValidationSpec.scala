@@ -23,11 +23,12 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -35,13 +36,25 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class AddressValidationSpec(implicit messages: Messages)
+class AddressValidationSpec(implicit messages: Messages, l: LangADT)
     extends FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
   val retrievals = mock[MaterialisedRetrievals]
 
   val baseAddress = Address(international = false)
   val baseListItem =
-    FormComponent(FormComponentId("x"), baseAddress, "l", None, None, None, true, true, false, true, false, None)
+    FormComponent(
+      FormComponentId("x"),
+      baseAddress,
+      toLocalisedString("l"),
+      None,
+      None,
+      None,
+      true,
+      true,
+      false,
+      true,
+      false,
+      None)
   val tempList: List[FormComponent] = List(baseListItem, baseListItem)
 
   private val lookupRegistry = new LookupRegistry(Map.empty)
@@ -63,7 +76,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = false)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val tempList: List[FormComponent] = List(speccedAddress, speccedAddress)
 
@@ -85,7 +110,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = false)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -103,7 +140,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = false)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -124,7 +173,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = false)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -142,7 +203,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = false)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -167,7 +240,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -185,7 +270,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -202,7 +299,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -221,7 +330,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -243,7 +364,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -268,7 +401,7 @@ class AddressValidationSpec(implicit messages: Messages)
     val speccedAddress = FormComponent(
       FormComponentId("x"),
       address,
-      "l",
+      toLocalisedString("l"),
       None,
       None,
       None,
@@ -277,7 +410,7 @@ class AddressValidationSpec(implicit messages: Messages)
       false,
       true,
       false,
-      Some("New Error Message"))
+      Some(toLocalisedString("New Error Message")))
 
     val data = mkFormDataRecalculated(
       Map(
@@ -300,7 +433,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -321,7 +466,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(
@@ -339,7 +496,19 @@ class AddressValidationSpec(implicit messages: Messages)
     val address = Address(international = true)
 
     val speccedAddress =
-      FormComponent(FormComponentId("x"), address, "l", None, None, None, true, true, false, true, false, None)
+      FormComponent(
+        FormComponentId("x"),
+        address,
+        toLocalisedString("l"),
+        None,
+        None,
+        None,
+        true,
+        true,
+        false,
+        true,
+        false,
+        None)
 
     val data = mkFormDataRecalculated(
       Map(

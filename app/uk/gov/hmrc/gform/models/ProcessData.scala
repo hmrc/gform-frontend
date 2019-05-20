@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import cats.instances.int._
-import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -30,7 +29,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HeaderCarrier
-import FormDataRecalculated._
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
 
 import scala.util.Try
@@ -78,7 +76,8 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
     obligationsAction: ObligationsAction
   )(
     implicit hc: HeaderCarrier,
-    me: MonadError[F, E]
+    me: MonadError[F, E],
+    l: LangADT
   ): F[ProcessData] =
     for {
       browserRecalculated <- recalculateDataAndSections(dataRaw, cache)
@@ -109,7 +108,8 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
 
   def recalculateDataAndSections(data: Data, cache: AuthCacheWithForm)(
     implicit hc: HeaderCarrier,
-    me: MonadError[F, E]): F[(FormDataRecalculated, List[Section])] =
+    me: MonadError[F, E]
+  ): F[(FormDataRecalculated, List[Section])] =
     for {
       formDataRecalculated <- recalculation
                                .recalculateFormData(
