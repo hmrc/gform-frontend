@@ -21,19 +21,21 @@ import cats.Monoid
 import cats.data.Validated._
 import cats.data._
 import cats.implicits._
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.typeclasses.Now
-import uk.gov.hmrc.gform.validation.ComponentsValidator.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil._
-import uk.gov.hmrc.gform.validation.ComponentsValidator._
-import uk.gov.hmrc.gform.views.html.localisation
 import uk.gov.hmrc.gform.validation.DateValidationLogic._
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, messagePrefix }
+import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 import scala.util.{ Failure, Success, Try }
 
-object DateValidation {
+class DateValidation(implicit messages: Messages) {
+
+  val cvh = new ComponentsValidatorHelper()
 
   def validateDate(
     fieldValue: FormComponent,
@@ -52,9 +54,9 @@ object DateValidation {
     val validatedResult = fieldValue.mandatory match {
       case true =>
         List(
-          ComponentsValidator.validateRF(fieldValue, "day")(dateValueOf("day")),
-          ComponentsValidator.validateRF(fieldValue, "month")(dateValueOf("month")),
-          ComponentsValidator.validateRF(fieldValue, "year")(dateValueOf("year"))
+          cvh.validateRF(fieldValue, messages("date.day"))(dateValueOf("day")),
+          cvh.validateRF(fieldValue, messages("date.month"))(dateValueOf("month")),
+          cvh.validateRF(fieldValue, messages("date.year"))(dateValueOf("year"))
         )
       case false => List(().valid)
     }
@@ -62,7 +64,7 @@ object DateValidation {
   }
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
-    data: FormDataRecalculated): ValidatedType[Unit] =
+    data: FormDataRecalculated)(implicit messages: Messages): ValidatedType[Unit] =
     date.constraintType match {
 
       case AnyDate =>
@@ -280,7 +282,7 @@ object DateValidation {
         }
 
       case _ =>
-        validationFailure(formComponent, "is missing")
+        validationFailure(formComponent, messages("date.isMissing"))
     }
   }
 
@@ -294,9 +296,9 @@ object DateValidation {
     year: String): ValidatedConcreteDate = {
 
     val label = messagePrefix(formComponent, formComponentId, otherFormComponent)
-    val dayLabel = label + " " + localisation("day")
-    val monthLabel = label + " " + localisation("month")
-    val yearLabel = label + " " + localisation("year")
+    val dayLabel = label + " " + messages("date.day")
+    val monthLabel = label + " " + messages("date.month")
+    val yearLabel = label + " " + messages("date.year")
     val d = isNumeric(day, dayLabel, label)
       .andThen(y => isWithinBounds(y, 31, dayLabel))
       .leftMap(er => Map(formComponentId.withSuffix("day") -> Set(errorMessage.getOrElse(er))))

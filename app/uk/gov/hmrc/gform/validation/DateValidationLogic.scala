@@ -23,6 +23,7 @@ import cats.implicits._
 import cats.Semigroup
 import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedNumeric
 
@@ -38,19 +39,19 @@ object DateValidationLogic {
 
   def getMonthName(month: Int): String = new DateFormatSymbols().getMonths.toList(month - 1)
 
-  def ordinalAbbrev(n: Int): String = {
-    val ans = "th"
+  def ordinalAbbrev(n: Int)(implicit messages: Messages): String = {
+    val ans = messages("date.ordinal.th")
     if (n % 100 / 10 == 1) ans
     else
       (n % 10) match {
-        case 1 => "st"
-        case 2 => "nd"
-        case 3 => "rd"
+        case 1 => messages("date.ordinal.st")
+        case 2 => messages("date.ordinal.nd")
+        case 3 => messages("date.ordinal.rd")
         case _ => ans
       }
   }
 
-  def exactParameterListToString(parameters: List[ExactParameter]): String =
+  def exactParameterListToString(parameters: List[ExactParameter])(implicit messages: Messages): String =
     parameters
       .map {
         case ExactYear(year)   => year.toString
@@ -89,62 +90,64 @@ object DateValidationLogic {
   def incorrectDateMessage(
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
-    offsetDate: OffsetDate): String = {
+    offsetDate: OffsetDate)(implicit messages: Messages): String = {
 
     val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
       localDate.plusDays(offset.value.toLong).format(govDateFormat)
 
     val yearString = concreteDate.year match {
-      case ExactYear(year) if concreteDate.month == AnyMonth => s"in $year "
+      case ExactYear(year) if concreteDate.month == AnyMonth => messages("date.inYear", year.toString)
       case ExactYear(year) if concreteDate.month != AnyMonth => s"$year "
-      case Next                                              => s"in $getNextYear "
-      case Previous                                          => s"in $getPreviousYear "
+      case Next                                              => messages("date.inYear", getNextYear)
+      case Previous                                          => messages("date.inYear", getPreviousYear)
       case _                                                 => ""
     }
 
     val monthString = concreteDate.month match {
-      case ExactMonth(month) if !isExactDay(concreteDate.day)               => s"in ${getMonthName(month)} "
-      case ExactMonth(month) if isExactDay(concreteDate.day)                => s"of ${getMonthName(month)} "
-      case _ if isExactDay(concreteDate.day)                                => "of any month "
-      case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => "of the month "
+      case ExactMonth(month) if !isExactDay(concreteDate.day)               => messages("date.inMonth", getMonthName(month))
+      case ExactMonth(month) if isExactDay(concreteDate.day)                => messages("date.ofMonth", getMonthName(month))
+      case _ if isExactDay(concreteDate.day)                                => messages("date.ofAnyMonth")
+      case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => messages("date.ofTheMonth")
       case _                                                                => ""
     }
 
     val dayString = concreteDate.day match {
-      case ExactDay(day) => s"the $day${ordinalAbbrev(day)} "
-      case FirstDay      => "the first day "
-      case LastDay       => "the last day "
+      case ExactDay(day) => messages("date.exactDay", s"$day${ordinalAbbrev(day)}")
+      case FirstDay      => messages("date.firstDay")
+      case LastDay       => messages("date.lastDay")
       case _             => ""
     }
 
     val result = concreteDate match {
       case date if date.isExact =>
-        s"must be ${beforeAfterPrecisely.mkString} ${dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate)}"
-      case _ => s"must be $dayString$monthString$yearString"
+        messages(
+          s"date.${beforeAfterPrecisely.mkString}",
+          dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate))
+      case _ => messages("date.exactDate", s"$dayString $monthString $yearString")
 
     }
     result.trim
   }
 
-  def isNumeric(str: String, timeUnitLabel: String, label: String): ValidatedNumeric =
-    if (str.isEmpty) Invalid(s"$label must be entered")
+  def isNumeric(str: String, timeUnitLabel: String, label: String)(implicit messages: Messages): ValidatedNumeric =
+    if (str.isEmpty) Invalid(messages("field.error.required", label))
     else
       Try(str.toInt) match {
         case Success(x) => Valid(x)
-        case Failure(_) => Invalid(s"$timeUnitLabel must be numeric")
+        case Failure(_) => Invalid(messages("field.error.number", timeUnitLabel))
       }
 
-  def isWithinBounds(number: Int, dayOrMonth: Int, label: String): ValidatedNumeric =
+  def isWithinBounds(number: Int, dayOrMonth: Int, label: String)(implicit messages: Messages): ValidatedNumeric =
     number match {
       case x if number <= dayOrMonth => Valid(number)
-      case y if number > dayOrMonth  => Invalid(s"$label must not be greater than $dayOrMonth")
+      case y if number > dayOrMonth  => Invalid(messages("field.error.notGreaterThan", label, dayOrMonth))
     }
 
-  def hasValidNumberOfDigits(number: Int, digits: Int, label: String): ValidatedNumeric =
+  def hasValidNumberOfDigits(number: Int, digits: Int, label: String)(implicit messages: Messages): ValidatedNumeric =
     number.toString.length match {
       case x if x == digits => Valid(number)
-      case y if y != digits => Invalid(s"$label must be a $digits digit number")
+      case y if y != digits => Invalid(messages("field.error.exactDigits", label, digits))
     }
 
   def parallelWithApplicative[E: Semigroup](v1: Validated[E, Int], v2: Validated[E, Int], v3: Validated[E, Int])(

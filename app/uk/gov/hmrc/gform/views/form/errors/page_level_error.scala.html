@@ -18,9 +18,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.views.html._
 
-@(validations: List[Html], t: List[FormFieldValidationResult])
+@(validations: List[Html], t: List[FormFieldValidationResult])(implicit messages: Messages)
 
 <div
   class="error-summary@if(t.exists(_.isNotOk)) { error-summary--show}"
@@ -28,7 +27,7 @@
   role="alert"
   aria-labelledby="error-summary-heading"
   tabindex="-1">
-    <h2 id="error-summary-heading" class="heading-medium error-summary-heading">There is a problem</h2>
+    <h2 id="error-summary-heading" class="heading-medium error-summary-heading">@messages("error.summary.heading")</h2>
 
     <ul class="error-summary-list">
         @for(error <- validations) {

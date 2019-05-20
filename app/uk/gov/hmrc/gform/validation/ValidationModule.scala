@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.validation
 
+import play.api.i18n.Messages
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule

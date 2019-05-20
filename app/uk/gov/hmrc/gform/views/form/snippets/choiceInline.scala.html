@@ -19,17 +19,15 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@import uk.gov.hmrc.gform.views.html._
-@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
 @(
-fieldValue: FormComponent,
-options: NonEmptyList[String],
-prepop: Set[String],
-validationResult: Option[FormFieldValidationResult],
-optionHelpText: List[Html],
-index: Int,
-sectionTitle: String
+  fieldValue: FormComponent,
+  options: NonEmptyList[String],
+  prepop: Set[String],
+  validationResult: Option[FormFieldValidationResult],
+  optionHelpText: List[Html],
+  index: Int,
+  sectionTitle: String
 )
 
 @hasErrors = @{
@@ -40,10 +38,12 @@ sectionTitle: String
   <div class="choice-list">
     <div class="choice-list__item">
       <div class="choice-list__item__label">
-        <h2 class="form-label">@{LabelHelper.buildRepeatingLabel(fieldValue, index)}</h2>
+        <h2 class="form-label">
+          @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
+        </h2>
 
-        @if(fieldValue.helpText) {
-        <div class="form-field--hint">@localisation(fieldValue.helpText.getOrElse(""))</div>
+        @if(fieldValue.helpText.isDefined) {
+          <div class="form-field--hint">@fieldValue.helpText.getOrElse("")</div>
         }
 
         @if(hasErrors) {

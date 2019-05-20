@@ -14,22 +14,16 @@
  * limitations under the License.
  *@
 
-@import cats.data.NonEmptyList
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@import uk.gov.hmrc.gform.views.html._
 
-
-@import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@(groupId: FormComponentId,
-groupLabel: String,
-optionElements: Html,
-dataEntered: Boolean
+@(
+  groupId: FormComponentId,
+  groupLabel: String,
+  optionElements: Html,
+  dataEntered: Boolean
 )
-
 
 @id(groupId: FormComponentId) = @{ "removeOnClick"+groupId.toString + "()"}
 
@@ -39,7 +33,7 @@ dataEntered: Boolean
              name="@{groupId}"
              value=""
              type="checkbox"
-             @if(dataEntered) {checked}
+             @if(dataEntered) {checked="checked"}
              onchange="@id(groupId)" />
       <label for="@{groupId}">@groupLabel</label>
   </div>

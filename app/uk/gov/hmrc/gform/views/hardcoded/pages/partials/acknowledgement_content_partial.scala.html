@@ -14,24 +14,14 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.LabelHelper
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import java.time.LocalDate
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.InfoType
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.StandardInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.LongInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ImportantInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.BannerInfo
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AckSection
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.models._
+@(ackSection: AckSection)
 
-@import views.html.helper.CSRF
+<h2 class="heading-medium">
+ @{ackSection.title}
+</h2>
 
-@(ackSection: AckSection)(implicit request: Request[_], messages: Messages)
-
-<h2 class="heading-medium">@{ackSection.title}</h2>
-<p>@{ackSection.content}</p>
+<p>
+ @{ackSection.content}
+</p>

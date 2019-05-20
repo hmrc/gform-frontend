@@ -20,23 +20,22 @@
 @import uk.gov.hmrc.gform.models.{AgentAccessCode, _}
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-        formTemplate: FormTemplate,
-        accessCodeForm: play.api.data.Form[uk.gov.hmrc.gform.gform.AccessCodeForm],
-        lang: Option[String],
-        frontendAppConfig: FrontendAppConfig
+  formTemplate: FormTemplate,
+  accessCodeForm: play.api.data.Form[uk.gov.hmrc.gform.gform.AccessCodeForm],
+  lang: Option[String],
+  frontendAppConfig: FrontendAppConfig
 )(
-        implicit
-        request: Request[_],
-        messages: Messages
+  implicit
+  request: Request[_],
+  messages: Messages
 )
 
-@formCat = @{formCategory(formTemplate)}
-@heading = @{localisation(formTemplate.formName)}
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@heading = @{formTemplate.formName}
 @hasErrors = @{accessCodeForm.hasGlobalErrors | accessCodeForm.hasErrors}
 @optionValue = @{accessCodeForm(AgentAccessCode.optionKey).value.getOrElse("")}
 @accessCodeValue = @{accessCodeForm(AgentAccessCode.key).value.getOrElse("")}
@@ -44,14 +43,13 @@
 @accessCodeError = @{accessCodeForm.error(AgentAccessCode.key)}
 
 
-
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig,
-    containsErrors = hasErrors,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  frontendAppConfig = frontendAppConfig,
+  containsErrors = hasErrors,
+  authConfig = Some(formTemplate.authConfig)
 ) {
 
   @if(hasErrors) {
@@ -62,9 +60,13 @@
     @heading
   </h1>
 
-  <p>@localisation(s"Each time you start a new​ ​$formCat for this service​ you’ll be given a temporary access key.")</p>
+  <p>
+    @messages("accessCode.p1", formCat).
+  </p>
 
-  <p>@localisation(s"You can start and save one or more ​${formCat}s and come back to work on them later. You’ll be asked for a temporary access key when you come back to work on a ​$formCat you’ve saved.")</p>
+  <p>
+    @messages("accessCode.p2", formCat).
+  </p>
 
   <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id, lang)}" method="POST" novalidate="novalidate">
 
@@ -74,7 +76,7 @@
 
       <legend>
         <h2>
-          @localisation(s"Do you want to start a new ​​$formCat or continue working on a saved ​​$formCat (if you have one)?")
+          @messages("accessCode.p3", formCat)
         </h2>
       </legend>
 
@@ -82,7 +84,7 @@
 
         @if(accessCodeForm.error(AgentAccessCode.optionKey).nonEmpty){
           <span class="error-message" id="@{AgentAccessCode.optionKey}-inline-error">
-            @Messages(s"${optionError.get.key}.${optionError.get.message}", formCat)
+            @messages(s"${optionError.get.key}.${optionError.get.message}", formCat)
           </span>
         }
 
@@ -98,7 +100,7 @@
               }
           >
           <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionNew}">
-          @localisation(s"Start a new $formCat")
+            @messages("accessCode.startNew", formCat)
           </label>
         </div>
 
@@ -115,21 +117,21 @@
             }
           >
           <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}">
-            @localisation(s"Continue working on a saved $formCat")
+            @messages("accessCode.useExisting", formCat)
           </label>
 
         </div>
         <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AgentAccessCode.key}-container">
           <div class="form-group">
             <label for="@{AgentAccessCode.key}" class="form-label">
-            @localisation("Enter temporary access key")
+              @messages("accessCode.enterKey")
             </label>
             <span class="form-hint">
-            @localisation("For example, A12-B456-8ZZ")
+              @messages("accessCode.keyHintText")
             </span>
             @if(accessCodeError.nonEmpty) {
               <span class="error-message" id="@{AgentAccessCode.key}-inline-error">
-              @Messages(s"${accessCodeError.get.key}.${accessCodeError.get.message}")
+                @messages(s"${accessCodeError.get.key}.${accessCodeError.get.message}")
               </span>
             }
             <input
@@ -142,23 +144,25 @@
 
           <details class="details" role="group">
             <summary class="summary">
-              <span>@localisation("Help with temporary access key")</span>
+              <span>
+                @messages("accessCode.help.title")
+              </span>
             </summary>
             <div class="panel-indent">
               <p>
-                @localisation(s"You were given a temporary access key when you started or saved a $formCat for this service.")
+                @messages("accessCode.help.p1", formCat).
               </p>
 
               <p>
-                @localisation(s"You can use a temporary access key to continue working on a $formCat that you’ve saved. It is valid for 28 days and cannot be used to access a submitted $formCat.")
+                @messages("accessCode.help.p2", formCat).
               </p>
 
               <p>
-                @localisation(s"A temporary access key has 12 characters including letters, numbers and hyphens. For example, A12-B456-8ZZ")
+                @messages("accessCode.help.p3")
               </p>
 
               <p>
-                @localisation(s"If you've lost your temporary access key, you’ll need to start your $formCat again.")
+                @messages("accessCode.help.p4", formCat).
               </p>
 
             </div>
@@ -170,7 +174,7 @@
     </fieldset>
 
     <div class="form-group">
-      <input type="submit" class="button" value="@localisation("Continue")" />
+      <input type="submit" class="button" value="@{messages("button.continue")}" />
     </div>
 
   </form>

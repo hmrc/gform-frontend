@@ -21,6 +21,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import org.scalatest.mockito.MockitoSugar.mock
+import play.api.i18n.Messages
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
@@ -33,11 +34,11 @@ import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, NotChecked }
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
 
-class SectionRenderingServiceSpec extends SpecWithFakeApp {
+class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithFakeApp {
 
   implicit val request =
     FakeRequest().copyFakeRequest(tags = Map("CSRF_TOKEN_NAME" -> "csrfToken", "CSRF_TOKEN" -> "o'ight mate?"))
-  implicit val messages = mock[play.api.i18n.Messages]
+
   val retrievals = authContext
 
   val testService = new SectionRenderingService(frontendAppConfig)

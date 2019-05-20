@@ -21,6 +21,7 @@ import net.ceedubs.ficus.Ficus._
 import play.api.{ Configuration, Environment }
 import play.api.Mode.Mode
 import play.api.i18n.Lang
+import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.config.{ ControllerConfig, ServicesConfig }
 
@@ -56,6 +57,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
   }
 
   val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
+  def routeToSwitchLanguage: String => Call =
+    (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage(lang)
 
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
@@ -84,7 +87,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
         getJSConfig("auth-module.legacyEEITTAuth"),
         getJSConfig("auth-module.hmrc"),
         getJSConfig("auth-module.anonymous")),
-      availableLanguages = availableLanguages
+      availableLanguages = availableLanguages,
+      routeToSwitchLanguage = routeToSwitchLanguage
     )
   }
 }

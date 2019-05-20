@@ -17,7 +17,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form.FormId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormCategory}
-@import uk.gov.hmrc.gform.views.html.localisation
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
@@ -31,14 +30,13 @@
     renderComeBackLater: Boolean,
     continueLabel: String,
     frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_],
-        messages: Messages
-)
-@heading = @{"Check your answers"}
+)(implicit request: Request[_], messages: Messages)
+
+@heading = @{messages("summary.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
-    serviceName = localisation(formTemplate.formName),
+    serviceName = formTemplate.formName,
     developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
     bodyClasses = None,
     frontendAppConfig = frontendAppConfig,
@@ -51,7 +49,7 @@
         HM Revenue &amp; Customs
       </span>
       <h1>
-        @{localisation(formTemplate.formName)}
+        @{formTemplate.formName}
       </h1>
     </div>
 
@@ -60,7 +58,7 @@
         @heading
       </h1>
       <p>
-        Make sure that the information you have given is correct before submitting your @{formCategory.getString}.
+        @messages("summary.intro", formCategory.getString)
       </p>
     </div>
 
@@ -71,13 +69,13 @@
 
         <div class="print-hidden">
           <h2>
-            Now send your @{formCategory.getString}
+            @messages("summary.nowSend", formCategory.getString)
           </h2>
           <p>
-            You can print this summary page then come back later to complete your @{formCategory.getString}.
+            @messages("summary.printMsg", formCategory.getString).
           </p>
           <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode, lang).url">Print this summary page</a>
+            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode, lang).url">@messages("summary.printLinkText")</a>
           </p>
         </div>
 
@@ -85,14 +83,14 @@
 
         <div class="print-hidden">
             <div class="form-group">
-                <button type="submit" class="button" value="Declaration">@continueLabel</button>
+                <button type="submit" class="button" value="Declaration">@messages("button.continue")</button>
             </div>
             <div class="js-visible">
-		@if(renderComeBackLater) {
-		  <div class="form-group">
-		    <a href="#" id="saveComeBackLaterExit">Save and come back later</a>
-                  </div>
-		}
+              @if(renderComeBackLater) {
+                <div class="form-group">
+                  <a href="#" id="saveComeBackLaterExit">@messages("generic.saveAndComeBackLater")</a>
+                </div>
+              }
             </div>
         </div>
     </form>

@@ -22,7 +22,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Orientation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import play.twirl.api.Html
 
@@ -57,7 +56,7 @@ formLevelHeading: Boolean
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id.value}-hint">@localisation(fieldValue.helpText.getOrElse(""))</span>
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">@fieldValue.helpText.getOrElse("")</span>
         }
 
         @inline_error_map(fieldValue, validationResult)

@@ -14,51 +14,35 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.gform.FormRender
 @import uk.gov.hmrc.gform.ops.FormComponentOps
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import uk.gov.hmrc.gform.views.html.form.snippets.hidden_field_populated
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import java.text.NumberFormat
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 @import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 
 @(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)
+
 @validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
-@validatedSterling = @{
-    val currentSter = toBigDecimalDefault(validatedValue)
-    currencyFormat.format(currentSter)
-}
+@currentSterling = @{ toBigDecimalDefault(validatedValue) }
+@validatedSterling = @{ currencyFormat.format(currentSterling) }
+@label = @{LabelHelper.buildRepeatingLabel(fieldValue, index)}
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
-
   @inline_error_map(fieldValue, validationResult)
+  <span class="heading-small" aria-live="polite">
+    @if(label.nonEmpty) { label } else { fieldValue.label }
 
-    <div class="form-group">
-        <span class="heading-small" aria-live="polite">
-              @if(localisation(LabelHelper.buildRepeatingLabel(fieldValue, index)).nonEmpty) {
-                  @localisation(LabelHelper.buildRepeatingLabel(fieldValue, index))
-              } else {
-                @(fieldValue.label)
-              }
-
-              <span id="@{fieldValue.id}-total">
-                      @if(fieldValue.isSterling){
-                          @validatedSterling
-                      } else {
-                          @validatedValue
-                      }
-              </span>
-                  @(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop.getOrElse("")))))
-                  @if(!fieldValue.isSterling){@TextFormatter.appendUnit(text.constraint)}
-            </span>
-        </div>
-    </div>
+    <span id="@{fieldValue.id}-total">
+      @if(fieldValue.isSterling){ validatedSterling } else { validatedValue }
+    </span>
+    @if(!fieldValue.isSterling){ TextFormatter.appendUnit(text.constraint) }
+  </span>
+  @(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop.getOrElse("")))))
+</div>

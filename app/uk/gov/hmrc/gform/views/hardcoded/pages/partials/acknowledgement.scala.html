@@ -16,60 +16,69 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormCategory, FormTemplate, ResearchBanner}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.submission.SubmissionRef
+@import uk.gov.hmrc.gform.models.SectionRenderingInformation
 
-@(timeMessage: String,
-        supportContents: SectionRenderingInformation,
-        formCategory: FormCategory,
-        formTemplate: FormTemplate,
-        lang: Option[String],
-        eventId: String,
-        frontendAppConfig: FrontendAppConfig
+@(
+  timeMessage: String,
+  supportContents: SectionRenderingInformation,
+  formCategory: FormCategory,
+  formTemplate: FormTemplate,
+  lang: Option[String],
+  eventId: String,
+  frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages)
 
-@heading = @{"Your " + formCategory.getString + " has been submitted"}
+@heading = @{messages("ack.title", formCategory.getString)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    bodyClasses = None,
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    webChat = formTemplate.webChat
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  bodyClasses = None,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  webChat = formTemplate.webChat
 ) {
 
   <div class="govuk-box-highlight">
-    <h1 class="bold-medium ack-header">@heading</h1>
+
+    <h1 class="bold-medium ack-header">
+      @heading
+    </h1>
 
     <p class="ack-subheader">
-        Your submission reference is
+        @messages("ack.submissionReference")
         <span class="submission-reference">
           @{SubmissionRef(supportContents.envelopeId).toString}
         </span>
     </p>
+
   </div>
 
   <p>
-    We have sent you a confirmation email.
+    @messages("ack.sentEmail").
   </p>
 
   <p>
-      <a
-        href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, lang, eventId).url"
-        class="print-link print-hidden js-visible">
-          Print your @{formCategory.getString}
-      </a>
+    <a
+      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, lang, eventId).url"
+      class="print-link print-hidden js-visible">
+        @messages("ack.pdfLink", formCategory.getString)
+    </a>
   </p>
-  <h2 class="heading-medium">What happens next</h2>
 
-@{
-    supportContents.snippets
-}
+  <h2 class="heading-medium">
+    @messages("ack.whatHappensNext")
+  </h2>
 
-  <h2 class="heading-medium">Before you go</h2>
+  @{supportContents.snippets}
+
+  <h2 class="heading-medium">
+    @messages("ack.beforeYouGo")
+  </h2>
+
   <p>
-    We use feedback to make our services better. Please take the <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">feedback survey</a> now.
+    @messages("ack.feedbackText1") <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a> @messages("ack.feedbackText2").
   </p>
 }

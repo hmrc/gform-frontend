@@ -18,91 +18,83 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.views.html._
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
 
 @(
-        formTemplate: FormTemplate,
-        pageLevelError: HasErrors,
-        page: SectionRenderingInformation,
-        shouldDisplayBack: Boolean,
-        shouldDisplayHeading: Boolean,
-        shouldDisplayContinue: Boolean,
-        frontendAppConfig: FrontendAppConfig,
-        isDeclaration: Boolean = false
+  formTemplate: FormTemplate,
+  pageLevelError: HasErrors,
+  page: SectionRenderingInformation,
+  shouldDisplayBack: Boolean,
+  shouldDisplayHeading: Boolean,
+  shouldDisplayContinue: Boolean,
+  frontendAppConfig: FrontendAppConfig,
+  isDeclaration: Boolean = false
 )(
-        implicit
-        request: Request[_], //required by CSRF.formField
-        messages: Messages
+  implicit
+  request: Request[_], //required by CSRF.formField
+  messages: Messages
 )
 
-@heading = @{localisation(page.sectionTitle)}
+@heading = @{page.sectionTitle}
 
 @backLink = {
-    @if(isDeclaration) {
-        <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back" >Back</a>
-    } else {
-        <a href="#" class="link-back js-visible" id="backButton">Back</a>
-    }
+  @if(isDeclaration) {
+    <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back">@messages("linkText.back")</a>
+  } else {
+    <a href="#" class="link-back js-visible" id="backButton">@messages("linkText.back")</a>
+  }
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = localisation(formTemplate.formName),
-    containsErrors = pageLevelError.hasErrors,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    webChat = formTemplate.webChat
+  title = heading,
+  serviceName = formTemplate.formName,
+  containsErrors = pageLevelError.hasErrors,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  webChat = formTemplate.webChat
 ) {
 
-    @if(shouldDisplayBack) {
-        @backLink
-    }
+    @if(shouldDisplayBack) { @backLink }
 
     @pageLevelError.render
 
     @if(page.progressIndicator.isDefined){
-      <span id="progress-indicator" class="heading-caption">@localisation(page.progressIndicator.get)</span>
+      <span id="progress-indicator" class="heading-caption">@{page.progressIndicator.get}</span>
     }
 
     @if(shouldDisplayHeading) {
-      <h1 class="h1-heading form-title">@heading</h1>
+      <h1 class="h1-heading form-title">
+        @heading
+      </h1>
       @if(page.sectionDescription.exists(_.trim.nonEmpty)){
-        <p class="page-description">@localisation(page.sectionDescription.get)</p>
+        <p class="page-description">@{page.sectionDescription.get}</p>
       }
     }
 
     <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="on" novalidate="novalidate" id="gf-form">
-        @{
-            CSRF.formField
-        }
+      @{CSRF.formField}
 
-      	@{
-      	    page.snippets
-      	}
+      @{page.snippets}
 
-      	@{
-      	    page.hiddenFieldsSnippets
-      	}
+      @{page.hiddenFieldsSnippets}
 
-        <input type="hidden" id="gform-action" name="save" value="Continue" />
+      <input type="hidden" id="gform-action" name="save" value="Continue" />
 
-
-        @if(shouldDisplayContinue) {
-          <div class="form-group">
-              <button type="submit" class="button" value="Continue">@page.continueLabel</button>
-          </div>
-	}
-        <div class="js-visible">
-          @if(page.renderComeBackLater) {
-          <div class="form-group">
-              <a href="#" id="saveComeBackLater">Save and come back later</a>
-          </div>
-          }
+      @if(shouldDisplayContinue) {
+        <div class="form-group">
+            <button type="submit" class="button" value="Continue">@messages("button.saveAndContinue")</button>
         </div>
+      }
+      <div class="js-visible">
+        @if(page.renderComeBackLater) {
+          <div class="form-group">
+            <a href="#" id="saveComeBackLater">@messages("linkText.saveAndComeBackLater")</a>
+          </div>
+        }
+      </div>
     </form>
 
     <script type="text/javascript">

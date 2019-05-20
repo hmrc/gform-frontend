@@ -14,22 +14,22 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.views.hardcoded.pages.formCategory
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-        formTemplate: FormTemplate,
-        frontendAppConfig: FrontendAppConfig,
-        url: String
+  formTemplate: FormTemplate,
+  frontendAppConfig: FrontendAppConfig,
+  url: String
 )(
-        implicit
-        request: Request[_],
-        messages: Messages
+  implicit
+  request: Request[_],
+  messages: Messages
 )
 
-@heading = @{"Create an agent services account to access this service"}
-@formCat = @{formCategory(formTemplate)}
+@heading = @{messages("agentsPrologue.title")}
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
@@ -38,21 +38,19 @@
     frontendAppConfig = frontendAppConfig,
     authConfig = Some(formTemplate.authConfig)
 ) {
-
   <h1>
     @heading
   </h1>
   <p>
-    Before you can start your @formCat for '@{formTemplate.formName}' you will need to create an agent services account. You can do this now.
+    @messages("agentsPrologue.p1", formCat, formTemplate.formName).
   </p>
   <p class="panel">
-    You need to be the person responsible for your firm’s administrative matters. The account gives you administrative control over your firm's access to new HMRC online services.
+    @messages("agentsPrologue.p2").
   </p>
   <p>
-    Once you have created your agent services account, you can carry on with your @formCat.
+    @messages("agentsPrologue.p3", formCat).
   </p>
   <p>
-    <a class="button" role="button" href="@url">Create an agent services account</a>
+    <a class="button" role="button" href="@url">@messages("agentsPrologue.linkText")</a>
   </p>
-
 }

@@ -19,12 +19,15 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
-@import uk.gov.hmrc.gform.views.html.localisation
 @import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html, maybeObligationDetail: Option[ObligationDetail])
-
+@(
+ fieldValue: FormComponent,
+ validationResult: Option[FormFieldValidationResult],
+ changeButton: Html,
+ maybeObligationDetail: Option[ObligationDetail]
+)(implicit messages: Messages)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
@@ -33,12 +36,12 @@
 
 <div>
     <dt class="cya-question@if(hasErrors) { summary--error}">
-        @localisation(fieldValue.shortName.getOrElse(fieldValue.label))
+        @fieldValue.shortName.getOrElse(fieldValue.label)
     </dt>
     <dd class="cya-answer">
         @{maybeObligationDetail.fold("Value Lost!") { od =>
-            localisation("From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
-            localisation("to")   + " " + formatDate(od.inboundCorrespondenceToDate)
+            messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
+            messages("generic.to")   + " " + formatDate(od.inboundCorrespondenceToDate)
         }}
     </dd>
     <dd class="cya-change">

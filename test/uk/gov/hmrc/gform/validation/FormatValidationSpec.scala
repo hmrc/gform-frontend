@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.validation
 
 import cats.instances.future._
 import org.scalatest.mockito.MockitoSugar.mock
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.sharedmodel.ExampleData
@@ -26,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-class FormatValidationSpec extends Spec with GraphSpec {
+class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphSpec {
 
   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest(
     "12345678910",

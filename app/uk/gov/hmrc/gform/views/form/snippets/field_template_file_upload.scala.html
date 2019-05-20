@@ -34,10 +34,10 @@
   index: Int,
   formMaxAttachmentSizeMB: Int,
   lang: Option[String]
-)
+)(implicit messages: Messages)
 
 @label = @{
-  if (fieldValue.label.nonEmpty) { fieldValue.label } else { "Upload a file" }
+  if (fieldValue.label.nonEmpty) { fieldValue.label } else { messages("file.upload") }
 }
 
 @currentValue = @{
@@ -89,8 +89,8 @@
         data-file-id="@fileId"
         data-form-id="@templateId"
         data-access-code="@accessCode">
-        <span aria-hidden="true">Delete</span>
-        <span class="visuallyhidden">Delete @cv</span>
+        <span aria-hidden="true">@messages("file.delete")</span>
+        <span class="visuallyhidden">@messages("file.delete.file", cv)</span>
       </a>
     }
   </div>

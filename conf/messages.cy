@@ -7,13 +7,13 @@ linkText.saveAndComeBackLater=Save and come back later
 linkText.back=Back
 linkText.removeRepeatedGroup=Remove {0}
 linkText.addRepeatingGroup=Add another
-linkText.signOut=Sign out
+linkText.signOut=Allgofnodi
 
-button.continue=Continue
-button.saveAndContinue=Save and continue
+button.continue=Parhau
+button.saveAndContinue=Arbed a pharhau
 
 # Error summary
-error.summary.heading=There is a problem
+error.summary.heading=Mae problem
 
 # Generic words
 generic.From=From
@@ -25,18 +25,18 @@ generic.Warning=Warning
 # Form categories
 formCategory.form=form
 formCategory.return=return
-formCategory.claim=claim
+formCategory.claim=hawliad
 
 
 # Field labelled errors
-field.error.required={0} must be entered
+field.error.required={0} rhaid ei gofnodi
 field.error.number={0} must be a number
 field.error.exactDigits={0} must be a {1} digit number
 field.error.notGreaterThan={0} must not be greater than {1}
-choice.error.required=must be selected
+choice.error.required={0} must be selected
 
 # Generic error suffixes
-generic.error.required=must be entered
+generic.error.required=rhaid ei gofnodi
 generic.error.upload=must be uploaded
 generic.error.virus=has a virus detected
 generic.error.unknownUpload=has an unknown error from file upload
@@ -52,13 +52,13 @@ generic.error.maxWhole=must be at most {0} whole digits
 generic.error.wholeNumber=must be a whole number
 generic.error.maxDecimals=must be no more than {0} decimal places
 generic.error.invalid=is not valid
-generic.vrn.error.pattern=must be 9 numbers with GB at the start, for example GB123456789
-generic.eori.error.pattern=must be between 7 and 15 numbers and start with your country code, for example GB164538549000
-generic.crn.error.invalid=must be either 8 numbers or 6 numbers with 2 letters at the start, for example 01234567 or SC123456
-generic.nonUKCountryCode.error.pattern=must be entered in the correct format, for example FR
-generic.countryCode.error.pattern=must be entered in the correct format, for example FR
-generic.governmentId.error.pattern=must be entered in the correct format
-generic.error.sortcode=must be entered as 3 sets of 2 numbers, for example 07 00 00
+generic.vrn.error.pattern=is not a valid VRN
+generic.eori.error.pattern=is not a valid EORI number
+generic.crn.error.invalid=is not a valid Company Registration Number
+generic.nonUKCountryCode.error.pattern=is not a valid non UK country code
+generic.countryCode.error.pattern=is not a valid country code
+generic.governmentId.error.pattern=is not valid
+generic.error.sortcode=must be entered as 3 sets of 2 numbers
 generic.error.exactNumbers=must be {0} numbers
 
 generic.shortText.error.pattern=can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
@@ -81,11 +81,11 @@ user.recruitment.dismiss=No thanks
 decision.error.required=Select whether you would like to continue with your existing {0} or delete and start again
 
 # UK Address
-ukAddress.line1=Building and street
-ukAddress.line2=Building and street line 2 (optional)
-ukAddress.line3=Town or city (optional)
-ukAddress.line4=County (optional)
-ukAddress.postcode=Postcode
+ukAddress.line1=Adeilad a stryd
+ukAddress.line2=Adeilad a llinell stryd 2 (dewisol)
+ukAddress.line3=Tref neu ddinas (dewisol)
+ukAddress.line4=Sir (dewisol)
+ukAddress.postcode=Cod post
 ukAddress.line1.label=building and street
 ukAddress.line2.label=building and street line 2
 ukAddress.line3.label=town or city
@@ -118,7 +118,7 @@ address.line.error.maxLength=line {0} must be no more than {1} characters
 date.day=day
 date.month=month
 date.year=year
-date.Day=Day
+date.Day=Dydd
 date.Month=Month
 date.Year=Year
 date.ordinal.th=th
@@ -197,9 +197,9 @@ accessCode.exit=exit this page
 accessCode.workOnAnother=work on another {0}
 
 # Continue or delete page
-continueDelete.title=Would you like to continue your {0} or start again?
-continueDelete.continue=Continue my {0}
-continueDelete.delete=Delete my details and start again
+continueDelete.title=A hoffech chi barhau â’ch {0} neu dechreuwch eto?
+continueDelete.continue=Parhau â’m {0}
+continueDelete.delete=Dileu fy manylion a dechrau eto
 
 # Agent services prologue
 agentsPrologue.title=Create an agent services account to access this service
@@ -209,5 +209,5 @@ agentsPrologue.p3=Once you have created your agent services account, you can car
 agentsPrologue.linkText=Create an agent services account
 
 # Web chat
-webchat.title=Webchat service
-webchat.chatOnline=Chat online with an advisor
+webchat.title=Gwasanaeth gwe-sgwrs
+webchat.chatOnline=Sgwrsiwch ar-lein gyda chynghorydd

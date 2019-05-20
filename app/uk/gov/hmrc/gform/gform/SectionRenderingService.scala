@@ -212,7 +212,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
   private def generatePageLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
     globalErrors: List[Html]
-  ): HasErrors = {
+  )(implicit messages: Messages): HasErrors = {
 
     val allValidationResults = listValidation.flatMap {
       case componentField: ComponentField => parseFormFieldValidationResult(componentField)
@@ -470,8 +470,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       case Date(_, offset, dateValue) =>
         htmlForDate(fieldValue, offset, dateValue, index, maybeValidated, ei, data, isHidden)
       case Address(international) => htmlForAddress(fieldValue, international, index, maybeValidated, ei, data)
-      case t @ Text(_, _, _, _)   => renderText(t, fieldValue, index, maybeValidated, ei, data, isHidden)
-      case t @ TextArea(_, _, _)  => renderTextArea(t, fieldValue, index, maybeValidated, ei, data, isHidden)
+      case t @ Text(_, _, _, _)   => renderText(messages)(t, fieldValue, index, maybeValidated, ei, data, isHidden)
+      case t @ TextArea(_, _, _)  => renderTextArea(messages)(t, fieldValue, index, maybeValidated, ei, data, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(
           fieldValue,
@@ -499,7 +499,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     validatedType: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     obligations: Obligations,
-    hmrcTP: HmrcTaxPeriod) = {
+    hmrcTP: HmrcTaxPeriod)(implicit messages: Messages) = {
 
     val taxPeriodOptions: List[OptionParams] = obligations match {
       case RetrievedObligations(listOfObligations) =>
@@ -524,7 +524,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     infoType: InfoType,
     infoText: String,
     index: Int,
-    ei: ExtraInfo) = {
+    ei: ExtraInfo)(implicit messages: Messages) = {
     val parsedMarkdownText = markDownParser(infoText)
     val parsedContent = htmlBodyContents(parsedMarkdownText)
     html.form.snippets.field_template_info(fieldValue, infoType, Html(parsedContent), index)
@@ -538,7 +538,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     data: FormDataRecalculated,
     materialisedRetrievals: MaterialisedRetrievals,
     validatedType: ValidatedType[ValidationResult],
-    lang: Option[String]) = {
+    lang: Option[String])(implicit messages: Messages) = {
     val validationResult = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
 
     html.form.snippets.field_template_file_upload(
@@ -578,7 +578,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     index: Int,
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
-    data: FormDataRecalculated) = {
+    data: FormDataRecalculated)(implicit messages: Messages) = {
 
     def addTargetToLinks(html: String) = {
       val doc = Jsoup.parse(html)
@@ -645,13 +645,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
   private type RenderTemplate[T] =
     (FormComponent, T, Option[String], Option[FormFieldValidationResult], Int, String, Boolean) => Html
 
-  private def renderTextArea =
+  private def renderTextArea(implicit messages: Messages) =
     renderField[TextArea](
       html.form.snippets.field_template_textarea.apply _,
       html.form.snippets.field_template_textarea.apply _
     ) _
 
-  private def renderText =
+  private def renderText(implicit messages: Messages) =
     renderField[Text](
       html.form.snippets.field_template_text_total.apply _,
       html.form.snippets.field_template_text.apply _
@@ -668,7 +668,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     ei: ExtraInfo,
     data: FormDataRecalculated,
     isHidden: Boolean
-  ) = {
+  )(implicit messages: Messages) = {
     val prepopValue = ei.fieldData.data.get(fieldValue.id).flatMap(_.headOption)
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     if (isHidden)
@@ -693,7 +693,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    isHidden: Boolean) = {
+    isHidden: Boolean)(implicit messages: Messages) = {
     val prepopValue = ei.fieldData.data.get(fieldValue.id).flatMap(_.headOption).getOrElse("")
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     if (isHidden)
@@ -711,7 +711,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     index: Int,
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
-    data: FormDataRecalculated) = {
+    data: FormDataRecalculated)(implicit messages: Messages) = {
     val fieldValues = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     html.form.snippets
       .field_template_address(international, fieldValue, fieldValues, index, ei.section.title, ei.formLevelHeading)
@@ -725,7 +725,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    isHidden: Boolean = false) = {
+    isHidden: Boolean = false)(implicit messages: Messages) = {
     val prepopValues: Option[DateExpr] = dateValue.map(DateExpr.fromDateValue).map(DateExpr.withOffset(offset, _))
 
     if (isHidden) {
@@ -826,7 +826,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
     ei: ExtraInfo,
     data: FormDataRecalculated,
     lang: Option[String],
-    obligations: Obligations)(implicit request: Request[_], messsages: Messages): (List[Html], Boolean) =
+    obligations: Obligations)(implicit request: Request[_], messages: Messages): (List[Html], Boolean) =
     if (groupField.repeatsMax.isDefined) {
       val (groupList, isLimit) = getRepeatingGroupsForRendering(fieldValue, groupField, ei.fieldData)
       val gl: List[GroupList] = groupList

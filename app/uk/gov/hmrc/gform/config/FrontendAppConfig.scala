@@ -31,5 +31,6 @@ case class FrontendAppConfig(
   googleTagManagerIdAvailable: Boolean,
   googleTagManagerId: String,
   authModule: AuthModule,
-  availableLanguages: Map[String, Lang]
+  availableLanguages: Map[String, Lang],
+  routeToSwitchLanguage: String => play.api.mvc.Call
 )
