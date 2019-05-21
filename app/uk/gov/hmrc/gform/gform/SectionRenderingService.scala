@@ -48,7 +48,6 @@ import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, Se
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, SimpleGN }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
