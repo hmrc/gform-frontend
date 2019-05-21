@@ -546,12 +546,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig)(
       ei.maybeAccessCode,
       formTemplateId,
       ei.sectionNumber,
-      sectionTitle4GaFactory(ei.formTemplate.sections(ei.sectionNumber.value).title),
       fieldValue,
       validationResult,
       index,
-      ei.formMaxAttachmentSizeMB,
-      lang
+      ei.formMaxAttachmentSizeMB
     )
   }
 
