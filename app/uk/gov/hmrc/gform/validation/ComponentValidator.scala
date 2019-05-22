@@ -42,18 +42,18 @@ object ComponentValidator {
     fieldValue: FormComponent,
     lookupRegistry: LookupRegistry,
     register: Register,
-    lookupLabel: LookupLabel) = {
+    lookupLabel: LookupLabel)(implicit messages: Messages) = {
 
     def existsLabel(options: Map[LookupLabel, LookupId]) =
       if (options.contains(lookupLabel))
         validationSuccess
       else
-        validationFailure(fieldValue, lookupLabel.label + " is invalid")
+        validationFailure(fieldValue, messages("generic.error.lookup", lookupLabel.label))
 
     lookupRegistry.get(register) match {
       case Some(AjaxLookup(options, _, _)) => existsLabel(options)
       case Some(RadioLookup(options))      => existsLabel(options)
-      case None                            => validationFailure(fieldValue, "Invalid register " + register)
+      case None                            => validationFailure(fieldValue, messages("generic.error.registry", register))
     }
   }
 

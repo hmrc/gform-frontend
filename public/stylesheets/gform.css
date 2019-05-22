@@ -28,10 +28,33 @@ input:focus, textarea:focus, select:focus, #global-header input:focus {
   margin-top: 0;
 }
 
+.lookup {
+  width: 100%;
+}
+
+.lookup input[type="text"] {
+  width: 100%;
+}
+
+.lookup[data-show-all="true"] .autocomplete__dropdown-arrow-down {
+  z-index: 0 !important;
+}
+
+.lookup[data-show-all="false"] .autocomplete__dropdown-arrow-down {
+  z-index: -1 !important;
+}
+
+.autocomplete__option {
+  font-family: "nta", Arial, sans-serif;
+}
+
 /* Generic page styles */
 @media (min-width: 641px) {
   .content__body .page-description {
     margin-bottom: 25px;
+  }
+  .lookup {
+    width: 50%;
   }
 }
 

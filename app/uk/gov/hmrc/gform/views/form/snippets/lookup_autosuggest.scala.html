@@ -31,11 +31,23 @@
   index: Int
 )
 
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
+}
+
+@formGroupClass = @{
+  if(hasErrors) "form-group form-group-error"
+  else "form-group"
+}
+
+
 @display(fcId: FormComponentId) = {
   <label class="@{if(formLevelHeading) { "form-label" } else { "h1-heading" }}" for="@fcId.value">
     @LabelHelper.buildRepeatingLabel(fieldValue, index)
   </label>
 }
+
+  <div class="@formGroupClass">
 
 @defining(fieldValue.id, prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")) { case (fcId, prepopValue) =>
 
@@ -58,5 +70,5 @@
     data-formTemplateId="@formTemplateId.value"
     data-show-all="@showAll.enabled">
   </div>
-
 }
+  </div>
