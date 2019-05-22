@@ -61,7 +61,12 @@ object ComponentValidator {
     data: FormDataRecalculated,
     lookupRegistry: LookupRegistry)(implicit messages: Messages): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(data, fieldValue), constraint) match {
-      case (true, Nil, _)  => validationFailure(fieldValue, messages("generic.error.required"))
+      case (true, Nil, _) =>
+        val key = fieldValue match {
+          case lookupRegistry.extractors.IsRadioLookup(_) => "choice.error.required"
+          case _                                          => "generic.error.required"
+        }
+        validationFailure(fieldValue, messages(key))
       case (_, _, AnyText) => validationSuccess
       case (_, value :: Nil, Lookup(register)) =>
         lookupValidation(fieldValue, lookupRegistry, register, LookupLabel(value))
