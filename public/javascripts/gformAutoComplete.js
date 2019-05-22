@@ -28,7 +28,7 @@
       window.accessibleAutocomplete({
         element: $container[0],
         id: id,
-	name: id,
+	      name: id,
         source: generateSourceFn(lookup, formTemplateId),
         showNoOptionsFound: false,
         defaultValue: value,

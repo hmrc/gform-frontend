@@ -60,6 +60,8 @@ generic.countryCode.error.pattern=must be entered in the correct format, for exa
 generic.governmentId.error.pattern=must be entered in the correct format
 generic.error.sortcode=must be entered as 3 sets of 2 numbers, for example 07 00 00
 generic.error.exactNumbers=must be {0} numbers
+generic.error.lookup=must match one of the suggestions offered as you type
+generic.error.register=must be from a valid list, {0} is not a valid list
 
 generic.shortText.error.pattern=can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern=can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores

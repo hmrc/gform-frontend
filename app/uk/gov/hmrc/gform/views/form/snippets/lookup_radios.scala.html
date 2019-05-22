@@ -28,42 +28,53 @@
   validationResult: Option[FormFieldValidationResult],
   index: Int)
 
-@defining(
-  fieldValue.id,
-  prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse(""),
-  LabelHelper.buildRepeatingLabel(fieldValue, index)
-) { case (fcId, selectedValue, label) =>
-
-<fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
-  <legend class="form-label">
-    @if(formLevelHeading) { @label } else { <h1>@label</h1> }
-  </legend>
-
-  @if(fieldValue.helpText.nonEmpty) {
-    <span class="form-hint" id="@{fcId.value}-hint">
-      @{fieldValue.helpText}
-    </span>
-  }
-
-  @inline_error_map(fieldValue, validationResult)
-
-  @for((item, itemIndex) <- options.zipWithIndex) {
-    @defining(item.label, fcId.value + itemIndex) { case (label, id) =>
-      <div class="multiple-choice">
-        <input
-          id="@id"
-          name="@fcId.value"
-          value="@label"
-          type="radio"
-          @if(selectedValue == label) {checked="checked"}
-        />
-
-        <label for="@id">
-          @label
-        </label>
-      </div>
-    }
-  }
-</fieldset>
-
+@hasErrors = @{
+  validationResult.exists(_.isNotOk)
 }
+
+@formGroupClass = @{
+  if(hasErrors) "form-group form-group-error"
+  else "form-group"
+}
+
+  <div class="@formGroupClass">
+
+    @defining(
+      fieldValue.id,
+      prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse(""),
+      LabelHelper.buildRepeatingLabel(fieldValue, index)
+    ) { case (fcId, selectedValue, label) =>
+
+    <fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
+      <legend class="form-label">
+        @if(formLevelHeading) { @label } else { <h1>@label</h1> }
+      </legend>
+
+      @if(fieldValue.helpText.nonEmpty) {
+        <span class="form-hint" id="@{fcId.value}-hint">
+          @{fieldValue.helpText}
+        </span>
+      }
+
+      @inline_error_map(fieldValue, validationResult)
+
+      @for((item, itemIndex) <- options.zipWithIndex) {
+        @defining(item.label, fcId.value + itemIndex) { case (label, id) =>
+          <div class="multiple-choice">
+            <input
+              id="@id"
+              name="@fcId.value"
+              value="@label"
+              type="radio"
+              @if(selectedValue == label) {checked="checked"}
+            />
+
+            <label for="@id">
+              @label
+            </label>
+          </div>
+        }
+      }
+    </fieldset>
+    }
+  </div>
