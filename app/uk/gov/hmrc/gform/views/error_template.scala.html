@@ -24,7 +24,7 @@
 )(implicit messages: Messages)
 
 
-@contentHeader = {
+@errorContentHeader = {
   <h1>@heading</h1>
 }
 
@@ -32,4 +32,4 @@
   <p>@message</p>
 }
 
-@govuk_wrapper(appConfig = frontendAppConfig, title = pageTitle, serviceTitle = pageTitle, headTitle = pageTitle, contentHeader = Some(contentHeader), mainContent = mainContent, authConfig = None, includeHMRCBranding = false)
+@govuk_wrapper(appConfig = frontendAppConfig, title = pageTitle, serviceTitle = pageTitle, headTitle = pageTitle, contentHeader = Some(errorContentHeader), mainContent = mainContent, authConfig = None, includeHMRCBranding = false, templateId = "")

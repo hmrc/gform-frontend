@@ -37,7 +37,8 @@
   scriptElem: Option[Html] = None,
   authConfig: Option[AuthConfig],
   navLinks: Option[Html] = None,
-  includeHMRCBranding: Boolean
+  includeHMRCBranding: Boolean,
+  templateId: String
 )(implicit messages: Messages)
 
 @scriptElement = {
@@ -83,13 +84,14 @@
     </script>
     @if(authTimeout.timeoutEnabled) {
       <script>
-        window.gform.config = {
-          timeoutEnabled: @authTimeout.timeoutEnabled,
-          timeout: @authTimeout.timeout,
-          countdown: @authTimeout.countdown,
-          keep_alive_url: "@authTimeout.keepAliveUrl",
-          logout_url: "@authTimeout.signOutUrl"
-        }
+          window.gform = window.gform || {};
+          window.gform.config = {
+            timeoutEnabled: @authTimeout.timeoutEnabled,
+            timeout: @authTimeout.timeout,
+            countdown: @authTimeout.countdown,
+            keep_alive_url: "@authTimeout.keepAliveUrl",
+            logout_url: "@authTimeout.signOutUrl/@templateId"
+          }
       </script>
     }
 
@@ -98,7 +100,7 @@
 
 @navLinks = {
   @if(authTimeout.signOutUrl != "") {
-    <li><a href="@{authTimeout.signOutUrl}" id="signOut">@messages("linkText.signOut")</a></li>
+    <li><a href="@{authTimeout.signOutUrl}/@templateId" id="signOut">@messages("linkText.signOut")</a></li>
   } else {
     None
   }

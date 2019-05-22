@@ -17,6 +17,9 @@ button.saveAndContinue=Save and continue
 button.acceptAndSubmit=Accept and submit
 button.acceptAndSubmitForm=Accept and submit {0}
 
+# Signed Out
+signedOut.title=You have been signed out
+
 # Error summary
 error.summary.heading=There is a problem
 

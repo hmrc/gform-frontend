@@ -15,11 +15,10 @@
  *@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Default
 
 
 @(
-        pageTitle: String,
+        signBackInURL: String,
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
@@ -27,7 +26,7 @@
         messages: Messages
 )
 
-@heading = @{"Insufficient Enrolments"}
+@heading = @{messages("signedOut.title")}
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -39,5 +38,7 @@
   templateId = ""
 ) {
 
-<h1>@heading</h1>
+  <h1>@heading</h1>
+
+  <p><a href="@signBackInURL">Sign back in</a></p>
 }

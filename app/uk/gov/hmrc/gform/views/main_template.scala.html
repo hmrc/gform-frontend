@@ -34,7 +34,8 @@
   frontendAppConfig: FrontendAppConfig,
   authConfig: Option[AuthConfig],
   webChat: Option[WebChat] = None,
-  formCategory: FormCategory = Default
+  formCategory: FormCategory = Default,
+  templateId: String
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
 @serviceInfo = {}
@@ -99,5 +100,6 @@
   serviceInfoContent = serviceInfo,
   scriptElem = Some(mainScripts),
   authConfig = authConfig,
-  includeHMRCBranding = formCategory.isHmrc
+  includeHMRCBranding = formCategory.isHmrc,
+  templateId = templateId
 )
