@@ -77,7 +77,7 @@ object ComponentValidator {
       case (_, value :: Nil, Sterling(_)) =>
         validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
       case (_, value :: Nil, UkBankAccountNumber) =>
-        SortCodeValidation.checkLength(fieldValue, value, ValidationValues.bankAccountLength)
+        validateBankAccountFormat(fieldValue, value)
       case (_, value :: Nil, UTR)                       => checkId(fieldValue, value)
       case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
@@ -98,6 +98,17 @@ object ComponentValidator {
       case (false, Nil, _)       => validationSuccess
       case (_, value :: rest, _) => validationSuccess // we don't support multiple values yet
     }
+
+  private def validateBankAccountFormat(fieldValue: FormComponent, value: String)(
+    implicit messages: Messages): ValidatedType[Unit] = {
+    val ukBankAccountFormat = s"[0-9]{${ValidationValues.bankAccountLength}}".r
+    val str = value.replace(" ", "")
+    str match {
+      case ukBankAccountFormat() => validationSuccess
+      case _ =>
+        validationFailure(fieldValue, messages("generic.error.exactNumbers", ValidationValues.bankAccountLength))
+    }
+  }
 
   private def validateNumber(
     fieldValue: FormComponent,
