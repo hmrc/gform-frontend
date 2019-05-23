@@ -338,8 +338,7 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
       ThirdPartyData.empty,
       ExampleData.formTemplate,
       lookupRegistry
-    ).validate(fieldValue, fieldValues)
-      .futureValue
+    ).validate(fieldValue, fieldValues).futureValue
 
   private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Value))
 

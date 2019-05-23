@@ -28,22 +28,12 @@
   validationResult: Option[FormFieldValidationResult],
   index: Int)
 
-@hasErrors = @{
-  validationResult.exists(_.isNotOk)
-}
-
-@formGroupClass = @{
-  if(hasErrors) "form-group form-group-error"
-  else "form-group"
-}
-
-  <div class="@formGroupClass">
-
-    @defining(
-      fieldValue.id,
-      prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse(""),
-      LabelHelper.buildRepeatingLabel(fieldValue, index)
-    ) { case (fcId, selectedValue, label) =>
+@form_group(validationResult) {
+  @defining(
+    fieldValue.id,
+    prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse(""),
+    LabelHelper.buildRepeatingLabel(fieldValue, index)
+  ) { case (fcId, selectedValue, label) =>
 
     <fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
       <legend class="form-label">
@@ -76,5 +66,5 @@
         }
       }
     </fieldset>
-    }
-  </div>
+  }
+}
