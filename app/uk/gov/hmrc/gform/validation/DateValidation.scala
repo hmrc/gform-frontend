@@ -123,7 +123,7 @@ class DateValidation(implicit messages: Messages) {
             fieldValue,
             inputDate,
             offset,
-            Map(fieldValue.id -> errors(fieldValue, s"must be ${beforeAfterPrecisely.mkString} today")))(
+            Map(fieldValue.id -> errors(fieldValue, messages(s"date.${beforeAfterPrecisely.mkString}", "today"))))(
             todayFunctionMatch(beforeAfterPrecisely)))
 
   private def validateDateFieldWithMessages(
@@ -275,7 +275,7 @@ class DateValidation(implicit messages: Messages) {
           case Valid(ConcreteDate(ExactYear(concYear), ExactMonth(concMonth), ExactDay(concDay))) =>
             Try(LocalDate.of(concYear, concMonth, concDay)) match {
               case Success(date) => Valid(date)
-              case Failure(ex)   => Map(formComponentId -> errors(formComponent, "must be a valid date")).invalid
+              case Failure(ex)   => Map(formComponentId -> errors(formComponent, messages("date.invalid"))).invalid
             }
           case Invalid(nonEmptyList) =>
             Invalid(nonEmptyList)

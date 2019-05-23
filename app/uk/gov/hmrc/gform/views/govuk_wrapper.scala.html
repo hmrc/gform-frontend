@@ -156,22 +156,28 @@
   }
 }
 
+@formSupportsLanguages = @{false}
+
+@serviceHeader = {
+  @serviceInfoContent
+  @if(formSupportsLanguages) {
+    @views.html.language_selection(
+      appConfig.availableLanguages,
+      appConfig.routeToSwitchLanguage,
+      Some("label--inline-right"))
+  }
+}
 
 @serviceInfo = {
     @uiLayouts.serviceInfo(
       betaBanner = betaBanner,
       includeGridWrapper = false,
-      serviceInfoContent = Some(serviceInfoContent))
+      serviceInfoContent = Some(serviceHeader))
 }
 
-@formSupportsLanguages = @{false}
-
 @mainContentHeader = {
-  @if(formSupportsLanguages) {
-    @uiLayouts.main_content_header(contentHeader = views.html.language_selection(
-      appConfig.availableLanguages,
-      appConfig.routeToSwitchLanguage,
-      Some("label--inline-right")))
+  @if(contentHeader.nonEmpty) {
+    @uiLayouts.main_content_header(contentHeader = contentHeader.getOrElse(Html("")))
   }
 }
 
