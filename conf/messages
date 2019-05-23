@@ -60,7 +60,7 @@ generic.countryCode.error.pattern=must be entered in the correct format, for exa
 generic.governmentId.error.pattern=must be entered in the correct format
 generic.error.sortcode=must be entered as 3 sets of 2 numbers, for example 07 00 00
 generic.error.exactNumbers=must be {0} numbers
-generic.error.lookup=must match one of the suggestions offered as you type
+generic.error.lookup=must match one of the suggestions from the list
 generic.error.register=must be from a valid list, {0} is not a valid list
 
 generic.shortText.error.pattern=can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
