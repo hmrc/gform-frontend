@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.data.State
 import play.api.data.Forms.{ mapping, nonEmptyText }
 import play.api.data.Mapping
 import play.api.data.validation.Constraints
 import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.models.MappingsApi.{ MappingOps, MappingWithKeyOps }
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.typeclasses.Rnd
 
 case class AgentAccessCode(value: String) extends AnyVal
@@ -33,24 +33,7 @@ object AgentAccessCode {
   val optionAccess = "access"
   val optionNew = "new"
 
-  def random(implicit rnd: Rnd[Int]): AgentAccessCode = {
-
-    def getChars(i: Int) = State[Rnd[Int], String](r => (r, alphanumeric(r).take(i).toList.mkString))
-
-    val refGen = for {
-      a <- getChars(3)
-      b <- getChars(4)
-      c <- getChars(3)
-    } yield AgentAccessCode(a + "-" + b + "-" + c)
-
-    refGen.runA(rnd).value
-  }
-
-  private def alphanumeric(rnd: Rnd[Int]): Stream[Char] = {
-    val chars = ('A' to 'Z') ++ ('0' to '9').toList
-    def nextAlphaNum: Char = chars.charAt(rnd.random(chars.length))
-    Stream continually nextAlphaNum
-  }
+  def random(implicit rnd: Rnd[Int]): AgentAccessCode = AgentAccessCode(AccessCode.random.value)
 
   val optionMapping: (String, Mapping[String]) = AgentAccessCode.optionKey -> nonEmptyText
   def form: play.api.data.Form[AccessCodeForm] =

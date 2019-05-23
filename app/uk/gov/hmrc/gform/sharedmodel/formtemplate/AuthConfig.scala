@@ -92,20 +92,24 @@ object EnrolmentCheckVerb {
 sealed trait AuthModule extends Product with Serializable
 case object Hmrc extends AuthModule
 case object EeittLegacy extends AuthModule
+case object OfstedModule extends AuthModule
 
 object AuthModule {
 
   private val hmrc = "hmrc"
   private val legacyEEITTAuth = "legacyEEITTAuth"
+  private val ofstedAuth = "ofsted"
 
   implicit val format: Format[AuthModule] = ADTFormat.formatEnumeration(
     hmrc            -> Hmrc,
-    legacyEEITTAuth -> EeittLegacy
+    legacyEEITTAuth -> EeittLegacy,
+    ofstedAuth      -> OfstedModule
   )
 
   def asString(o: AuthModule): String = o match {
-    case Hmrc        => hmrc
-    case EeittLegacy => legacyEEITTAuth
+    case Hmrc         => hmrc
+    case EeittLegacy  => legacyEEITTAuth
+    case OfstedModule => ofstedAuth
   }
 }
 
@@ -117,6 +121,7 @@ case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
 case class HmrcAgentWithEnrolmentModule(agentAccess: AgentAccess, enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case object AWSALBAuth extends AuthConfig
+case object OfstedUser extends AuthConfig
 
 object HasEnrolmentSection {
   def unapply(ac: AuthConfig): Option[(ServiceId, EnrolmentSection, EnrolmentPostCheck, EnrolmentAction)] =
@@ -177,33 +182,34 @@ object AuthConfig {
         maybeAgentAccess               <- (json \ "agentAccess").validateOpt[AgentAccess]
         maybeEnrolmentSection          <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
         maybeEnrolmentCheck            <- (json \ "enrolmentCheck").validateOpt[EnrolmentCheckVerb]
-        authConfig <- authModule match {
-                       case EeittLegacy =>
-                         maybeRegimeId match {
-                           case None =>
-                             JsError(s"Missing regimeId (regimeId is mandatory for legacyEEITTAuth)")
-                           case Some(regimeId) => JsSuccess(EeittModule(regimeId))
-                         }
-                       case Hmrc =>
-                         maybeServiceId match {
-                           case None =>
-                             maybeAgentAccess.fold(JsSuccess(HmrcSimpleModule: AuthConfig))(agentAccess =>
-                               JsSuccess(HmrcAgentModule(agentAccess)))
-                           case Some(serviceId) =>
-                             val enrolmentAuth =
-                               toEnrolmentAuth(
-                                 serviceId,
-                                 maybeRegimeId,
-                                 maybeEnrolmentCheck,
-                                 maybeEnrolmentSection,
-                                 maybeLegacyFcEnrolmentVerifier)
+        authConfig: AuthConfig <- authModule match {
+                                   case EeittLegacy =>
+                                     maybeRegimeId match {
+                                       case None =>
+                                         JsError(s"Missing regimeId (regimeId is mandatory for legacyEEITTAuth)")
+                                       case Some(regimeId) => JsSuccess(EeittModule(regimeId))
+                                     }
+                                   case Hmrc =>
+                                     maybeServiceId match {
+                                       case None =>
+                                         maybeAgentAccess.fold(JsSuccess(HmrcSimpleModule: AuthConfig))(agentAccess =>
+                                           JsSuccess(HmrcAgentModule(agentAccess)))
+                                       case Some(serviceId) =>
+                                         val enrolmentAuth =
+                                           toEnrolmentAuth(
+                                             serviceId,
+                                             maybeRegimeId,
+                                             maybeEnrolmentCheck,
+                                             maybeEnrolmentSection,
+                                             maybeLegacyFcEnrolmentVerifier)
 
-                             JsSuccess(
-                               maybeAgentAccess.fold(HmrcEnrolmentModule(enrolmentAuth): AuthConfig)(
-                                 HmrcAgentWithEnrolmentModule(_, enrolmentAuth)))
+                                         JsSuccess(
+                                           maybeAgentAccess.fold(HmrcEnrolmentModule(enrolmentAuth): AuthConfig)(
+                                             HmrcAgentWithEnrolmentModule(_, enrolmentAuth)))
 
-                         }
-                     }
+                                     }
+                                   case OfstedModule => JsSuccess(OfstedUser)
+                                 }
       } yield authConfig
 
     }

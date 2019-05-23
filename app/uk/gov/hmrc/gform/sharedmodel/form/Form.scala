@@ -17,6 +17,8 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.Eq
+import cats.instances.string._
+import cats.syntax.eq._
 import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -125,10 +127,15 @@ case object Summary extends FormStatus
 case object Validated extends FormStatus
 case object Signed extends FormStatus
 case object NeedsReview extends FormStatus
+case object Approved extends FormStatus
 case object Submitted extends FormStatus
 
 object FormStatus {
   implicit val equal: Eq[FormStatus] = Eq.fromUniversalEquals
 
   implicit val format: OFormat[FormStatus] = derived.oformat
+
+  val all: Set[FormStatus] = Set(InProgress, Summary, Validated, Signed, NeedsReview, Approved, Submitted)
+
+  def unapply(s: String): Option[FormStatus] = all.find(_.toString === s)
 }

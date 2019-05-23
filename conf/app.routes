@@ -9,6 +9,8 @@ GET           /form/:formTemplateId/:sectionTitle4Ga/file-upload-page/:fileId   
 
 GET           /form/:formTemplateId/:sectionTitle4Ga                                                             uk.gov.hmrc.gform.gform.FormController.form(formTemplateId: FormTemplateId, a: Option[AccessCode], n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, se: SuppressErrors)
 
+GET           /form/:formId                                                                                      uk.gov.hmrc.gform.gform.FormController.formDashboard(formId: FormId)
+
 POST          /form/:formTemplateId/:maybeAccessCode/decision                                                    uk.gov.hmrc.gform.gform.FormController.decision(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 POST          /form/:formTemplateId/:maybeAccessCode/:sectionNumber                                              uk.gov.hmrc.gform.gform.FormController.updateFormData(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber)
 

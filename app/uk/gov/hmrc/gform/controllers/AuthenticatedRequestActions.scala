@@ -135,6 +135,26 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
+  def async(formId: FormId)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] = Action.async {
+    implicit request =>
+      implicit val l: LangADT = getCurrentLanguage(request)
+      for {
+        form         <- gformConnector.getForm(formId)
+        formTemplate <- gformConnector.getFormTemplate(form.formTemplateId)
+        authResult <- authService
+                       .authenticateAndAuthorise(formTemplate, request.uri, getAffinityGroup, ggAuthorised(request))
+        newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
+        result <- handleAuthResults(
+                   authResult,
+                   formTemplate,
+                   request,
+                   onSuccess = retrievals =>
+                     f(newRequest)(getCurrentLanguage(request))(AuthCacheWithForm(retrievals, form, formTemplate))
+                 )
+      } yield result
+  }
+
   def asyncGGAuth(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>

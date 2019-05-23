@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
-import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Profile
+package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+import play.api.libs.json.Format
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-trait ProfileGen {
-  def mdtpGen: Gen[Profile.MDTP] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(Profile.MDTP)
+case class ProfileName(name: String) extends AnyVal
 
-  def profileGen: Gen[Profile] = Gen.oneOf(Gen.const(Profile.DES), Gen.const(Profile.MdgIntegrationFramework), mdtpGen)
+object ProfileName {
+  implicit val format: Format[ProfileName] = JsonUtils.valueClassFormat[ProfileName, String](ProfileName(_), _.name)
 }
-
-object ProfileGen extends ProfileGen

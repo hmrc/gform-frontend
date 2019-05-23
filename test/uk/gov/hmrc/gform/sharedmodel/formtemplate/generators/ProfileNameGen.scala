@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations
+package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
+import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.ProfileName
 
-import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.ProfileGen
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.verifyRoundTrip
-
-class ProfileSpec extends Spec {
-  "Default read and write" should "round trip derived JSON" in {
-    forAll(ProfileGen.profileGen) { value =>
-      verifyRoundTrip(value)
-    }
-  }
+trait ProfileNameGen {
+  def profileGen: Gen[ProfileName] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(ProfileName(_))
 }
+
+object ProfileNameGen extends ProfileNameGen

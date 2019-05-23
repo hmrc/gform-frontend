@@ -31,7 +31,7 @@ import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
-import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, NotToBeRedirected, ToBeRedirected }
+import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult, NotToBeRedirected, ToBeRedirected }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.lookup.LookupExtractors
@@ -48,7 +48,7 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -80,13 +80,53 @@ class FormController(
 
       val formId = FormId(retrievals, formTemplateId, None)
 
-      gformConnector.maybeForm(formId).map { form =>
-        handler.handleDashboard(formTemplate, retrievals, form) match {
-          case NotToBeRedirected(_) =>
-            Ok(access_code_start(formTemplate, AgentAccessCode.form, frontendAppConfig))
-          case ToBeRedirected => Redirect(routes.FormController.newForm(formTemplateId))
-        }
+      retrieveForm(formId, formTemplate, retrievals, Redirect(routes.FormController.newForm(formTemplate._id)))
+  }
+
+  private def retrieveForm(
+    formId: FormId,
+    formTemplate: FormTemplate,
+    retrievals: MaterialisedRetrievals,
+    redirect: => Result)(implicit request: Request[AnyContent], hc: HeaderCarrier, l: LangADT): Future[Result] =
+    gformConnector.maybeForm(formId).map { form =>
+      handler.handleDashboard(formTemplate, retrievals, form) match {
+        case NotToBeRedirected(_) =>
+          Ok(access_code_start(formTemplate, AgentAccessCode.form, frontendAppConfig))
+        case ToBeRedirected => redirect
       }
+    }
+
+  def formDashboard(formId: FormId) = auth.async(formId) { implicit request => implicit lang => cache =>
+    val sectionNumber = SectionNumber(0)
+    val accessCode = formId.value.substring(formId.value.length - 12)
+    handler
+      .handleForm(
+        sectionNumber,
+        SeYes,
+        cache,
+        processDataService.recalculateDataAndSections,
+        fileUploadService.getEnvelope,
+        validationService.validateFormComponents,
+        validationService.evaluateValidation
+      )
+      .map((handlerResult: FormHandlerResult) =>
+        Ok(renderer.renderSection(
+          Some(AccessCode(accessCode)),
+          cache.form,
+          sectionNumber,
+          handlerResult.data,
+          cache.formTemplate,
+          handlerResult.result,
+          handlerResult.envelope,
+          cache.form.envelopeId,
+          handlerResult.validatedType,
+          handlerResult.sections,
+          formMaxAttachmentSizeMB,
+          contentTypes,
+          cache.retrievals,
+          cache.form.visitsIndex.visit(sectionNumber),
+          cache.form.thirdPartyData.obligations
+        )))
   }
 
   def newFormAgent(formTemplateId: FormTemplateId) = auth.async(formTemplateId) {
@@ -261,7 +301,7 @@ class FormController(
           validationService.validateFormComponents,
           validationService.evaluateValidation
         )
-        .map(handlerResult =>
+        .map((handlerResult: FormHandlerResult) =>
           Ok(renderer.renderSection(
             maybeAccessCode,
             cache.form,

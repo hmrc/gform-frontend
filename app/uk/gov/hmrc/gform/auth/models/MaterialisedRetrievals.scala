@@ -70,6 +70,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 }
 
 case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
+
 case class AuthenticatedRetrievals(
   authProviderId: LegacyCredentials,
   enrolments: Enrolments,
