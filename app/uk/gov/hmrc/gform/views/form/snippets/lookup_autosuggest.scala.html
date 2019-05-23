@@ -31,44 +31,33 @@
   index: Int
 )
 
-@hasErrors = @{
-  validationResult.exists(_.isNotOk)
-}
-
-@formGroupClass = @{
-  if(hasErrors) "form-group form-group-error"
-  else "form-group"
-}
-
-
 @display(fcId: FormComponentId) = {
   <label class="@{if(formLevelHeading) { "form-label" } else { "h1-heading" }}" for="@fcId.value">
     @LabelHelper.buildRepeatingLabel(fieldValue, index)
   </label>
 }
 
-  <div class="@formGroupClass">
+@form_group(validationResult) {
+  @defining(fieldValue.id, prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")) { case (fcId, prepopValue) =>
 
-@defining(fieldValue.id, prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")) { case (fcId, prepopValue) =>
+    @if(formLevelHeading) { @display(fcId) } else { <h1>@display(fcId)</h1> }
 
-  @if(formLevelHeading) { @display(fcId) } else { <h1>@display(fcId)</h1> }
+    @if(fieldValue.helpText.nonEmpty) {
+      <span class="form-hint" id="@{fcId.value}-hint">
+        @{fieldValue.helpText}
+      </span>
+    }
 
-  @if(fieldValue.helpText.nonEmpty) {
-    <span class="form-hint" id="@{fcId.value}-hint">
-      @{fieldValue.helpText}
-    </span>
+    @inline_error_map(fieldValue, validationResult)
+
+    <div
+      id="@{fcId.value}"
+      class="lookup"
+      data-field-id="@fcId.value"
+      data-value="@prepopValue"
+      data-lookup="@register.asString"
+      data-formTemplateId="@formTemplateId.value"
+      data-show-all="@showAll.enabled">
+    </div>
   }
-
-  @inline_error_map(fieldValue, validationResult)
-
-  <div
-    id="@{fcId.value}"
-    class="lookup"
-    data-field-id="@fcId.value"
-    data-value="@prepopValue"
-    data-lookup="@register.asString"
-    data-formTemplateId="@formTemplateId.value"
-    data-show-all="@showAll.enabled">
-  </div>
 }
-  </div>
