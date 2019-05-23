@@ -160,14 +160,14 @@ summary.title=Check your answers
 summary.intro=Make sure that the information you have given is correct before submitting your {0}
 summary.nowSend=Now send your {0}
 summary.printMsg=You can print this summary page then come back later to complete your {0}
-summary.printLinkText=Print this summary page
+summary.printLinkText=Print or save a PDF copy of your answers
 summary.change=Change
 
 # Acknowledgement
 ack.title=Your {0} has been submitted
 ack.submissionReference=Your submission reference is
 ack.sentEmail=We have sent you a confirmation email
-ack.pdfLink=View a PDF of your {0} that you can save or print
+ack.pdfLink=Print or save a PDF copy of your {0}
 ack.whatHappensNext=What happens next
 ack.beforeYouGo=Before you go
 ack.feedbackText1=We use feedback to make our services better. Please take the
