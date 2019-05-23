@@ -352,3 +352,13 @@ textarea.form-control.form-control-full,
 .no-details details summary .arrow-closed {
     display: none !important;
 }
+
+/* clears the 'X' from Internet Explorer */
+input::-ms-clear {  display: none; width : 0; height: 0; }
+input::-ms-reveal {  display: none; width : 0; height: 0; }
+
+/* clears the 'X' from Chrome */
+input::-webkit-search-decoration,
+input::-webkit-search-cancel-button,
+input::-webkit-search-results-button,
+input::-webkit-search-results-decoration { display: none; }
