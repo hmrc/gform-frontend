@@ -20,7 +20,8 @@ import java.util.Base64
 
 import cats.implicits._
 import play.api.Logger
-import play.api.libs.json.{ JsDefined, JsUndefined, Json }
+import play.api.libs.json.{ JsDefined, JsString, Json }
+import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
@@ -72,31 +73,31 @@ class AuthService(
         performAgent(agentAccess, formTemplate, lang, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
     }
 
-  private def performAWSALBAuth()(implicit hc: HeaderCarrier): AuthResult = {
-    val encodedJWT: Seq[(String, String)] = hc.otherHeaders.filter(header => header._1 == "x-amzn-oidc-data")
+  private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")
+  private val decoder = Base64.getDecoder
 
-    encodedJWT.headOption match {
-      case None => AuthBlocked("You are not authorized to access this service")
-      case Some((_, jwt)) => {
-        val decoder = Base64.getDecoder
-        val splitJwt = jwt.split("\\.")
-        if (!(splitJwt.length == 3)) {
-          Logger.error(s"Corrupt JWT received from AWS ALB: [$jwt]")
-          AuthBlocked("You are not authorized to access this service")
-        } else {
-          val payload = new String(decoder.decode(splitJwt(1)))
-          Json.parse(payload) \ "username" match {
-            case JsDefined(value) =>
-              value.asOpt[String] match {
-                case Some(username) => AuthSuccessful(AWSALBRetrievals(username))
-                case None => {
-                  Logger.error(s"Corrupt JWT received from AWS ALB: [$jwt]")
-                  AuthBlocked("You are not authorized to access this service")
-                }
+  private def performAWSALBAuth()(implicit hc: HeaderCarrier): AuthResult = {
+    val encodedJWT: Option[String] = hc.otherHeaders.collectFirst {
+      case (header, value) if header === "x-amzn-oidc-data" => value
+    }
+
+    encodedJWT.fold(notAuthorized) { jwt =>
+      jwt.split("\\.") match {
+        case Array(header, payload, signature) =>
+          val payloadJson = new String(decoder.decode(payload))
+          Try(Json.parse(payloadJson)) match {
+            case Success(json) =>
+              json \ "username" match {
+                case JsDefined(JsString(username)) => AuthSuccessful(AWSALBRetrievals(username))
+                case _                             => AuthBlocked("Username does not exist in JWT")
               }
-            case JsUndefined() => AuthBlocked("Username does not exist in JWT")
+            case Failure(_) =>
+              Logger.error(s"Corrupt JWT received from AWS ALB: payload is not a json: $payloadJson")
+              notAuthorized
           }
-        }
+        case _ =>
+          Logger.error(s"Corrupt JWT received from AWS ALB: [$jwt]")
+          notAuthorized
       }
     }
   }
@@ -221,7 +222,7 @@ class AuthService(
 
   def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String =
     retrievals match {
-      case AnonymousRetrievals(_) => ""
+      case AnonymousRetrievals(_) | AWSALBRetrievals(_) => ""
       case AuthenticatedRetrievals(_, enrolments, _, _, _, userDetails, _, _) =>
         val identifier = userDetails.affinityGroup match {
           case AffinityGroup.Agent => EEITTAuthConfig.agentIdName
