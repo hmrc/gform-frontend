@@ -139,6 +139,7 @@ date.before=must be before {0}
 date.after=must be after {0}
 date.exactDate=must be {0}
 date.isMissing=is missing
+date.invalid=must be a valid date
 
 # hmrcTaxPeriod
 taxPeriod.noResults=There are no options to display for this user
