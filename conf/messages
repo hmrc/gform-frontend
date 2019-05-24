@@ -11,6 +11,8 @@ linkText.signOut=Sign out
 
 button.continue=Continue
 button.saveAndContinue=Save and continue
+button.acceptAndSubmit=Accept and submit
+button.acceptAndSubmitForm=Accept and submit your {0}
 
 # Error summary
 error.summary.heading=There is a problem
