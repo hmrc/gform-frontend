@@ -99,8 +99,8 @@ object DateValidationLogic {
     val yearString = concreteDate.year match {
       case ExactYear(year) if concreteDate.month == AnyMonth => messages("date.inYear", year.toString)
       case ExactYear(year) if concreteDate.month != AnyMonth => s"$year "
-      case Next                                              => messages("date.inYear", getNextYear)
-      case Previous                                          => messages("date.inYear", getPreviousYear)
+      case Next                                              => messages("date.inYear", getNextYear.toString)
+      case Previous                                          => messages("date.inYear", getPreviousYear.toString)
       case _                                                 => ""
     }
 
