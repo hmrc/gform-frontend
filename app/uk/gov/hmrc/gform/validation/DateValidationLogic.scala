@@ -121,7 +121,9 @@ object DateValidationLogic {
 
     val result = concreteDate match {
       case date if date.isExact =>
-        messages("date.exactDate", dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate))
+        messages(
+          s"date.${beforeAfterPrecisely.mkString}",
+          dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate))
       case _ => messages("date.exactDate", s"$dayString $monthString $yearString")
 
     }
