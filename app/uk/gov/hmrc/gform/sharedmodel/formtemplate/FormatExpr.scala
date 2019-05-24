@@ -52,7 +52,7 @@ sealed trait BeforeAfterPrecisely {
   def mkString: String = this match {
     case Before    => "before"
     case After     => "after"
-    case Precisely => ""
+    case Precisely => "exactDate"
   }
 }
 case object After extends BeforeAfterPrecisely
