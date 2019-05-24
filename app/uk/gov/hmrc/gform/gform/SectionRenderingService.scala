@@ -286,8 +286,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     )
 
     val confirm = formTemplate.formCategory match {
-      case Some(HMRCReturnForm) => messages("button.acceptAndSubmitForm", "return")
-      case Some(HMRCClaimForm)  => messages("button.acceptAndSubmitForm", "claim")
+      case Some(HMRCReturnForm) => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
+      case Some(HMRCClaimForm)  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
       case _                    => messages("button.acceptAndSubmit")
     }
 
