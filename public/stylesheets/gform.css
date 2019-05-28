@@ -365,3 +365,14 @@ input::-webkit-search-decoration,
 input::-webkit-search-cancel-button,
 input::-webkit-search-results-button,
 input::-webkit-search-results-decoration { display: none; }
+
+.ofsted-branding {
+  display: block;
+  position: relative;
+  float: left;
+  height: 48px;
+  width: 86px;
+  margin-top: 10px;
+  background-image: url("/submissions/assets/stylesheets/ofsted-logo.png");
+  background-repeat: no-repeat;
+}
