@@ -36,7 +36,8 @@
   serviceInfoContent: Html = HtmlFormat.empty,
   scriptElem: Option[Html] = None,
   authConfig: Option[AuthConfig],
-  navLinks: Option[Html] = None
+  navLinks: Option[Html] = None,
+  includeHMRCBranding: Boolean
 )(implicit messages: Messages)
 
 @scriptElement = {
@@ -172,6 +173,7 @@
     @uiLayouts.serviceInfo(
       betaBanner = betaBanner,
       includeGridWrapper = false,
+      includeHMRCBranding = includeHMRCBranding,
       serviceInfoContent = Some(serviceHeader))
 }
 

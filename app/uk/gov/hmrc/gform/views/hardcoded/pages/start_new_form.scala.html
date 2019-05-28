@@ -23,24 +23,25 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-        formTemplate: FormTemplate,
-        accessCode: AgentAccessCode,
-        lang: Option[String],
-        frontendAppConfig: FrontendAppConfig
+  formTemplate: FormTemplate,
+  accessCode: AgentAccessCode,
+  lang: Option[String],
+  frontendAppConfig: FrontendAppConfig
 )(
-        implicit
-        request: Request[_],
-        messages: Messages
+  implicit
+  request: Request[_],
+  messages: Messages
 )
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("accessCode.new.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  formCategory = Some(formTemplate.formCategory.get)
 ) {
 
   <div class = "transaction-banner--complete">

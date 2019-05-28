@@ -35,13 +35,14 @@
 @heading = @{messages("summary.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    bodyClasses = None,
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    webChat = formTemplate.webChat
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  bodyClasses = None,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  webChat = formTemplate.webChat,
+  formCategory = Some(formTemplate.formCategory.get)
 ) {
 
     <div class="pdf-only" aria-hidden="true">

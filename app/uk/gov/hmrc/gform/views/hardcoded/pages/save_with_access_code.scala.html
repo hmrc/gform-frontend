@@ -37,7 +37,8 @@
   bodyClasses = None,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig)
+  authConfig = Some(formTemplate.authConfig),
+  formCategory = Some(formTemplate.formCategory.get)
 ) {
   <div class = "transaction-banner--complete">
     <h1 class ="transaction-banner__heading">

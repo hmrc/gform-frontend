@@ -32,11 +32,12 @@
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    bodyClasses = None,
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  bodyClasses = None,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  formCategory = Some(formTemplate.formCategory.get)
 ) {
   <h1>
     @heading
