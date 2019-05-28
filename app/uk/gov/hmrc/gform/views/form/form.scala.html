@@ -39,6 +39,14 @@
 
 @heading = @{page.sectionTitle}
 
+  @buttonLabel = @{
+    if(page.continueLabel.isEmpty) {
+      messages("button.saveAndContinue")
+    } else {
+      page.continueLabel
+    }
+  }
+
 @backLink = {
   @if(isDeclaration) {
     <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back">@messages("linkText.back")</a>
@@ -85,7 +93,7 @@
 
       @if(shouldDisplayContinue) {
         <div class="form-group">
-            <button type="submit" class="button" value="Continue">@messages("button.saveAndContinue")</button>
+            <button type="submit" class="button" value="Continue">@{buttonLabel}</button>
         </div>
       }
       <div class="js-visible">
