@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.submission.SubmissionRef
 @import uk.gov.hmrc.gform.models.SectionRenderingInformation
 
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.OfstedDefault
 @(
   timeMessage: String,
   supportContents: SectionRenderingInformation,
@@ -30,6 +31,13 @@
 )(implicit request: Request[_], messages: Messages)
 
 @heading = @{messages("ack.title", formCategory.getString)}
+
+@isHMRC = @{
+  formCategory match {
+    case OfstedDefault => false
+    case _ => true
+  }
+}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -75,11 +83,15 @@
 
   @{supportContents.snippets}
 
-  <h2 class="heading-medium">
-    @messages("ack.beforeYouGo")
-  </h2>
+  @if(isHMRC) {
+    <h2 class="heading-medium">
+      @messages("ack.beforeYouGo")
+    </h2>
 
-  <p>
-    @messages("ack.feedbackText1") <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a> @messages("ack.feedbackText2").
-  </p>
+    <p>
+      @messages("ack.feedbackText1")
+      <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a>
+      @messages("ack.feedbackText2").
+    </p>
+  }
 }
