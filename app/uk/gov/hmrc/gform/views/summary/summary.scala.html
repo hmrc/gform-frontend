@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form.FormId
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormCategory}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
@@ -42,7 +42,7 @@
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
-  formCategory = Some(formTemplate.formCategory.get)
+  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
 ) {
 
     <div class="cya-intro">

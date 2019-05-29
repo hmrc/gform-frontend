@@ -18,8 +18,8 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.submission.SubmissionRef
 @import uk.gov.hmrc.gform.models.SectionRenderingInformation
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default => FormCatDefault }
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.OfstedDefault
 @(
   timeMessage: String,
   supportContents: SectionRenderingInformation,
@@ -47,7 +47,7 @@
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
-  formCategory = Some(formTemplate.formCategory.get)
+  formCategory = Some(formTemplate.formCategory.getOrElse(FormCatDefault))
 ) {
 
   <div class="govuk-box-highlight">

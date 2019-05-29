@@ -15,7 +15,7 @@
  *@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 
 @(
@@ -31,11 +31,12 @@ messages: Messages
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
-title = heading,
-serviceName = formTemplate.formName,
-bodyClasses = None,
-frontendAppConfig = frontendAppConfig,
-authConfig = None
+  title = heading,
+  serviceName = formTemplate.formName,
+  bodyClasses = None,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = None,
+  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
 ) {
 
 <h1>@heading</h1>

@@ -63,7 +63,7 @@
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
-  formCategory = Some(formTemplate.formCategory.get)
+  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
 ) {
 
     @if(shouldDisplayBack) { @backLink }

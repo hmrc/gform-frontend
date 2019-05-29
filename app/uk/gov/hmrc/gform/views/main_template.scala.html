@@ -47,13 +47,7 @@
   }
 }
 
-@serviceInfo = @{
-  if (isHMRC) {
-    Html("")
-  } else {
-    Html("<span class=\"ofsted-branding\"></span>")
-  }
-}
+@serviceInfo = {}
 
 @webChatRoomId = @{
   webChat match {

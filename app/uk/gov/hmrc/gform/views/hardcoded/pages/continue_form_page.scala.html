@@ -45,7 +45,7 @@
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
-  formCategory = Some(formTemplate.formCategory.get)
+  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
 ) {
 
   @if(form.hasErrors) {
