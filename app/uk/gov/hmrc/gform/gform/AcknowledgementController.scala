@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter
 
 import org.jsoup.Jsoup
 import play.api.http.HttpEntity
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.auth.AuthService
@@ -53,8 +53,6 @@ class AcknowledgementController(
   nonRepudiationHelpers: NonRepudiationHelpers
 ) extends FrontendController {
 
-  import i18nSupport._
-
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
@@ -62,6 +60,7 @@ class AcknowledgementController(
     eventId: String
   ) =
     auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
+      import i18nSupport._
       cache.form.status match {
         case Submitted | NeedsReview =>
           renderer
@@ -81,18 +80,19 @@ class AcknowledgementController(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
     lang: Option[String],
-    eventId: String): Action[AnyContent] = auth.async(formTemplateId, lang, maybeAccessCode) {
-    implicit request => cache =>
+    eventId: String): Action[AnyContent] =
+    auth.async(formTemplateId, lang, maybeAccessCode) { implicit request => cache =>
+      import i18nSupport._
       cache.form.status match {
         case Submitted =>
           // format: OFF
         for {
-          summaryHml  <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
+          summaryHtml  <- summaryController.getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
           formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           hashedValue =  nonRepudiationHelpers.computeHash(formString)
           _           =  nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
           submission  <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-          cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHml, submitted=true)
+          cleanHtml   =  pdfService.sanitiseHtmlForPDF(summaryHtml, submitted=true)
           data = FormDataHelpers.formDataMap(cache.form.formData)
           htmlForPDF  <- addExtraDataToHTML(cleanHtml, submission, cache.formTemplate.authConfig, cache.formTemplate.submissionReference, cache.retrievals, hashedValue, cache.formTemplate, data, cache.form.envelopeId)
           pdfStream   <- pdfService.generatePDF(htmlForPDF)
@@ -103,7 +103,7 @@ class AcknowledgementController(
       // format: ON
         case _ => Future.successful(BadRequest)
       }
-  }
+    }
 
   private def addExtraDataToHTML(
     html: String,
@@ -115,27 +115,33 @@ class AcknowledgementController(
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]],
     envelopeId: EnvelopeId
-  )(implicit hc: HeaderCarrier): Future[String] = {
+  )(implicit hc: HeaderCarrier, messages: Messages): Future[String] = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime =
       s"""${submissionDetails.submittedDate.format(dateFormat)} ${submissionDetails.submittedDate.format(timeFormat)}"""
     val rows = List(
-      cya_row("Submission date", formattedTime),
-      cya_row("Submission reference", SubmissionRef(envelopeId).toString),
-      cya_row("Submission mark", hashedValue)
+      cya_row(messages("submission.date"), formattedTime),
+      cya_row(messages("submission.reference"), SubmissionRef(envelopeId).toString),
+      cya_row(messages("submission.mark"), hashedValue)
     )
-    val extraData = cya_section("Submission details", HtmlFormat.fill(rows)).toString()
+    val extraData = cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
     val declaration: List[(FormComponent, Seq[String])] = for {
       formTemplateDecField <- flattenGroups(formTemplate.declarationSection.fields)
       formData             <- data.get(formTemplateDecField.id)
     } yield (formTemplateDecField, formData)
 
-    val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
-      case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
-    })).toString()
+    val declarationExtraData = cya_section(
+      messages("submission.declaration.details"),
+      HtmlFormat.fill(declaration.map {
+        case (formDecFields, formData) => cya_row(formDecFields.label, formData.mkString)
+      })
+    ).toString()
+
+    val headerHtml = pdf_header(formTemplate).toString()
 
     val doc = Jsoup.parse(html)
+    doc.select("article[class*=content__body]").prepend(headerHtml)
     doc.select("article[class*=content__body]").append(extraData)
     doc.select("article[class*=content__body]").append(declarationExtraData)
     Future(doc.html.replace("£", "&pound;"))

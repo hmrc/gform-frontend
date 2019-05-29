@@ -341,9 +341,6 @@ textarea.form-control.form-control-full,
 .char-counter [data-char-field] {
     height: auto;
 }
-.pdf-only {
-  display: none;
-}
 
 /*
 * AF 3.9.0 uses inline-block for this which

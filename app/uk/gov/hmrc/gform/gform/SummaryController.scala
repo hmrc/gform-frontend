@@ -24,10 +24,11 @@ import cats.instances.set._
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import cats.syntax.traverse._
+import org.jsoup.Jsoup
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, Request, _ }
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -46,10 +47,11 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
+import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryController(
   i18nSupport: I18nSupport,
@@ -148,7 +150,8 @@ class SummaryController(
           for {
             summaryHml <- getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
             htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = false)
-            pdfStream <- pdfService.generatePDF(htmlForPDF)
+            withPDFHeader <- pdfHeader(htmlForPDF, cache.formTemplate)
+            pdfStream     <- pdfService.generatePDF(withPDFHeader)
           } yield
             Result(
               header = ResponseHeader(200, Map.empty),
@@ -157,6 +160,13 @@ class SummaryController(
         case _ => Future.successful(BadRequest)
       }
     }
+
+  def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(implicit ec: ExecutionContext): Future[String] = {
+    val headerHtml = pdf_header(formTemplate).toString()
+    val doc = Jsoup.parse(summaryHtml)
+    doc.select("article[class*=content__body]").prepend(headerHtml)
+    Future(doc.html)
+  }
 
   // TODO JoVl - why validateForm is different from validate in FormController
   private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
