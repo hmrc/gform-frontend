@@ -135,7 +135,7 @@ object ComponentValidator {
       case (FractionalShape(_, _, _, fractional), 0, _) if lessThanMinLength(fractional, 0) =>
         validationFailure(fieldValue, messages("generic.error.wholeNumber"))
       case (FractionalShape(_, _, _, fractional), _, _) if surpassMaxLength(fractional, maxFractional) =>
-        validationFailure(fieldValue, messages("generic.error.maxDecimals"))
+        validationFailure(fieldValue, messages("generic.error.maxDecimals", maxFractional))
       case (FractionalShape("-", _, _, _), _, true) =>
         validationFailure(fieldValue, messages("generic.error.positiveNumber"))
       case (FractionalShape(_, _, _, _), _, _) => validationSuccess
