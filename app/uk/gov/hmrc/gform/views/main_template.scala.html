@@ -37,13 +37,6 @@
   formCategory: FormCategory = Default
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
-@isHMRC = @{
-  formCategory match {
-    case OfstedDefault => false
-    case _ => true
-  }
-}
-
 @serviceInfo = {}
 
 @webChatRoomId = @{
@@ -106,5 +99,5 @@
   serviceInfoContent = serviceInfo,
   scriptElem = Some(mainScripts),
   authConfig = authConfig,
-  includeHMRCBranding = isHMRC
+  includeHMRCBranding = formCategory.isHmrc
 )

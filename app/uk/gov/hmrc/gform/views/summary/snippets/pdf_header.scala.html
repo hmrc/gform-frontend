@@ -19,16 +19,10 @@
 
 @(formTemplate: FormTemplate)(implicit messages: Messages)
 
-@isHMRC = @{
-  formTemplate.formCategory match {
-    case OfstedDefault => false
-    case _ => true
-  }
-}
 
 <div>
   <span>
-    @if(isHMRC) { @messages("branding.hmrc") }
+    @if(formTemplate.formCategory.isHmrc) { @messages("branding.hmrc") }
   </span>
   <h1>
     @formTemplate.formName

@@ -32,13 +32,6 @@
 
 @heading = @{messages("ack.title", formCategory.getString)}
 
-@isHMRC = @{
-  formCategory match {
-    case OfstedDefault => false
-    case _ => true
-  }
-}
-
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = formTemplate.formName,
@@ -83,7 +76,7 @@
 
   @{supportContents.snippets}
 
-  @if(isHMRC) {
+  @if(formCategory.isHmrc) {
     <h2 class="heading-medium">
       @messages("ack.beforeYouGo")
     </h2>
