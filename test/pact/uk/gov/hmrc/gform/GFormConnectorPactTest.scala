@@ -98,6 +98,7 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
     """
       |{
       |  "formName": "name",
+      |  "formCategory": "default",
       |  "sections": [],
       |  "description": "description",
       |  "_id": "333",
