@@ -286,9 +286,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     )
 
     val confirm = formTemplate.formCategory match {
-      case Some(HMRCReturnForm) => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
-      case Some(HMRCClaimForm)  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
-      case _                    => messages("button.acceptAndSubmit")
+      case HMRCReturnForm => messages("button.acceptAndSubmitForm", messages("formCategory.return"))
+      case HMRCClaimForm  => messages("button.acceptAndSubmitForm", messages("formCategory.claim"))
+      case _              => messages("button.acceptAndSubmit")
     }
 
     val listResult = errors.map { case (_, validationResult) => validationResult }
@@ -347,7 +347,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formLevelHeading = false
     )
 
-    val formCategory = formTemplate.formCategory.getOrElse(Default)
+    val formCategory = formTemplate.formCategory
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val now = ZonedDateTime.now(ZoneId.of("Europe/London"))

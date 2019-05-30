@@ -37,7 +37,7 @@
   bodyClasses = None,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
-  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
+  formCategory = formTemplate.formCategory
 ) {
   <h1>
     @heading

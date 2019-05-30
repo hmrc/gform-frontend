@@ -50,7 +50,7 @@
   frontendAppConfig = frontendAppConfig,
   containsErrors = hasErrors,
   authConfig = Some(formTemplate.authConfig),
-  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
+  formCategory = formTemplate.formCategory
 ) {
 
   @if(hasErrors) {

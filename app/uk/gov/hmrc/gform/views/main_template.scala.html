@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.OfstedDefault
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default }
 
 @(title: String,
   serviceName: String,
@@ -34,15 +34,12 @@
   frontendAppConfig: FrontendAppConfig,
   authConfig: Option[AuthConfig],
   webChat: Option[WebChat] = None,
-  formCategory: Option[FormCategory] = None
+  formCategory: FormCategory = Default
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
 @isHMRC = @{
   formCategory match {
-    case Some(fc) => fc match {
-      case OfstedDefault => false
-      case _ => true
-    }
+    case OfstedDefault => false
     case _ => true
   }
 }

@@ -22,8 +22,8 @@ package object pages {
 
   def formCategory(formTemplate: FormTemplate): String =
     formTemplate.formCategory match {
-      case Some(HMRCClaimForm)  => "claim"
-      case Some(HMRCReturnForm) => "return"
-      case _                    => "form"
+      case HMRCClaimForm  => "claim"
+      case HMRCReturnForm => "return"
+      case _              => "form"
     }
 }

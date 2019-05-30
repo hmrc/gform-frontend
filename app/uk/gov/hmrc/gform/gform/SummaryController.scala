@@ -150,8 +150,8 @@ class SummaryController(
           for {
             summaryHml <- getSummaryHTML(formTemplateId, maybeAccessCode, cache, lang)
             htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = false)
-            withPDFHeader <- pdfHeader(htmlForPDF, cache.formTemplate)
-            pdfStream     <- pdfService.generatePDF(withPDFHeader)
+            withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
+            pdfStream <- pdfService.generatePDF(withPDFHeader)
           } yield
             Result(
               header = ResponseHeader(200, Map.empty),
@@ -161,11 +161,11 @@ class SummaryController(
       }
     }
 
-  def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(implicit ec: ExecutionContext): Future[String] = {
+  def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(implicit ec: ExecutionContext): String = {
     val headerHtml = pdf_header(formTemplate).toString()
     val doc = Jsoup.parse(summaryHtml)
     doc.select("article[class*=content__body]").prepend(headerHtml)
-    Future(doc.html)
+    doc.html
   }
 
   // TODO JoVl - why validateForm is different from validate in FormController

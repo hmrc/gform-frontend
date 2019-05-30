@@ -47,7 +47,7 @@
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
-  formCategory = Some(formTemplate.formCategory.getOrElse(FormCatDefault))
+  formCategory = formTemplate.formCategory
 ) {
 
   <div class="govuk-box-highlight">

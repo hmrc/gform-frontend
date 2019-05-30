@@ -20,7 +20,7 @@
 @(formTemplate: FormTemplate)(implicit messages: Messages)
 
 @isHMRC = @{
-  formTemplate.formCategory.getOrElse(Default) match {
+  formTemplate.formCategory match {
     case OfstedDefault => false
     case _ => true
   }

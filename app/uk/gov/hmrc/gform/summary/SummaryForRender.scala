@@ -57,7 +57,7 @@ object SummaryRenderingService {
       formTemplate,
       sfr,
       maybeAccessCode,
-      formTemplate.formCategory.getOrElse(Default),
+      formTemplate.formCategory,
       lang,
       retrievals.renderSaveAndComeBackLater,
       retrievals.continueLabel,

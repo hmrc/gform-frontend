@@ -42,7 +42,7 @@
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
-  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
+  formCategory = formTemplate.formCategory
 ) {
 
     <div class="cya-intro">

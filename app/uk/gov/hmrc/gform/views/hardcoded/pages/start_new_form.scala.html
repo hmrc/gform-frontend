@@ -41,7 +41,7 @@
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
-  formCategory = Some(formTemplate.formCategory.getOrElse(Default))
+  formCategory = formTemplate.formCategory
 ) {
 
   <div class = "transaction-banner--complete">
