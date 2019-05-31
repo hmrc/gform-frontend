@@ -32,15 +32,15 @@
         source: generateSourceFn(lookup, formTemplateId),
         showNoOptionsFound: false,
         defaultValue: value,
-        showAllValues: showAll
+        showAllValues: showAll === "true"
       });
 
       var checkInput = window.setInterval(function () {
         var $input = $('input#' + id);
         if ($input.length) {
-          window.clearInterval(checkInput);
           $input
-            .attr('autocomplete', 'off')
+            .attr('autocomplete', 'off');
+          window.clearInterval(checkInput);
         }
       }, 200);
     }
