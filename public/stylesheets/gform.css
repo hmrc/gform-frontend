@@ -36,12 +36,8 @@ input:focus, textarea:focus, select:focus, #global-header input:focus {
   width: 100%;
 }
 
-.lookup[data-show-all="true"] .autocomplete__dropdown-arrow-down {
-  z-index: 0 !important;
-}
-
-.lookup[data-show-all="false"] .autocomplete__dropdown-arrow-down {
-  z-index: -1 !important;
+.autocomplete__wrapper {
+  z-index: 1;
 }
 
 .autocomplete__option {
