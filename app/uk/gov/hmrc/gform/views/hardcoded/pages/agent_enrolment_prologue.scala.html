@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.gform.views.hardcoded.pages.formCategory
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 @(
   formTemplate: FormTemplate,
@@ -32,11 +32,12 @@
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    bodyClasses = None,
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  bodyClasses = None,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  formCategory = formTemplate.formCategory
 ) {
   <h1>
     @heading

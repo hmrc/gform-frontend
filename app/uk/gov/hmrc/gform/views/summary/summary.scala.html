@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form.FormId
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplate, FormCategory}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
@@ -35,23 +35,15 @@
 @heading = @{messages("summary.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    bodyClasses = None,
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig),
-    webChat = formTemplate.webChat
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  bodyClasses = None,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  webChat = formTemplate.webChat,
+  formCategory = formTemplate.formCategory
 ) {
-
-    <div class="pdf-only" aria-hidden="true">
-      <span>
-        HM Revenue &amp; Customs
-      </span>
-      <h1>
-        @{formTemplate.formName}
-      </h1>
-    </div>
 
     <div class="cya-intro">
       <h1 class="h1-heading">

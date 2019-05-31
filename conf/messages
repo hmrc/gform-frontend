@@ -3,6 +3,9 @@ global.error.InternalServerError500.title=We’re experiencing technical difficu
 global.error.InternalServerError500.heading=We’re experiencing technical difficulties
 global.error.InternalServerError500.message=Try signing in again in a few minutes.
 
+branding.hmrc=HM Revenue & Customs
+branding.ofsted=Ofsted
+
 linkText.saveAndComeBackLater=Save and come back later
 linkText.back=Back
 linkText.removeRepeatedGroup=Remove {0}
@@ -217,3 +220,11 @@ agentsPrologue.linkText=Create an agent services account
 # Web chat
 webchat.title=Webchat service
 webchat.chatOnline=Chat online with an advisor
+
+#Submission PDF
+submission.date=Submission date
+submission.reference=Submission reference
+submission.mark=Submission mark
+submission.details=Submission details
+submission.declaration.details=Declaration details
+

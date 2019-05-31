@@ -18,8 +18,10 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner, AuthConfig}
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
 @import uk.gov.hmrc.play.views.html.layouts
-
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default }
+
 @(title: String,
   serviceName: String,
   containsErrors: Boolean = false,
@@ -31,10 +33,11 @@
   scriptElem: Option[Html] = None,
   frontendAppConfig: FrontendAppConfig,
   authConfig: Option[AuthConfig],
-  webChat: Option[WebChat] = None
+  webChat: Option[WebChat] = None,
+  formCategory: FormCategory = Default
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
-@serviceInfoContent = {}
+@serviceInfo = {}
 
 @webChatRoomId = @{
   webChat match {
@@ -93,7 +96,8 @@
   sidebar = sidebar,
   contentHeader = contentHeader,
   mainContent = layouts.article(mainContent),
-  serviceInfoContent = serviceInfoContent,
+  serviceInfoContent = serviceInfo,
   scriptElem = Some(mainScripts),
-  authConfig = authConfig
+  authConfig = authConfig,
+  includeHMRCBranding = formCategory.isHmrc
 )

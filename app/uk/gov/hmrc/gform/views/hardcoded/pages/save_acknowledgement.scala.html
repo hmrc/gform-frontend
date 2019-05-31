@@ -37,12 +37,13 @@
 @expiryDate = @{envelopeExpiryDate.fold("for 30 days")("until " + _.ldt.format(formatter))}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    bodyClasses = None,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  bodyClasses = None,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  formCategory = formTemplate.formCategory
 ) {
 <div class = "transaction-banner--complete">
     <h1 class ="transaction-banner__heading">@heading</h1>

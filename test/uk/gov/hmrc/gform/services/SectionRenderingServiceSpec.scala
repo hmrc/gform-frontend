@@ -434,7 +434,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
       .renderDeclarationSection(
         Some(accessCode),
         form,
-        formTemplate.copy(formCategory = Some(HMRCClaimForm)),
+        formTemplate.copy(formCategory = HMRCClaimForm),
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
@@ -458,7 +458,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages) extends SpecWithF
       .renderDeclarationSection(
         Some(accessCode),
         form,
-        formTemplate.copy(formCategory = Some(HMRCReturnForm)),
+        formTemplate.copy(formCategory = HMRCReturnForm),
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,

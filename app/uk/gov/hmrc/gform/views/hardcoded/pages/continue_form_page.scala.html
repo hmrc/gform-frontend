@@ -25,26 +25,27 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 
 @(
-        formTemplate: FormTemplate,
-        form: data.Form[_],
-        maybeAccessCode: Option[AccessCode],
-        lang: Option[String],
-        frontendAppConfig: FrontendAppConfig
+  formTemplate: FormTemplate,
+  form: data.Form[_],
+  maybeAccessCode: Option[AccessCode],
+  lang: Option[String],
+  frontendAppConfig: FrontendAppConfig
 )(
-        implicit
-        request: Request[_],
-        messages: Messages
+  implicit
+  request: Request[_],
+  messages: Messages
 )
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("continueDelete.title", formCat)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  formCategory = formTemplate.formCategory
 ) {
 
   @if(form.hasErrors) {

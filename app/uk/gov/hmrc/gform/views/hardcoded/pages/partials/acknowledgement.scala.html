@@ -18,6 +18,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.submission.SubmissionRef
 @import uk.gov.hmrc.gform.models.SectionRenderingInformation
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default => FormCatDefault }
 
 @(
   timeMessage: String,
@@ -38,7 +39,8 @@
   bodyClasses = None,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
-  webChat = formTemplate.webChat
+  webChat = formTemplate.webChat,
+  formCategory = formTemplate.formCategory
 ) {
 
   <div class="govuk-box-highlight">
@@ -74,11 +76,15 @@
 
   @{supportContents.snippets}
 
-  <h2 class="heading-medium">
-    @messages("ack.beforeYouGo")
-  </h2>
+  @if(formCategory.isHmrc) {
+    <h2 class="heading-medium">
+      @messages("ack.beforeYouGo")
+    </h2>
 
-  <p>
-    @messages("ack.feedbackText1") <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a> @messages("ack.feedbackText2").
-  </p>
+    <p>
+      @messages("ack.feedbackText1")
+      <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, lang, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a>
+      @messages("ack.feedbackText2").
+    </p>
+  }
 }

@@ -62,7 +62,8 @@
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
-  webChat = formTemplate.webChat
+  webChat = formTemplate.webChat,
+  formCategory = formTemplate.formCategory
 ) {
 
     @if(shouldDisplayBack) { @backLink }
