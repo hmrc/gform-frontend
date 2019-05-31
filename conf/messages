@@ -11,6 +11,7 @@ linkText.back=Back
 linkText.removeRepeatedGroup=Remove {0}
 linkText.addRepeatingGroup=Add another
 linkText.signOut=Sign out
+linkText.signBackIn=Sign back in
 
 button.continue=Continue
 button.saveAndContinue=Save and continue
