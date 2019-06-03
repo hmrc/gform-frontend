@@ -178,7 +178,7 @@
         var newCounter = Math.ceil(counter / 60);
         var minutesMessage = ' ' + settings.time;
         if (newCounter === 1) {
-          minutesMessage = ' ' + settings.time_singular
+          minutesMessage = ' ' + settings.timeSingular
         }
         if (newCounter < currentMin) {
           currentMin = newCounter;
