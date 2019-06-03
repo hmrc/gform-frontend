@@ -78,10 +78,10 @@
       <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
     }
     <script>
-      window.getCookie = function(name) {
+      window.getCookie = function (name) {
         var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
         if (match) return match[2];
-      }
+      };
       window.gform = window.gform || {};
       window.gform.baseLookupUrl = "/submissions/lookup/";
       window.gform.lang = window.getCookie("PLAY_LANG") || "en";
