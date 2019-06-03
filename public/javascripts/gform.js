@@ -30,8 +30,8 @@
 
   if (window.gform && window.gform.config && window.gform.config.timeoutEnabled) {
     GOVUK.gformSessionTimeout({
-      timeout: window.gform.config.timeout,
-      countdown: window.gform.config.countdown,
+      timeout: 30,
+      countdown: 15,
       keep_alive_url: window.gform.config.keep_alive_url,
       logout_url: window.gform.config.logout_url
     })

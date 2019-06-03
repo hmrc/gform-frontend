@@ -2,7 +2,7 @@
   'use strict';
   var $ = global.jQuery;
   var GOVUK = global.GOVUK || {};
-  var lang = "en";
+  var lang = global.gform.lang;
   var strings = {
     title: {
       en: "You’re about to be signed out",
@@ -20,7 +20,7 @@
       en: "seconds",
       cy: "eiliadau"
     },
-    messages: {
+    message: {
       en: "For security reasons, you will be signed out of this service in",
       cy: "Am resymau diogelwch, fe’ch llofnodir o’r gwasanaeth hwn"
     },
@@ -86,7 +86,6 @@
     }
 
     function init() {
-      lang = global.gform.lang || lang;
       setupDialogTimer()
     }
 
