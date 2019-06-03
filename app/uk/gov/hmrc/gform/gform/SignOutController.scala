@@ -25,8 +25,8 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages.signed_out
 class SignOutController(config: FrontendAppConfig, implicit val messagesApi: MessagesApi)
     extends Controller with I18nSupport {
   implicit val frontendConfig: FrontendAppConfig = config
-  def signOut(formTemplateId: FormTemplateId, lang: Option[String]): Action[AnyContent] = Action { implicit request =>
-    val signBackInURL = routes.FormController.dashboard(formTemplateId, lang).url
+  def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = Action { implicit request =>
+    val signBackInURL = routes.FormController.dashboard(formTemplateId, None).url
     Redirect(routes.SignOutController.showSignedOutPage(signBackInURL)).withNewSession
   }
 
