@@ -1,8 +1,39 @@
 ;(function (global) {
   'use strict'
 
-  var $ = global.jQuery
-  var GOVUK = global.GOVUK || {}
+  var $ = global.jQuery;
+  var GOVUK = global.GOVUK || {};
+  var lang = global.gform && global.gform.lang || "en";
+  var strings = {
+    maxSizeError: {
+      en: "This file is larger than the maximum file size of {0}MB",
+      cy: "Mae’r ffeil hon yn fwy na maint mwyaf ffeil {0}MB"
+    },
+    fileTypeError: {
+      en: "The file type {0} is not permitted. You can only upload {1}",
+      cy: "Ni chaniateir y math o ffeil {0}. Gallwch ond lanlwytho {1}"
+    },
+    invalidFileToDelete: {
+      en: "Could not delete file, file is invalid",
+      cy: "Doedd dim modd dileu ffeil, mae’r ffeil yn annilys"
+    },
+    unexpectedError: {
+      en: "An unexpected error occurred",
+      cy: "Digwyddodd gwall annisgwyl"
+    },
+    deleteLabel: {
+      en: "Delete",
+      cy: "Dileu"
+    }
+  };
+
+  function interpolate(string, vars) {
+    vars.forEach(function (v, index) {
+      var token = '{' + index + '}';
+      string = string.replace(token, v)
+    });
+    return string
+  }
 
   var humanReadableMimeTypes = {
 
@@ -194,11 +225,11 @@
       $input.attr('aria-busy', true);
 
       if (window.gform.contentTypes.indexOf(file.type) === -1) {
-        return handleError($input, 'The file type ' + transformMimeTypes(file.type) + ' is not permitted. You can only upload ' + transformMimeTypes(window.gform.contentTypes));
+        return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
       }
 
       if (file.size > (maxFileSize * 1024 * 1024)) {
-        return handleError($input, 'This file is larger than the maximum file size of ' + maxFileSize + 'MB');
+        return handleError($input, interpolate(strings.maxSizeError[lang], [maxFileSize]));
       }
 
       return uploadFile(file, $input.attr('id'))
@@ -239,7 +270,7 @@
     
     // Display the uploaded file name and delete button
     function makeFileEntry(name, fileId, formTemplateId, accessCode) {
-      return $('<span>' + name + '</span> <a href="#" class="delete-file" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">Delete</span><span class="visuallyhidden">Delete ' + name + '</span></a>')
+      return $('<span>' + name + '</span> <a href="#" class="delete-file" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">' + strings.deleteLabel[lang] + '</span><span class="visuallyhidden">' + strings.deleteLabel[lang] + ' ' + name + '</span></a>')
     }
 
     // Handle file deletion
@@ -254,7 +285,7 @@
       t.attr('aria-busy', 'true');
 
       if (!d.fileId) {
-        handleError($('#' + d.formId), 'Could not delete file, file is invalid');
+        handleError($('#' + d.formId), strings.invalidFileToDelete[lang]);
       }
 
       var deleteUrl = '/submissions/api/forms/' + d.formId + '/' + d.accessCode + '/deleteFile/' + d.fileId + '';
@@ -264,7 +295,7 @@
         fileDeleteSuccess(d.fileId, t)
       }, function (err) {
         t.removeAttr('aria-busy')
-        handleError($('#' + d.fileId), err.responseJSON && err.responseJSON.message ? err.responseJSON.message : 'An unexpected error occurred');
+        handleError($('#' + d.fileId), err.responseJSON && err.responseJSON.message ? err.responseJSON.message : strings.unexpectedError[lang]);
       })
     }
 
@@ -272,7 +303,7 @@
     function fileDelete (deleteUrl) {
       return $.ajax({
         url: deleteUrl,
-        type: 'DELETE',
+        type: 'DELETE'
       });
     }
 

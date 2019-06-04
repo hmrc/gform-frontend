@@ -2,22 +2,54 @@
   'use strict';
   var $ = global.jQuery;
   var GOVUK = global.GOVUK || {};
+  var lang = global.gform && global.gform.lang || "en";
+  var strings = {
+    title: {
+      en: "You’re about to be signed out",
+      cy: "Rydych chi ar fin cael eich llofnodi"
+    },
+    time: {
+      en: "minutes",
+      cy: "munudau"
+    },
+    time_singular: {
+      en: "minute",
+      cy: "munud"
+    },
+    seconds: {
+      en: "seconds",
+      cy: "eiliadau"
+    },
+    message: {
+      en: "For security reasons, you will be signed out of this service in",
+      cy: "Am resymau diogelwch, fe’ch llofnodir o’r gwasanaeth hwn"
+    },
+    keep_alive_button_text: {
+      en: "Stay signed in",
+      cy: "Arhoswch i mewn"
+    },
+    sign_out_button_text: {
+      en: "Sign out",
+      cy: "Cofrestrwch"
+    }
+  };
 
   GOVUK.gformSessionTimeout = function(options) {
 
     var settings = {
       timeout: 900,
       countdown: 120,
-      time: 'minutes',
-      title: 'You’re about to be signed out',
-      message: 'For security reasons, you will be signed out of this service in',
+      time: strings.time[lang],
+      timeSingular: strings.time_singular[lang],
+      title: strings.title[lang],
+      message: strings.message[lang],
       keep_alive_url: '/submissions/keep-alive',
       logout_url: '/loggedout',
       restart_on_yes: true,
       dialog_width: 340,
       close_on_escape: true,
-      keep_alive_button_text: 'Stay signed in',
-      sign_out_button_text: 'Sign out'
+      keep_alive_button_text: strings.keep_alive_button_text[lang],
+      sign_out_button_text: strings.sign_out_button_text[lang]
     };
 
     $.extend(settings, options);
@@ -102,7 +134,7 @@
       $html.addClass('noScroll');
       var time = secondsToTime(settings.countdown);
       if (time.m === 1) {
-        settings.time = ' minute'
+        settings.time = ' ' + settings.timeSingular
       }
       $('<div id="timeout-dialog" class="timeout-dialog" role="dialog" aria-labelledby="timeout-message" tabindex=-1 aria-live="polite">' +
         '<h1 class="heading-medium push--top">' + settings.title + '</h1>' +
@@ -141,12 +173,12 @@
       var $countdownEl = $('#timeout-countdown');
       if (counter < 60) {
         $('.timeout-dialog').removeAttr('aria-live');
-        $countdownEl.html(counter + ' seconds')
+        $countdownEl.html(counter + ' ' + strings.seconds[lang])
       } else {
         var newCounter = Math.ceil(counter / 60);
-        var minutesMessage = ' minutes';
+        var minutesMessage = ' ' + settings.time;
         if (newCounter === 1) {
-          minutesMessage = ' minute'
+          minutesMessage = ' ' + settings.timeSingular
         }
         if (newCounter < currentMin) {
           currentMin = newCounter;
