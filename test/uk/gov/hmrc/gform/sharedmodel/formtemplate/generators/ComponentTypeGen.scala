@@ -23,16 +23,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 trait ComponentTypeGen {
-
-  def toLocalisedString(stringList: NonEmptyList[String]): NonEmptyList[LocalisedString] =
-    stringList.map(s => LocalisedString(Map(LangADT.En -> s)))
-
-  def toLocalisedString(optionalStringList: Option[List[String]]): Option[List[LocalisedString]] =
-    optionalStringList match {
-      case None             => None
-      case Some(stringList) => Some(stringList.map(s => LocalisedString(Map(LangADT.En -> s))))
-    }
-
+  def listToLocalisedString(stringList: NonEmptyList[String]): NonEmptyList[LocalisedString] =
+    stringList.map(s => toLocalisedString(s))
+  def toLocalisedString(string: String): LocalisedString = LocalisedString(Map(LangADT.En -> string))
+  def optListToLocalisedString(optionalStringList: Option[List[String]]): Option[List[LocalisedString]] =
+    optionalStringList.map(stringList => stringList.map(string => toLocalisedString(string)))
   def displayWidthGen: Gen[DisplayWidth] = Gen.oneOf(DisplayWidth.values.toSeq)
 
   def textGen: Gen[Text] =
@@ -72,14 +67,14 @@ trait ComponentTypeGen {
       orientation <- orientationGen
       selections  <- PrimitiveGen.zeroOrMoreGen(Gen.posNum[Int])
       helpText    <- Gen.option(PrimitiveGen.zeroOrMoreGen(PrimitiveGen.nonEmptyAlphaNumStrGen))
-    } yield Choice(tpe, toLocalisedString(options), orientation, selections, toLocalisedString(helpText))
+    } yield Choice(tpe, listToLocalisedString(options), orientation, selections, optListToLocalisedString(helpText))
 
   def revealingChoiceElementGen: Gen[RevealingChoiceElement] =
     for {
       choice          <- PrimitiveGen.nonEmptyAlphaNumStrGen
       revealingFields <- PrimitiveGen.zeroOrMoreGen(FormComponentGen.formComponentGen(1))
       selected        <- PrimitiveGen.booleanGen
-    } yield RevealingChoiceElement(choice, revealingFields, selected)
+    } yield RevealingChoiceElement(toLocalisedString(choice), revealingFields, selected)
 
   def revealingChoiceGen: Gen[RevealingChoice] =
     PrimitiveGen.oneOrMoreGen(revealingChoiceElementGen).map(RevealingChoice(_))

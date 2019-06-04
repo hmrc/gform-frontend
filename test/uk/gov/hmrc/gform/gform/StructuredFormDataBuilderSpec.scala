@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
 
 class StructuredFormDataBuilderSpec extends Spec {
+  implicit val l = LangADT.En
   "apply(Form, FormTemplate)" must "create the correct JSON for simple fields in non-repeating sections/groups" in {
     validate(
       createFormTemplate(
@@ -303,7 +304,8 @@ class StructuredFormDataBuilderSpec extends Spec {
   }
 
   private def validate(formTemplate: FormTemplate, formData: Form, expected: StructuredFormValue)(
-    implicit position: Position): Assertion =
+    implicit position: Position,
+    l: LangADT): Assertion =
     StructuredFormDataBuilder(formData, formTemplate) shouldBe expected
 
   def createForm(fields: (String, String)*): Form =
@@ -427,7 +429,7 @@ class StructuredFormDataBuilderSpec extends Spec {
   def createRevealingChoice(id: String, selectedFields: FormComponent*): FormComponent =
     createFormComponent(
       id,
-      RevealingChoice(NonEmptyList.of(RevealingChoiceElement("Foo", selectedFields.toList, true))))
+      RevealingChoice(NonEmptyList.of(RevealingChoiceElement(toLocalisedString("Foo"), selectedFields.toList, true))))
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

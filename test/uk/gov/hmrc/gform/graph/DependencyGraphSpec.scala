@@ -72,7 +72,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
           mkFormComponent(
             "b",
             RevealingChoice(
-              NonEmptyList.one(RevealingChoiceElement("Yes", mkFormComponent("c", FormCtx("a")) :: Nil, false)))),
+              NonEmptyList.one(
+                RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("c", FormCtx("a")) :: Nil, false)))),
           mkFormComponent("d", FormCtx("c"))
         )
       )
@@ -254,8 +255,8 @@ class DependencyGraphSpec extends FlatSpec with Matchers {
         List(
           mkFormComponent(
             "a",
-            RevealingChoice(
-              NonEmptyList.one(RevealingChoiceElement("Yes", mkFormComponent("b", Value) :: Nil, false)))))) ::
+            RevealingChoice(NonEmptyList.one(
+              RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("b", Value) :: Nil, false)))))) ::
         mkSectionIncludeIf(List(mkFormComponent("c", Value)), includeIf) :: Nil
 
     layers(sections) shouldBe List(
