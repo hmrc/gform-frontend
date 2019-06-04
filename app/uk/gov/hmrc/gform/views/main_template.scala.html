@@ -20,7 +20,7 @@
 @import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default, FormTemplateId}
 
 @(title: String,
   serviceName: String,
@@ -35,7 +35,7 @@
   authConfig: Option[AuthConfig],
   webChat: Option[WebChat] = None,
   formCategory: FormCategory = Default,
-  templateId: String
+  templateId: FormTemplateId
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
 @serviceInfo = {}

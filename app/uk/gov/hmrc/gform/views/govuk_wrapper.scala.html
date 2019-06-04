@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
 @import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.config.JSConfig
 
 @(appConfig: FrontendAppConfig,
@@ -38,7 +38,7 @@
   authConfig: Option[AuthConfig],
   navLinks: Option[Html] = None,
   includeHMRCBranding: Boolean,
-  templateId: String
+  templateId: FormTemplateId
 )(implicit messages: Messages)
 
 @scriptElement = {
