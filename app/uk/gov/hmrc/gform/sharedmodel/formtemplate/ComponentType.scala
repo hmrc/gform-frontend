@@ -22,6 +22,7 @@ import cats.syntax.foldable._
 import julienrf.json.derived
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
 import scala.util.Try
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
