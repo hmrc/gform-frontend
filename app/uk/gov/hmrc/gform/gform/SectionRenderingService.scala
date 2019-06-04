@@ -296,8 +296,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formTemplate._id,
       maybeAccessCode,
       SectionNumber(0),
-      formTemplate.declarationSection.title.value,
-      formTemplate.declarationSection.description.map(ls => ls.value),
+      formTemplate.declarationSection.title.value(l),
+      formTemplate.declarationSection.description.map(ls => ls.value(l)),
       Nil,
       snippets,
       "",
@@ -416,7 +416,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formTemplate._id,
       maybeAccessCode,
       SectionNumber(0),
-      enrolmentSection.title.value,
+      enrolmentSection.title.value(l),
       None,
       Nil,
       snippets,
@@ -483,15 +483,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           ei,
           data)
       case RevealingChoice(options) =>
-        htmlForRevealingChoice(
-          formComponent,
-          formTemplateId,
-          options,
-          index,
-          maybeValidated,
-          ei,
-          data,
-          obligations)
+        htmlForRevealingChoice(formComponent, formTemplateId, options, index, maybeValidated, ei, data, obligations)
       case FileUpload() =>
         htmlForFileUpload(formComponent, formTemplateId, index, ei, data, ei.retrievals, maybeValidated)
       case InformationMessage(infoType, infoText) =>
@@ -545,8 +537,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated,
     materialisedRetrievals: MaterialisedRetrievals,
-    validatedType: ValidatedType[ValidationResult],
-    lang: Option[String])(implicit messages: Messages, l:LangADT) = {
+    validatedType: ValidatedType[ValidationResult])(implicit messages: Messages, l: LangADT) = {
     val validationResult = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
 
     html.form.snippets.field_template_file_upload(
@@ -628,7 +619,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         html.form.snippets.choice(
           "checkbox",
           formComponent,
-          options.map(ls => ls.value(l)),
+          options.map(ls => ls.value),
           orientation,
           prepopValues,
           validatedValue,
@@ -657,10 +648,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    lang: Option[String],
-    obligations: Obligations)(implicit request: Request[_], message: Messages) = {
+    obligations: Obligations)(implicit request: Request[_], message: Messages, l: LangADT) = {
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val nestedEi = ei.copy(formLevelHeading = true)
     val revealingChoicesList =
       options.map { o =>
         val isSelected: Int => Boolean =
@@ -668,8 +657,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         (
           o.choice,
           isSelected,
-          o.revealingFields.map(
-            htmlFor(_, formTemplateId, index, nestedEi, data, validatedType, lang, obligations = obligations)))
+          o.revealingFields.map(htmlFor(_, formTemplateId, index, ei, data, validatedType, obligations = obligations)))
       }
 
     html.form.snippets
@@ -754,9 +742,23 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     else {
       formComponent.presentationHint match {
         case Some(xs) if xs.contains(TotalValue) =>
-          asTotalValue(formComponent, t, prepopValue, validatedValue, index, ei.section.title.value, ei.formLevelHeading)
+          asTotalValue(
+            formComponent,
+            t,
+            prepopValue,
+            validatedValue,
+            index,
+            ei.section.title.value(l),
+            ei.formLevelHeading)
         case _ =>
-          asStandard(formComponent, t, prepopValue, validatedValue, index, ei.section.title.value, ei.formLevelHeading)
+          asStandard(
+            formComponent,
+            t,
+            prepopValue,
+            validatedValue,
+            index,
+            ei.section.title.value(l),
+            ei.formLevelHeading)
       }
     }
   }
@@ -791,7 +793,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     data: FormDataRecalculated)(implicit messages: Messages, l: LangADT) = {
     val fieldValues = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
     html.form.snippets
-      .field_template_address(international, formComponent, fieldValues, index, ei.section.title.value, ei.formLevelHeading)
+      .field_template_address(
+        international,
+        formComponent,
+        fieldValues,
+        index,
+        ei.section.title.value(l),
+        ei.formLevelHeading)
   }
 
   private def htmlForDate(
@@ -836,16 +844,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated,
     validatedType: ValidatedType[ValidationResult],
-    lang: Option[String],
     obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT): Html = {
-    val grpHtml = htmlForGroup0(grp, formTemplateId, formComponent, index, ei, data, validatedType, lang, obligations)
+    val grpHtml = htmlForGroup0(grp, formTemplateId, formComponent, index, ei, data, validatedType, obligations)
 
     val isChecked = FormDataHelpers
       .dataEnteredInGroup(grp, ei.fieldData.data)
 
     formComponent.presentationHint match {
       case Some(list) if list.contains(CollapseGroupUnderLabel) =>
-        html.form.snippets.collapsable(formComponent.id, formComponent.label.value, grpHtml, isChecked)
+        html.form.snippets.collapsable(formComponent.id, formComponent.label.value(l), grpHtml, isChecked)
       case _ => grpHtml
     }
   }
@@ -858,9 +865,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated,
     validatedType: ValidatedType[ValidationResult],
-    lang: Option[String],
     obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT) = {
-    val maybeHint = formComponent.helpText.map(localisedString => localisedString.value).map(markDownParser).map(Html.apply)
+    val maybeHint =
+      formComponent.helpText.map(localisedString => localisedString.value(l)).map(markDownParser).map(Html.apply)
 
     val (lhtml, limitReached) =
       getGroupForRendering(

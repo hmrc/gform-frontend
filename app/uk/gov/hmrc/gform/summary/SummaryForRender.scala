@@ -187,11 +187,11 @@ object SummaryRenderingService {
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
                     .map(_ => option)
               }
-              .collect { case Some(selection) => selection }
+              .collect { case Some(selection) => selection.value }
 
             val hiddenFieldInfo = for {
               field <- RevealingChoice.slice(fieldValue.id)(data.data)(rc)
-            } yield valueToHtml(field, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga, lang)
+            } yield valueToHtml(field, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
 
             val listOfHtml = choice(fieldValue, selections, changeButton) :: hiddenFieldInfo
             revealingChoice(listOfHtml)

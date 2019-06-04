@@ -21,7 +21,7 @@
 @import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default, FormTemplateId}
 
 @(title: String,
   serviceName: String,
@@ -36,7 +36,8 @@
   authConfig: Option[AuthConfig],
   webChat: Option[WebChat] = None,
   formCategory: FormCategory = Default,
-  languages: AvailableLanguages = AvailableLanguages.default
+  languages: AvailableLanguages = AvailableLanguages.default,
+  templateId: FormTemplateId
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
 @serviceInfo = {}
@@ -102,5 +103,6 @@
   scriptElem = Some(mainScripts),
   authConfig = authConfig,
   includeHMRCBranding = formCategory.isHmrc,
-  formLanguages = languages
+  formLanguages = languages,
+  templateId = templateId
 )

@@ -18,14 +18,15 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.Eq
 import cats.data.NonEmptyList
+import cats.syntax.foldable._
 import julienrf.json.derived
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
+import scala.util.Try
+import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
-
-import scala.collection.immutable._
 
 sealed trait MultiField {
 
@@ -119,6 +120,29 @@ final case object Inline extends ChoiceType
 
 object ChoiceType {
   implicit val format: OFormat[ChoiceType] = derived.oformat
+}
+
+case class RevealingChoiceElement(choice: LocalisedString, revealingFields: List[FormComponent], selected: Boolean)
+object RevealingChoiceElement {
+  implicit val format: OFormat[RevealingChoiceElement] = derived.oformat
+}
+case class RevealingChoice(options: NonEmptyList[RevealingChoiceElement]) extends ComponentType
+object RevealingChoice {
+  import JsonUtils._
+  implicit val format: OFormat[RevealingChoice] = derived.oformat
+
+  val slice: FormComponentId => Data => RevealingChoice => List[FormComponent] = fcId =>
+    data =>
+      revealingChoice => {
+        val rFields =
+          for {
+            index <- data.get(fcId).toList.flatten.headOption
+            i     <- Try(index.toLong).toOption
+            rc    <- revealingChoice.options.get(i)
+          } yield rc.revealingFields
+        rFields.getOrElse(List.empty[FormComponent])
+  }
+
 }
 
 case class IdType(value: String) extends AnyVal

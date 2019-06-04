@@ -98,12 +98,13 @@ class ValidationService(
     implicit hc: HeaderCarrier,
     messages: Messages,
     l: LangADT): Future[ValidatedType[ValidationResult]] = {
+    def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
+
     val eT = for {
-      _ <- EitherT(
-            validateComponents(sectionFields, data, envelopeId, retrievals, thirdPartyData, formTemplate).map(
-              _.toEither))
-      valRes <- EitherT(validateUsingValidators(section, data).map(_.toEither))
+      _      <- lift(validateComponents(sectionFields, data, envelopeId, retrievals, thirdPartyData, formTemplate))
+      valRes <- lift(validateUsingValidators(section, data))
     } yield valRes
+
     eT.value.map(Validated.fromEither)
   }
 

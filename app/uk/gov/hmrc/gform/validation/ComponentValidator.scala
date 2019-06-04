@@ -265,7 +265,7 @@ object ComponentValidator {
     fieldValue: FormComponent,
     revealingChoice: RevealingChoice,
     componentsValidator: ComponentsValidator)(
-    data: FormDataRecalculated)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages) = {
+    data: FormDataRecalculated)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages, l: LangADT) = {
     val validatedChoice: ValidatedType[Unit] = validateChoice(fieldValue)(data)
 
     if (validatedChoice === validationSuccess) {
