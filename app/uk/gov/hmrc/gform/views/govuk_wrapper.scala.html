@@ -90,7 +90,7 @@
             timeout: @authTimeout.timeout,
             countdown: @authTimeout.countdown,
             keep_alive_url: "@authTimeout.keepAliveUrl",
-            logout_url: "@authTimeout.signOutUrl/@templateId"
+            logout_url: "@authTimeout.signOutUrl/@templateId.value"
           }
       </script>
     }
@@ -100,7 +100,7 @@
 
 @navLinks = {
   @if(authTimeout.signOutUrl != "") {
-    <li><a href="@{authTimeout.signOutUrl}/@templateId" id="signOut">@messages("linkText.signOut")</a></li>
+    <li><a href="@{authTimeout.signOutUrl}/@{templateId.value}" id="signOut">@messages("linkText.signOut")</a></li>
   } else {
     None
   }
