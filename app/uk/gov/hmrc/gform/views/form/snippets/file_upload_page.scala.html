@@ -41,11 +41,12 @@
 @heading = @{"Upload document"}
 
 @uk.gov.hmrc.gform.views.html.main_template(
-    title = heading,
-    serviceName = formTemplate.formName,
-    developmentPhase = ResearchBanner,
-    frontendAppConfig = frontendAppConfig,
-    authConfig = Some(formTemplate.authConfig)
+  title = heading,
+  serviceName = formTemplate.formName,
+  developmentPhase = ResearchBanner,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  templateId = formTemplate._id
 ) {
     <h1 class="h1-heading">@heading</h1>
 

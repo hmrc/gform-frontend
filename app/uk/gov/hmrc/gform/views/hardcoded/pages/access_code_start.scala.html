@@ -50,7 +50,8 @@
   frontendAppConfig = frontendAppConfig,
   containsErrors = hasErrors,
   authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory
+  formCategory = formTemplate.formCategory,
+  templateId = formTemplate._id
 ) {
 
   @if(hasErrors) {

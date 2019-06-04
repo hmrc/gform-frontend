@@ -11,11 +11,15 @@ linkText.back=Back
 linkText.removeRepeatedGroup=Remove {0}
 linkText.addRepeatingGroup=Add another
 linkText.signOut=Sign out
+linkText.signBackIn=Sign back in
 
 button.continue=Continue
 button.saveAndContinue=Save and continue
 button.acceptAndSubmit=Accept and submit
 button.acceptAndSubmitForm=Accept and submit {0}
+
+# Signed Out
+signedOut.title=You have been signed out
 
 # Error summary
 error.summary.heading=There is a problem
