@@ -2,7 +2,7 @@
   'use strict';
   var $ = global.jQuery;
   var GOVUK = global.GOVUK || {};
-  var lang = global.gform.lang;
+  var lang = global.gform && global.gform.lang || "en";
   var strings = {
     title: {
       en: "You’re about to be signed out",

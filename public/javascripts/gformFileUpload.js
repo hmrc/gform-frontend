@@ -1,9 +1,9 @@
 ;(function (global) {
   'use strict'
 
-  var $ = global.jQuery
-  var GOVUK = global.GOVUK || {}
-  var lang = global.gform.lang;
+  var $ = global.jQuery;
+  var GOVUK = global.GOVUK || {};
+  var lang = global.gform && global.gform.lang || "en";
   var strings = {
     maxSizeError: {
       en: "This file is larger than the maximum file size of {0}MB",
