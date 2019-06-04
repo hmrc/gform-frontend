@@ -527,8 +527,14 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         List(mkFormComponent(
           "c",
           RevealingChoice(NonEmptyList.of(
-            RevealingChoiceElement("Yes", mkFormComponent("d", Add(FormCtx("a"), FormCtx("b"))) :: Nil, false),
-            RevealingChoiceElement("No", mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))) :: Nil, false)
+            RevealingChoiceElement(
+              toLocalisedString("Yes"),
+              mkFormComponent("d", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
+              false),
+            RevealingChoiceElement(
+              toLocalisedString("No"),
+              mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
+              false)
           ))
         ))) :: Nil
 
@@ -552,8 +558,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         List(mkFormComponent(
           "rc",
           RevealingChoice(NonEmptyList.of(
-            RevealingChoiceElement("Yes", mkFormComponent("a", Value) :: Nil, false),
-            RevealingChoiceElement("No", mkFormComponent("b", Value) :: Nil, false)
+            RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("a", Value) :: Nil, false),
+            RevealingChoiceElement(toLocalisedString("No"), mkFormComponent("b", Value) :: Nil, false)
           ))
         ))) ::
         mkSection(List(mkFormComponent("res", Add(FormCtx("a"), FormCtx("b"))))) ::

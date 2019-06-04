@@ -41,7 +41,7 @@ class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
           RevealingChoice(
             NonEmptyList.of(
               RevealingChoiceElement(
-                "Yes",
+                toLocalisedString("Yes"),
                 List(
                   mkFormComponent("b", Value),
                   mkFormComponent("c", Value)
@@ -49,7 +49,7 @@ class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
                 true
               ),
               RevealingChoiceElement(
-                "No",
+                toLocalisedString("No"),
                 List(
                   mkFormComponent("d", Value),
                   mkFormComponent("e", Value)

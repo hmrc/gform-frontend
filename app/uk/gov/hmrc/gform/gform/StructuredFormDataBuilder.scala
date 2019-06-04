@@ -39,30 +39,31 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate)(implicit l: 
 
   private val multiChoiceFieldIds: Set[FormComponentId] = extractMultiChoiceFieldIds(template)
 
-  def build(): List[Field] =
+  def build()(implicit l: LangADT): List[Field] =
     buildSections ++ buildBaseSection(template.acknowledgementSection) ++ buildBaseSection(template.declarationSection)
 
-  private def buildSections(): List[Field] =
+  private def buildSections()(implicit l: LangADT): List[Field] =
     for {
       section     <- template.sections
       field       <- section.fields
       fieldAsJson <- buildField(field, section.isRepeating)
     } yield fieldAsJson
 
-  def buildBaseSection(section: BaseSection): List[Field] =
+  def buildBaseSection(section: BaseSection)(implicit l: LangADT): List[Field] =
     for {
       unstructuredField <- section.fields
       structuredField   <- buildField(unstructuredField, repeatable = false)
     } yield structuredField
 
-  private def buildField(field: FormComponent, repeatable: Boolean): Seq[Field] =
+  private def buildField(field: FormComponent, repeatable: Boolean)(implicit l: LangADT): Seq[Field] =
     field.`type` match {
       case g: Group           => buildGroupFields(g)
-      case r: RevealingChoice => buildRevealingChoiceFields(field.id, r)
+      case r: RevealingChoice => buildRevealingChoiceFields(field.id, r)(l)
       case _                  => buildNonGroupField(field, repeatable).toSeq
     }
 
-  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice): List[Field] =
+  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice)(
+    implicit l: LangADT): List[Field] =
     formValuesByUnindexedId.get(id).map(_.head).toList.map { selectionStr =>
       val selection = selectionStr.toInt
       val maybeRevealingChoiceElement = revealingChoice.options.get(selection)
@@ -71,7 +72,7 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate)(implicit l: 
         ObjectStructure(
           maybeRevealingChoiceElement.fold(List.empty[Field]) { rcElement =>
             List(
-              Field(FieldName("choice"), TextNode(rcElement.choice.value)),
+              Field(FieldName("choice"), TextNode(rcElement.choice.value(l))),
               Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(rcElement)))
             )
           }
