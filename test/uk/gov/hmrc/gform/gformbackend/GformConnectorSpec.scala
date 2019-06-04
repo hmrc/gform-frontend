@@ -18,7 +18,8 @@ package uk.gov.hmrc.gform.gformbackend
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.SpecWithFakeApp
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.DeclarationSection
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
 import uk.gov.hmrc.http._
 

@@ -24,7 +24,7 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import scala.util.Try
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
@@ -106,10 +106,10 @@ object UpperCaseBoolean {
 
 case class Choice(
   `type`: ChoiceType,
-  options: NonEmptyList[String],
+  options: NonEmptyList[LocalisedString],
   orientation: Orientation,
   selections: List[Int],
-  optionHelpText: Option[List[String]]
+  optionHelpText: Option[List[LocalisedString]]
 ) extends ComponentType
 
 sealed trait ChoiceType
@@ -122,7 +122,7 @@ object ChoiceType {
   implicit val format: OFormat[ChoiceType] = derived.oformat
 }
 
-case class RevealingChoiceElement(choice: String, revealingFields: List[FormComponent], selected: Boolean)
+case class RevealingChoiceElement(choice: LocalisedString, revealingFields: List[FormComponent], selected: Boolean)
 object RevealingChoiceElement {
   implicit val format: OFormat[RevealingChoiceElement] = derived.oformat
 }

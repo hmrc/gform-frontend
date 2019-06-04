@@ -49,7 +49,7 @@
 
 @backLink = {
   @if(isDeclaration) {
-    <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode, page.lang)" class="link-back">@messages("linkText.back")</a>
+    <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode)" class="link-back">@messages("linkText.back")</a>
   } else {
     <a href="#" class="link-back js-visible" id="backButton">@messages("linkText.back")</a>
   }
@@ -64,6 +64,7 @@
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,
   formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages,
   templateId = formTemplate._id
 ) {
 

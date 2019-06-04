@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
 import shapeless.syntax.typeable._
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.getError
 
@@ -33,6 +34,6 @@ object ValidationServiceHelper {
 
   val validationSuccess = ().valid
 
-  def validationFailure(fieldValue: FormComponent, errorMsg: String) =
+  def validationFailure(fieldValue: FormComponent, errorMsg: String)(implicit l: LangADT) =
     getError(fieldValue, errorMsg)
 }

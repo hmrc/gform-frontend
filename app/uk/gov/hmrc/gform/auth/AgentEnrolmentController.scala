@@ -40,9 +40,9 @@ class AgentEnrolmentController(
     s"$baseUrl/agent-subscription/business-type?continue=$encodedContinueUrl"
   }
 
-  def prologue(formTemplateId: FormTemplateId, formName: String, lang: Option[String]) =
-    auth.asyncGGAuth(formTemplateId) { implicit request => formWithoutData =>
-      val continueUrl = uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplateId, lang).url
+  def prologue(formTemplateId: FormTemplateId, formName: String) =
+    auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => formWithoutData =>
+      val continueUrl = uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplateId).url
       Future.successful(
         Ok(
           uk.gov.hmrc.gform.views.html.hardcoded.pages

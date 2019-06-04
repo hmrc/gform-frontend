@@ -20,17 +20,18 @@ import cats.data.NonEmptyList
 import cats.instances.option._
 import cats.syntax.foldable._
 import cats.syntax.option._
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
 object StructuredFormDataBuilder {
-  def apply(form: Form, template: FormTemplate): ObjectStructure =
+  def apply(form: Form, template: FormTemplate)(implicit l: LangADT): ObjectStructure =
     StructuredFormValue.ObjectStructure(new StructuredFormDataBuilder(form, template).build())
 }
 
-class StructuredFormDataBuilder(form: Form, template: FormTemplate) {
+class StructuredFormDataBuilder(form: Form, template: FormTemplate)(implicit l: LangADT) {
   private val formValuesByUnindexedId: Map[FormComponentId, NonEmptyList[String]] =
     form.formData.fields
       .groupBy(f => f.id.reduceToTemplateFieldId)
@@ -70,7 +71,7 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate) {
         ObjectStructure(
           maybeRevealingChoiceElement.fold(List.empty[Field]) { rcElement =>
             List(
-              Field(FieldName("choice"), TextNode(rcElement.choice)),
+              Field(FieldName("choice"), TextNode(rcElement.choice.value)),
               Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(rcElement)))
             )
           }

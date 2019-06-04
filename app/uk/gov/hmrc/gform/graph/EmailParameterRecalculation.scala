@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.graph
 import cats.MonadError
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,11 +38,11 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
         cache.form.envelopeId)
       .map(mapToParameterTemplateVariables)
 
-  private def mkFormComponent(fcId: String, ct: ComponentType) =
+  private def mkFormComponent(fcId: String, ct: ComponentType, ls: LocalisedString) =
     FormComponent(
       FormComponentId(fcId + "UniqueEmailParameter"),
       ct,
-      "UniqueEmailParameter",
+      ls,
       None,
       None,
       None,
@@ -56,7 +57,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
 
   private def mkSection(formComponents: List[FormComponent]): Section =
     Section(
-      "Section Name",
+      LocalisedString(Map(LangADT.En -> "Section Name")),
       None,
       None,
       None,
@@ -71,8 +72,10 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
 
   private def formTemplateWithParametersAsComponents: FormTemplate = {
 
+    val ls = LocalisedString(Map(LangADT.En -> "UniqueEmailParameter"))
+
     val newFormComponents = cache.formTemplate.emailParameters.fold(List.empty[FormComponent])(_.toList.map(parameter =>
-      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value))))
+      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value), ls)))
 
     val newSections = cache.formTemplate.sections ::: List(mkSection(newFormComponents))
 

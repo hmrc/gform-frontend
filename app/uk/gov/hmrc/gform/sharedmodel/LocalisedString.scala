@@ -15,16 +15,19 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel
+import play.api.libs.json.Format
+import play.api.libs.functional.syntax._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
+case class LocalisedString(m: Map[LangADT, String]) {
+  def value(implicit l: LangADT): String = m.getOrElse(l, m.getOrElse(LangADT.En, ""))
+  def values: List[String] = m.values.toList
+}
 
-object LabelHelper {
-  def buildRepeatingLabel(field: FormComponent, index: Int) =
-    field.label.copy(m = field.label.m.map { case (lang, message) => (lang, message.replace("$n", index.toString)) })
+object LocalisedString {
 
-  def buildRepeatingLabel(shortName: Option[LocalisedString], index: Int): Option[LocalisedString] =
-    if (shortName.isDefined) {
-      shortName.map(ls =>
-        ls.copy(m = shortName.get.m.map { case (lang, message) => (lang, message.replace("$n", index.toString)) }))
-    } else None
+  val formatMap: Format[Map[LangADT, String]] =
+    JsonUtils.formatMap(LangADT.stringToLangADT, LangADT.langADTToString)
+  implicit val format: Format[LocalisedString] =
+    formatMap.inmap[LocalisedString](m => LocalisedString(m), ls => ls.m)
 }

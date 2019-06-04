@@ -20,6 +20,7 @@ import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.RepeatFormComponentIds
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -36,7 +37,7 @@ object RepeatingComponentService {
     fcIds.map(id => data.data.get(id).flatMap(_.headOption).fold(0: BigDecimal)(toBigDecimalDefault)).sum
   }
 
-  def getAllSections(formTemplate: FormTemplate, data: FormDataRecalculated): List[Section] =
+  def getAllSections(formTemplate: FormTemplate, data: FormDataRecalculated)(implicit l: LangADT): List[Section] =
     formTemplate.sections
       .flatMap { section =>
         if (isRepeatingSection(section)) {
@@ -57,10 +58,8 @@ object RepeatingComponentService {
     }
   }
 
-  private def generateDynamicSections(
-    section: Section,
-    formTemplate: FormTemplate,
-    data: FormDataRecalculated): List[Section] = {
+  private def generateDynamicSections(section: Section, formTemplate: FormTemplate, data: FormDataRecalculated)(
+    implicit l: LangADT): List[Section] = {
 
     val count = getRequestedCount(section.repeatsMax.get, formTemplate, data)
 
@@ -70,7 +69,7 @@ object RepeatingComponentService {
 
   }
 
-  private def copySection(section: Section, index: Int, data: FormDataRecalculated) = {
+  private def copySection(section: Section, index: Int, data: FormDataRecalculated)(implicit l: LangADT) = {
     def copyField(field: FormComponent): FormComponent =
       field.`type` match {
         case grp @ Group(fields, _, _, _, _, _) =>
@@ -85,13 +84,14 @@ object RepeatingComponentService {
       }
 
     section.copy(
-      title = buildText(Some(section.title), index, data).getOrElse(""),
+      title = buildText(Some(section.title), index, data).get,
       shortName = buildText(section.shortName, index, data),
       fields = section.fields.map(copyField)
     )
   }
 
-  private def buildText(template: Option[String], index: Int, data: FormDataRecalculated): Option[String] = {
+  private def buildText(template: Option[LocalisedString], index: Int, data: FormDataRecalculated)(
+    implicit l: LangADT): Option[LocalisedString] = {
 
     def evaluateTextExpression(str: String) = {
       val field = str.replaceFirst("""\$\{""", "").replaceFirst("""\}""", "")
@@ -119,8 +119,12 @@ object RepeatingComponentService {
     }
 
     template match {
-      case Some(inputText) => Some(getEvaluatedText(inputText).replace("$n", index.toString))
-      case _               => None
+      case Some(inputLocalisedString) =>
+        Some(inputLocalisedString.copy(inputLocalisedString.m.map {
+          case (lang, message) =>
+            (lang, getEvaluatedText(message).replace("$n", index.toString))
+        }))
+      case _ => None
     }
   }
 

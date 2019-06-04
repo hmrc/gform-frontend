@@ -17,15 +17,19 @@
 package uk.gov.hmrc.gform.models
 
 import org.scalatest.{ FlatSpec, Matchers }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
 
 class FormFieldValidationResultSpec extends FlatSpec with Matchers {
 
+  private def toLocalaisedString(string: String): LocalisedString =
+    LocalisedString(Map(LangADT.En -> string))
+
   val mockDateFieldValue = FormComponent(
     id = FormComponentId("StartDate"),
     `type` = Date(AnyDate, Offset(0), Some(ExactDateValue(2010, 10, 10))),
-    label = "label",
+    label = toLocalaisedString("label"),
     helpText = None,
     shortName = None,
     mandatory = false,
@@ -45,7 +49,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
           FormComponent(
             FormComponentId("day"),
             Text(AnyText, Value),
-            "label",
+            toLocalaisedString("label"),
             None,
             None,
             None,
@@ -60,7 +64,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
           FormComponent(
             FormComponentId("month"),
             Text(AnyText, Value),
-            "label",
+            toLocalaisedString("label"),
             None,
             None,
             None,
@@ -75,7 +79,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
           FormComponent(
             FormComponentId("year"),
             Text(AnyText, Value),
-            "label",
+            toLocalaisedString("label"),
             None,
             None,
             None,
@@ -86,7 +90,8 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
             false,
             None),
           "NOT_RIGHT",
-          Set("NAN"))
+          Set("NAN")
+        )
       )
     )
 
@@ -102,7 +107,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
           FormComponent(
             FormComponentId("day"),
             Text(AnyText, Value),
-            "day",
+            toLocalaisedString("day"),
             None,
             None,
             None,
@@ -117,7 +122,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
           FormComponent(
             FormComponentId("month"),
             Text(AnyText, Value),
-            "month",
+            toLocalaisedString("month"),
             None,
             None,
             None,
@@ -132,7 +137,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
           FormComponent(
             FormComponentId("year"),
             Text(AnyText, Value),
-            "year",
+            toLocalaisedString("year"),
             None,
             None,
             None,

@@ -136,25 +136,20 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
 
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
-      authService.authenticateAndAuthorise(formTemplate, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+      authService.authenticateAndAuthorise(formTemplate, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(AuthSuccessful(materialisedRetrievals))
   }
 
   it should "authorise a gg authentication only non-agent when agent access is configured to agent denied" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAgentDenied, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+        .authenticateAndAuthorise(formTemplateAgentDenied, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(AuthSuccessful(materialisedRetrievals))
   }
 
   it should "authorise a gg authentication only individual when agent access is configured to agent denied" in {
     val result = authService
-      .authenticateAndAuthorise(
-        formTemplateAgentDenied,
-        lang,
-        requestUri,
-        getAffinityGroup,
-        ggAuthorisedSuccessfulIndividual)
+      .authenticateAndAuthorise(formTemplateAgentDenied, requestUri, getAffinityGroup, ggAuthorisedSuccessfulIndividual)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividual))
   }
 
@@ -162,7 +157,6 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     val result = authService
       .authenticateAndAuthorise(
         formTemplateAgentDenied,
-        lang,
         requestUri,
         getAffinityGroup,
         ggAuthorisedSuccessfulOrganisation)
@@ -172,23 +166,13 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   it should "block a gg authentication only agent when agent access is configured to agent denied" in {
     val result =
       authService
-        .authenticateAndAuthorise(
-          formTemplateAgentDenied,
-          lang,
-          requestUri,
-          getAffinityGroup,
-          ggAuthorisedSuccessfulAgent)
+        .authenticateAndAuthorise(formTemplateAgentDenied, requestUri, getAffinityGroup, ggAuthorisedSuccessfulAgent)
     result.futureValue should be(AuthBlocked("Agents cannot access this form"))
   }
 
   it should "authorise a gg authentication only agent when agent access is configured to allow any agent" in {
     val result = authService
-      .authenticateAndAuthorise(
-        formTemplateAnyAgentAllowed,
-        lang,
-        requestUri,
-        getAffinityGroup,
-        ggAuthorisedSuccessfulAgent)
+      .authenticateAndAuthorise(formTemplateAnyAgentAllowed, requestUri, getAffinityGroup, ggAuthorisedSuccessfulAgent)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsAgent))
   }
 
@@ -197,7 +181,6 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
       authService
         .authenticateAndAuthorise(
           formTemplateRequireMTDAgentEnrolment,
-          lang,
           requestUri,
           getAffinityGroup,
           ggAuthorisedSuccessfulEnrolledAgent)
@@ -207,7 +190,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   it should "authorise a gg authentication with enrolment" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateEnrolment, lang, requestUri, getAffinityGroup, ggAuthorisedEnrolment)
+        .authenticateAndAuthorise(formTemplateEnrolment, requestUri, getAffinityGroup, ggAuthorisedEnrolment)
     result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolment))
   }
 
@@ -216,7 +199,6 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
       authService
         .authenticateAndAuthorise(
           formTemplateRequireMTDAgentEnrolment,
-          lang,
           requestUri,
           getAffinityGroup,
           ggAuthorisedRedirect)
@@ -225,21 +207,21 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
 
   it should "redirect a gg authentication only user when no agentAccess config" in {
     val result =
-      authService.authenticateAndAuthorise(formTemplateEeitt, lang, requestUri, getAffinityGroup, ggAuthorisedRedirect)
+      authService.authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedRedirect)
     result.futureValue should be(AuthRedirect(""))
   }
 
   it should "authorise an eeitt authorised user when user is eeitt enrolled" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateEeitt, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+        .authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(AuthSuccessful(materialisedRetrievals))
   }
 
   it should "redirect an eeitt authorised user when user is not eeitt enrolled" in {
     val result =
       authServiceNotAllowed
-        .authenticateAndAuthorise(formTemplateEeitt, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+        .authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(
       AuthRedirectFlashingFormName(
         "/eeitt-frontend-base/eeitt-auth/enrollment-verification?callbackUrl=%2Fsubmissions%2Ftest"))
@@ -247,14 +229,14 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
 
   it should "redirect an eeitt authorised user when gg authentication fails" in {
     val result =
-      authService.authenticateAndAuthorise(formTemplateEeitt, lang, requestUri, getAffinityGroup, ggAuthorisedRedirect)
+      authService.authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedRedirect)
     result.futureValue should be(AuthRedirect(""))
   }
 
   it should "not authorise an Ofsted user when they have not been successfully authenticated by the AWS ALB" in {
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAWSALB, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+        .authenticateAndAuthorise(formTemplateAWSALB, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(AuthBlocked("You are not authorized to access this service"))
   }
 
@@ -264,7 +246,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     implicit val hc: HeaderCarrier = HeaderCarrier(otherHeaders = Seq(("x-amzn-oidc-data" -> jwt)))
     val result =
       authService
-        .authenticateAndAuthorise(formTemplateAWSALB, lang, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
+        .authenticateAndAuthorise(formTemplateAWSALB, requestUri, getAffinityGroup, ggAuthorisedSuccessful)
     result.futureValue should be(AuthSuccessful(AWSALBRetrievals("20e9b243-7471-4081-be1e-fcb5da33fd5a")))
   }
 

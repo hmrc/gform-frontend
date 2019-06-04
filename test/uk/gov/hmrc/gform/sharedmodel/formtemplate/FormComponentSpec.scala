@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import org.scalactic.source.Position
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
 
 class FormComponentSpec extends Spec {
@@ -27,7 +28,12 @@ class FormComponentSpec extends Spec {
   private val exprAddress = Address(international = false)
   private val exprUKSortCode = UkSortCode(Value)
   private val exprDate = Date(AnyDate, Offset(0), None)
-  private val exprChoice = Choice(Checkbox, NonEmptyList("Natural gas", Nil), Vertical, List.empty[Int], None)
+  private val exprChoice = Choice(
+    Checkbox,
+    NonEmptyList(LocalisedString(Map(LangADT.En -> "Natural gas")), Nil),
+    Vertical,
+    List.empty[Int],
+    None)
   private val exprInformationMessage = InformationMessage(StandardInfo, "Info text")
   private val exprFileUpload = FileUpload()
 
@@ -162,9 +168,9 @@ class FormComponentSpec extends Spec {
     FormComponent(
       FormComponentId(fcId),
       ct,
-      label,
+      LocalisedString(Map(LangADT.En -> label)),
       None,
-      Some(shortName),
+      Some(LocalisedString(Map(LangADT.En -> shortName))),
       None,
       true,
       false,

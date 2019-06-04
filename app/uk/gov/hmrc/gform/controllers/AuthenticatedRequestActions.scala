@@ -24,10 +24,11 @@ import java.util.UUID
 
 import play.api.Logger
 import play.api.http.HeaderNames
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Lang, Langs }
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
@@ -54,7 +55,9 @@ class AuthenticatedRequestActions(
   frontendAppConfig: FrontendAppConfig,
   val authConnector: AuthConnector,
   i18nSupport: I18nSupport,
+  langs: Langs,
   errResponder: ErrResponder
+  //:
 )(
   implicit ec: ExecutionContext
 ) extends AuthorisedFunctions {
@@ -109,62 +112,63 @@ class AuthenticatedRequestActions(
     } yield result
   }
 
-  def async(formTemplateId: FormTemplateId, lang: Option[String])(
-    f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
+  def async(formTemplateId: FormTemplateId)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
+      val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
+      val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+
+      val currentLang: LangADT = LangADT.stringToLangADT(lang.code)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(
-                         formTemplate,
-                         lang,
-                         request.uri,
-                         getAffinityGroup,
-                         ggAuthorised(request))
+                       .authenticateAndAuthorise(formTemplate, request.uri, getAffinityGroup, ggAuthorised(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals => f(newRequest)(AuthCacheWithoutForm(retrievals, formTemplate))
+                   onSuccess = retrievals => f(newRequest)(currentLang)(AuthCacheWithoutForm(retrievals, formTemplate))
                  )
       } yield result
   }
 
   def asyncGGAuth(formTemplateId: FormTemplateId)(
-    f: Request[AnyContent] => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
-      val predicate = AuthProviders(AuthProvider.GovernmentGateway)
+      val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
+      val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
 
+      val currentLang: LangADT = LangADT.stringToLangADT(lang.code)
+      val predicate = AuthProviders(AuthProvider.GovernmentGateway)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) =>
-                     f(request)(AuthCacheWithoutForm(retrievals, formTemplate))
+                     f(request)(currentLang)(AuthCacheWithoutForm(retrievals, formTemplate))
                    case _ => errResponder.forbidden(request, "Access denied")
                  }
       } yield result
   }
 
-  def async(formTemplateId: FormTemplateId, lang: Option[String], maybeAccessCode: Option[AccessCode])(
-    f: Request[AnyContent] => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
+  def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
+      val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
+      val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+
+      val currentLang: LangADT = LangADT.stringToLangADT(lang.code)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(
-                         formTemplate,
-                         lang,
-                         request.uri,
-                         getAffinityGroup,
-                         ggAuthorised(request))
+                       .authenticateAndAuthorise(formTemplate, request.uri, getAffinityGroup, ggAuthorised(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = withForm(f(newRequest))(maybeAccessCode, formTemplate)
+                   onSuccess = withForm(f(newRequest)(currentLang))(maybeAccessCode, formTemplate)
                  )
       } yield result
     }

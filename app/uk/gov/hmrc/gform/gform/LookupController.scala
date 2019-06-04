@@ -37,7 +37,7 @@ class LookupController(
     lookup(formTemplateId, register, LookupQuery.Empty)
 
   def lookup(formTemplateId: FormTemplateId, register: Register, lookupQuery: LookupQuery): Action[AnyContent] =
-    auth.async(formTemplateId, None) { implicit request => cache =>
+    auth.async(formTemplateId, None) { implicit request => l => cache =>
       val filtered: List[LookupLabel] = (lookupRegistry.get(register), lookupQuery) match {
         case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty)  => options.keys.toList
         case (Some(AjaxLookup(options, _, ShowAll.Disabled)), LookupQuery.Empty) => List.empty

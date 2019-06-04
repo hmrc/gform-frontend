@@ -40,7 +40,6 @@ class EnrolmentResultProcessor(
   retrievals: MaterialisedRetrievals,
   enrolmentSection: EnrolmentSection,
   data: FormDataRecalculated,
-  lang: Option[String],
   frontendAppConfig: FrontendAppConfig
 ) {
 
@@ -63,7 +62,6 @@ class EnrolmentResultProcessor(
 
   private def getResult(validationResult: ValidatedType[ValidationResult], globalErrors: List[Html]): Result = {
     val errorMap = getErrorMap(validationResult)
-
     Ok(
       renderEnrolmentSection(
         formTemplate,
@@ -72,8 +70,7 @@ class EnrolmentResultProcessor(
         data,
         errorMap,
         globalErrors,
-        validationResult,
-        lang
+        validationResult
       )
     )
   }
@@ -101,7 +98,7 @@ class EnrolmentResultProcessor(
       case EnrolmentConflict =>
         Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))
       case EnrolmentSuccessful =>
-        Redirect(uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id, lang).url)
+        Redirect(uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id).url)
       case EnrolmentFailed =>
         val globalError = html.form.errors.error_global("Enrolment unsuccessful, please check your data and try again.")
         val globalErrors = globalError :: Nil

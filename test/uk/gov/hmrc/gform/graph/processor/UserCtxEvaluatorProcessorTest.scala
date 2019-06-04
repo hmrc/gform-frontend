@@ -24,6 +24,7 @@ import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments, Affin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals }
 import uk.gov.hmrc.gform.graph.{ NoChange, NonConvertible, RecalculationOp }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolledIdentifier, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
 import uk.gov.hmrc.http.logging.SessionId
 
@@ -45,7 +46,12 @@ class UserCtxEvaluatorProcessorTest extends Spec {
 
   it should "return enrolledIdentifier value when authModule in authConfig are set" in new UserCtxEvaluatorProcessor[Id] {
     val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(multi))
-    val enrSec = EnrolmentSection("title", None, Nil, NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))), Nil)
+    val enrSec = EnrolmentSection(
+      LocalisedString(Map(LangADT.En -> "title")),
+      None,
+      Nil,
+      NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))),
+      Nil)
     val auth = HmrcEnrolmentModule(
       EnrolmentAuth(
         ServiceId("IR-CT"),

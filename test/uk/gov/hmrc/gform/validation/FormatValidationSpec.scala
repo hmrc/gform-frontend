@@ -22,13 +22,15 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
-class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphSpec {
+class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec with GraphSpec {
+
+  private def toLocalisedString(string: String): LocalisedString = LocalisedString(Map(LangADT.En -> string))
 
   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest(
     "12345678910",
@@ -52,7 +54,19 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
     val text = UkSortCode(Value)
 
     val fieldValue =
-      FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
+      FormComponent(
+        FormComponentId("n"),
+        text,
+        toLocalisedString("sample label"),
+        None,
+        None,
+        None,
+        true,
+        false,
+        false,
+        true,
+        false,
+        None)
     val fieldValues = List(fieldValue)
 
     val data = Map(
@@ -70,7 +84,19 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
     val text = UkSortCode(Value)
 
     val fieldValue =
-      FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
+      FormComponent(
+        FormComponentId("n"),
+        text,
+        toLocalisedString("sample label"),
+        None,
+        None,
+        None,
+        true,
+        false,
+        false,
+        true,
+        false,
+        None)
 
     val fieldValues = List(fieldValue)
 
@@ -89,7 +115,19 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
     val text = UkSortCode(Value)
 
     val fieldValue =
-      FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
+      FormComponent(
+        FormComponentId("n"),
+        text,
+        toLocalisedString("sample label"),
+        None,
+        None,
+        None,
+        true,
+        false,
+        false,
+        true,
+        false,
+        None)
 
     val fieldValues = List(fieldValue)
 
@@ -108,7 +146,19 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
     val text = UkSortCode(Value)
 
     val fieldValue =
-      FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
+      FormComponent(
+        FormComponentId("n"),
+        text,
+        toLocalisedString("sample label"),
+        None,
+        None,
+        None,
+        true,
+        false,
+        false,
+        true,
+        false,
+        None)
 
     val fieldValues = List(fieldValue)
 
@@ -127,7 +177,19 @@ class FormatValidationSpec(implicit messages: Messages) extends Spec with GraphS
     val text = UkSortCode(Value)
 
     val fieldValue =
-      FormComponent(FormComponentId("n"), text, "sample label", None, None, None, true, false, false, true, false, None)
+      FormComponent(
+        FormComponentId("n"),
+        text,
+        toLocalisedString("sample label"),
+        None,
+        None,
+        None,
+        true,
+        false,
+        false,
+        true,
+        false,
+        None)
 
     val fieldValues = List(fieldValue)
 

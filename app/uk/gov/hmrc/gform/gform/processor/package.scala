@@ -31,6 +31,5 @@ package object processor {
     FormDataRecalculated,
     List[(FormComponent, FormFieldValidationResult)],
     List[Html],
-    ValidatedType[ValidationResult],
-    Option[String]) => Html
+    ValidatedType[ValidationResult]) => Html
 }
