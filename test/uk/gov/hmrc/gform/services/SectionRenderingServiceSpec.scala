@@ -245,7 +245,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
 
       FormComponent(
         id = FormComponentId("testInfoField"),
-        `type` = InformationMessage(StandardInfo, markdown),
+        `type` = InformationMessage(StandardInfo, toLocalisedString(markdown)),
         label = LocalisedString(Map(LangADT.En -> "This is the field label")),
         helpText = None,
         shortName = None,
@@ -310,8 +310,8 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
       orientation = Horizontal,
       repeatsMax = Some(3),
       repeatsMin = Some(1),
-      repeatLabel = Some("REPEAT_LABEL"),
-      repeatAddAnotherText = Some("repeatAddAnotherText")
+      repeatLabel = Some(toLocalisedString("REPEAT_LABEL")),
+      repeatAddAnotherText = Some(toLocalisedString("repeatAddAnotherText"))
     )
 
     override def allSections = List(
@@ -357,8 +357,8 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
       orientation = Horizontal,
       repeatsMax = Some(2),
       repeatsMin = Some(1),
-      repeatLabel = Some("REPEAT_LABEL"),
-      repeatAddAnotherText = Some("repeatAddAnotherText")
+      repeatLabel = Some(toLocalisedString("REPEAT_LABEL")),
+      repeatAddAnotherText = Some(toLocalisedString("repeatAddAnotherText"))
     )
 
     override def allSections = List(

@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
 trait SectionGen {
 
-
   def verifierRecipeGen: Gen[VerifierRecipe] =
     for {
       key     <- PrimitiveGen.nonEmptyAlphaNumStrGen

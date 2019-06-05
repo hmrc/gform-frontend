@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import ExpandUtils._
+import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
@@ -28,7 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class ExpandUtilsSpec extends FlatSpec with Matchers {
+class ExpandUtilsSpec extends FlatSpec with Spec with Matchers {
 
   private val lookupExtractors = new LookupExtractors(Map.empty)
 
@@ -698,7 +699,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers {
     Vertical,
     List.empty,
     None)
-  val informationMessage = InformationMessage(StandardInfo, "info-text")
+  val informationMessage = InformationMessage(StandardInfo, toLocalisedString("info-text"))
 
   def mkGroup(groupIds: List[FormComponentId]) =
     Group(

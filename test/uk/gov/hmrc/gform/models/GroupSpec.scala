@@ -49,8 +49,8 @@ class GroupSpec extends Spec {
       Horizontal,
       Some(5),
       Some(1),
-      Some("repeatLabel"),
-      Some("repeatAddAnotherText")
+      Some(toLocalisedString("repeatLabel")),
+      Some(toLocalisedString("repeatAddAnotherText"))
     )
 
     FormDataHelpers.dataEnteredInGroup(grp, Map.empty[FormComponentId, Seq[String]]) should be(false)

@@ -94,7 +94,14 @@ trait ComponentTypeGen {
       repeatsMin           <- Gen.option(Gen.posNum[Int])
       repeatLabel          <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
       repeatAddAnotherText <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
-    } yield Group(fields.toList, orientation, repeatsMax, repeatsMin, repeatLabel, repeatAddAnotherText)
+    } yield
+      Group(
+        fields.toList,
+        orientation,
+        repeatsMax,
+        repeatsMin,
+        toLocalisedString(repeatLabel),
+        toLocalisedString(repeatAddAnotherText))
 
   def infoTypeGen: Gen[InfoType] = Gen.oneOf(StandardInfo, LongInfo, ImportantInfo, BannerInfo, NoFormat)
 

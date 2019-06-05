@@ -24,7 +24,7 @@
 @(fieldValue: FormComponent, groupField: Group, snippets: List[Html], orientation: Orientation, instance: Int, disableRemoveButton: Boolean)(implicit messages: Messages, l: LangADT)
 
 @label = @{
-  if(groupField.repeatLabel.isDefined) GroupHelper.buildRepeatLabel(groupField, instance) else ""
+  if(groupField.repeatLabel.isDefined) GroupHelper.buildRepeatLabel(groupField, instance).value else ""
 }
 
 <fieldset class="section-repeating">

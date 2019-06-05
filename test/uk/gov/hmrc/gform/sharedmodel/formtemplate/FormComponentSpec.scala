@@ -34,7 +34,7 @@ class FormComponentSpec extends Spec {
     Vertical,
     List.empty[Int],
     None)
-  private val exprInformationMessage = InformationMessage(StandardInfo, "Info text")
+  private val exprInformationMessage = InformationMessage(StandardInfo, toLocalisedString("Info text"))
   private val exprFileUpload = FileUpload()
 
   private val labelNoCounter = "Label no counter"

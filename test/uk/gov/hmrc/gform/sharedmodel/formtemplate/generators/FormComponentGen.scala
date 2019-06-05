@@ -20,7 +20,6 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
-
 trait FormComponentGen {
   def formComponentIdGen: Gen[FormComponentId] =
     for {

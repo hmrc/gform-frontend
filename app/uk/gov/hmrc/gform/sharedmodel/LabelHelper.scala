@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 object LabelHelper {
-  def buildRepeatingLabel(field: FormComponent, index: Int) =
+  def buildRepeatingLabel(field: FormComponent, index: Int): LocalisedString =
     field.label.copy(m = field.label.m.map { case (lang, message) => (lang, message.replace("$n", index.toString)) })
 
   def buildRepeatingLabel(shortName: Option[LocalisedString], index: Int): Option[LocalisedString] =

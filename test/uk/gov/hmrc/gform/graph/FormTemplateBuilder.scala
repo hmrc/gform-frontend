@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
-object FormTemplateBuilder{
+object FormTemplateBuilder {
 
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
     Group(
