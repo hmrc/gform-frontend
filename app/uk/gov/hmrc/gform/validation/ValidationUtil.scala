@@ -235,7 +235,7 @@ object ValidationUtil {
 
     //TODO: below code was borrowed from components validator. make it reusable in ValidationUtil
     def errors(fieldValue: FormComponent, defaultErr: String): Set[String] =
-      Set(fieldValue.errorMessage.map(localisedString => localisedString.value(l)).getOrElse(defaultErr))
+      Set(fieldValue.errorMessage.map(localisedString => localisedString.value).getOrElse(defaultErr))
     def getError(
       fieldValue: FormComponent,
       defaultMessage: String): Validated[Map[FormComponentId, Set[String]], Nothing] =

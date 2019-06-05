@@ -20,10 +20,9 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
-object FormTemplateBuilder {
-  def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
+object FormTemplateBuilder{
 
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
     Group(

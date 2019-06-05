@@ -24,8 +24,6 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 
 class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
 
-  private def toLocalisedString(string: String): LocalisedString = LocalisedString(Map(LangADT.En -> string))
-
   "when given a data and a List of field components that is corespondes to the refrence in date" should "return the form component from the List" in {
     val formComponentId = FormComponentId("1")
     val dateConstraints = DateConstraints(List(DateConstraint(After, DateField(formComponentId), OffsetDate(1))))

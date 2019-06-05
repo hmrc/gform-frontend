@@ -29,7 +29,7 @@
 
 <div>
   <dt class="cya-question">
-    @fieldValue.shortName.map(ls=>ls.value(l)).getOrElse(fieldValue.label.value(l))
+    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
   <dd class="cya-answer">
     @UkSortCode.fields(fieldValue.id).toList.map{ fieldId =>

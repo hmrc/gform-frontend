@@ -30,8 +30,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec with GraphSpec {
 
-  private def toLocalisedString(string: String): LocalisedString = LocalisedString(Map(LangADT.En -> string))
-
   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest(
     "12345678910",
     Sterling.defaultRounding)

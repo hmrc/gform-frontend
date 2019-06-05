@@ -40,15 +40,15 @@
     <div class="choice-list__item">
       <div class="choice-list__item__label">
         <h2 class="form-label">
-          @{LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)}
+          @{LabelHelper.buildRepeatingLabel(fieldValue, index).value}
         </h2>
 
         @if(fieldValue.helpText.isDefined) {
-          <div class="form-field--hint">@fieldValue.helpText.map(ls => ls.value(l)).getOrElse("")</div>
+          <div class="form-field--hint">@fieldValue.helpText.map(ls => ls.value).getOrElse("")</div>
         }
 
         @if(hasErrors) {
-          @errorInline(fieldValue.id.value, fieldValue.errorMessage.map(ls => ls.value(l)).getOrElse("Please enter required data"), Seq("error-message"))
+          @errorInline(fieldValue.id.value, fieldValue.errorMessage.map(ls => ls.value).getOrElse("Please enter required data"), Seq("error-message"))
         }
       </div>
 

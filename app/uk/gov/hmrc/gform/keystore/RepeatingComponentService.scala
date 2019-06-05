@@ -84,14 +84,15 @@ object RepeatingComponentService {
       }
 
     section.copy(
-      title = buildText(Some(section.title), index, data).get,
-      shortName = buildText(section.shortName, index, data),
+      title = OptbuildText(Some(section.title), index, data).get,
+      shortName = OptbuildText(section.shortName, index, data),
       fields = section.fields.map(copyField)
     )
   }
-
-  private def buildText(template: Option[LocalisedString], index: Int, data: FormDataRecalculated)(
-    implicit l: LangADT): Option[LocalisedString] = {
+  private def OptbuildText(template: Option[LocalisedString], index: Int, data: FormDataRecalculated)(
+    implicit l: LangADT): Option[LocalisedString] = template.map(ls => buildText(ls, index, data))
+  private def buildText(template: LocalisedString, index: Int, data: FormDataRecalculated)(
+    implicit l: LangADT): LocalisedString = {
 
     def evaluateTextExpression(str: String) = {
       val field = str.replaceFirst("""\$\{""", "").replaceFirst("""\}""", "")
@@ -118,14 +119,9 @@ object RepeatingComponentService {
       str.replace(expression, evaluatedText)
     }
 
-    template match {
-      case Some(inputLocalisedString) =>
-        Some(inputLocalisedString.copy(inputLocalisedString.m.map {
-          case (lang, message) =>
-            (lang, getEvaluatedText(message).replace("$n", index.toString))
-        }))
-      case _ => None
-    }
+    template.copy(template.m.map({
+      case (lang, message) => (lang, getEvaluatedText(message).replace("$n", index.toString))
+    }))
   }
 
   //This Evaluation is for the repeating sections, this will not become values.

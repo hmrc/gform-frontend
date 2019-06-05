@@ -159,7 +159,7 @@ class FormController(
     maybeSectionNumber match {
       case Some(sn) =>
         val section = processData.sections(sn.value)
-        val sectionTitle4Ga = sectionTitle4GaFactory(section.title.value(l))
+        val sectionTitle4Ga = sectionTitle4GaFactory(section.title.value)
         Redirect(
           routes.FormController
             .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SeYes))
@@ -426,7 +426,7 @@ class FormController(
       ): Future[Result] =
         validateAndUpdateData(cache, processData) {
           case Some(sn) =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value(l))
+            val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value)
             Redirect(
               routes.FormController
                 .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors(sectionNumber < sn)))
@@ -444,7 +444,7 @@ class FormController(
             case None =>
               val call = maybeSn match {
                 case Some(sn) =>
-                  val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value(l))
+                  val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value)
                   routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SeYes)
                 case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode)
               }
@@ -454,13 +454,13 @@ class FormController(
 
       def processBack(processData: ProcessData, sn: SectionNumber): Future[Result] =
         validateAndUpdateData(cache, processData) { _ =>
-          val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value(l))
+          val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value)
           Redirect(routes.FormController.form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SeYes))
         }
 
       def handleGroup(processData: ProcessData, anchor: String): Future[Result] =
         validateAndUpdateData(cache, processData) { _ =>
-          val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sectionNumber.value).title.value(l))
+          val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sectionNumber.value).title.value)
           Redirect(
             routes.FormController
               .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes)

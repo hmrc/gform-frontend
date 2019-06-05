@@ -34,12 +34,12 @@
 @validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
 @currentSterling = @{ toBigDecimalDefault(validatedValue) }
 @validatedSterling = @{ currencyFormat.format(currentSterling) }
-@label = @{LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)}
+@label = @{LabelHelper.buildRepeatingLabel(fieldValue, index).value}
 
 <div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
   @inline_error_map(fieldValue, validationResult)
   <span class="heading-small" aria-live="polite">
-    @if(label.nonEmpty) { label } else { fieldValue.label.value(l) }
+    @if(label.nonEmpty) { label } else { fieldValue.label.value}
 
     <span id="@{fieldValue.id}-total">
       @if(fieldValue.isSterling){ @validatedSterling } else { @validatedValue }

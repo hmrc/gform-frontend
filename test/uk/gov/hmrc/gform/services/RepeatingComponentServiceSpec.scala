@@ -31,9 +31,6 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
   implicit lazy val hc = HeaderCarrier()
   implicit val l = LangADT.En
 
-  private def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
-
   "getAllSections" should "return only sections in template when no repeating sections are defined" in {
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`))

@@ -21,11 +21,11 @@ import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
 trait ComponentTypeGen {
   def listToLocalisedString(stringList: NonEmptyList[String]): NonEmptyList[LocalisedString] =
     stringList.map(s => toLocalisedString(s))
-  def toLocalisedString(string: String): LocalisedString = LocalisedString(Map(LangADT.En -> string))
   def optListToLocalisedString(optionalStringList: Option[List[String]]): Option[List[LocalisedString]] =
     optionalStringList.map(stringList => stringList.map(string => toLocalisedString(string)))
   def displayWidthGen: Gen[DisplayWidth] = Gen.oneOf(DisplayWidth.values.toSeq)
@@ -102,7 +102,7 @@ trait ComponentTypeGen {
     for {
       infoType <- infoTypeGen
       infoText <- PrimitiveGen.nonEmptyAlphaNumStrGen
-    } yield InformationMessage(infoType, infoText)
+    } yield InformationMessage(infoType, toLocalisedString(infoText))
 
   def fileUploadGen: Gen[FileUpload] = Gen.const(FileUpload())
 

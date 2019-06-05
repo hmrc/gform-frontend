@@ -58,7 +58,7 @@
 
 @label = {
   <label class="@{if(!formLevelHeading){"h1-heading"} else {"form-label"}}@if(fieldValue.derived){ js-hidden}" for="@{fieldValue.id}">
-    @LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)
+    @LabelHelper.buildRepeatingLabel(fieldValue, index).value
     @sterlingHelp
   </label>
   }
@@ -69,7 +69,7 @@
 
   @if(fieldValue.helpText.nonEmpty) {
     <span class="form-hint @if(fieldValue.derived){js-hidden}" id="@{fieldValue.id.value}-hint">
-      @{fieldValue.helpText.map(ls=>ls.value(l))}
+      @{fieldValue.helpText.map(ls=>ls.value)}
     </span>
   }
 

@@ -18,6 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
+
 
 trait FormComponentGen {
   def formComponentIdGen: Gen[FormComponentId] =
@@ -37,10 +39,6 @@ trait FormComponentGen {
   def helpTextGen: Gen[String] = PrimitiveGen.nonEmptyAlphaNumStrGen
   def shortNameGen: Gen[String] = PrimitiveGen.nonEmptyAlphaNumStrGen
   def errorMessageGen: Gen[String] = PrimitiveGen.nonEmptyAlphaNumStrGen
-  private def toLocalisedString(string: Option[String]): Option[LocalisedString] = string match {
-    case Some(s) => Some(LocalisedString(Map(LangADT.En -> s)))
-    case _       => None
-  }
 
   def formComponentGen(maxDepth: Int = 3): Gen[FormComponent] =
     for {

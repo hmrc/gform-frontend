@@ -31,7 +31,7 @@
 
     case LongInfo => {
       <details class="details" role="group">
-        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@{LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)}</summary>
+        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@{LabelHelper.buildRepeatingLabel(fieldValue, index).value}</summary>
 
         <div class="details__inner" id="details-content-@{fieldValue.id}" aria-hidden="true">
           <div class="panel panel-border-narrow">
@@ -55,7 +55,7 @@
     case BannerInfo => {
       <div class="transaction-banner--complete panel-info">
         <p>
-          <strong class="text--bold">@{LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)}</strong><br />
+          <strong class="text--bold">@{LabelHelper.buildRepeatingLabel(fieldValue, index).value}</strong><br />
           @text
         </p>
       </div>

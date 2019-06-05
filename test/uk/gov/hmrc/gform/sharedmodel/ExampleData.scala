@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
 import scala.collection.immutable.List
 
@@ -78,9 +79,6 @@ trait ExampleFieldId {
 trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def validIf: Option[ValidIf] = None
-
-  private def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
 
   def `fieldValue - facePhoto` = FormComponent(
     `fieldId - facePhoto`,
@@ -277,9 +275,6 @@ trait ExampleSectionNumber {
 }
 trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
-  private def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
-
   def `section - about you` =
     Section(
       toLocalisedString("About you"),
@@ -377,9 +372,6 @@ trait ExampleFormTemplate {
   def submitErrorUrl = """http://imsorry.com"""
 
   def webChat = Some(WebChat(ChatRoomId("test"), TemplateName("hmrc7")))
-
-  private def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
 
   def acknowledgementSection =
     AcknowledgementSection(
