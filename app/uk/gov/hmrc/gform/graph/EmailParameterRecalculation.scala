@@ -38,11 +38,11 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
         cache.form.envelopeId)
       .map(mapToParameterTemplateVariables)
 
-  private def mkFormComponent(fcId: String, ct: ComponentType, ls: LocalisedString) =
+  private def mkFormComponent(fcId: String, ct: ComponentType) =
     FormComponent(
       FormComponentId(fcId + "UniqueEmailParameter"),
       ct,
-      ls,
+      LocalisedString(Map(LangADT.En -> "UniqueEmailParameter")),
       None,
       None,
       None,
@@ -72,10 +72,8 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
 
   private def formTemplateWithParametersAsComponents: FormTemplate = {
 
-    val ls = LocalisedString(Map(LangADT.En -> "UniqueEmailParameter"))
-
     val newFormComponents = cache.formTemplate.emailParameters.fold(List.empty[FormComponent])(_.toList.map(parameter =>
-      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value), ls)))
+      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value))))
 
     val newSections = cache.formTemplate.sections ::: List(mkSection(newFormComponents))
 
