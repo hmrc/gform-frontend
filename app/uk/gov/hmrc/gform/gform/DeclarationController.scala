@@ -310,7 +310,7 @@ class DeclarationController(
       formData             <- data.data.get(formTemplateDecField.id)
     } yield (formTemplateDecField, formData)
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
-      case (formDecFields, formData) => cya_row(formDecFields.label.value(l), formData.mkString)
+      case (formDecFields, formData) => cya_row(formDecFields.label.value, formData.mkString)
     })).toString()
     val doc = Jsoup.parse(html)
     doc.select("article[class*=content__body]").append(extraData)

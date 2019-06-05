@@ -131,7 +131,7 @@ class AcknowledgementController(
     val declarationExtraData = cya_section(
       messages("submission.declaration.details"),
       HtmlFormat.fill(declaration.map {
-        case (formDecFields, formData) => cya_row(formDecFields.label.value(curLang), formData.mkString)
+        case (formDecFields, formData) => cya_row(formDecFields.label.value, formData.mkString)
       })
     ).toString()
 

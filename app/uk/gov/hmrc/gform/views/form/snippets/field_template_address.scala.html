@@ -40,7 +40,7 @@
 
 
 @label = {
-  @LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)
+  @LabelHelper.buildRepeatingLabel(fieldValue, index).value
 }
 
 <fieldset id="@{fieldValue.id.value}-fieldset" role="group" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
@@ -94,7 +94,7 @@
 
 
       @if(fieldValue.helpText.nonEmpty) {
-      <div class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.map(ls=>ls.value(l)).getOrElse("")}</div>
+      <div class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.map(ls=>ls.value).getOrElse("")}</div>
       }
 
       @safeError(suffix : String) = @{

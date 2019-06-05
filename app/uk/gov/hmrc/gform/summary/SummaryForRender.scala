@@ -101,7 +101,7 @@ object SummaryRenderingService {
 
         def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(
           implicit l: LangADT): Html = {
-          val isLabel = fieldValue.shortName.map(ls => ls.value(l)).getOrElse(fieldValue.label.value(l)).nonEmpty
+          val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
 
           fieldValue.`type` match {
             case groupField: Group
@@ -171,7 +171,7 @@ object SummaryRenderingService {
                 case (option, index) =>
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option.value(l))
+                    .map(_ => option.value)
               }
               .collect { case Some(selection) => selection }
 
@@ -219,8 +219,8 @@ object SummaryRenderingService {
       sectionsToRender
         .flatMap {
           case (section, index) =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title.value(l))
-            val begin = begin_section(section.shortName.getOrElse(section.title).value(l))
+            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title.value)
+            val begin = begin_section(section.shortName.getOrElse(section.title).value)
             val end = end_section()
 
             val middle =
@@ -231,7 +231,7 @@ object SummaryRenderingService {
                     _,
                     formTemplate._id,
                     maybeAccessCode,
-                    section.shortName.getOrElse(section.title).value(l),
+                    section.shortName.getOrElse(section.title).value,
                     SectionNumber(index),
                     sectionTitle4Ga))
             begin +: middle :+ end

@@ -39,7 +39,7 @@ fieldValue.id.withSuffix(id).toString
   value.toLowerCase().replace(" ", "-")
 }
 
-@fieldLabel = @{LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)}
+@fieldLabel = @{LabelHelper.buildRepeatingLabel(fieldValue, index).value}
 
   <div class="form-group @if(hasErrors) { form-group-error }">
       <fieldset @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id}-hint" } role="group">
@@ -53,7 +53,7 @@ fieldValue.id.withSuffix(id).toString
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id}-hint">@fieldValue.helpText.map(ls=>ls.value(l)).getOrElse("")</span>
+          <span class="form-hint" id="@{fieldValue.id}-hint">@fieldValue.helpText.map(ls=>ls.value).getOrElse("")</span>
         }
 
           @inline_error_map(fieldValue, validationResult)

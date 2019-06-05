@@ -23,7 +23,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.GraphSpec
-import uk.gov.hmrc.gform.Helpers.mkData
+import uk.gov.hmrc.gform.Helpers._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }

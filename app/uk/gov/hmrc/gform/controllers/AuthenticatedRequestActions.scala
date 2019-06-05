@@ -57,7 +57,6 @@ class AuthenticatedRequestActions(
   i18nSupport: I18nSupport,
   langs: Langs,
   errResponder: ErrResponder
-  //:
 )(
   implicit ec: ExecutionContext
 ) extends AuthorisedFunctions {
@@ -112,13 +111,15 @@ class AuthenticatedRequestActions(
     } yield result
   }
 
+  def getCurrentLanguage(request: Request[AnyContent]) = {
+    val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
+    val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    LangADT.stringToLangADT(lang.code)
+  }
+
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
-      val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
-      val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
-
-      val currentLang: LangADT = LangADT.stringToLangADT(lang.code)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -128,7 +129,8 @@ class AuthenticatedRequestActions(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals => f(newRequest)(currentLang)(AuthCacheWithoutForm(retrievals, formTemplate))
+                   onSuccess = retrievals =>
+                     f(newRequest)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate))
                  )
       } yield result
   }
@@ -136,17 +138,13 @@ class AuthenticatedRequestActions(
   def asyncGGAuth(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
-      val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
-      val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
-
-      val currentLang: LangADT = LangADT.stringToLangADT(lang.code)
       val predicate = AuthProviders(AuthProvider.GovernmentGateway)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
                    case AuthSuccessful(retrievals) =>
-                     f(request)(currentLang)(AuthCacheWithoutForm(retrievals, formTemplate))
+                     f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate))
                    case _ => errResponder.forbidden(request, "Access denied")
                  }
       } yield result
@@ -155,10 +153,6 @@ class AuthenticatedRequestActions(
   def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
-      val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
-      val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
-
-      val currentLang: LangADT = LangADT.stringToLangADT(lang.code)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -168,7 +162,7 @@ class AuthenticatedRequestActions(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = withForm(f(newRequest)(currentLang))(maybeAccessCode, formTemplate)
+                   onSuccess = withForm(f(newRequest)(getCurrentLanguage(request)))(maybeAccessCode, formTemplate)
                  )
       } yield result
     }

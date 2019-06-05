@@ -400,8 +400,6 @@ class StructuredFormDataBuilderSpec extends Spec {
       true,
       None
     )
-  private def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
 
   def createMultiChoice(id: String): FormComponent =
     createFormComponent(

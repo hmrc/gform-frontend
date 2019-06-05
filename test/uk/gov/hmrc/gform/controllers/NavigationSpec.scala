@@ -77,9 +77,6 @@ class NavitagionSpec extends Spec with GraphSpec {
     }.availableSectionNumbers
   }
 
-  private def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
-
   def dependsOn(fcId: FormComponentId): Option[IncludeIf] = Some(IncludeIf(Equals(FormCtx(fcId.value), Constant("1"))))
 
   val fcId1 = FormComponentId("fcId1")

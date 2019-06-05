@@ -21,7 +21,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.JsonUtils
 
 case class LocalisedString(m: Map[LangADT, String]) {
   def value(implicit l: LangADT): String = m.getOrElse(l, m.getOrElse(LangADT.En, ""))
-  def values: List[String] = m.values.toList
 }
 
 object LocalisedString {

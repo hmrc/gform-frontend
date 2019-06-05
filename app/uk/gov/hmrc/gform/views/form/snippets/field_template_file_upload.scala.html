@@ -36,7 +36,7 @@
 )(implicit messages: Messages, l:LangADT)
 
 @label = @{
-  if (fieldValue.label.value(l).nonEmpty) { fieldValue.label.value(l) } else { messages("file.upload") }
+  if (fieldValue.label.value.nonEmpty) { fieldValue.label.value } else { messages("file.upload") }
 }
 
 @currentValue = @{
@@ -59,7 +59,7 @@
 
     @if(fieldValue.helpText.nonEmpty) {
       <span class="form-hint" id="@{fileId}-hint">
-        @{fieldValue.helpText.map(ls => ls.value(l))}
+        @{fieldValue.helpText.map(ls => ls.value)}
       </span>
     }
 

@@ -35,9 +35,9 @@
 
 @label = @{
   if(groupField.repeatsMax.isDefined) {
-    LabelHelper.buildRepeatingLabel(fieldValue, index).value(l)
+    LabelHelper.buildRepeatingLabel(fieldValue, index).value
   } else {
-    fieldValue.label.value(l)
+    fieldValue.label.value
   }
 }
 

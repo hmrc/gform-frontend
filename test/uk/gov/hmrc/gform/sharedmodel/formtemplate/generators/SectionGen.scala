@@ -18,16 +18,10 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
 trait SectionGen {
 
-  private def toLocalisedString(s: String) =
-    LocalisedString(Map(LangADT.En -> s))
-
-  private def toLocalisedString(string: Option[String]): Option[LocalisedString] = string match {
-    case Some(s) => Some(LocalisedString(Map(LangADT.En -> s)))
-    case _       => None
-  }
 
   def verifierRecipeGen: Gen[VerifierRecipe] =
     for {

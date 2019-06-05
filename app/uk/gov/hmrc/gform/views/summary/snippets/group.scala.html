@@ -23,7 +23,7 @@
 @if(isLabel){
  <div>
   <dt class="summary-group-label">
-    @fieldValue.shortName.map(ls=>ls.value(l)).getOrElse(fieldValue.label.value(l))
+    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
  </div>
 }

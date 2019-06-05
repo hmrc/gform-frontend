@@ -197,7 +197,7 @@ case class Group(
   val baseGroupList = GroupList(fields)
 }
 
-case class InformationMessage(infoType: InfoType, infoText: String) extends ComponentType
+case class InformationMessage(infoType: InfoType, infoText: LocalisedString) extends ComponentType
 
 case class FileUpload() extends ComponentType
 

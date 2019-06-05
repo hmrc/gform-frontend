@@ -182,18 +182,18 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formTemplate._id,
       maybeAccessCode,
       sectionNumber,
-      section.title.value(l),
-      section.description.map(ls => ls.value(l)),
+      section.title.value,
+      section.description.map(ls => ls.value),
       indices :: hiddenSnippets,
       snippetsForFields,
       javascript,
       envelopeId,
       actionForm,
       retrievals.renderSaveAndComeBackLater,
-      section.continueLabel.map(ls => ls.value(l)).getOrElse(retrievals.continueLabel),
+      section.continueLabel.map(ls => ls.value).getOrElse(retrievals.continueLabel),
       formMaxAttachmentSizeMB,
       contentTypes,
-      section.progressIndicator.map(ls => ls.value(l))
+      section.progressIndicator.map(ls => ls.value)
     )
     html.form.form(
       formTemplate,
@@ -296,8 +296,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formTemplate._id,
       maybeAccessCode,
       SectionNumber(0),
-      formTemplate.declarationSection.title.value(l),
-      formTemplate.declarationSection.description.map(ls => ls.value(l)),
+      formTemplate.declarationSection.title.value,
+      formTemplate.declarationSection.description.map(ls => ls.value),
       Nil,
       snippets,
       "",
@@ -366,8 +366,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formTemplate._id,
         maybeAccessCode,
         SectionNumber(0),
-        formTemplate.acknowledgementSection.title.value(l),
-        formTemplate.acknowledgementSection.description.map(ls => ls.value(l)),
+        formTemplate.acknowledgementSection.title.value,
+        formTemplate.acknowledgementSection.description.map(ls => ls.value),
         Nil,
         snippets,
         "",
@@ -416,7 +416,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       formTemplate._id,
       maybeAccessCode,
       SectionNumber(0),
-      enrolmentSection.title.value(l),
+      enrolmentSection.title.value,
       None,
       Nil,
       snippets,
@@ -522,10 +522,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   private def htmlForInformationMessage(
     formComponent: FormComponent,
     infoType: InfoType,
-    infoText: String,
+    infoText: LocalisedString,
     index: Int,
     ei: ExtraInfo)(implicit messages: Messages, l: LangADT) = {
-    val parsedMarkdownText = markDownParser(infoText)
+    val parsedMarkdownText = markDownParser(infoText.value)
     val parsedContent = htmlBodyContents(parsedMarkdownText)
     html.form.snippets.field_template_info(formComponent, infoType, Html(parsedContent), index)
   }
@@ -606,13 +606,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         html.form.snippets.choice(
           "radio",
           formComponent,
-          options.map(ls => ls.value(l)),
+          options.map(ls => ls.value),
           orientation,
           prepopValues,
           validatedValue,
           optionalHelpTextMarkDown,
           index,
-          ei.section.title.value(l),
+          ei.section.title.value,
           ei.formLevelHeading
         )
       case Checkbox =>
@@ -625,18 +625,18 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           validatedValue,
           optionalHelpTextMarkDown,
           index,
-          ei.section.title.value(l),
+          ei.section.title.value,
           ei.formLevelHeading
         )
       case Inline =>
         html.form.snippets.choiceInline(
           formComponent,
-          options.map(ls => ls.value(l)),
+          options.map(ls => ls.value),
           prepopValues,
           validatedValue,
           optionalHelpTextMarkDown,
           index,
-          ei.section.title.value(l))
+          ei.section.title.value)
     }
   }
 
@@ -748,17 +748,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             prepopValue,
             validatedValue,
             index,
-            ei.section.title.value(l),
+            ei.section.title.value,
             ei.formLevelHeading)
         case _ =>
-          asStandard(
-            formComponent,
-            t,
-            prepopValue,
-            validatedValue,
-            index,
-            ei.section.title.value(l),
-            ei.formLevelHeading)
+          asStandard(formComponent, t, prepopValue, validatedValue, index, ei.section.title.value, ei.formLevelHeading)
       }
     }
   }
@@ -798,7 +791,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formComponent,
         fieldValues,
         index,
-        ei.section.title.value(l),
+        ei.section.title.value,
         ei.formLevelHeading)
   }
 
@@ -852,7 +845,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     formComponent.presentationHint match {
       case Some(list) if list.contains(CollapseGroupUnderLabel) =>
-        html.form.snippets.collapsable(formComponent.id, formComponent.label.value(l), grpHtml, isChecked)
+        html.form.snippets.collapsable(formComponent.id, formComponent.label.value, grpHtml, isChecked)
       case _ => grpHtml
     }
   }
@@ -867,7 +860,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validatedType: ValidatedType[ValidationResult],
     obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT) = {
     val maybeHint =
-      formComponent.helpText.map(localisedString => localisedString.value(l)).map(markDownParser).map(Html.apply)
+      formComponent.helpText.map(localisedString => localisedString.value).map(markDownParser).map(Html.apply)
 
     val (lhtml, limitReached) =
       getGroupForRendering(

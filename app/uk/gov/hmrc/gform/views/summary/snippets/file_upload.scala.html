@@ -32,7 +32,7 @@
 
 <div>
   <dt class="cya-question@if(hasErrors) { summary--error}">
-    @fieldValue.shortName.map(ls=>ls.value(l)).getOrElse(fieldValue.label.value(l))
+    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
   <dd class="cya-answer">
     @{if(hasErrors) errors else validationResult.map(_.getCurrentValue.getOrElse("")).getOrElse("")}

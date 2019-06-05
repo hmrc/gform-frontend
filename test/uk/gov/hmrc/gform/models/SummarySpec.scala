@@ -41,9 +41,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
 
-  private def toLocalisedString(string: String) =
-    LocalisedString(Map(LangADT.En -> string))
-
   trait Test extends ExampleData {
     override def dmsSubmission =
       DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
