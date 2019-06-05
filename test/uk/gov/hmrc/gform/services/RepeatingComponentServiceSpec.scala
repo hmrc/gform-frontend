@@ -52,8 +52,8 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     val thisGroup = `group - type`.copy(
       repeatsMax = Some(4),
       repeatsMin = Some(1),
-      repeatLabel = Some("RepGrpLabel"),
-      repeatAddAnotherText = Some("AddButtonLabel")
+      repeatLabel = Some(toLocalisedString("RepGrpLabel")),
+      repeatAddAnotherText = Some(toLocalisedString("AddButtonLabel"))
     )
 
     val thisGroupFieldValue = `fieldValue - group`.copy(`type` = thisGroup)

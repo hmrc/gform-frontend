@@ -22,8 +22,9 @@ import org.scalatest.{ FlatSpec, Matchers }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.DependencyGraph._
 import FormTemplateBuilder._
+import uk.gov.hmrc.gform.Spec
 
-class DependencyGraphSpec extends FlatSpec with Matchers {
+class DependencyGraphSpec extends FlatSpec with Spec with Matchers {
 
   "Dependency Graph" should "handle simple case of two dependencies" in {
     val sections = List(

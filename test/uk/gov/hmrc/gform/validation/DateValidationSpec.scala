@@ -23,14 +23,14 @@ import java.time.LocalDate
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.{GraphSpec, Spec}
+import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ExampleData, LangADT, LocalisedString}
-import uk.gov.hmrc.gform.sharedmodel.form.{EnvelopeId, FormDataRecalculated, ThirdPartyData}
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -38,7 +38,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class DateValidationSpec(implicit messages: Messages, l: LangADT)
-    extends Spec with FlatSpec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
+    extends FlatSpec with Spec with Matchers with EitherMatchers with ScalaFutures with GraphSpec {
   val retrievals = mock[MaterialisedRetrievals]
 
   private val lookupRegistry = new LookupRegistry(Map.empty)

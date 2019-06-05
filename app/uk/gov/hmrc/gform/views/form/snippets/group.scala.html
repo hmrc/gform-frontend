@@ -35,15 +35,15 @@
 
 @label = @{
   if(groupField.repeatsMax.isDefined) {
-    LabelHelper.buildRepeatingLabel(fieldValue, index).value
+    LabelHelper.buildRepeatingLabel(fieldValue, index)
   } else {
-    fieldValue.label.value
+    fieldValue.label
   }
 }
 
 <div class="form-group">
 
-  @if(label.nonEmpty) {
+  @if(label.value.nonEmpty) {
     <h2 class="heading-section">
       @label
     </h2>
@@ -59,7 +59,7 @@
 
   @if(groupField.repeatsMax.isDefined && !disableAddButton) {
     <a id="addRepeatingGroup" href="AddGroup-@fieldValue.id">
-      @groupField.repeatAddAnotherText.getOrElse(messages("linkText.addRepeatingGroup"))
+      @groupField.repeatAddAnotherText.map(ls=>ls.value).getOrElse(messages("linkText.addRepeatingGroup"))
     </a>
   }
 </div>
