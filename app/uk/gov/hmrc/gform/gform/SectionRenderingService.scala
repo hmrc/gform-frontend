@@ -606,7 +606,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         html.form.snippets.choice(
           "radio",
           formComponent,
-          options.map(ls => ls.value),
+          options,
           orientation,
           prepopValues,
           validatedValue,
@@ -619,7 +619,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         html.form.snippets.choice(
           "checkbox",
           formComponent,
-          options.map(ls => ls.value),
+          options,
           orientation,
           prepopValues,
           validatedValue,

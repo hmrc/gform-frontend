@@ -18,15 +18,13 @@ package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
 import org.scalatest.{ FlatSpec, Matchers }
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import ExpandUtils._
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.{ Data, RecData }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class ExpandUtilsSpec extends FlatSpec with Spec with Matchers {
@@ -695,7 +693,7 @@ class ExpandUtilsSpec extends FlatSpec with Spec with Matchers {
 
   val choice = Choice(
     YesNo,
-    NonEmptyList.of(LocalisedString(Map(LangADT.En -> "yes")), LocalisedString(Map(LangADT.En -> "no"))),
+    NonEmptyList.of(toLocalisedString("yes"), toLocalisedString("no")),
     Vertical,
     List.empty,
     None)
@@ -735,7 +733,7 @@ class ExpandUtilsSpec extends FlatSpec with Spec with Matchers {
     FormComponent(
       fcId,
       ct,
-      LocalisedString(Map(LangADT.En -> "some-component")),
+      toLocalisedString("some-component"),
       None,
       None,
       None,
