@@ -650,6 +650,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     data: FormDataRecalculated,
     obligations: Obligations)(implicit request: Request[_], message: Messages, l: LangADT) = {
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
+    val nestedEi = ei.copy(formLevelHeading = true)
     val revealingChoicesList =
       options.map { o =>
         val isSelected: Int => Boolean =
@@ -657,7 +658,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         (
           o.choice,
           isSelected,
-          o.revealingFields.map(htmlFor(_, formTemplateId, index, ei, data, validatedType, obligations = obligations)))
+          o.revealingFields.map(
+            htmlFor(_, formTemplateId, index, nestedEi, data, validatedType, obligations = obligations)))
       }
 
     html.form.snippets
