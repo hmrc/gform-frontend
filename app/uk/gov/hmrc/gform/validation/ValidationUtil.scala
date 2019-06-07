@@ -161,7 +161,7 @@ object ValidationUtil {
       case Choice(_, _, _, _, _) =>
         gFormErrors.get(fieldValue.id) match {
           case Some(errors) =>
-            FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors) // ""
+            FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
           case None =>
             val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
               selectedValue.map { index =>
@@ -170,10 +170,7 @@ object ValidationUtil {
             }
             ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
         }
-      case rc @ RevealingChoice(options) =>
-        val listOfHiddenFields = RevealingChoice.slice(fieldValue.id)(data.data)(rc)
-        val listOfValidatedHiddenFields =
-          listOfHiddenFields.map(formComponent => matchComponentType(formComponent))
+      case RevealingChoice(_) =>
         gFormErrors.get(fieldValue.id) match {
           case Some(errors) =>
             FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
@@ -183,10 +180,7 @@ object ValidationUtil {
                 fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
               }.toMap
             }
-            val hiddenFieldMap = listOfValidatedHiddenFields.map { formFieldValidation =>
-              formFieldValidation.fieldValue.id.value -> formFieldValidation
-            }.toMap
-            ComponentField(fieldValue, optionalData.getOrElse(Map.empty) ++ hiddenFieldMap)
+            ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
         }
       case FileUpload() => {
         val fileName =

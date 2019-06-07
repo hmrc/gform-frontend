@@ -261,25 +261,6 @@ object ComponentValidator {
     }
   }
 
-  def validateRevealingChoice(
-    fieldValue: FormComponent,
-    revealingChoice: RevealingChoice,
-    componentsValidator: ComponentsValidator)(
-    data: FormDataRecalculated)(implicit hc: HeaderCarrier, ec: ExecutionContext, messages: Messages, l: LangADT) = {
-    val validatedChoice: ValidatedType[Unit] = validateChoice(fieldValue)(data)
-
-    if (validatedChoice === validationSuccess) {
-
-      val revealingFields = RevealingChoice.slice(fieldValue.id)(data.data)(revealingChoice)
-
-      val hiddenFieldValidations =
-        revealingFields.traverse(revealingField => componentsValidator.validate(revealingField, revealingFields))
-
-      hiddenFieldValidations.map(Monoid[ValidatedType[Unit]].combineAll)
-    } else
-      Future.successful(validatedChoice)
-  }
-
   private def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =
     filterCommas(wholeOrFractional).length > maxLength
 
