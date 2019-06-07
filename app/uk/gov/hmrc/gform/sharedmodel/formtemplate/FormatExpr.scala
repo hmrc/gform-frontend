@@ -215,18 +215,23 @@ object TextConstraint {
 
 sealed trait Register {
   def asString: String = this match {
-    case Register.CashType               => "cashType"
-    case Register.Country                => "country"
-    case Register.Currency               => "currency"
-    case Register.Intent                 => "intent"
-    case Register.Intercept              => "intercept"
-    case Register.Origin                 => "origin"
-    case Register.Port                   => "port"
-    case Register.TransportMode          => "transportMode"
-    case Register.OriginWho              => "originWho"
-    case Register.OriginMainPart         => "originMainPart"
-    case Register.OriginSavingsEarnings  => "originSavingsEarnings"
-    case Register.OriginSellingSomething => "originSellingSomething"
+    case Register.CashType                 => "cashType"
+    case Register.Country                  => "country"
+    case Register.Currency                 => "currency"
+    case Register.Intent                   => "intent"
+    case Register.Intercept                => "intercept"
+    case Register.Origin                   => "origin"
+    case Register.Port                     => "port"
+    case Register.TransportMode            => "transportMode"
+    case Register.OriginWho                => "originWho"
+    case Register.OriginMainPart           => "originMainPart"
+    case Register.OriginSavingsEarnings    => "originSavingsEarnings"
+    case Register.OriginSellingSomething   => "originSellingSomething"
+    case Register.IntentBuyingWhat         => "intentBuyingWhat"
+    case Register.IntentBigPurchase        => "intentBigPurchase"
+    case Register.IntentBusiness           => "intentBusiness"
+    case Register.IntentLivingCostsAndFees => "intentLivingCostsAndFees"
+    case Register.IntentOther              => "intentOther"
   }
 }
 
