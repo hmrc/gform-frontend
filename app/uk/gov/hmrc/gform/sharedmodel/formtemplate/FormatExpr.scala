@@ -215,14 +215,23 @@ object TextConstraint {
 
 sealed trait Register {
   def asString: String = this match {
-    case Register.CashType      => "cashType"
-    case Register.Country       => "country"
-    case Register.Currency      => "currency"
-    case Register.Intent        => "intent"
-    case Register.Intercept     => "intercept"
-    case Register.Origin        => "origin"
-    case Register.Port          => "port"
-    case Register.TransportMode => "transportMode"
+    case Register.CashType                 => "cashType"
+    case Register.Country                  => "country"
+    case Register.Currency                 => "currency"
+    case Register.Intent                   => "intent"
+    case Register.Intercept                => "intercept"
+    case Register.Origin                   => "origin"
+    case Register.Port                     => "port"
+    case Register.TransportMode            => "transportMode"
+    case Register.OriginWho                => "originWho"
+    case Register.OriginMainPart           => "originMainPart"
+    case Register.OriginSavingsEarnings    => "originSavingsEarnings"
+    case Register.OriginSellingSomething   => "originSellingSomething"
+    case Register.IntentBuyingWhat         => "intentBuyingWhat"
+    case Register.IntentBigPurchase        => "intentBigPurchase"
+    case Register.IntentBusiness           => "intentBusiness"
+    case Register.IntentLivingCostsAndFees => "intentLivingCostsAndFees"
+    case Register.IntentOther              => "intentOther"
   }
 }
 
@@ -235,19 +244,37 @@ object Register {
   case object Origin extends Register
   case object Port extends Register
   case object TransportMode extends Register
+  case object OriginWho extends Register
+  case object OriginMainPart extends Register
+  case object OriginSavingsEarnings extends Register
+  case object OriginSellingSomething extends Register
+  case object IntentBuyingWhat extends Register
+  case object IntentBigPurchase extends Register
+  case object IntentBusiness extends Register
+  case object IntentOther extends Register
+  case object IntentLivingCostsAndFees extends Register
 
   implicit val format: OFormat[Register] = derived.oformat
 
   def fromString(str: String): Option[Register] = str match {
-    case "cashType"      => Some(Register.CashType)
-    case "country"       => Some(Register.Country)
-    case "currency"      => Some(Register.Currency)
-    case "intent"        => Some(Register.Intent)
-    case "intercept"     => Some(Register.Intercept)
-    case "origin"        => Some(Register.Origin)
-    case "port"          => Some(Register.Port)
-    case "transportMode" => Some(Register.TransportMode)
-    case _               => None
+    case "cashType"                 => Some(Register.CashType)
+    case "country"                  => Some(Register.Country)
+    case "currency"                 => Some(Register.Currency)
+    case "intent"                   => Some(Register.Intent)
+    case "intercept"                => Some(Register.Intercept)
+    case "origin"                   => Some(Register.Origin)
+    case "port"                     => Some(Register.Port)
+    case "transportMode"            => Some(Register.TransportMode)
+    case "originWho"                => Some(Register.OriginWho)
+    case "originSellingSomething"   => Some(Register.OriginSellingSomething)
+    case "originSavingsEarnings"    => Some(Register.OriginSavingsEarnings)
+    case "originMainPart"           => Some(Register.OriginMainPart)
+    case "intentBuyingWhat"         => Some(Register.IntentBuyingWhat)
+    case "intentBusiness"           => Some(Register.IntentBusiness)
+    case "intentLivingCostsAndFees" => Some(Register.IntentLivingCostsAndFees)
+    case "intentOther"              => Some(Register.IntentOther)
+    case "intentBigPurchase"        => Some(Register.IntentBigPurchase)
+    case _                          => None
   }
 }
 

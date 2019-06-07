@@ -50,14 +50,23 @@ class LookupLoader {
   private def mkRadioLookup(m: Map[LookupLabel, LookupId]): RadioLookup = RadioLookup(m)
 
   // format: off
-  private val cashType       = read("BCD-CashType.csv",      "ID",           "Name", mkRadioLookup)
-  private val country        = read("BCD-Country.csv",       "CountryCode",  "Name", mkAjaxLookup(ShowAll.Disabled))
-  private val currency       = read("BCD-Currency.csv",      "CurrencyCode", "Name", mkAjaxLookup(ShowAll.Disabled))
-  private val intent         = read("BCD-Intent.csv",        "ID",           "Name", mkRadioLookup)
-  private val intercept      = read("BCD-Intercept.csv",     "ID",           "Name", mkRadioLookup)
-  private val origin         = read("BCD-Origin.csv",        "ID",           "Name", mkAjaxLookup(ShowAll.Enabled))
-  private val port           = read("BCD-Port.csv",          "PortId",       "Name", mkAjaxLookup(ShowAll.Disabled))
-  private val transportMode  = read("BCD-TransportMode.csv", "ID",           "Name", mkRadioLookup)
+  private val cashType                 = read("BCD-CashType.csv",                 "ID",           "Name", mkRadioLookup)
+  private val country                  = read("BCD-Country.csv",                  "CountryCode",  "Name", mkAjaxLookup(ShowAll.Disabled))
+  private val currency                 = read("BCD-Currency.csv",                 "CurrencyCode", "Name", mkAjaxLookup(ShowAll.Disabled))
+  private val intent                   = read("BCD-Intent.csv",                   "ID",           "Name", mkRadioLookup)
+  private val intercept                = read("BCD-Intercept.csv",                "ID",           "Name", mkRadioLookup)
+  private val origin                   = read("BCD-Origin.csv",                   "ID",           "Name", mkAjaxLookup(ShowAll.Enabled))
+  private val port                     = read("BCD-Port.csv",                     "PortId",       "Name", mkAjaxLookup(ShowAll.Disabled))
+  private val transportMode            = read("BCD-TransportMode.csv",            "ID",           "Name", mkRadioLookup)
+  private val intentBuyingWhat         = read("BCD-IntentBuyingWhat.csv",         "id",           "name", mkRadioLookup)
+  private val intentBigPurchase        = read("BCD-IntentBigPurchase.csv",        "id",           "name", mkRadioLookup)
+  private val intentLivingCostsAndFees = read("BCD-IntentLivingCostsAndFees.csv", "id",           "name", mkRadioLookup)
+  private val intentBusiness           = read("BCD-IntentBusiness.csv",           "id",           "name", mkRadioLookup)
+  private val intentOther              = read("BCD-IntentOther.csv",              "id",           "name", mkRadioLookup)
+  private val originWho                = read("BCD-OriginWho.csv",                "id",           "name", mkRadioLookup)
+  private val originSellingSomething   = read("BCD-OriginSellingSomething.csv",   "id",           "name", mkRadioLookup)
+  private val originMainPart           = read("BCD-OriginMainPart.csv",           "id",           "name", mkRadioLookup)
+  private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "name", mkRadioLookup)
   // format: on
 
   private def mkAutocoplete(options: Map[LookupLabel, LookupId]): AutocompleteEngine[LookupRecord] = {
@@ -75,13 +84,22 @@ class LookupLoader {
 
   val registerLookup: Map[Register, LookupType] =
     Map(
-      Register.CashType      -> cashType,
-      Register.Country       -> country,
-      Register.Currency      -> currency,
-      Register.Intent        -> intent,
-      Register.Intercept     -> intercept,
-      Register.Origin        -> origin,
-      Register.Port          -> port,
-      Register.TransportMode -> transportMode
+      Register.CashType                 -> cashType,
+      Register.Country                  -> country,
+      Register.Currency                 -> currency,
+      Register.Intent                   -> intent,
+      Register.Intercept                -> intercept,
+      Register.Origin                   -> origin,
+      Register.Port                     -> port,
+      Register.TransportMode            -> transportMode,
+      Register.OriginWho                -> originWho,
+      Register.OriginMainPart           -> originMainPart,
+      Register.OriginSavingsEarnings    -> originSavingsEarnings,
+      Register.OriginSellingSomething   -> originSellingSomething,
+      Register.IntentBuyingWhat         -> intentBuyingWhat,
+      Register.IntentBusiness           -> intentBusiness,
+      Register.IntentBigPurchase        -> intentBigPurchase,
+      Register.IntentLivingCostsAndFees -> intentLivingCostsAndFees,
+      Register.IntentOther              -> intentOther
     )
 }
