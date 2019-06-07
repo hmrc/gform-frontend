@@ -126,7 +126,7 @@ object ComponentValidator {
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
       case (WholeShape(_, whole, _), _, _) if surpassMaxLength(whole, maxWhole) =>
-        validationFailure(fieldValue, messages("generic.error.minLength", maxWhole))
+        validationFailure(fieldValue, messages("generic.error.maxWhole", maxWhole))
       case (WholeShape("-", _, _), _, true) =>
         validationFailure(fieldValue, messages("generic.error.positiveNumber"))
       case (WholeShape(_, _, _), _, _) => validationSuccess
