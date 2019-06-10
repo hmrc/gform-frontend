@@ -675,7 +675,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated,
     isHidden: Boolean
-  ): Html = {
+  )(implicit l: LangADT): Html = {
 
     val prepopValue = ei.fieldData.data.get(fieldValue.id).flatMap(_.headOption)
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
