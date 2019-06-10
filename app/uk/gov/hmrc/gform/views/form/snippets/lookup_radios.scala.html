@@ -38,7 +38,7 @@
 
     <fieldset id="@{fcId.value}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
       <legend class="form-label">
-        @if(formLevelHeading) { @label } else { <h1>@label.value</h1> }
+        @if(formLevelHeading) { @label } else { <h1>@label</h1> }
       </legend>
 
       @if(fieldValue.helpText.nonEmpty) {
