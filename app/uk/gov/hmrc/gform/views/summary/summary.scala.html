@@ -27,7 +27,7 @@
     maybeAccessCode: Option[AccessCode],
     formCategory: FormCategory,
     renderComeBackLater: Boolean,
-    continueLabel: String,
+    continueLabelKey: String,
     frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages)
 
@@ -76,7 +76,7 @@
 
         <div class="print-hidden">
             <div class="form-group">
-                <button type="submit" class="button" value="Declaration">@messages("button.continue")</button>
+                <button type="submit" class="button" value="Declaration">@messages(continueLabelKey)</button>
             </div>
             <div class="js-visible">
               @if(renderComeBackLater) {
