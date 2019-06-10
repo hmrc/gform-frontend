@@ -55,7 +55,7 @@ formLevelHeading: Boolean
         </legend>
 
         @if(fieldValue.helpText.nonEmpty) {
-          <span class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.getOrElse("")}</span>
+          <span class="form-hint" id="@{fieldValue.id.value}-hint">@{fieldValue.helpText.map(ls=>ls.value).getOrElse("")}</span>
         }
 
         @inline_error_map(fieldValue, validationResult)
