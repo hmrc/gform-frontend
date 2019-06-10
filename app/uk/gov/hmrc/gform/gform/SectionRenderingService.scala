@@ -190,7 +190,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       envelopeId,
       actionForm,
       retrievals.renderSaveAndComeBackLater,
-      section.continueLabel.map(ls => ls.value).getOrElse(retrievals.continueLabel),
+      section.continueLabel.map(ls => ls.value).getOrElse(messages(retrievals.continueLabelKey)),
       formMaxAttachmentSizeMB,
       contentTypes,
       section.progressIndicator.map(ls => ls.value)
