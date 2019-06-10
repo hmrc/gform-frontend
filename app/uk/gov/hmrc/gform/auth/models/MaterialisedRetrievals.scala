@@ -40,9 +40,9 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     case _                      => true
   }
 
-  def continueLabel = this match {
-    case AnonymousRetrievals(_) => "Continue"
-    case _                      => "Save and continue"
+  def continueLabelKey = this match {
+    case AnonymousRetrievals(_) => "button.continue"
+    case _                      => "button.saveAndContinue"
   }
 
   def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {

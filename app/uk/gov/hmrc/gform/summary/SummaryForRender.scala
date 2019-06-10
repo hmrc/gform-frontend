@@ -59,7 +59,7 @@ object SummaryRenderingService {
       maybeAccessCode,
       formTemplate.formCategory,
       retrievals.renderSaveAndComeBackLater,
-      retrievals.continueLabel,
+      retrievals.continueLabelKey,
       frontendAppConfig
     )
   }
