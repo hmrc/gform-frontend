@@ -18,6 +18,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
         formTemplateId: FormTemplateId,
@@ -25,10 +26,10 @@
         title: String,
         sectionNumber: SectionNumber,
         sectionTitle4Ga: SectionTitle4Ga,
-        fieldValue: FormComponent)(implicit messages: Messages)
+        fieldValue: FormComponent)(implicit messages: Messages, l:LangADT)
 
 @if(fieldValue.editable) {
  <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes).url}">
-  @messages("summary.change") <span class="visuallyhidden">@fieldValue.shortName.getOrElse(fieldValue.label)</span>
+  @messages("summary.change") <span class="visuallyhidden">@fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)</span>
  </a>
 }
