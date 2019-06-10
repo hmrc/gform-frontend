@@ -35,17 +35,17 @@
 
 @label = @{
   if(groupField.repeatsMax.isDefined) {
-    LabelHelper.buildRepeatingLabel(fieldValue.label, index)
+    LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
   } else {
-    fieldValue.label
+    fieldValue.label.value
   }
 }
 
 <div class="form-group">
 
-  @if(label.value.nonEmpty) {
+  @if(label.nonEmpty) {
     <h2 class="heading-section">
-      @label.value
+      @label
     </h2>
   }
 

@@ -46,16 +46,16 @@ formLevelHeading: Boolean
 }
 
 @label = @{
-  LabelHelper.buildRepeatingLabel(fieldValue.label, index)
+  LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
     <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
         <legend class="form-label">
           @if(!formLevelHeading) {
-            <h1>@label.value</h1>
+            <h1>@label</h1>
           } else {
-            @label.value
+            @label
           }
         </legend>
 

@@ -38,7 +38,7 @@
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
-@legend = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index)}
+@legend = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
 
 @dateRangeLabel(fromDate:LocalDate, toDate:LocalDate) = @{
   messages("generic.From")+" "+formatDate(fromDate)+" "+messages("generic.to")+" "+formatDate(toDate)

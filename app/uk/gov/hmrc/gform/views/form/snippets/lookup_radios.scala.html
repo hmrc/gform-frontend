@@ -33,7 +33,7 @@
   @defining(
     fieldValue.id,
     prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse(""),
-    LabelHelper.buildRepeatingLabel(fieldValue.label, index)
+    LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
   ) { case (fcId, selectedValue, label) =>
 
     <fieldset id="@{fcId.value}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
