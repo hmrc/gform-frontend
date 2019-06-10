@@ -33,7 +33,7 @@ field.error.required={0} rhaid ei gofnodi
 field.error.number={0} must be a number
 field.error.exactDigits={0} must be a {1} digit number
 field.error.notGreaterThan={0} must not be greater than {1}
-choice.error.required={0} must be selected
+choice.error.required=must be selected
 
 # Generic error suffixes
 generic.error.required=rhaid ei gofnodi
