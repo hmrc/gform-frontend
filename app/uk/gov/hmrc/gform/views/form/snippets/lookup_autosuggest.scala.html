@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, FormComponent, Register, FormComponentId}
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   fieldValue: FormComponent,
@@ -29,11 +30,11 @@
   prepop: Option[String],
   validationResult: Option[FormFieldValidationResult],
   index: Int
-)
+)(implicit l:LangADT)
 
 @display(fcId: FormComponentId) = {
   <label class="@{if(formLevelHeading) { "form-label" } else { "h1-heading" }}" for="@fcId.value">
-    @LabelHelper.buildRepeatingLabel(fieldValue.label, index)
+    @LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
   </label>
 }
 
@@ -44,7 +45,7 @@
 
     @if(fieldValue.helpText.nonEmpty) {
       <span class="form-hint" id="@{fcId.value}-hint">
-        @{fieldValue.helpText}
+        @{fieldValue.helpText.map(ls=>ls.value)}
       </span>
     }
 

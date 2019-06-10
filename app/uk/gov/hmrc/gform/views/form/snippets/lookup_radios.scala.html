@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   fieldValue: FormComponent,
@@ -26,7 +27,7 @@
   formLevelHeading: Boolean,
   prepop: Option[String],
   validationResult: Option[FormFieldValidationResult],
-  index: Int)
+  index: Int)(implicit l:LangADT)
 
 @form_group(validationResult) {
   @defining(
@@ -37,12 +38,12 @@
 
     <fieldset id="@{fcId.value}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
       <legend class="form-label">
-        @if(formLevelHeading) { @label } else { <h1>@label</h1> }
+        @if(formLevelHeading) { @label } else { <h1>@label.value</h1> }
       </legend>
 
       @if(fieldValue.helpText.nonEmpty) {
         <span class="form-hint" id="@{fcId.value}-hint">
-          @{fieldValue.helpText}
+          @{fieldValue.helpText.map(ls=>ls.value)}
         </span>
       }
 
