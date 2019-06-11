@@ -85,7 +85,11 @@
 }
 
 @sidebar = @{
+  if(webChat.nonEmpty) {
     layouts.sidebar(webchatSidebar, Some("sidebar"))
+  } else {
+    Html("")
+  }
 }
 
 @govuk_wrapper(
