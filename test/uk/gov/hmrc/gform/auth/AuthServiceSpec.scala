@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.{ Spec, SpecWithFakeApp }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.connectors.EeittConnector
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT }
 import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.models.mappings.{ NINO => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -39,6 +39,8 @@ import Function.const
 class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
 
   behavior of "Authentication and authorisation Service"
+
+  implicit val l: LangADT = LangADT.En
 
   val appConfig = AppConfig(
     appName = "appName",

@@ -108,8 +108,8 @@ object FormTemplateBuilder {
 
   def mkFormTemplate(sections: List[Section]) = FormTemplate.withDeprecatedDmsSubmission(
     FormTemplateId("tst1"),
-    "Dependecy heavy experiment",
-    "",
+    toLocalisedString("Dependecy heavy experiment"),
+    toLocalisedString(""),
     Some(BetaBanner),
     Default,
     None,
