@@ -1,5 +1,5 @@
 ;(function (global) {
-  'use strict'
+  'use strict';
 
   var $ = global.jQuery;
   var GOVUK = global.GOVUK || {};
@@ -7,11 +7,11 @@
   var strings = {
     maxSizeError: {
       en: "This file is larger than the maximum file size of {0}MB",
-      cy: "Mae’r ffeil hon yn fwy na maint mwyaf ffeil {0}MB"
+      cy: "Mae’r ffeil hon yn fwy na maint y ffeil fwyaf a ganiateir sef {0}MB"
     },
     fileTypeError: {
       en: "The file type {0} is not permitted. You can only upload {1}",
-      cy: "Ni chaniateir y math o ffeil {0}. Gallwch ond lanlwytho {1}"
+      cy: "Ni chaniateir y math o ffeil {0}. Gallwch ond uwchlwytho {1}"
     },
     invalidFileToDelete: {
       en: "Could not delete file, file is invalid",
@@ -19,7 +19,7 @@
     },
     unexpectedError: {
       en: "An unexpected error occurred",
-      cy: "Digwyddodd gwall annisgwyl"
+      cy: "Mae gwall annisgwyl wedi digwydd"
     },
     deleteLabel: {
       en: "Delete",

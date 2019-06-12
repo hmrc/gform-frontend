@@ -6,11 +6,11 @@
   var strings = {
     title: {
       en: "You’re about to be signed out",
-      cy: "Rydych chi ar fin cael eich llofnodi"
+      cy: "Rydych ar fin cael eich allgofnodi"
     },
     time: {
       en: "minutes",
-      cy: "munudau"
+      cy: "munud"
     },
     time_singular: {
       en: "minute",
@@ -18,19 +18,19 @@
     },
     seconds: {
       en: "seconds",
-      cy: "eiliadau"
+      cy: "eiliad"
     },
     message: {
       en: "For security reasons, you will be signed out of this service in",
-      cy: "Am resymau diogelwch, fe’ch llofnodir o’r gwasanaeth hwn"
+      cy: "Am resymau diogelwch, cewch eich allgofnodi o’r gwasanaeth hwn mewn"
     },
     keep_alive_button_text: {
       en: "Stay signed in",
-      cy: "Arhoswch i mewn"
+      cy: "Parhau i fod wedi’ch mewngofnodi"
     },
     sign_out_button_text: {
       en: "Sign out",
-      cy: "Cofrestrwch"
+      cy: "Allgofnodi"
     }
   };
 
