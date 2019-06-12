@@ -19,6 +19,7 @@ import cats.data.NonEmptyList
 import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
 trait FormTemplateGen {
   def formTemplateIdGen: Gen[FormTemplateId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormTemplateId(_))
@@ -50,8 +51,6 @@ trait FormTemplateGen {
       roomId       <- PrimitiveGen.nonEmptyAlphaNumStrGen
       templateName <- templateNameGen
     } yield WebChat(ChatRoomId(roomId), templateName)
-
-  def toLocalisedString(s: String): LocalisedString = LocalisedString(Map(LangADT.En -> s))
 
   def formTemplateGen: Gen[FormTemplate] =
     for {
