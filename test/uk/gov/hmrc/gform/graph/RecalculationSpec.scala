@@ -673,6 +673,51 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
   }
 
+  it should "handle else expression" in {
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "A", "b" -> "B", "c" -> "C"), mkData("a" -> "A", "b" -> "B", "c" -> "C", "z" -> "A")),
+      (mkData(            "b" -> "B", "c" -> "C"), mkData(            "b" -> "B", "c" -> "C", "z" -> "B")),
+      (mkData(                        "c" -> "C"), mkData(                        "c" -> "C", "z" -> "C")),
+
+      (mkData("a" -> "A", "b" -> "B", "c" -> "C"), mkData("a" -> "A", "b" -> "B", "c" -> "C", "z" -> "A")),
+      (mkData("a" -> "",  "b" -> "B", "c" -> "C"), mkData("a" -> "",  "b" -> "B", "c" -> "C", "z" -> "B")),
+      (mkData("a" -> "",  "b" -> "",  "c" -> "C"), mkData("a" -> "",  "b" -> "",  "c" -> "C", "z" -> "C"))
+      // format: on
+    )
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value), mkFormComponent("b", Value), mkFormComponent("c", Value))) ::
+        mkSection(List(mkFormComponent("z", Else(FormCtx("a"), Else(FormCtx("b"), FormCtx("c")))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+  }
+
+  it should "handle invisible fields in else expression" in {
+    val formComponentIds = Table(
+      // format: off
+      ("input", "output"),
+      (mkData("a" -> "A", "b" -> "B", "c" -> "C"), mkData("a" -> "A", "b" -> "B", "c" -> "C", "z" -> "B")),
+      (mkData(            "b" -> "B", "c" -> "C"), mkData(            "b" -> "B", "c" -> "C", "z" -> "C"))
+      // format: on
+    )
+
+    val includeIf1 = IncludeIf(Equals(FormCtx("a"), Constant("A")))
+
+    val sections =
+      mkSection(List(mkFormComponent("a", Value))) ::
+        mkSectionIncludeIf(List(mkFormComponent("b", Value)), includeIf1) ::
+        mkSection(List(mkFormComponent("c", Value))) ::
+        mkSection(List(mkFormComponent("z", Else(FormCtx("b"), FormCtx("c"))))) :: Nil
+
+    forAll(formComponentIds) { (input, expectedOutput) ⇒
+      verify(input, expectedOutput, sections)
+    }
+  }
+
   private def verify(input: Data, expectedOutput: Data, sections: List[Section])(implicit position: Position) = {
     val output =
       recalculation.recalculateFormData(
