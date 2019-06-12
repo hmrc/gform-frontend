@@ -54,85 +54,85 @@ generic.error.maxDecimals=Rhaid i {0} beidio â chynnwys mwy na {1} lle degol
 generic.error.invalid=Nid yw {0} yn ddilys
 generic.vrn.error.pattern=Rhaid i {0} fod yn rhif 9 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789
 generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
-generic.crn.error.invalid=is not a valid Company Registration Number
-generic.nonUKCountryCode.error.pattern=is not a valid non UK country code
-generic.countryCode.error.pattern=is not a valid country code
-generic.governmentId.error.pattern=is not valid
-generic.error.sortcode=must be entered as 3 sets of 2 numbers
-generic.error.exactNumbers=must be {0} numbers
+generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif 6 digid gyda 2 lythyren ar y dechrau, er enghraifft 01234567 neu SC123456
+generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
+generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
+generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
+generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 07 00 00
+generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
 
-generic.shortText.error.pattern=can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
-generic.longText.error.pattern=can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
+generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
+generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau a bachau crwn, sgwâr, onglog neu gyrliog, collnodau, cysylltnodau, llinellau toriad, atalnodau llawn, arwyddion punt, arwyddion plws, hanner colonau, colonau, serenigion, marciau cwestiwn, hafalnodau, blaenslaesau, ampersandau, ebychnodau, symbolau @, hashnodau, arwyddion doler, arwyddion ewro, acenion disgynedig, tildiau, dyfynodau dwbl a thanlinellau
 
-generic.error.telephoneNumber=can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
+generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
 # Access code form field errors
-accessOption.error.required=Select whether you would like to access an existing {0} or start a new one
-accessCode.error.required=Enter a temporary access key. For example, A12-B456-8ZZ
-accessCode.error.pattern=Temporary access keys must be 12 characters (including letters, numbers and hyphens). For example, A12-B456-8ZZ
-accessCode.error.notfound=Temporary access key not found. It may have expired or been entered incorrectly. Check it and try again
+accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd
+accessCode.error.required=Nodwch allwedd cyrchu dros dro. Er enghraifft, A12-B456-8ZZ
+accessCode.error.pattern=Rhaid i allweddi cyrchu dros dro gynnwys 12 o gymeriadau (gan gynnwys llythrennau, rhifau a chysylltnodau). Er enghraifft, A12-B456-8ZZ
+accessCode.error.notfound=Ni ddaethpwyd o hyd i’r allwedd cyrchu dros dro. Mae’n bosibl ei bod wedi dod i ben neu eich bod wedi’i nodi’n anghywir. Gwiriwch hi a rhowch gynnig arall arni
 
 # User recruitment banner
-user.recruitment.title=Help us improve {0} forms
-user.recruitment.link.text=Sign up to participate in our research activities
-user.recruitment.dismiss=No thanks
+user.recruitment.title=Helpwch ni i wella ffurflenni {0}
+user.recruitment.link.text=Cofrestrwch i gymryd rhan yn ein gweithgareddau ymchwil
+user.recruitment.dismiss=Dim diolch
 
 # Continue or delete
-decision.error.required=Select whether you would like to continue with your existing {0} or delete and start again
+decision.error.required=Dewiswch p’un a hoffech barhau gyda’ch {0} sydd ohoni, neu ddileu a dechrau eto
 
 # UK Address
 ukAddress.line1=Adeilad a stryd
-ukAddress.line2=Adeilad a llinell stryd 2 (dewisol)
+ukAddress.line2=Adeilad a stryd – llinell 2 (dewisol)
 ukAddress.line3=Tref neu ddinas (dewisol)
 ukAddress.line4=Sir (dewisol)
 ukAddress.postcode=Cod post
-ukAddress.line1.label=building and street
-ukAddress.line2.label=building and street line 2
-ukAddress.line3.label=town or city
-ukAddress.line4.label=county
-ukAddress.postcode.label=postcode
+ukAddress.line1.label=adeilad a stryd
+ukAddress.line2.label=adeilad a stryd – llinell 2
+ukAddress.line3.label=tref neu ddinas
+ukAddress.line4.label=sir
+ukAddress.postcode.label=cod post
 
-ukAddress.line1.error.maxLength=building and street must be no more than {0} characters
-ukAddress.line2.error.maxLength=building and street line 2 must be no more than {0} characters
-ukAddress.line3.error.maxLength=town or city must be no more than {0} characters
-ukAddress.line4.error.maxLength=county must be no more than {0} characters
-ukAddress.postcode.error.maxLength=postcode must be no more than {0} characters
+ukAddress.line1.error.maxLength=rhaid i’r adeilad a’r stryd beidio â bod yn fwy na {0} o gymeriadau
+ukAddress.line2.error.maxLength=rhaid i adeilad a stryd – llinell 2 beidio â bod yn fwy na {0} o gymeriadau
+ukAddress.line3.error.maxLength=rhaid i’r dref neu’r ddinas beidio â bod yn fwy na {0} o gymeriadau
+ukAddress.line4.error.maxLength=rhaid i’r sir beidio â bod yn fwy na {0} o gymeriadau
+ukAddress.postcode.error.maxLength=rhaid i’r cod post beidio â bod yn fwy na {0} o gymeriadau
 
 # International Address
-internationalAddress.line1=Address 1
-internationalAddress.line2=Address 2
-internationalAddress.line3=Address 3
-internationalAddress.line4=Address 4
-internationalAddress.country=Country
-internationalAddress.line1.label=line 1
-internationalAddress.line2.label=line 2
-internationalAddress.line3.label=line 3
-internationalAddress.line4.label=line 4
-internationalAddress.country.label=country
+internationalAddress.line1=Cyfeiriad 1
+internationalAddress.line2=Cyfeiriad 2
+internationalAddress.line3=Cyfeiriad 3
+internationalAddress.line4=Cyfeiriad 4
+internationalAddress.country=Gwlad
+internationalAddress.line1.label=llinell 1
+internationalAddress.line2.label=llinell 2
+internationalAddress.line3.label=llinell 3
+internationalAddress.line4.label=llinell 4
+internationalAddress.country.label=gwlad
 
 # Generic address
-address.line4.error.maxLength=line 4 must be no more than {0} characters
-address.line.error.maxLength=line {0} must be no more than {1} characters
+address.line4.error.maxLength=rhaid i linell 4 beidio â bod yn fwy na {0} o gymeriadau
+address.line.error.maxLength=Rhaid i linell {0} beidio â bod yn fwy na {1} o gymeriadau
 
 # Date
-date.day=day
-date.month=month
-date.year=year
-date.Day=Dydd
-date.Month=Month
-date.Year=Year
-date.ofAnyMonth=of any month
-date.ofTheMonth=of the month
-date.firstDay=the first day
-date.lastDay=the last day
-date.exactDay=the {0}
-date.inYear=in {0}
-date.inMonth=in {0}
-date.ofMonth=of {0}
-date.before=must be before {0}
-date.after=must be after {0}
-date.exactDate=must be {0}
-date.isMissing=is missing
+date.day=diwrnod
+date.month=mis
+date.year=blwyddyn
+date.Day=Diwrnod
+date.Month=Mis
+date.Year=Blwyddyn
+date.ofAnyMonth=o unrhyw fis
+date.ofTheMonth=o’r mis
+date.firstDay=o unrhyw fis
+date.lastDay=y diwrnod olaf
+date.exactDay=y {0}
+date.inYear=yn {0}
+date.inMonth=ym mis {0}
+date.ofMonth=o {0}
+date.before=Rhaid i {0} fod cyn {1}
+date.after=Rhaid i {0} fod ar ôl {1}
+date.exactDate=Rhaid i {0} fod {1}
+date.isMissing=ar goll
 
 # explicit ordinals
 date.ordinal.1=af
@@ -168,31 +168,31 @@ date.ordinal.30=ain
 date.ordinal.31=ain
 
 # hmrcTaxPeriod
-taxPeriod.noResults=There are no options to display for this user
+taxPeriod.noResults=Nid oes opsiynau i’w dangos ar gyfer y defnyddiwr hwn
 
 # File upload
-file.upload=Upload a file
-file.delete=Delete
-file.delete.file=Delete {0}
+file.upload=Uwchlwytho ffeil
+file.delete=Dileu
+file.delete.file=Dileu {0}
 
 # Sort code
-sortcode.part=Sort code part {0}
+sortcode.part=Cod didoli rhan {0}
 
 # Assisrive text
-assistive.text.sterling=in pounds sterling, do not enter the pound sign
+assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 
 # Summary
-summary.title=Check your answers
-summary.intro=Make sure that the information you have given is correct before submitting your {0}
-summary.nowSend=Now send your {0}
-summary.printMsg=You can print this summary page then come back later to complete your {0}
-summary.printLinkText=Print this summary page
-summary.change=Change
+summary.title=Gwiriwch eich atebion
+summary.intro=Sicrhewch fod yr wybodaeth rydych wedi’i rhoi yn gywir cyn cyflwyno’ch {0}
+summary.nowSend=Nawr anfonwch eich {0}
+summary.printMsg=Gallwch argraffu’r dudalen grynodeb hon a dod yn ôl yn ddiweddarach i gwblhau’ch {0}
+summary.printLinkText=Argraffu’r dudalen grynodeb hon
+summary.change=Newid
 
 # Acknowledgement
-ack.title=Your {0} has been submitted
-ack.submissionReference=Your submission reference is
-ack.sentEmail=We have sent you a confirmation email
+ack.title=Cyflwynwyd eich {0}
+ack.submissionReference=Cyfeirnod eich cyflwyniad yw
+ack.sentEmail=Rydym wedi anfon e-bost cadarnhau atoch
 ack.pdfLink=View a PDF of your {0} that you can save or print
 ack.whatHappensNext=What happens next
 ack.beforeYouGo=Before you go
