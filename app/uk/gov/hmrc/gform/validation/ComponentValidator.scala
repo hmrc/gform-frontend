@@ -52,13 +52,17 @@ object ComponentValidator {
     def existsLabel(options: Map[LookupLabel, LookupId]) =
       if (options.contains(lookupLabel))
         validationSuccess
-      else
-        validationFailure(fieldValue, messages("generic.error.lookup", lookupLabel.label))
+      else {
+        val vars: List[String] = lookupLabel.label :: Nil
+        validationFailure(fieldValue, "generic.error.lookup", Some(vars))
+      }
 
     lookupRegistry.get(register) match {
       case Some(AjaxLookup(options, _, _)) => existsLabel(options)
       case Some(RadioLookup(options))      => existsLabel(options)
-      case None                            => validationFailure(fieldValue, messages("generic.error.registry", register))
+      case None =>
+        val vars: List[String] = register.toString :: Nil
+        validationFailure(fieldValue, "generic.error.registry", Some(vars))
     }
   }
 
@@ -71,7 +75,7 @@ object ComponentValidator {
           case lookupRegistry.extractors.IsRadioLookup(_) => "choice.error.required"
           case _                                          => "generic.error.required"
         }
-        validationFailure(fieldValue, messages(key))
+        validationFailure(fieldValue, key, None)
       case (_, _, AnyText) => validationSuccess
       case (_, value :: Nil, Lookup(register)) =>
         lookupValidation(fieldValue, lookupRegistry, register, LookupLabel(value))
@@ -112,7 +116,8 @@ object ComponentValidator {
     str match {
       case ukBankAccountFormat() => validationSuccess
       case _ =>
-        validationFailure(fieldValue, messages("generic.error.exactNumbers", ValidationValues.bankAccountLength))
+        val vars: List[String] = ValidationValues.bankAccountLength.toString :: Nil
+        validationFailure(fieldValue, "generic.error.exactNumbers", Some(vars))
     }
   }
 
@@ -126,29 +131,34 @@ object ComponentValidator {
     val FractionalShape = "([+-]?)(\\d*(,\\d{3})*?)[.](\\d+)".r
     (TextConstraint.filterNumberValue(value), maxFractional, mustBePositive) match {
       case (WholeShape(_, whole, _), _, _) if surpassMaxLength(whole, maxWhole) =>
-        validationFailure(fieldValue, messages("generic.error.maxWhole", maxWhole))
+        val vars: List[String] = maxWhole.toString :: Nil
+        validationFailure(fieldValue, "generic.error.maxWhole", Some(vars))
       case (WholeShape("-", _, _), _, true) =>
-        validationFailure(fieldValue, messages("generic.error.positiveNumber"))
+        validationFailure(fieldValue, "generic.error.positiveNumber", None)
       case (WholeShape(_, _, _), _, _) => validationSuccess
       case (FractionalShape(_, whole, _, fractional), 0, _)
           if surpassMaxLength(whole, maxWhole) && lessThanMinLength(fractional, 0) =>
-        validationFailure(fieldValue, messages("generic.error.maxLength.noDecimals", maxWhole))
+        val vars: List[String] = maxWhole.toString :: Nil
+        validationFailure(fieldValue, "generic.error.maxLength.noDecimals", Some(vars))
       case (FractionalShape(_, whole, _, fractional), _, _)
           if surpassMaxLength(whole, maxWhole) && surpassMaxLength(fractional, maxFractional) =>
-        validationFailure(fieldValue, messages("generic.error.maxLength.maxDecimals", maxWhole, maxFractional))
+        val vars: List[String] = maxWhole.toString :: maxFractional.toString :: Nil
+        validationFailure(fieldValue, "generic.error.maxLength.maxDecimals", Some(vars))
       case (FractionalShape(_, whole, _, _), _, _) if surpassMaxLength(whole, maxWhole) =>
-        validationFailure(fieldValue, messages("generic.error.maxWhole", maxWhole))
+        val vars: List[String] = maxWhole.toString :: Nil
+        validationFailure(fieldValue, "generic.error.maxWhole", Some(vars))
       case (FractionalShape(_, _, _, fractional), 0, _) if lessThanMinLength(fractional, 0) =>
-        validationFailure(fieldValue, messages("generic.error.wholeNumber"))
+        validationFailure(fieldValue, "generic.error.wholeNumber", None)
       case (FractionalShape(_, _, _, fractional), _, _) if surpassMaxLength(fractional, maxFractional) =>
-        validationFailure(fieldValue, messages("generic.error.maxDecimals", maxFractional))
+        val vars: List[String] = maxFractional.toString :: Nil
+        validationFailure(fieldValue, "generic.error.maxDecimals", Some(vars))
       case (FractionalShape("-", _, _, _), _, true) =>
-        validationFailure(fieldValue, messages("generic.error.positiveNumber"))
+        validationFailure(fieldValue, "generic.error.positiveNumber", None)
       case (FractionalShape(_, _, _, _), _, _) => validationSuccess
-      case (_, 0, true)                        => validationFailure(fieldValue, messages("generic.error.positiveWholeNumber"))
-      case (_, _, true)                        => validationFailure(fieldValue, messages("generic.error.positiveNumber"))
-      case (_, 0, false)                       => validationFailure(fieldValue, messages("generic.error.wholeNumber"))
-      case _                                   => validationFailure(fieldValue, messages("generic.error.number"))
+      case (_, 0, true)                        => validationFailure(fieldValue, "generic.error.positiveWholeNumber", None)
+      case (_, _, true)                        => validationFailure(fieldValue, "generic.error.positiveNumber", None)
+      case (_, 0, false)                       => validationFailure(fieldValue, "generic.error.wholeNumber", None)
+      case _                                   => validationFailure(fieldValue, "generic.error.number", None)
     }
   }
 
@@ -162,7 +172,7 @@ object ComponentValidator {
 
   private def email(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) =
     if (EmailAddress.isValid(value)) validationSuccess
-    else validationFailure(fieldValue, messages("generic.error.invalid"))
+    else validationFailure(fieldValue, "generic.error.invalid", None)
 
   private def checkVrn(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val Standard = "GB[0-9]{9}".r
@@ -172,14 +182,16 @@ object ComponentValidator {
     val str = value.replace(" ", "")
     str match {
       case tooLong if tooLong.length > 14 =>
-        validationFailure(fieldValue, messages("generic.error.maxLength", 14))
+        val vars: List[String] = 14.toString :: Nil
+        validationFailure(fieldValue, "generic.error.maxLength", Some(vars))
       case tooShort if tooShort.length < 7 =>
-        validationFailure(fieldValue, messages("generic.error.minLength", 7))
+        val vars: List[String] = 7.toString :: Nil
+        validationFailure(fieldValue, "generic.error.minLength", Some(vars))
       case Standard()   => validationSuccess
       case Branch()     => validationSuccess
       case Government() => validationSuccess
       case Health()     => validationSuccess
-      case _            => validationFailure(fieldValue, messages("generic.vrn.error.pattern"))
+      case _            => validationFailure(fieldValue, "generic.vrn.error.pattern", None)
     }
   }
 
@@ -203,15 +215,15 @@ object ComponentValidator {
     implicit messages: Messages,
     l: LangADT) = {
     val ValidCountryCode = "[A-Z]+".r
-    val errorMSG = messages("generic.nonUKCountryCode.error.pattern")
-    if (value == "UK") validationFailure(fieldValue, errorMSG)
-    else sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, errorMSG)
+    val messageKey = "generic.nonUKCountryCode.error.pattern"
+    if (value == "UK") validationFailure(fieldValue, messageKey, None)
+    else sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, messageKey)
   }
 
   private def checkCountryCode(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val ValidCountryCode = "[A-Z]+".r
-    val errorMSG = messages("generic.countryCode.error.pattern")
-    sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, errorMSG)
+    val messageKey = "generic.countryCode.error.pattern"
+    sharedTextComponentValidator(fieldValue, value, 2, 2, ValidCountryCode, messageKey)
   }
 
   private def checkId(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
@@ -219,35 +231,35 @@ object ComponentValidator {
     value match {
       case ValidUTR()           => validationSuccess
       case x if Nino.isValid(x) => validationSuccess
-      case _                    => validationFailure(fieldValue, messages("generic.governmentId.error.pattern"))
+      case _                    => validationFailure(fieldValue, "generic.governmentId.error.pattern", None)
     }
   }
 
   def validatePhoneNumber(fieldValue: FormComponent, value: String)(
     implicit messages: Messages,
     l: LangADT): Validated[Map[FormComponentId, Set[String]], Unit] = {
-    val errorMSG = messages("generic.error.telephoneNumber")
+    val messageKey = "generic.error.telephoneNumber"
     sharedTextComponentValidator(
       fieldValue,
       value,
       TelephoneNumber.minimumLength,
       TelephoneNumber.maximumLength,
       TelephoneNumber.phoneNumberValidation,
-      errorMSG)
+      messageKey)
   }
 
   private[validation] def shortTextValidation(fieldValue: FormComponent, value: String, min: Int, max: Int)(
     implicit messages: Messages,
     l: LangADT) = {
     val ValidShortText = """[A-Za-z0-9\'\-\.\&\s]+""".r
-    val errorMSG = messages("generic.shortText.error.pattern")
-    sharedTextComponentValidator(fieldValue, value, min, max, ValidShortText, errorMSG)
+    val messageKey = "generic.shortText.error.pattern"
+    sharedTextComponentValidator(fieldValue, value, min, max, ValidShortText, messageKey)
   }
 
   private def textValidation(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val ValidText = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
-    val errorMSG = messages("generic.longText.error.pattern")
-    sharedTextComponentValidator(fieldValue, value, 0, 100000, ValidText, errorMSG)
+    val messageKey = "generic.longText.error.pattern"
+    sharedTextComponentValidator(fieldValue, value, 0, 100000, ValidText, messageKey)
   }
 
   def validateChoice(fieldValue: FormComponent)(
@@ -256,7 +268,7 @@ object ComponentValidator {
 
     (fieldValue.mandatory, choiceValue) match {
       case (true, None | Some("")) =>
-        validationFailure(fieldValue, messages("choice.error.required"))
+        validationFailure(fieldValue, "choice.error.required", None)
       case _ => validationSuccess
     }
   }
@@ -275,13 +287,15 @@ object ComponentValidator {
     minChars: Int,
     maxChars: Int,
     regex: Regex,
-    errorMSG: String)(implicit messages: Messages, l: LangADT) =
+    messageKey: String)(implicit messages: Messages, l: LangADT) =
     value match {
       case tooLong if tooLong.length > maxChars =>
-        validationFailure(fieldValue, messages("generic.error.maxLength", maxChars))
+        val vars: List[String] = maxChars.toString :: Nil
+        validationFailure(fieldValue, "generic.error.maxLength", Some(vars))
       case tooShort if tooShort.length < minChars =>
-        validationFailure(fieldValue, messages("generic.error.minLength", minChars))
+        val vars: List[String] = minChars.toString :: Nil
+        validationFailure(fieldValue, "generic.error.minLength", Some(vars))
       case regex() => validationSuccess
-      case _       => validationFailure(fieldValue, errorMSG)
+      case _       => validationFailure(fieldValue, messageKey, None)
     }
 }

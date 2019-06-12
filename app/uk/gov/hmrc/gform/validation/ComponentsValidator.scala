@@ -57,7 +57,7 @@ class ComponentsValidator(
           booleanExpr
             .isTrue(vi.expr, data.data, retrievals, data.invisible, thirdPartyData, envelopeId, formTemplate)
             .map {
-              case false => validationFailure(fieldValue, messages("generic.error.required"))
+              case false => validationFailure(fieldValue, "generic.error.required", None)
               case true  => validationResult
             }
         case _ => validationResult.pure[Future]
@@ -103,14 +103,14 @@ class ComponentsValidator(
 
         file match {
           case Some(File(fileId, Error(Some(reason)), _)) =>
-            validationFailure(fieldValue, reason)
+            validationFailure(fieldValue, reason, None)
           case Some(File(fileId, Error(None), _)) =>
-            validationFailure(fieldValue, messages("generic.error.unknownUpload"))
+            validationFailure(fieldValue, "generic.error.unknownUpload", None)
           case Some(File(fileId, Infected, _)) =>
-            validationFailure(fieldValue, messages("generic.error.virus"))
+            validationFailure(fieldValue, "generic.error.virus", None)
           case Some(File(fileId, _, _)) => ValidationServiceHelper.validationSuccess
           case None if fieldValue.mandatory =>
-            validationFailure(fieldValue, messages("generic.error.upload"))
+            validationFailure(fieldValue, "generic.error.upload", None)
           case None => validationSuccess
         }
       }
@@ -133,7 +133,7 @@ class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT) {
       case Nil =>
         Map(
           fieldId -> ComponentsValidatorHelper
-            .errors(fieldValue, messages("field.error.required", errorPrefix.getOrElse("")))).invalid
+            .errors(fieldValue, "field.error.required", None)).invalid
       case value :: Nil  => validationSuccess
       case value :: rest => validationSuccess // we don't support multiple values yet
     }
@@ -142,16 +142,18 @@ class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT) {
     xs.filterNot(_.isEmpty()) match {
       case Nil => validationSuccess
       case value :: Nil =>
-        Map(fieldId -> ComponentsValidatorHelper.errors(fieldValue, messages("generic.error.forbidden"))).invalid
+        Map(fieldId -> ComponentsValidatorHelper.errors(fieldValue, "generic.error.forbidden", None)).invalid
       case value :: rest =>
-        Map(fieldId -> ComponentsValidatorHelper.errors(fieldValue, messages("generic.error.forbidden"))).invalid // we don't support multiple values yet
+        Map(fieldId -> ComponentsValidatorHelper.errors(fieldValue, "generic.error.forbidden", None)).invalid // we don't support multiple values yet
     }
 }
 
 object ComponentsValidatorHelper {
 
-  def messagePrefix(fieldValue: FormComponent, workedOnId: FormComponentId, otherFormComponent: Option[FormComponent])(
-    implicit l: LangADT) =
+  def fieldDescriptor(
+    fieldValue: FormComponent,
+    workedOnId: FormComponentId,
+    otherFormComponent: Option[FormComponent])(implicit l: LangADT): String =
     otherFormComponent match {
       case Some(x) if x.id === workedOnId => x.shortName.map { _.value }.getOrElse(x.label.value)
       case Some(x) =>
@@ -163,13 +165,22 @@ object ComponentsValidatorHelper {
       case None => fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
     }
 
-  def errors(fieldValue: FormComponent, defaultErr: String)(implicit l: LangADT): Set[String] =
+  def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
+    implicit l: LangADT,
+    messages: Messages): Set[String] = {
+    val varsList: List[String] = vars match {
+      case None    => List.empty
+      case Some(a) => a
+    }
+    val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None) :: varsList
     Set(
       fieldValue.errorMessage
         .map(ls => ls.value)
-        .getOrElse(messagePrefix(fieldValue, fieldValue.id, None) + " " + defaultErr))
+        .getOrElse(messages(messageKey, withDescriptor: _*)))
+  }
 
-  def getError(fieldValue: FormComponent, defaultMessage: String)(
-    implicit l: LangADT): Validated[Map[FormComponentId, Set[String]], Nothing] =
-    Map(fieldValue.id -> errors(fieldValue, defaultMessage)).invalid
+  def getError(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
+    implicit l: LangADT,
+    messages: Messages): Validated[Map[FormComponentId, Set[String]], Nothing] =
+    Map(fieldValue.id -> errors(fieldValue, messageKey, vars)).invalid
 }

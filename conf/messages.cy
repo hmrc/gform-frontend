@@ -1,59 +1,59 @@
 ## Global
-global.error.InternalServerError500.title=We’re experiencing technical difficulties
-global.error.InternalServerError500.heading=We’re experiencing technical difficulties
-global.error.InternalServerError500.message=Try signing in again in a few minutes.
+global.error.InternalServerError500.title=Mae problemau technegol wedi codi
+global.error.InternalServerError500.heading=Mae problemau technegol wedi codi
+global.error.InternalServerError500.message=Rhowch gynnig arall ar fewngofnodi mewn ychydig o funudau.
 
-linkText.saveAndComeBackLater=Save and come back later
-linkText.back=Back
-linkText.removeRepeatedGroup=Remove {0}
-linkText.addRepeatingGroup=Add another
+linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
+linkText.back=Yn ôl
+linkText.removeRepeatedGroup=Dileu {0}
+linkText.addRepeatingGroup=Ychwanegwch un arall
 linkText.signOut=Allgofnodi
 
-button.continue=Parhau
-button.saveAndContinue=Arbed a pharhau
+button.continue=Yn eich blaen
+button.saveAndContinue=Cadw ac yn eich blaen
 
 # Error summary
-error.summary.heading=Mae problem
+error.summary.heading=Mae problem wedi codi
 
 # Generic words
-generic.From=From
-generic.to=to
-generic.Yes=Yes
-generic.No=No
-generic.Warning=Warning
+generic.From=O
+generic.to=hyd at
+generic.Yes=Iawn
+generic.No=Na
+generic.Warning=Rhybudd
 
 # Form categories
-formCategory.form=form
-formCategory.return=return
+formCategory.form=ffurflen
+formCategory.return=Ffurflen Dreth
 formCategory.claim=hawliad
 
 
 # Field labelled errors
-field.error.required={0} rhaid ei gofnodi
-field.error.number={0} must be a number
-field.error.exactDigits={0} must be a {1} digit number
-field.error.notGreaterThan={0} must not be greater than {1}
-choice.error.required=must be selected
+field.error.required=Rhaid nodi {0}
+field.error.number=Rhaid i {0} fod yn rhif
+field.error.exactDigits=Rhaid i {0} fod yn rhif {1} digid
+field.error.notGreaterThan=Rhaid i {0} beidio â bod yn fwy na {1}
+choice.error.required=Rhaid dewis {0}
 
 # Generic error suffixes
-generic.error.required=rhaid ei gofnodi
-generic.error.upload=must be uploaded
-generic.error.virus=has a virus detected
-generic.error.unknownUpload=has an unknown error from file upload
-generic.error.forbidden=must not be entered
-generic.error.minLength=must be at least {0} characters
-generic.error.maxLength=must be no more than {0} characters
-generic.error.number=must be a number
-generic.error.positiveNumber=must be a positive number
-generic.error.positiveWholeNumber=must be a positive whole number
-generic.error.maxLength.noDecimals=must be at most {0} whole digits and no decimal fraction
-generic.error.maxLength.maxDecimals=must be at most {0} whole digits and decimal fraction must be at most {1} digits
-generic.error.maxWhole=must be at most {0} whole digits
-generic.error.wholeNumber=must be a whole number
-generic.error.maxDecimals=must be no more than {0} decimal places
-generic.error.invalid=is not valid
-generic.vrn.error.pattern=is not a valid VRN
-generic.eori.error.pattern=is not a valid EORI number
+generic.error.required=Rhaid nodi {0}
+generic.error.upload=Rhaid uwchlwytho {0}
+generic.error.virus=Mae feirws wedi’i ganfod yn {0}
+generic.error.unknownUpload=Canfuwyd gwall anhysbys yn {0} wrth uwchlwytho’r ffeil
+generic.error.forbidden=Rhaid peidio â nodi {0}
+generic.error.minLength=Rhaid i {0} gynnwys o leiaf {1} o gymeriadau
+generic.error.maxLength=Rhaid i {0} beidio â chynnwys mwy na {1} o gymeriadau
+generic.error.number=Rhaid i {0} fod yn rhif
+generic.error.positiveNumber=Rhaid i {0} fod yn rhif positif
+generic.error.positiveWholeNumber=Rhaid i {0} fod yn rhif cyfan positif
+generic.error.maxLength.noDecimals=Rhaid i {0} gynnwys {1} digid cyfan ar y mwyaf, heb ffracsiynau degol
+generic.error.maxLength.maxDecimals=Rhaid i {0} gynnwys {1} digid cyfan ar y mwyaf, a rhaid i ffracsiynau degol gynnwys {2} digid ar y mwyaf
+generic.error.maxWhole=Rhaid i {0} gynnwys {1} digid cyfan ar y mwyaf
+generic.error.wholeNumber=Rhaid i {0} fod yn rhif cyfan
+generic.error.maxDecimals=Rhaid i {0} beidio â chynnwys mwy na {1} lle degol
+generic.error.invalid=Nid yw {0} yn ddilys
+generic.vrn.error.pattern=Rhaid i {0} fod yn rhif 9 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789
+generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
 generic.crn.error.invalid=is not a valid Company Registration Number
 generic.nonUKCountryCode.error.pattern=is not a valid non UK country code
 generic.countryCode.error.pattern=is not a valid country code
@@ -121,10 +121,6 @@ date.year=year
 date.Day=Dydd
 date.Month=Month
 date.Year=Year
-date.ordinal.th=th
-date.ordinal.st=st
-date.ordinal.rd=rd
-date.ordinal.nd=nd
 date.ofAnyMonth=of any month
 date.ofTheMonth=of the month
 date.firstDay=the first day
@@ -137,6 +133,39 @@ date.before=must be before {0}
 date.after=must be after {0}
 date.exactDate=must be {0}
 date.isMissing=is missing
+
+# explicit ordinals
+date.ordinal.1=af
+date.ordinal.2=il
+date.ordinal.3=ydd
+date.ordinal.4=ydd
+date.ordinal.5=ed
+date.ordinal.6=ed
+date.ordinal.7=fed
+date.ordinal.8=fed
+date.ordinal.9=fed
+date.ordinal.10=fed
+date.ordinal.11=eg
+date.ordinal.12=fed
+date.ordinal.13=eg
+date.ordinal.14=eg
+date.ordinal.15=fed
+date.ordinal.16=eg
+date.ordinal.17=eg
+date.ordinal.18=fed
+date.ordinal.19=eg
+date.ordinal.20=fed
+date.ordinal.21=ain
+date.ordinal.22=ain
+date.ordinal.23=ain
+date.ordinal.24=ain
+date.ordinal.25=ain
+date.ordinal.26=ain
+date.ordinal.27=ain
+date.ordinal.28=ain
+date.ordinal.29=ain
+date.ordinal.30=ain
+date.ordinal.31=ain
 
 # hmrcTaxPeriod
 taxPeriod.noResults=There are no options to display for this user
