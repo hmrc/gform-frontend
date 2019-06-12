@@ -157,28 +157,32 @@ object ComponentsValidatorHelper {
     fieldValue: FormComponent,
     workedOnId: FormComponentId,
     otherFormComponent: Option[FormComponent],
-    value: String)(implicit l: LangADT): String =
+    partLabel: String)(implicit l: LangADT): String =
     otherFormComponent match {
       case Some(x) if x.id === workedOnId =>
-        x.shortName.map { _.value + " " + value }.getOrElse(x.label.value + " " + value)
+        x.shortName.map { _.value + " " + partLabel }.getOrElse(x.label.value + " " + partLabel).trim
       case Some(x) =>
         fieldValue.shortName
           .map { input =>
-            input.value + " " + value
+            input.value + " " + partLabel
           }
-          .getOrElse(fieldValue.label.value + " " + value)
+          .getOrElse(fieldValue.label.value + " " + partLabel)
+          .trim
       case None =>
-        fieldValue.shortName.map(ls => ls.value + " " + value).getOrElse(fieldValue.label.value + " " + value)
+        fieldValue.shortName
+          .map(ls => ls.value + " " + partLabel)
+          .getOrElse(fieldValue.label.value + " " + partLabel)
+          .trim
     }
 
-  def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]], value: String = "")(
+  def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]], partLabel: String = "")(
     implicit l: LangADT,
     messages: Messages): Set[String] = {
     val varsList: List[String] = vars match {
       case None    => List.empty
       case Some(a) => a
     }
-    val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None, value) :: varsList
+    val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None, partLabel) :: varsList
     Set(
       fieldValue.errorMessage
         .map(ls => ls.value)
