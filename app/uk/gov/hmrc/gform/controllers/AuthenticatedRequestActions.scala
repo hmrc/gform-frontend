@@ -120,6 +120,7 @@ class AuthenticatedRequestActions(
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
+      implicit val l: LangADT = getCurrentLanguage(request)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -129,8 +130,7 @@ class AuthenticatedRequestActions(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals =>
-                     f(newRequest)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate))
+                   onSuccess = retrievals => f(newRequest)(l)(AuthCacheWithoutForm(retrievals, formTemplate))
                  )
       } yield result
   }
@@ -153,6 +153,7 @@ class AuthenticatedRequestActions(
   def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
+      implicit val l: LangADT = getCurrentLanguage(request)
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -162,7 +163,7 @@ class AuthenticatedRequestActions(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = withForm(f(newRequest)(getCurrentLanguage(request)))(maybeAccessCode, formTemplate)
+                   onSuccess = withForm(f(newRequest)(l))(maybeAccessCode, formTemplate)
                  )
       } yield result
     }
@@ -180,9 +181,7 @@ class AuthenticatedRequestActions(
     formTemplate: FormTemplate,
     request: Request[_],
     onSuccess: MaterialisedRetrievals => Future[Result]
-  )(
-    implicit
-    hc: HeaderCarrier): Future[Result] =
+  )(implicit l: LangADT, hc: HeaderCarrier): Future[Result] =
     result match {
       case AuthSuccessful(retrievals @ AWSALBRetrievals(_)) => onSuccess(retrievals)
       case AuthSuccessful(retrievals @ AnonymousRetrievals(_)) =>
@@ -195,7 +194,7 @@ class AuthenticatedRequestActions(
           .withSession(SessionKeys.sessionId -> s"anonymous-session-${UUID.randomUUID()}")
           .pure[Future]
       case AuthRedirectFlashingFormName(loginUrl) =>
-        Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName).pure[Future]
+        Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName.value).pure[Future]
       case AuthBlocked(message) =>
         Ok(
           views.html.error_template(

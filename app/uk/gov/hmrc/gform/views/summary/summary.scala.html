@@ -20,6 +20,7 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
     formTemplate: FormTemplate,
@@ -29,13 +30,13 @@
     renderComeBackLater: Boolean,
     continueLabelKey: String,
     frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages)
+)(implicit request: Request[_], messages: Messages, l:LangADT)
 
 @heading = @{messages("summary.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName,
+  serviceName = formTemplate.formName.value,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   bodyClasses = None,
   frontendAppConfig = frontendAppConfig,

@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import java.time.format.DateTimeFormatter
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 
 @(
@@ -29,7 +30,7 @@
     formTemplate: FormTemplate,
     call: Call,
     frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages)
+)(implicit request: Request[_], messages: Messages,l:LangADT)
 
 @formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
 @heading = @{"Your " + formCategory(formTemplate) + " has been saved"}
@@ -37,7 +38,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName,
+  serviceName = formTemplate.formName.value,
   bodyClasses = None,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,

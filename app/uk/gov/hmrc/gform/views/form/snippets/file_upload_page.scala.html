@@ -43,7 +43,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = heading,
-    serviceName = formTemplate.formName,
+    serviceName = formTemplate.formName.value,
     developmentPhase = ResearchBanner,
     frontendAppConfig = frontendAppConfig,
     authConfig = Some(formTemplate.authConfig),

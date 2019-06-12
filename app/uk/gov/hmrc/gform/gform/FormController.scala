@@ -74,18 +74,19 @@ class FormController(
   // TODO: this method should really be in the SignOutController which does not yet exist
   def keepAlive() = auth.keepAlive()
 
-  def dashboard(formTemplateId: FormTemplateId) = auth.async(formTemplateId) { implicit request => lang => cache =>
-    import cache._
+  def dashboard(formTemplateId: FormTemplateId) = auth.async(formTemplateId) {
+    implicit request => implicit lang => cache =>
+      import cache._
 
-    val formId = FormId(retrievals, formTemplateId, None)
+      val formId = FormId(retrievals, formTemplateId, None)
 
-    gformConnector.maybeForm(formId).map { form =>
-      handler.handleDashboard(formTemplate, retrievals, form) match {
-        case NotToBeRedirected(_) =>
-          Ok(access_code_start(formTemplate, AgentAccessCode.form, frontendAppConfig))
-        case ToBeRedirected => Redirect(routes.FormController.newForm(formTemplateId))
+      gformConnector.maybeForm(formId).map { form =>
+        handler.handleDashboard(formTemplate, retrievals, form) match {
+          case NotToBeRedirected(_) =>
+            Ok(access_code_start(formTemplate, AgentAccessCode.form, frontendAppConfig))
+          case ToBeRedirected => Redirect(routes.FormController.newForm(formTemplateId))
+        }
       }
-    }
   }
 
   def newFormAgent(formTemplateId: FormTemplateId) = auth.async(formTemplateId) {
