@@ -81,16 +81,17 @@ case class FormComponent(
         } else Nil
   }
 
-  private val expandRevealingGroup: RevealingChoice => List[FormComponent] = _.options.toList.flatMap(_.revealingFields)
+  private val expandRevealingChoice: RevealingChoice => List[FormComponent] =
+    _.options.toList.flatMap(_.revealingFields)
 
   private def expandByDataRc(fc: FormComponent, data: Data): List[FormComponent] =
     expand(fc, expandGroup(data), RevealingChoice.slice(fc.id)(data))
 
   private def expandByData(fc: FormComponent, data: Data): List[FormComponent] =
-    expand(fc, expandGroup(data), expandRevealingGroup)
+    expand(fc, expandGroup(data), expandRevealingChoice)
 
   private def expandAll(fc: FormComponent): List[FormComponent] =
-    expand(fc, group => index => group.fields.map(addFieldIndex(_, index)), expandRevealingGroup)
+    expand(fc, group => index => group.fields.map(addFieldIndex(_, index)), expandRevealingChoice)
 
   private def expand(
     fc: FormComponent,

@@ -162,7 +162,6 @@ class SummaryController(
     doc.html
   }
 
-  // TODO JoVl - why validateForm is different from validate in FormController
   private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
     implicit hc: HeaderCarrier,
     l: LangADT): Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
@@ -185,7 +184,7 @@ class SummaryController(
       allFields = submittedFCs(
         data,
         sections
-          .flatMap(_.expandSection(data.data).allFCs)
+          .flatMap(_.expandSectionRc(data.data).allFCs)
       )
 
       v1 <- sections
