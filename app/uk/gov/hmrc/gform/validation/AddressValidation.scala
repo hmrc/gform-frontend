@@ -74,7 +74,7 @@ class AddressValidation(implicit messages: Messages, l: LangADT) {
   }
 
   private def validateRequiredField(value: String, errorPrefix: String, fieldValue: FormComponent) =
-    cvh.validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix)) _
+    cvh.validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix), value) _
 
   private def validateForbiddenField(value: String, fieldValue: FormComponent) =
     cvh.validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _

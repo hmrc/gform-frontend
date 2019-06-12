@@ -122,18 +122,21 @@ class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT) {
     ValidationServiceHelper.validationSuccess.pure[Future]
 
   def validateRF(fieldValue: FormComponent, value: String) =
-    validateRequired(fieldValue, fieldValue.id.withSuffix(value)) _
+    validateRequired(fieldValue, fieldValue.id.withSuffix(value), None, value) _
 
   def validateFF(fieldValue: FormComponent, value: String) =
     validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
 
-  def validateRequired(fieldValue: FormComponent, fieldId: FormComponentId, errorPrefix: Option[String] = None)(
-    xs: Seq[String]): ValidatedType[Unit] =
+  def validateRequired(
+    fieldValue: FormComponent,
+    fieldId: FormComponentId,
+    errorPrefix: Option[String] = None,
+    value: String)(xs: Seq[String]): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty()) match {
       case Nil =>
         Map(
           fieldId -> ComponentsValidatorHelper
-            .errors(fieldValue, "field.error.required", None)).invalid
+            .errors(fieldValue, "field.error.required", None, errorPrefix.getOrElse(""))).invalid
       case value :: Nil  => validationSuccess
       case value :: rest => validationSuccess // we don't support multiple values yet
     }
@@ -153,26 +156,29 @@ object ComponentsValidatorHelper {
   def fieldDescriptor(
     fieldValue: FormComponent,
     workedOnId: FormComponentId,
-    otherFormComponent: Option[FormComponent])(implicit l: LangADT): String =
+    otherFormComponent: Option[FormComponent],
+    value: String)(implicit l: LangADT): String =
     otherFormComponent match {
-      case Some(x) if x.id === workedOnId => x.shortName.map { _.value }.getOrElse(x.label.value)
+      case Some(x) if x.id === workedOnId =>
+        x.shortName.map { _.value + " " + value }.getOrElse(x.label.value + " " + value)
       case Some(x) =>
         fieldValue.shortName
           .map { input =>
-            input.value
+            input.value + " " + value
           }
-          .getOrElse(fieldValue.label.value)
-      case None => fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
+          .getOrElse(fieldValue.label.value + " " + value)
+      case None =>
+        fieldValue.shortName.map(ls => ls.value + " " + value).getOrElse(fieldValue.label.value + " " + value)
     }
 
-  def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
+  def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]], value: String = "")(
     implicit l: LangADT,
     messages: Messages): Set[String] = {
     val varsList: List[String] = vars match {
       case None    => List.empty
       case Some(a) => a
     }
-    val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None) :: varsList
+    val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None, value) :: varsList
     Set(
       fieldValue.errorMessage
         .map(ls => ls.value)

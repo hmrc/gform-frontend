@@ -299,7 +299,7 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val label = fieldDescriptor(formComponent, formComponentId, otherFormComponent)
+    val label = fieldDescriptor(formComponent, formComponentId, otherFormComponent, "")
     val dayLabel = label + " " + messages("date.day")
     val monthLabel = label + " " + messages("date.month")
     val yearLabel = label + " " + messages("date.year")
