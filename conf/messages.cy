@@ -193,50 +193,50 @@ summary.change=Newid
 ack.title=Cyflwynwyd eich {0}
 ack.submissionReference=Cyfeirnod eich cyflwyniad yw
 ack.sentEmail=Rydym wedi anfon e-bost cadarnhau atoch
-ack.pdfLink=View a PDF of your {0} that you can save or print
-ack.whatHappensNext=What happens next
-ack.beforeYouGo=Before you go
-ack.feedbackText1=We use feedback to make our services better. Please take the
-ack.feedbackLink=feedback survey
-ack.feedbackText2=now
+ack.pdfLink=Gweld copi PDF o’ch {0} y gallwch ei gadw neu argraffu
+ack.whatHappensNext=Yr hyn sy’n digwydd nesaf
+ack.beforeYouGo=Cyn i chi fynd
+ack.feedbackText1=Rydym yn defnyddio adborth i wella ein gwasanaethau. Cwblhewch yr
+ack.feedbackLink=arolwg adborth
+ack.feedbackText2=nawr
 
 # Access code start page
-accessCode.p1=Each time you start a new​ {0} for this service​ you’ll be given a temporary access key
-accessCode.p2=You can start and save one or more ​{0}s and come back to work on them later. You’ll be asked for a temporary access key when you come back to work on a ​{0} you’ve saved.
-accessCode.p3=Do you want to start a new ​​{0} or continue working on a saved ​​{0} (if you have one)?
-accessCode.startNew=Start a new {0}
-accessCode.useExisting=Continue working on a saved {0}
-accessCode.enterKey=Enter temporary access key
-accessCode.keyHintText=For example, A12-B456-8ZZ
-accessCode.help.title=Help with temporary access key
-accessCode.help.p1=You were given a temporary access key when you started or saved a {0} for this service
-accessCode.help.p2=You can use a temporary access key to continue working on a {0} that you’ve saved. It is valid for 28 days and cannot be used to access a submitted {0}
-accessCode.help.p3=A temporary access key has 12 characters including letters, numbers and hyphens. For example, A12-B456-8ZZ
-accessCode.help.p4=If you’ve lost your temporary access key, you’ll need to start your {0} again
-accessCode.new.title=Make a note of your temporary access key
-accessCode.whatYouCanDoNext=What you can do next
-accessCode.new.keepNote=Keep a note of your temporary access key:
-accessCode.new.youWillBeAsked=You will be asked for this each time you come back to continue working on this {0}
-accessCode.new.validFor=This temporary access key is valid for 28 days
-accessCode.new.willExpire=Once you have submitted this {0} the temporary access key will expire
-accessCode.saved.title=Your {0} has been saved
-accessCode.mustSubmit=For us to consider your {0}, you’ll need to submit it
-accessCode.youCan=You can:
-accessCode.exit=exit this page
-accessCode.workOnAnother=work on another {0}
+accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir allwedd cyrchu dros dro i chi
+accessCode.p2=Gallwch ddechrau a chadw un {0} neu fwy a dod yn ôl i weithio arnynt yn ddiweddarach. Gofynnir i chi am allwedd cyrchu dros dro pan fyddwch yn dod yn ôl i weithio ar {0} a gadwyd gennych.
+accessCode.p3=A ydych am ddechrau {0} newydd neu barhau i weithio ar {0} a gadwyd yn flaenorol (os oes gennych un)?
+accessCode.startNew=Dechrau {0} newydd
+accessCode.useExisting=Parhau i weithio ar {0} a gadwyd yn flaenorol
+accessCode.enterKey=Nodwch allwedd cyrchu dros dro
+accessCode.keyHintText=Er enghraifft, A12-B456-8ZZ
+accessCode.help.title=Help gydag allwedd cyrchu dros dro
+accessCode.help.p1=Rhoddwyd allwedd cyrchu dros dro i chi pan ddechreuoch neu pan gadwoch {0} ar gyfer y gwasanaeth hwn
+accessCode.help.p2=Gallwch ddefnyddio allwedd cyrchu dros dro i barhau i weithio ar {0} a gadwyd gennych. Mae’n ddilys am 28 diwrnod ac ni ellir ei defnyddio i gyrchu {0} a gyflwynwyd
+accessCode.help.p3=Mae allwedd cyrchu dros dro yn cynnwys 12 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, A12-B456-8ZZ
+accessCode.help.p4=Os ydych wedi colli’ch allwedd cyrchu dros dro, bydd angen i chi ddechrau’ch {0} eto
+accessCode.new.title=Gwnewch nodyn o’ch allwedd cyrchu dros dro
+accessCode.whatYouCanDoNext=Yr hyn y gallwch ei wneud nesaf
+accessCode.new.keepNote=Cadwch nodyn o’ch allwedd cyrchu dros dro:
+accessCode.new.youWillBeAsked=Gofynnir i chi amdani bob tro y byddwch yn dod yn ôl i barhau i weithio ar y {0} hwn
+accessCode.new.validFor=Mae’r allwedd cyrchu dros dro hon yn ddilys am 28 diwrnod
+accessCode.new.willExpire=Pan fyddwch wedi cyflwyno’r {0} hon, bydd yr allwedd cyrchu dros dro yn dod i ben
+accessCode.saved.title=Cadwyd eich {0}
+accessCode.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwyno
+accessCode.youCan=Gallwch wneud y canlynol:
+accessCode.exit=gadael y dudalen hon
+accessCode.workOnAnother=gweithio ar {0} arall
 
 # Continue or delete page
-continueDelete.title=A hoffech chi barhau â’ch {0} neu dechreuwch eto?
+continueDelete.title=A hoffech barhau â’ch {0} neu ddechrau eto?
 continueDelete.continue=Parhau â’m {0}
 continueDelete.delete=Dileu fy manylion a dechrau eto
 
 # Agent services prologue
-agentsPrologue.title=Create an agent services account to access this service
-agentsPrologue.p1=Before you can start your {0} for {1} you will need to create an agent services account. You can do this now
-agentsPrologue.p2=You need to be the person responsible for your firm’s administrative matters. The account gives you administrative control over your firm’s access to new HMRC online services
-agentsPrologue.p3=Once you have created your agent services account, you can carry on with your {0}
-agentsPrologue.linkText=Create an agent services account
+agentsPrologue.title=Creu cyfrif gwasanaethau asiant i gyrchu’r gwasanaeth hwn
+agentsPrologue.p1=Cyn i chi allu dechrau eich {0} ar gyfer {1} bydd angen i chi greu cyfrif gwasanaethau asiant. Gallwch wneud hyn nawr
+agentsPrologue.p2=Rhaid mai chi yw’r person sy’n gyfrifol am faterion gweinyddol eich cwmni. Mae’r cyfrif yn rhoi rheolaeth weinyddol i chi dros allu eich cwmni i gyrchu gwasanaethau ar-lein newydd CThEM
+agentsPrologue.p3=Pan fyddwch wedi creu eich cyfrif gwasanaethau asiant, gallwch barhau â’ch {0}
+agentsPrologue.linkText=Creu cyfrif gwasanaethau asiant
 
 # Web chat
-webchat.title=Gwasanaeth gwe-sgwrs
-webchat.chatOnline=Sgwrsiwch ar-lein gyda chynghorydd
+webchat.title=Gwasanaeth sgwrsio dros y we
+webchat.chatOnline=Sgwrsio ar-lein ag ymgynghorydd
