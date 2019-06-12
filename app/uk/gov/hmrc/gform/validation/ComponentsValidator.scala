@@ -103,7 +103,7 @@ class ComponentsValidator(
 
         file match {
           case Some(File(fileId, Error(Some(reason)), _)) =>
-            validationFailure(fieldValue, reason, None)
+            validationFailure(fieldValue, "generic.error.unknownUpload", None)
           case Some(File(fileId, Error(None), _)) =>
             validationFailure(fieldValue, "generic.error.unknownUpload", None)
           case Some(File(fileId, Infected, _)) =>
