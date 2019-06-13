@@ -424,7 +424,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       EnvelopeId(""),
       uk.gov.hmrc.gform.gform.routes.EnrolmentController.submitEnrolment(formTemplate._id),
       false,
-      "Confirm and send",
+      messages("button.confirmAndSend"),
       0,
       Nil
     )

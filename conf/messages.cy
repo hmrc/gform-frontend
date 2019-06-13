@@ -8,10 +8,15 @@ linkText.back=Yn ôl
 linkText.removeRepeatedGroup=Dileu {0}
 linkText.addRepeatingGroup=Ychwanegwch un arall
 linkText.signOut=Allgofnodi
+linkText.signBackIn=Arwyddwch yn ôl
 
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
 button.acceptAndSubmit=Derbyn a chyflwyno
+button.confirmAndSend=Cadarnhewch ac anfonwch
+
+# Signed Out
+signedOut.title=Rydych wedi cael eich llofnodi
 
 # Error summary
 error.summary.heading=Mae problem wedi codi
@@ -66,6 +71,10 @@ generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylcha
 generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau a bachau crwn, sgwâr, onglog neu gyrliog, collnodau, cysylltnodau, llinellau toriad, atalnodau llawn, arwyddion punt, arwyddion plws, hanner colonau, colonau, serenigion, marciau cwestiwn, hafalnodau, blaenslaesau, ampersandau, ebychnodau, symbolau @, hashnodau, arwyddion doler, arwyddion ewro, acenion disgynedig, tildiau, dyfynodau dwbl a thanlinellau
 
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
+
+enrolment.error.failed=Mae’r cofrestriad yn aflwyddiannus, gwiriwch eich manylion a cheisiwch eto
+enrolment.error.regimeId=Mae’r rhif cofrestru yr ydych wedi’i nodi ar gyfer gwasanaeth treth gwahanol
+enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
 
 # Access code form field errors
 accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd
@@ -179,7 +188,7 @@ file.delete.file=Dileu {0}
 # Sort code
 sortcode.part=Cod didoli rhan {0}
 
-# Assisrive text
+# Assistive text
 assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 
 # Summary
@@ -241,3 +250,9 @@ agentsPrologue.linkText=Creu cyfrif gwasanaethau asiant
 # Web chat
 webchat.title=Gwasanaeth sgwrsio dros y we
 webchat.chatOnline=Sgwrsio ar-lein ag ymgynghorydd
+
+submission.date=Submission date
+submission.reference=Submission reference
+submission.mark=Submission mark
+submission.details=Submission details
+submission.declaration.details=Declaration details

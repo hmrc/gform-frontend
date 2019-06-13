@@ -17,6 +17,7 @@ button.continue=Continue
 button.saveAndContinue=Save and continue
 button.acceptAndSubmit=Accept and submit
 button.acceptAndSubmitForm=Accept and submit {0}
+button.confirmAndSend=Confirm and send
 
 # Signed Out
 signedOut.title=You have been signed out
@@ -76,6 +77,10 @@ generic.shortText.error.pattern={0} can only include letters, numbers, spaces, h
 generic.longText.error.pattern={0] can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
 
 generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
+
+enrolment.error.failed=Enrolment unsuccessful, please check your details and try again
+enrolment.error.regimeId=The registration number you have entered is for a different tax service
+enrolment.error.missingIdentifier=A registration number must be entered
 
 # Access code form field errors
 accessOption.error.required=Select whether you would like to access an existing {0} or start a new one

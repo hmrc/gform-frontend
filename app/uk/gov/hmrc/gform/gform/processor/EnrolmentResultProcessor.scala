@@ -76,22 +76,23 @@ class EnrolmentResultProcessor(
     )
   }
 
-  def recoverEnrolmentError(implicit request: Request[AnyContent]): SubmitEnrolmentError => Result = enrolmentError => {
+  def recoverEnrolmentError(implicit request: Request[AnyContent], messages: Messages): SubmitEnrolmentError => Result =
+    enrolmentError => {
 
-    def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[Html]) = see match {
-      case RegimeIdNotMatch(identifierRecipe) =>
-        val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set("RegimeId does not match"))
-        (Invalid(regimeIdError), List.empty)
-      case NoIdentifierProvided =>
-        val globalError = html.form.errors.error_global("At least on identifier must be provided")
-        (ValidationResult.empty.valid, globalError :: Nil)
-      case EnrolmentFormNotValid(invalid) => (Invalid(invalid), List.empty)
+      def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[Html]) = see match {
+        case RegimeIdNotMatch(identifierRecipe) =>
+          val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set(messages("enrolment.error.regimeId")))
+          (Invalid(regimeIdError), List.empty)
+        case NoIdentifierProvided =>
+          val globalError = html.form.errors.error_global(messages("enrolment.error.missingIdentifier"))
+          (ValidationResult.empty.valid, globalError :: Nil)
+        case EnrolmentFormNotValid(invalid) => (Invalid(invalid), List.empty)
+      }
+
+      val (validationResult, globalErrors) = convertEnrolmentError(enrolmentError)
+      getResult(validationResult, globalErrors)
+
     }
-
-    val (validationResult, globalErrors) = convertEnrolmentError(enrolmentError)
-    getResult(validationResult, globalErrors)
-
-  }
 
   def processEnrolmentResult(
     authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent], messages: Messages, l: LangADT): Result =
@@ -101,7 +102,7 @@ class EnrolmentResultProcessor(
       case EnrolmentSuccessful =>
         Redirect(uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id).url)
       case EnrolmentFailed =>
-        val globalError = html.form.errors.error_global("Enrolment unsuccessful, please check your data and try again.")
+        val globalError = html.form.errors.error_global(messages("enrolment.error.failed"))
         val globalErrors = globalError :: Nil
         val validationResult = ValidationResult.empty.valid
         getResult(validationResult, globalErrors)
