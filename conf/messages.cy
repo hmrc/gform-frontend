@@ -11,6 +11,7 @@ linkText.signOut=Allgofnodi
 
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
+button.acceptAndSubmit=Derbyn a chyflwyno
 
 # Error summary
 error.summary.heading=Mae problem wedi codi
