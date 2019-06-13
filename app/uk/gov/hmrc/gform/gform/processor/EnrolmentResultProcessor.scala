@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.{ EnrolmentFormNotValid, NoIdentifierProvided, SubmitEnrolmentError }
 import uk.gov.hmrc.gform.gform.RegimeIdNotMatch
 import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormComponent, FormTemplate }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationUtil }
@@ -93,7 +94,7 @@ class EnrolmentResultProcessor(
   }
 
   def processEnrolmentResult(
-    authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent], messages: Messages): Result =
+    authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent], messages: Messages, l: LangADT): Result =
     authRes match {
       case EnrolmentConflict =>
         Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))

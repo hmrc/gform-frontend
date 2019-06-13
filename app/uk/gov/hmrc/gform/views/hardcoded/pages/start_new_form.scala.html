@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
         formTemplate: FormTemplate,
@@ -29,14 +30,15 @@
 )(
   implicit
   request: Request[_],
-  messages: Messages
+  messages: Messages,
+  l:LangADT
 )
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("accessCode.new.title")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName,
+  serviceName = formTemplate.formName.value,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),

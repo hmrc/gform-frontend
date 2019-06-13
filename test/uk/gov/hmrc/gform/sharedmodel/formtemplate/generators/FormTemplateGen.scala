@@ -17,8 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import cats.data.NonEmptyList
 import org.scalacheck.Gen
-import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.Helpers.toLocalisedString
 
 trait FormTemplateGen {
   def formTemplateIdGen: Gen[FormTemplateId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormTemplateId(_))
@@ -74,8 +75,8 @@ trait FormTemplateGen {
     } yield
       FormTemplate(
         id,
-        name,
-        description,
+        toLocalisedString(name),
+        toLocalisedString(description),
         developmentPhase,
         category,
         draftRetrievalMethod,

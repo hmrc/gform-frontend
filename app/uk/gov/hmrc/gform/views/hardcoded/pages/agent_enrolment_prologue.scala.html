@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages.formCategory
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   formTemplate: FormTemplate,
@@ -25,7 +26,8 @@
 )(
   implicit
   request: Request[_],
-  messages: Messages
+  messages: Messages,
+  l:LangADT
 )
 
 @heading = @{messages("agentsPrologue.title")}
@@ -33,7 +35,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName,
+  serviceName = formTemplate.formName.value,
   bodyClasses = None,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),

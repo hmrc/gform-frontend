@@ -21,6 +21,7 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   formTemplate: FormTemplate,
@@ -34,7 +35,8 @@
 )(
   implicit
   request: Request[_], //required by CSRF.formField
-  messages: Messages
+  messages: Messages,
+  l:LangADT
 )
 
 @heading = @{page.sectionTitle}
@@ -57,7 +59,7 @@
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName,
+  serviceName = formTemplate.formName.value,
   containsErrors = pageLevelError.hasErrors,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,

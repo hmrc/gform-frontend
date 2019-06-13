@@ -20,19 +20,20 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
         accessCode: AccessCode,
         formTemplate: FormTemplate,
         frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages)
+)(implicit request: Request[_], messages: Messages, l:LangADT)
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("accessCode.saved.title", formCat)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName,
+  serviceName = formTemplate.formName.value,
   bodyClasses = None,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,

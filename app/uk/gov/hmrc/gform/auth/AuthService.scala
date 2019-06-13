@@ -21,6 +21,7 @@ import java.util.Base64
 import cats.implicits._
 import play.api.Logger
 import play.api.libs.json.{ JsDefined, JsString, Json }
+
 import scala.util.{ Failure, Success, Try }
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
@@ -28,6 +29,7 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.gform.submission.SubmissionRef
@@ -49,7 +51,8 @@ class AuthService(
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult]
   )(
-    implicit hc: HeaderCarrier
+    implicit hc: HeaderCarrier,
+    l: LangADT
   ): Future[AuthResult] =
     formTemplate.authConfig match {
       case Anonymous =>
@@ -172,7 +175,7 @@ class AuthService(
     agentAccess: AgentAccess,
     formTemplate: FormTemplate,
     ggAuthorised: Predicate => Future[AuthResult],
-    continuation: AuthResult => Future[AuthResult])(implicit hc: HeaderCarrier): Future[AuthResult] =
+    continuation: AuthResult => Future[AuthResult])(implicit hc: HeaderCarrier, l: LangADT): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
         case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, enrolments, affinityGroup, _, _, _, _, _))
@@ -202,10 +205,8 @@ class AuthService(
         case otherAuthResults => otherAuthResults.pure[Future]
       }
 
-  private def ggAgentAuthorise(
-    agentAccess: AgentAccess,
-    formTemplate: FormTemplate,
-    enrolments: Enrolments): HMRCAgentAuthorisation =
+  private def ggAgentAuthorise(agentAccess: AgentAccess, formTemplate: FormTemplate, enrolments: Enrolments)(
+    implicit l: LangADT): HMRCAgentAuthorisation =
     agentAccess match {
       case RequireMTDAgentEnrolment if enrolments.getEnrolment("HMRC-AS-AGENT").isDefined =>
         HMRCAgentAuthorisationSuccessful
@@ -213,7 +214,7 @@ class AuthService(
       case AllowAnyAgentAffinityUser => HMRCAgentAuthorisationSuccessful
       case _ =>
         HMRCAgentAuthorisationFailed(
-          routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName).url)
+          routes.AgentEnrolmentController.prologue(formTemplate._id, formTemplate.formName.value).url)
     }
 
   def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String =
