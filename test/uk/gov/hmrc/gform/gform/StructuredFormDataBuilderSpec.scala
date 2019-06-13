@@ -28,6 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.structuredform._
 
 class StructuredFormDataBuilderSpec extends Spec {
   implicit val l = LangADT.En
+
   "apply(Form, FormTemplate)" must "create the correct JSON for simple fields in non-repeating sections/groups" in {
     validate(
       createFormTemplate(
@@ -218,28 +219,36 @@ class StructuredFormDataBuilderSpec extends Spec {
     )
   }
 
-  it must "create the correct JSON for RevealingChoice components" in {
+  it must "create the correct JSON for RevealingChoice components in non-repeating sections" in {
     validate(
       createFormTemplate(
         createNonRepeatingSection(
-          createRevealingChoice("field", createNonGroupField("revealedField1"), createNonGroupField("revealedField2"))
+          createRevealingChoice("revealYourSecrets", createNonGroupField("revealedField1"), createDate("revealedDate"))
         )
       ),
       createForm(
-        "field"          -> "0",
-        "revealedField1" -> "revealedField1Value",
-        "revealedField2" -> "revealedField2Value"
+        "revealYourSecrets"  -> "0",
+        "revealedField1"     -> "revealedField1Value",
+        "revealedDate"       -> "",
+        "revealedDate-day"   -> "1",
+        "revealedDate-month" -> "2",
+        "revealedDate-year"  -> "3"
       ),
       objectStructure(
         Field(
-          FieldName("field"),
+          FieldName("revealYourSecrets"),
           objectStructure(
             Field(FieldName("choice"), textNode("Foo")),
             Field(
               FieldName("revealed"),
               objectStructure(
                 Field(FieldName("revealedField1"), textNode("revealedField1Value")),
-                Field(FieldName("revealedField2"), textNode("revealedField2Value"))
+                field(
+                  "revealedDate",
+                  objectStructure(
+                    field("day", textNode("1")),
+                    field("month", textNode("2")),
+                    field("year", textNode("3"))))
               )
             )
           )

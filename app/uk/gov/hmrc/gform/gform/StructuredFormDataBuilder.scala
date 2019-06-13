@@ -39,93 +39,69 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate)(implicit l: 
 
   private val multiChoiceFieldIds: Set[FormComponentId] = extractMultiChoiceFieldIds(template)
 
-  def build()(implicit l: LangADT): List[Field] =
+  def build(): List[Field] =
     buildSections ++ buildBaseSection(template.acknowledgementSection) ++ buildBaseSection(template.declarationSection)
 
-  private def buildSections()(implicit l: LangADT): List[Field] =
+  private def buildSections(): List[Field] =
     for {
       section     <- template.sections
       field       <- section.fields
       fieldAsJson <- buildField(field, section.isRepeating)
     } yield fieldAsJson
 
-  def buildBaseSection(section: BaseSection)(implicit l: LangADT): List[Field] =
+  def buildBaseSection(section: BaseSection): List[Field] =
     for {
       unstructuredField <- section.fields
       structuredField   <- buildField(unstructuredField, repeatable = false)
     } yield structuredField
 
-  private def buildField(field: FormComponent, repeatable: Boolean)(implicit l: LangADT): Seq[Field] =
+  private def buildField(field: FormComponent, repeatable: Boolean): Seq[Field] =
     field.`type` match {
-      case g: Group           => buildGroupFields(g)
-      case r: RevealingChoice => buildRevealingChoiceFields(field.id, r)
-      case _                  => buildNonGroupField(field, repeatable).toSeq
+      case g: Group => buildGroupFields(g)
+      case _        => buildNonGroupField(field, repeatable).toSeq
     }
-
-  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice)(
-    implicit l: LangADT): List[Field] =
-    formValuesByUnindexedId.get(id).map(_.head).toList.map { selectionStr =>
-      val selection = selectionStr.toInt
-      val maybeRevealingChoiceElement = revealingChoice.options.get(selection)
-      Field(
-        FieldName(id.value),
-        ObjectStructure(
-          maybeRevealingChoiceElement.fold(List.empty[Field]) { rcElement =>
-            List(
-              Field(FieldName("choice"), TextNode(rcElement.choice.value)),
-              Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(rcElement)))
-            )
-          }
-        )
-      )
-    }
-
-  private def revealedChoiceFields(rcElement: RevealingChoiceElement): List[Field] =
-    rcElement.revealingFields
-      .flatMap { component =>
-        buildNonGroupField(component, false)
-      }
 
   private def buildGroupFields(group: Group): Seq[Field] =
     group.fields.flatMap { buildNonGroupField(_, repeatable = true) }
 
   private def buildNonGroupField(nonGroupField: FormComponent, repeatable: Boolean): Option[Field] =
     nonGroupField.`type` match {
-      case mf: MultiField => buildComposite(nonGroupField, mf, repeatable)
+      case mf: MultiField     => buildMultiField(nonGroupField, mf, repeatable)
+      case r: RevealingChoice => buildRevealingChoiceFields(nonGroupField.id, r)
       case _ =>
         formValuesByUnindexedId.get(nonGroupField.id).map {
           buildSimpleField(nonGroupField, _, repeatable, multiChoiceFieldIds.contains(nonGroupField.id))
         }
     }
 
-  private def buildComposite(baseField: FormComponent, mf: MultiField, repeatable: Boolean): Option[Field] =
+  private def buildMultiField(baseField: FormComponent, mf: MultiField, repeatable: Boolean): Option[Field] =
     mf.fields(baseField.id)
       .traverse { f =>
         formValuesByUnindexedId.get(f).map(v => (f, v))
       }
       .map(sequence)
       .map { v =>
-        if (repeatable) buildRepeatableComposite(baseField.id, v, mf)
-        else buildNonRepeatableComposite(baseField.id, v.head, mf)
+        if (repeatable) buildRepeatableMultiField(baseField.id, v, mf)
+        else buildNonRepeatableMultiField(baseField.id, v.head, mf)
       }
 
-  private def buildRepeatableComposite(
+  private def buildRepeatableMultiField(
     baseFieldId: FormComponentId,
     values: NonEmptyList[NonEmptyList[(FormComponentId, String)]],
     mf: MultiField): Field =
     Field(
       FieldName(baseFieldId.value),
-      ArrayNode(values.toList.map { buildObjectStructureForComposite(baseFieldId, _, mf) }),
+      ArrayNode(values.toList.map { buildObjectStructureForMultiField(baseFieldId, _, mf) }),
       Map.empty
     )
 
-  private def buildNonRepeatableComposite(
+  private def buildNonRepeatableMultiField(
     baseFieldId: FormComponentId,
     fields: NonEmptyList[(FormComponentId, String)],
     mf: MultiField): Field =
-    Field(FieldName(baseFieldId.value), buildObjectStructureForComposite(baseFieldId, fields, mf), Map.empty)
+    Field(FieldName(baseFieldId.value), buildObjectStructureForMultiField(baseFieldId, fields, mf), Map.empty)
 
-  private def buildObjectStructureForComposite(
+  private def buildObjectStructureForMultiField(
     baseFieldId: FormComponentId,
     fields: NonEmptyList[(FormComponentId, String)],
     mf: MultiField) =
@@ -148,6 +124,29 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate)(implicit l: 
 
   private def buildRepeatingSimpleField(field: FormComponent, value: NonEmptyList[String], multiValue: Boolean): Field =
     Field(FieldName(field.id.value), ArrayNode(value.toList.map(buildNode(_, multiValue))), Map.empty)
+
+  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice): Option[Field] =
+    formValuesByUnindexedId.get(id).map(_.head).map { selectionStr =>
+      val selection = selectionStr.toInt
+      val maybeRevealingChoiceElement = revealingChoice.options.get(selection)
+      Field(
+        FieldName(id.value),
+        ObjectStructure(
+          maybeRevealingChoiceElement.fold(List.empty[Field]) { rcElement =>
+            List(
+              Field(FieldName("choice"), TextNode(rcElement.choice.value)),
+              Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(rcElement)))
+            )
+          }
+        )
+      )
+    }
+
+  private def revealedChoiceFields(rcElement: RevealingChoiceElement): List[Field] =
+    rcElement.revealingFields
+      .flatMap { component =>
+        buildNonGroupField(component, false)
+      }
 
   private def buildNode(value: String, multiValue: Boolean): StructuredFormValue =
     if (multiValue) choicesToArray(value)
