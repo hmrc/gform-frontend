@@ -103,11 +103,11 @@ ukAddress.line3.label=town or city
 ukAddress.line4.label=county
 ukAddress.postcode.label=postcode
 
-ukAddress.line1.error.maxLength=building and street must be no more than {0} characters
-ukAddress.line2.error.maxLength=building and street line 2 must be no more than {0} characters
-ukAddress.line3.error.maxLength=town or city must be no more than {0} characters
-ukAddress.line4.error.maxLength=county must be no more than {0} characters
-ukAddress.postcode.error.maxLength=postcode must be no more than {0} characters
+ukAddress.line1.error.maxLength={0} building and street must be no more than {1} characters
+ukAddress.line2.error.maxLength={0} building and street line 2 must be no more than {1} characters
+ukAddress.line3.error.maxLength={0} town or city must be no more than {1} characters
+ukAddress.line4.error.maxLength={0} county must be no more than {1} characters
+ukAddress.postcode.error.maxLength={0} postcode must be no more than {1} characters
 
 # International Address
 internationalAddress.line1=Address 1

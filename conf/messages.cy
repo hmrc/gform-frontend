@@ -92,11 +92,11 @@ ukAddress.line3.label=tref neu ddinas
 ukAddress.line4.label=sir
 ukAddress.postcode.label=cod post
 
-ukAddress.line1.error.maxLength=rhaid i’r adeilad a’r stryd beidio â bod yn fwy na {0} o gymeriadau
-ukAddress.line2.error.maxLength=rhaid i adeilad a stryd – llinell 2 beidio â bod yn fwy na {0} o gymeriadau
-ukAddress.line3.error.maxLength=rhaid i’r dref neu’r ddinas beidio â bod yn fwy na {0} o gymeriadau
-ukAddress.line4.error.maxLength=rhaid i’r sir beidio â bod yn fwy na {0} o gymeriadau
-ukAddress.postcode.error.maxLength=rhaid i’r cod post beidio â bod yn fwy na {0} o gymeriadau
+ukAddress.line1.error.maxLength=Rhaid i’r {0} adeilad a’r stryd beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line2.error.maxLength=Rhaid i {0} adeilad a stryd – llinell 2 beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line3.error.maxLength=Rhaid i’r {0} dref neu’r ddinas beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line4.error.maxLength=Rhaid i’r {0} sir beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.postcode.error.maxLength=Rhaid i’r {0} cod post beidio â bod yn fwy na {1} o gymeriadau
 
 # International Address
 internationalAddress.line1=Cyfeiriad 1
