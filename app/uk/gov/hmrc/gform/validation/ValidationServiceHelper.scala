@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
+import play.api.i18n.Messages
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -34,6 +35,8 @@ object ValidationServiceHelper {
 
   val validationSuccess = ().valid
 
-  def validationFailure(fieldValue: FormComponent, errorMsg: String)(implicit l: LangADT) =
-    getError(fieldValue, errorMsg)
+  def validationFailure(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
+    implicit l: LangADT,
+    messages: Messages) =
+    getError(fieldValue, messageKey, vars)
 }

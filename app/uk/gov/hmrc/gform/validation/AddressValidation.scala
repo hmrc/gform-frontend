@@ -74,7 +74,7 @@ class AddressValidation(implicit messages: Messages, l: LangADT) {
   }
 
   private def validateRequiredField(value: String, errorPrefix: String, fieldValue: FormComponent) =
-    cvh.validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix)) _
+    cvh.validateRequired(fieldValue, fieldValue.id.withSuffix(value), Some(errorPrefix), value) _
 
   private def validateForbiddenField(value: String, fieldValue: FormComponent) =
     cvh.validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
@@ -90,36 +90,39 @@ class AddressValidation(implicit messages: Messages, l: LangADT) {
 
   private def addressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
     xs: Seq[String]): ValidatedType[Unit] = {
-    def combineErrors(str: String) = Map(fieldId -> errors(fieldValue, str)).invalid
+    def combineErrors(str: String, vars: List[String]) = Map(fieldId -> errors(fieldValue, str, Some(vars))).invalid
     val Fourth = "[4]$".r.unanchored
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => validationSuccess
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
-        combineErrors(messages("address.line4.error.maxLength", ValidationValues.addressLine4))
+        val vars: List[String] = ValidationValues.addressLine4.toString :: Nil
+        combineErrors("address.line4.error.maxLength", vars)
       case (value :: Nil, _) if value.length > ValidationValues.addressLine =>
-        combineErrors(
-          messages("address.line.error.maxLength", fieldId.value.takeRight(1), ValidationValues.addressLine))
+        val vars: List[String] = fieldId.value.takeRight(1) :: ValidationValues.addressLine.toString :: Nil
+        combineErrors("address.line.error.maxLength", vars)
       case _ => validationSuccess
     }
   }
 
   private def ukAddressLineValidation(fieldValue: FormComponent, fieldId: FormComponentId)(
     xs: Seq[String]): ValidatedType[Unit] = {
-    def combineErrors(str: String) = Map(fieldId -> errors(fieldValue, str)).invalid
+    def combineErrors(str: String, vars: List[String]) = Map(fieldId -> errors(fieldValue, str, Some(vars))).invalid
     val First = "[1]$".r.unanchored
     val Second = "[2]$".r.unanchored
     val Third = "[3]$".r.unanchored
     val Fourth = "[4]$".r.unanchored
+    val addressLineVars: List[String] = ValidationValues.addressLine.toString :: Nil
     (xs.filterNot(_.isEmpty()), fieldId.value) match {
       case (Nil, _) => validationSuccess
       case (value :: Nil, First()) if value.length > ValidationValues.addressLine =>
-        combineErrors(messages("ukAddress.line1.error.maxLength", ValidationValues.addressLine))
+        combineErrors("ukAddress.line1.error.maxLength", addressLineVars)
       case (value :: Nil, Second()) if value.length > ValidationValues.addressLine =>
-        combineErrors(messages("ukAddress.line2.error.maxLength", ValidationValues.addressLine))
+        combineErrors("ukAddress.line2.error.maxLength", addressLineVars)
       case (value :: Nil, Third()) if value.length > ValidationValues.addressLine =>
-        combineErrors(messages("ukAddress.line3.error.maxLength", ValidationValues.addressLine))
+        combineErrors("ukAddress.line3.error.maxLength", addressLineVars)
       case (value :: Nil, Fourth()) if value.length > ValidationValues.addressLine4 =>
-        combineErrors(messages("ukAddress.line4.error.maxLength", ValidationValues.addressLine4))
+        val vars: List[String] = ValidationValues.addressLine4.toString :: Nil
+        combineErrors("ukAddress.line4.error.maxLength", vars)
       case _ => validationSuccess
     }
   }
@@ -128,9 +131,10 @@ class AddressValidation(implicit messages: Messages, l: LangADT) {
     xs: Seq[String]): ValidatedType[Unit] =
     xs.filterNot(_.isEmpty) match {
       case value :: Nil if value.length > ValidationValues.postcodeLimit =>
+        val vars: List[String] = ValidationValues.postcodeLimit.toString :: Nil
         Map(
           fieldId ->
-            errors(fieldValue, messages("ukAddress.postcode.error.maxLength", ValidationValues.postcodeLimit))).invalid
+            errors(fieldValue, "ukAddress.postcode.error.maxLength", Some(vars))).invalid
       case _ => validationSuccess
     }
 }

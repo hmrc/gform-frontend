@@ -36,7 +36,7 @@ object SortCodeValidation {
           val sortCode: Seq[String] = data.data.get(fieldId).toList.flatten
           (sortCode.filterNot(_.isEmpty), mandatory) match {
             case (Nil, true) =>
-              validationFailure(fieldValue, messages("generic.error.sortcode"))
+              validationFailure(fieldValue, "generic.error.sortcode", None)
             case (Nil, false)      => validationSuccess
             case (value :: Nil, _) => checkLength(fieldValue, value, 2)
           }
@@ -51,10 +51,10 @@ object SortCodeValidation {
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r
     value match {
       case FractionalShape(_, _, _) =>
-        validationFailure(fieldValue, messages("generic.error.wholeNumber"))
+        validationFailure(fieldValue, "generic.error.wholeNumber", None)
       case WholeShape() => validationSuccess
       case _ =>
-        validationFailure(fieldValue, messages("generic.error.sortcode"))
+        validationFailure(fieldValue, "generic.error.sortcode", None)
     }
   }
 }

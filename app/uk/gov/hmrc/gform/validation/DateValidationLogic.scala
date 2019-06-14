@@ -39,24 +39,12 @@ object DateValidationLogic {
 
   def getMonthName(month: Int): String = new DateFormatSymbols().getMonths.toList(month - 1)
 
-  def ordinalAbbrev(n: Int)(implicit messages: Messages): String = {
-    val ans = messages("date.ordinal.th")
-    if (n % 100 / 10 == 1) ans
-    else
-      (n % 10) match {
-        case 1 => messages("date.ordinal.st")
-        case 2 => messages("date.ordinal.nd")
-        case 3 => messages("date.ordinal.rd")
-        case _ => ans
-      }
-  }
-
   def exactParameterListToString(parameters: List[ExactParameter])(implicit messages: Messages): String =
     parameters
       .map {
         case ExactYear(year)   => year.toString
         case ExactMonth(month) => getMonthName(month)
-        case ExactDay(day)     => day + ordinalAbbrev(day)
+        case ExactDay(day)     => day + messages(s"date.ordinal.$day")
       }
       .mkString(" ")
 
@@ -90,7 +78,7 @@ object DateValidationLogic {
   def incorrectDateMessage(
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
-    offsetDate: OffsetDate)(implicit messages: Messages): String = {
+    offsetDate: OffsetDate)(implicit messages: Messages): MessageKeyWithVars = {
 
     val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
@@ -113,22 +101,30 @@ object DateValidationLogic {
     }
 
     val dayString = concreteDate.day match {
-      case ExactDay(day) => messages("date.exactDay", s"$day${ordinalAbbrev(day)}")
+      case ExactDay(day) => messages("date.exactDay", s"$day${messages(s"date.ordinal.$day")}")
       case FirstDay      => messages("date.firstDay")
       case LastDay       => messages("date.lastDay")
       case _             => ""
     }
 
+    val vars: List[String] = concreteDate match {
+      case date if date.isExact => dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate) :: Nil
+      case _                    => s"$dayString $monthString $yearString" :: Nil
+    }
+
     val result = concreteDate match {
       case date if date.isExact =>
-        messages(
-          s"date.${beforeAfterPrecisely.mkString}",
-          dateWithOffset(exactConcreteDateToLocalDate(concreteDate), offsetDate))
-      case _ => messages("date.exactDate", s"$dayString $monthString $yearString")
+        s"date.${beforeAfterPrecisely.mkString}"
+      case _ => "date.exactDate"
 
     }
-    result.trim
+    MessageKeyWithVars(result.trim, Some(vars))
   }
+
+  case class MessageKeyWithVars(
+    messageKey: String,
+    vars: Option[List[String]]
+  )
 
   def isNumeric(str: String, timeUnitLabel: String, label: String)(implicit messages: Messages): ValidatedNumeric =
     if (str.isEmpty) Invalid(messages("field.error.required", label))

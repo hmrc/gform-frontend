@@ -17,6 +17,7 @@ button.continue=Continue
 button.saveAndContinue=Save and continue
 button.acceptAndSubmit=Accept and submit
 button.acceptAndSubmitForm=Accept and submit {0}
+button.confirmAndSend=Confirm and send
 
 # Signed Out
 signedOut.title=You have been signed out
@@ -42,40 +43,44 @@ field.error.required={0} must be entered
 field.error.number={0} must be a number
 field.error.exactDigits={0} must be a {1} digit number
 field.error.notGreaterThan={0} must not be greater than {1}
-choice.error.required=must be selected
+choice.error.required={0} must be selected
 
 # Generic error suffixes
-generic.error.required=must be entered
-generic.error.upload=must be uploaded
-generic.error.virus=has a virus detected
-generic.error.unknownUpload=has an unknown error from file upload
-generic.error.forbidden=must not be entered
-generic.error.minLength=must be at least {0} characters
-generic.error.maxLength=must be no more than {0} characters
-generic.error.number=must be a number
-generic.error.positiveNumber=must be a positive number
-generic.error.positiveWholeNumber=must be a positive whole number
-generic.error.maxLength.noDecimals=must be at most {0} whole digits and no decimal fraction
-generic.error.maxLength.maxDecimals=must be at most {0} whole digits and decimal fraction must be at most {1} digits
-generic.error.maxWhole=must be at most {0} whole digits
-generic.error.wholeNumber=must be a whole number
-generic.error.maxDecimals=must be no more than {0} decimal places
-generic.error.invalid=is not valid
-generic.vrn.error.pattern=must be 9 numbers with GB at the start, for example GB123456789
-generic.eori.error.pattern=must be between 7 and 15 numbers and start with your country code, for example GB164538549000
-generic.crn.error.invalid=must be either 8 numbers or 6 numbers with 2 letters at the start, for example 01234567 or SC123456
-generic.nonUKCountryCode.error.pattern=must be entered in the correct format, for example FR
-generic.countryCode.error.pattern=must be entered in the correct format, for example FR
-generic.governmentId.error.pattern=must be entered in the correct format
-generic.error.sortcode=must be entered as 3 sets of 2 numbers, for example 07 00 00
-generic.error.exactNumbers=must be {0} numbers
-generic.error.lookup=must match one of the suggestions from the list
-generic.error.register=must be from a valid list, {0} is not a valid list
+generic.error.required={0} must be entered
+generic.error.upload={0} must be uploaded
+generic.error.virus={0} has a virus detected
+generic.error.unknownUpload={0} has an unknown error from file upload
+generic.error.forbidden={0} must not be entered
+generic.error.minLength={0} must be at least {1} characters
+generic.error.maxLength={0} must be no more than {1} characters
+generic.error.number={0} must be a number
+generic.error.positiveNumber={0} must be a positive number
+generic.error.positiveWholeNumber={0} must be a positive whole number
+generic.error.maxLength.noDecimals={0} must be at most {1} whole digits and no decimal fraction
+generic.error.maxLength.maxDecimals={0} must be at most {1} whole digits and decimal fraction must be at most {2} digits
+generic.error.maxWhole={0} must be at most {1} whole digits
+generic.error.wholeNumber={0} must be a whole number
+generic.error.maxDecimals={0} must be no more than {1} decimal places
+generic.error.invalid={0} is not valid
+generic.vrn.error.pattern={0} must be 9 numbers with GB at the start, for example GB123456789
+generic.eori.error.pattern={0} must be between 7 and 15 numbers and start with your country code, for example GB164538549000
+generic.crn.error.invalid={0} must be either 8 numbers or 6 numbers with 2 letters at the start, for example 01234567 or SC123456
+generic.nonUKCountryCode.error.pattern={0} must be entered in the correct format, for example FR
+generic.countryCode.error.pattern={0} must be entered in the correct format, for example FR
+generic.governmentId.error.pattern={0} must be entered in the correct format
+generic.error.sortcode={0} must be entered as 3 sets of 2 numbers, for example 07 00 00
+generic.error.exactNumbers={0} must be {1} numbers
+generic.error.lookup={0} must match one of the suggestions from the list
+generic.error.register={0} must be from a valid list, {1} is not a valid list
 
-generic.shortText.error.pattern=can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
-generic.longText.error.pattern=can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
+generic.shortText.error.pattern={0} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
+generic.longText.error.pattern={0] can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
 
-generic.error.telephoneNumber=can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
+generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
+
+enrolment.error.failed=Enrolment unsuccessful, please check your details and try again
+enrolment.error.regimeId=The registration number you have entered is for a different tax service
+enrolment.error.missingIdentifier=A registration number must be entered
 
 # Access code form field errors
 accessOption.error.required=Select whether you would like to access an existing {0} or start a new one
@@ -103,11 +108,11 @@ ukAddress.line3.label=town or city
 ukAddress.line4.label=county
 ukAddress.postcode.label=postcode
 
-ukAddress.line1.error.maxLength=building and street must be no more than {0} characters
-ukAddress.line2.error.maxLength=building and street line 2 must be no more than {0} characters
-ukAddress.line3.error.maxLength=town or city must be no more than {0} characters
-ukAddress.line4.error.maxLength=county must be no more than {0} characters
-ukAddress.postcode.error.maxLength=postcode must be no more than {0} characters
+ukAddress.line1.error.maxLength={0} building and street must be no more than {1} characters
+ukAddress.line2.error.maxLength={0} building and street line 2 must be no more than {1} characters
+ukAddress.line3.error.maxLength={0} town or city must be no more than {1} characters
+ukAddress.line4.error.maxLength={0} county must be no more than {1} characters
+ukAddress.postcode.error.maxLength={0} postcode must be no more than {1} characters
 
 # International Address
 internationalAddress.line1=Address 1
@@ -133,10 +138,6 @@ date.year=year
 date.Day=Day
 date.Month=Month
 date.Year=Year
-date.ordinal.th=th
-date.ordinal.st=st
-date.ordinal.rd=rd
-date.ordinal.nd=nd
 date.ofAnyMonth=of any month
 date.ofTheMonth=of the month
 date.firstDay=the first day
@@ -145,11 +146,45 @@ date.exactDay=the {0}
 date.inYear=in {0}
 date.inMonth=in {0}
 date.ofMonth=of {0}
-date.before=must be before {0}
-date.after=must be after {0}
-date.exactDate=must be {0}
-date.isMissing=is missing
-date.invalid=must be a valid date
+date.before={0} must be before {1}
+date.after={0} must be after {1}
+date.exactDate={0} must be {1}
+date.isMissing={0} is missing
+date.invalid={0} must be a valid date
+
+# explicit ordinals
+date.ordinal.1=st
+date.ordinal.2=nd
+date.ordinal.3=rd
+date.ordinal.4=th
+date.ordinal.5=th
+date.ordinal.6=th
+date.ordinal.7=th
+date.ordinal.8=th
+date.ordinal.9=th
+date.ordinal.10=th
+date.ordinal.11=th
+date.ordinal.12=th
+date.ordinal.13=th
+date.ordinal.14=th
+date.ordinal.15=th
+date.ordinal.16=th
+date.ordinal.17=th
+date.ordinal.18=th
+date.ordinal.19=th
+date.ordinal.20=th
+date.ordinal.21=st
+date.ordinal.22=nd
+date.ordinal.23=th
+date.ordinal.24=th
+date.ordinal.25=th
+date.ordinal.26=th
+date.ordinal.27=th
+date.ordinal.28=th
+date.ordinal.29=th
+date.ordinal.30=th
+date.ordinal.31=st
+
 
 # hmrcTaxPeriod
 taxPeriod.noResults=There are no options to display for this user

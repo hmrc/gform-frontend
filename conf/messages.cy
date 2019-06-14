@@ -1,213 +1,258 @@
 ## Global
-global.error.InternalServerError500.title=We’re experiencing technical difficulties
-global.error.InternalServerError500.heading=We’re experiencing technical difficulties
-global.error.InternalServerError500.message=Try signing in again in a few minutes.
+global.error.InternalServerError500.title=Mae problemau technegol wedi codi
+global.error.InternalServerError500.heading=Mae problemau technegol wedi codi
+global.error.InternalServerError500.message=Rhowch gynnig arall ar fewngofnodi mewn ychydig o funudau.
 
-linkText.saveAndComeBackLater=Save and come back later
-linkText.back=Back
-linkText.removeRepeatedGroup=Remove {0}
-linkText.addRepeatingGroup=Add another
+linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
+linkText.back=Yn ôl
+linkText.removeRepeatedGroup=Dileu {0}
+linkText.addRepeatingGroup=Ychwanegwch un arall
 linkText.signOut=Allgofnodi
+linkText.signBackIn=Arwyddwch yn ôl
 
-button.continue=Parhau
-button.saveAndContinue=Arbed a pharhau
+button.continue=Yn eich blaen
+button.saveAndContinue=Cadw ac yn eich blaen
+button.acceptAndSubmit=Derbyn a chyflwyno
+button.confirmAndSend=Cadarnhewch ac anfonwch
+
+# Signed Out
+signedOut.title=Rydych wedi cael eich llofnodi
 
 # Error summary
-error.summary.heading=Mae problem
+error.summary.heading=Mae problem wedi codi
 
 # Generic words
-generic.From=From
-generic.to=to
-generic.Yes=Yes
-generic.No=No
-generic.Warning=Warning
+generic.From=O
+generic.to=hyd at
+generic.Yes=Iawn
+generic.No=Na
+generic.Warning=Rhybudd
 
 # Form categories
-formCategory.form=form
-formCategory.return=return
+formCategory.form=ffurflen
+formCategory.return=Ffurflen Dreth
 formCategory.claim=hawliad
 
 
 # Field labelled errors
-field.error.required={0} rhaid ei gofnodi
-field.error.number={0} must be a number
-field.error.exactDigits={0} must be a {1} digit number
-field.error.notGreaterThan={0} must not be greater than {1}
-choice.error.required=must be selected
+field.error.required=Rhaid nodi {0}
+field.error.number=Rhaid i {0} fod yn rhif
+field.error.exactDigits=Rhaid i {0} fod yn rhif {1} digid
+field.error.notGreaterThan=Rhaid i {0} beidio â bod yn fwy na {1}
+choice.error.required=Rhaid dewis {0}
 
 # Generic error suffixes
-generic.error.required=rhaid ei gofnodi
-generic.error.upload=must be uploaded
-generic.error.virus=has a virus detected
-generic.error.unknownUpload=has an unknown error from file upload
-generic.error.forbidden=must not be entered
-generic.error.minLength=must be at least {0} characters
-generic.error.maxLength=must be no more than {0} characters
-generic.error.number=must be a number
-generic.error.positiveNumber=must be a positive number
-generic.error.positiveWholeNumber=must be a positive whole number
-generic.error.maxLength.noDecimals=must be at most {0} whole digits and no decimal fraction
-generic.error.maxLength.maxDecimals=must be at most {0} whole digits and decimal fraction must be at most {1} digits
-generic.error.maxWhole=must be at most {0} whole digits
-generic.error.wholeNumber=must be a whole number
-generic.error.maxDecimals=must be no more than {0} decimal places
-generic.error.invalid=is not valid
-generic.vrn.error.pattern=is not a valid VRN
-generic.eori.error.pattern=is not a valid EORI number
-generic.crn.error.invalid=is not a valid Company Registration Number
-generic.nonUKCountryCode.error.pattern=is not a valid non UK country code
-generic.countryCode.error.pattern=is not a valid country code
-generic.governmentId.error.pattern=is not valid
-generic.error.sortcode=must be entered as 3 sets of 2 numbers
-generic.error.exactNumbers=must be {0} numbers
+generic.error.required=Rhaid nodi {0}
+generic.error.upload=Rhaid uwchlwytho {0}
+generic.error.virus=Mae feirws wedi’i ganfod yn {0}
+generic.error.unknownUpload=Canfuwyd gwall anhysbys yn {0} wrth uwchlwytho’r ffeil
+generic.error.forbidden=Rhaid peidio â nodi {0}
+generic.error.minLength=Rhaid i {0} gynnwys o leiaf {1} o gymeriadau
+generic.error.maxLength=Rhaid i {0} beidio â chynnwys mwy na {1} o gymeriadau
+generic.error.number=Rhaid i {0} fod yn rhif
+generic.error.positiveNumber=Rhaid i {0} fod yn rhif positif
+generic.error.positiveWholeNumber=Rhaid i {0} fod yn rhif cyfan positif
+generic.error.maxLength.noDecimals=Rhaid i {0} gynnwys {1} digid cyfan ar y mwyaf, heb ffracsiynau degol
+generic.error.maxLength.maxDecimals=Rhaid i {0} gynnwys {1} digid cyfan ar y mwyaf, a rhaid i ffracsiynau degol gynnwys {2} digid ar y mwyaf
+generic.error.maxWhole=Rhaid i {0} gynnwys {1} digid cyfan ar y mwyaf
+generic.error.wholeNumber=Rhaid i {0} fod yn rhif cyfan
+generic.error.maxDecimals=Rhaid i {0} beidio â chynnwys mwy na {1} lle degol
+generic.error.invalid=Nid yw {0} yn ddilys
+generic.vrn.error.pattern=Rhaid i {0} fod yn rhif 9 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789
+generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
+generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif 6 digid gyda 2 lythyren ar y dechrau, er enghraifft 01234567 neu SC123456
+generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
+generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
+generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
+generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 07 00 00
+generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
 
-generic.shortText.error.pattern=can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
-generic.longText.error.pattern=can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
+generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
+generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau a bachau crwn, sgwâr, onglog neu gyrliog, collnodau, cysylltnodau, llinellau toriad, atalnodau llawn, arwyddion punt, arwyddion plws, hanner colonau, colonau, serenigion, marciau cwestiwn, hafalnodau, blaenslaesau, ampersandau, ebychnodau, symbolau @, hashnodau, arwyddion doler, arwyddion ewro, acenion disgynedig, tildiau, dyfynodau dwbl a thanlinellau
 
-generic.error.telephoneNumber=can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
+generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
+
+enrolment.error.failed=Mae’r cofrestriad yn aflwyddiannus, gwiriwch eich manylion a cheisiwch eto
+enrolment.error.regimeId=Mae’r rhif cofrestru yr ydych wedi’i nodi ar gyfer gwasanaeth treth gwahanol
+enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
 
 # Access code form field errors
-accessOption.error.required=Select whether you would like to access an existing {0} or start a new one
-accessCode.error.required=Enter a temporary access key. For example, A12-B456-8ZZ
-accessCode.error.pattern=Temporary access keys must be 12 characters (including letters, numbers and hyphens). For example, A12-B456-8ZZ
-accessCode.error.notfound=Temporary access key not found. It may have expired or been entered incorrectly. Check it and try again
+accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd
+accessCode.error.required=Nodwch allwedd cyrchu dros dro. Er enghraifft, A12-B456-8ZZ
+accessCode.error.pattern=Rhaid i allweddi cyrchu dros dro gynnwys 12 o gymeriadau (gan gynnwys llythrennau, rhifau a chysylltnodau). Er enghraifft, A12-B456-8ZZ
+accessCode.error.notfound=Ni ddaethpwyd o hyd i’r allwedd cyrchu dros dro. Mae’n bosibl ei bod wedi dod i ben neu eich bod wedi’i nodi’n anghywir. Gwiriwch hi a rhowch gynnig arall arni
 
 # User recruitment banner
-user.recruitment.title=Help us improve {0} forms
-user.recruitment.link.text=Sign up to participate in our research activities
-user.recruitment.dismiss=No thanks
+user.recruitment.title=Helpwch ni i wella ffurflenni {0}
+user.recruitment.link.text=Cofrestrwch i gymryd rhan yn ein gweithgareddau ymchwil
+user.recruitment.dismiss=Dim diolch
 
 # Continue or delete
-decision.error.required=Select whether you would like to continue with your existing {0} or delete and start again
+decision.error.required=Dewiswch p’un a hoffech barhau gyda’ch {0} sydd ohoni, neu ddileu a dechrau eto
 
 # UK Address
 ukAddress.line1=Adeilad a stryd
-ukAddress.line2=Adeilad a llinell stryd 2 (dewisol)
+ukAddress.line2=Adeilad a stryd – llinell 2 (dewisol)
 ukAddress.line3=Tref neu ddinas (dewisol)
 ukAddress.line4=Sir (dewisol)
 ukAddress.postcode=Cod post
-ukAddress.line1.label=building and street
-ukAddress.line2.label=building and street line 2
-ukAddress.line3.label=town or city
-ukAddress.line4.label=county
-ukAddress.postcode.label=postcode
+ukAddress.line1.label=adeilad a stryd
+ukAddress.line2.label=adeilad a stryd – llinell 2
+ukAddress.line3.label=tref neu ddinas
+ukAddress.line4.label=sir
+ukAddress.postcode.label=cod post
 
-ukAddress.line1.error.maxLength=building and street must be no more than {0} characters
-ukAddress.line2.error.maxLength=building and street line 2 must be no more than {0} characters
-ukAddress.line3.error.maxLength=town or city must be no more than {0} characters
-ukAddress.line4.error.maxLength=county must be no more than {0} characters
-ukAddress.postcode.error.maxLength=postcode must be no more than {0} characters
+ukAddress.line1.error.maxLength=Rhaid i’r adeilad a’r stryd y {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line2.error.maxLength=Rhaid i adeilad a stryd – llinell 2 y {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line3.error.maxLength=Rhaid i’r dref neu’r y {0} ddinas beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line4.error.maxLength=Rhaid i’r sir y {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.postcode.error.maxLength=Rhaid i’r cod post y {0} beidio â bod yn fwy na {1} o gymeriadau
 
 # International Address
-internationalAddress.line1=Address 1
-internationalAddress.line2=Address 2
-internationalAddress.line3=Address 3
-internationalAddress.line4=Address 4
-internationalAddress.country=Country
-internationalAddress.line1.label=line 1
-internationalAddress.line2.label=line 2
-internationalAddress.line3.label=line 3
-internationalAddress.line4.label=line 4
-internationalAddress.country.label=country
+internationalAddress.line1=Cyfeiriad 1
+internationalAddress.line2=Cyfeiriad 2
+internationalAddress.line3=Cyfeiriad 3
+internationalAddress.line4=Cyfeiriad 4
+internationalAddress.country=Gwlad
+internationalAddress.line1.label=llinell 1
+internationalAddress.line2.label=llinell 2
+internationalAddress.line3.label=llinell 3
+internationalAddress.line4.label=llinell 4
+internationalAddress.country.label=gwlad
 
 # Generic address
-address.line4.error.maxLength=line 4 must be no more than {0} characters
-address.line.error.maxLength=line {0} must be no more than {1} characters
+address.line4.error.maxLength=rhaid i linell 4 beidio â bod yn fwy na {0} o gymeriadau
+address.line.error.maxLength=Rhaid i linell {0} beidio â bod yn fwy na {1} o gymeriadau
 
 # Date
-date.day=day
-date.month=month
-date.year=year
-date.Day=Dydd
-date.Month=Month
-date.Year=Year
-date.ordinal.th=th
-date.ordinal.st=st
-date.ordinal.rd=rd
-date.ordinal.nd=nd
-date.ofAnyMonth=of any month
-date.ofTheMonth=of the month
-date.firstDay=the first day
-date.lastDay=the last day
-date.exactDay=the {0}
-date.inYear=in {0}
-date.inMonth=in {0}
-date.ofMonth=of {0}
-date.before=must be before {0}
-date.after=must be after {0}
-date.exactDate=must be {0}
-date.isMissing=is missing
+date.day=diwrnod
+date.month=mis
+date.year=blwyddyn
+date.Day=Diwrnod
+date.Month=Mis
+date.Year=Blwyddyn
+date.ofAnyMonth=o unrhyw fis
+date.ofTheMonth=o’r mis
+date.firstDay=o unrhyw fis
+date.lastDay=y diwrnod olaf
+date.exactDay=y {0}
+date.inYear=yn {0}
+date.inMonth=ym mis {0}
+date.ofMonth=o {0}
+date.before=Rhaid i {0} fod cyn {1}
+date.after=Rhaid i {0} fod ar ôl {1}
+date.exactDate=Rhaid i {0} fod {1}
+date.isMissing=ar goll
+
+# explicit ordinals
+date.ordinal.1=af
+date.ordinal.2=il
+date.ordinal.3=ydd
+date.ordinal.4=ydd
+date.ordinal.5=ed
+date.ordinal.6=ed
+date.ordinal.7=fed
+date.ordinal.8=fed
+date.ordinal.9=fed
+date.ordinal.10=fed
+date.ordinal.11=eg
+date.ordinal.12=fed
+date.ordinal.13=eg
+date.ordinal.14=eg
+date.ordinal.15=fed
+date.ordinal.16=eg
+date.ordinal.17=eg
+date.ordinal.18=fed
+date.ordinal.19=eg
+date.ordinal.20=fed
+date.ordinal.21=ain
+date.ordinal.22=ain
+date.ordinal.23=ain
+date.ordinal.24=ain
+date.ordinal.25=ain
+date.ordinal.26=ain
+date.ordinal.27=ain
+date.ordinal.28=ain
+date.ordinal.29=ain
+date.ordinal.30=ain
+date.ordinal.31=ain
 
 # hmrcTaxPeriod
-taxPeriod.noResults=There are no options to display for this user
+taxPeriod.noResults=Nid oes opsiynau i’w dangos ar gyfer y defnyddiwr hwn
 
 # File upload
-file.upload=Upload a file
-file.delete=Delete
-file.delete.file=Delete {0}
+file.upload=Uwchlwytho ffeil
+file.delete=Dileu
+file.delete.file=Dileu {0}
 
 # Sort code
-sortcode.part=Sort code part {0}
+sortcode.part=Cod didoli rhan {0}
 
-# Assisrive text
-assistive.text.sterling=in pounds sterling, do not enter the pound sign
+# Assistive text
+assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 
 # Summary
-summary.title=Check your answers
-summary.intro=Make sure that the information you have given is correct before submitting your {0}
-summary.nowSend=Now send your {0}
-summary.printMsg=You can print this summary page then come back later to complete your {0}
-summary.printLinkText=Print this summary page
-summary.change=Change
+summary.title=Gwiriwch eich atebion
+summary.intro=Sicrhewch fod yr wybodaeth rydych wedi’i rhoi yn gywir cyn cyflwyno’ch {0}
+summary.nowSend=Nawr anfonwch eich {0}
+summary.printMsg=Gallwch argraffu’r dudalen grynodeb hon a dod yn ôl yn ddiweddarach i gwblhau’ch {0}
+summary.printLinkText=Argraffu’r dudalen grynodeb hon
+summary.change=Newid
 
 # Acknowledgement
-ack.title=Your {0} has been submitted
-ack.submissionReference=Your submission reference is
-ack.sentEmail=We have sent you a confirmation email
-ack.pdfLink=View a PDF of your {0} that you can save or print
-ack.whatHappensNext=What happens next
-ack.beforeYouGo=Before you go
-ack.feedbackText1=We use feedback to make our services better. Please take the
-ack.feedbackLink=feedback survey
-ack.feedbackText2=now
+ack.title=Cyflwynwyd eich {0}
+ack.submissionReference=Cyfeirnod eich cyflwyniad yw
+ack.sentEmail=Rydym wedi anfon e-bost cadarnhau atoch
+ack.pdfLink=Gweld copi PDF o’ch {0} y gallwch ei gadw neu argraffu
+ack.whatHappensNext=Yr hyn sy’n digwydd nesaf
+ack.beforeYouGo=Cyn i chi fynd
+ack.feedbackText1=Rydym yn defnyddio adborth i wella ein gwasanaethau. Cwblhewch yr
+ack.feedbackLink=arolwg adborth
+ack.feedbackText2=nawr
 
 # Access code start page
-accessCode.p1=Each time you start a new​ {0} for this service​ you’ll be given a temporary access key
-accessCode.p2=You can start and save one or more ​{0}s and come back to work on them later. You’ll be asked for a temporary access key when you come back to work on a ​{0} you’ve saved.
-accessCode.p3=Do you want to start a new ​​{0} or continue working on a saved ​​{0} (if you have one)?
-accessCode.startNew=Start a new {0}
-accessCode.useExisting=Continue working on a saved {0}
-accessCode.enterKey=Enter temporary access key
-accessCode.keyHintText=For example, A12-B456-8ZZ
-accessCode.help.title=Help with temporary access key
-accessCode.help.p1=You were given a temporary access key when you started or saved a {0} for this service
-accessCode.help.p2=You can use a temporary access key to continue working on a {0} that you’ve saved. It is valid for 28 days and cannot be used to access a submitted {0}
-accessCode.help.p3=A temporary access key has 12 characters including letters, numbers and hyphens. For example, A12-B456-8ZZ
-accessCode.help.p4=If you’ve lost your temporary access key, you’ll need to start your {0} again
-accessCode.new.title=Make a note of your temporary access key
-accessCode.whatYouCanDoNext=What you can do next
-accessCode.new.keepNote=Keep a note of your temporary access key:
-accessCode.new.youWillBeAsked=You will be asked for this each time you come back to continue working on this {0}
-accessCode.new.validFor=This temporary access key is valid for 28 days
-accessCode.new.willExpire=Once you have submitted this {0} the temporary access key will expire
-accessCode.saved.title=Your {0} has been saved
-accessCode.mustSubmit=For us to consider your {0}, you’ll need to submit it
-accessCode.youCan=You can:
-accessCode.exit=exit this page
-accessCode.workOnAnother=work on another {0}
+accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir allwedd cyrchu dros dro i chi
+accessCode.p2=Gallwch ddechrau a chadw un {0} neu fwy a dod yn ôl i weithio arnynt yn ddiweddarach. Gofynnir i chi am allwedd cyrchu dros dro pan fyddwch yn dod yn ôl i weithio ar {0} a gadwyd gennych.
+accessCode.p3=A ydych am ddechrau {0} newydd neu barhau i weithio ar {0} a gadwyd yn flaenorol (os oes gennych un)?
+accessCode.startNew=Dechrau {0} newydd
+accessCode.useExisting=Parhau i weithio ar {0} a gadwyd yn flaenorol
+accessCode.enterKey=Nodwch allwedd cyrchu dros dro
+accessCode.keyHintText=Er enghraifft, A12-B456-8ZZ
+accessCode.help.title=Help gydag allwedd cyrchu dros dro
+accessCode.help.p1=Rhoddwyd allwedd cyrchu dros dro i chi pan ddechreuoch neu pan gadwoch {0} ar gyfer y gwasanaeth hwn
+accessCode.help.p2=Gallwch ddefnyddio allwedd cyrchu dros dro i barhau i weithio ar {0} a gadwyd gennych. Mae’n ddilys am 28 diwrnod ac ni ellir ei defnyddio i gyrchu {0} a gyflwynwyd
+accessCode.help.p3=Mae allwedd cyrchu dros dro yn cynnwys 12 o gymeriadau, gan gynnwys llythrennau, rhifau a chysylltnodau. Er enghraifft, A12-B456-8ZZ
+accessCode.help.p4=Os ydych wedi colli’ch allwedd cyrchu dros dro, bydd angen i chi ddechrau’ch {0} eto
+accessCode.new.title=Gwnewch nodyn o’ch allwedd cyrchu dros dro
+accessCode.whatYouCanDoNext=Yr hyn y gallwch ei wneud nesaf
+accessCode.new.keepNote=Cadwch nodyn o’ch allwedd cyrchu dros dro:
+accessCode.new.youWillBeAsked=Gofynnir i chi amdani bob tro y byddwch yn dod yn ôl i barhau i weithio ar y {0} hwn
+accessCode.new.validFor=Mae’r allwedd cyrchu dros dro hon yn ddilys am 28 diwrnod
+accessCode.new.willExpire=Pan fyddwch wedi cyflwyno’r {0} hon, bydd yr allwedd cyrchu dros dro yn dod i ben
+accessCode.saved.title=Cadwyd eich {0}
+accessCode.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwyno
+accessCode.youCan=Gallwch wneud y canlynol:
+accessCode.exit=gadael y dudalen hon
+accessCode.workOnAnother=gweithio ar {0} arall
 
 # Continue or delete page
-continueDelete.title=A hoffech chi barhau â’ch {0} neu dechreuwch eto?
+continueDelete.title=A hoffech barhau â’ch {0} neu ddechrau eto?
 continueDelete.continue=Parhau â’m {0}
 continueDelete.delete=Dileu fy manylion a dechrau eto
 
 # Agent services prologue
-agentsPrologue.title=Create an agent services account to access this service
-agentsPrologue.p1=Before you can start your {0} for {1} you will need to create an agent services account. You can do this now
-agentsPrologue.p2=You need to be the person responsible for your firm’s administrative matters. The account gives you administrative control over your firm’s access to new HMRC online services
-agentsPrologue.p3=Once you have created your agent services account, you can carry on with your {0}
-agentsPrologue.linkText=Create an agent services account
+agentsPrologue.title=Creu cyfrif gwasanaethau asiant i gyrchu’r gwasanaeth hwn
+agentsPrologue.p1=Cyn i chi allu dechrau eich {0} ar gyfer {1} bydd angen i chi greu cyfrif gwasanaethau asiant. Gallwch wneud hyn nawr
+agentsPrologue.p2=Rhaid mai chi yw’r person sy’n gyfrifol am faterion gweinyddol eich cwmni. Mae’r cyfrif yn rhoi rheolaeth weinyddol i chi dros allu eich cwmni i gyrchu gwasanaethau ar-lein newydd CThEM
+agentsPrologue.p3=Pan fyddwch wedi creu eich cyfrif gwasanaethau asiant, gallwch barhau â’ch {0}
+agentsPrologue.linkText=Creu cyfrif gwasanaethau asiant
 
 # Web chat
-webchat.title=Gwasanaeth gwe-sgwrs
-webchat.chatOnline=Sgwrsiwch ar-lein gyda chynghorydd
+webchat.title=Gwasanaeth sgwrsio dros y we
+webchat.chatOnline=Sgwrsio ar-lein ag ymgynghorydd
+
+submission.date=Submission date
+submission.reference=Submission reference
+submission.mark=Submission mark
+submission.details=Submission details
+submission.declaration.details=Declaration details

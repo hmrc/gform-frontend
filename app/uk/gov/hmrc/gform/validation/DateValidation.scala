@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil._
 import uk.gov.hmrc.gform.validation.DateValidationLogic._
-import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, messagePrefix }
+import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.{ errors, fieldDescriptor }
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 import scala.util.{ Failure, Success, Try }
@@ -55,9 +55,9 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
     val validatedResult = fieldValue.mandatory match {
       case true =>
         List(
-          cvh.validateRF(fieldValue, messages("date.day"))(dateValueOf("day")),
-          cvh.validateRF(fieldValue, messages("date.month"))(dateValueOf("month")),
-          cvh.validateRF(fieldValue, messages("date.year"))(dateValueOf("year"))
+          cvh.validateRF(fieldValue, "day")(dateValueOf("day")),
+          cvh.validateRF(fieldValue, "month")(dateValueOf("month")),
+          cvh.validateRF(fieldValue, "year")(dateValueOf("year"))
         )
       case false => List(().valid)
     }
@@ -101,7 +101,8 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
     beforeAfterPrecisely: BeforeAfterPrecisely,
     concreteDate: ConcreteDate,
     offset: OffsetDate,
-    data: FormDataRecalculated): Validated[GformError, Unit] =
+    data: FormDataRecalculated): Validated[GformError, Unit] = {
+    val messageKeyWithVars: MessageKeyWithVars = incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset)
     validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data).andThen(
       inputDate =>
         validateConcreteDate(
@@ -109,8 +110,9 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
           inputDate,
           concreteDate,
           offset,
-          Map(fieldValue.id -> errors(fieldValue, incorrectDateMessage(beforeAfterPrecisely, concreteDate, offset))))(
+          Map(fieldValue.id -> errors(fieldValue, messageKeyWithVars.messageKey, messageKeyWithVars.vars)))(
           concreteDateFunctionMatch(beforeAfterPrecisely)))
+  }
 
   private def validateTodayWithMessages(
     fieldValue: FormComponent,
@@ -124,7 +126,7 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
             fieldValue,
             inputDate,
             offset,
-            Map(fieldValue.id -> errors(fieldValue, messages(s"date.${beforeAfterPrecisely.mkString}", "today"))))(
+            Map(fieldValue.id -> errors(fieldValue, s"date.${beforeAfterPrecisely.mkString}", Some("today" :: Nil))))(
             todayFunctionMatch(beforeAfterPrecisely)))
 
   private def validateDateFieldWithMessages(
@@ -141,6 +143,8 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
       validateInputDate(fieldValue, fieldValue.id, fieldValue.errorMessage.map(ls => ls.value), data)
 
     validateOtherDate.andThen { otherLocalDate =>
+      val messageKeyWithVars: MessageKeyWithVars =
+        incorrectDateMessage(beforeAfterPrecisely, localDateToConcreteDate(otherLocalDate), offset)
       validatedThisDate.andThen { thisLocalDate =>
         validateConcreteDate(
           fieldValue,
@@ -149,9 +153,7 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
           offset,
           Map(
             fieldValue.id ->
-              errors(
-                fieldValue,
-                incorrectDateMessage(beforeAfterPrecisely, localDateToConcreteDate(otherLocalDate), offset)))
+              errors(fieldValue, messageKeyWithVars.messageKey, messageKeyWithVars.vars))
         )(concreteDateFunctionMatch(beforeAfterPrecisely))
       }
     }
@@ -277,14 +279,14 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
           case Valid(ConcreteDate(ExactYear(concYear), ExactMonth(concMonth), ExactDay(concDay))) =>
             Try(LocalDate.of(concYear, concMonth, concDay)) match {
               case Success(date) => Valid(date)
-              case Failure(ex)   => Map(formComponentId -> errors(formComponent, messages("date.invalid"))).invalid
+              case Failure(ex)   => Map(formComponentId -> errors(formComponent, "date.invalid", None)).invalid
             }
           case Invalid(nonEmptyList) =>
             Invalid(nonEmptyList)
         }
 
       case _ =>
-        validationFailure(formComponent, messages("date.isMissing"))
+        validationFailure(formComponent, "date.isMissing", None)
     }
   }
 
@@ -297,7 +299,7 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
     month: String,
     year: String): ValidatedConcreteDate = {
 
-    val label = messagePrefix(formComponent, formComponentId, otherFormComponent)
+    val label = fieldDescriptor(formComponent, formComponentId, otherFormComponent, "")
     val dayLabel = label + " " + messages("date.day")
     val monthLabel = label + " " + messages("date.month")
     val yearLabel = label + " " + messages("date.year")
