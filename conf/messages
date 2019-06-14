@@ -9,7 +9,7 @@ branding.ofsted=Ofsted
 linkText.saveAndComeBackLater=Save and come back later
 linkText.back=Back
 linkText.removeRepeatedGroup=Remove {0}
-linkText.addRepeatingGroup=Add another {0}s
+linkText.addRepeatingGroup=Add another
 linkText.signOut=Sign out
 linkText.signBackIn=Sign back in
 
