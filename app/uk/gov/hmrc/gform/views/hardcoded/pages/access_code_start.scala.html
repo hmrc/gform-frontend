@@ -36,7 +36,7 @@
 )
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@heading = @{formTemplate.formName}
+@heading = @{formTemplate.formName.value}
 @hasErrors = @{accessCodeForm.hasGlobalErrors | accessCodeForm.hasErrors}
 @optionValue = @{accessCodeForm(AgentAccessCode.optionKey).value.getOrElse("")}
 @accessCodeValue = @{accessCodeForm(AgentAccessCode.key).value.getOrElse("")}
@@ -45,7 +45,7 @@
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = heading.value,
+  title = heading,
   serviceName = formTemplate.formName.value,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
