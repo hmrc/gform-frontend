@@ -155,7 +155,7 @@ class SummaryController(
       }
     }
 
-  def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(implicit ec: ExecutionContext): String = {
+  def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(implicit ec: ExecutionContext, l: LangADT): String = {
     val headerHtml = pdf_header(formTemplate).toString()
     val doc = Jsoup.parse(summaryHtml)
     doc.select("article[class*=content__body]").prepend(headerHtml)
