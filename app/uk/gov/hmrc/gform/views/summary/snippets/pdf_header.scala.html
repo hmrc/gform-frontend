@@ -16,15 +16,15 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.OfstedDefault
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(formTemplate: FormTemplate)(implicit messages: Messages)
-
+@(formTemplate: FormTemplate)(implicit messages: Messages, l: LangADT)
 
 <div>
   <span>
     @if(formTemplate.formCategory.isHmrc) { @messages("branding.hmrc") }
   </span>
   <h1>
-    @formTemplate.formName
+    @formTemplate.formName.value
   </h1>
 </div>

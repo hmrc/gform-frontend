@@ -72,8 +72,8 @@ generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau
 
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
-enrolment.error.failed=Mae’r cofrestriad yn aflwyddiannus, gwiriwch eich manylion a cheisiwch eto
-enrolment.error.regimeId=Mae’r rhif cofrestru yr ydych wedi’i nodi ar gyfer gwasanaeth treth gwahanol
+enrolment.error.failed=Ymrestriad aflwyddiannus, gwiriwch eich data a rhowch gynnig arni eto
+enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasanaeth dreth wahanol
 enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
 
 # Access code form field errors
@@ -251,8 +251,19 @@ agentsPrologue.linkText=Creu cyfrif gwasanaethau asiant
 webchat.title=Gwasanaeth sgwrsio dros y we
 webchat.chatOnline=Sgwrsio ar-lein ag ymgynghorydd
 
-submission.date=Submission date
-submission.reference=Submission reference
-submission.mark=Submission mark
-submission.details=Submission details
-submission.declaration.details=Declaration details
+submission.date=Dyddiad y cyflwyniad
+submission.reference=Cyfeirnod y cyflwyniad
+submission.mark=Marc y cyflwyniad
+submission.details=Manylion y cyflwyniad
+submission.declaration.details=Manylion y datganiad
+
+# Save4later
+save4later.saved.title=Cadwyd eich {0}
+save4later.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwyno
+save4later.retrieve=Bydd angen i chi fewngofnodi i’r dudalen gofrestru i adfer eich {0}
+save4later.youCan=Gallwch wneud y canlynol:
+save4later.delete=Dileu fy manylion a dechrau eto
+save4later.continue=Parhau â’m {0}
+save4later.infoHeld=Cedwir eich gwybodaeth
+save4later.for30days=am 30 diwrnod
+save4later.until=tan

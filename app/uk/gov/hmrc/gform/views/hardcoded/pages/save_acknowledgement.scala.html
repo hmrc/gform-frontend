@@ -33,8 +33,9 @@
 )(implicit request: Request[_], messages: Messages,l:LangADT)
 
 @formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
-@heading = @{"Your " + formCategory(formTemplate) + " has been saved"}
-@expiryDate = @{envelopeExpiryDate.fold("for 30 days")("until " + _.ldt.format(formatter))}
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@heading = @{messages("save4later.saved.title", formCat)}
+@expiryDate = @{envelopeExpiryDate.fold(messages("save4later.for30days"))(messages("save4later.until") + " " + _.ldt.format(formatter))}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -49,23 +50,21 @@
 ) {
 <div class = "transaction-banner--complete">
     <h1 class ="transaction-banner__heading">@heading</h1>
-    <p>Your information is held </br> @expiryDate.</p>
+    <p>@messages("save4later.infoHeld") <br /> @expiryDate.</p>
 </div>
 
-<p>You’ll need to log in to the sign-in page to retrieve your @formCategory(formTemplate).</p>
+<p>@messages("save4later.retrieve", formCat)</p>
 <div class="panel-indent panel-indent--gutter bold-small">
-    For us to consider your @formCategory(formTemplate), you’ll need to submit it.
+    @messages("save4later.mustSubmit", formCat)
 </div>
-<p>You can:</p>
+<p>@messages("save4later.youCan")</p>
 <ul class = "bullets">
    <li>
-      <a href="@call">return</a>
-     to your form
+      <a href="@call">@messages("save4later.continue", formCat)</a>
    </li>
    <li>
-     delete and
       <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id, None)">
-        start again
+        @messages("save4later.delete")
       </a>
    </li>
 </ul>

@@ -267,3 +267,14 @@ submission.mark=Submission mark
 submission.details=Submission details
 submission.declaration.details=Declaration details
 
+# Save4later
+save4later.saved.title=Your {0} has been saved
+save4later.mustSubmit=For us to consider your {0}, you’ll need to submit it
+save4later.retrieve=You’ll need to log in to the sign-in page to retrieve your {0}
+save4later.youCan=You can:
+save4later.delete=Delete my details and start again
+save4later.continue=Continue my {0}
+save4later.infoHeld=Your information is held
+save4later.for30days=for 30 days
+save4later.until=until
+
