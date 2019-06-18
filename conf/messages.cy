@@ -13,6 +13,7 @@ linkText.signBackIn=Arwyddwch yn ôl
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
 button.acceptAndSubmit=Derbyn a chyflwyno
+button.acceptAndSubmitForm=Derbyn a chyflwyno {0}
 button.confirmAndSend=Cadarnhewch ac anfonwch
 
 # Signed Out
