@@ -37,6 +37,7 @@ import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, RecData, Recalcula
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
@@ -62,7 +63,8 @@ class DeclarationController(
   renderer: SectionRenderingService,
   validationService: ValidationService,
   authService: AuthService,
-  recalculation: Recalculation[Future, Throwable]
+  recalculation: Recalculation[Future, Throwable],
+  lookupRegistry: LookupRegistry
 ) extends FrontendController {
 
   import i18nSupport._
@@ -238,7 +240,7 @@ class DeclarationController(
               maybeAccessCode,
               CustomerId(customerId),
               htmlForPDF,
-              StructuredFormDataBuilder(cache.form, cache.formTemplate)
+              StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
             )
     } yield ()
 

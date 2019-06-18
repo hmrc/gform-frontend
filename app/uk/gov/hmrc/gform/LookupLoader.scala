@@ -56,7 +56,7 @@ class LookupLoader {
   private val intent                   = read("BCD-Intent.csv",                   "ID",           "Name", mkRadioLookup)
   private val intercept                = read("BCD-Intercept.csv",                "ID",           "Name", mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "Name", mkAjaxLookup(ShowAll.Enabled))
-  private val port                     = read("BCD-Port.csv",                     "PortId",       "Name", mkAjaxLookup(ShowAll.Disabled))
+  private val port                     = read("BCD-Port.csv",                     "PortCode",       "Name", mkAjaxLookup(ShowAll.Disabled))
   private val transportMode            = read("BCD-TransportMode.csv",            "ID",           "Name", mkRadioLookup)
   private val intentBuyingWhat         = read("BCD-IntentBuyingWhat.csv",         "id",           "name", mkRadioLookup)
   private val intentBigPurchase        = read("BCD-IntentBigPurchase.csv",        "id",           "name", mkRadioLookup)

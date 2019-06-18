@@ -136,7 +136,8 @@ class GformModule(
     sectionRenderingService,
     validationModule.validationService,
     authModule.authService,
-    graphModule.recalculation
+    graphModule.recalculation,
+    lookupRegistry
   )
 
   val languageSwitchController: LanguageSwitchController =
