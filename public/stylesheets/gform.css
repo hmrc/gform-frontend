@@ -211,6 +211,11 @@ button.button--secondary:active{
   width: 70px;
 }
 
+.form-date .form-group {
+  width: auto;
+  min-width: 50px;
+}
+
 /* Total values need to be an input to submit their value, but need to look like a text value */
 .form-control--total {
   border: none;
