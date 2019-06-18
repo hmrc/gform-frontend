@@ -21,6 +21,7 @@ import org.scalatest.Assertion
 import org.scalactic.source.Position
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -313,10 +314,12 @@ class StructuredFormDataBuilderSpec extends Spec {
     )
   }
 
+  private val lookupRegistry = new LookupRegistry(Map.empty)
+
   private def validate(formTemplate: FormTemplate, formData: Form, expected: StructuredFormValue)(
     implicit position: Position,
     l: LangADT): Assertion =
-    StructuredFormDataBuilder(formData, formTemplate) shouldBe expected
+    StructuredFormDataBuilder(formData, formTemplate, lookupRegistry) shouldBe expected
 
   def createForm(fields: (String, String)*): Form =
     Form(
