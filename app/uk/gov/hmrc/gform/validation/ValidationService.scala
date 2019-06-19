@@ -21,9 +21,11 @@ import cats.implicits._
 import cats.Monoid
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -77,6 +79,25 @@ class ValidationService(
     fieldValues
       .traverse(fv => validateFieldValue(fv, fieldValues, data, envelopeId, retrievals, thirdPartyData, formTemplate))
       .map(Monoid[ValidatedType[Unit]].combineAll)
+
+  def validateComponentsWithCache(cache: AuthCacheWithForm, declarationData: FormDataRecalculated)(
+    implicit hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT): Future[ValidatedType[Unit]] = {
+    val fieldValues: List[FormComponent] = Fields.flattenGroups(cache.formTemplate.declarationSection.fields)
+    fieldValues
+      .traverse(
+        fv =>
+          validateFieldValue(
+            fv,
+            fieldValues,
+            declarationData,
+            cache.form.envelopeId,
+            cache.retrievals,
+            cache.form.thirdPartyData,
+            cache.formTemplate))
+      .map(Monoid[ValidatedType[Unit]].combineAll)
+  }
 
   private def validateUsingValidators(section: Section, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier,

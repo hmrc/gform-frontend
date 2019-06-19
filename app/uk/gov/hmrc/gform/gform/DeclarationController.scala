@@ -108,15 +108,8 @@ class DeclarationController(
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
     for {
       cacheWithHiddenSectionDataRemoved <- removeHiddenSectionData(cache)
-      valRes <- validationService.validateComponents(
-                 Fields.flattenGroups(cacheWithHiddenSectionDataRemoved.formTemplate.declarationSection.fields),
-                 declarationData,
-                 cacheWithHiddenSectionDataRemoved.form.envelopeId,
-                 cacheWithHiddenSectionDataRemoved.retrievals,
-                 cacheWithHiddenSectionDataRemoved.form.thirdPartyData,
-                 cacheWithHiddenSectionDataRemoved.formTemplate
-               )
-      response <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
+      valRes                            <- validationService.validateComponentsWithCache(cacheWithHiddenSectionDataRemoved, declarationData)
+      response                          <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
     } yield response
   }
 
