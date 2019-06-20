@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -62,7 +61,6 @@ class AuthService(
             AuthSuccessful(AnonymousRetrievals(sessionId)))
           .pure[Future]
       case AWSALBAuth            => performAWSALBAuth().pure[Future]
-      case OfstedUser            => AuthSuccessful(AnonymousRetrievals(SessionId("ofstedUsers"))).pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
       case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>

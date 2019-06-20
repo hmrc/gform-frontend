@@ -42,7 +42,6 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     maybeForm: Option[Form]): Redirection[Unit] =
     (formTemplate.draftRetrievalMethod, retrievals, maybeForm) match {
       case (Some(FormAccessCodeForAgents), IsAgent(), None) => NotToBeRedirected(())
-      case (_, _, Some(_))                                  => NotToBeRedirected(())
       case _                                                => ToBeRedirected
     }
 

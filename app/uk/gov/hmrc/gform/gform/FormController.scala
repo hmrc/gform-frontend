@@ -80,53 +80,13 @@ class FormController(
 
       val formId = FormId(retrievals, formTemplateId, None)
 
-      retrieveForm(formId, formTemplate, retrievals, Redirect(routes.FormController.newForm(formTemplate._id)))
-  }
-
-  private def retrieveForm(
-    formId: FormId,
-    formTemplate: FormTemplate,
-    retrievals: MaterialisedRetrievals,
-    redirect: => Result)(implicit request: Request[AnyContent], hc: HeaderCarrier, l: LangADT): Future[Result] =
-    gformConnector.maybeForm(formId).map { form =>
-      handler.handleDashboard(formTemplate, retrievals, form) match {
-        case NotToBeRedirected(_) =>
-          Ok(access_code_start(formTemplate, AgentAccessCode.form, frontendAppConfig))
-        case ToBeRedirected => redirect
+      gformConnector.maybeForm(formId).map { form =>
+        handler.handleDashboard(formTemplate, retrievals, form) match {
+          case NotToBeRedirected(_) =>
+            Ok(access_code_start(formTemplate, AgentAccessCode.form, frontendAppConfig))
+          case ToBeRedirected => Redirect(routes.FormController.newForm(formTemplateId))
+        }
       }
-    }
-
-  def formDashboard(formId: FormId) = auth.async(formId) { implicit request => implicit lang => cache =>
-    val sectionNumber = SectionNumber(0)
-    val accessCode = formId.value.substring(formId.value.length - 12)
-    handler
-      .handleForm(
-        sectionNumber,
-        SeYes,
-        cache,
-        processDataService.recalculateDataAndSections,
-        fileUploadService.getEnvelope,
-        validationService.validateFormComponents,
-        validationService.evaluateValidation
-      )
-      .map((handlerResult: FormHandlerResult) =>
-        Ok(renderer.renderSection(
-          Some(AccessCode(accessCode)),
-          cache.form,
-          sectionNumber,
-          handlerResult.data,
-          cache.formTemplate,
-          handlerResult.result,
-          handlerResult.envelope,
-          cache.form.envelopeId,
-          handlerResult.validatedType,
-          handlerResult.sections,
-          formMaxAttachmentSizeMB,
-          contentTypes,
-          cache.retrievals,
-          cache.form.visitsIndex.visit(sectionNumber),
-          cache.form.thirdPartyData.obligations
-        )))
   }
 
   def newFormAgent(formTemplateId: FormTemplateId) = auth.async(formTemplateId) {
@@ -301,7 +261,7 @@ class FormController(
           validationService.validateFormComponents,
           validationService.evaluateValidation
         )
-        .map((handlerResult: FormHandlerResult) =>
+        .map(handlerResult =>
           Ok(renderer.renderSection(
             maybeAccessCode,
             cache.form,
