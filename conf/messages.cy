@@ -102,11 +102,11 @@ ukAddress.line3.label=tref neu ddinas
 ukAddress.line4.label=sir
 ukAddress.postcode.label=cod post
 
-ukAddress.line1.error.maxLength=Rhaid i’r adeilad a’r stryd y {0} beidio â bod yn fwy na {1} o gymeriadau
-ukAddress.line2.error.maxLength=Rhaid i adeilad a stryd – llinell 2 y {0} beidio â bod yn fwy na {1} o gymeriadau
-ukAddress.line3.error.maxLength=Rhaid i’r dref neu’r y {0} ddinas beidio â bod yn fwy na {1} o gymeriadau
-ukAddress.line4.error.maxLength=Rhaid i’r sir y {0} beidio â bod yn fwy na {1} o gymeriadau
-ukAddress.postcode.error.maxLength=Rhaid i’r cod post y {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line1.error.maxLength=Rhaid i faes adeilad a’r stryd {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line2.error.maxLength=Rhaid i faes adeilad a’r stryd – llinell 2 {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line3.error.maxLength=Rhaid i faes tref neu ddinas {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line4.error.maxLength=Rhaid i faes sir {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.postcode.error.maxLength=Rhaid i faes cod post {0} beidio â bod yn fwy na {1} o gymeriadau
 
 # International Address
 internationalAddress.line1=Cyfeiriad 1
@@ -260,10 +260,10 @@ submission.declaration.details=Manylion y datganiad
 # Save4later
 save4later.saved.title=Cadwyd eich {0}
 save4later.mustSubmit=Er mwyn i ni ystyried eich {0}, bydd angen i chi ei gyflwyno
-save4later.retrieve=Bydd angen i chi fewngofnodi i’r dudalen gofrestru i adfer eich {0}
+save4later.retrieve=Bydd yn rhaid i chi fewngofnodi i’r dudalen fewngofnodi er mwyn adalw eich {0}
 save4later.youCan=Gallwch wneud y canlynol:
 save4later.delete=Dileu fy manylion a dechrau eto
 save4later.continue=Parhau â’m {0}
-save4later.infoHeld=Cedwir eich gwybodaeth
+save4later.infoHeld=Caiff eich gwybodaeth ei dal
 save4later.for30days=am 30 diwrnod
 save4later.until=tan
