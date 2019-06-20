@@ -108,22 +108,10 @@ class DeclarationController(
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
     for {
       cacheWithHiddenSectionDataRemoved <- removeHiddenSectionData(cache)
-      valRes                            <- validateComponents(cacheWithHiddenSectionDataRemoved, declarationData)
+      valRes                            <- validationService.validateComponentsWithCache(cacheWithHiddenSectionDataRemoved, declarationData)
       response                          <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
     } yield response
   }
-
-  private def validateComponents(cache: AuthCacheWithForm, declarationData: FormDataRecalculated)(
-    implicit hc: HeaderCarrier,
-    l: LangADT) =
-    validationService.validateComponents(
-      Fields.flattenGroups(cache.formTemplate.declarationSection.fields),
-      declarationData,
-      cache.form.envelopeId,
-      cache.retrievals,
-      cache.form.thirdPartyData,
-      cache.formTemplate
-    )
 
   private def removeHiddenSectionData(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
     recalculateFormData(cache).map { data =>
