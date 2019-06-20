@@ -127,15 +127,20 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegist
       case a: AjaxLookup  => a.options(LookupLabel(label)).id
     }
 
-  private def buildNonRepeatingSimpleField(field: FormComponent, value: String, multiValue: Boolean): Field = {
-    val newVal: String = field.`type` match {
+  private def valueForFieldType(field: FormComponent, value: String): String =
+    field.`type` match {
       case Text(Lookup(register), _, _, _) => lookupIdFromLabel(value, register)
       case _                               => value
     }
-    Field(FieldName(field.id.value), buildNode(newVal, multiValue), Map.empty)
-  }
+
+  private def buildNonRepeatingSimpleField(field: FormComponent, value: String, multiValue: Boolean): Field =
+    Field(FieldName(field.id.value), buildNode(valueForFieldType(field, value), multiValue), Map.empty)
+
   private def buildRepeatingSimpleField(field: FormComponent, value: NonEmptyList[String], multiValue: Boolean): Field =
-    Field(FieldName(field.id.value), ArrayNode(value.toList.map(buildNode(_, multiValue))), Map.empty)
+    Field(
+      FieldName(field.id.value),
+      ArrayNode(value.toList.map(v => buildNode(valueForFieldType(field, v), multiValue))),
+      Map.empty)
 
   private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice): Option[Field] =
     formValuesByUnindexedId.get(id).map(_.head).map { selectionStr =>
