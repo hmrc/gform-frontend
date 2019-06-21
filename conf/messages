@@ -152,6 +152,20 @@ date.exactDate={0} must be {1}
 date.isMissing={0} is missing
 date.invalid={0} must be a valid date
 
+#Months
+date.January=January
+date.February=February
+date.March=March
+date.April=April
+date.May=May
+date.June=June
+date.July=July
+date.Augusts=Augusts
+date.September=September
+date.October=October
+date.November=November
+date.December=December
+
 # explicit ordinals
 date.ordinal.1=st
 date.ordinal.2=nd

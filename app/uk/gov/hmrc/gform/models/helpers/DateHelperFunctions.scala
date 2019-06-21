@@ -75,4 +75,5 @@ object DateHelperFunctions {
         Some(toCamelCase(Month.values().apply(month - 1).toString))
       case Failure(_) => None
   }
+
 }
