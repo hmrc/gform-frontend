@@ -239,7 +239,7 @@ class StructuredFormDataBuilderSpec extends Spec {
         Field(
           FieldName("revealYourSecrets"),
           objectStructure(
-            Field(FieldName("choice"), textNode("Foo")),
+            Field(FieldName("choice"), textNode("0")),
             Field(
               FieldName("revealed"),
               objectStructure(

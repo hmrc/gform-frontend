@@ -21,19 +21,17 @@ import cats.instances.option._
 import cats.syntax.foldable._
 import cats.syntax.option._
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
 object StructuredFormDataBuilder {
-  def apply(form: Form, template: FormTemplate, lookupRegistry: LookupRegistry)(implicit l: LangADT): ObjectStructure =
+  def apply(form: Form, template: FormTemplate, lookupRegistry: LookupRegistry): ObjectStructure =
     StructuredFormValue.ObjectStructure(new StructuredFormDataBuilder(form, template, lookupRegistry).build())
 }
 
-class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegistry: LookupRegistry)(
-  implicit l: LangADT) {
+class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegistry: LookupRegistry) {
   private val formValuesByUnindexedId: Map[FormComponentId, NonEmptyList[String]] =
     form.formData.fields
       .groupBy(f => f.id.reduceToTemplateFieldId)
@@ -143,20 +141,19 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegist
       Map.empty)
 
   private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice): Option[Field] =
-    formValuesByUnindexedId.get(id).map(_.head).map { selectionStr =>
+    formValuesByUnindexedId.get(id).map(_.head).flatMap { selectionStr =>
       val selection = selectionStr.toInt
-      val maybeRevealingChoiceElement = revealingChoice.options.get(selection)
-      Field(
-        FieldName(id.value),
-        ObjectStructure(
-          maybeRevealingChoiceElement.fold(List.empty[Field]) { rcElement =>
+      revealingChoice.options.get(selection).map { rcElement =>
+        Field(
+          FieldName(id.value),
+          ObjectStructure(
             List(
-              Field(FieldName("choice"), TextNode(rcElement.choice.value)),
+              Field(FieldName("choice"), TextNode(selection.toString)),
               Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(rcElement)))
             )
-          }
+          )
         )
-      )
+      }
     }
 
   private def revealedChoiceFields(rcElement: RevealingChoiceElement): List[Field] =
