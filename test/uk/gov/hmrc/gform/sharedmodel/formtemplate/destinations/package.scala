@@ -61,6 +61,7 @@ package object destinations {
           |  ${optionalField("convertSingleQuotes", Option(false))}
           |  ${optionalField("includeIf", Option(destination.includeIf), "true")}
           |  ${optionalField("failOnError", Option(destination.failOnError), true)}
+          |  ${optionalField("payloadType", Option(handlebars.payloadType), TemplateType.JSON)}
           |  "${Destination.typeDiscriminatorFieldName}": "${Destination.handlebarsHttpApi}",
           |  "profile": ${write(profile)},
           |  "uri": "$uri",
