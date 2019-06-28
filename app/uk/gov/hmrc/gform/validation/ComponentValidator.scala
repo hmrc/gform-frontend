@@ -165,9 +165,9 @@ object ComponentValidator {
   private def textValidationWithConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(
     implicit messages: Messages,
     l: LangADT) = {
-    val ValidText = ".+".r
-    val errorMSG = messages("generic.error.invalid")
-    sharedTextComponentValidator(fieldValue, value, min, max, ValidText, errorMSG)
+    val ValidText = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
+    val messageKey = "generic.longText.error.pattern"
+    sharedTextComponentValidator(fieldValue, value, min, max, ValidText, messageKey)
   }
 
   private def email(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) =
@@ -200,14 +200,14 @@ object ComponentValidator {
     l: LangADT) = {
     val ValidCRN = "[A-Z]{2}[0-9]{6}|[0-9]{8}".r
     val str = value.replace(" ", "")
-    val errorMSG = messages("generic.crn.error.invalid")
+    val errorMSG = "generic.crn.error.invalid"
     sharedTextComponentValidator(fieldValue, str, 8, 8, ValidCRN, errorMSG)
   }
 
   private def checkEORI(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
     val ValidEORI = "^[A-Z]{2}[0-9A-Z]{7,15}$".r
     val str = value.replace(" ", "")
-    val errorMSG = messages("generic.eori.error.pattern")
+    val errorMSG = "generic.eori.error.pattern"
     sharedTextComponentValidator(fieldValue, str, 9, 17, ValidEORI, errorMSG)
   }
 
