@@ -302,7 +302,9 @@ class DeclarationController(
     val declarationExtraData = cya_section("Declaration details", HtmlFormat.fill(declaration.map {
       case (formDecFields, formData) => cya_row(formDecFields.label.value, formData.mkString)
     })).toString()
+    val headerHtml = pdf_header(formTemplate).toString()
     val doc = Jsoup.parse(html)
+    doc.select("article[class*=content__body]").prepend(headerHtml)
     doc.select("article[class*=content__body]").append(extraData)
     doc.select("article[class*=content__body]").append(declarationExtraData)
     doc.html
