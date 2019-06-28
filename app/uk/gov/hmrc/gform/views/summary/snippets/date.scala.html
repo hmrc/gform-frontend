@@ -19,10 +19,14 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT)
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT, messages: Messages)
 
 @safeId(id: String) = @{
-fieldValue.id.withSuffix(id).toString
+  fieldValue.id.withSuffix(id).toString
+}
+
+@monthKey = @{
+  getMonthValue(validationResult.map(_.getCurrentValue(safeId("month")))).getOrElse("")
 }
 
 <div>
@@ -32,7 +36,7 @@ fieldValue.id.withSuffix(id).toString
   <dd class="cya-answer">
     @if(validationResult.exists(_.getCurrentValue.isEmpty)) {
       @{renderMonth(validationResult.map(_.getCurrentValue(safeId("day")))).getOrElse("")}
-      @{getMonthValue(validationResult.map(_.getCurrentValue(safeId("month")))).getOrElse("")}
+      @messages(s"date.$monthKey")
       @{validationResult.map(_.getCurrentValue(safeId("year"))).getOrElse("")}
     }
   </dd>

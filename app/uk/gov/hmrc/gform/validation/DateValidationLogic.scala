@@ -26,6 +26,7 @@ import cats.data.Validated.{ Invalid, Valid }
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedNumeric
+import uk.gov.hmrc.gform.views.html.localisedDateString
 
 import scala.util.{ Failure, Success, Try }
 
@@ -37,7 +38,10 @@ object DateValidationLogic {
 
   def getPreviousYear: Int = LocalDate.now().getYear - 1
 
-  def getMonthName(month: Int): String = new DateFormatSymbols().getMonths.toList(month - 1)
+  def getMonthName(month: Int)(implicit messages: Messages): String = {
+    val monthKey = new DateFormatSymbols().getMonths.toList(month - 1)
+    messages(s"date.$monthKey")
+  }
 
   def exactParameterListToString(parameters: List[ExactParameter])(implicit messages: Messages): String =
     parameters
@@ -82,7 +86,7 @@ object DateValidationLogic {
 
     val govDateFormat = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     val dateWithOffset = (localDate: LocalDate, offset: OffsetDate) =>
-      localDate.plusDays(offset.value.toLong).format(govDateFormat)
+      localisedDateString(localDate.plusDays(offset.value.toLong).format(govDateFormat))
 
     val yearString = concreteDate.year match {
       case ExactYear(year) if concreteDate.month == AnyMonth => messages("date.inYear", year.toString)
@@ -93,8 +97,10 @@ object DateValidationLogic {
     }
 
     val monthString = concreteDate.month match {
-      case ExactMonth(month) if !isExactDay(concreteDate.day)               => messages("date.inMonth", getMonthName(month))
-      case ExactMonth(month) if isExactDay(concreteDate.day)                => messages("date.ofMonth", getMonthName(month))
+      case ExactMonth(month) if !isExactDay(concreteDate.day) =>
+        messages("date.inMonth", getMonthName(month))
+      case ExactMonth(month) if isExactDay(concreteDate.day) =>
+        messages("date.ofMonth", getMonthName(month))
       case _ if isExactDay(concreteDate.day)                                => messages("date.ofAnyMonth")
       case _ if concreteDate.day == FirstDay || concreteDate.day == LastDay => messages("date.ofTheMonth")
       case _                                                                => ""

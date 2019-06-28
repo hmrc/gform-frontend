@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.views
 
+import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 
 package object html {
@@ -30,5 +31,11 @@ package object html {
     }
 
     Html(replaced)
+  }
+
+  def localisedDateString(dateString: String)(implicit messages: Messages): String = {
+    val dateParts: Array[java.lang.String] = dateString.split(" +")
+    dateParts(1) = messages(s"date.${dateParts(1)}")
+    dateParts.mkString(" ")
   }
 }

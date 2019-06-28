@@ -20,6 +20,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.html.localisedDateString
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import java.time.format.DateTimeFormatter
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -35,7 +36,11 @@
 @formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("save4later.saved.title", formCat)}
-@expiryDate = @{envelopeExpiryDate.fold(messages("save4later.for30days"))(messages("save4later.until") + " " + _.ldt.format(formatter))}
+@expiryDate = @{envelopeExpiryDate.fold(
+  messages("save4later.for30days")
+)(
+  exD => messages("save4later.until") + " " + localisedDateString(exD.ldt.format(formatter))
+)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
