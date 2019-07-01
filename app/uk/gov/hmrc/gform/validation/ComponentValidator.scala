@@ -165,7 +165,7 @@ object ComponentValidator {
   private def textValidationWithConstraints(fieldValue: FormComponent, value: String, min: Int, max: Int)(
     implicit messages: Messages,
     l: LangADT) = {
-    val ValidText = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
+    val ValidText = """[A-Za-z0-9\(\)\,\'\’\“\”\%\•\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
     val messageKey = "generic.longText.error.pattern"
     sharedTextComponentValidator(fieldValue, value, min, max, ValidText, messageKey)
   }
@@ -257,9 +257,7 @@ object ComponentValidator {
   }
 
   private def textValidation(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
-    val ValidText = """[A-Za-z0-9\(\)\,\'\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}]+""".r
-    val messageKey = "generic.longText.error.pattern"
-    sharedTextComponentValidator(fieldValue, value, 0, 100000, ValidText, messageKey)
+    textValidationWithConstraints(fieldValue, value, 0, 100000)
   }
 
   def validateChoice(fieldValue: FormComponent)(
