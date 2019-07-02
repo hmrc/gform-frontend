@@ -40,6 +40,11 @@ package object destinations {
           |  "requiredState": "${requiredState.toString}"
           |}""".stripMargin
 
+    case _: Destination.SimpleSubmissionReference =>
+      s"""|{
+          |  "${Destination.typeDiscriminatorFieldName}": "${Destination.simpleSubmissionReference}"
+          |}""".stripMargin
+
     case hmrcDms: Destination.HmrcDms =>
       import hmrcDms._
       s"""|{
