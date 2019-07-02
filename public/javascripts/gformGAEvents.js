@@ -1,7 +1,7 @@
 ;(function (global) {
-    'use strict'
+    'use strict';
   
-    var $ = global.jQuery
+    var $ = global.jQuery;
     var GOVUK = global.GOVUK || {};
   
     function GformGAEvents () {
@@ -30,10 +30,10 @@
         }
 
         return $('h1').text().trim();
-      };
+      }
 
       function getServiceName() {
-        return document.title.split('-')[1].trim()
+        return document.title.split(/\s-\s/)[1].trim()
       }
 
       function sendErrorToGA($errorLink) {
@@ -62,11 +62,8 @@
   
     GformGAEvents.prototype.init = function () {
       this.GformGAEvents()
-    }
+    };
   
-    GOVUK.GformGAEvents = GformGAEvents
+    GOVUK.GformGAEvents = GformGAEvents;
     global.GOVUK = GOVUK
-  })(window)
-
-  
-    
+  })(window);
