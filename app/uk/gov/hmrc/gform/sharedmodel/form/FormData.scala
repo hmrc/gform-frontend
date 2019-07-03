@@ -21,7 +21,7 @@ import cats.syntax.eq._
 import com.softwaremill.quicklens._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.graph.{ Data, RecData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphNode, IncludeIfGN, SimpleGN }
 
 case class FormDataRecalculated(invisible: Set[GraphNode], recData: RecData) {
@@ -46,6 +46,7 @@ object FormDataRecalculated {
 
 case class FormData(fields: Seq[FormField]) extends AnyVal {
   def toData: Data = fields.map(x => x.id -> List(x.value)).toMap
+  def find(id: FormComponentId): Option[String] = fields.find(_.id === id).map(_.value)
 }
 
 object FormData {
