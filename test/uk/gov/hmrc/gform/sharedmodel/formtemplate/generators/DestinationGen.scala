@@ -101,9 +101,7 @@ trait DestinationGen {
       reviewingOfstedGen,
       reviewRejectionGen,
       reviewApprovalGen,
-      stateTransitionGen,
-      Gen.const(Destination.SimpleSubmissionReference())
-    )
+      stateTransitionGen)
 
   def destinationGen: Gen[Destination] = Gen.frequency(10 -> singularDestinationGen, 1 -> compositeGen)
 
