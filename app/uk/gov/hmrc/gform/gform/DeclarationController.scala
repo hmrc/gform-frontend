@@ -156,13 +156,15 @@ class DeclarationController(
     val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
     for {
       _          <- updateUserData(updatedCache.form)
-      customerId <- evaluateSubmissionReference(updatedCache)
+      customerId <- evaluateCustomerId(updatedCache)
       _          <- handleSubmission(maybeAccessCode, updatedCache, data, customerId)
     } yield showAcknowledgement(updatedCache, maybeAccessCode, customerId)
   }
 
-  private def showAcknowledgement(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], customerId: String)(
-    implicit request: Request[_]) = {
+  private def showAcknowledgement(
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    customerId: CustomerId)(implicit request: Request[_]) = {
     if (customerId.isEmpty)
       Logger.warn(s"DMS submission with empty customerId ${loggingHelpers.cleanHeaderCarrierHeader(hc)}")
 
@@ -173,7 +175,7 @@ class DeclarationController(
         .showAcknowledgement(maybeAccessCode, cache.form.formTemplateId, submissionEventId))
   }
 
-  private def auditSubmissionEvent(cache: AuthCacheWithForm, customerId: String)(implicit request: Request[_]) =
+  private def auditSubmissionEvent(cache: AuthCacheWithForm, customerId: CustomerId)(implicit request: Request[_]) =
     auditService.sendSubmissionEvent(
       cache.form,
       cache.formTemplate.sections :+ cache.formTemplate.declarationSection,
@@ -192,19 +194,19 @@ class DeclarationController(
         )
       )
 
-  private def evaluateSubmissionReference(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
-    customerIds(cache.formTemplate.destinations)
+  private def evaluateCustomerId(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
+    customerIdExpressions(cache.formTemplate.destinations)
       .traverse { cid =>
-        authService.evaluateSubmissionReference(
+        authService.evaluateCustomerId(
           cid,
           cache.retrievals,
           cache.formTemplate,
           formDataMap(cache.form.formData),
           cache.form.envelopeId)
       }
-      .map(_.filter(!_.isEmpty).headOption.getOrElse(""))
+      .map(_.filter(!_.isEmpty).headOption.getOrElse(CustomerId.empty))
 
-  private def customerIds(destinations: Destinations) = destinations match {
+  private def customerIdExpressions(destinations: Destinations) = destinations match {
     case d: Destinations.DmsSubmission => List(d.customerId)
     case ds: Destinations.DestinationList =>
       ds.destinations.collect { case (d: DestinationWithCustomerId) => d.customerId }
@@ -214,7 +216,7 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    customerId: String)(implicit request: Request[_], l: LangADT) =
+    customerId: CustomerId)(implicit request: Request[_], l: LangADT) =
     for {
       htmlForPDF     <- createHtmlForPdf(maybeAccessCode, cache, data)
       emailParameter <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
@@ -226,7 +228,7 @@ class DeclarationController(
               cache.formTemplate,
               emailParameter,
               maybeAccessCode,
-              CustomerId(customerId),
+              customerId,
               htmlForPDF,
               StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
             )

@@ -16,4 +16,10 @@
 
 package uk.gov.hmrc.gform.gform
 
-case class CustomerId(id: String)
+case class CustomerId(id: String) {
+  def isEmpty(): Boolean = id.isEmpty
+}
+
+object CustomerId {
+  def empty: CustomerId = CustomerId("")
+}

@@ -28,7 +28,7 @@ import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, EeittService }
+import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, CustomerId, EeittService }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
@@ -233,13 +233,13 @@ class AuthService(
 
     }
 
-  def evaluateSubmissionReference(
+  def evaluateCustomerId(
     expression: TextExpression,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     data: Map[FormComponentId, Seq[String]],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[String] =
-    expression.expr match {
+    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[CustomerId] =
+    (expression.expr match {
       case AuthCtx(value) => AuthContextPrepop.values(value, retrievals).pure[Future]
 
       case EeittCtx(value) => eeittService.getValue(value, retrievals, formTemplate)
@@ -251,7 +251,7 @@ class AuthService(
       case Constant(value) => Future.successful(value)
 
       case _ => "".pure[Future] //TODO change this to AuthExpr.
-    }
+    }).map(CustomerId(_))
 
 }
 
