@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.auditing
 import play.api.libs.json.Json
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, Group, UkSortCode }
@@ -73,22 +74,24 @@ trait AuditService {
     form: Form,
     sections: List[BaseSection],
     retrievals: MaterialisedRetrievals,
-    customerId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
+    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]) =
     sendEvent(form, formToMap(form, sections), retrievals, customerId)
 
   private def sendEvent(
     form: Form,
     detail: Map[String, String],
     retrievals: MaterialisedRetrievals,
-    customerId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
+    customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): String = {
     val event = eventFor(form, detail, retrievals, customerId)
     auditConnector.sendExtendedEvent(event)
     event.eventId
   }
 
-  private def eventFor(form: Form, detail: Map[String, String], retrievals: MaterialisedRetrievals, customerId: String)(
-    implicit hc: HeaderCarrier,
-    request: Request[_]) =
+  private def eventFor(
+    form: Form,
+    detail: Map[String, String],
+    retrievals: MaterialisedRetrievals,
+    customerId: CustomerId)(implicit hc: HeaderCarrier, request: Request[_]) =
     ExtendedDataEvent(
       auditSource = "Gform-Frontend",
       auditType = "formSubmitted",
@@ -96,8 +99,11 @@ trait AuditService {
       detail = details(form, detail, retrievals, customerId)
     )
 
-  private def details(form: Form, detail: Map[String, String], retrievals: MaterialisedRetrievals, customerId: String)(
-    implicit hc: HeaderCarrier) = {
+  private def details(
+    form: Form,
+    detail: Map[String, String],
+    retrievals: MaterialisedRetrievals,
+    customerId: CustomerId)(implicit hc: HeaderCarrier) = {
 
     val userInfo =
       retrievals match {
@@ -123,7 +129,7 @@ trait AuditService {
       "EnvelopeId"     -> form.envelopeId.value,
       "FormTemplateId" -> form.formTemplateId.value,
       "UserId"         -> form.userId.value,
-      "CustomerId"     -> customerId,
+      "CustomerId"     -> customerId.id,
       "UserValues"     -> userValues,
       "UserInfo"       -> userInfo
     )
