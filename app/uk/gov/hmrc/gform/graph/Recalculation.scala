@@ -514,7 +514,7 @@ object Convertible {
       case MaybeConvertible(str)            => str.map(a => Some(RecalculationOp.newValue(a)))
       case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, a => Some(RecalculationOp.newValue(a)))
       case NonConvertible(str)              => str.map(Some.apply)
-      case Nested(convertible)              => convertible.flatMap(a => Convertible.asString(a, formTemplate))
+      case Nested(convertible)              => convertible.flatMap(a => asString(a, formTemplate))
     }
 
   def orElse[F[_]: Monad](leftConvertible: Convertible[F], rightConvertible: Convertible[F]): Convertible[F] =
@@ -548,7 +548,7 @@ object Convertible {
       case MaybeConvertible(str)            => str.map(BigDecimalUtil.toBigDecimalSafe)
       case m @ MaybeConvertibleHidden(_, _) => m.visible(formTemplate, BigDecimalUtil.toBigDecimalSafe)
       case NonConvertible(_)                => Option.empty[BigDecimal].pure[F]
-      case Nested(convertible)              => convertible.flatMap(a => Convertible.convert(a, formTemplate))
+      case Nested(convertible)              => convertible.flatMap(a => convert(a, formTemplate))
     }
 
   def round[F[_]: Monad](
