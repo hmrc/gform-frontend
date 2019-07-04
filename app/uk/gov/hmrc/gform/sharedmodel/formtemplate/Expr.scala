@@ -25,6 +25,7 @@ sealed trait Expr
 final case class Add(field1: Expr, field2: Expr) extends Expr
 final case class Multiply(field1: Expr, field2: Expr) extends Expr
 final case class Subtraction(field1: Expr, field2: Expr) extends Expr
+final case class Else(field1: Expr, field2: Expr) extends Expr
 final case class FormCtx(value: String) extends Expr {
   def toFieldId = FormComponentId(value)
 }
@@ -64,10 +65,6 @@ case object RosmIsAGroup extends RosmProp
 object RosmProp {
   implicit val format: OFormat[RosmProp] = derived.oformat
 }
-
-sealed trait Operation
-final case object Addition extends Operation
-final case object Multiplication extends Operation
 
 sealed trait Eeitt
 final case object BusinessUser extends Eeitt
