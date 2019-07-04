@@ -23,13 +23,13 @@ import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments, Affin
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.AuthenticatedRetrievals
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
-import uk.gov.hmrc.gform.sharedmodel.VariablesBuilder._
+import FrontEndSubmissionVariablesBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
-import uk.gov.hmrc.gform.sharedmodel.{ Variables, VariablesBuilder }
+import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
 
-class VariablesBuilderTest extends Spec with FormTemplateGen {
+class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
 
   forAll(formTemplateGen) { template =>
     it should s"Build a data structure with valid key value pair for ${template._id}" in new IdentifierExtractor {
@@ -39,7 +39,7 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
         materialisedRetrievalsAgent.copy(enrolments = Enrolments(Set(irsaEnrolment)))
       val enrolmentAuth = EnrolmentAuth(ServiceId("IR-SA"), Never)
 
-      val actual = VariablesBuilder(
+      val actual = FrontEndSubmissionVariablesBuilder(
         retrievals,
         template
           .modify(_.sections.each.fields.each.`type`)
@@ -50,7 +50,8 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
       )
 
       processContext(retrievals, HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)) shouldBe "SA value"
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
+      actual shouldBe FrontEndSubmissionVariables(
+        Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
     }
   }
 
@@ -73,8 +74,9 @@ class VariablesBuilderTest extends Spec with FormTemplateGen {
           .modify(_.authConfig)
           .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
 
-      val actual = VariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
-      actual shouldBe Variables(Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
+      val actual = FrontEndSubmissionVariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
+      actual shouldBe FrontEndSubmissionVariables(
+        Json.parse("""{"user":{"enrolledIdentifier":"SA value","customerId":"cid"}}"""))
     }
   }
 

@@ -22,11 +22,10 @@ import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 
 case class SubmissionData(
   pdfData: String,
-  variables: Variables,
+  variables: FrontEndSubmissionVariables,
   structuredFormData: StructuredFormValue.ObjectStructure,
   emailParameters: EmailParametersRecalculated)
 
 object SubmissionData {
-
   implicit val format: OFormat[SubmissionData] = Json.format[SubmissionData]
 }

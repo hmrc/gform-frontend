@@ -22,7 +22,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, SubmissionData, VariablesBuilder }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, SubmissionData }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -57,7 +57,7 @@ object GformSubmission {
     structuredFormData: StructuredFormValue.ObjectStructure): SubmissionData =
     SubmissionData(
       htmlForPDF,
-      VariablesBuilder(retrievals, formTemplate, customerId),
+      FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, customerId),
       structuredFormData,
       emailParameters)
 }

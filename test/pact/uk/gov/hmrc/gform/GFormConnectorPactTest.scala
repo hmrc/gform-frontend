@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
-import uk.gov.hmrc.gform.sharedmodel.{ SubmissionData, Variables }
+import uk.gov.hmrc.gform.sharedmodel.{ FrontEndSubmissionVariables, SubmissionData }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
@@ -35,7 +35,7 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
     val submissionData =
       SubmissionData(
         htmlForm,
-        Variables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
+        FrontEndSubmissionVariables(Json.parse("""{"user":{"enrolledIdentifier":"ITC"}}""")),
         StructuredFormValue.ObjectStructure(
           List(Field(FieldName("foo"), StructuredFormValue.TextNode("fooValue"), Map.empty))),
         EmailParametersRecalculated(Map(EmailTemplateVariable("variable") -> EmailParameterValue("value")))
