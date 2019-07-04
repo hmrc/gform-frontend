@@ -67,28 +67,13 @@ case class Form(
   status: FormStatus,
   visitsIndex: VisitIndex,
   thirdPartyData: ThirdPartyData,
-  envelopeExpiryDate: Option[EnvelopeExpiryDate],
-  destinationSubmissionInfo: Option[DestinationSubmissionInfo] = None
+  envelopeExpiryDate: Option[EnvelopeExpiryDate]
 )
 
 object Form {
 
   private val thirdPartyDataWithFallback: Reads[ThirdPartyData] =
     (__ \ "thirdPartyData").read[ThirdPartyData]
-
-  private val destinationSubmissionInfoOptionFormat: OFormat[Option[DestinationSubmissionInfo]] =
-    new OFormat[Option[DestinationSubmissionInfo]] {
-      override def writes(o: Option[DestinationSubmissionInfo]): JsObject = o match {
-        case None      => Json.obj()
-        case Some(dsi) => Json.obj("destinationSubmissionInfo" -> Json.toJson(dsi))
-      }
-
-      override def reads(json: JsValue): JsResult[Option[DestinationSubmissionInfo]] =
-        json.\("destinationSubmissionInfo").asOpt[DestinationSubmissionInfo] match {
-          case Some(x) => JsSuccess(Some(x))
-          case None    => JsSuccess(None)
-        }
-    }
 
   private val reads: Reads[Form] = (
     (FormId.format: Reads[FormId]) and
@@ -99,8 +84,7 @@ object Form {
       FormStatus.format and
       VisitIndex.format and
       thirdPartyDataWithFallback and
-      EnvelopeExpiryDate.optionFormat and
-      destinationSubmissionInfoOptionFormat
+      EnvelopeExpiryDate.optionFormat
   )(Form.apply _)
 
   private val writes: OWrites[Form] = OWrites[Form](
@@ -113,8 +97,7 @@ object Form {
         FormStatus.format.writes(form.status) ++
         VisitIndex.format.writes(form.visitsIndex) ++
         Json.obj("thirdPartyData" -> ThirdPartyData.format.writes(form.thirdPartyData)) ++
-        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate) ++
-        destinationSubmissionInfoOptionFormat.writes(form.destinationSubmissionInfo)
+        EnvelopeExpiryDate.optionFormat.writes(form.envelopeExpiryDate)
   )
 
   implicit val format: OFormat[Form] = OFormat[Form](reads, writes)

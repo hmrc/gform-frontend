@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel
-
+package uk.gov.hmrc.gform.gform
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
+import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-object VariablesBuilder extends IdentifierExtractor {
+object FrontEndSubmissionVariablesBuilder extends IdentifierExtractor {
 
   def apply(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     customerId: CustomerId
-  ): Variables = {
+  ): FrontEndSubmissionVariables = {
 
     val identifierValue = formTemplate.sections
       .flatMap(_.fields)
@@ -38,7 +37,7 @@ object VariablesBuilder extends IdentifierExtractor {
       }
       .getOrElse("")
 
-    Variables(jsonBuilder(identifierValue, customerId))
+    FrontEndSubmissionVariables(jsonBuilder(identifierValue, customerId))
   }
 
   def processContext(retrievals: MaterialisedRetrievals, authConfig: AuthConfig) =

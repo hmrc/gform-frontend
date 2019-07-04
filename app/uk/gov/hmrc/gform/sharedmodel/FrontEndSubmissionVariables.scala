@@ -18,8 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
 
-case class Variables(value: JsValue)
+case class FrontEndSubmissionVariables(value: JsValue)
 
-object Variables {
-  implicit val format: Format[Variables] = Json.format[Variables]
+object FrontEndSubmissionVariables {
+  implicit val format: Format[FrontEndSubmissionVariables] = Json.format[FrontEndSubmissionVariables]
 }
