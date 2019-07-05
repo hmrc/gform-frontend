@@ -23,8 +23,9 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.lookup.LookupOptions
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupId, LookupLabel, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupInfo, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -49,7 +50,7 @@ object ComponentValidator {
     register: Register,
     lookupLabel: LookupLabel)(implicit messages: Messages, l: LangADT) = {
 
-    def existsLabel(options: Map[LookupLabel, LookupId]) =
+    def existsLabel(options: LookupOptions) =
       if (options.contains(lookupLabel))
         validationSuccess
       else {

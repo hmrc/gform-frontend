@@ -16,11 +16,4 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import com.miguelfonseca.completely.data.Indexable
-import java.util.{ Arrays, List }
-
-class LookupRecord(val value: String) extends Indexable {
-  override val getFields: List[String] = Arrays.asList(value)
-
-  def toLookupLabel = LookupLabel(value)
-}
+case class LookupInfo(id: LookupId, index: Int)

@@ -22,32 +22,35 @@ import com.miguelfonseca.completely.text.analyze.transform.LowerCaseTransformer
 import kantan.csv._
 import kantan.csv.ops._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupAdapter, LookupId, LookupLabel, LookupRecord, LookupType, RadioLookup, ShowAll }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupAdapter, LookupId, LookupInfo, LookupLabel, LookupOptions, LookupRecord, LookupType, RadioLookup, ShowAll }
 
 class LookupLoader {
 
   implicit private val lookupIdCellDecoder: CellDecoder[LookupId] = implicitly[CellDecoder[String]].map(LookupId)
   implicit private val lookupLabelCellDecoder: CellDecoder[LookupLabel] =
-    implicitly[CellDecoder[String]].map(LookupLabel)
+    implicitly[CellDecoder[String]].map(LookupLabel.apply)
 
   private def read(
     filename: String,
     id: String,
     value: String,
-    mkLookupType: Map[LookupLabel, LookupId] => LookupType): LookupType = {
+    mkLookupType: LookupOptions => LookupType): LookupType = {
 
     val headerDecoder = HeaderDecoder.decoder(value, id)((_: LookupLabel) -> (_: LookupId))
     val lookup = getClass.getClassLoader.getResourceAsStream("lookup/" + filename)
     mkLookupType(
-      lookup
-        .unsafeReadCsv[List, (LookupLabel, LookupId)](rfc.withHeader)(headerDecoder, implicitly, implicitly)
-        .toMap
-    )
+      LookupOptions(
+        lookup
+          .unsafeReadCsv[List, (LookupLabel, LookupId)](rfc.withHeader)(headerDecoder, implicitly, implicitly)
+          .zipWithIndex
+          .map { case ((label, id), idx) => (label, LookupInfo(id, idx)) }
+          .toMap
+      ))
   }
 
-  private def mkAjaxLookup(showAll: ShowAll)(m: Map[LookupLabel, LookupId]): AjaxLookup =
+  private def mkAjaxLookup(showAll: ShowAll)(m: LookupOptions): AjaxLookup =
     AjaxLookup(m, mkAutocoplete(m), showAll)
-  private def mkRadioLookup(m: Map[LookupLabel, LookupId]): RadioLookup = RadioLookup(m)
+  private def mkRadioLookup(m: LookupOptions): RadioLookup = RadioLookup(m)
 
   // format: off
   private val cashType                 = read("BCD-CashType.csv",                 "ID",           "Name", mkRadioLookup)
@@ -56,7 +59,7 @@ class LookupLoader {
   private val intent                   = read("BCD-Intent.csv",                   "ID",           "Name", mkRadioLookup)
   private val intercept                = read("BCD-Intercept.csv",                "ID",           "Name", mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "Name", mkAjaxLookup(ShowAll.Enabled))
-  private val port                     = read("BCD-Port.csv",                     "PortCode",       "Name", mkAjaxLookup(ShowAll.Disabled))
+  private val port                     = read("BCD-Port.csv",                     "PortCode",     "Name", mkAjaxLookup(ShowAll.Disabled))
   private val transportMode            = read("BCD-TransportMode.csv",            "ID",           "Name", mkRadioLookup)
   private val intentBuyingWhat         = read("BCD-IntentBuyingWhat.csv",         "id",           "name", mkRadioLookup)
   private val intentBigPurchase        = read("BCD-IntentBigPurchase.csv",        "id",           "name", mkRadioLookup)
@@ -69,7 +72,7 @@ class LookupLoader {
   private val originSavingsEarnings    = read("BCD-OriginSavingsEarnings.csv",    "id",           "name", mkRadioLookup)
   // format: on
 
-  private def mkAutocoplete(options: Map[LookupLabel, LookupId]): AutocompleteEngine[LookupRecord] = {
+  private def mkAutocoplete(options: LookupOptions): AutocompleteEngine[LookupRecord] = {
 
     val engine: AutocompleteEngine[LookupRecord] = new AutocompleteEngine.Builder[LookupRecord]()
       .setIndex(new LookupAdapter[LookupRecord]())

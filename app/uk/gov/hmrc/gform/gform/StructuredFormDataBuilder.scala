@@ -119,15 +119,15 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegist
     if (repeatable) buildRepeatingSimpleField(field, values, multiValue)
     else buildNonRepeatingSimpleField(field, values.head, multiValue)
 
-  private def lookupIdFromLabel(label: String, register: Register): String =
+  private def lookupIdFromLabel(label: LookupLabel, register: Register): String =
     lookupRegistry.get(register).get match {
-      case r: RadioLookup => r.options(LookupLabel(label)).id
-      case a: AjaxLookup  => a.options(LookupLabel(label)).id
+      case r: RadioLookup => r.options(label).id.id
+      case a: AjaxLookup  => a.options(label).id.id
     }
 
   private def valueForFieldType(field: FormComponent, value: String): String =
     field.`type` match {
-      case Text(Lookup(register), _, _, _) => lookupIdFromLabel(value, register)
+      case Text(Lookup(register), _, _, _) => lookupIdFromLabel(LookupLabel(value), register)
       case _                               => value
     }
 

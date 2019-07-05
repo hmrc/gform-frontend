@@ -17,3 +17,7 @@
 package uk.gov.hmrc.gform.lookup
 
 case class LookupLabel(label: String) extends AnyVal
+
+object LookupLabel {
+  implicit val ord = Ordering.by(unapply)
+}

@@ -20,9 +20,9 @@ import com.miguelfonseca.completely.AutocompleteEngine
 
 sealed trait LookupType extends Product with Serializable
 
-case class RadioLookup(options: Map[LookupLabel, LookupId]) extends LookupType
+case class RadioLookup(options: LookupOptions) extends LookupType
 case class AjaxLookup(
-  options: Map[LookupLabel, LookupId],
+  options: LookupOptions,
   autocomplete: AutocompleteEngine[LookupRecord],
   showAll: ShowAll
 ) extends LookupType
