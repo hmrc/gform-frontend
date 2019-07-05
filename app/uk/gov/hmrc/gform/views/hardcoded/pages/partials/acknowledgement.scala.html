@@ -30,7 +30,7 @@
   frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages, l:LangADT)
 
-@heading = @{messages("ack.title", formCategory.getString)}
+@heading = @{messages("ack.title", messages(s"formCategory.${formCategory.getString}"))}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -42,7 +42,8 @@
   webChat = formTemplate.webChat,
   formCategory = formTemplate.formCategory,
   languages = formTemplate.languages,
-  templateId = formTemplate._id
+  templateId = formTemplate._id,
+  lang = l.langADTToString
 ) {
 
   <div class="govuk-box-highlight">

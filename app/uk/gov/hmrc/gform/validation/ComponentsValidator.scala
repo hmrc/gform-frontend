@@ -157,20 +157,20 @@ object ComponentsValidatorHelper {
     fieldValue: FormComponent,
     workedOnId: FormComponentId,
     otherFormComponent: Option[FormComponent],
-    partLabel: String)(implicit l: LangADT): String =
+    partLabel: String)(implicit l: LangADT, messages: Messages): String =
     otherFormComponent match {
       case Some(x) if x.id === workedOnId =>
         x.shortName.map { _.value + " " + partLabel }.getOrElse(x.label.value + " " + partLabel)
       case Some(x) =>
         fieldValue.shortName
           .map { input =>
-            input.value + " " + partLabel
+            messages("helper.order", input.value, partLabel)
           }
-          .getOrElse(fieldValue.label.value + " " + partLabel)
+          .getOrElse(messages("helper.order", fieldValue.label.value, partLabel))
       case None =>
         fieldValue.shortName
-          .map(ls => ls.value + " " + partLabel)
-          .getOrElse(fieldValue.label.value + " " + partLabel)
+          .map(ls => messages("helper.order", ls.value, partLabel))
+          .getOrElse(messages("helper.order", fieldValue.label.value, partLabel))
     }
 
   def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]], partLabel: String = "")(

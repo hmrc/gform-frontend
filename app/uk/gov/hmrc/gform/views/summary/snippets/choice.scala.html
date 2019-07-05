@@ -25,7 +25,7 @@
 
 <div>
   <dt class="cya-question">
-    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
+    @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value).capitalize
   </dt>
   <dd class="cya-answer">
     @selectedHtml

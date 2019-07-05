@@ -40,7 +40,8 @@
   navLinks: Option[Html] = None,
   includeHMRCBranding: Boolean,
   formLanguages: AvailableLanguages = AvailableLanguages.default,
-  templateId: FormTemplateId
+  templateId: FormTemplateId,
+  lang: String
 )(implicit messages: Messages)
 
 @scriptElement = {
@@ -186,6 +187,7 @@
       betaBanner = betaBanner,
       includeGridWrapper = false,
       includeHMRCBranding = includeHMRCBranding,
+      setLang = lang,
       serviceInfoContent = Some(serviceHeader))
 }
 

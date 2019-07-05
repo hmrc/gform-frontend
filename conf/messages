@@ -3,6 +3,8 @@ global.error.InternalServerError500.title=We’re experiencing technical difficu
 global.error.InternalServerError500.heading=We’re experiencing technical difficulties
 global.error.InternalServerError500.message=Try signing in again in a few minutes.
 
+global.lang=en
+
 branding.hmrc=HM Revenue & Customs
 branding.ofsted=Ofsted
 
@@ -291,4 +293,7 @@ save4later.continue=Continue my {0}
 save4later.infoHeld=Your information is held
 save4later.for30days=for 30 days
 save4later.until=until
+
+# Helper for grammatical order
+helper.order={0} {1}
 
