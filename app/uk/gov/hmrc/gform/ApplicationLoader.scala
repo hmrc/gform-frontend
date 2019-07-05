@@ -100,7 +100,8 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     fileUploadModule,
     gformBackendModule,
     graphModule,
-    lookupRegistry
+    lookupRegistry,
+    playBuiltInsModule
   )
 
   private val gformModule = new GformModule(

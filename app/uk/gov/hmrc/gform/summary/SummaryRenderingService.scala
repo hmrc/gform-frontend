@@ -16,27 +16,144 @@
 
 package uk.gov.hmrc.gform.summary
 
+import java.time.format.DateTimeFormatter
+
 import cats.data.Validated.{ Invalid, Valid }
-import play.api.i18n.Messages
+import cats.instances.future._
+import org.jsoup.Jsoup
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.gform.HtmlSanitiser
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.submission.SubmissionRef
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
+import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.{ ExecutionContext, Future }
+
+class SummaryRenderingService(
+  i18nSupport: I18nSupport,
+  fileUploadService: FileUploadService,
+  recalculation: Recalculation[Future, Throwable],
+  validationService: ValidationService,
+  frontendAppConfig: FrontendAppConfig) {
+
+  def createHtmlForPdf(
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    submissionDetails: Option[SubmissionDetails])(
+    implicit request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[String] = {
+    import i18nSupport._
+
+    // ToDo: Why do we sanitise just the summaryHtml and not the whole thing after adding the extra data?
+    for {
+      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache)
+    } yield
+      addExtraDataToHTML(
+        // ToDo: I'm bothered by this. Why is submitted always true? Why is it not submissionDetails.isDefined?
+        // Would it matter if sanitiseHtmlForPDF always did what it does when submitted = true?
+        HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true),
+        submissionDetails,
+        cache
+      )
+  }
+
+  private def addExtraDataToHTML(html: String, submissionDetails: Option[SubmissionDetails], cache: AuthCacheWithForm)(
+    implicit hc: HeaderCarrier,
+    messages: Messages,
+    curLang: LangADT): String = {
+    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
+    val formattedTime = submissionDetails.map(sd =>
+      s"""${sd.submission.submittedDate.format(dateFormat)} ${sd.submission.submittedDate.format(timeFormat)}""")
+
+    val rows = List(
+      formattedTime.map(ft => cya_row(messages("submission.date"), ft)),
+      Some(cya_row(messages("submission.reference"), SubmissionRef(cache.form.envelopeId).toString)),
+      submissionDetails.map(sd => cya_row(messages("submission.mark"), sd.hashedValue))
+    ).flatten
+
+    val extraData = cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
+
+    val formDataAsMap = cache.form.formData.toData
+
+    val declaration: List[(FormComponent, Seq[String])] = for {
+      formTemplateDecField <- flattenGroups(cache.formTemplate.declarationSection.fields)
+      formData             <- formDataAsMap.get(formTemplateDecField.id)
+    } yield (formTemplateDecField, formData)
+
+    val declarationExtraData = cya_section(
+      messages("submission.declaration.details"),
+      HtmlFormat.fill(declaration.map {
+        case (formDecFields, formData) => cya_row(formDecFields.label.value, formData.mkString)
+      })
+    ).toString()
+
+    val headerHtml = pdf_header(cache.formTemplate).toString()
+
+    val doc = Jsoup.parse(html)
+    doc.select("article[class*=content__body]").prepend(headerHtml)
+    doc.select("article[class*=content__body]").append(extraData)
+    doc.select("article[class*=content__body]").append(declarationExtraData)
+    doc.html.replace("£", "&pound;")
+  }
+
+  def getSummaryHTML(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], cache: AuthCacheWithForm)(
+    implicit request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Html] = {
+    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
+    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+
+    import i18nSupport._
+
+    for {
+      data <- recalculation
+               .recalculateFormData(
+                 dataRaw,
+                 cache.formTemplate,
+                 cache.retrievals,
+                 cache.form.thirdPartyData,
+                 cache.form.envelopeId)
+      envelope <- envelopeF
+      (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals)
+    } yield
+      SummaryRenderingService.renderSummary(
+        cache.formTemplate,
+        v,
+        data,
+        maybeAccessCode,
+        envelope,
+        cache.retrievals,
+        frontendAppConfig,
+        cache.form.thirdPartyData.obligations
+      )
+
+  }
+}
 
 object SummaryRenderingService {
-
   def renderSummary(
     formTemplate: FormTemplate,
     validatedType: ValidatedType[ValidationResult],

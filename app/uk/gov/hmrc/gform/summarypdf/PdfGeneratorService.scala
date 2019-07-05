@@ -18,10 +18,7 @@ package uk.gov.hmrc.gform.summarypdf
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Document, Node }
 import play.mvc.Http.{ HeaderNames, MimeTypes }
-import play.twirl.api.Html
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,42 +29,6 @@ class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
     val body = Map("html" -> Seq(html))
     pdfGeneratorConnector.generatePDF(body, headers)
-  }
-
-  def sanitiseHtmlForPDF(html: Html, submitted: Boolean): String = {
-    val doc: Document = Jsoup.parse(html.body)
-    removeComments(doc)
-    doc.getElementsByTag("link").remove()
-    doc.getElementsByTag("meta").remove()
-    doc.getElementsByTag("script").remove()
-    doc.getElementsByTag("a").remove()
-    doc.getElementsByTag("header").remove()
-    doc.getElementsByClass("service-info").remove()
-    doc.getElementsByClass("footer-wrapper").remove()
-    doc.getElementById("global-cookie-message").remove()
-    doc.getElementsByClass("print-hidden").remove()
-    doc.getElementsByClass("report-error").remove()
-    doc.getElementById("global-app-error").remove()
-    doc
-      .getElementsByTag("head")
-      .append(s"<style>${PdfGeneratorService.css}</style>")
-    if (submitted) {
-      doc.getElementsByClass("cya-intro").remove()
-    }
-    doc.html.replace("£", "&pound;")
-  }
-
-  private def removeComments(node: Node): Unit = {
-    var i = 0
-    while (i < node.childNodeSize()) {
-      val child = node.childNode(i)
-      if (child.nodeName.equals("#comment")) {
-        child.remove()
-      } else {
-        removeComments(child)
-        i += 1
-      }
-    }
   }
 }
 

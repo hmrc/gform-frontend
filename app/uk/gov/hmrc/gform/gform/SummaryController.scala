@@ -16,39 +16,27 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.Monoid
 import cats.instances.future._
-import cats.instances.list._
-import cats.instances.map._
-import cats.instances.set._
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
-import cats.syntax.traverse._
 import org.jsoup.Jsoup
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, Request, _ }
-import play.twirl.api.{ Html, HtmlFormat }
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, ErrResponder }
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, ErrResponder }
+import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, Recalculation }
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
-import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService, ValidationUtil }
+import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -62,7 +50,8 @@ class SummaryController(
   gformConnector: GformConnector,
   frontendAppConfig: FrontendAppConfig,
   errResponder: ErrResponder,
-  recalculation: Recalculation[Future, Throwable]
+  recalculation: Recalculation[Future, Throwable],
+  summaryRenderingService: SummaryRenderingService
 ) extends FrontendController {
 
   import i18nSupport._
@@ -71,7 +60,7 @@ class SummaryController(
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       cache.form.status match {
         case Summary | Validated | Signed =>
-          getSummaryHTML(formTemplateId, maybeAccessCode, cache).map(Ok(_))
+          summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache).map(Ok(_))
         case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
       }
     }
@@ -82,7 +71,7 @@ class SummaryController(
         val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
         val formFieldValidationResultsF = for {
           envelope <- envelopeF
-          errors   <- validateForm(cache, envelope, cache.retrievals)
+          errors   <- validationService.validateForm(cache, envelope, cache.retrievals)
         } yield errors
 
         val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
@@ -142,8 +131,8 @@ class SummaryController(
       cache.form.status match {
         case InProgress | Summary =>
           for {
-            summaryHml <- getSummaryHTML(formTemplateId, maybeAccessCode, cache)
-            htmlForPDF = pdfService.sanitiseHtmlForPDF(summaryHml, submitted = false)
+            summaryHml <- summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache)
+            htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHml, submitted = false)
             withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
             pdfStream <- pdfService.generatePDF(withPDFHeader)
           } yield
@@ -160,80 +149,5 @@ class SummaryController(
     val doc = Jsoup.parse(summaryHtml)
     doc.select("article[class*=content__body]").prepend(headerHtml)
     doc.html
-  }
-
-  private def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
-    implicit hc: HeaderCarrier,
-    l: LangADT): Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
-
-    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
-
-    def filterSection(sections: List[Section], data: FormDataRecalculated): List[Section] =
-      sections.filter(data.isVisible)
-
-    for {
-      data <- recalculation.recalculateFormData(
-               dataRaw,
-               cache.formTemplate,
-               retrievals,
-               cache.form.thirdPartyData,
-               cache.form.envelopeId
-             )
-      allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
-      sections = filterSection(allSections, data)
-      allFields = submittedFCs(
-        data,
-        sections
-          .flatMap(_.expandSectionRc(data.data).allFCs)
-      )
-
-      v1 <- sections
-             .traverse(
-               section =>
-                 validationService
-                   .validateFormComponents(
-                     allFields,
-                     section,
-                     cache.form.envelopeId,
-                     retrievals,
-                     cache.form.thirdPartyData,
-                     cache.formTemplate,
-                     data))
-             .map(Monoid[ValidatedType[ValidationResult]].combineAll)
-      v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
-      errors = validationService.evaluateValidation(v, allFields, data, envelope).toMap
-    } yield (v, errors)
-
-  }
-
-  def getSummaryHTML(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], cache: AuthCacheWithForm)(
-    implicit request: Request[_],
-    l: LangADT): Future[Html] = {
-    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-
-    for {
-      data <- recalculation
-               .recalculateFormData(
-                 dataRaw,
-                 cache.formTemplate,
-                 cache.retrievals,
-                 cache.form.thirdPartyData,
-                 cache.form.envelopeId)
-      envelope <- envelopeF
-      (v, _)   <- validateForm(cache, envelope, cache.retrievals)
-    } yield
-      SummaryRenderingService
-        .renderSummary(
-          cache.formTemplate,
-          v,
-          data,
-          maybeAccessCode,
-          envelope,
-          cache.retrievals,
-          frontendAppConfig,
-          cache.form.thirdPartyData.obligations
-        )
-
   }
 }
