@@ -149,6 +149,9 @@ class GformModule(
   )
 
   val signOutController: SignOutController =
-    new SignOutController(configModule.frontendAppConfig, playBuiltInsModule.messagesApi)
+    new SignOutController(
+      configModule.frontendAppConfig,
+      playBuiltInsModule.messagesApi
+    )
 
 }

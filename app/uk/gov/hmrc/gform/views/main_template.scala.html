@@ -37,7 +37,7 @@
   webChat: Option[WebChat] = None,
   formCategory: FormCategory = Default,
   languages: AvailableLanguages = AvailableLanguages.default,
-  templateId: FormTemplateId
+  templateId: FormTemplateId, lang: String = "en"
 )(mainContent: Html)(implicit request : Request[_], messages: Messages)
 
 @serviceInfo = {}
@@ -108,5 +108,6 @@
   authConfig = authConfig,
   includeHMRCBranding = formCategory.isHmrc,
   formLanguages = languages,
-  templateId = templateId
+  templateId = templateId,
+  lang = lang
 )
