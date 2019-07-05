@@ -23,7 +23,6 @@ import play.api.mvc.Results.{ BadRequest, Forbidden, InternalServerError, NotFou
 import play.api.mvc.{ RequestHeader, Result }
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 import scala.concurrent.Future
 
