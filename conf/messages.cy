@@ -124,8 +124,8 @@ internationalAddress.line4.label=llinell 4
 internationalAddress.country.label=gwlad
 
 # Generic address
-address.line4.error.maxLength=rhaid i linell 4 beidio â bod yn fwy na {0} o gymeriadau
-address.line.error.maxLength=Rhaid i linell {0} beidio â bod yn fwy na {1} o gymeriadau
+address.line4.error.maxLength=Rhaid i linell 4 {0} beidio â bod yn fwy na {1} o gymeriadau
+address.line.error.maxLength=Rhaid i linell {1} {0} beidio â bod yn fwy na {2} o gymeriadau
 
 # Date
 date.day=diwrnod
