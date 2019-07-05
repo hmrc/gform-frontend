@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupInfo, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
 import uk.gov.hmrc.gform.models.helpers.Javascript._
@@ -699,7 +699,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case Some(RadioLookup(options)) =>
           html.form.snippets.lookup_radios(
             fieldValue,
-            options.keys.toList.sortBy(_.label),
+            options.sorted,
             ei.formLevelHeading,
             prepopValue,
             validatedValue,

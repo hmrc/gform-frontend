@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.gform.lookup
 
-import com.miguelfonseca.completely.data.Indexable
-import java.util.{ Arrays, List }
+case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
 
-class LookupRecord(val value: String) extends Indexable {
-  override val getFields: List[String] = Arrays.asList(value)
+  def apply(lookupLabel: LookupLabel): LookupInfo = options(lookupLabel) // Unsafe method, use with care
 
-  def toLookupLabel = LookupLabel(value)
+  def contains(lookupLabel: LookupLabel): Boolean = options.contains(lookupLabel)
+
+  def keys: Iterable[LookupLabel] = options.keys
+
+  def sorted = options.toList.sortBy { case (_, LookupInfo(_, idx)) => idx }.map(_._1)
+
 }
