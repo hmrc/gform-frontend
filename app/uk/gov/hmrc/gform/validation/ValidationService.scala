@@ -19,12 +19,16 @@ package uk.gov.hmrc.gform.validation
 import cats.data._
 import cats.implicits._
 import cats.Monoid
-import play.api.i18n.Messages
+import play.api.i18n.{ I18nSupport, Messages }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
@@ -41,7 +45,9 @@ class ValidationService(
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
   booleanExpr: BooleanExprEval[Future],
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  recalculation: Recalculation[Future, Throwable],
+  i18nSupport: I18nSupport
 )(implicit ec: ExecutionContext) {
 
   private def validateFieldValue(
@@ -182,6 +188,50 @@ class ValidationService(
           .validateBankModulus(dataGetter(accountNumber.toFieldId), sortCodeCombined)
           .map(b => if (b) ValidationResult.empty.valid else errors.invalid)
     }
+  }
+
+  def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
+    implicit hc: HeaderCarrier,
+    l: LangADT): Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
+
+    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
+
+    def filterSection(sections: List[Section], data: FormDataRecalculated): List[Section] =
+      sections.filter(data.isVisible)
+
+    import i18nSupport._
+
+    for {
+      data <- recalculation.recalculateFormData(
+               dataRaw,
+               cache.formTemplate,
+               retrievals,
+               cache.form.thirdPartyData,
+               cache.form.envelopeId
+             )
+      allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
+      sections = filterSection(allSections, data)
+      allFields = submittedFCs(
+        data,
+        sections
+          .flatMap(_.expandSectionRc(data.data).allFCs)
+      )
+      v1 <- sections
+             .traverse(
+               section =>
+                 validateFormComponents(
+                   allFields,
+                   section,
+                   cache.form.envelopeId,
+                   retrievals,
+                   cache.form.thirdPartyData,
+                   cache.formTemplate,
+                   data))
+             .map(Monoid[ValidatedType[ValidationResult]].combineAll)
+      v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
+      errors = evaluateValidation(v, allFields, data, envelope).toMap
+    } yield (v, errors)
+
   }
 }
 

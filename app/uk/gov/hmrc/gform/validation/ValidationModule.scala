@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.gform.validation
 
-import play.api.i18n.Messages
-
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
+import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class ValidationModule(
   fileUploadModule: FileUploadModule,
   gformBackendModule: GformBackendModule,
   graphModule: GraphModule,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  playBuiltInsModule: PlayBuiltInsModule
 )(
   implicit ec: ExecutionContext
 ) {
@@ -38,6 +37,8 @@ class ValidationModule(
     fileUploadModule.fileUploadService,
     gformBackendModule.gformConnector,
     graphModule.booleanExprEval,
-    lookupRegistry
+    lookupRegistry,
+    graphModule.recalculation,
+    playBuiltInsModule.i18nSupport
   )
 }
