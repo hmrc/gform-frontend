@@ -1,4 +1,4 @@
-id,name
-6,Property
-7,Vehicle
-8,Other sale
+id,name,en,cy
+6,Property,Property,Property
+7,Vehicle,Vehicle,Vehicle
+8,Other sale,Other sale,Other sale

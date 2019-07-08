@@ -1,17 +1,17 @@
-ID,Name
-1,From Family
-2,From Friend
-3,Savings Cash
-4,Savings Bank
-5,Loan
-6,Sale Of Property
-7,Sale Of Vehicle
-8,Sale Other
-9,Own Earnings
-10,Others Earnings
-11,Inheritance
-12,Gambling
-13,Other
-14,Not Given
-15,From Business
-16,Personal
+ID,Name,en,cy
+1,From Family,Family,Family
+2,From Friend,Friend,Friend
+3,Savings Cash,Personal cash savings,Personal cash savings
+4,Savings Bank,Personal savings in a bank,Personal savings in a bank
+5,Loan,Loan,Loan
+6,Sale Of Property,Property,Property
+7,Sale Of Vehicle,Vehicle,Vehicle
+8,Sale Other,Other sale,Other sale
+9,Own Earnings,Personal earnings,Personal earnings
+10,Others Earnings,Others Earnings,Others Earnings
+11,Inheritance,Inheritance,Inheritance
+12,Gambling,Gambling,Gambling
+13,Other,Other,Other
+14,Not Given,Not Given,Not Given
+15,From Business,Business,Business
+16,Personal,Personal,Personal
