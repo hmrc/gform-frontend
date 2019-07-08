@@ -52,7 +52,7 @@
         @heading
       </h1>
       <p>
-        @messages("summary.intro", formCategory.getString)
+        @messages("summary.intro", messages(s"formCategory.${formCategory.getString}"))
       </p>
     </div>
 
@@ -63,10 +63,10 @@
 
         <div class="print-hidden">
           <h2>
-            @messages("summary.nowSend", formCategory.getString)
+            @messages("summary.nowSend", messages(s"formCategory.${formCategory.getString}"))
           </h2>
           <p>
-            @messages("summary.printMsg", formCategory.getString).
+            @messages("summary.printMsg", messages(s"formCategory.${formCategory.getString}")).
           </p>
           <p>
             <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url">@messages("summary.printLinkText")</a>

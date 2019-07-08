@@ -3,6 +3,8 @@ global.error.InternalServerError500.title=Mae problemau technegol wedi codi
 global.error.InternalServerError500.heading=Mae problemau technegol wedi codi
 global.error.InternalServerError500.message=Rhowch gynnig arall ar fewngofnodi mewn ychydig o funudau.
 
+global.lang=cy
+
 linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
 linkText.back=Yn ôl
 linkText.removeRepeatedGroup=Dileu {0}
@@ -14,10 +16,10 @@ button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
 button.acceptAndSubmit=Derbyn a chyflwyno
 button.acceptAndSubmitForm=Derbyn a chyflwyno {0}
-button.confirmAndSend=Cadarnhewch ac anfonwch
+button.confirmAndSend=Cadarnhau ac anfon
 
 # Signed Out
-signedOut.title=Rydych wedi cael eich llofnodi
+signedOut.title=Rydych wedi cael eich allgofnodi
 
 # Error summary
 error.summary.heading=Mae problem wedi codi
@@ -31,7 +33,7 @@ generic.Warning=Rhybudd
 
 # Form categories
 formCategory.form=ffurflen
-formCategory.return=Ffurflen Dreth
+formCategory.return=ffurflen Dreth
 formCategory.claim=hawliad
 
 
@@ -103,7 +105,7 @@ ukAddress.line3.label=tref neu ddinas
 ukAddress.line4.label=sir
 ukAddress.postcode.label=cod post
 
-ukAddress.line1.error.maxLength=Rhaid i faes adeilad a’r stryd {0} beidio â bod yn fwy na {1} o gymeriadau
+ukAddress.line1.error.maxLength=Rhaid i faes adeilad a stryd {0} beidio â bod yn fwy na {1} o gymeriadau
 ukAddress.line2.error.maxLength=Rhaid i faes adeilad a’r stryd – llinell 2 {0} beidio â bod yn fwy na {1} o gymeriadau
 ukAddress.line3.error.maxLength=Rhaid i faes tref neu ddinas {0} beidio â bod yn fwy na {1} o gymeriadau
 ukAddress.line4.error.maxLength=Rhaid i faes sir {0} beidio â bod yn fwy na {1} o gymeriadau
@@ -122,8 +124,8 @@ internationalAddress.line4.label=llinell 4
 internationalAddress.country.label=gwlad
 
 # Generic address
-address.line4.error.maxLength=rhaid i linell 4 beidio â bod yn fwy na {0} o gymeriadau
-address.line.error.maxLength=Rhaid i linell {0} beidio â bod yn fwy na {1} o gymeriadau
+address.line4.error.maxLength=Rhaid i linell 4 {0} beidio â bod yn fwy na {1} o gymeriadau
+address.line.error.maxLength=Rhaid i linell {1} {0} beidio â bod yn fwy na {2} o gymeriadau
 
 # Date
 date.day=diwrnod
@@ -283,3 +285,6 @@ save4later.continue=Parhau â’m {0}
 save4later.infoHeld=Caiff eich gwybodaeth ei dal
 save4later.for30days=am 30 diwrnod
 save4later.until=tan
+
+# Helper for grammatical order
+helper.order={1} {0}

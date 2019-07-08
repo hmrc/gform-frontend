@@ -3,6 +3,8 @@ global.error.InternalServerError500.title=We’re experiencing technical difficu
 global.error.InternalServerError500.heading=We’re experiencing technical difficulties
 global.error.InternalServerError500.message=Try signing in again in a few minutes.
 
+global.lang=en
+
 branding.hmrc=HM Revenue & Customs
 branding.ofsted=Ofsted
 
@@ -128,8 +130,8 @@ internationalAddress.country.label=country
 
 # Generic address
 address.isUK=Is this a UK address?
-address.line4.error.maxLength=line 4 must be no more than {0} characters
-address.line.error.maxLength=line {0} must be no more than {1} characters
+address.line4.error.maxLength={0} line 4 must be no more than {1} characters
+address.line.error.maxLength={0} line {1} must be no more than {2} characters
 
 # Date
 date.day=day
@@ -291,4 +293,7 @@ save4later.continue=Continue my {0}
 save4later.infoHeld=Your information is held
 save4later.for30days=for 30 days
 save4later.until=until
+
+# Helper for grammatical order
+helper.order={0} {1}
 

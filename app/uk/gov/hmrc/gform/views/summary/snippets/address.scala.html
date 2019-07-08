@@ -36,7 +36,7 @@
 
     <div>
       <dt class="cya-question@{if(validationResult.isNotOk) " summary--error"}">
-        @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
+        @{fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).capitalize}
       </dt>
 
       <dd class="cya-answer">
