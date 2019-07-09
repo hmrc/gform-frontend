@@ -111,6 +111,7 @@ case object Validated extends FormStatus
 case object Signed extends FormStatus
 case object NeedsReview extends FormStatus
 case object Accepting extends FormStatus
+case object Rejecting extends FormStatus
 case object Accepted extends FormStatus
 case object Submitted extends FormStatus
 
