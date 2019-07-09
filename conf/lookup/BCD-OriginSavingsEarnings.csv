@@ -1,4 +1,4 @@
-id,name
-3,Personal cash savings
-4,Personal savings in a bank
-9,Personal earnings
+id,name,en,cy
+3,Personal cash savings,Personal cash savings,Personal cash savings
+4,Personal savings in a bank,Personal savings in a bank,Personal savings in a bank
+9,Personal earnings,Personal earnings,Personal earnings

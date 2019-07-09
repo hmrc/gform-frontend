@@ -1,11 +1,11 @@
-ID,Name
-1,Notes
-2,T Cheques
-3,B Bonds
-4,Cheques
-5,Bankers Draft
-6,Postal Order
-7,Other (DO NOT USE)
-8,Not Given
-9,Commodity
-10,Coins
+ID,Name,en,cy
+1,Notes,Notes,Notes
+2,T Cheques,Travellers Cheques,Travellers Cheques
+3,B Bonds,Bearer Bonds,Bearer Bonds
+4,Cheques,Cheques,Cheques
+5,Bankers Draft,Bankers Draft,Bankers Draft
+6,Postal Order,Postal Order,Postal Order
+7,Other (DO NOT USE),Other,Other
+8,Not Given,Not given,Not given
+9,Commodity,Commodity,Commodity
+10,Coins,Coins,Coins

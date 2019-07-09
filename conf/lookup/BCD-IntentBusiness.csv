@@ -1,5 +1,5 @@
-id,name
-3,Buying commercial vehicle or parts
-12,Wages
-11,Expenses
-8,Other business costs
+id,name,en,cy
+3,Buying commercial vehicle or parts,Buying commercial vehicle or parts,Buying commercial vehicle or parts
+12,Wages,Wages,Wages
+11,Expenses,Expenses,Expenses
+8,Other business costs,Other business costs,Other business costs

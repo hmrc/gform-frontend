@@ -1,21 +1,21 @@
-ID,Name
-1,For Family
-2,Purchase Of Private Vehicle
-3,Purchase Of Commercial Vehicle (&or Parts)
-4,Purchase Of Property
-5,Purchase Of Antiques
-6,Purchase Ragtrade
-7,Purchase Precious Metals / Gems
-8,Purchase Other (business)
-9,Purchase Other Private
-10,Shopping / Tourism
-11,Expenses
-12,Wages
-13,Investment
-14,Medical
-15,Other
-16,Not Given
-17,Education Fees
-18,Gambling
-19,Ransom
-20,Personal
+ID,Name,en,cy
+1,For Family,Family costs,Family costs
+2,Purchase Of Private Vehicle,Vehicle,Vehicle
+3,Purchase Of Commercial Vehicle (&or Parts),Buying commercial vehicle or parts,Buying commercial vehicle or parts
+4,Purchase Of Property,Property,Property
+5,Purchase Of Antiques,Antiques,Antiques
+6,Purchase Ragtrade,Clothing,Clothing
+7,Purchase Precious Metals / Gems,Jewellery,Jewellery
+8,Purchase Other (business),Other business costs,Other business costs
+9,Purchase Other Private,Other Purchase,Other Purchase
+10,Shopping / Tourism,Shopping or tourism,Shopping or tourism
+11,Expenses,Expenses,Expenses
+12,Wages,Wages,Wages
+13,Investment,Investment,Investment
+14,Medical,Medical costs,Medical costs
+15,Other,Other,Other
+16,Not Given,Not Given,Not Given
+17,Education Fees,Education fees,Education fees
+18,Gambling,Gambling,Gambling
+19,Ransom,Paying a ransom,Paying a ransom
+20,Personal,Personal,Personal

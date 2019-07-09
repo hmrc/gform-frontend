@@ -1,6 +1,6 @@
-id,name
-2,Vehicle
-4,Property
-5,Antiques
-7,Jewellery
-15,Other
+id,name,en,cy
+2,Vehicle,Vehicle,Vehicle
+4,Property,Property,Property
+5,Antiques,Antiques,Antiques
+7,Jewellery,Jewellery,Jewellery
+15,Other,Other,Other

@@ -1,5 +1,5 @@
-id,name
-1,Family costs
-14,Medical costs
-17,Education fees
-15,Other
+id,name,en,cy
+1,Family costs,Family costs,Family costs
+14,Medical costs,Medical costs,Medical costs
+17,Education fees,Education fees,Education fees
+15,Other,Other,Other

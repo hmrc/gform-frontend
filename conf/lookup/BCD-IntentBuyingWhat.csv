@@ -1,5 +1,5 @@
-id,name
-0_internal,Major purchase
-6,Clothing
-10,Shopping or tourism
-9,Other Purchase
+id,name,en,cy
+0_internal,Major purchase,Major purchase,Major purchase
+6,Clothing,Clothing,Clothing
+10,Shopping or tourism,Shopping or tourism,Shopping or tourism
+9,Other Purchase,Other Purchase,Other Purchase

@@ -1,5 +1,5 @@
-id,name
-13,Investment
-18,Gambling
-19,Paying a ransom
-15,Other
+id,name,en,cy
+13,Investment,Investment,Investment
+18,Gambling,Gambling,Gambling
+19,Paying a ransom,Paying a ransom,Paying a ransom
+15,Other,Other,Other
