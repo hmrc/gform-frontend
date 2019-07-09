@@ -10,7 +10,7 @@ linkText.back=Yn ôl
 linkText.removeRepeatedGroup=Dileu {0}
 linkText.addRepeatingGroup=Ychwanegwch un arall
 linkText.signOut=Allgofnodi
-linkText.signBackIn=Arwyddwch yn ôl
+linkText.signBackIn=Mewngofnodi eto
 
 button.continue=Yn eich blaen
 button.saveAndContinue=Cadw ac yn eich blaen
