@@ -30,7 +30,9 @@
   frontendAppConfig: FrontendAppConfig
 )(implicit request: Request[_], messages: Messages, l:LangADT)
 
-@heading = @{messages("ack.title", messages(s"formCategory.${formCategory.getString}"))}
+@formCat = @{messages(s"formCategory.${formCategory.getString}")}
+@heading = @{messages("ack.title", formCat)}
+
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -68,7 +70,7 @@
     <a
       href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, eventId).url"
       class="print-link print-hidden js-visible">
-        @messages("ack.pdfLink", formCategory.getString)
+        @messages("ack.pdfLink", formCat)
     </a>
   </p>
 
