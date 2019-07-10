@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormStatus }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.JsonNodes._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 
@@ -64,6 +64,12 @@ object HandlebarsTemplateProcessorModel {
 
   def apply(variables: FrontEndSubmissionVariables): HandlebarsTemplateProcessorModel =
     apply(variables.value.toString)
+
+  def apply(status: FormStatus): HandlebarsTemplateProcessorModel =
+    HandlebarsTemplateProcessorModel(Map("formStatus" -> textNode(status.toString)))
+
+  def summaryHtml(html: String): HandlebarsTemplateProcessorModel =
+    HandlebarsTemplateProcessorModel("summaryHtml" -> textNode(html))
 
   def hmrcTaxPeriods(form: Form): HandlebarsTemplateProcessorModel = {
 
