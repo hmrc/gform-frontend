@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
+import uk.gov.hmrc.gform.upscan.UpscanModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.config.{ AssetsConfig, OptimizelyConfig }
@@ -72,6 +73,8 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
 
   private val authModule = new AuthModule(configModule, wSHttpModule, gformBackendModule)
+
+  private val upscanModule = new UpscanModule(configModule, wSHttpModule)
 
   private val pdfGeneratorModule = new PdfGeneratorModule(configModule, wSHttpModule)
 

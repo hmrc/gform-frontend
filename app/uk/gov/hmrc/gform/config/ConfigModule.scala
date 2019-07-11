@@ -50,6 +50,7 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
     c.baseUrl("auth")
     c.baseUrl("eeitt")
     c.baseUrl("email")
+    c.baseUrl("upscan-initiate")
     c
   }
   val controllerConfig: ControllerConfig = new ControllerConfig {
