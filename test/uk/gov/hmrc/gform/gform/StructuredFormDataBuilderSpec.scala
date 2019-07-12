@@ -17,11 +17,13 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.data.NonEmptyList
+import cats.instances.either._
+import cats.syntax.either._
 import org.scalatest.Assertion
 import org.scalactic.source.Position
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -29,6 +31,8 @@ import uk.gov.hmrc.gform.sharedmodel.structuredform._
 
 class StructuredFormDataBuilderSpec extends Spec {
   implicit val l = LangADT.En
+
+  type EitherEffect[A] = Either[Throwable, A]
 
   "apply(Form, FormTemplate)" must "create the correct JSON for simple fields in non-repeating sections/groups" in {
     validate(
@@ -40,7 +44,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       createForm(
         "field" -> "fieldValue"
       ),
-      objectStructure(field("field", textNode("fieldValue")))
+      objectStructure(field("field", textNode("fieldValue"))).asRight
     )
   }
 
@@ -54,7 +58,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       createForm(
         "field" -> "value1,value2"
       ),
-      objectStructure(field("field", arrayNode(textNode("value1"), textNode("value2"))))
+      objectStructure(field("field", arrayNode(textNode("value1"), textNode("value2")))).asRight
     )
   }
 
@@ -74,7 +78,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       objectStructure(
         field(
           "field",
-          objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3")))))
+          objectStructure(field("day", textNode("1")), field("month", textNode("2")), field("year", textNode("3"))))).asRight
     )
   }
 
@@ -95,7 +99,7 @@ class StructuredFormDataBuilderSpec extends Spec {
           arrayNode(
             textNode("fieldValue1"),
             textNode("fieldValue2")
-          )))
+          ))).asRight
     )
   }
 
@@ -116,7 +120,7 @@ class StructuredFormDataBuilderSpec extends Spec {
           arrayNode(
             arrayNode(textNode("value1"), textNode("value2")),
             arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
-          )))
+          ))).asRight
     )
   }
 
@@ -144,7 +148,7 @@ class StructuredFormDataBuilderSpec extends Spec {
             objectStructure(field("day", textNode("4")), field("month", textNode("5")), field("year", textNode("6")))
           )
         )
-      )
+      ).asRight
     )
   }
 
@@ -165,7 +169,7 @@ class StructuredFormDataBuilderSpec extends Spec {
           arrayNode(
             textNode("fieldValue1"),
             textNode("fieldValue2")
-          )))
+          ))).asRight
     )
   }
 
@@ -188,7 +192,7 @@ class StructuredFormDataBuilderSpec extends Spec {
             arrayNode(textNode("value1"), textNode("value3"), textNode("value4"))
           )
         )
-      )
+      ).asRight
     )
   }
 
@@ -216,7 +220,7 @@ class StructuredFormDataBuilderSpec extends Spec {
             objectStructure(field("day", textNode("4")), field("month", textNode("5")), field("year", textNode("6")))
           )
         )
-      )
+      ).asRight
     )
   }
 
@@ -254,7 +258,7 @@ class StructuredFormDataBuilderSpec extends Spec {
             )
           )
         )
-      )
+      ).asRight
     )
   }
 
@@ -276,7 +280,7 @@ class StructuredFormDataBuilderSpec extends Spec {
         field("field", textNode("fieldValue")),
         field("ackField", textNode("ackFieldValue")),
         field("decField", textNode("decFieldValue"))
-      )
+      ).asRight
     )
   }
 
@@ -310,16 +314,50 @@ class StructuredFormDataBuilderSpec extends Spec {
             field("postcode", textNode("6"), roboticsXmlPurposeMap("postcode")),
             field("country", textNode("7"), roboticsXmlPurposeMap("country"))
           )
-        ))
+        )
+      ).asRight
     )
   }
 
-  private val lookupRegistry = new LookupRegistry(Map.empty)
+  it must "translate label frm lookup component to its id" in {
+    validate(
+      createFormTemplate(
+        createNonRepeatingSection(
+          createLookupField("field")
+        )
+      ),
+      createForm(
+        "field" -> "fieldValue"
+      ),
+      objectStructure(
+        field("field", textNode("field_id"))
+      ).asRight
+    )
+  }
 
-  private def validate(formTemplate: FormTemplate, formData: Form, expected: StructuredFormValue)(
+  it must "fail when label doesn't exist in lookup component" in {
+    validate(
+      createFormTemplate(
+        createNonRepeatingSection(
+          createLookupField("field")
+        )
+      ),
+      createForm(
+        "field" -> "non existent label"
+      ),
+      StructuredFormDataBuilderException("Cannot find 'non existent label' in register Origin").asLeft
+    )
+  }
+
+  private val lookupRegistry = new LookupRegistry(
+    Map(
+      Register.Origin -> RadioLookup(LocalisedLookupOptions(
+        Map(LangADT.En -> LookupOptions(Map(LookupLabel("fieldValue") -> LookupInfo(LookupId("field_id"), 1))))))))
+
+  private def validate[A](formTemplate: FormTemplate, formData: Form, expected: A)(
     implicit position: Position,
     l: LangADT): Assertion =
-    StructuredFormDataBuilder(formData, formTemplate, lookupRegistry) shouldBe expected
+    StructuredFormDataBuilder[EitherEffect](formData, formTemplate, lookupRegistry) shouldBe expected
 
   def createForm(fields: (String, String)*): Form =
     Form(
@@ -393,6 +431,9 @@ class StructuredFormDataBuilderSpec extends Spec {
 
   def createNonGroupField(id: String): FormComponent =
     createFormComponent(id, Text(AnyText, Value))
+
+  def createLookupField(id: String): FormComponent =
+    createFormComponent(id, Text(Lookup(Register.Origin), Value))
 
   def createGroup(fields: FormComponent*): FormComponent =
     createFormComponent("a group", Group(fields.toList, null))

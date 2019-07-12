@@ -16,22 +16,35 @@
 
 package uk.gov.hmrc.gform.gform
 
+import cats.{ Monad, MonadError }
 import cats.data.NonEmptyList
 import cats.instances.option._
+import cats.instances.list._
+import cats.syntax.applicative._
+import cats.syntax.apply._
+import cats.syntax.traverse._
 import cats.syntax.foldable._
 import cats.syntax.option._
+import cats.syntax.functor._
 import uk.gov.hmrc.gform.lookup._
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
 object StructuredFormDataBuilder {
-  def apply(form: Form, template: FormTemplate, lookupRegistry: LookupRegistry): ObjectStructure =
-    StructuredFormValue.ObjectStructure(new StructuredFormDataBuilder(form, template, lookupRegistry).build())
+  def apply[F[_]](form: Form, template: FormTemplate, lookupRegistry: LookupRegistry)(
+    implicit l: LangADT,
+    me: MonadError[F, Throwable]): F[ObjectStructure] =
+    new StructuredFormDataBuilder[F](form, template, lookupRegistry)
+      .build()
+      .map(StructuredFormValue.ObjectStructure.apply)
+
 }
 
-class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegistry: LookupRegistry) {
+class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookupRegistry: LookupRegistry)(
+  implicit me: MonadError[F, Throwable]) {
   private val formValuesByUnindexedId: Map[FormComponentId, NonEmptyList[String]] =
     form.formData.fields
       .groupBy(f => f.id.reduceToTemplateFieldId)
@@ -39,40 +52,51 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegist
 
   private val multiChoiceFieldIds: Set[FormComponentId] = extractMultiChoiceFieldIds(template)
 
-  def build(): List[Field] =
-    buildSections ++ buildBaseSection(template.acknowledgementSection) ++ buildBaseSection(template.declarationSection)
+  def build()(implicit l: LangADT): F[List[Field]] =
+    (buildSections, buildBaseSection(template.acknowledgementSection), buildBaseSection(template.declarationSection))
+      .mapN(_ ++ _ ++ _)
 
-  private def buildSections(): List[Field] =
-    for {
-      section     <- template.sections
-      field       <- section.fields
-      fieldAsJson <- buildField(field, section.isRepeating)
-    } yield fieldAsJson
+  private def buildSections()(implicit l: LangADT): F[List[Field]] = {
+    val fields: List[F[List[Field]]] =
+      for {
+        section <- template.sections
+        field   <- section.fields
+      } yield buildField(field, section.isRepeating)
 
-  def buildBaseSection(section: BaseSection): List[Field] =
-    for {
-      unstructuredField <- section.fields
-      structuredField   <- buildField(unstructuredField, repeatable = false)
-    } yield structuredField
+    fields.flatTraverse(identity)
 
-  private def buildField(field: FormComponent, repeatable: Boolean): Seq[Field] =
+  }
+
+  def buildBaseSection(section: BaseSection)(implicit l: LangADT): F[List[Field]] =
+    section.fields
+      .flatTraverse { unstructuredField =>
+        buildField(unstructuredField, repeatable = false)
+      }
+
+  private def buildField(field: FormComponent, repeatable: Boolean)(implicit l: LangADT): F[List[Field]] =
     field.`type` match {
       case g: Group => buildGroupFields(g)
-      case _        => buildNonGroupField(field, repeatable).toSeq
+      case _        => buildNonGroupField(field, repeatable)
     }
 
-  private def buildGroupFields(group: Group): Seq[Field] =
-    group.fields.flatMap { buildNonGroupField(_, repeatable = true) }
+  private def buildGroupFields(group: Group)(implicit l: LangADT): F[List[Field]] =
+    group.fields.flatTraverse { buildNonGroupField(_, repeatable = true) }
 
-  private def buildNonGroupField(nonGroupField: FormComponent, repeatable: Boolean): Option[Field] =
-    nonGroupField.`type` match {
-      case mf: MultiField     => buildMultiField(nonGroupField, mf, repeatable)
+  private def buildNonGroupField(nonGroupField: FormComponent, repeatable: Boolean)(
+    implicit l: LangADT): F[List[Field]] = {
+    val maybeField: F[Option[Field]] = nonGroupField.`type` match {
+      case mf: MultiField     => buildMultiField(nonGroupField, mf, repeatable).pure[F]
       case r: RevealingChoice => buildRevealingChoiceFields(nonGroupField.id, r)
       case _ =>
-        formValuesByUnindexedId.get(nonGroupField.id).map {
-          buildSimpleField(nonGroupField, _, repeatable, multiChoiceFieldIds.contains(nonGroupField.id))
-        }
+        formValuesByUnindexedId
+          .get(nonGroupField.id)
+          .traverse {
+            buildSimpleField(nonGroupField, _, repeatable, multiChoiceFieldIds.contains(nonGroupField.id))
+          }
+
     }
+    maybeField.map(_.toList)
+  }
 
   private def buildMultiField(baseField: FormComponent, mf: MultiField, repeatable: Boolean): Option[Field] =
     mf.fields(baseField.id)
@@ -115,52 +139,63 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegist
     field: FormComponent,
     values: NonEmptyList[String],
     repeatable: Boolean,
-    multiValue: Boolean): Field =
+    multiValue: Boolean)(implicit l: LangADT): F[Field] =
     if (repeatable) buildRepeatingSimpleField(field, values, multiValue)
     else buildNonRepeatingSimpleField(field, values.head, multiValue)
 
-  private def lookupIdFromLabel(label: LookupLabel, register: Register): String =
-    lookupRegistry.get(register).get match {
-      case r: RadioLookup => r.options(label).id.id
-      case a: AjaxLookup  => a.options(label).id.id
+  private def lookupIdFromLabel(label: LookupLabel, register: Register)(implicit l: LangADT): F[String] =
+    lookupRegistry
+      .get(register)
+      .flatMap {
+        case RadioLookup(options)      => options.lookupInfo(label)
+        case AjaxLookup(options, _, _) => options.lookupInfo(label)
+      } match {
+      case Some(LookupInfo(LookupId(id), _)) => id.pure[F]
+      case None =>
+        me.raiseError(StructuredFormDataBuilderException(s"Cannot find '${label.label}' in register $register"))
     }
 
-  private def valueForFieldType(field: FormComponent, value: String): String =
+  private def valueForFieldType(field: FormComponent, value: String)(implicit l: LangADT): F[String] =
     field.`type` match {
       case Text(Lookup(register), _, _, _) => lookupIdFromLabel(LookupLabel(value), register)
-      case _                               => value
+      case _                               => value.pure[F]
     }
 
-  private def buildNonRepeatingSimpleField(field: FormComponent, value: String, multiValue: Boolean): Field =
-    Field(FieldName(field.id.value), buildNode(valueForFieldType(field, value), multiValue), Map.empty)
+  private def buildNonRepeatingSimpleField(field: FormComponent, value: String, multiValue: Boolean)(
+    implicit l: LangADT): F[Field] =
+    for {
+      fieldValue <- valueForFieldType(field, value)
+    } yield Field(FieldName(field.id.value), buildNode(fieldValue, multiValue), Map.empty)
 
-  private def buildRepeatingSimpleField(field: FormComponent, value: NonEmptyList[String], multiValue: Boolean): Field =
-    Field(
-      FieldName(field.id.value),
-      ArrayNode(value.toList.map(v => buildNode(valueForFieldType(field, v), multiValue))),
-      Map.empty)
+  private def buildRepeatingSimpleField(field: FormComponent, value: NonEmptyList[String], multiValue: Boolean)(
+    implicit l: LangADT): F[Field] = {
+    val elementsF: F[List[StructuredFormValue]] = value.toList.traverse { v =>
+      valueForFieldType(field, v).map(buildNode(_, multiValue))
+    }
+    elementsF.map(elements => Field(FieldName(field.id.value), ArrayNode(elements), Map.empty))
+  }
 
-  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice): Option[Field] =
-    formValuesByUnindexedId.get(id).map(_.head).flatMap { selectionStr =>
+  private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice)(
+    implicit l: LangADT): F[Option[Field]] =
+    formValuesByUnindexedId.get(id).map(_.head).flatTraverse { selectionStr =>
       val selection = selectionStr.toInt
-      revealingChoice.options.get(selection).map { rcElement =>
-        Field(
-          FieldName(id.value),
-          ObjectStructure(
-            List(
-              Field(FieldName("choice"), TextNode(selection.toString)),
-              Field(FieldName("revealed"), ObjectStructure(revealedChoiceFields(rcElement)))
+      revealingChoice.options.get(selection).traverse { rcElement =>
+        revealedChoiceFields(rcElement).map { os =>
+          Field(
+            FieldName(id.value),
+            ObjectStructure(
+              List(
+                Field(FieldName("choice"), TextNode(selection.toString)),
+                Field(FieldName("revealed"), ObjectStructure(os))
+              )
             )
           )
-        )
+        }
       }
     }
 
-  private def revealedChoiceFields(rcElement: RevealingChoiceElement): List[Field] =
-    rcElement.revealingFields
-      .flatMap { component =>
-        buildNonGroupField(component, false)
-      }
+  private def revealedChoiceFields(rcElement: RevealingChoiceElement)(implicit l: LangADT): F[List[Field]] =
+    rcElement.revealingFields.flatTraverse(buildNonGroupField(_, false))
 
   private def buildNode(value: String, multiValue: Boolean): StructuredFormValue =
     if (multiValue) choicesToArray(value)
@@ -196,3 +231,5 @@ class StructuredFormDataBuilder(form: Form, template: FormTemplate, lookupRegist
       }
     }
 }
+
+case class StructuredFormDataBuilderException(message: String) extends Exception

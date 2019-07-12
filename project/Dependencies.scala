@@ -30,7 +30,7 @@ object Dependencies {
     "uk.gov.hmrc" %% "csp-client" % "3.4.0",
     "com.softwaremill.quicklens" %% "quicklens" % "1.4.11",
     "uk.gov.hmrc" %% "play-language" % "3.4.0",
-    "com.nrinaudo" %% "kantan.csv" % "0.5.0",
+    "com.nrinaudo" %% "kantan.csv" % "0.5.1",
     "com.miguelfonseca.completely" % "completely-core" % "0.8.0"
   )
 

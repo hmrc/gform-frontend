@@ -25,6 +25,7 @@ import scala.concurrent.Future
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupInfo, LookupLabel, LookupRegistry, ShowAll }
 import uk.gov.hmrc.gform.models.LookupQuery
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
@@ -37,14 +38,15 @@ class LookupController(
     lookup(formTemplateId, register, LookupQuery.Empty)
 
   def lookup(formTemplateId: FormTemplateId, register: Register, lookupQuery: LookupQuery): Action[AnyContent] =
-    auth.async(formTemplateId, None) { implicit request => l => cache =>
+    auth.async(formTemplateId, None) { implicit request => implicit l => cache =>
       val filtered: List[LookupLabel] = (lookupRegistry.get(register), lookupQuery) match {
-        case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty)  => options.sorted
+        case (Some(AjaxLookup(options, _, ShowAll.Enabled)), LookupQuery.Empty)  => options.process(_.sorted)
         case (Some(AjaxLookup(options, _, ShowAll.Disabled)), LookupQuery.Empty) => List.empty
         case (Some(AjaxLookup(options, autocomplete, showAll)), LookupQuery.Value(query)) =>
-          val labels: List[LookupLabel] = autocomplete.search(query).asScala.toList.map(_.toLookupLabel)
+          val labels: List[LookupLabel] =
+            autocomplete.get(l).fold(List.empty[LookupLabel])(_.search(query).asScala.toList.map(_.toLookupLabel))
           showAll match {
-            case ShowAll.Enabled  => options.sorted.filter(labels.contains)
+            case ShowAll.Enabled  => options.process(_.sorted.filter(labels.contains))
             case ShowAll.Disabled => labels.sorted
           }
         case _ => List.empty

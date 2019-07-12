@@ -48,19 +48,20 @@ object ComponentValidator {
     fieldValue: FormComponent,
     lookupRegistry: LookupRegistry,
     register: Register,
-    lookupLabel: LookupLabel)(implicit messages: Messages, l: LangADT) = {
+    lookupLabel: LookupLabel)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] = {
+
+    def lookupError: ValidatedType[Unit] = {
+      val vars: List[String] = lookupLabel.label :: Nil
+      validationFailure(fieldValue, "generic.error.lookup", Some(vars))
+    }
 
     def existsLabel(options: LookupOptions) =
-      if (options.contains(lookupLabel))
-        validationSuccess
-      else {
-        val vars: List[String] = lookupLabel.label :: Nil
-        validationFailure(fieldValue, "generic.error.lookup", Some(vars))
-      }
+      if (options.contains(lookupLabel)) validationSuccess
+      else lookupError
 
     lookupRegistry.get(register) match {
-      case Some(AjaxLookup(options, _, _)) => existsLabel(options)
-      case Some(RadioLookup(options))      => existsLabel(options)
+      case Some(AjaxLookup(options, _, _)) => options.fold(lookupError)(existsLabel)
+      case Some(RadioLookup(options))      => options.fold(lookupError)(existsLabel)
       case None =>
         val vars: List[String] = register.toString :: Nil
         validationFailure(fieldValue, "generic.error.registry", Some(vars))
