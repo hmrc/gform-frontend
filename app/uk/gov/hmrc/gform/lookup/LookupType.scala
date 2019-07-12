@@ -17,13 +17,14 @@
 package uk.gov.hmrc.gform.lookup
 
 import com.miguelfonseca.completely.AutocompleteEngine
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 sealed trait LookupType extends Product with Serializable
 
-case class RadioLookup(options: LookupOptions) extends LookupType
+case class RadioLookup(options: LocalisedLookupOptions) extends LookupType
 case class AjaxLookup(
-  options: LookupOptions,
-  autocomplete: AutocompleteEngine[LookupRecord],
+  options: LocalisedLookupOptions,
+  autocomplete: Map[LangADT, AutocompleteEngine[LookupRecord]],
   showAll: ShowAll
 ) extends LookupType
 

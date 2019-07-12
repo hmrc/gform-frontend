@@ -264,11 +264,12 @@ class DeclarationController(
     customerId: CustomerId,
     submissionDetails: Option[SubmissionDetails])(implicit request: Request[_], l: LangADT) =
     for {
-      _              <- futureLogInfo("handleSubmission - top of for comprehension")
-      htmlForPDF     <- summaryRenderingService.createHtmlForPdf(maybeAccessCode, cache, submissionDetails)
-      _              <- futureLogInfo("handleSubmission - createHtmlForPdf")
-      emailParameter <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
-      _              <- futureLogInfo("handleSubmission - recalculateEmailParameters")
+      _                  <- futureLogInfo("handleSubmission - top of for comprehension")
+      htmlForPDF         <- summaryRenderingService.createHtmlForPdf(maybeAccessCode, cache, submissionDetails)
+      _                  <- futureLogInfo("handleSubmission - createHtmlForPdf")
+      emailParameter     <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
+      _                  <- futureLogInfo("handleSubmission - recalculateEmailParameters")
+      structuredFormData <- StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
       _ <- GformSubmission
             .handleSubmission(
               config,
@@ -279,7 +280,7 @@ class DeclarationController(
               maybeAccessCode,
               customerId,
               htmlForPDF,
-              StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
+              structuredFormData
             )
       _ <- futureLogInfo("handleSubmission - GformSubmission.handleSubmission")
     } yield ()

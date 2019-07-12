@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.gform.lookup
 
-case class LookupOptions(options: Map[LookupLabel, LookupInfo]) extends AnyVal {
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-  def get(lookupLabel: LookupLabel): Option[LookupInfo] = options.get(lookupLabel)
+case class LocalisedLookupOptions(m: Map[LangADT, LookupOptions]) extends AnyVal {
 
-  def contains(lookupLabel: LookupLabel): Boolean = options.contains(lookupLabel)
+  def lookupInfo(label: LookupLabel)(implicit l: LangADT): Option[LookupInfo] = m.get(l).flatMap(_.get(label))
 
-  def keys: Iterable[LookupLabel] = options.keys
+  def fold[A](empty: A)(f: LookupOptions => A)(implicit l: LangADT): A = m.get(l).fold(empty)(f)
 
-  def sorted = options.toList.sortBy { case (_, LookupInfo(_, idx)) => idx }.map(_._1)
-
+  def process[A](f: LookupOptions => List[A])(implicit l: LangADT): List[A] = fold(List.empty[A])(f)
 }
