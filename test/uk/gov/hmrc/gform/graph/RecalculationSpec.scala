@@ -258,7 +258,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       // format: off
       ("input", "output"),
       (mkData("a" -> "1"),             mkData("a" -> "1", "b" -> "3")),
-      (mkData("a" -> "1", "b" -> "2"), mkData("a" -> "1", "b" -> "2"))
+      (mkData("a" -> "1", "b" -> "2"), mkData("a" -> "1", "b" -> "3"))
       // format: on
     )
 
