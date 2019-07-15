@@ -95,11 +95,11 @@ class DeclarationController(
       } yield Ok
     }
 
-  def reviewRejected(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       for {
         submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-        _          <- submitToBackEnd(Rejecting, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
+        _          <- submitToBackEnd(Returning, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
       } yield Ok
     }
 
