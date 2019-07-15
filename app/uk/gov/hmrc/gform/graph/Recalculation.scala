@@ -283,7 +283,7 @@ class Recalculation[F[_]: Monad, E](
     thirdPartyData: ThirdPartyData,
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Either[GraphException, RecData]] =
     Either.fromOption(fcLookup.get(fcId), NoFormComponent(fcId, fcLookup)).traverse { fc =>
-      if ((fc.editable || fc.derived) && (hasData(fc, dataLookup.data) && !isHmrcTaxPeriodComponent(fc)))
+      if (fc.editable && (hasData(fc, dataLookup.data) && !isHmrcTaxPeriodComponent(fc)))
         dataLookup.pure[F]
       else
         fc match {
