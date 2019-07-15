@@ -86,7 +86,7 @@ class DeclarationController(
         Nil)
   }
 
-  //TODO make both  review a single endpoint
+  //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       for {
@@ -100,6 +100,14 @@ class DeclarationController(
       for {
         submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
         _          <- submitToBackEnd(Rejecting, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
+      } yield Ok
+    }
+
+  def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+      for {
+        submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
+        _          <- submitToBackEnd(Submitting, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
       } yield Ok
     }
 
