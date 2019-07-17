@@ -45,7 +45,7 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationWithCustomerId, Destinations }
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class DeclarationController(
   i18nSupport: I18nSupport,
@@ -111,15 +111,19 @@ class DeclarationController(
       } yield Ok
     }
 
-  def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+  def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] = {
+    Logger.info("submitDeclaration - before auth")
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cacheOrig =>
+      Logger.info("submitDeclaration - after auth")
       processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
+        Logger.info("submitDeclaration - after processResponseDataFromBody")
         get(dataRaw, FormComponentId("save")) match {
           case "Continue" :: Nil => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)
           case _                 => Future.successful(BadRequest("Cannot determine action"))
         }
       }
     }
+  }
 
   private def continueToSubmitDeclaration(
     cache: AuthCacheWithForm,
@@ -130,14 +134,19 @@ class DeclarationController(
 
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
     for {
+      _                                 <- futureLogInfo("continueToSubmitDeclaration - top of for comprehension")
       cacheWithHiddenSectionDataRemoved <- removeHiddenSectionData(cache)
+      _                                 <- futureLogInfo("continueToSubmitDeclaration - cacheWithHiddenSectionDataRemoved")
       valRes                            <- validationService.validateComponentsWithCache(cacheWithHiddenSectionDataRemoved, declarationData)
+      _                                 <- futureLogInfo("continueToSubmitDeclaration - validateComponentsWithCache")
       response                          <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
+      _                                 <- futureLogInfo("continueToSubmitDeclaration - processValidation")
     } yield response
   }
 
   private def removeHiddenSectionData(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
     recalculateFormData(cache).map { data =>
+      Logger.info("removeHiddenSectionData")
       val visibleFields: Seq[FormField] = VisibleFieldCalculator(cache.formTemplate, cache.form.formData, data)
       val updatedForm = cache.form.copy(formData = cache.form.formData.copy(fields = visibleFields))
       cache.copy(form = updatedForm)
@@ -177,8 +186,10 @@ class DeclarationController(
     implicit request: Request[_],
     l: LangADT) = {
     val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
-    submitToBackEnd(Signed, updatedCache, maybeAccessCode, None)
-      .map(showAcknowledgement(updatedCache, maybeAccessCode, _))
+    futureLogInfo("processValid").flatMap { _ =>
+      submitToBackEnd(Signed, updatedCache, maybeAccessCode, None)
+        .map(showAcknowledgement(updatedCache, maybeAccessCode, _))
+    }
   }
 
   private def submitToBackEnd(
@@ -187,9 +198,13 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     submissionDetails: Option[SubmissionDetails])(implicit request: Request[_], l: LangADT) =
     for {
+      _          <- futureLogInfo("submitToBackEnd - top of for comprehension")
       _          <- updateUserData(cache.form, formStatus)
+      _          <- futureLogInfo("submitToBackEnd - updateUserData")
       customerId <- evaluateCustomerId(cache)
+      _          <- futureLogInfo("submitToBackEnd - evaluateCustomerId")
       _          <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails)
+      _          <- futureLogInfo("submitToBackEnd - handleSubmission")
     } yield customerId
 
   private def showAcknowledgement(
@@ -249,8 +264,11 @@ class DeclarationController(
     customerId: CustomerId,
     submissionDetails: Option[SubmissionDetails])(implicit request: Request[_], l: LangADT) =
     for {
+      _              <- futureLogInfo("handleSubmission - top of for comprehension")
       htmlForPDF     <- summaryRenderingService.createHtmlForPdf(maybeAccessCode, cache, submissionDetails)
+      _              <- futureLogInfo("handleSubmission - createHtmlForPdf")
       emailParameter <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
+      _              <- futureLogInfo("handleSubmission - recalculateEmailParameters")
       _ <- GformSubmission
             .handleSubmission(
               config,
@@ -263,6 +281,7 @@ class DeclarationController(
               htmlForPDF,
               StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
             )
+      _ <- futureLogInfo("handleSubmission - GformSubmission.handleSubmission")
     } yield ()
 
   private def createHtmlForInvalidSubmission(
@@ -302,4 +321,6 @@ class DeclarationController(
     val declarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
     validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))
   }
+
+  private def futureLogInfo(msg: String)(implicit ec: ExecutionContext) = Future(Logger.info(msg))
 }
