@@ -32,33 +32,51 @@
   index: Int
 )(implicit l:LangADT)
 
+@currentValue = @{validationResult.flatMap(_.getCurrentValue)}
+@label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
+
 @display(fcId: FormComponentId) = {
   <label class="@{if(formLevelHeading) { "form-label" } else { "h1-heading" }}" for="@fcId.value">
-    @LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
+    @label
   </label>
 }
 
 @form_group(validationResult) {
-  @defining(fieldValue.id, prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")) { case (fcId, prepopValue) =>
+  @defining(fieldValue.id, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>
 
-    @if(formLevelHeading) { @display(fcId) } else { <h1>@display(fcId)</h1> }
+    @if(!fieldValue.editable) {
+      <input type="hidden" id="@{fcId.value}" name="@{fcId.value}" value="@prepopValue" />
+    } else {
 
-    @if(fieldValue.helpText.nonEmpty) {
-      <span class="form-hint" id="@{fcId.value}-hint">
-        @{fieldValue.helpText.map(ls=>ls.value)}
-      </span>
-    }
+      @if(formLevelHeading) {
+        @display(fcId)
+      } else {
+        <h1>@display(fcId)</h1>
+      }
 
-    @inline_error_map(fieldValue, validationResult)
+      @if(fieldValue.helpText.nonEmpty) {
+        <span class="form-hint" id="@{
+          fcId.value
+        }-hint">
+        @{
+          fieldValue.helpText.map(ls => ls.value)
+        }
+        </span>
+      }
 
-    <div
-      id="@{fcId.value}"
+      @inline_error_map(fieldValue, validationResult)
+
+      <div
+      id="@{
+        fcId.value
+      }"
       class="lookup"
       data-field-id="@fcId.value"
       data-value="@prepopValue"
       data-lookup="@register.asString"
       data-formTemplateId="@formTemplateId.value"
       data-show-all="@showAll.enabled">
-    </div>
+      </div>
+    }
   }
 }
