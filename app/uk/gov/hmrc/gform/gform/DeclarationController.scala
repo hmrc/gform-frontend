@@ -23,6 +23,7 @@ import cats.syntax.traverse._
 import cats.syntax.validated._
 import play.api.Logger
 import play.api.i18n.I18nSupport
+import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
@@ -33,6 +34,7 @@ import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, RecData, Recalculation }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.gform.handlers.{ DeclarationControllerRequestHandler, FormDataUpdater }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -45,7 +47,8 @@ import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationWithCustomerId, Destinations }
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 
 class DeclarationController(
   i18nSupport: I18nSupport,
@@ -89,26 +92,34 @@ class DeclarationController(
   //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      for {
-        submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-        _          <- submitToBackEnd(Accepting, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
-      } yield Ok
+      submitReview(formTemplateId, cache, maybeAccessCode, Accepting)
     }
 
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      for {
-        submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-        _          <- submitToBackEnd(Returning, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
-      } yield Ok
+      submitReview(formTemplateId, cache, maybeAccessCode, Returning)
     }
 
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      for {
-        submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-        _          <- submitToBackEnd(Submitting, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
-      } yield Ok
+      submitReview(formTemplateId, cache, maybeAccessCode, Submitting)
+    }
+
+  private def submitReview(
+    formTemplateId: FormTemplateId,
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode],
+    formStatus: FormStatus)(implicit request: Request[AnyContent], l: LangADT): Future[Status] =
+    for {
+      submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
+      _          <- submitToBackEnd(formStatus, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
+    } yield Ok
+
+  def updateFormField(formTemplateId: FormTemplateId) =
+    auth.async(formTemplateId, None) { implicit request => implicit l => cache =>
+      new DeclarationControllerRequestHandler()
+        .handleUpdatedFormRequest(request.body.asJson, cache.form)
+        .fold(Future.successful(BadRequest))(updated => updateUserData(updated, updated.status).map(_ => Ok))
     }
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
