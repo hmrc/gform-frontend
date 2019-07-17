@@ -29,43 +29,65 @@
   validationResult: Option[FormFieldValidationResult],
   index: Int)(implicit l:LangADT)
 
-@form_group(validationResult) {
-  @defining(
-    fieldValue.id,
-    prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse(""),
-    LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
-  ) { case (fcId, selectedValue, label) =>
+@currentValue = @{validationResult.flatMap(_.getCurrentValue)}
 
-    <fieldset id="@{fcId.value}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fcId.value}-hint" }>
-      <legend class="form-label">
-        @if(formLevelHeading) { @label } else { <h1>@label</h1> }
-      </legend>
+  @form_group(validationResult) {
+    @defining(
+      fieldValue.id,
+      prepop.orElse(currentValue).getOrElse(""),
+      LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
+    ) { case (fcId, selectedValue, label) =>
 
-      @if(fieldValue.helpText.nonEmpty) {
-        <span class="form-hint" id="@{fcId.value}-hint">
-          @{fieldValue.helpText.map(ls=>ls.value)}
-        </span>
-      }
+      @if(!fieldValue.editable) {
+        <input type="hidden" name="@{fcId.value}" value="@{selectedValue}" />
+      } else {
 
-      @inline_error_map(fieldValue, validationResult)
+        <fieldset id="@{
+          fcId.value
+        }" @if(fieldValue.helpText.nonEmpty) {
+          aria-describedby="@{
+            fcId.value
+          }-hint" }>
+          <legend class="form-label">
+          @if(formLevelHeading) {
+            @label
+          } else {
+            <h1>@label</h1>
+          }
+          </legend>
 
-      @for((item, itemIndex) <- options.zipWithIndex) {
-        @defining(item.label, fcId.value + itemIndex) { case (label, id) =>
-          <div class="multiple-choice">
-            <input
+          @if(fieldValue.helpText.nonEmpty) {
+            <span class="form-hint" id="@{
+              fcId.value
+            }-hint">
+            @{
+              fieldValue.helpText.map(ls => ls.value)
+            }
+            </span>
+          }
+
+          @inline_error_map(fieldValue, validationResult)
+
+          @for((item, itemIndex) <- options.zipWithIndex) {
+            @defining(item.label, fcId.value + itemIndex) { case (label, id) =>
+            <div class="multiple-choice">
+              <input
               id="@id"
               name="@fcId.value"
               value="@label"
               type="radio"
-              @if(selectedValue == label) {checked="checked"}
-            />
+                @if(selectedValue == label) {
+                  checked="checked"
+              }
+              />
 
-            <label for="@id">
+              <label for="@id">
               @label
             </label>
-          </div>
+            </div>
+            }
+          }
+        </fieldset>
         }
-      }
-    </fieldset>
+    }
   }
-}
