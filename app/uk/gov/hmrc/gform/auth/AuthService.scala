@@ -20,10 +20,9 @@ import java.util.Base64
 
 import cats.implicits._
 import play.api.Logger
-import play.api.libs.json.{ JsDefined, JsString, Json }
-
-import scala.util.{ Failure, Success, Try }
+import play.api.libs.json.{ JsError, JsSuccess, Json }
 import uk.gov.hmrc.auth.core.authorise._
+import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
@@ -36,6 +35,7 @@ import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 class AuthService(
   appConfig: AppConfig,
@@ -49,8 +49,8 @@ class AuthService(
     formTemplate: FormTemplate,
     requestUri: String,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
-    ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult]
-  )(
+    ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
+    assumedIdentity: Option[String])(
     implicit hc: HeaderCarrier,
     l: LangADT
   ): Future[AuthResult] =
@@ -60,7 +60,7 @@ class AuthService(
           .fold[AuthResult](AuthAnonymousSession(gform.routes.FormController.dashboard(formTemplate._id)))(sessionId =>
             AuthSuccessful(AnonymousRetrievals(sessionId)))
           .pure[Future]
-      case AWSALBAuth            => performAWSALBAuth().pure[Future]
+      case AWSALBAuth            => performAWSALBAuth(assumedIdentity).pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
       case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -78,10 +78,14 @@ class AuthService(
   private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")
   private val decoder = Base64.getDecoder
 
-  private def performAWSALBAuth()(implicit hc: HeaderCarrier): AuthResult = {
+  private def performAWSALBAuth(assumedIdentity: Option[String])(implicit hc: HeaderCarrier): AuthResult = {
+    Logger.info("ALB-AUTH: Start authorization...")
+
     val encodedJWT: Option[String] = hc.otherHeaders.collectFirst {
-      case (header, value) if header === "x-amzn-oidc-data" => value
+      case (header, value) if header === "X-Amzn-Oidc-Data" => value
     }
+
+    Logger.info(s"ALB-AUTH: JWT -> [${encodedJWT.getOrElse("No ALB JWT")}]")
 
     encodedJWT.fold(notAuthorized) { jwt =>
       jwt.split("\\.") match {
@@ -89,20 +93,72 @@ class AuthService(
           val payloadJson = new String(decoder.decode(payload))
           Try(Json.parse(payloadJson)) match {
             case Success(json) =>
-              json \ "username" match {
-                case JsDefined(JsString(username)) => AuthSuccessful(AWSALBRetrievals(username))
-                case _                             => AuthBlocked("Username does not exist in JWT")
+              Json.fromJson[JwtPayload](json) match {
+                case JsSuccess(jwtPayload, _) => {
+                  Logger.info(s"ALB-AUTH: Authorizing with following credentials : [${jwtPayload.toString}]")
+                  AuthSuccessful(awsAlbAuthenticatedRetrieval(jwtPayload, assumedIdentity))
+                }
+                case JsError(_) => AuthBlocked("Not authorized")
               }
             case Failure(_) =>
-              Logger.error(s"Corrupt JWT received from AWS ALB: payload is not a json: $payloadJson")
+              Logger.error(s"ALB-AUTH : Corrupt JWT received from AWS ALB: payload is not a json: $payloadJson")
               notAuthorized
           }
         case _ =>
-          Logger.error(s"Corrupt JWT received from AWS ALB: [$jwt]")
+          Logger.error(s"ALB-AUTH : Corrupt JWT received from AWS ALB: [$jwt]")
           notAuthorized
       }
     }
   }
+
+  private def awsAlbAuthenticatedRetrieval(
+    jwtPayload: JwtPayload,
+    assumedIdentity: Option[String]
+  ): AuthenticatedRetrievals =
+    if (jwtPayload.iss == appConfig.albAdminIssuerUrl) {
+
+      val identity = assumedIdentity match {
+        case Some(user) => user
+        case None       => jwtPayload.username
+      }
+
+      Logger.info(s"ALB-AUTH: Admin will assume the following user identity : [$identity]")
+
+      AuthenticatedRetrievals(
+        OneTimeLogin,
+        Enrolments(Set.empty),
+        Some(AffinityGroup.Agent),
+        Some(identity),
+        Some(identity),
+        UserDetails(
+          None,
+          None,
+          identity,
+          email = Some(""),
+          affinityGroup = AffinityGroup.Agent,
+          groupIdentifier = identity),
+        None,
+        None
+      )
+    } else {
+      AuthenticatedRetrievals(
+        OneTimeLogin,
+        Enrolments(Set.empty),
+        Some(AffinityGroup.Individual),
+        Some(jwtPayload.username),
+        Some(jwtPayload.username),
+        UserDetails(
+          None,
+          None,
+          jwtPayload.username,
+          email = Some(""),
+          affinityGroup = AffinityGroup.Individual,
+          groupIdentifier = jwtPayload.username
+        ),
+        None,
+        None
+      )
+    }
 
   private def performEnrolment(
     formTemplate: FormTemplate,

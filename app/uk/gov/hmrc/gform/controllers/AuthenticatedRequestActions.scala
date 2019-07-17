@@ -121,10 +121,19 @@ class AuthenticatedRequestActions(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
+
+      val assumedIdentity = getAssumedIdentityCookie(request.cookies.get("caseworker-assumed-identity"))
+      Logger.info(s"ALB-AUTH: Assumed identity cookie is : ${assumedIdentity.getOrElse("No assumed identity cookie")}")
+
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request.uri, getAffinityGroup, ggAuthorised(request))
+                       .authenticateAndAuthorise(
+                         formTemplate,
+                         request.uri,
+                         getAffinityGroup,
+                         ggAuthorised(request),
+                         assumedIdentity)
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -154,10 +163,19 @@ class AuthenticatedRequestActions(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
+
+      val assumedIdentity = getAssumedIdentityCookie(request.cookies.get("caseworker-assumed-identity"))
+      Logger.info(s"ALB-AUTH: Assumed identity cookie is : ${assumedIdentity.getOrElse("No assumed identity cookie")}")
+
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request.uri, getAffinityGroup, ggAuthorised(request))
+                       .authenticateAndAuthorise(
+                         formTemplate,
+                         request.uri,
+                         getAffinityGroup,
+                         ggAuthorised(request),
+                         assumedIdentity)
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -166,6 +184,12 @@ class AuthenticatedRequestActions(
                    onSuccess = withForm(f(newRequest)(l))(maybeAccessCode, formTemplate)
                  )
       } yield result
+    }
+
+  private def getAssumedIdentityCookie(cookie: Option[Cookie]): Option[String] =
+    cookie match {
+      case Some(assumedIdentity) => Some(assumedIdentity.value)
+      case None                  => None
     }
 
   private def withForm(f: AuthCacheWithForm => Future[Result])(

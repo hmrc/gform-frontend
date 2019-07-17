@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.config
-import play.api.i18n.Lang
+package uk.gov.hmrc.gform.auth.models
 
-case class FrontendAppConfig(
-  albAdminIssuerUrl: String,
-  assetsPrefix: String,
-  analyticsToken: String,
-  analyticsHost: String,
-  reportAProblemPartialUrl: String,
-  reportAProblemNonJSUrl: String,
-  governmentGatewaySignInUrl: String,
-  gformFrontendBaseUrl: String,
-  betaFeedbackUrlNoAuth: String,
-  signOutUrl: String,
-  whitelistEnabled: Boolean,
-  googleTagManagerIdAvailable: Boolean,
-  googleTagManagerId: String,
-  authModule: AuthModule,
-  availableLanguages: Map[String, Lang],
-  routeToSwitchLanguage: String => play.api.mvc.Call
+import play.api.libs.json.Json
+
+case class AdminJwtPayload(
+  sub: String,
+  username: String,
+  exp: Int,
+  iss: String
 )
+
+object AdminJwtPayload {
+  implicit val format = Json.format[AdminJwtPayload]
+}
