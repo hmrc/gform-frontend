@@ -59,7 +59,7 @@ class SummaryController(
   def summaryById(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       cache.form.status match {
-        case Summary | Validated | Signed =>
+        case Summary | Validated | Signed | NeedsReview =>
           summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache).map(Ok(_))
         case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
       }
