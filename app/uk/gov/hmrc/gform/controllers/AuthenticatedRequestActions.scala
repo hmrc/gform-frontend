@@ -130,7 +130,7 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         request.cookies.get("caseworker-assumed-identity"))
+                         request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -169,7 +169,7 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         request.cookies.get("caseworker-assumed-identity"))
+                         request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -178,12 +178,6 @@ class AuthenticatedRequestActions(
                    onSuccess = withForm(f(newRequest)(l))(maybeAccessCode, formTemplate)
                  )
       } yield result
-    }
-
-  private def getAssumedIdentityCookie(cookie: Option[Cookie]): Option[String] =
-    cookie match {
-      case Some(assumedIdentity) => Some(assumedIdentity.value)
-      case None                  => None
     }
 
   private def withForm(f: AuthCacheWithForm => Future[Result])(

@@ -55,7 +55,8 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     `auth-module` = null,
     /*we can't override list in app-config-base:*/
     contentTypesSeparatedByPipe = "csv|txt",
-    albAdminIssuerUrl = ""
+    albAdminIssuerUrl = "",
+    `case-worker-assumed-identity-cookie` = "caseworker-assumed-identity"
   )
 
   lazy val wSHttp = new StubbedWSHttp(

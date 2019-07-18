@@ -34,7 +34,8 @@ case class AppConfig(
   formMaxAttachmentSizeMB: Int,
   /*we can't override list in app-config-base:*/
   contentTypesSeparatedByPipe: String,
-  albAdminIssuerUrl: String
+  albAdminIssuerUrl: String,
+  `case-worker-assumed-identity-cookie`: String
 ) {
   def contentTypes: List[ContentType] = contentTypesSeparatedByPipe.split('|').toList.map(ContentType.apply)
 }
