@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json.{ JsPath, Reads }
+import play.api.libs.json.Json
 
 /*
   These set of fields are common to the JWT coming from the public LB and the admin LB
@@ -31,10 +29,5 @@ case class JwtPayload(
 )
 
 object JwtPayload {
-  implicit val format: Reads[JwtPayload] = (
-    (JsPath \ "sub").read[String] and
-      (JsPath \ "username").read[String] and
-      (JsPath \ "exp").read[Long] and
-      (JsPath \ "iss").read[String]
-  )(JwtPayload.apply _)
+  implicit val format = Json.format[JwtPayload]
 }
