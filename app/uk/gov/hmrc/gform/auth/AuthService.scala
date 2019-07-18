@@ -95,7 +95,7 @@ class AuthService(
           Try(Json.parse(payloadJson)) match {
             case Success(json) =>
               Json.fromJson[JwtPayload](json) match {
-                case JsSuccess(jwtPayload, _) => {
+                case JsSuccess(jwtPayload, _) =>
                   assumedIdentity match {
                     case Some(cookie) =>
                       if (jwtPayload.iss == appConfig.albAdminIssuerUrl) {
@@ -107,12 +107,10 @@ class AuthService(
                           s"ALB-AUTH: Attempted unauthorized access with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
                         notAuthorized
                       }
-                    case None => {
+                    case None =>
                       Logger.info(s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}]")
                       AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username))
-                    }
                   }
-                }
                 case JsError(_) => AuthBlocked("Not authorized")
               }
             case Failure(_) =>
