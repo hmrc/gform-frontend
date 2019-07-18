@@ -122,9 +122,6 @@ class AuthenticatedRequestActions(
     implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
-      val assumedIdentity = getAssumedIdentityCookie(request.cookies.get("caseworker-assumed-identity"))
-      Logger.info(s"ALB-AUTH: Assumed identity cookie is : ${assumedIdentity.getOrElse("No assumed identity cookie")}")
-
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -133,7 +130,7 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         assumedIdentity)
+                         request.cookies.get("caseworker-assumed-identity"))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -164,9 +161,6 @@ class AuthenticatedRequestActions(
     Action.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
-      val assumedIdentity = getAssumedIdentityCookie(request.cookies.get("caseworker-assumed-identity"))
-      Logger.info(s"ALB-AUTH: Assumed identity cookie is : ${assumedIdentity.getOrElse("No assumed identity cookie")}")
-
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -175,7 +169,7 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         assumedIdentity)
+                         request.cookies.get("caseworker-assumed-identity"))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,

@@ -21,6 +21,7 @@ import java.util.Base64
 import cats.implicits._
 import play.api.Logger
 import play.api.libs.json.{ JsError, JsSuccess, Json }
+import play.api.mvc.Cookie
 import uk.gov.hmrc.auth.core.authorise._
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
@@ -50,7 +51,7 @@ class AuthService(
     requestUri: String,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
-    assumedIdentity: Option[String])(
+    assumedIdentity: Option[Cookie])(
     implicit hc: HeaderCarrier,
     l: LangADT
   ): Future[AuthResult] =
@@ -78,7 +79,7 @@ class AuthService(
   private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")
   private val decoder = Base64.getDecoder
 
-  private def performAWSALBAuth(assumedIdentity: Option[String])(implicit hc: HeaderCarrier): AuthResult = {
+  private def performAWSALBAuth(assumedIdentity: Option[Cookie])(implicit hc: HeaderCarrier): AuthResult = {
     Logger.info("ALB-AUTH: Start authorization...")
 
     val encodedJWT: Option[String] = hc.otherHeaders.collectFirst {
@@ -95,8 +96,22 @@ class AuthService(
             case Success(json) =>
               Json.fromJson[JwtPayload](json) match {
                 case JsSuccess(jwtPayload, _) => {
-                  Logger.info(s"ALB-AUTH: Authorizing with following credentials : [${jwtPayload.toString}]")
-                  AuthSuccessful(awsAlbAuthenticatedRetrieval(jwtPayload, assumedIdentity))
+                  assumedIdentity match {
+                    case Some(cookie) if (jwtPayload.iss == appConfig.albAdminIssuerUrl) => {
+                      Logger.info(
+                        s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
+                      AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Agent, cookie.value))
+                    }
+                    case Some(cookie) if (jwtPayload.iss != appConfig.albAdminIssuerUrl) => {
+                      Logger.error(
+                        s"ALB-AUTH: Attempted unauthorized access with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
+                      notAuthorized
+                    }
+                    case None => {
+                      Logger.info(s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}]")
+                      AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username))
+                    }
+                  }
                 }
                 case JsError(_) => AuthBlocked("Not authorized")
               }
@@ -111,54 +126,24 @@ class AuthService(
     }
   }
 
-  private def awsAlbAuthenticatedRetrieval(
-    jwtPayload: JwtPayload,
-    assumedIdentity: Option[String]
-  ): AuthenticatedRetrievals =
-    if (jwtPayload.iss == appConfig.albAdminIssuerUrl) {
-
-      val identity = assumedIdentity match {
-        case Some(user) => user
-        case None       => jwtPayload.username
-      }
-
-      Logger.info(s"ALB-AUTH: Admin will assume the following user identity : [$identity]")
-
-      AuthenticatedRetrievals(
-        OneTimeLogin,
-        Enrolments(Set.empty),
-        Some(AffinityGroup.Agent),
-        Some(identity),
-        Some(identity),
-        UserDetails(
-          None,
-          None,
-          identity,
-          email = Some(""),
-          affinityGroup = AffinityGroup.Agent,
-          groupIdentifier = identity),
+  private def awsAlbAuthenticatedRetrieval(affinityGroup: AffinityGroup, identity: String): AuthenticatedRetrievals =
+    AuthenticatedRetrievals(
+      OneTimeLogin,
+      Enrolments(Set.empty),
+      Some(affinityGroup),
+      Some(identity),
+      Some(identity),
+      UserDetails(
         None,
-        None
-      )
-    } else {
-      AuthenticatedRetrievals(
-        OneTimeLogin,
-        Enrolments(Set.empty),
-        Some(AffinityGroup.Individual),
-        Some(jwtPayload.username),
-        Some(jwtPayload.username),
-        UserDetails(
-          None,
-          None,
-          jwtPayload.username,
-          email = Some(""),
-          affinityGroup = AffinityGroup.Individual,
-          groupIdentifier = jwtPayload.username
-        ),
         None,
-        None
-      )
-    }
+        identity,
+        email = Some(""),
+        affinityGroup = affinityGroup,
+        groupIdentifier = identity
+      ),
+      None,
+      None
+    )
 
   private def performEnrolment(
     formTemplate: FormTemplate,
