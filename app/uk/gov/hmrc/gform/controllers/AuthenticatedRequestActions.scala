@@ -117,6 +117,9 @@ class AuthenticatedRequestActions(
     LangADT.stringToLangADT(lang.code)
   }
 
+  private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
+    request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)
+
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
@@ -130,7 +133,7 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`))
+                         getCaseWorkerIdentity(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -169,7 +172,7 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`))
+                         getCaseWorkerIdentity(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
