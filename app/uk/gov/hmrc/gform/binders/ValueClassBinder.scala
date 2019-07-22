@@ -22,6 +22,7 @@ import play.api.mvc.{ PathBindable, QueryStringBindable }
 import uk.gov.hmrc.gform.models.LookupQuery
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register, SeNo, SeYes, SectionNumber, SectionTitle4Ga, SuppressErrors }
 
 import scala.util.Try
@@ -37,6 +38,7 @@ object ValueClassBinder {
   implicit val formTemplateIdBinder: PathBindable[FormTemplateId] = valueClassBinder(_.value)
   implicit val formIdBinder: PathBindable[FormId] = valueClassBinder(_.value)
   implicit val fileIdBinder: PathBindable[FileId] = valueClassBinder(_.value)
+  implicit val destinationIdBinder: PathBindable[DestinationId] = valueClassBinder(_.id)
   implicit val sectionTitle4GaBinder: PathBindable[SectionTitle4Ga] = valueClassBinder(_.value)
   implicit val sectionNumberBinder: PathBindable[SectionNumber] = new PathBindable[SectionNumber] {
     override def bind(key: String, value: String): Either[String, SectionNumber] =

@@ -31,7 +31,6 @@ import scala.concurrent.Future
 object GformSubmission {
 
   def handleSubmission(
-    config: FrontendAppConfig,
     gformConnector: GformConnector,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,

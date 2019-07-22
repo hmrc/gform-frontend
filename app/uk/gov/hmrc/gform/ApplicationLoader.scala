@@ -121,7 +121,10 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
 
   private val testOnlyModule = new TestOnlyModule(
     playBuiltInsModule,
-    gformBackendModule
+    gformBackendModule,
+    controllersModule,
+    graphModule,
+    lookupRegistry
   )
 
   private val frontendFiltersModule = new FrontendFiltersModule(

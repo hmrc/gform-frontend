@@ -233,26 +233,6 @@ class AuthService(
 
     }
 
-  def evaluateCustomerId(
-    expression: TextExpression,
-    retrievals: MaterialisedRetrievals,
-    formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]],
-    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): Future[CustomerId] =
-    (expression.expr match {
-      case AuthCtx(value) => AuthContextPrepop.values(value, retrievals).pure[Future]
-
-      case EeittCtx(value) => eeittService.getValue(value, retrievals, formTemplate)
-
-      case id: FormCtx => (data.get(id.toFieldId).map(_.head).getOrElse("")).pure[Future]
-
-      case SubmissionReference => SubmissionRef(envelopeId).toString.pure[Future]
-
-      case Constant(value) => Future.successful(value)
-
-      case _ => "".pure[Future] //TODO change this to AuthExpr.
-    }).map(CustomerId(_))
-
 }
 
 sealed trait HMRCAgentAuthorisation

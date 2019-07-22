@@ -135,7 +135,6 @@ class GformModule(
 
   val declarationController = new DeclarationController(
     playBuiltInsModule.i18nSupport,
-    configModule.frontendAppConfig,
     controllersModule.authenticatedRequestActions,
     gformBackendModule.gformConnector,
     auditingModule.auditService,
@@ -145,6 +144,7 @@ class GformModule(
     validationModule.validationService,
     authModule.authService,
     graphModule.recalculation,
+    graphModule.customerIdRecalculation,
     lookupRegistry
   )
 

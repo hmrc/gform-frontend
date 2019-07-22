@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
@@ -75,8 +76,23 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     customerId: CustomerId,
     submissionData: SubmissionData,
     affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    mkPost(customerId, submissionData, affinityGroup)(s"$baseUrl/forms/${formId.value}/submission-pdf")
+
+  /******test-only*******/
+  def renderHandlebarPayload(
+    formTemplateId: FormTemplateId,
+    formId: FormId,
+    destinationId: DestinationId,
+    customerId: CustomerId,
+    submissionData: SubmissionData,
+    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    mkPost(customerId, submissionData, affinityGroup)(
+      s"$baseUrl/test-only/${formTemplateId.value}/${formId.value}/${destinationId.id}")
+
+  private def mkPost(customerId: CustomerId, submissionData: SubmissionData, affinityGroup: Option[AffinityGroup])(
+    url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     ws.POST[SubmissionData, HttpResponse](
-      s"$baseUrl/forms/${formId.value}/submission-pdf",
+      url,
       submissionData,
       Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
 

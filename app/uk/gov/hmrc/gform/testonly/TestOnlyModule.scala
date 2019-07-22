@@ -17,13 +17,19 @@
 package uk.gov.hmrc.gform.testonly
 
 import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.graph.GraphModule
+import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class TestOnlyModule(
   playBuiltInsModule: PlayBuiltInsModule,
-  gformBackendModule: GformBackendModule
+  gformBackendModule: GformBackendModule,
+  controllersModule: ControllersModule,
+  graphModule: GraphModule,
+  lookupRegistry: LookupRegistry
 )(
   implicit ec: ExecutionContext
 ) {
@@ -32,7 +38,10 @@ class TestOnlyModule(
 
   val testOnlyController = new TestOnlyController(
     proxyActions,
-    gformBackendModule.gformConnector
+    gformBackendModule.gformConnector,
+    lookupRegistry,
+    controllersModule.authenticatedRequestActions,
+    graphModule.customerIdRecalculation
   )
 
 }
