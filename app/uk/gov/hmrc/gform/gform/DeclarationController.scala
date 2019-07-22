@@ -27,11 +27,10 @@ import play.api.libs.json.Json
 import play.api.mvc.{ Action, AnyContent, Request }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
-import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ formDataMap, get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.graph.{ EmailParameterRecalculation, RecData, Recalculation }
+import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, RecData, Recalculation }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.handlers.{ DeclarationControllerRequestHandler, FormDataUpdater }
@@ -52,7 +51,6 @@ import scala.util.Try
 
 class DeclarationController(
   i18nSupport: I18nSupport,
-  config: FrontendAppConfig,
   auth: AuthenticatedRequestActions,
   gformConnector: GformConnector,
   auditService: AuditService,
@@ -62,6 +60,7 @@ class DeclarationController(
   validationService: ValidationService,
   authService: AuthService,
   recalculation: Recalculation[Future, Throwable],
+  customerIdRecalculation: CustomerIdRecalculation[Future],
   lookupRegistry: LookupRegistry
 ) extends FrontendController {
 
@@ -199,7 +198,7 @@ class DeclarationController(
     submissionDetails: Option[SubmissionDetails])(implicit request: Request[_], l: LangADT) =
     for {
       _          <- updateUserData(cache.form, formStatus)
-      customerId <- evaluateCustomerId(cache)
+      customerId <- customerIdRecalculation.evaluateCustomerId(cache)
       _          <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails)
     } yield customerId
 
@@ -236,24 +235,6 @@ class DeclarationController(
         )
       )
 
-  private def evaluateCustomerId(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
-    customerIdExpressions(cache.formTemplate.destinations)
-      .traverse { cid =>
-        authService.evaluateCustomerId(
-          cid,
-          cache.retrievals,
-          cache.formTemplate,
-          formDataMap(cache.form.formData),
-          cache.form.envelopeId)
-      }
-      .map(_.filter(!_.isEmpty).headOption.getOrElse(CustomerId.empty))
-
-  private def customerIdExpressions(destinations: Destinations) = destinations match {
-    case d: Destinations.DmsSubmission => List(d.customerId)
-    case ds: Destinations.DestinationList =>
-      ds.destinations.collect { case d: DestinationWithCustomerId => d.customerId }
-  }
-
   private def handleSubmission(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
@@ -265,7 +246,6 @@ class DeclarationController(
       structuredFormData <- StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
       _ <- GformSubmission
             .handleSubmission(
-              config,
               gformConnector,
               cache.retrievals,
               cache.formTemplate,
