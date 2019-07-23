@@ -117,14 +117,23 @@ class AuthenticatedRequestActions(
     LangADT.stringToLangADT(lang.code)
   }
 
+  private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
+    request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)
+
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
+
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request.uri, getAffinityGroup, ggAuthorised(request))
+                       .authenticateAndAuthorise(
+                         formTemplate,
+                         request.uri,
+                         getAffinityGroup,
+                         ggAuthorised(request),
+                         getCaseWorkerIdentity(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -154,10 +163,16 @@ class AuthenticatedRequestActions(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
+
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
-                       .authenticateAndAuthorise(formTemplate, request.uri, getAffinityGroup, ggAuthorised(request))
+                       .authenticateAndAuthorise(
+                         formTemplate,
+                         request.uri,
+                         getAffinityGroup,
+                         ggAuthorised(request),
+                         getCaseWorkerIdentity(request))
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,

@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.config
-import play.api.i18n.Lang
+package uk.gov.hmrc.gform.auth.models
 
-case class FrontendAppConfig(
-  albAdminIssuerUrl: String,
-  assetsPrefix: String,
-  analyticsToken: String,
-  analyticsHost: String,
-  reportAProblemPartialUrl: String,
-  reportAProblemNonJSUrl: String,
-  governmentGatewaySignInUrl: String,
-  gformFrontendBaseUrl: String,
-  betaFeedbackUrlNoAuth: String,
-  signOutUrl: String,
-  whitelistEnabled: Boolean,
-  googleTagManagerIdAvailable: Boolean,
-  googleTagManagerId: String,
-  authModule: AuthModule,
-  availableLanguages: Map[String, Lang],
-  routeToSwitchLanguage: String => play.api.mvc.Call
+import play.api.libs.json.Json
+
+/*
+  These set of fields are common to the JWT coming from the public LB and the admin LB
+ */
+case class JwtPayload(
+  sub: String,
+  username: String,
+  exp: Long,
+  iss: String
 )
+
+object JwtPayload {
+  implicit val format = Json.format[JwtPayload]
+}
