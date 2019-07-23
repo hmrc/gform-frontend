@@ -263,7 +263,7 @@ class AuthService(
 
   def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String =
     retrievals match {
-      case AnonymousRetrievals(_) | AWSALBRetrievals(_) => ""
+      case AnonymousRetrievals(_) => ""
       case AuthenticatedRetrievals(_, enrolments, _, _, _, userDetails, _, _) =>
         val identifier = userDetails.affinityGroup match {
           case AffinityGroup.Agent => EEITTAuthConfig.agentIdName

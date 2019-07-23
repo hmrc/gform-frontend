@@ -202,7 +202,6 @@ class AuthenticatedRequestActions(
     onSuccess: MaterialisedRetrievals => Future[Result]
   )(implicit l: LangADT, hc: HeaderCarrier): Future[Result] =
     result match {
-      case AuthSuccessful(retrievals @ AWSALBRetrievals(_)) => onSuccess(retrievals)
       case AuthSuccessful(retrievals @ AnonymousRetrievals(_)) =>
         onSuccess(retrievals)
       case AuthSuccessful(retrievals @ AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _)) =>
