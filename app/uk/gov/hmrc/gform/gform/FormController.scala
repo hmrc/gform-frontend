@@ -249,7 +249,7 @@ class FormController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    suppressErrors: SuppressErrors) = auth.async(formTemplateId, maybeAccessCode) {
+    suppressErrors: SuppressErrors) = auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) {
     implicit request => implicit l => cache =>
       handler
         .handleForm(
@@ -286,27 +286,28 @@ class FormController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber,
     sectionTitle4Ga: SectionTitle4Ga,
-    fId: String) = auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-    val fileId = FileId(fId)
+    fId: String) = auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) {
+    implicit request => implicit l => cache =>
+      val fileId = FileId(fId)
 
-    val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController
-      .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes)
-    val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController
-      .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes)
+      val `redirect-success-url` = appConfig.`gform-frontend-base-url` + routes.FormController
+        .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes)
+      val `redirect-error-url` = appConfig.`gform-frontend-base-url` + routes.FormController
+        .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes)
 
-    def actionUrl(envelopeId: EnvelopeId) =
-      s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`.toString}&redirect-error-url=${`redirect-error-url`.toString}"
+      def actionUrl(envelopeId: EnvelopeId) =
+        s"/file-upload/upload/envelopes/${envelopeId.value}/files/${fileId.value}?redirect-success-url=${`redirect-success-url`.toString}&redirect-error-url=${`redirect-error-url`.toString}"
 
-    Ok(
-      snippets.file_upload_page(
-        maybeAccessCode,
-        sectionNumber,
-        sectionTitle4Ga,
-        fileId,
-        cache.formTemplate,
-        actionUrl(cache.form.envelopeId),
-        frontendAppConfig)
-    ).pure[Future]
+      Ok(
+        snippets.file_upload_page(
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fileId,
+          cache.formTemplate,
+          actionUrl(cache.form.envelopeId),
+          frontendAppConfig)
+      ).pure[Future]
   }
 
   val choice: data.Form[String] = play.api.data.Form(
@@ -315,7 +316,7 @@ class FormController(
     ))
 
   def decision(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       choice.bindFromRequest
         .fold(
           _ =>
@@ -348,7 +349,7 @@ class FormController(
       })
   }
   def delete(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       deleteForm(maybeAccessCode, cache)
     }
 
@@ -378,7 +379,7 @@ class FormController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber
-  ) = auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+  ) = auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
     processResponseDataFromBody(request) { (dataRaw: Data) =>
       def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
         toResult: Option[SectionNumber] => Result): Future[Result] =

@@ -27,7 +27,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
     case AnonymousRetrievals(sessionId)                            => sessionId.value
     case AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _) => userDetails.groupIdentifier
-    case AWSALBRetrievals(username)                                => username
+    case AWSALBRetrievals(username)                                => username //TODO: remove
   }
 
   def ggCredId = this match {

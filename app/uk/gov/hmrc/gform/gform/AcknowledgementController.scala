@@ -48,7 +48,7 @@ class AcknowledgementController(
     formTemplateId: FormTemplateId,
     eventId: String
   ): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       import i18nSupport._
       cache.form.status match {
         case Submitted | NeedsReview =>
@@ -68,7 +68,7 @@ class AcknowledgementController(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
     eventId: String): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       cache.form.status match {
         case Submitted =>
           // format: OFF

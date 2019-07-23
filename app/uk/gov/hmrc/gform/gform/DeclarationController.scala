@@ -65,7 +65,7 @@ class DeclarationController(
 ) extends FrontendController {
 
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode, true) { implicit request => implicit l => cache =>
       Future.successful(cache.form.status match {
         case Validated => Ok(renderDeclarationSection(cache, maybeAccessCode))
         case _         => BadRequest
@@ -90,17 +90,17 @@ class DeclarationController(
 
   //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       submitReview(formTemplateId, cache, maybeAccessCode, Accepting)
     }
 
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       submitReview(formTemplateId, cache, maybeAccessCode, Returning)
     }
 
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       submitReview(formTemplateId, cache, maybeAccessCode, Submitting)
     }
 
@@ -115,14 +115,14 @@ class DeclarationController(
     } yield Ok
 
   def updateFormField(formTemplateId: FormTemplateId) =
-    auth.async(formTemplateId, None) { implicit request => implicit l => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, None) { implicit request => implicit l => cache =>
       new DeclarationControllerRequestHandler()
         .handleUpdatedFormRequest(request.body.asJson, cache.form)
         .fold(Future.successful(BadRequest))(updated => updateUserData(updated, updated.status).map(_ => Ok))
     }
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cacheOrig =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, maybeAccessCode) { implicit request => implicit l => cacheOrig =>
       processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
         get(dataRaw, FormComponentId("save")) match {
           case "Continue" :: Nil => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)

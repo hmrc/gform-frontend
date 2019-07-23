@@ -120,7 +120,7 @@ class AuthenticatedRequestActions(
   private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
     request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)
 
-  def async(formTemplateId: FormTemplateId)(
+  def async(formTemplateId: FormTemplateId, mustBeAnAlbAdmin: Boolean = false)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
     implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
@@ -133,7 +133,8 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         getCaseWorkerIdentity(request))
+                         getCaseWorkerIdentity(request),
+                         mustBeAnAlbAdmin)
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,
@@ -159,11 +160,13 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
-  def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
+  def asyncWithMaybeAccessCode(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    mustBeAdmin: Boolean = false)(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
     Action.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
-
       for {
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
@@ -172,7 +175,8 @@ class AuthenticatedRequestActions(
                          request.uri,
                          getAffinityGroup,
                          ggAuthorised(request),
-                         getCaseWorkerIdentity(request))
+                         getCaseWorkerIdentity(request),
+                         mustBeAdmin)
         newRequest = removeEeittAuthIdFromSession(request, formTemplate.authConfig)
         result <- handleAuthResults(
                    authResult,

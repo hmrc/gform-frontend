@@ -103,7 +103,7 @@ class TestOnlyController(
     }
 
   def handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId) =
-    auth.async(formTemplateId, None) { implicit request => implicit lang => cache =>
+    auth.asyncWithMaybeAccessCode(formTemplateId, None) { implicit request => implicit lang => cache =>
       import cache._
       withHandlebarPayload {
         for {

@@ -51,7 +51,8 @@ class AuthService(
     requestUri: String,
     getAffinityGroup: Unit => Future[Option[AffinityGroup]],
     ggAuthorised: PartialFunction[Throwable, AuthResult] => Predicate => Future[AuthResult],
-    assumedIdentity: Option[Cookie])(
+    assumedIdentity: Option[Cookie],
+    mustBeAdmin: Boolean)(
     implicit hc: HeaderCarrier,
     l: LangADT
   ): Future[AuthResult] =
@@ -61,7 +62,7 @@ class AuthService(
           .fold[AuthResult](AuthAnonymousSession(gform.routes.FormController.dashboard(formTemplate._id)))(sessionId =>
             AuthSuccessful(AnonymousRetrievals(sessionId)))
           .pure[Future]
-      case AWSALBAuth            => performAWSALBAuth(assumedIdentity).pure[Future]
+      case AWSALBAuth            => performAWSALBAuth(assumedIdentity, mustBeAdmin).pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
       case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
@@ -79,7 +80,8 @@ class AuthService(
   private val notAuthorized: AuthResult = AuthBlocked("You are not authorized to access this service")
   private val decoder = Base64.getDecoder
 
-  private def performAWSALBAuth(assumedIdentity: Option[Cookie])(implicit hc: HeaderCarrier): AuthResult = {
+  private def performAWSALBAuth(assumedIdentity: Option[Cookie], mustBeAdmin: Boolean)(
+    implicit hc: HeaderCarrier): AuthResult = {
     Logger.info("ALB-AUTH: Start authorization...")
 
     val encodedJWT: Option[String] = hc.otherHeaders.collectFirst {
@@ -93,23 +95,26 @@ class AuthService(
         case Array(header, payload, signature) =>
           val payloadJson = new String(decoder.decode(payload))
           Try(Json.parse(payloadJson)) match {
-            case Success(json) =>
+            case Success(json) => // A valid request in the Ofsted environment as JWT is present
               Json.fromJson[JwtPayload](json) match {
-                case JsSuccess(jwtPayload, _) =>
+                case JsSuccess(jwtPayload, _) => // Indicates that all the required information to authorise an Ofsted user is present
                   assumedIdentity match {
-                    case Some(cookie) =>
-                      if (jwtPayload.iss == appConfig.albAdminIssuerUrl) {
+                    case Some(cookie) => // Indicates that the admin user should assume the identity of the user that submitted the form
+                      if (jwtPayload.iss == appConfig.albAdminIssuerUrl) { // Only an admin should be allowed to assume identities
                         Logger.info(
                           s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
                         AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Agent, cookie.value))
-                      } else {
+                      } else { // If user is not an admin, then user is not allowed to assume another identity
                         Logger.error(
                           s"ALB-AUTH: Attempted unauthorized access with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
                         notAuthorized
                       }
                     case None =>
                       Logger.info(s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}]")
-                      AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username))
+                      if (jwtPayload.iss != appConfig.albAdminIssuerUrl && mustBeAdmin) // If user is not an admin but user must be an admin then block
+                        notAuthorized
+                      else
+                        AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username))
                   }
                 case JsError(_) => AuthBlocked("Not authorized")
               }
