@@ -19,8 +19,6 @@ package uk.gov.hmrc.gform.gform.handlers
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
 
-import scala.util.Try
-
 class DeclarationControllerRequestHandler extends FormDataUpdater {
 
   def handleUpdatedFormRequest(requestBody: Option[JsValue], form: Form): Option[Form] =
