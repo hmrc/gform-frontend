@@ -20,19 +20,18 @@ import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.LegacyCredentials
 import uk.gov.hmrc.gform.models.mappings._
-import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
+import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.http.logging.SessionId
 
 sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
-    case AnonymousRetrievals(sessionId)                            => sessionId.value
-    case AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _) => userDetails.groupIdentifier
-    case AWSALBRetrievals(username)                                => username
+    case AnonymousRetrievals(sessionId)                         => sessionId.value
+    case AuthenticatedRetrievals(_, _, _, _, userDetails, _, _) => userDetails.groupIdentifier
   }
 
   def ggCredId = this match {
-    case AuthenticatedRetrievals(GGCredId(credId), _, _, _, _, _, _, _) => credId
-    case _                                                              => ""
+    case AuthenticatedRetrievals(GGCredId(credId), _, _, _, _, _, _) => credId
+    case _                                                           => ""
   }
 
   def renderSaveAndComeBackLater = this match {
@@ -47,7 +46,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 
   def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {
     case AnonymousRetrievals(_) => ""
-    case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _, _) =>
+    case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _) =>
       val maybeEnrolmentIdentifier = taxIdName match {
         case IRSA(name, id)         => valueByNameAndId(name, id, enrolments)
         case IRCT(name, id)         => valueByNameAndId(name, id, enrolments)
@@ -74,20 +73,19 @@ case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetriev
 case class AuthenticatedRetrievals(
   authProviderId: LegacyCredentials,
   enrolments: Enrolments,
-  affinityGroup: Option[AffinityGroup],
   internalId: Option[String],
   externalId: Option[String],
   userDetails: UserDetails,
   credentialStrength: Option[String],
   agentCode: Option[String]
 ) extends MaterialisedRetrievals {
-  val affinityGroupName: String = affinityGroupNameO(affinityGroup)
+  def affinityGroup: AffinityGroup = userDetails.affinityGroup
+  val affinityGroupName: String = AffinityGroupUtil.affinityGroupName(affinityGroup)
 }
-case class AWSALBRetrievals(username: String) extends MaterialisedRetrievals
 
 object IsAgent {
   def unapply(materialisedRetrievals: MaterialisedRetrievals): Boolean = materialisedRetrievals match {
-    case AuthenticatedRetrievals(_, _, Some(AffinityGroup.Agent), _, _, _, _, _) => true
-    case _                                                                       => false
+    case a: AuthenticatedRetrievals => a.affinityGroup == AffinityGroup.Agent
+    case _                          => false
   }
 }

@@ -949,7 +949,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   private def emptyRetrievals = AuthenticatedRetrievals(
     authProviderId = OneTimeLogin,
     enrolments = Enrolments(Set.empty),
-    affinityGroup = None,
     internalId = None,
     externalId = None,
     userDetails = UserDetails(

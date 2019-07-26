@@ -5,7 +5,6 @@ GET           /new-form/:formTemplateId/show-access-code                        
 GET           /new-form/:formTemplateId/agent                                                                    uk.gov.hmrc.gform.gform.FormController.newFormAgent(formTemplateId: FormTemplateId)
 POST          /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.FormController.newFormPost(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/nonagent                                                                 uk.gov.hmrc.gform.gform.FormController.newForm(formTemplateId: FormTemplateId)
-GET           /form/:formTemplateId/:sectionTitle4Ga/file-upload-page/:fileId                                    uk.gov.hmrc.gform.gform.FormController.fileUploadPage(formTemplateId: FormTemplateId, a: Option[AccessCode], n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, fileId: String)
 
 GET           /form/:formTemplateId/:sectionTitle4Ga                                                             uk.gov.hmrc.gform.gform.FormController.form(formTemplateId: FormTemplateId, a: Option[AccessCode], n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, se: SuppressErrors)
 

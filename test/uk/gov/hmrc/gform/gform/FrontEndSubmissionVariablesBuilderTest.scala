@@ -85,7 +85,6 @@ class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
   val materialisedRetrievalsAgent = AuthenticatedRetrievals(
     OneTimeLogin,
     Enrolments(Set(irsaEnrolment)),
-    Some(CoreAffinityGroup.Agent),
     None,
     None,
     userDetails,

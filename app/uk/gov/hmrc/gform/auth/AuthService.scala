@@ -28,11 +28,9 @@ import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.gform
-import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, CustomerId, EeittService }
+import uk.gov.hmrc.gform.gform.EeittService
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
-import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -59,7 +57,7 @@ class AuthService(
       case Anonymous =>
         hc.sessionId
           .fold[AuthResult](AuthAnonymousSession(gform.routes.FormController.dashboard(formTemplate._id)))(sessionId =>
-            AuthSuccessful(AnonymousRetrievals(sessionId)))
+            AuthSuccessful(AnonymousRetrievals(sessionId), Role.Customer))
           .pure[Future]
       case AWSALBAuth            => performAWSALBAuth(assumedIdentity).pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
@@ -70,8 +68,8 @@ class AuthService(
         performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), Future.successful(_))
       case HmrcAgentWithEnrolmentModule(agentAccess, enrolmentAuth) =>
         def ifSuccessPerformEnrolment(authResult: AuthResult) = authResult match {
-          case AuthSuccessful(_) => performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
-          case authUnsuccessful  => Future.successful(authUnsuccessful)
+          case AuthSuccessful(_, _) => performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
+          case authUnsuccessful     => Future.successful(authUnsuccessful)
         }
         performAgent(agentAccess, formTemplate, ggAuthorised(RecoverAuthResult.noop), ifSuccessPerformEnrolment)
     }
@@ -98,10 +96,10 @@ class AuthService(
                 case JsSuccess(jwtPayload, _) =>
                   assumedIdentity match {
                     case Some(cookie) =>
-                      if (jwtPayload.iss == appConfig.albAdminIssuerUrl) {
+                      if (jwtPayload.iss === appConfig.albAdminIssuerUrl) {
                         Logger.info(
                           s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
-                        AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Agent, cookie.value))
+                        AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Agent, cookie.value), Role.Reviewer)
                       } else {
                         Logger.error(
                           s"ALB-AUTH: Attempted unauthorized access with following credentials : [JWT: ${jwtPayload.toString}], [Case worker Cookie: ${cookie.value}]")
@@ -109,7 +107,9 @@ class AuthService(
                       }
                     case None =>
                       Logger.info(s"ALB-AUTH: Authorizing with following credentials : [JWT: ${jwtPayload.toString}]")
-                      AuthSuccessful(awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username))
+                      AuthSuccessful(
+                        awsAlbAuthenticatedRetrieval(AffinityGroup.Individual, jwtPayload.username),
+                        Role.Customer)
                   }
                 case JsError(_) => AuthBlocked("Not authorized")
               }
@@ -128,7 +128,6 @@ class AuthService(
     AuthenticatedRetrievals(
       OneTimeLogin,
       Enrolments(Set.empty),
-      Some(affinityGroup),
       Some(identity),
       Some(identity),
       UserDetails(
@@ -178,9 +177,9 @@ class AuthService(
           predicate <- predicateF
           result <- ggAuthorised(recoverPF)(predicate).map { authResult =>
                      (authResult, enrolmentPostCheck) match {
-                       case (AuthSuccessful(retrievals: AuthenticatedRetrievals), RegimeIdCheck(regimeId)) =>
+                       case (AuthSuccessful(retrievals: AuthenticatedRetrievals, _), RegimeIdCheck(regimeId)) =>
                          enrolmentCheckPredicate match {
-                           case ForNonAgents if retrievals.affinityGroup.contains(AffinityGroup.Agent) => authResult
+                           case ForNonAgents if retrievals.affinityGroup == AffinityGroup.Agent => authResult
                            case ForNonAgents | Always =>
                              val serviceEnrolments =
                                retrievals.enrolments.enrolments.filter(_.key === enrolmentAuth.serviceId.value)
@@ -217,8 +216,8 @@ class AuthService(
     continuation: AuthResult => Future[AuthResult])(implicit hc: HeaderCarrier, l: LangADT): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
-        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, enrolments, affinityGroup, _, _, _, _, _))
-            if affinityGroup.contains(AffinityGroup.Agent) =>
+        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _, _, _), _)
+            if ar.affinityGroup == AffinityGroup.Agent =>
           ggAgentAuthorise(agentAccess, formTemplate, enrolments) match {
             case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
             case HMRCAgentAuthorisationDenied                    => AuthBlocked("Agents cannot access this form")
@@ -236,7 +235,7 @@ class AuthService(
   )(implicit hc: HeaderCarrier): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .flatMap {
-        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _)) =>
+        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, _, _, _, userDetails, _, _), _) =>
           eeittDelegate.authenticate(regimeId, userDetails, requestUri).map {
             case EeittAuthorisationSuccessful            => ggSuccessfulAuth
             case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormName(eeittLoginUrl)
@@ -258,8 +257,7 @@ class AuthService(
 
   def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String =
     retrievals match {
-      case AnonymousRetrievals(_) | AWSALBRetrievals(_) => ""
-      case AuthenticatedRetrievals(_, enrolments, _, _, _, userDetails, _, _) =>
+      case AuthenticatedRetrievals(_, enrolments, _, _, userDetails, _, _) =>
         val identifier = userDetails.affinityGroup match {
           case AffinityGroup.Agent => EEITTAuthConfig.agentIdName
           case _                   => EEITTAuthConfig.nonAgentIdName
@@ -270,6 +268,7 @@ class AuthService(
           .flatMap(_.getIdentifier(identifier))
           .fold("")(_.value)
 
+      case _: AnonymousRetrievals => ""
     }
 
 }
