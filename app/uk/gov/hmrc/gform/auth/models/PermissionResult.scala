@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.mvc.Call
+import cats.Eq
 
-sealed trait AuthResult
-final case class AuthSuccessful(retrievals: MaterialisedRetrievals, role: Role) extends AuthResult
-final case class AuthRedirect(loginUrl: String, flashing: Seq[(String, String)] = Seq.empty) extends AuthResult
-final case class AuthAnonymousSession(redirectUrl: Call) extends AuthResult
-final case class AuthRedirectFlashingFormName(loginUrl: String) extends AuthResult
-final case class AuthBlocked(message: String) extends AuthResult
-final case class AuthForbidden(message: String) extends AuthResult
+sealed trait PermissionResult extends Product with Serializable
+
+object PermissionResult {
+  final case object Permitted extends PermissionResult
+  final case object NotPermitted extends PermissionResult
+
+  implicit val equal: Eq[PermissionResult] = Eq.fromUniversalEquals
+}

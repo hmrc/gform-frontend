@@ -23,8 +23,8 @@ object AffinityGroupUtil {
 
   def fromRetrievals(materialisedRetrievals: MaterialisedRetrievals): Option[AffinityGroup] =
     materialisedRetrievals match {
-      case AnonymousRetrievals(_)                                      => None
-      case AuthenticatedRetrievals(_, _, affinityGroup, _, _, _, _, _) => affinityGroup
+      case AnonymousRetrievals(_)     => None
+      case a: AuthenticatedRetrievals => Some(a.affinityGroup)
     }
 
   def affinityGroupNameO(affinityGroup: Option[AffinityGroup]): String = affinityGroup.fold("")(affinityGroupName)

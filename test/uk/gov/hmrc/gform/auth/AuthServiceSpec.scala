@@ -18,11 +18,10 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.libs.json.{ JsBoolean, JsObject }
 import play.api.mvc.{ AnyContent, Request }
-import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.{ Spec, SpecWithFakeApp }
+import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.connectors.EeittConnector
@@ -79,14 +78,20 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
 
   val getAffinityGroup: Unit => Future[Option[AffinityGroup]] = const(Future.successful(None))
 
-  private def materialisedRetrievalsBuilder(affinityGroup: Option[AffinityGroup], enrolments: Enrolments) =
-    AuthenticatedRetrievals(legacyCredentials, enrolments, affinityGroup, None, None, userDetails, None, None)
+  private def materialisedRetrievalsBuilder(affinityGroup: AffinityGroup, enrolments: Enrolments) =
+    AuthenticatedRetrievals(
+      legacyCredentials,
+      enrolments,
+      None,
+      None,
+      userDetails.copy(affinityGroup = affinityGroup),
+      None,
+      None)
 
   val materialisedRetrievalsOfsted =
     AuthenticatedRetrievals(
       authProviderId = legacyCredentials,
       enrolments = enrolments,
-      affinityGroup = Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual),
       internalId = Some("20e9b243-7471-4081-be1e-fcb5da33fd5a"),
       externalId = Some("20e9b243-7471-4081-be1e-fcb5da33fd5a"),
       userDetails = UserDetails(
@@ -110,22 +115,22 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     )
 
   val materialisedRetrievalsAgent =
-    materialisedRetrievalsBuilder(Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent), enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.auth.core.AffinityGroup.Agent, enrolments)
 
   val materialisedRetrievalsEnrolledAgent =
     materialisedRetrievalsBuilder(
-      Some(uk.gov.hmrc.auth.core.AffinityGroup.Agent),
+      uk.gov.hmrc.auth.core.AffinityGroup.Agent,
       Enrolments(Set(Enrolment("HMRC-AS-AGENT"))))
 
   val materialisedRetrievalsOrganisation =
-    materialisedRetrievalsBuilder(Some(uk.gov.hmrc.auth.core.AffinityGroup.Organisation), enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.auth.core.AffinityGroup.Organisation, enrolments)
 
   val materialisedRetrievalsIndividual =
-    materialisedRetrievalsBuilder(Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual), enrolments)
+    materialisedRetrievalsBuilder(uk.gov.hmrc.auth.core.AffinityGroup.Individual, enrolments)
 
   val materialisedRetrievalsEnrolment =
     materialisedRetrievalsBuilder(
-      Some(uk.gov.hmrc.auth.core.AffinityGroup.Individual),
+      uk.gov.hmrc.auth.core.AffinityGroup.Individual,
       Enrolments(
         Set(Enrolment("HMRC-ORG-OBTDS").copy(
           identifiers = List(EnrolmentIdentifier("EtmpRegistrationNumber", "12AB567890")))))
@@ -136,13 +141,13 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   private def factory[A](a: A): PartialFunction[Throwable, AuthResult] => Predicate => Future[A] =
     const(const(Future.successful(a)))
 
-  val ggAuthorisedSuccessful = factory(AuthSuccessful(materialisedRetrievals))
-  val ggAuthorisedSuccessfulIndividual = factory(AuthSuccessful(materialisedRetrievalsIndividual))
-  val ggAuthorisedSuccessfulOrganisation = factory(AuthSuccessful(materialisedRetrievalsOrganisation))
-  val ggAuthorisedSuccessfulAgent = factory(AuthSuccessful(materialisedRetrievalsAgent))
-  val ggAuthorisedSuccessfulEnrolledAgent = factory(AuthSuccessful(materialisedRetrievalsEnrolledAgent))
+  val ggAuthorisedSuccessful = factory(AuthSuccessful(materialisedRetrievals, Role.Customer))
+  val ggAuthorisedSuccessfulIndividual = factory(AuthSuccessful(materialisedRetrievalsIndividual, Role.Customer))
+  val ggAuthorisedSuccessfulOrganisation = factory(AuthSuccessful(materialisedRetrievalsOrganisation, Role.Customer))
+  val ggAuthorisedSuccessfulAgent = factory(AuthSuccessful(materialisedRetrievalsAgent, Role.Customer))
+  val ggAuthorisedSuccessfulEnrolledAgent = factory(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
   val ggAuthorisedRedirect = factory(AuthRedirect(""))
-  val ggAuthorisedEnrolment = factory(AuthSuccessful(materialisedRetrievalsEnrolment))
+  val ggAuthorisedEnrolment = factory(AuthSuccessful(materialisedRetrievalsEnrolment, Role.Customer))
 
   val enrolmentAuthNoCheck = EnrolmentAuth(serviceId, DoCheck(Always, RejectAccess, NoCheck))
   val enrolmentAuthCheck =
@@ -169,14 +174,14 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
   it should "authorise a gg authentication only user when no agentAccess config" in {
     val result =
       authService.authenticateAndAuthorise(formTemplate, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievals))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
   it should "authorise a gg authentication only non-agent when agent access is configured to agent denied" in {
     val result =
       authService
         .authenticateAndAuthorise(formTemplateAgentDenied, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievals))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
   it should "authorise a gg authentication only individual when agent access is configured to agent denied" in {
@@ -187,7 +192,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
         getAffinityGroup,
         ggAuthorisedSuccessfulIndividual,
         None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividual))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsIndividual, Role.Customer))
   }
 
   it should "authorise a gg authentication only organisation when agent access is configured to agent denied" in {
@@ -198,7 +203,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
         getAffinityGroup,
         ggAuthorisedSuccessfulOrganisation,
         None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievalsOrganisation))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsOrganisation, Role.Customer))
   }
 
   it should "block a gg authentication only agent when agent access is configured to agent denied" in {
@@ -221,7 +226,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
         getAffinityGroup,
         ggAuthorisedSuccessfulAgent,
         None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievalsAgent))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsAgent, Role.Customer))
   }
 
   it should "authorise a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
@@ -233,14 +238,14 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
           getAffinityGroup,
           ggAuthorisedSuccessfulEnrolledAgent,
           None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolledAgent, Role.Customer))
   }
 
   it should "authorise a gg authentication with enrolment" in {
     val result =
       authService
         .authenticateAndAuthorise(formTemplateEnrolment, requestUri, getAffinityGroup, ggAuthorisedEnrolment, None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolment))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsEnrolment, Role.Customer))
   }
 
   it should "redirect a gg authentication only agent with enrolment when agent access is configured to allow agent with enrolment" in {
@@ -265,7 +270,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     val result =
       authService
         .authenticateAndAuthorise(formTemplateEeitt, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievals))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievals, Role.Customer))
   }
 
   it should "redirect an eeitt authorised user when user is not eeitt enrolled" in {
@@ -297,7 +302,7 @@ class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
     val result =
       authService
         .authenticateAndAuthorise(formTemplateAWSALB, requestUri, getAffinityGroup, ggAuthorisedSuccessful, None)
-    result.futureValue should be(AuthSuccessful(materialisedRetrievalsOfsted))
+    result.futureValue should be(AuthSuccessful(materialisedRetrievalsOfsted, Role.Customer))
   }
 
   forAll(taxTypeTable) { (enrolment, serviceName, identifiers, value) =>

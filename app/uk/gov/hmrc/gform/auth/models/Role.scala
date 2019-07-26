@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.gform.auth.models
 
-import play.api.mvc.Call
+sealed trait Role extends Product with Serializable
 
-sealed trait AuthResult
-final case class AuthSuccessful(retrievals: MaterialisedRetrievals, role: Role) extends AuthResult
-final case class AuthRedirect(loginUrl: String, flashing: Seq[(String, String)] = Seq.empty) extends AuthResult
-final case class AuthAnonymousSession(redirectUrl: Call) extends AuthResult
-final case class AuthRedirectFlashingFormName(loginUrl: String) extends AuthResult
-final case class AuthBlocked(message: String) extends AuthResult
-final case class AuthForbidden(message: String) extends AuthResult
+object Role {
+  final case object Agent extends Role
+  final case object Customer extends Role
+  final case object Reviewer extends Role
+}

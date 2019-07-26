@@ -22,23 +22,20 @@ import cats.instances.future._
 import cats.syntax.applicative._
 import java.util.UUID
 
-import play.api.Logger
 import play.api.http.HeaderNames
 import play.api.i18n.{ I18nSupport, Lang, Langs }
-import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
+import uk.gov.hmrc.auth.core.{ AffinityGroup, AuthConnector => _, _ }
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
-import uk.gov.hmrc.http.{ HeaderCarrier, SessionKeys }
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _, _ }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -47,6 +44,19 @@ import uk.gov.hmrc.gform.sharedmodel._
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
+
+trait AuthenticatedRequestActionsAlgebra[F[_]] {
+  def keepAlive(): Action[AnyContent]
+
+  def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => F[Result]): Action[AnyContent]
+
+  def authAndRetrieveForm(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    operation: OperationWithForm)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => F[Result]): Action[AnyContent]
+}
 
 class AuthenticatedRequestActions(
   gformConnector: GformConnector,
@@ -59,7 +69,7 @@ class AuthenticatedRequestActions(
   errResponder: ErrResponder
 )(
   implicit ec: ExecutionContext
-) extends AuthorisedFunctions {
+) extends AuthenticatedRequestActionsAlgebra[Future] with AuthorisedFunctions {
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
     _ => {
@@ -105,8 +115,8 @@ class AuthenticatedRequestActions(
     for {
       authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
       result <- authResult match {
-                 case AuthSuccessful(retrievals) => Future.successful(Ok("success"))
-                 case _                          => errResponder.forbidden(request, "Access denied")
+                 case _: AuthSuccessful => Future.successful(Ok("success"))
+                 case _                 => errResponder.forbidden(request, "Access denied")
                }
     } yield result
   }
@@ -119,6 +129,19 @@ class AuthenticatedRequestActions(
 
   private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
     request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)
+
+  private def authWithoutRetrievingForm(formTemplateId: FormTemplateId)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
+    async(formTemplateId)(f)
+
+  override def authWithoutRetrievingForm(formTemplateId: FormTemplateId, operation: OperationWithoutForm)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
+    authWithoutRetrievingForm(formTemplateId) { request => lang => cache =>
+      Permissions.apply(operation, cache.role) match {
+        case PermissionResult.Permitted    => f(request)(lang)(cache)
+        case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
+      }
+    }
 
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
@@ -139,7 +162,8 @@ class AuthenticatedRequestActions(
                    authResult,
                    formTemplate,
                    request,
-                   onSuccess = retrievals => f(newRequest)(l)(AuthCacheWithoutForm(retrievals, formTemplate))
+                   onSuccess =
+                     retrievals => role => f(newRequest)(l)(AuthCacheWithoutForm(retrievals, formTemplate, role))
                  )
       } yield result
   }
@@ -152,12 +176,24 @@ class AuthenticatedRequestActions(
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
-                   case AuthSuccessful(retrievals) =>
-                     f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate))
+                   case AuthSuccessful(retrievals, role) =>
+                     f(request)(getCurrentLanguage(request))(AuthCacheWithoutForm(retrievals, formTemplate, role))
                    case _ => errResponder.forbidden(request, "Access denied")
                  }
       } yield result
   }
+
+  def authAndRetrieveForm(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    operation: OperationWithForm)(
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
+    async(formTemplateId, maybeAccessCode) { request => lang => cache =>
+      Permissions.apply(operation, cache.role, cache.form.status) match {
+        case PermissionResult.Permitted    => f(request)(lang)(cache)
+        case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
+      }
+    }
 
   def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
@@ -183,26 +219,25 @@ class AuthenticatedRequestActions(
       } yield result
     }
 
-  private def withForm(f: AuthCacheWithForm => Future[Result])(
-    maybeAccessCode: Option[AccessCode],
-    formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(implicit hc: HeaderCarrier): Future[Result] =
+  private def withForm(
+    f: AuthCacheWithForm => Future[Result])(maybeAccessCode: Option[AccessCode], formTemplate: FormTemplate)(
+    retrievals: MaterialisedRetrievals)(role: Role)(implicit hc: HeaderCarrier): Future[Result] =
     for {
       form   <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
-      result <- f(AuthCacheWithForm(retrievals, form, formTemplate))
+      result <- f(AuthCacheWithForm(retrievals, form, formTemplate, role))
     } yield result
 
   private def handleAuthResults(
     result: AuthResult,
     formTemplate: FormTemplate,
     request: Request[_],
-    onSuccess: MaterialisedRetrievals => Future[Result]
+    onSuccess: MaterialisedRetrievals => Role => Future[Result]
   )(implicit l: LangADT, hc: HeaderCarrier): Future[Result] =
     result match {
-      case AuthSuccessful(retrievals @ AWSALBRetrievals(_)) => onSuccess(retrievals)
-      case AuthSuccessful(retrievals @ AnonymousRetrievals(_)) =>
-        onSuccess(retrievals)
-      case AuthSuccessful(retrievals @ AuthenticatedRetrievals(_, _, _, _, _, userDetails, _, _)) =>
-        onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))
+      case AuthSuccessful(retrievals: AnonymousRetrievals, role) =>
+        onSuccess(retrievals)(role)
+      case AuthSuccessful(retrievals: AuthenticatedRetrievals, role) =>
+        onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))(role)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthAnonymousSession(redirectUrl) =>
         Redirect(redirectUrl)
@@ -281,47 +316,48 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
-        case authProviderId ~ enrolments ~ affinityGroup ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
+        case authProviderId ~ enrolments ~ _ ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
           for {
             userDetails <- authConnector.getUserDetails(userDetailsUri.get)
             retrievals = AuthenticatedRetrievals(
               authProviderId,
               enrolments,
-              affinityGroup,
               internalId,
               externalId,
               userDetails,
               credentialStrength,
               agentCode)
-            result <- AuthSuccessful(retrievals).pure[Future]
+            result <- AuthSuccessful(retrievals, ggRoleFromAffinityGroup(userDetails.affinityGroup)).pure[Future]
           } yield result
       }
       .recover(recoverPF orElse RecoverAuthResult.basicRecover(request, appConfig))
   }
 
-  def idForLog(id: LegacyCredentials) = id match {
-    case GGCredId(str)   => str
-    case VerifyPid(str)  => str
-    case PAClientId(str) => str
-    case OneTimeLogin    => "One Time Login"
+  private def ggRoleFromAffinityGroup(affinityGroup: AffinityGroup) = affinityGroup match {
+    case AffinityGroup.Individual   => Role.Customer
+    case AffinityGroup.Organisation => Role.Customer
+    case AffinityGroup.Agent        => Role.Agent
   }
 }
 
 sealed trait AuthCache {
   def retrievals: MaterialisedRetrievals
   def formTemplate: FormTemplate
+  def role: Role
 }
 
 case class AuthCacheWithForm(
   retrievals: MaterialisedRetrievals,
   form: Form,
-  formTemplate: FormTemplate
+  formTemplate: FormTemplate,
+  role: Role
 ) extends AuthCache
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,
-  formTemplate: FormTemplate
+  formTemplate: FormTemplate,
+  role: Role
 ) extends AuthCache {
   def toAuthCacheWithForm(form: Form) =
-    AuthCacheWithForm(retrievals, form, formTemplate)
+    AuthCacheWithForm(retrievals, form, formTemplate, role)
 }

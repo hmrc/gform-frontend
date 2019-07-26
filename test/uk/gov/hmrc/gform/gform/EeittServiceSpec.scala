@@ -52,7 +52,7 @@ class EeittServiceSpec extends Spec with ExampleData {
 
   it should "return a eeitt agent" in new ExampleData {
 
-    override def affinityGroup = Some(AffinityGroup.Agent)
+    override def affinityGroup = AffinityGroup.Agent
     val result = call(uk.gov.hmrc.gform.sharedmodel.formtemplate.Agent, authContext)
     result.futureValue should be("TESTARN")
   }
@@ -64,7 +64,7 @@ class EeittServiceSpec extends Spec with ExampleData {
 
   it should "return a eeitt user id for agent" in new ExampleData {
 
-    override def affinityGroup = Some(AffinityGroup.Agent)
+    override def affinityGroup = AffinityGroup.Agent
     val result = call(uk.gov.hmrc.gform.sharedmodel.formtemplate.UserId, authContext)
     result.futureValue should be("TESTARN")
   }

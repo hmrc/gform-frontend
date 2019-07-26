@@ -23,9 +23,10 @@ import org.jsoup.Jsoup
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, ErrResponder }
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, AuthenticatedRequestActionsAlgebra, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
@@ -43,7 +44,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryController(
   i18nSupport: I18nSupport,
-  auth: AuthenticatedRequestActions,
+  auth: AuthenticatedRequestActionsAlgebra[Future],
   fileUploadService: FileUploadService,
   validationService: ValidationService,
   pdfService: PdfGeneratorService,
@@ -57,94 +58,92 @@ class SummaryController(
   import i18nSupport._
 
   def summaryById(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      cache.form.status match {
-        case Summary | Validated | Signed | NeedsReview =>
-          summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache).map(Ok(_))
-        case _ => errResponder.notFound(request, "Summary was hit before status was changed.")
-      }
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
+      implicit request => implicit l => cache =>
+        summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache).map(Ok(_))
     }
 
+  // ToDo: Lance - When is this used?
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
-        val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
-        val formFieldValidationResultsF = for {
-          envelope <- envelopeF
-          errors   <- validationService.validateForm(cache, envelope, cache.retrievals)
-        } yield errors
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.AcceptSummary) {
+      implicit request => implicit l => cache =>
+        processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
+          val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+          val formFieldValidationResultsF = for {
+            envelope <- envelopeF
+            errors   <- validationService.validateForm(cache, envelope, cache.retrievals)
+          } yield errors
 
-        val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
+          val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
-        lazy val redirectToDeclaration = gformConnector
-          .updateUserData(
-            FormId(cache.retrievals, formTemplateId, maybeAccessCode),
-            UserData(
-              cache.form.formData,
-              Validated,
-              cache.form.visitsIndex,
-              cache.form.thirdPartyData
+          lazy val redirectToDeclaration = gformConnector
+            .updateUserData(
+              FormId(cache.retrievals, formTemplateId, maybeAccessCode),
+              UserData(
+                cache.form.formData,
+                Validated,
+                cache.form.visitsIndex,
+                cache.form.thirdPartyData
+              )
             )
-          )
-          .map { _ =>
-            Redirect(
-              routes.DeclarationController
-                .showDeclaration(maybeAccessCode, formTemplateId))
-          }
-
-        lazy val redirectToSummary =
-          Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
-        lazy val handleDeclaration = for {
-          result <- isFormValidF.ifM(
-                     redirectToDeclaration,
-                     redirectToSummary.pure[Future]
-                   )
-        } yield result
-        val envelopeExpiryDate = cache.form.envelopeExpiryDate
-        lazy val handleExit = recalculation
-          .recalculateFormData(
-            dataRaw,
-            cache.formTemplate,
-            cache.retrievals,
-            cache.form.thirdPartyData,
-            cache.form.envelopeId)
-          .map { data =>
-            maybeAccessCode match {
-              case (Some(accessCode)) =>
-                Ok(save_with_access_code(accessCode, cache.formTemplate, frontendAppConfig))
-              case _ =>
-                val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
-                Ok(save_acknowledgement(envelopeExpiryDate, cache.formTemplate, call, frontendAppConfig))
+            .map { _ =>
+              Redirect(
+                routes.DeclarationController
+                  .showDeclaration(maybeAccessCode, formTemplateId))
             }
-          }
 
-        get(dataRaw, FormComponentId("save")) match {
-          case "Exit" :: Nil        => handleExit
-          case "Declaration" :: Nil => handleDeclaration
-          case _                    => BadRequest("Cannot determine action").pure[Future]
+          lazy val redirectToSummary =
+            Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
+          lazy val handleDeclaration = for {
+            result <- isFormValidF.ifM(
+                       redirectToDeclaration,
+                       redirectToSummary.pure[Future]
+                     )
+          } yield result
+          val envelopeExpiryDate = cache.form.envelopeExpiryDate
+          lazy val handleExit = recalculation
+            .recalculateFormData(
+              dataRaw,
+              cache.formTemplate,
+              cache.retrievals,
+              cache.form.thirdPartyData,
+              cache.form.envelopeId)
+            .map { _ =>
+              maybeAccessCode match {
+                case (Some(accessCode)) =>
+                  Ok(save_with_access_code(accessCode, cache.formTemplate, frontendAppConfig))
+                case _ =>
+                  val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
+                  Ok(save_acknowledgement(envelopeExpiryDate, cache.formTemplate, call, frontendAppConfig))
+              }
+            }
+
+          get(dataRaw, FormComponentId("save")) match {
+            case "Exit" :: Nil        => handleExit
+            case "Declaration" :: Nil => handleDeclaration
+            case _                    => BadRequest("Cannot determine action").pure[Future]
+          }
         }
-      }
     }
 
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      cache.form.status match {
-        case InProgress | Summary =>
-          for {
-            summaryHml <- summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache)
-            htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHml, submitted = false)
-            withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
-            pdfStream <- pdfService.generatePDF(withPDFHeader)
-          } yield
-            Result(
-              header = ResponseHeader(200, Map.empty),
-              body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-            )
-        case _ => Future.successful(BadRequest)
-      }
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadSummaryPdf) {
+      implicit request => implicit l => cache =>
+        for {
+          summaryHml <- summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache)
+          htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHml, submitted = false)
+          withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
+          pdfStream <- pdfService.generatePDF(withPDFHeader)
+        } yield
+          Result(
+            header = ResponseHeader(200, Map.empty),
+            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+          )
     }
 
-  def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(implicit ec: ExecutionContext, l: LangADT): String = {
+  private def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(
+    implicit ec: ExecutionContext,
+    l: LangADT): String = {
     val headerHtml = pdf_header(formTemplate).toString()
     val doc = Jsoup.parse(summaryHtml)
     doc.select("article[class*=content__body]").prepend(headerHtml)

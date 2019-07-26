@@ -24,8 +24,9 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.handlers.DeclarationControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -47,7 +48,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class DeclarationController(
   i18nSupport: I18nSupport,
-  auth: AuthenticatedRequestActions,
+  auth: AuthenticatedRequestActionsAlgebra[Future],
   gformConnector: GformConnector,
   auditService: AuditService,
   summaryRenderingService: SummaryRenderingService,
@@ -61,11 +62,9 @@ class DeclarationController(
 ) extends FrontendController {
 
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      Future.successful(cache.form.status match {
-        case Validated => Ok(renderDeclarationSection(cache, maybeAccessCode))
-        case _         => BadRequest
-      })
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewDeclaration) {
+      implicit request => implicit l => cache =>
+        Future.successful(Ok(renderDeclarationSection(cache, maybeAccessCode)))
     }
 
   private def renderDeclarationSection(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
@@ -86,18 +85,21 @@ class DeclarationController(
 
   //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Accepting))
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewAccepted) {
+      implicit request => implicit l => cache =>
+        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Accepting))
     }
 
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Returning))
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewReturned) {
+      implicit request => implicit l => cache =>
+        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Returning))
     }
 
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Submitting))
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewSubmitted) {
+      implicit request => implicit l => cache =>
+        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Submitting))
     }
 
   private def asyncToResult[A](async: Future[A])(implicit ex: ExecutionContext): Future[Result] =
@@ -114,20 +116,22 @@ class DeclarationController(
     } yield response
 
   def updateFormField(formTemplateId: FormTemplateId) =
-    auth.async(formTemplateId, None) { implicit request => implicit l => cache =>
-      new DeclarationControllerRequestHandler()
-        .handleUpdatedFormRequest(request.body.asJson, cache.form)
-        .fold(Future.successful(BadRequest))(updated => updateUserData(updated, updated.status).map(_ => Ok))
+    auth.authAndRetrieveForm(formTemplateId, None, OperationWithForm.UpdateFormField) {
+      implicit request => implicit l => cache =>
+        new DeclarationControllerRequestHandler()
+          .handleUpdatedFormRequest(request.body.asJson, cache.form)
+          .fold(Future.successful(BadRequest))(updated => updateUserData(updated, updated.status).map(_ => Ok))
     }
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cacheOrig =>
-      processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
-        get(dataRaw, FormComponentId("save")) match {
-          case "Continue" :: Nil => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)
-          case _                 => Future.successful(BadRequest("Cannot determine action"))
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.SubmitDeclaration) {
+      implicit request => implicit l => cacheOrig =>
+        processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
+          get(dataRaw, FormComponentId("save")) match {
+            case "Continue" :: Nil => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)
+            case _                 => Future.successful(BadRequest("Cannot determine action"))
+          }
         }
-      }
     }
 
   private def continueToSubmitDeclaration(

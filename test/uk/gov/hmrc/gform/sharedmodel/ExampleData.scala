@@ -446,7 +446,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
     val legacyCredentials = OneTimeLogin
     val userDetails =
       UserDetails(None, None, name = "Bond", affinityGroup = AffinityGroup.Individual, groupIdentifier = userId.value)
-    AuthenticatedRetrievals(legacyCredentials, Enrolments(Set()), None, None, None, userDetails, None, None)
+    AuthenticatedRetrievals(legacyCredentials, Enrolments(Set()), None, None, userDetails, None, None)
   }
 
   def formId = FormId(materialisedRetrievals, formTemplateId, None)
@@ -485,7 +485,6 @@ trait ExampleAuthContext {
     AuthenticatedRetrievals(
       authProviderId = authProviderId,
       enrolments = enrolments,
-      affinityGroup = affinityGroup,
       internalId = internalId,
       externalId = externalId,
       userDetails = userDetails,
@@ -496,8 +495,7 @@ trait ExampleAuthContext {
   def authProviderId =
     OneTimeLogin
 
-  def affinityGroup: Option[AffinityGroup] =
-    None
+  def affinityGroup: AffinityGroup = Organisation
 
   def internalId =
     None
@@ -519,7 +517,7 @@ trait ExampleAuthContext {
       authProviderId = None,
       authProviderType = None,
       name = "test details",
-      affinityGroup = Organisation,
+      affinityGroup = affinityGroup,
       groupIdentifier = "TestGroupId"
     )
 }
