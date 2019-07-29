@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrati
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-import uk.gov.hmrc.gform.submission.Submission
+import uk.gov.hmrc.gform.submission.{ Submission, SubmissionRef }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
 
@@ -38,6 +38,13 @@ import scala.concurrent.{ ExecutionContext, Future }
   * Edit it there first and propagate it from there.
   */
 class GformConnector(ws: WSHttp, baseUrl: String) {
+
+  def latestReturnDestinationAuditEvent(submissionReference: SubmissionRef)(
+    implicit hc: HeaderCarrier,
+    executionContext: ExecutionContext): Future[Option[DestinationAudit]] =
+    ws.GET[DestinationAudit](s"$baseUrl/forms/latest/returned/$submissionReference").map(Some(_)).recover {
+      case e: NotFoundException => None
+    }
 
   /******form*******/
   //TODO: remove userId since this information will be passed using HeaderCarrier

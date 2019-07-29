@@ -21,6 +21,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.sharedmodel.DestinationAudit
 
 @(
     formTemplate: FormTemplate,
@@ -29,7 +30,8 @@
     formCategory: FormCategory,
     renderComeBackLater: Boolean,
     continueLabelKey: String,
-    frontendAppConfig: FrontendAppConfig
+    frontendAppConfig: FrontendAppConfig,
+    destinationAudit : Option[DestinationAudit]
 )(implicit request: Request[_], messages: Messages, l:LangADT)
 
 @heading = @{messages("summary.title")}
