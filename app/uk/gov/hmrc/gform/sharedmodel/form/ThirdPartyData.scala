@@ -24,18 +24,21 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],
-  obligations: Obligations
+  obligations: Obligations,
+  reviewData: Option[Map[String, String]] = None
 ) {
   def updateFrom(vr: ValidatedType[ValidationResult]): ThirdPartyData =
     vr match {
       case Valid(ValidationResult(Some(desRegistrationResponse))) =>
-        ThirdPartyData(Some(desRegistrationResponse), obligations)
+        ThirdPartyData(Some(desRegistrationResponse), obligations, reviewData)
       case _ => this
     }
+
+  def reviewComments: Option[String] = reviewData.flatMap(_.get("caseworkerComment"))
 }
 
 object ThirdPartyData {
   val empty = ThirdPartyData(None, NotChecked)
-  implicit val format: OFormat[ThirdPartyData] = Json.format
 
+  implicit val format: OFormat[ThirdPartyData] = Json.format
 }

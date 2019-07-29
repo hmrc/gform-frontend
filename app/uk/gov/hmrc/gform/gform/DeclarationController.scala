@@ -93,8 +93,21 @@ class DeclarationController(
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewReturned) {
       implicit request => implicit l => cache =>
-        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Returning))
+        asyncToResult(
+          submitReview(
+            formTemplateId,
+            cache.copy(form = cache.form.copy(
+              thirdPartyData = cache.form.thirdPartyData.copy(reviewData = Some(extractReviewData(request))))),
+            maybeAccessCode,
+            Returning
+          ))
     }
+
+  private def extractReviewData(request: Request[AnyContent]) =
+    request.body.asFormUrlEncoded
+      .getOrElse(Map.empty[String, Seq[String]])
+      .mapValues(_.headOption)
+      .collect { case (k, Some(v)) => (k, v) }
 
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewSubmitted) {
@@ -115,7 +128,7 @@ class DeclarationController(
       (response, _) <- submitToBackEnd(formStatus, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
     } yield response
 
-  def updateFormField(formTemplateId: FormTemplateId) =
+  def updateFormField(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, None, OperationWithForm.UpdateFormField) {
       implicit request => implicit l => cache =>
         new DeclarationControllerRequestHandler()

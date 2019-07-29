@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
-import cats.data.Validated.Valid
 import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
@@ -29,7 +28,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.helpers.Extractors._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission

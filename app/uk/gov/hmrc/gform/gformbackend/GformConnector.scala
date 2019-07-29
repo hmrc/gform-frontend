@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrati
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-import uk.gov.hmrc.gform.submission.Submission
+import uk.gov.hmrc.gform.submission.{ Submission, SubmissionRef }
 import uk.gov.hmrc.gform.wshttp.WSHttp
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
 
@@ -138,8 +138,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   //TODO move this file to gform and make it's origin there
 
   /****** Tax Period ******/
-  def getAllTaxPeriods(
-    htps: NonEmptyList[HmrcTaxPeriodWithEvaluatedId])(implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+  def getAllTaxPeriods(htps: NonEmptyList[HmrcTaxPeriodWithEvaluatedId])(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[NonEmptyList[TaxResponse]] = {
     import JsonUtils._
     ws.POST[NonEmptyList[HmrcTaxPeriodWithEvaluatedId], NonEmptyList[TaxResponse]](
       s"$baseUrl/obligation/tax-period",

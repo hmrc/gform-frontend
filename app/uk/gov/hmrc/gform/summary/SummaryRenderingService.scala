@@ -30,13 +30,14 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gform.HtmlSanitiser
+import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.submission.SubmissionRef
@@ -147,7 +148,8 @@ class SummaryRenderingService(
         envelope,
         cache.retrievals,
         frontendAppConfig,
-        cache.form.thirdPartyData.obligations
+        cache.form.thirdPartyData.obligations,
+        cache.form.thirdPartyData.reviewComments
       )
 
   }
@@ -162,14 +164,22 @@ object SummaryRenderingService {
     envelope: Envelope,
     retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig,
-    obligations: Obligations
+    obligations: Obligations,
+    reviewerComments: Option[String]
   )(
     implicit
     request: Request[_],
     messages: Messages,
     l: LangADT): Html = {
     val sfr =
-      summaryForRender(validatedType, formFields, maybeAccessCode, formTemplate, envelope, obligations)
+      summaryForRender(
+        validatedType,
+        formFields,
+        maybeAccessCode,
+        formTemplate,
+        envelope,
+        obligations,
+        reviewerComments)
     summary(
       formTemplate,
       sfr,
@@ -177,7 +187,8 @@ object SummaryRenderingService {
       formTemplate.formCategory,
       retrievals.renderSaveAndComeBackLater,
       retrievals.continueLabelKey,
-      frontendAppConfig
+      frontendAppConfig,
+      reviewerComments
     )
   }
 
@@ -187,7 +198,8 @@ object SummaryRenderingService {
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     envelope: Envelope,
-    obligations: Obligations
+    obligations: Obligations,
+    reviewerComments: Option[String] = None
   )(implicit messages: Messages, l: LangADT): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {

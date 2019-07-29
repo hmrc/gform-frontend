@@ -26,7 +26,7 @@ import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
-import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActions, AuthenticatedRequestActionsAlgebra, ErrResponder }
+import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
@@ -63,8 +63,7 @@ class SummaryController(
         summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache).map(Ok(_))
     }
 
-  // ToDo: Lance - When is this used?
-  def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]) =
+  def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.AcceptSummary) {
       implicit request => implicit l => cache =>
         processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
@@ -110,7 +109,7 @@ class SummaryController(
               cache.form.envelopeId)
             .map { _ =>
               maybeAccessCode match {
-                case (Some(accessCode)) =>
+                case Some(accessCode) =>
                   Ok(save_with_access_code(accessCode, cache.formTemplate, frontendAppConfig))
                 case _ =>
                   val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
