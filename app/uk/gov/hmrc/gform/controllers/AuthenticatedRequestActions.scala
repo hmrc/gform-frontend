@@ -298,7 +298,7 @@ class AuthenticatedRequestActions(
   }
 
   val defaultRetrievals = Retrievals.authProviderId and Retrievals.allEnrolments and
-    Retrievals.affinityGroup and Retrievals.internalId and
+    Retrievals.internalId and
     Retrievals.externalId and Retrievals.userDetailsUri and
     Retrievals.credentialStrength and Retrievals.agentCode
 
@@ -316,7 +316,7 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
-        case authProviderId ~ enrolments ~ _ ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
+        case authProviderId ~ enrolments ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
           for {
             userDetails <- authConnector.getUserDetails(userDetailsUri.get)
             retrievals = AuthenticatedRetrievals(

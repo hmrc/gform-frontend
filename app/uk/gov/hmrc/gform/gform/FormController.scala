@@ -312,7 +312,6 @@ class FormController(
                 val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
                 redirectWithRecalculation(cache, dataRaw, maybeAccessCode, ForceReload)
               case "delete" =>
-                // ToDo: Lance - could we make this redirect to delete(., .) to make use of the permissions checking there?
                 deleteForm(maybeAccessCode, cache)
               case _ => Redirect(routes.FormController.newForm(formTemplateId)).pure[Future]
             }
