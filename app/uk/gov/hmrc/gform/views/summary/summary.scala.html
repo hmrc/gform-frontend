@@ -29,7 +29,8 @@
     formCategory: FormCategory,
     renderComeBackLater: Boolean,
     continueLabelKey: String,
-    frontendAppConfig: FrontendAppConfig
+    frontendAppConfig: FrontendAppConfig,
+    reviewerComments : Option[String]
 )(implicit request: Request[_], messages: Messages, l:LangADT)
 
 @heading = @{messages("summary.title")}
@@ -71,6 +72,7 @@
           <p>
             <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url">@messages("summary.printLinkText")</a>
           </p>
+            @reviewerComments.map(c => <p>{c}</p>).getOrElse(scala.xml.NodeSeq.Empty)
         </div>
 
         <input type="hidden" id="gform-action" name="save" value="Declaration" />
