@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.auth
 
+import play.api.Logger
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.{ EditForm => EditFormWith, _ }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm.{ EditForm => EditFormWithout, _ }
 import uk.gov.hmrc.gform.auth.models.PermissionResult.{ NotPermitted, Permitted }
@@ -28,15 +29,15 @@ object Permissions {
     case (EditFormWithout, Agent | Customer) => Permitted
     case (ShowAccessCode, Agent)             => Permitted
     case (ViewDashboard, _)                  => Permitted
-    case _                                   => NotPermitted
+    case _                                   => notPermitted(operation, role)
   }
 
   def apply(operation: OperationWithForm, role: Role, status: FormStatus): PermissionResult =
     (operation, role, status) match {
       case (DownloadSummaryPdf, _, _)                                      => Permitted
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => Permitted
-      case (EditFormWith, Customer | Agent, _)                             => NotPermitted
-      case (EditFormWith, Reviewer, Submitted)                             => NotPermitted
+      case (EditFormWith, Customer | Agent, _)                             => notPermitted(operation, role, status)
+      case (EditFormWith, Reviewer, Submitted)                             => notPermitted(operation, role, status)
       case (EditFormWith, Reviewer, _)                                     => Permitted
       case (ReviewAccepted, Reviewer, NeedsReview)                         => Permitted
       case (ReviewReturned, Reviewer, NeedsReview)                         => Permitted
@@ -47,8 +48,18 @@ object Permissions {
       case (ViewDeclaration, _, Validated)                                 => Permitted
       case (ViewSummary, Reviewer, NeedsReview)                            => Permitted
       case (ViewSummary, _, Summary | Validated | Signed)                  => Permitted
-      case _                                                               => NotPermitted
+      case _                                                               => notPermitted(operation, role, status)
     }
+
+  private def notPermitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
+    Logger.warn(s"Invalid operation $operation attempted on form with status $status by a user with role $role")
+    NotPermitted
+  }
+
+  private def notPermitted(operation: OperationWithoutForm, role: Role) = {
+    Logger.warn(s"Invalid operation $operation attempted by a user with role $role")
+    NotPermitted
+  }
 
   object ReviewFormStatus {
     def unapply(status: FormStatus): Option[FormStatus] = status match {
