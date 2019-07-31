@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import scala.concurrent.{ ExecutionContext, Future }
+import uk.gov.hmrc.http.HeaderCarrier
 
 class FormValidator(implicit ec: ExecutionContext) {
 
@@ -44,7 +45,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(
-    implicit request: Request[AnyContent]
+    implicit hc: HeaderCarrier
   ): Future[FormValidationOutcome] =
     validate(
       data,
@@ -78,7 +79,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(
-    implicit request: Request[AnyContent]
+    implicit hc: HeaderCarrier
   ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] = {
     val section = sections(sectionNumber.value)
     val nonSubmittedYet = nonSubmittedFCsOfNonGroup(formDataRecalculated, section)
@@ -107,7 +108,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation)(
-    implicit request: Request[AnyContent]
+    implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] = {
 
     val sections = processData.sections

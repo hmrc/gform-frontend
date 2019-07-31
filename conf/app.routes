@@ -1,17 +1,15 @@
 # microservice specific routes
 
-GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.FormController.dashboard(formTemplateId: FormTemplateId)
-GET           /new-form/:formTemplateId/show-access-code                                                         uk.gov.hmrc.gform.gform.FormController.showAccessCode(formTemplateId: FormTemplateId)
-GET           /new-form/:formTemplateId/agent                                                                    uk.gov.hmrc.gform.gform.FormController.newFormAgent(formTemplateId: FormTemplateId)
-POST          /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.FormController.newFormPost(formTemplateId: FormTemplateId)
-GET           /new-form/:formTemplateId/nonagent                                                                 uk.gov.hmrc.gform.gform.FormController.newForm(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId/show-access-code                                                         uk.gov.hmrc.gform.gform.NewFormController.showAccessCode(formTemplateId: FormTemplateId)
+POST          /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.newFormPost(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId/one-per-user                                                             uk.gov.hmrc.gform.gform.NewFormController.newForm(formTemplateId: FormTemplateId)
+POST          /form/:formTemplateId/decision                                                                     uk.gov.hmrc.gform.gform.NewFormController.decision(formTemplateId: FormTemplateId)
 
 GET           /form/:formTemplateId/:sectionTitle4Ga                                                             uk.gov.hmrc.gform.gform.FormController.form(formTemplateId: FormTemplateId, a: Option[AccessCode], n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, se: SuppressErrors)
-
-POST          /form/:formTemplateId/:maybeAccessCode/decision                                                    uk.gov.hmrc.gform.gform.FormController.decision(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 POST          /form/:formTemplateId/:maybeAccessCode/:sectionNumber                                              uk.gov.hmrc.gform.gform.FormController.updateFormData(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], sectionNumber: SectionNumber)
 
-GET           /delete/:formTemplateId                                                                            uk.gov.hmrc.gform.gform.FormController.deleteOnExit(formTemplateId: FormTemplateId, a: Option[AccessCode])
+GET           /delete/:formTemplateId                                                                            uk.gov.hmrc.gform.gform.FormController.deleteOnExit(formTemplateId: FormTemplateId)
 
 GET           /summary/:formTemplateId/                                                                          uk.gov.hmrc.gform.gform.SummaryController.summaryById(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /summary/pdf/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.SummaryController.downloadPDF(formTemplateId: FormTemplateId, a: Option[AccessCode])

@@ -17,17 +17,14 @@
 package uk.gov.hmrc.gform.gform.handlers
 
 import cats.syntax.validated._
-import play.api.mvc.{ AnyContent, Request }
-import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.ProcessData
 import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormAccessCodeForAgents, FormComponent, FormTemplate, FormTemplateId, SeNo, SeYes, Section, SectionNumber, SectionTitle4Ga, SuppressErrors, UserId => _ }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, SeNo, SeYes, Section, SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,18 +32,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ ExecutionContext, Future }
 
 class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: ExecutionContext) {
-
-  def handleDashboard(
-    formTemplate: FormTemplate,
-    retrievals: MaterialisedRetrievals,
-    maybeForm: Option[Form]): Redirection[Unit] =
-    (formTemplate.draftRetrievalMethod, retrievals, maybeForm) match {
-      case (Some(FormAccessCodeForAgents), IsAgent(), None) => NotToBeRedirected(())
-      case _                                                => ToBeRedirected
-    }
-
-  def handleAccessCode(accessCode: Option[String]): Redirection[String] =
-    accessCode.fold[Redirection[String]](ToBeRedirected)(NotToBeRedirected(_))
 
   def handleSuppressErrors(
     sectionNumber: SectionNumber,
@@ -59,7 +44,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
-  )(implicit hc: HeaderCarrier, request: Request[AnyContent])
+  )(implicit hc: HeaderCarrier)
     : Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] =
     suppressErrors match {
       case SeYes =>
@@ -86,7 +71,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
-  )(implicit hc: HeaderCarrier, request: Request[AnyContent]): Future[FormHandlerResult] = {
+  )(implicit hc: HeaderCarrier): Future[FormHandlerResult] = {
     val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
 
@@ -119,7 +104,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(
-    implicit request: Request[AnyContent]
+    implicit hc: HeaderCarrier
   ): Future[FormValidationOutcome] =
     formValidator.validateForm(
       data,
@@ -140,7 +125,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation)(
-    implicit request: Request[AnyContent]
+    implicit hc: HeaderCarrier
   ): Future[Option[SectionNumber]] =
     formValidator.fastForwardValidate(
       processData,
@@ -161,7 +146,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation)(
-    implicit request: Request[AnyContent]
+    implicit hc: HeaderCarrier
   ): Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] =
     formValidator.validate(
       formDataRecalculated,

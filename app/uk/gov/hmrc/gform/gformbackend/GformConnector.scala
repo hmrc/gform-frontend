@@ -41,11 +41,11 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******form*******/
   //TODO: remove userId since this information will be passed using HeaderCarrier
-  def newForm(formTemplateId: FormTemplateId, userId: UserId, accessCode: Option[AccessCode])(
+  def newForm(formTemplateId: FormTemplateId, userId: UserId, affinityGroup: Option[AffinityGroup])(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[FormId] = {
-    val ac = accessCode.map("/" + _.value).getOrElse("")
-    ws.POSTEmpty[FormId](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}$ac")
+    ec: ExecutionContext): Future[NewFormData] = {
+    val ag = affinityGroup.map(a => "/" + AffinityGroupUtil.affinityGroupName(a)).getOrElse("")
+    ws.POSTEmpty[NewFormData](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}$ag")
   }
 
   def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =

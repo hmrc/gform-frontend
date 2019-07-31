@@ -42,7 +42,7 @@ class AgentEnrolmentController(
 
   def prologue(formTemplateId: FormTemplateId, formName: String) =
     auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => formWithoutData =>
-      val continueUrl = uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplateId).url
+      val continueUrl = uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplateId).url
       Future.successful(
         Ok(
           uk.gov.hmrc.gform.views.html.hardcoded.pages

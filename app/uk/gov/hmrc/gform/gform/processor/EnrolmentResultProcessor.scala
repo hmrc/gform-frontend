@@ -100,7 +100,7 @@ class EnrolmentResultProcessor(
       case EnrolmentConflict =>
         Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))
       case EnrolmentSuccessful =>
-        Redirect(uk.gov.hmrc.gform.gform.routes.FormController.dashboard(formTemplate._id).url)
+        Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplate._id).url)
       case EnrolmentFailed =>
         val globalError = html.form.errors.error_global(messages("enrolment.error.failed"))
         val globalErrors = globalError :: Nil

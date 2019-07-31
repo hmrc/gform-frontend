@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, Accepting, FormStatus, InP
 object Permissions {
   def apply(operation: OperationWithoutForm, role: Role): PermissionResult = (operation, role) match {
     case (EditFormWithout, Agent | Customer) => Permitted
-    case (ShowAccessCode, Agent)             => Permitted
+    case (ShowAccessCode, Agent | Customer)  => Permitted
     case (ViewDashboard, _)                  => Permitted
     case _                                   => notPermitted(operation, role)
   }

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel
+package uk.gov.hmrc.gform.sharedmodel.form
 
-import play.api.libs.json.Format
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-case class AccessCode(value: String)
+case class NewFormData(formId: FormId, formAccess: FormAccess)
 
-object AccessCode {
-  implicit val format: Format[AccessCode] = ValueClassFormat.simpleFormat(AccessCode.apply)(_.value)
+object NewFormData {
+  implicit val format: OFormat[NewFormData] = derived.oformat
 }
