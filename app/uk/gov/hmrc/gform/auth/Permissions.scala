@@ -36,7 +36,7 @@ object Permissions {
     (operation, role, status) match {
       case (DownloadSummaryPdf, _, _)                                      => Permitted
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => Permitted
-      case (EditFormWith, Customer | Agent, _)                             => notPermitted(operation, role, status)
+      case (EditFormWith, Customer | Agent, _)                             => permitWithWarning(operation, role, status)
       case (EditFormWith, Reviewer, Submitted)                             => notPermitted(operation, role, status)
       case (EditFormWith, Reviewer, _)                                     => Permitted
       case (ReviewAccepted, Reviewer, NeedsReview)                         => Permitted
@@ -48,8 +48,14 @@ object Permissions {
       case (ViewDeclaration, _, Validated)                                 => Permitted
       case (ViewSummary, Reviewer, NeedsReview)                            => Permitted
       case (ViewSummary, _, Summary | Validated | Signed)                  => Permitted
-      case _                                                               => notPermitted(operation, role, status)
+      case _                                                               => permitWithWarning(operation, role, status)
     }
+
+  private def permitWithWarning(operation: OperationWithForm, role: Role, status: FormStatus) = {
+    Logger.warn(
+      s"Allowing invalid operation $operation on form with status $status by a user with role $role. This should be fixed before going to production.")
+    Permitted
+  }
 
   private def notPermitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
     Logger.warn(s"Invalid operation $operation attempted on form with status $status by a user with role $role")
