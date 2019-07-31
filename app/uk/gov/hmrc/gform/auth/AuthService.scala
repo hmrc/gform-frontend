@@ -56,8 +56,8 @@ class AuthService(
     formTemplate.authConfig match {
       case Anonymous =>
         hc.sessionId
-          .fold[AuthResult](AuthAnonymousSession(gform.routes.FormController.dashboard(formTemplate._id)))(sessionId =>
-            AuthSuccessful(AnonymousRetrievals(sessionId), Role.Customer))
+          .fold[AuthResult](AuthAnonymousSession(gform.routes.NewFormController.dashboard(formTemplate._id)))(
+            sessionId => AuthSuccessful(AnonymousRetrievals(sessionId), Role.Customer))
           .pure[Future]
       case AWSALBAuth            => performAWSALBAuth(assumedIdentity).pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))

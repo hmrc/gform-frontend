@@ -48,6 +48,7 @@ class RoutingModule(
 
   private val appRoutes: app.Routes = new app.Routes(
     controllersModule.errorHandler,
+    gformModule.newFormController,
     gformModule.formController,
     gformModule.summaryController,
     gformModule.declarationController,

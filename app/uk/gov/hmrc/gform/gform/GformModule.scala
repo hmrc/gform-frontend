@@ -74,6 +74,25 @@ class GformModule(
   val processDataService: ProcessDataService[Future, Throwable] =
     new ProcessDataService[Future, Throwable](graphModule.recalculation)
 
+  val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator())
+
+  val fastForwardService: FastForwardService = new FastForwardService(
+    fileUploadModule.fileUploadService,
+    validationModule.validationService,
+    gformBackendModule.gformConnector,
+    processDataService,
+    formControllerRequestHandler
+  )
+
+  val newFormController: NewFormController = new NewFormController(
+    configModule.frontendAppConfig,
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    fileUploadModule.fileUploadService,
+    gformBackendModule.gformConnector,
+    fastForwardService
+  )
+
   val formController: FormController = new FormController(
     configModule.appConfig,
     configModule.frontendAppConfig,
@@ -84,9 +103,9 @@ class GformModule(
     sectionRenderingService,
     gformBackendModule.gformConnector,
     processDataService,
-    new FormControllerRequestHandler(new FormValidator()),
+    formControllerRequestHandler,
     lookupRegistry.extractors,
-    playBuiltInsModule.langs
+    fastForwardService
   )
 
   val summaryRenderingService = new SummaryRenderingService(

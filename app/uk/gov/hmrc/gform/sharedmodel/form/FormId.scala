@@ -18,23 +18,38 @@ package uk.gov.hmrc.gform.sharedmodel.form
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId, ValueClassFormat }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.submission.SubmissionRef
 
-case class FormId(value: String)
+case class FormId(value: String) extends AnyVal
 
 object FormId {
+
+  def apply(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode]): FormId =
+    apply(cache.retrievals, cache.formTemplate, maybeAccessCode)
 
   def apply(
     retrievals: MaterialisedRetrievals,
     formTemplateId: FormTemplateId,
-    maybeAccessCode: Option[AccessCode]): FormId =
-    apply(retrievals.groupId, formTemplateId, maybeAccessCode)
+    maybeAccessCode: Option[AccessCode]): FormId = apply(UserId(retrievals), formTemplateId, maybeAccessCode)
 
-  def apply(userId: String, formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): FormId = {
-    val ac = maybeAccessCode.map("-" + _.value).getOrElse("")
-    new FormId(s"$userId-${formTemplateId.value}$ac")
-  }
+  def apply(
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate,
+    maybeAccessCode: Option[AccessCode]): FormId = apply(UserId(retrievals), formTemplate._id, maybeAccessCode)
+
+  def apply(userId: UserId, formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): FormId =
+    maybeAccessCode.fold(direct(userId, formTemplateId)) { accessCode =>
+      withAccessCode(userId, formTemplateId, accessCode)
+    }
+
+  def direct(userId: UserId, formTemplateId: FormTemplateId): FormId =
+    new FormId(s"${userId.value}-${formTemplateId.value}")
+
+  def withAccessCode(userId: UserId, formTemplateId: FormTemplateId, accessCode: AccessCode): FormId =
+    new FormId(s"${userId.value}-${formTemplateId.value}-${accessCode.value}")
 
   implicit val format: OFormat[FormId] = ValueClassFormat.oformat("_id", FormId.apply, _.value)
 

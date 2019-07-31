@@ -17,16 +17,17 @@
 @import helper._
 @import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.models.{AgentAccessCode, _}
+@import uk.gov.hmrc.gform.gform.AccessCodeForm
+@import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.html.form.errors._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   formTemplate: FormTemplate,
-  accessCodeForm: play.api.data.Form[uk.gov.hmrc.gform.gform.AccessCodeForm],
+  accessCodeForm: play.api.data.Form[AccessCodeForm],
   frontendAppConfig: FrontendAppConfig
 )(
   implicit
@@ -38,10 +39,10 @@
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{formTemplate.formName.value}
 @hasErrors = @{accessCodeForm.hasGlobalErrors | accessCodeForm.hasErrors}
-@optionValue = @{accessCodeForm(AgentAccessCode.optionKey).value.getOrElse("")}
-@accessCodeValue = @{accessCodeForm(AgentAccessCode.key).value.getOrElse("")}
-@optionError = @{accessCodeForm.error(AgentAccessCode.optionKey)}
-@accessCodeError = @{accessCodeForm.error(AgentAccessCode.key)}
+@optionValue = @{accessCodeForm(AccessCodePage.optionKey).value.getOrElse("")}
+@accessCodeValue = @{accessCodeForm(AccessCodePage.key).value.getOrElse("")}
+@optionError = @{accessCodeForm.error(AccessCodePage.optionKey)}
+@accessCodeError = @{accessCodeForm.error(AccessCodePage.key)}
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -72,11 +73,11 @@
     @messages("accessCode.p2", formCat).
   </p>
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.FormController.newFormPost(formTemplate._id)}" method="POST" novalidate="novalidate">
+  <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newFormPost(formTemplate._id)}" method="POST" novalidate="novalidate">
 
     @{CSRF.formField}
 
-    <fieldset id="@{AgentAccessCode.optionKey}-fieldset">
+    <fieldset id="@{AccessCodePage.optionKey}-fieldset">
 
       <legend>
         <h2>
@@ -86,62 +87,62 @@
 
       <div class="form-group@if(optionError.nonEmpty){ form-group-error}">
 
-        @if(accessCodeForm.error(AgentAccessCode.optionKey).nonEmpty){
-          <span class="error-message" id="@{AgentAccessCode.optionKey}-inline-error">
+        @if(accessCodeForm.error(AccessCodePage.optionKey).nonEmpty){
+          <span class="error-message" id="@{AccessCodePage.optionKey}-inline-error">
             @messages(s"${optionError.get.key}.${optionError.get.message}", formCat)
           </span>
         }
 
         <div class="multiple-choice group">
           <input
-          id="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionNew}"
+          id="@{AccessCodePage.optionKey}-@{AccessCodePage.optionNew}"
           class="form-control@if(optionError.nonEmpty){ form-control-error}"
           type="radio"
-          name="@{AgentAccessCode.optionKey}"
-          value="@{AgentAccessCode.optionNew}"
-            @if(accessCodeValue == AgentAccessCode.optionNew){
+          name="@{AccessCodePage.optionKey}"
+          value="@{AccessCodePage.optionNew}"
+            @if(accessCodeValue == AccessCodePage.optionNew){
               checked="checked"
               }
           >
-          <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionNew}">
+          <label for="@{AccessCodePage.optionKey}-@{AccessCodePage.optionNew}">
             @messages("accessCode.startNew", formCat)
           </label>
         </div>
 
-        <div class="multiple-choice group" data-target="@{AgentAccessCode.key}-container">
+        <div class="multiple-choice group" data-target="@{AccessCodePage.key}-container">
           <input
-            id="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}"
+            id="@{AccessCodePage.optionKey}-@{AccessCodePage.optionAccess}"
             class="form-control"
             type="radio"
-            name="@{AgentAccessCode.optionKey}"
-            value="@{AgentAccessCode.optionAccess}"
+            name="@{AccessCodePage.optionKey}"
+            value="@{AccessCodePage.optionAccess}"
             required="required"
-            @if(optionValue == AgentAccessCode.optionAccess){
+            @if(optionValue == AccessCodePage.optionAccess){
               checked="checked"
             }
           >
-          <label for="@{AgentAccessCode.optionKey}-@{AgentAccessCode.optionAccess}">
+          <label for="@{AccessCodePage.optionKey}-@{AccessCodePage.optionAccess}">
             @messages("accessCode.useExisting", formCat)
           </label>
 
         </div>
-        <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AgentAccessCode.key}-container">
+        <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AccessCodePage.key}-container">
           <div class="form-group">
-            <label for="@{AgentAccessCode.key}" class="form-label">
+            <label for="@{AccessCodePage.key}" class="form-label">
               @messages("accessCode.enterKey")
             </label>
             <span class="form-hint">
               @messages("accessCode.keyHintText")
             </span>
             @if(accessCodeError.nonEmpty) {
-              <span class="error-message" id="@{AgentAccessCode.key}-inline-error">
+              <span class="error-message" id="@{AccessCodePage.key}-inline-error">
                 @messages(s"${accessCodeError.get.key}.${accessCodeError.get.message}")
               </span>
             }
             <input
             type="text"
-            name="@{AgentAccessCode.key}"
-            id="@{AgentAccessCode.key}"
+            name="@{AccessCodePage.key}"
+            id="@{AccessCodePage.key}"
             value="@accessCodeValue"
             class="form-control form-control-1-2@if(accessCodeError.nonEmpty){ form-control-error}">
           </div>

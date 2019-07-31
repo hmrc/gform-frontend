@@ -16,37 +16,44 @@
 
 package uk.gov.hmrc.gform.models
 
+import play.api.data.Form
 import play.api.data.Forms.{ mapping, nonEmptyText }
 import play.api.data.Mapping
 import play.api.data.validation.Constraints
 import uk.gov.hmrc.gform.gform.AccessCodeForm
 import uk.gov.hmrc.gform.models.MappingsApi.{ MappingOps, MappingWithKeyOps }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, DraftRetrievalMethod }
 import uk.gov.hmrc.gform.typeclasses.Rnd
 
-case class AgentAccessCode(value: String) extends AnyVal
+case class AccessCodePage(value: String) extends AnyVal
 
-object AgentAccessCode {
+object AccessCodePage {
 
   val key = "accessCode"
   val optionKey = "accessOption"
   val optionAccess = "access"
   val optionNew = "new"
 
-  def random(implicit rnd: Rnd[Int]): AgentAccessCode = AgentAccessCode(AccessCode.random.value)
-
-  val optionMapping: (String, Mapping[String]) = AgentAccessCode.optionKey -> nonEmptyText
-  def form: play.api.data.Form[AccessCodeForm] =
-    play.api.data.Form(
+  val optionMapping: (String, Mapping[String]) = optionKey -> nonEmptyText
+  def form(draftRetrievalMethod: DraftRetrievalMethod): Form[AccessCodeForm] = {
+    val verification = draftRetrievalMethod match {
+      case BySubmissionReference => verificationFor(accessCodeSubmissionRef)
+      case _                     => verificationFor(accessCodeAgent)
+    }
+    Form(
       mapping(
-        AgentAccessCode.key → (accessCodeFormat onlyWhen (optionMapping is AgentAccessCode.optionAccess)),
+        key → (verification onlyWhen (optionMapping is optionAccess)),
         optionMapping
       )(AccessCodeForm.apply)(AccessCodeForm.unapply))
+  }
 
-  def accessCodeFormat: Mapping[String] =
+  private def verificationFor(i: Int): Mapping[String] =
     nonEmptyText.verifying(
-      Constraints.pattern(
-        "^[A-Z0-9]{3}-[A-Z0-9]{4}-[A-Z0-9]{3}$".r
-      )
+      Constraints.pattern(("^[A-Z0-9]{" + i + "}-[A-Z0-9]{4}-[A-Z0-9]{" + i + "}$").r)
     )
+
+  private val accessCodeAgent = 3
+  private val accessCodeSubmissionRef = 4
+
 }
