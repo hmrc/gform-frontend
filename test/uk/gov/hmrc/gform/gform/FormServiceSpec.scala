@@ -42,11 +42,11 @@ class FormServiceSpec extends Spec {
   private val genFormComponentPNConstraint: Gen[FormComponent] =
     genFormComponent.map(e => e.copy(`type` = textPositiveNumberConstraint))
 
-  "removeCommas" should "remove any commas from the FormFieldValidationResult when FormComponent type is of type Sterling" +
+  "removeCommasAndPoundSymbol" should "remove any commas from the FormFieldValidationResult when FormComponent type is of type Sterling" +
     "of Sterling" in {
     forAll(genFormComponentSterlingConstraint) { formComponent =>
       FormService
-        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1000.25"))))
+        .removeCommasAndPoundSymbol(List(FormComponentValidation(formComponent, FieldOk(formComponent, "£1000.25"))))
         .head
         .formFieldValidationResult
         .getCurrentValue shouldBe Some("1000.25")
@@ -56,18 +56,18 @@ class FormServiceSpec extends Spec {
   it should "not remove any commas from the FormFieldValidationResult when FormFieldValidationResult is not equal to FieldOk" in {
     forAll(genFormComponentSterlingConstraint) { formComponent =>
       FormService
-        .removeCommas(
-          List(FormComponentValidation(formComponent, FieldError(formComponent, "1,000.25", Set("someErrors")))))
+        .removeCommasAndPoundSymbol(
+          List(FormComponentValidation(formComponent, FieldError(formComponent, "£1,000.25", Set("someErrors")))))
         .head
         .formFieldValidationResult
-        .getCurrentValue shouldBe Some("1,000.25")
+        .getCurrentValue shouldBe Some("£1,000.25")
     }
   }
 
   it should "remove any commas from the FormFieldValidationResult when FormComponent type is Number" in {
     forAll(genFormComponentPNConstraint) { formComponent =>
       FormService
-        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1,000,000"))))
+        .removeCommasAndPoundSymbol(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1,000,000"))))
         .head
         .formFieldValidationResult
         .getCurrentValue shouldBe Some("1000000")
@@ -77,7 +77,7 @@ class FormServiceSpec extends Spec {
   it should "remove any commas from the FormFieldValidationResult when FormComponent type is PositiveNumber" in {
     forAll(genFormComponentNumberConstraint) { formComponent =>
       FormService
-        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1,000,000"))))
+        .removeCommasAndPoundSymbol(List(FormComponentValidation(formComponent, FieldOk(formComponent, "£1,000,000"))))
         .head
         .formFieldValidationResult
         .getCurrentValue shouldBe Some("1000000")
@@ -87,10 +87,10 @@ class FormServiceSpec extends Spec {
   it should "leave commas untouched, when FormComponent type does not equal Sterling, Number or Positive Number" in {
     forAll(genFormComponent.filterNot(x => x.isSterling || x.isNumber || x.isPositiveNumber)) { formComponent =>
       FormService
-        .removeCommas(List(FormComponentValidation(formComponent, FieldOk(formComponent, "1,000.25"))))
+        .removeCommasAndPoundSymbol(List(FormComponentValidation(formComponent, FieldOk(formComponent, "£1,000.25"))))
         .head
         .formFieldValidationResult
-        .getCurrentValue shouldBe Some("1,000.25")
+        .getCurrentValue shouldBe Some("£1,000.25")
     }
   }
 }
