@@ -24,15 +24,18 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 object FormService {
 
-  def removeCommas(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
-    formValidatedData.map(removeCommasHelper)
+  def removeCommasAndPoundSymbol(formValidatedData: List[FormComponentValidation]): List[FormComponentValidation] =
+    formValidatedData.map(removeCommasAndPoundHelper)
 
-  private def removeCommasHelper(formComponentValidation: FormComponentValidation) = formComponentValidation match {
-    case FormComponentValidation(formComponent, FieldOk(fv, cv))
-        if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
-      FormComponentValidation(formComponent, FieldOk(fv, cv.replaceAll(",", "")))
-    case _ => formComponentValidation
-  }
+  private def removeCommasAndPoundHelper(formComponentValidation: FormComponentValidation) =
+    formComponentValidation match {
+      case FormComponentValidation(formComponent, FieldOk(fv, cv))
+          if formComponent.isSterling || formComponent.isPositiveNumber || formComponent.isNumber =>
+        val poundOrComma = "[£,]".r
+        val cvUpd: String = poundOrComma.replaceAllIn(cv, "")
+        FormComponentValidation(formComponent, FieldOk(fv, cvUpd))
+      case _ => formComponentValidation
+    }
 
   def splitFormComponentValidation(
     optionFcv: Option[(FormComponent, FormFieldValidationResult)]): Option[FormComponentValidation] =
@@ -51,7 +54,7 @@ object FormService {
             formComponentValidation.formComponent -> formComponentValidation.formFieldValidationResult)
           .toMap)
     val formComponents =
-      if (isFormValid) removeCommas(validationResult) else validationResult
+      if (isFormValid) removeCommasAndPoundSymbol(validationResult) else validationResult
 
     FormValidationOutcome(
       isFormValid,
