@@ -34,7 +34,12 @@
   l:LangADT
 )
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@heading = @{messages("accessCode.new.title")}
+@draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
+  case Some(BySubmissionReference) => "submissionReference"
+  case _                     => "formAccessCodeForAgents"
+}}
+@accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}
+@heading = @{messages("accessCode.new.title", accessCodeName)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -62,7 +67,7 @@
 
   <div class="panel panel-border-wide">
     <p>
-      @messages("accessCode.new.keepNote").
+      @messages("accessCode.new.keepNote", accessCodeName).
       <strong>@{accessCode.value}</strong>.
       @messages("accessCode.new.youWillBeAsked", formCat).
     </p>
@@ -70,11 +75,11 @@
 
 
   <p>
-    @messages("accessCode.new.validFor").
+    @messages("accessCode.new.validFor", accessCodeName).
   </p>
 
   <p>
-    @messages("accessCode.new.willExpire", formCat).
+    @messages("accessCode.new.willExpire", formCat, accessCodeName).
   </p>
 
   <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newFormPost(formTemplate._id)}" method="POST">
