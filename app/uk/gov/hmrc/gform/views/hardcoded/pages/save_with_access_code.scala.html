@@ -29,6 +29,11 @@
 )(implicit request: Request[_], messages: Messages, l:LangADT)
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
+  case Some(BySubmissionReference) => "submissionReference"
+  case _                     => "formAccessCodeForAgents"
+}}
+@accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}
 @heading = @{messages("accessCode.saved.title", formCat)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -47,7 +52,7 @@
       @heading
     </h1>
     <span class="h1-heading">
-      @messages("accessCode.new.keepNote")
+      @messages("accessCode.new.keepNote", accessCodeName)
       <br>
       @accessCode.value
     </span>
@@ -59,14 +64,14 @@
 
   <div class="panel panel-border-wide">
     <p>
-      @messages("accessCode.new.keepNote")
+      @messages("accessCode.new.keepNote", accessCodeName)
       <strong>@accessCode.value</strong>.
       @messages("accessCode.new.youWillBeAsked", formCat)
     </p>
   </div>
 
   <p>
-    @messages("accessCode.new.validFor"). @messages("accessCode.new.willExpire", formCat)
+    @messages("accessCode.new.validFor", accessCodeName). @messages("accessCode.new.willExpire", formCat, accessCodeName)
   </p>
 
   @govuk_warning_text(messages("accessCode.mustSubmit", formCat))

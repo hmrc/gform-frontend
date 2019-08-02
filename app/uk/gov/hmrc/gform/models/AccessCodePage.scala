@@ -37,10 +37,12 @@ object AccessCodePage {
 
   val optionMapping: (String, Mapping[String]) = optionKey -> nonEmptyText
   def form(draftRetrievalMethod: DraftRetrievalMethod): Form[AccessCodeForm] = {
-    val verification = draftRetrievalMethod match {
-      case BySubmissionReference => verificationFor(accessCodeSubmissionRef)
-      case _                     => verificationFor(accessCodeAgent)
+    val format: Int = draftRetrievalMethod match {
+      case BySubmissionReference => accessCodeSubmissionRef
+      case _                     => accessCodeAgent
     }
+    val verification = verificationFor(format)
+
     Form(
       mapping(
         key → (verification onlyWhen (optionMapping is optionAccess)),

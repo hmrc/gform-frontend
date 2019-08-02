@@ -43,7 +43,11 @@
 @accessCodeValue = @{accessCodeForm(AccessCodePage.key).value.getOrElse("")}
 @optionError = @{accessCodeForm.error(AccessCodePage.optionKey)}
 @accessCodeError = @{accessCodeForm.error(AccessCodePage.key)}
-
+@draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
+  case Some(BySubmissionReference) => "submissionReference"
+  case _                     => "formAccessCodeForAgents"
+}}
+@accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -66,11 +70,11 @@
   </h1>
 
   <p>
-    @messages("accessCode.p1", formCat).
+    @messages("accessCode.p1", formCat, accessCodeName).
   </p>
 
   <p>
-    @messages("accessCode.p2", formCat).
+    @messages("accessCode.p2", formCat, accessCodeName)
   </p>
 
   <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newFormPost(formTemplate._id)}" method="POST" novalidate="novalidate">
@@ -129,10 +133,10 @@
         <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AccessCodePage.key}-container">
           <div class="form-group">
             <label for="@{AccessCodePage.key}" class="form-label">
-              @messages("accessCode.enterKey")
+              @messages("accessCode.enterKey", accessCodeName)
             </label>
             <span class="form-hint">
-              @messages("accessCode.keyHintText")
+              @messages(s"accessCode.${draftRetrievalMethod}.keyHintText")
             </span>
             @if(accessCodeError.nonEmpty) {
               <span class="error-message" id="@{AccessCodePage.key}-inline-error">
@@ -150,24 +154,24 @@
           <details class="details" role="group">
             <summary class="summary">
               <span>
-                @messages("accessCode.help.title")
+                @messages("accessCode.help.title", accessCodeName)
               </span>
             </summary>
             <div class="panel-indent">
               <p>
-                @messages("accessCode.help.p1", formCat).
+                @messages("accessCode.help.p1", formCat, accessCodeName).
               </p>
 
               <p>
-                @messages("accessCode.help.p2", formCat).
+                @messages("accessCode.help.p2", formCat, accessCodeName).
               </p>
 
               <p>
-                @messages("accessCode.help.p3")
+                @messages(s"accessCode.$draftRetrievalMethod.help.p3")
               </p>
 
               <p>
-                @messages("accessCode.help.p4", formCat).
+                @messages("accessCode.help.p4", formCat, accessCodeName).
               </p>
 
             </div>
