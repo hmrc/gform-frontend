@@ -57,6 +57,12 @@
       </p>
     </div>
 
+    @reviewerComments.map { c =>
+        <div class="print-hidden">
+            <p>{c}</p>
+        </div>
+    }.getOrElse(scala.xml.NodeSeq.Empty)
+
     <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
         @CSRF.formField
@@ -72,7 +78,6 @@
           <p>
             <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url">@messages("summary.printLinkText")</a>
           </p>
-            @reviewerComments.map(c => <p>{c}</p>).getOrElse(scala.xml.NodeSeq.Empty)
         </div>
 
         <input type="hidden" id="gform-action" name="save" value="Declaration" />
