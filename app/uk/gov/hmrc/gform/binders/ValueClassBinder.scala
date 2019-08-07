@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.binders
 
 import cats.implicits._
 import play.api.libs.json._
-import play.api.mvc.{ PathBindable, QueryStringBindable }
+import play.api.mvc.{ JavascriptLiteral, PathBindable, QueryStringBindable }
 import uk.gov.hmrc.gform.models.LookupQuery
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId }
@@ -45,6 +45,11 @@ object ValueClassBinder {
       Try { SectionNumber(value.toInt) }.map(_.asRight).getOrElse(s"No valid value in path $key: $value".asLeft)
     override def unbind(key: String, sectionNumber: SectionNumber): String = sectionNumber.value.toString
   }
+
+  implicit val jLiteralAffinityGroup = new JavascriptLiteral[AccessCode] {
+    def to(value: AccessCode): String = value.value
+  }
+
   implicit def optionAccessCodeBinder(implicit stringBinder: PathBindable[String]): PathBindable[Option[AccessCode]] =
     new PathBindable[Option[AccessCode]] {
       override def bind(key: String, value: String): Either[String, Option[AccessCode]] =

@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, GformSubmission, StructuredFormData
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
@@ -83,27 +83,12 @@ class TestOnlyController(
   private def recov[A](f: Future[A])(errorMsg: String)(implicit ec: ExecutionContext): FOpt[A] =
     fromFutureOptA(f.map(Right.apply).recover { case e => Left(UnexpectedState(errorMsg + "\n" + e.getMessage)) })
 
-  def handlebarPayloadByFormId(
+  def handlebarPayload(
     formTemplateId: FormTemplateId,
     destinationId: DestinationId,
-    formId: FormId): Action[AnyContent] =
-    Action.async { implicit request =>
-      implicit val l = LangADT.En
-      val customerId = CustomerId("")
-      val retrievals = AnonymousRetrievals(SessionId(""))
-
-      withHandlebarPayload {
-        for {
-          form <- recov(gformConnector.getForm(formId))(s"No form id $formId found.")
-          formTemplate <- recov(gformConnector.getFormTemplate(formTemplateId))(
-                           s"No formTemplate id $formTemplateId found.")
-          res <- fetchHandlebarPayload(form, formTemplate, customerId, destinationId, retrievals)
-        } yield res
-      }
-    }
-
-  def handlebarPayload(formTemplateId: FormTemplateId, destinationId: DestinationId) =
-    auth.async(formTemplateId, None) { implicit request => implicit lang => cache =>
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit lang => cache =>
       import cache._
       withHandlebarPayload {
         for {
@@ -155,13 +140,5 @@ class TestOnlyController(
 
     } yield Ok(httpResponse.body)
 
-  }
-
-  def askFormId(formTemplateId: FormTemplateId) = auth.async(formTemplateId) {
-    implicit request => implicit lang => cache =>
-      import cache._
-
-      val formId = FormId(retrievals, formTemplateId, None)
-      Future.successful(Ok(formId.value))
   }
 }
