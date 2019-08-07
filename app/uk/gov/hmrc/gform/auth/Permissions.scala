@@ -16,56 +16,69 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.Logger
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.{ EditForm => EditFormWith, _ }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm.{ EditForm => EditFormWithout, _ }
 import uk.gov.hmrc.gform.auth.models.PermissionResult.{ NotPermitted, Permitted }
 import uk.gov.hmrc.gform.auth.models.Role.{ Agent, Customer, Reviewer }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm, PermissionResult, Role }
+import uk.gov.hmrc.gform.logging.Loggers
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, Accepting, FormStatus, InProgress, NeedsReview, Returning, Signed, Submitted, Submitting, Summary, Validated }
 
 object Permissions {
   def apply(operation: OperationWithoutForm, role: Role): PermissionResult = (operation, role) match {
-    case (EditFormWithout, Agent | Customer) => Permitted
-    case (ShowAccessCode, Agent | Customer)  => Permitted
-    case (ViewDashboard, _)                  => Permitted
+    case (EditFormWithout, Agent | Customer) => permitted(operation, role)
+    case (ShowAccessCode, Agent | Customer)  => permitted(operation, role)
+    case (ViewDashboard, _)                  => permitted(operation, role)
     case _                                   => notPermitted(operation, role)
   }
 
   def apply(operation: OperationWithForm, role: Role, status: FormStatus): PermissionResult =
     (operation, role, status) match {
-      case (DownloadSummaryPdf, _, _)                                      => Permitted
-      case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => Permitted
+      case (DownloadSummaryPdf, _, _)                                      => permitted(operation, role, status)
+      case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => permitted(operation, role, status)
       case (EditFormWith, Customer | Agent, _)                             => permitWithWarning(operation, role, status)
       case (EditFormWith, Reviewer, Submitted)                             => notPermitted(operation, role, status)
-      case (EditFormWith, Reviewer, _)                                     => Permitted
-      case (ReviewAccepted, Reviewer, NeedsReview)                         => Permitted
-      case (ReviewReturned, Reviewer, NeedsReview)                         => Permitted
-      case (ReviewSubmitted, Reviewer, Accepted)                           => Permitted
-      case (AcceptSummary, _, Summary | Validated)                         => Permitted
-      case (SubmitDeclaration, Customer | Agent, Validated)                => Permitted
-      case (UpdateFormField, Reviewer, ReviewFormStatus(_))                => Permitted
-      case (ViewDeclaration, _, Validated)                                 => Permitted
-      case (ViewSummary, Reviewer, NeedsReview)                            => Permitted
-      case (ViewSummary, _, Summary | Validated | Signed)                  => Permitted
+      case (EditFormWith, Reviewer, _)                                     => permitted(operation, role, status)
+      case (ReviewAccepted, Reviewer, NeedsReview)                         => permitted(operation, role, status)
+      case (ReviewReturned, Reviewer, NeedsReview)                         => permitted(operation, role, status)
+      case (ReviewSubmitted, Reviewer, Accepted)                           => permitted(operation, role, status)
+      case (AcceptSummary, _, Summary | Validated)                         => permitted(operation, role, status)
+      case (SubmitDeclaration, Customer | Agent, Validated)                => permitted(operation, role, status)
+      case (UpdateFormField, Reviewer, ReviewFormStatus(_))                => permitted(operation, role, status)
+      case (ViewDeclaration, _, Validated)                                 => permitted(operation, role, status)
+      case (ViewSummary, Reviewer, NeedsReview)                            => permitted(operation, role, status)
+      case (ViewSummary, _, Summary | Validated | Signed)                  => permitted(operation, role, status)
       case _                                                               => permitWithWarning(operation, role, status)
     }
 
+  private def permitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
+    Loggers.permissions.info(formatLogMessage(operation.toString, role, Some(status), "Valid"))
+    Permitted
+  }
+
+  private def permitted(operation: OperationWithoutForm, role: Role) = {
+    Loggers.permissions.info(formatLogMessage(operation.toString, role, None, "Valid"))
+    Permitted
+  }
+
   private def permitWithWarning(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Logger.warn(
-      s"Allowing invalid operation $operation on form with status $status by a user with role $role. This should be fixed before going to production.")
+    Loggers.permissions.warn(
+      formatLogMessage(operation.toString, role, Some(status), "Invalid") + "Allowing anyway. This should be fixed before going to production.")
     Permitted
   }
 
   private def notPermitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Logger.warn(s"Invalid operation $operation attempted on form with status $status by a user with role $role")
+    Loggers.permissions.warn(formatLogMessage(operation.toString, role, Some(status), "Invalid"))
     NotPermitted
   }
 
   private def notPermitted(operation: OperationWithoutForm, role: Role) = {
-    Logger.warn(s"Invalid operation $operation attempted by a user with role $role")
+    Loggers.permissions.warn(formatLogMessage(operation.toString, role, None, "Invalid"))
     NotPermitted
   }
+
+  private def formatLogMessage(operation: String, role: Role, status: Option[FormStatus], validity: String) =
+    f"$validity%-20s $operation%-20s $role%-20s ${status.map(_.toString).getOrElse("")}%-20s"
 
   object ReviewFormStatus {
     def unapply(status: FormStatus): Option[FormStatus] = status match {
