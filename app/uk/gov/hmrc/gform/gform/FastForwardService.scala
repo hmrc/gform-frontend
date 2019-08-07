@@ -21,12 +21,13 @@ import com.softwaremill.quicklens._
 import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm }
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.models.gform.ObligationsAction
+import uk.gov.hmrc.gform.models.gform.{ ForceReload, NoSpecificAction, ObligationsAction }
 import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormStatus, InProgress, Summary, UserData }
@@ -45,17 +46,23 @@ class FastForwardService(
   handler: FormControllerRequestHandler
 )(implicit ec: ExecutionContext) {
 
-  def redirectFromEmpty(
-    cache: AuthCacheWithoutForm,
-    form: Form,
-    maybeAccessCode: Option[AccessCode],
-    obligationsAction: ObligationsAction)(implicit messages: Messages, hc: HeaderCarrier, l: LangADT) = {
-    val dataRaw = Map.empty[FormComponentId, Seq[String]]
-    val cacheWithForm = cache.toAuthCacheWithForm(form)
-    redirectWithRecalculation(cacheWithForm, dataRaw, maybeAccessCode, obligationsAction)
+  def redirectContinue(
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT) = {
+    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
+    redirectWithRecalculation(cache, dataRaw, maybeAccessCode, ForceReload)
   }
 
-  def redirectWithRecalculation(
+  def redirectFromEmpty(cache: AuthCacheWithoutForm, form: Form, maybeAccessCode: Option[AccessCode])(
+    implicit messages: Messages,
+    hc: HeaderCarrier,
+    l: LangADT) = {
+    val dataRaw = Map.empty[FormComponentId, Seq[String]]
+    val cacheWithForm = cache.toAuthCacheWithForm(form)
+    redirectWithRecalculation(cacheWithForm, dataRaw, maybeAccessCode, NoSpecificAction)
+  }
+
+  private def redirectWithRecalculation(
     cache: AuthCacheWithForm,
     dataRaw: Data,
     maybeAccessCode: Option[AccessCode],

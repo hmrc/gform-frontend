@@ -17,38 +17,26 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
-import cats.instances.option._
 import cats.syntax.applicative._
-import cats.syntax.apply._
-import cats.syntax.eq._
-import com.softwaremill.quicklens._
 import play.api.data
-import play.api.i18n.{ DefaultLangs, I18nSupport }
+import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
-import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
+import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.controllers.helpers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
-import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormHandlerResult }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.lookup.LookupExtractors
-import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.models.gform.{ ForceReload, FormValidationOutcome, NoSpecificAction, ObligationsAction }
-import uk.gov.hmrc.gform.models.{ AccessCodePage, ProcessData, ProcessDataService }
+import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
-import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -113,12 +101,9 @@ class NewFormController(
                   choice.bindFromRequest().withError("decision", "error.required"),
                   noAccessCode,
                   frontendAppConfig)).pure[Future], {
-              case "continue" =>
-                val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
-                fastForwardService.redirectWithRecalculation(cache, dataRaw, noAccessCode, ForceReload)
-              case "delete" =>
-                fastForwardService.deleteForm(cache)
-              case _ => Redirect(routes.NewFormController.newForm(formTemplateId)).pure[Future]
+              case "continue" => fastForwardService.redirectContinue(cache, noAccessCode)
+              case "delete"   => fastForwardService.deleteForm(cache)
+              case _          => Redirect(routes.NewFormController.newForm(formTemplateId)).pure[Future]
             }
           )
     }
@@ -137,7 +122,7 @@ class NewFormController(
                        maybeForm <- getForm(formId)
                        res <- maybeForm match {
                                case Some(form) =>
-                                 fastForwardService.redirectFromEmpty(cache, form, noAccessCode, NoSpecificAction)
+                                 fastForwardService.redirectFromEmpty(cache, form, noAccessCode)
                                case None => Future.failed(new NotFoundException(s"Form with id $formId not found."))
                              }
                      } yield res
@@ -160,19 +145,20 @@ class NewFormController(
           .withError(AccessCodePage.key, "error.notfound")
       )
 
+    def noAccessCodeProvided = Future.failed[Result](new Exception(s"AccessCode not provided, cannot continue."))
+
     def optionAccess(
       accessCodeForm: AccessCodeForm,
       cache: AuthCacheWithoutForm)(implicit hc: HeaderCarrier, request: Request[AnyContent], lang: LangADT) = {
       val maybeAccessCode: Option[AccessCode] = accessCodeForm.accessCode.map(a => AccessCode(a))
-      maybeAccessCode.fold(BadRequest("hahaha").pure[Future]) { accessCode =>
+      maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
         for {
           maybeForm <- getForm(FormId.withAccessCode(UserId(cache.retrievals), formTemplateId, accessCode))
           res <- maybeForm
-                  .map(fastForwardService.redirectFromEmpty(cache, _, maybeAccessCode, NoSpecificAction))
+                  .map(form => fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), Some(accessCode)))
                   .getOrElse(notFound(cache.formTemplate).pure[Future])
         } yield res
       }
-
     }
 
     def processNewFormData(newFormData: NewFormData, drm: DraftRetrievalMethod)(implicit request: Request[AnyContent]) =
