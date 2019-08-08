@@ -138,8 +138,8 @@ class DeclarationController(
       (response, _) <- submitToBackEnd(formStatus, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
     } yield response
 
-  def updateFormField(formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, None, OperationWithForm.UpdateFormField) {
+  def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.UpdateFormField) {
       implicit request => implicit l => cache =>
         new DeclarationControllerRequestHandler()
           .handleUpdatedFormRequest(request.body.asJson, cache.form)
