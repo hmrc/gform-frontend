@@ -57,11 +57,7 @@
       </p>
     </div>
 
-    @reviewerComments.map { c =>
-        <div class="print-hidden">
-            <p>{c}</p>
-        </div>
-    }.getOrElse(scala.xml.NodeSeq.Empty)
+    @reviewerComments.map(c => <div class="print-hidden"><p>{c}</p></div>).getOrElse(scala.xml.NodeSeq.Empty)
 
     <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
