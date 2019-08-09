@@ -28,8 +28,7 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormAccess, FormId, NewFormData, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.views.html.form._
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -60,16 +59,34 @@ class NewFormController(
       implicit request => implicit lang => cache =>
         import cache._
 
-        val route = (formTemplate.draftRetrievalMethod, retrievals) match {
-          case (Some(BySubmissionReference), _) =>
-            Ok(access_code_start(formTemplate, AccessCodePage.form(BySubmissionReference), frontendAppConfig))
-          case (Some(FormAccessCodeForAgents), IsAgent()) =>
-            Ok(access_code_start(formTemplate, AccessCodePage.form(FormAccessCodeForAgents), frontendAppConfig))
-          case _ => Redirect(routes.NewFormController.newForm(formTemplateId))
+        (formTemplate.draftRetrievalMethod, retrievals) match {
+          case (Some(BySubmissionReference), _)           => showAccesCodePage(cache, BySubmissionReference)
+          case (Some(FormAccessCodeForAgents), IsAgent()) => showAccesCodePage(cache, FormAccessCodeForAgents)
+          case _                                          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
         }
-
-        route.pure[Future]
     }
+
+  /**
+    * This handles cases when draftRetrievalMethod submissionReference or formAccessCodeForAgents has been
+    * added to the formTemplate after form went live without draftRetrievalMethod.
+    *
+    * It will try to load form without accessCode and only if such a form doesn't exists present user with Access Code page
+    *
+    */
+  private def showAccesCodePage(cache: AuthCacheWithoutForm, draftRetrievalMethod: DraftRetrievalMethod)(
+    implicit request: Request[AnyContent],
+    l: LangADT) = {
+    val formTemplateId = cache.formTemplate._id
+    val formId = FormId.direct(UserId(cache.retrievals), formTemplateId)
+
+    def showAccessCodePage =
+      Ok(access_code_start(cache.formTemplate, AccessCodePage.form(draftRetrievalMethod), frontendAppConfig))
+        .pure[Future]
+
+    handleForm(formId)(showAccessCodePage) { form =>
+      Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+    }
+  }
 
   def showAccessCode(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ShowAccessCode) {
@@ -99,36 +116,35 @@ class NewFormController(
                 continue_form_page(
                   cache.formTemplate,
                   choice.bindFromRequest().withError("decision", "error.required"),
-                  noAccessCode,
                   frontendAppConfig)).pure[Future], {
               case "continue" => fastForwardService.redirectContinue(cache, noAccessCode)
               case "delete"   => fastForwardService.deleteForm(cache)
-              case _          => Redirect(routes.NewFormController.newForm(formTemplateId)).pure[Future]
+              case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
           )
     }
 
-  def newForm(formTemplateId: FormTemplateId) =
+  def newOrContinue(formTemplateId: FormTemplateId) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
-        val noAccessCode = Option.empty[AccessCode]
-        for {
-          (formId, wasFormFound) <- getOrStartForm(formTemplateId, cache.retrievals, noAccessCode)
-          result <- if (wasFormFound) {
-                     Ok(continue_form_page(cache.formTemplate, choice, noAccessCode, frontendAppConfig))
-                       .pure[Future]
-                   } else {
-                     for {
-                       maybeForm <- getForm(formId)
-                       res <- maybeForm match {
-                               case Some(form) =>
-                                 fastForwardService.redirectFromEmpty(cache, form, noAccessCode)
-                               case None => Future.failed(new NotFoundException(s"Form with id $formId not found."))
-                             }
-                     } yield res
-                   }
-        } yield result
+        val formId = FormId.direct(UserId(cache.retrievals), formTemplateId)
+        handleForm(formId)(newForm(formTemplateId, cache))(_ =>
+          Ok(continue_form_page(cache.formTemplate, choice, frontendAppConfig)).pure[Future])
     }
+
+  private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm)(
+    implicit hc: HeaderCarrier,
+    l: LangADT) = {
+
+    def notFound(formId: FormId) = Future.failed(new NotFoundException(s"Form with id $formId not found."))
+
+    for {
+      formId <- startFreshForm(formTemplateId, cache.retrievals).map(_.formId)
+      res <- handleForm(formId)(notFound(formId)) { form =>
+              fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), noAccessCode)
+            }
+    } yield res
+  }
 
   def newFormPost(formTemplateId: FormTemplateId): Action[AnyContent] = {
     def badRequest(formTemplate: FormTemplate, errors: play.api.data.Form[AccessCodeForm])(
@@ -152,12 +168,10 @@ class NewFormController(
       cache: AuthCacheWithoutForm)(implicit hc: HeaderCarrier, request: Request[AnyContent], lang: LangADT) = {
       val maybeAccessCode: Option[AccessCode] = accessCodeForm.accessCode.map(a => AccessCode(a))
       maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
-        for {
-          maybeForm <- getForm(FormId.withAccessCode(UserId(cache.retrievals), formTemplateId, accessCode))
-          res <- maybeForm
-                  .map(form => fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), Some(accessCode)))
-                  .getOrElse(notFound(cache.formTemplate).pure[Future])
-        } yield res
+        val formId = FormId.withAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
+        handleForm(formId)(notFound(cache.formTemplate).pure[Future]) { form =>
+          fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), Some(accessCode))
+        }
       }
     }
 
@@ -230,13 +244,10 @@ class NewFormController(
                       .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals))
     } yield newFormData
 
-  private def getOrStartForm(
-    formTemplateId: FormTemplateId,
-    retrievals: MaterialisedRetrievals,
-    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[(FormId, Boolean)] =
+  private def handleForm[A](formId: FormId)(notFound: => Future[A])(found: Form => Future[A])(
+    implicit hc: HeaderCarrier): Future[A] =
     for {
-      maybeFormExceptSubmitted <- getForm(FormId.direct(UserId(retrievals), formTemplateId))
-      formId <- maybeFormExceptSubmitted.fold(startFreshForm(formTemplateId, retrievals).map(_.formId))(
-                 _._id.pure[Future])
-    } yield (formId, maybeFormExceptSubmitted.isDefined)
+      maybeForm <- getForm(formId)
+      result    <- maybeForm.fold(notFound)(found)
+    } yield result
 }

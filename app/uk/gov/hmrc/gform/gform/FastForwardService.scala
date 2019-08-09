@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.models.gform.{ ForceReload, NoSpecificAction, ObligationsAction }
+import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormStatus, InProgress, Summary, UserData }
@@ -50,27 +50,16 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT) = {
     val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
-    redirectWithRecalculation(cache, dataRaw, maybeAccessCode, ForceReload)
+    redirectWithRecalculation(cache, dataRaw, maybeAccessCode)
   }
 
-  def redirectFromEmpty(cache: AuthCacheWithoutForm, form: Form, maybeAccessCode: Option[AccessCode])(
+  private def redirectWithRecalculation(cache: AuthCacheWithForm, dataRaw: Data, maybeAccessCode: Option[AccessCode])(
     implicit messages: Messages,
     hc: HeaderCarrier,
-    l: LangADT) = {
-    val dataRaw = Map.empty[FormComponentId, Seq[String]]
-    val cacheWithForm = cache.toAuthCacheWithForm(form)
-    redirectWithRecalculation(cacheWithForm, dataRaw, maybeAccessCode, NoSpecificAction)
-  }
-
-  private def redirectWithRecalculation(
-    cache: AuthCacheWithForm,
-    dataRaw: Data,
-    maybeAccessCode: Option[AccessCode],
-    obligationsAction: ObligationsAction)(implicit messages: Messages, hc: HeaderCarrier, l: LangADT): Future[Result] =
+    l: LangADT): Future[Result] =
     for {
-      processData <- processDataService
-                      .getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, obligationsAction)
-      res <- updateUserData(cache, processData)(redirectResult(cache, maybeAccessCode, processData, _))
+      processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload)
+      res         <- updateUserData(cache, processData)(redirectResult(cache, maybeAccessCode, processData, _))
     } yield res
 
   private def redirectResult(

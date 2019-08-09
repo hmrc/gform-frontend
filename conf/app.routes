@@ -3,7 +3,7 @@
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/show-access-code                                                         uk.gov.hmrc.gform.gform.NewFormController.showAccessCode(formTemplateId: FormTemplateId)
 POST          /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.newFormPost(formTemplateId: FormTemplateId)
-GET           /new-form/:formTemplateId/one-per-user                                                             uk.gov.hmrc.gform.gform.NewFormController.newForm(formTemplateId: FormTemplateId)
+GET           /new-form/:formTemplateId/one-per-user                                                             uk.gov.hmrc.gform.gform.NewFormController.newOrContinue(formTemplateId: FormTemplateId)
 POST          /form/:formTemplateId/decision                                                                     uk.gov.hmrc.gform.gform.NewFormController.decision(formTemplateId: FormTemplateId)
 
 GET           /form/:formTemplateId/:sectionTitle4Ga                                                             uk.gov.hmrc.gform.gform.FormController.form(formTemplateId: FormTemplateId, a: Option[AccessCode], n: SectionNumber, sectionTitle4Ga: SectionTitle4Ga, se: SuppressErrors)
