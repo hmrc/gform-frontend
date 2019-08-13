@@ -59,6 +59,7 @@
 
     <logger name="permissions" level="INFO"  additivity="false">
         <appender-ref ref="PERMISSIONS_LOG_FILE" />
+        <appender-ref ref="STDOUT" />
     </logger>
 
     <logger name="javax.management.mbeanserver" level="INFO"/>
