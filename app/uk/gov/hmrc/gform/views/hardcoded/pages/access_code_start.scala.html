@@ -44,7 +44,7 @@
 @optionError = @{accessCodeForm.error(AccessCodePage.optionKey)}
 @accessCodeError = @{accessCodeForm.error(AccessCodePage.key)}
 @draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
-  case Some(BySubmissionReference) => "submissionReference"
+  case BySubmissionReference => "submissionReference"
   case _                     => "formAccessCodeForAgents"
 }}
 @accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}

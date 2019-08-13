@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate
+package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
-import julienrf.json.derived
-import play.api.libs.json._
+import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.ContinueOrDeletePage
 
-sealed trait DraftRetrievalMethod
-
-case class OnePerUser(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
-case class FormAccessCodeForAgents(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
-case object BySubmissionReference extends DraftRetrievalMethod
-
-object DraftRetrievalMethod {
-  implicit val format: OFormat[DraftRetrievalMethod] = derived.oformat
+trait ContinueOrDeletePageGen {
+  def continueOrDeletePageGen: Gen[ContinueOrDeletePage] =
+    Gen.oneOf(ContinueOrDeletePage.Show, ContinueOrDeletePage.Skip)
 }
+
+object ContinueOrDeletePageGen extends ContinueOrDeletePageGen

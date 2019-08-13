@@ -103,6 +103,13 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
       |  "description": {"en":"description"},
       |  "_id": "333",
       |  "submitSuccessUrl": "",
+      |  "draftRetrievalMethod" : {
+      |    "OnePerUser" : {
+      |      "continueOrDeletePage" : {
+      |        "Show" : { }
+      |      }
+      |    }
+      |  },
       |  "authConfig": {
       |    "HmrcSimpleModule": {}
       |  },

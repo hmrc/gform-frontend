@@ -112,7 +112,7 @@ object FormTemplateBuilder {
     toLocalisedString(""),
     Some(BetaBanner),
     Default,
-    None,
+    OnePerUser(ContinueOrDeletePage.Show),
     None,
     DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
