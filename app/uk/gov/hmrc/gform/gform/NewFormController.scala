@@ -57,12 +57,10 @@ class NewFormController(
   def dashboard(formTemplateId: FormTemplateId) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ViewDashboard) {
       implicit request => implicit lang => cache =>
-        import cache._
-
-        (formTemplate.draftRetrievalMethod, retrievals) match {
-          case (Some(BySubmissionReference), _)           => showAccesCodePage(cache, BySubmissionReference)
-          case (Some(FormAccessCodeForAgents), IsAgent()) => showAccesCodePage(cache, FormAccessCodeForAgents)
-          case _                                          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+        (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+          case (BySubmissionReference, _)                    => showAccesCodePage(cache, BySubmissionReference)
+          case (drm @ FormAccessCodeForAgents(_), IsAgent()) => showAccesCodePage(cache, drm)
+          case _                                             => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
         }
     }
 
@@ -128,8 +126,12 @@ class NewFormController(
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
         val formId = FormId.direct(UserId(cache.retrievals), formTemplateId)
-        handleForm(formId)(newForm(formTemplateId, cache))(_ =>
-          Ok(continue_form_page(cache.formTemplate, choice, frontendAppConfig)).pure[Future])
+        handleForm(formId)(newForm(formTemplateId, cache))(form =>
+          cache.formTemplate.draftRetrievalMethod match {
+            case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
+              fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), noAccessCode)
+            case _ => Ok(continue_form_page(cache.formTemplate, choice, frontendAppConfig)).pure[Future]
+        })
     }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm)(
@@ -156,7 +158,7 @@ class NewFormController(
       badRequest(
         formTemplate,
         AccessCodePage
-          .form(formTemplate.draftRetrievalMethod.getOrElse(OnePerUser))
+          .form(formTemplate.draftRetrievalMethod)
           .bindFromRequest()
           .withError(AccessCodePage.key, "error.notfound")
       )
@@ -210,10 +212,8 @@ class NewFormController(
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit lang => cache =>
         (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-          case (Some(BySubmissionReference), _) =>
-            processSubmittedData(cache, BySubmissionReference)
-          case (Some(FormAccessCodeForAgents), IsAgent()) =>
-            processSubmittedData(cache, FormAccessCodeForAgents)
+          case (BySubmissionReference, _)                    => processSubmittedData(cache, BySubmissionReference)
+          case (drm @ FormAccessCodeForAgents(_), IsAgent()) => processSubmittedData(cache, drm)
           case otherwise =>
             Future.failed(
               new Exception(

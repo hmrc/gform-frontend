@@ -17,14 +17,13 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import julienrf.json.derived
-import play.api.libs.json._
+import play.api.libs.json.OFormat
 
-sealed trait DraftRetrievalMethod
+sealed trait ContinueOrDeletePage
 
-case class OnePerUser(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
-case class FormAccessCodeForAgents(continueOrDeletePage: ContinueOrDeletePage) extends DraftRetrievalMethod
-case object BySubmissionReference extends DraftRetrievalMethod
+object ContinueOrDeletePage {
+  case object Skip extends ContinueOrDeletePage
+  case object Show extends ContinueOrDeletePage
 
-object DraftRetrievalMethod {
-  implicit val format: OFormat[DraftRetrievalMethod] = derived.oformat
+  implicit val format: OFormat[ContinueOrDeletePage] = derived.oformat
 }

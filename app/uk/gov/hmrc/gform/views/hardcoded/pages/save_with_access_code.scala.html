@@ -30,7 +30,7 @@
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
-  case Some(BySubmissionReference) => "submissionReference"
+  case BySubmissionReference => "submissionReference"
   case _                     => "formAccessCodeForAgents"
 }}
 @accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}
