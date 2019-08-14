@@ -40,7 +40,7 @@ object GformSubmission {
     htmlForPDF: String,
     structuredFormData: StructuredFormValue.ObjectStructure
   )(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    gformConnector.submitFormWithPdf(
+    gformConnector.submitForm(
       FormId(retrievals, formTemplate._id, maybeAccessCode),
       customerId,
       buildSubmissionData(htmlForPDF, customerId, retrievals, formTemplate, emailParameters, structuredFormData),

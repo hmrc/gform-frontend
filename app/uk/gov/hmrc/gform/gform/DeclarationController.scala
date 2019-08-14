@@ -134,7 +134,7 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     formStatus: FormStatus)(implicit request: Request[AnyContent], l: LangADT): Future[HttpResponse] =
     for {
-      submission    <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
+      submission    <- gformConnector.submissionDetails(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
       (response, _) <- submitToBackEnd(formStatus, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
     } yield response
 
