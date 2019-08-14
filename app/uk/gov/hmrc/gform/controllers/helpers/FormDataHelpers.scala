@@ -16,13 +16,15 @@
 
 package uk.gov.hmrc.gform.controllers.helpers
 
+import cats.syntax.eq._
+import com.softwaremill.quicklens._
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Group }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-import uk.gov.hmrc.http.HeaderCarrier
 
 object FormDataHelpers {
 
@@ -54,4 +56,8 @@ object FormDataHelpers {
       })
       .isDefined
 
+  def updateFormField(form: Form, updatedFormField: FormField): Form = {
+    val updated: Seq[FormField] = form.formData.fields.filterNot(_.id === updatedFormField.id).+:(updatedFormField)
+    form.modify(_.formData.fields).setTo(updated)
+  }
 }

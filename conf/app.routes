@@ -16,10 +16,6 @@ GET           /summary/pdf/:formTemplateId                                      
 GET           /declaration/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.DeclarationController.showDeclaration(a: Option[AccessCode], formTemplateId: FormTemplateId)
 GET           /declaration/:formTemplateId/:maybeAccessCode                                                      uk.gov.hmrc.gform.gform.DeclarationController.showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId)
 POST          /declaration/:formTemplateId/:maybeAccessCode                                                      uk.gov.hmrc.gform.gform.DeclarationController.submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
-POST          /reviewAccepted/:formTemplateId/:maybeAccessCode                                                   uk.gov.hmrc.gform.gform.DeclarationController.reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
-POST          /reviewReturned/:formTemplateId/:maybeAccessCode                                                   uk.gov.hmrc.gform.gform.DeclarationController.reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
-POST          /reviewSubmitted/:formTemplateId/:maybeAccessCode                                                  uk.gov.hmrc.gform.gform.DeclarationController.reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
-POST          /updateFormField/:formTemplateId/:maybeAccessCode                                                  uk.gov.hmrc.gform.gform.DeclarationController.updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 GET           /acknowledgement/:formTemplateId                                                                   uk.gov.hmrc.gform.gform.AcknowledgementController.showAcknowledgement(a: Option[AccessCode], formTemplateId: FormTemplateId, e: String)
 GET           /acknowledgement/pdf/:formTemplateId                                                               uk.gov.hmrc.gform.gform.AcknowledgementController.downloadPDF(a: Option[AccessCode], formTemplateId: FormTemplateId, e: String)
 POST          /summary/:formTemplateId/:maybeAccessCode                                                          uk.gov.hmrc.gform.gform.SummaryController.submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
@@ -27,6 +23,11 @@ GET           /error/insufficient-enrolments                                    
 GET           /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.showEnrolment(formTemplateId: FormTemplateId)
 POST          /enrolment/:formTemplateId                                                                         uk.gov.hmrc.gform.gform.EnrolmentController.submitEnrolment(formTemplateId: FormTemplateId)
 GET           /agent-enrolment/prologue/:formTemplateId                                                          uk.gov.hmrc.gform.auth.AgentEnrolmentController.prologue(formTemplateId: FormTemplateId, f: String)
+
+POST          /reviewAccepted/:formTemplateId/:maybeAccessCode                                                   uk.gov.hmrc.gform.gform.ReviewController.reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
+POST          /reviewReturned/:formTemplateId/:maybeAccessCode                                                   uk.gov.hmrc.gform.gform.ReviewController.reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
+POST          /reviewSubmitted/:formTemplateId/:maybeAccessCode                                                  uk.gov.hmrc.gform.gform.ReviewController.reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
+POST          /updateFormField/:formTemplateId/:maybeAccessCode                                                  uk.gov.hmrc.gform.gform.ReviewController.updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 
 GET           /assets/*file                                                                                      controllers.Assets.versioned(path="/public", file: Asset)
 

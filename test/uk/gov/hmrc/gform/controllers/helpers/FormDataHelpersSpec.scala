@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.gform.handlers
+package uk.gov.hmrc.gform.controllers.helpers
 
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
 
-class FormDataUpdaterSpec extends Spec {
+class FormDataHelpersSpec extends Spec {
 
-  it should s"update FormField in form data" in new FormDataUpdater {
+  "updateFormField" should "update FormField in form data" in {
     val formFields = Seq(
       FormField(FormComponentId("1"), "one"),
       FormField(FormComponentId("2"), "two"),
@@ -41,7 +41,7 @@ class FormDataUpdaterSpec extends Spec {
       None
     )
 
-    val updatedForm = updateFormField(existingForm, FormField(FormComponentId("2"), "xxx"))
+    val updatedForm = FormDataHelpers.updateFormField(existingForm, FormField(FormComponentId("2"), "xxx"))
 
     updatedForm.formData.fields contains Seq(
       FormField(FormComponentId("1"), "one"),

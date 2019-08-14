@@ -56,6 +56,7 @@ class RoutingModule(
     gformModule.errorController,
     gformModule.enrolmentController,
     gformModule.agentEnrolmentController,
+    gformModule.reviewController,
     new Assets(controllersModule.errorHandler),
     fileUploadModule.fileUploadController,
     gformModule.languageSwitchController,

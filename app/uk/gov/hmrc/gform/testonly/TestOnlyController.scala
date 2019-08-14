@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
 import uk.gov.hmrc.gform.gform.FrontEndSubmissionVariablesBuilder
-import uk.gov.hmrc.gform.gform.{ CustomerId, GformSubmission, StructuredFormDataBuilder }
+import uk.gov.hmrc.gform.gform.{ CustomerId, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
