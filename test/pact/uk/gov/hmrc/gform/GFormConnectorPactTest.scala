@@ -49,7 +49,7 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
           .description("Submitting SubmissionData")
           .uponReceiving(
             POST,
-            "/gform/forms/123/submission-pdf",
+            "/gform/forms/123/submitForm",
             None,
             Map("customerId" -> "cid", "Content-Type" -> "application/json"),
             Some(Json.toJson(submissionData).toString),
@@ -60,7 +60,7 @@ class GFormConnectorPactTest extends SpecWithFakeApp with ScalaFutures {
       )
       .runConsumerTest { mockConfig =>
         val connector = new GformConnector(WSHttp, s"${mockConfig.baseUrl}/gform")
-        val eventualResponse = connector.submitFormWithPdf(FormId("123"), CustomerId("cid"), submissionData, None)
+        val eventualResponse = connector.submitForm(FormId("123"), CustomerId("cid"), submissionData, None)
 
         whenReady(eventualResponse) { response =>
           response.get.status should be(204)

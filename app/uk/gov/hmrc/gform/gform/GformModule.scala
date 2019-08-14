@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
-import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ProcessDataService
@@ -152,19 +152,29 @@ class GformModule(
     controllersModule.authenticatedRequestActions
   )
 
+  val gformBackEndService = new GformBackEndService(
+    gformBackendModule.gformConnector,
+    summaryRenderingService,
+    graphModule.recalculation,
+    graphModule.customerIdRecalculation,
+    lookupRegistry
+  )
+
   val declarationController = new DeclarationController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    gformBackendModule.gformConnector,
     auditingModule.auditService,
-    summaryRenderingService,
     pdfGeneratorModule.pdfGeneratorService,
     sectionRenderingService,
     validationModule.validationService,
     authModule.authService,
     graphModule.recalculation,
-    graphModule.customerIdRecalculation,
-    lookupRegistry
+    gformBackEndService
+  )
+
+  val reviewController = new ReviewController(
+    controllersModule.authenticatedRequestActions,
+    gformBackEndService
   )
 
   val languageSwitchController: LanguageSwitchController =

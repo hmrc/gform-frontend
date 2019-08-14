@@ -77,7 +77,7 @@ class AcknowledgementController(
           nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
 
           for {
-            submission <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
+            submission <- gformConnector.submissionDetails(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
             htmlForPDF <- summaryRenderingService.createHtmlForPdf(maybeAccessCode, cache, Some(SubmissionDetails(submission, hashedValue)))
             pdfStream  <- pdfService.generatePDF(htmlForPDF)
           } yield Result(

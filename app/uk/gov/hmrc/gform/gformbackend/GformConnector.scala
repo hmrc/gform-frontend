@@ -71,12 +71,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").map(_ => ())
 
   /******submission*******/
-  def submitFormWithPdf(
+  def submitForm(
     formId: FormId,
     customerId: CustomerId,
     submissionData: SubmissionData,
     affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    mkPost(customerId, submissionData, affinityGroup)(s"$baseUrl/forms/${formId.value}/submission-pdf")
+    mkPost(customerId, submissionData, affinityGroup)(s"$baseUrl/forms/${formId.value}/submitForm")
 
   /******test-only*******/
   def renderHandlebarPayload(
@@ -96,8 +96,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       submissionData,
       Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
 
-  def submissionStatus(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
-    ws.GET[Submission](s"$baseUrl/forms/${formId.value}/submission")
+  def submissionDetails(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
+    ws.GET[Submission](s"$baseUrl/forms/${formId.value}/submissionDetails")
 
   /******formTemplate*******/
   def upsertTemplate(template: JsValue)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =

@@ -28,37 +28,30 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.gform.handlers.DeclarationControllerRequestHandler
-import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, RecData, Recalculation }
-import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
-import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.core._
+import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.Future
 
 class DeclarationController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  gformConnector: GformConnector,
   auditService: AuditService,
-  summaryRenderingService: SummaryRenderingService,
   pdfService: PdfGeneratorService,
   renderer: SectionRenderingService,
   validationService: ValidationService,
   authService: AuthService,
   recalculation: Recalculation[Future, Throwable],
-  customerIdRecalculation: CustomerIdRecalculation[Future],
-  lookupRegistry: LookupRegistry
+  gformBackEnd: GformBackEndAlgebra[Future]
 ) extends FrontendController {
 
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
@@ -82,69 +75,6 @@ class DeclarationController(
         FormDataRecalculated.empty,
         Nil)
   }
-
-  //TODO make all three a single endpoint
-  def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewAccepted) {
-      implicit request => implicit l => cache =>
-        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Accepting))
-    }
-
-  def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewReturned) {
-      implicit request => implicit l => cache =>
-        asyncToResult(
-          submitReview(
-            formTemplateId,
-            cache.copy(form = cache.form.copy(
-              thirdPartyData = cache.form.thirdPartyData.copy(reviewData = Some(extractReviewData(request))))),
-            maybeAccessCode,
-            Returning
-          ))
-    }
-
-  private def extractReviewData(request: Request[AnyContent]) = {
-    val body = request.body
-    Logger.info(s"extractReviewData: Extracting from $body")
-
-    val extracted = body.asFormUrlEncoded
-    Logger.info(s"extractReviewData: Raw - $extracted")
-
-    val result = extracted
-      .getOrElse(Map.empty[String, Seq[String]])
-      .mapValues(_.headOption)
-      .collect { case (k, Some(v)) => (k, v) }
-    Logger.info(s"extractReviewData: map is: $result")
-
-    result
-  }
-
-  def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewSubmitted) {
-      implicit request => implicit l => cache =>
-        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Submitting))
-    }
-
-  private def asyncToResult[A](async: Future[A])(implicit ex: ExecutionContext): Future[Result] =
-    fromFutureA(async).fold(ex => BadRequest(ex.error), _ => Ok)
-
-  private def submitReview(
-    formTemplateId: FormTemplateId,
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    formStatus: FormStatus)(implicit request: Request[AnyContent], l: LangADT): Future[HttpResponse] =
-    for {
-      submission    <- gformConnector.submissionStatus(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-      (response, _) <- submitToBackEnd(formStatus, cache, maybeAccessCode, Some(SubmissionDetails(submission, "")))
-    } yield response
-
-  def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.UpdateFormField) {
-      implicit request => implicit l => cache =>
-        new DeclarationControllerRequestHandler()
-          .handleUpdatedFormRequest(request.body.asJson, cache.form)
-          .fold(Future.successful(BadRequest))(updated => updateUserData(updated, updated.status).map(_ => Ok))
-    }
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.SubmitDeclaration) {
@@ -213,24 +143,12 @@ class DeclarationController(
     implicit request: Request[_],
     l: LangADT): Future[Result] = {
     val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
-    submitToBackEnd(Signed, updatedCache, maybeAccessCode, None)
+    gformBackEnd
+      .submitWithUpdatedFormStatus(Signed, updatedCache, maybeAccessCode, None)
       .map {
         case (_, customerId) => showAcknowledgement(updatedCache, maybeAccessCode, customerId)
       }
   }
-
-  private def submitToBackEnd(
-    formStatus: FormStatus,
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    submissionDetails: Option[SubmissionDetails])(
-    implicit request: Request[_],
-    l: LangADT): Future[(HttpResponse, CustomerId)] =
-    for {
-      _          <- updateUserData(cache.form, formStatus)
-      customerId <- customerIdRecalculation.evaluateCustomerId(cache)
-      response   <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails)
-    } yield (response, customerId)
 
   private def showAcknowledgement(
     cache: AuthCacheWithForm,
@@ -252,40 +170,6 @@ class DeclarationController(
       cache.formTemplate.sections :+ cache.formTemplate.declarationSection,
       cache.retrievals,
       customerId)
-
-  private def updateUserData(updatedForm: Form, status: FormStatus)(implicit hc: HeaderCarrier) =
-    gformConnector
-      .updateUserData(
-        updatedForm._id,
-        UserData(
-          updatedForm.formData,
-          status,
-          updatedForm.visitsIndex,
-          updatedForm.thirdPartyData
-        )
-      )
-
-  private def handleSubmission(
-    maybeAccessCode: Option[AccessCode],
-    cache: AuthCacheWithForm,
-    customerId: CustomerId,
-    submissionDetails: Option[SubmissionDetails])(implicit request: Request[_], l: LangADT): Future[HttpResponse] =
-    for {
-      htmlForPDF         <- summaryRenderingService.createHtmlForPdf(maybeAccessCode, cache, submissionDetails)
-      emailParameter     <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
-      structuredFormData <- StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
-      response <- GformSubmission
-                   .handleSubmission(
-                     gformConnector,
-                     cache.retrievals,
-                     cache.formTemplate,
-                     emailParameter,
-                     maybeAccessCode,
-                     customerId,
-                     htmlForPDF,
-                     structuredFormData
-                   )
-    } yield response
 
   private def createHtmlForInvalidSubmission(
     maybeAccessCode: Option[AccessCode],
