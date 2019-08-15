@@ -288,3 +288,6 @@ save4later.until=tan
 
 # Helper for grammatical order
 helper.order={1} {0}
+
+# Summary alert
+summary.alert.title=Problemau gyda’ch ffurflen
