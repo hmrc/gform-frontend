@@ -238,6 +238,12 @@ ack.feedbackText1=We use feedback to make our services better. Please take the
 ack.feedbackLink=feedback survey
 ack.feedbackText2=now
 
+# Access code links
+accessCodeLinks.p1=The following {0}s have been saved for you to continue:
+accessCodeLinks.label=Submission Reference
+accessCodeLinks.created=Date created
+accessCodeLinks.modified=Last modified
+
 # Access code start page
 accessCode.submissionReference=submission reference
 accessCode.formAccessCodeForAgents=temporary access key

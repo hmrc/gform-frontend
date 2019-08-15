@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.gform
 
+import java.time.LocalDateTime
+
 import cats.instances.future._
 import cats.syntax.applicative._
 import play.api.data
@@ -26,7 +28,7 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.AccessCodePage
+import uk.gov.hmrc.gform.models.{ AccessCodeLink, AccessCodePage }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormAccess, FormId, NewFormData, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
@@ -78,8 +80,23 @@ class NewFormController(
     val formId = FormId.direct(UserId(cache.retrievals), formTemplateId)
 
     def showAccessCodePage =
-      Ok(access_code_start(cache.formTemplate, AccessCodePage.form(draftRetrievalMethod), frontendAppConfig))
-        .pure[Future]
+      draftRetrievalMethod match {
+        case BySubmissionReference =>
+          Ok(
+            access_code_list(
+              cache.formTemplate,
+              List(
+                AccessCodeLink(AccessCode("M8HH-9G8F-BFGD"), LocalDateTime.now(), LocalDateTime.now()),
+                AccessCodeLink(AccessCode("CC5E-XRH9-A72V"), LocalDateTime.now(), LocalDateTime.now()),
+                AccessCodeLink(AccessCode("P2KK-QV12-8FFZ"), LocalDateTime.now(), LocalDateTime.now())
+              ),
+              frontendAppConfig
+            ))
+            .pure[Future]
+        case _ =>
+          Ok(access_code_start(cache.formTemplate, AccessCodePage.form(draftRetrievalMethod), frontendAppConfig))
+            .pure[Future]
+      }
 
     handleForm(formId)(showAccessCodePage) { form =>
       Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]

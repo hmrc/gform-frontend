@@ -1,0 +1,100 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import helper._
+@import play.api.i18n.Messages.Implicits._
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{renderMonth, getMonthValue}
+
+@(
+        formTemplate: FormTemplate,
+        accessCodeList: List[AccessCodeLink],
+        frontendAppConfig: FrontendAppConfig
+)(
+        implicit
+        request: Request[_],
+        messages: Messages,
+        l: LangADT
+)
+
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@heading = @{formTemplate.formName.value}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = heading,
+  serviceName = formTemplate.formName.value,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages,
+  templateId = formTemplate._id,
+  mainClass = Some("full-width")
+) {
+
+  <h1>
+    @heading
+  </h1>
+
+  <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newFormPost(formTemplate._id)}" method="POST" novalidate="novalidate">
+    @{CSRF.formField}
+    <input
+      id="@{AccessCodePage.optionKey}-@{AccessCodePage.optionAccess}"
+      type="hidden"
+      name="@{AccessCodePage.optionKey}"
+      value="@{AccessCodePage.optionNew}"
+    >
+    <div class="form-group">
+      <input type="submit" class="button" value="@{messages("accessCode.startNew", formCat)}" />
+    </div>
+  </form>
+
+  <p>
+    @messages("accessCodeLinks.p1", formCat)
+  </p>
+
+  <dl class="govuk-check-your-answers cya-questions-long">
+    <div>
+      <dt class="cya-question">
+        @messages("accessCodeLinks.label")
+      </dt>
+      <dd class="cya-answer">
+      @{messages("accessCodeLinks.created")}
+      </dd>
+      <dd class="cya-change">
+      @{messages("accessCodeLinks.modified")}
+      </dd>
+    </div>
+    @for(link <- accessCodeList) {
+        <div>
+          <dt class="cya-question">
+            <a href="#">@{link.accessCode.value}</a>
+          </dt>
+          <dd class="cya-answer">
+            @{link.createdDate.toString}
+          </dd>
+          <dd class="cya-change">
+            @{link.lastModifiedDate.toString}
+          </dd>
+        </div>
+    }
+  </dl>
+
+}
