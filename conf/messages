@@ -301,3 +301,6 @@ save4later.until=until
 # Helper for grammatical order
 helper.order={0} {1}
 
+# Summary alert title
+summary.alert.title=Issues with your form
+
