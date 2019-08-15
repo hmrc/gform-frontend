@@ -36,7 +36,7 @@ object FormDataHelpers {
 
   def processResponseDataFromBody(request: Request[AnyContent])(
     continuation: Map[FormComponentId, Seq[String]] => Future[Result])(implicit hc: HeaderCarrier): Future[Result] =
-    request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FormComponentId(a), b) }) match {
+    request.body.asFormUrlEncoded.map(_.map { case (a, b) => (FormComponentId(a), b.map(_.trim)) }) match {
       case Some(data) => continuation(data)
       case None =>
         Future.successful(BadRequest("Cannot parse body as FormUrlEncoded")) // Thank you play-authorised-frontend for forcing me to do this check

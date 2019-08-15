@@ -27,8 +27,10 @@
 @currentValueLines = @{TextFormatter.formatText(validationResult).split("\\R")}
 
 @currentValue = {
-    @currentValueLines.init.map{line => @line<br> }
-    @currentValueLines.last
+    @if(currentValueLines.nonEmpty) {
+	@currentValueLines.init.map{line => @line<br> }
+	@currentValueLines.last
+    }
 }
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
