@@ -374,3 +374,7 @@ input::-webkit-search-results-decoration { display: none; }
   background-image: url("/submissions/assets/stylesheets/ofsted-logo.png");
   background-repeat: no-repeat;
 }
+
+.alert > h2.heading-small {
+  margin-top: 0;
+}
