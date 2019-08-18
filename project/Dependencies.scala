@@ -43,9 +43,6 @@ object Dependencies {
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
     "org.mockito" % "mockito-all" % "1.10.19" % scope,
-    "org.jsoup" % "jsoup" % "1.11.3",
-    "com.itv" %% "scalapact-circe-0-9"     % "2.2.5" % scope,
-    "com.itv" %% "scalapact-http4s-0-18-0" % "2.2.5" % scope,
-    "com.itv" %% "scalapact-scalatest"     % "2.2.5" % scope
+    "org.jsoup" % "jsoup" % "1.11.3"
   )
 }
