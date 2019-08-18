@@ -16,16 +16,13 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
-import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
+import cats.Eq
+import play.api.libs.json.Format
 
-case class SubmissionData(
-  pdfData: PdfHtml,
-  variables: FrontEndSubmissionVariables,
-  structuredFormData: StructuredFormValue.ObjectStructure,
-  emailParameters: EmailParametersRecalculated)
+case class PdfHtml(html: String) extends AnyVal
 
-object SubmissionData {
-  implicit val format: OFormat[SubmissionData] = Json.format[SubmissionData]
+object PdfHtml {
+  implicit val format: Format[PdfHtml] = ValueClassFormat.simpleFormat[PdfHtml](PdfHtml(_))(_.html)
+
+  implicit val equal: Eq[PdfHtml] = Eq.fromUniversalEquals
 }

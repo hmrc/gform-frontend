@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import cats.data.NonEmptyList
 import cats.instances.future._
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
@@ -24,9 +25,9 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder,
 import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormStatus, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, SubmissionData }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -34,6 +35,10 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait GformBackEndAlgebra[F[_]] {
+  def getForm(id: FormId)(implicit hc: HeaderCarrier): F[Form]
+
+  def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): F[FormTemplate]
+
   def submissionDetails(formId: FormId)(implicit hc: HeaderCarrier): F[Submission]
 
   def submitWithUpdatedFormStatus(
@@ -46,6 +51,11 @@ trait GformBackEndAlgebra[F[_]] {
     hc: HeaderCarrier): F[(HttpResponse, CustomerId)]
 
   def updateUserData(updatedForm: Form, status: FormStatus)(implicit hc: HeaderCarrier): F[Unit]
+
+  def getFormBundle(rootFormId: FormId)(implicit hc: HeaderCarrier): F[NonEmptyList[FormId]]
+
+  def submitFormBundle(rootFormId: FormId, bundle: NonEmptyList[BundledFormSubmissionData])(
+    implicit hc: HeaderCarrier): F[Unit]
 }
 
 class GformBackEndService(
@@ -55,6 +65,18 @@ class GformBackEndService(
   customerIdRecalculation: CustomerIdRecalculation[Future],
   lookupRegistry: LookupRegistry)(implicit ec: ExecutionContext)
     extends GformBackEndAlgebra[Future] {
+
+  def getForm(id: FormId)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
+
+  def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): Future[FormTemplate] =
+    gformConnector.getFormTemplate(id)
+
+  def getFormBundle(rootFormId: FormId)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormId]] =
+    gformConnector.getFormBundle(rootFormId)
+
+  def submitFormBundle(rootFormId: FormId, bundle: NonEmptyList[BundledFormSubmissionData])(
+    implicit hc: HeaderCarrier): Future[Unit] =
+    gformConnector.submitFormBundle(rootFormId, bundle)
 
   def submissionDetails(formId: FormId)(implicit hc: HeaderCarrier): Future[Submission] =
     gformConnector.submissionDetails(formId)
@@ -114,7 +136,7 @@ class GformBackEndService(
     emailParameters: EmailParametersRecalculated,
     maybeAccessCode: Option[AccessCode],
     customerId: CustomerId,
-    htmlForPDF: String,
+    htmlForPDF: PdfHtml,
     structuredFormData: StructuredFormValue.ObjectStructure
   )(implicit hc: HeaderCarrier): Future[HttpResponse] =
     gformConnector.submitForm(
@@ -125,7 +147,7 @@ class GformBackEndService(
     )
 
   private def buildSubmissionData(
-    htmlForPDF: String,
+    htmlForPDF: PdfHtml,
     customerId: CustomerId,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
