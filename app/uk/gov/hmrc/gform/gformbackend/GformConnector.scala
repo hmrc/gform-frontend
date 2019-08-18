@@ -27,15 +27,17 @@ import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrati
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
-import uk.gov.hmrc.gform.submission.{ Submission, SubmissionRef }
+import uk.gov.hmrc.gform.submission.Submission
 import uk.gov.hmrc.gform.wshttp.WSHttp
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse, NotFoundException }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
   * This connector originates in GFORM project.
   * Edit it there first and propagate it from there.
+  *
+  * Is this still true? There are a lot of differences between the version in gform and this one
   */
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
@@ -147,4 +149,20 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       htps)
   }
 
+  /****** Form Bundles ******/
+  def getFormBundle(
+    rootFormId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormId]] = {
+    import JsonUtils._
+    ws.GET[NonEmptyList[FormId]](s"$baseUrl/formBundles/${rootFormId.value}")
+  }
+
+  def submitFormBundle(rootFormId: FormId, bundle: NonEmptyList[BundledFormSubmissionData])(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Unit] = {
+    import JsonUtils._
+    ws.POST[NonEmptyList[BundledFormSubmissionData], HttpResponse](
+        s"$baseUrl/formBundles/${rootFormId.value}/submitAfterReview",
+        bundle)
+      .map(_ => ())
+  }
 }

@@ -30,13 +30,12 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gform.HtmlSanitiser
-import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, PdfHtml }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -63,20 +62,21 @@ class SummaryRenderingService(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[String] = {
+    ec: ExecutionContext): Future[PdfHtml] = {
     import i18nSupport._
 
     // ToDo: Why do we sanitise just the summaryHtml and not the whole thing after adding the extra data?
     for {
       summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache)
     } yield
-      addExtraDataToHTML(
-        // ToDo: I'm bothered by this. Why is submitted always true? Why is it not submissionDetails.isDefined?
-        // Would it matter if sanitiseHtmlForPDF always did what it does when submitted = true?
-        HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true),
-        submissionDetails,
-        cache
-      )
+      PdfHtml(
+        addExtraDataToHTML(
+          // ToDo: I'm bothered by this. Why is submitted always true? Why is it not submissionDetails.isDefined?
+          // Would it matter if sanitiseHtmlForPDF always did what it does when submitted = true?
+          HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true),
+          submissionDetails,
+          cache
+        ))
   }
 
   private def addExtraDataToHTML(html: String, submissionDetails: Option[SubmissionDetails], cache: AuthCacheWithForm)(

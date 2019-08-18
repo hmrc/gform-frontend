@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthenticatedRequestActionsAlgebra, ErrRe
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
@@ -132,7 +132,7 @@ class SummaryController(
           summaryHml <- summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache)
           htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHml, submitted = false)
           withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
-          pdfStream <- pdfService.generatePDF(withPDFHeader)
+          pdfStream <- pdfService.generatePDF(PdfHtml(withPDFHeader))
         } yield
           Result(
             header = ResponseHeader(200, Map.empty),

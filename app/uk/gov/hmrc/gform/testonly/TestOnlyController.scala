@@ -21,13 +21,12 @@ import akka.util.ByteString
 import cats.MonadError
 import cats.data.EitherT
 import cats.instances.future._
-import play.api.Play
 import play.api.libs.json.Json
 import play.api.mvc._
+
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.InjectionDodge
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
@@ -37,14 +36,12 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.SessionId
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
@@ -122,7 +119,7 @@ class TestOnlyController(
       structuredFormData <- fromFutureA(StructuredFormDataBuilder[Future](form, formTemplate, lookupRegistry))
 
       submissionData = SubmissionData(
-        "htmlForPDF",
+        PdfHtml("htmlForPDF"),
         FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, customerId),
         structuredFormData,
         emailParameters)

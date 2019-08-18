@@ -16,16 +16,12 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
-import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.EmailParametersRecalculated
+import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 
-case class SubmissionData(
-  pdfData: PdfHtml,
-  variables: FrontEndSubmissionVariables,
-  structuredFormData: StructuredFormValue.ObjectStructure,
-  emailParameters: EmailParametersRecalculated)
+case class BundledFormSubmissionData(formId: FormId, structuredFormData: StructuredFormValue.ObjectStructure)
 
-object SubmissionData {
-  implicit val format: OFormat[SubmissionData] = Json.format[SubmissionData]
+object BundledFormSubmissionData {
+  implicit val format: OFormat[BundledFormSubmissionData] = Json.format[BundledFormSubmissionData]
 }

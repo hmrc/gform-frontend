@@ -172,9 +172,12 @@ class GformModule(
     gformBackEndService
   )
 
+  val reviewService = new ReviewService(gformBackEndService, lookupRegistry)
+
   val reviewController = new ReviewController(
     controllersModule.authenticatedRequestActions,
-    gformBackEndService
+    gformBackEndService,
+    reviewService
   )
 
   val languageSwitchController: LanguageSwitchController =

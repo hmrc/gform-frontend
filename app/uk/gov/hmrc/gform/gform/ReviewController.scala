@@ -20,45 +20,39 @@ import cats.instances.future._
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
-import uk.gov.hmrc.gform.summary.SubmissionDetails
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ReviewController(auth: AuthenticatedRequestActionsAlgebra[Future], gformBackEnd: GformBackEndAlgebra[Future])
+class ReviewController(
+  auth: AuthenticatedRequestActionsAlgebra[Future],
+  gformBackEnd: GformBackEndAlgebra[Future],
+  reviewService: ReviewService[Future])
     extends FrontendController {
 
   //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewAccepted) {
       implicit request => implicit l => cache =>
-        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Accepting))
+        asyncToResult(reviewService.acceptForm(cache, maybeAccessCode))
     }
 
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewReturned) {
       implicit request => implicit l => cache =>
-        asyncToResult(
-          submitReview(
-            formTemplateId,
-            cache.copy(form = cache.form.copy(
-              thirdPartyData = cache.form.thirdPartyData.copy(reviewData = Some(extractReviewData(request))))),
-            maybeAccessCode,
-            Returning
-          ))
+        asyncToResult(reviewService.returnForm(cache, maybeAccessCode, extractReviewData(request)))
     }
 
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewSubmitted) {
       implicit request => implicit l => cache =>
-        asyncToResult(submitReview(formTemplateId, cache, maybeAccessCode, Submitting))
+        asyncToResult(reviewService.submitFormBundle(cache.form._id))
     }
 
   def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
@@ -77,20 +71,6 @@ class ReviewController(auth: AuthenticatedRequestActionsAlgebra[Future], gformBa
       .getOrElse(Map.empty[String, Seq[String]])
       .mapValues(_.headOption)
       .collect { case (k, Some(v)) => (k, v) }
-
-  private def submitReview(
-    formTemplateId: FormTemplateId,
-    cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode],
-    formStatus: FormStatus)(implicit request: Request[AnyContent], l: LangADT): Future[HttpResponse] =
-    for {
-      submission <- gformBackEnd.submissionDetails(FormId(cache.retrievals, formTemplateId, maybeAccessCode))
-      (response, _) <- gformBackEnd.submitWithUpdatedFormStatus(
-                        formStatus,
-                        cache,
-                        maybeAccessCode,
-                        Some(SubmissionDetails(submission, "")))
-    } yield response
 
   private def asyncToResult[A](async: Future[A])(implicit ec: ExecutionContext): Future[Result] =
     fromFutureA(async).fold(ex => BadRequest(ex.error), _ => Ok)

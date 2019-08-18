@@ -19,13 +19,14 @@ package uk.gov.hmrc.gform.summarypdf
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.mvc.Http.{ HeaderNames, MimeTypes }
+import uk.gov.hmrc.gform.sharedmodel.PdfHtml
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
 
 class PdfGeneratorService(pdfGeneratorConnector: PdfGeneratorConnector) {
 
-  def generatePDF(html: String)(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
+  def generatePDF(html: PdfHtml)(implicit hc: HeaderCarrier): Future[Source[ByteString, _]] = {
     val headers = Seq((HeaderNames.CONTENT_TYPE, MimeTypes.FORM))
     val body = Map("html" -> Seq(html))
     pdfGeneratorConnector.generatePDF(body, headers)
