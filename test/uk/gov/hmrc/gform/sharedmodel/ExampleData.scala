@@ -393,9 +393,9 @@ trait ExampleFormTemplate {
       webChat = webChat,
       sections = List.empty[Section],
       acknowledgementSection = acknowledgementSection,
-      declarationSection = DeclarationSection(toLocalisedString("Declaration"), None, None, Nil)
+      declarationSection = DeclarationSection(toLocalisedString("Declaration"), None, None, Nil),
+      parentFormSubmissionRefs = None
     )
-
 }
 
 trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>

@@ -63,24 +63,25 @@ trait FormTemplateGen {
 
   def formTemplateGen: Gen[FormTemplate] =
     for {
-      id                     <- formTemplateIdGen
-      name                   <- formNameGen
-      description            <- formTemplateDescriptionGen
-      developmentPhase       <- Gen.option(developmentPhaseGen)
-      category               <- formCategoryGen
-      draftRetrievalMethod   <- draftRetrievalMethodGen
-      submissionReference    <- Gen.option(FormatExprGen.textExpressionGen)
-      destinations           <- DestinationsGen.destinationsGen
-      authConfig             <- AuthConfigGen.authConfigGen
-      emailTemplateId        <- emailTemplateIdGen
-      emailParameters        <- emailParameterListGen
-      submitSuccessUrl       <- PrimitiveGen.urlGen
-      submitErrorUrl         <- PrimitiveGen.urlGen
-      webChat                <- Gen.option(webChatGen)
-      sections               <- PrimitiveGen.oneOrMoreGen(SectionGen.sectionGen)
-      acknowledgementSection <- SectionGen.acknowledgementSectionGen
-      declarationSection     <- SectionGen.declarationSectionGen
-      gFC579Ready            <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
+      id                       <- formTemplateIdGen
+      name                     <- formNameGen
+      description              <- formTemplateDescriptionGen
+      developmentPhase         <- Gen.option(developmentPhaseGen)
+      category                 <- formCategoryGen
+      draftRetrievalMethod     <- draftRetrievalMethodGen
+      submissionReference      <- Gen.option(FormatExprGen.textExpressionGen)
+      destinations             <- DestinationsGen.destinationsGen
+      authConfig               <- AuthConfigGen.authConfigGen
+      emailTemplateId          <- emailTemplateIdGen
+      emailParameters          <- emailParameterListGen
+      submitSuccessUrl         <- PrimitiveGen.urlGen
+      submitErrorUrl           <- PrimitiveGen.urlGen
+      webChat                  <- Gen.option(webChatGen)
+      sections                 <- PrimitiveGen.oneOrMoreGen(SectionGen.sectionGen)
+      acknowledgementSection   <- SectionGen.acknowledgementSectionGen
+      declarationSection       <- SectionGen.declarationSectionGen
+      parentFormSubmissionRefs <- PrimitiveGen.zeroOrMoreGen(FormComponentGen.formComponentIdGen)
+      gFC579Ready              <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
     } yield
       FormTemplate(
         id,
@@ -100,6 +101,7 @@ trait FormTemplateGen {
         sections.toList,
         acknowledgementSection,
         declarationSection,
+        parentFormSubmissionRefs,
         gFC579Ready,
         AvailableLanguages.default
       )

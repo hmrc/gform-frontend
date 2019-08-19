@@ -129,7 +129,8 @@ object FormTemplateBuilder {
       Some(toLocalisedString("shortName for acknowledgement")),
       List.empty[FormComponent]
     ),
-    DeclarationSection(toLocalisedString("Declaration"), None, None, Nil)
+    DeclarationSection(toLocalisedString("Declaration"), None, None, Nil),
+    None
   )
 
 }
