@@ -31,7 +31,8 @@
     renderComeBackLater: Boolean,
     continueLabelKey: String,
     frontendAppConfig: FrontendAppConfig,
-    reviewerComments : Option[String]
+    reviewerComments : Option[String],
+    includeCSRF: Boolean
 )(implicit request: Request[_], messages: Messages, l:LangADT)
 
 @heading = @{messages("summary.title")}
@@ -62,7 +63,10 @@
 
     <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
-        @CSRF.formField
+        @if(includeCSRF) {
+            @CSRF.formField
+        }
+
       	@snippets
 
         <div class="print-hidden">

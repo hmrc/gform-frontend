@@ -67,7 +67,7 @@ class SummaryRenderingService(
 
     // ToDo: Why do we sanitise just the summaryHtml and not the whole thing after adding the extra data?
     for {
-      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache)
+      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, false)
     } yield
       PdfHtml(
         addExtraDataToHTML(
@@ -119,7 +119,11 @@ class SummaryRenderingService(
     doc.html.replace("£", "&pound;")
   }
 
-  def getSummaryHTML(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], cache: AuthCacheWithForm)(
+  def getSummaryHTML(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    includeCSRF: Boolean = true)(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
@@ -149,7 +153,8 @@ class SummaryRenderingService(
         cache.retrievals,
         frontendAppConfig,
         cache.form.thirdPartyData.obligations,
-        cache.form.thirdPartyData.reviewComments
+        cache.form.thirdPartyData.reviewComments,
+        includeCSRF
       )
 
   }
@@ -165,7 +170,8 @@ object SummaryRenderingService {
     retrievals: MaterialisedRetrievals,
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations,
-    reviewerComments: Option[String]
+    reviewerComments: Option[String],
+    checkCSRF: Boolean
   )(
     implicit
     request: Request[_],
@@ -188,7 +194,8 @@ object SummaryRenderingService {
       retrievals.renderSaveAndComeBackLater,
       retrievals.continueLabelKey,
       frontendAppConfig,
-      reviewerComments
+      reviewerComments,
+      checkCSRF
     )
   }
 

@@ -129,7 +129,7 @@ class SummaryController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadSummaryPdf) {
       implicit request => implicit l => cache =>
         for {
-          summaryHml <- summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache)
+          summaryHml <- summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache, false)
           htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHml, submitted = false)
           withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
           pdfStream <- pdfService.generatePDF(PdfHtml(withPDFHeader))
