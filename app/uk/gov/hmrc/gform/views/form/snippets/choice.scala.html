@@ -35,7 +35,7 @@ options: NonEmptyList[LocalisedString],
 orientation: Orientation,
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
-optionHelpText: List[Html],
+optionHelpText: NonEmptyList[Html],
 index: Int,
 sectionTitle: String,
 formLevelHeading: Boolean
@@ -50,7 +50,7 @@ formLevelHeading: Boolean
 }
 
 <div class="form-group@if(hasErrors) { form-group-error}">
-    <fieldset class="@if(orientation.toString.toLowerCase.equals("horizontal")) {inline}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
+    <fieldset class="@if(orientation == Horizontal) {inline}" @if(fieldValue.helpText.nonEmpty) { aria-describedby="@{fieldValue.id.value}-hint" }>
         <legend class="form-label">
           @if(!formLevelHeading) {
             <h1>@label</h1>
@@ -65,17 +65,20 @@ formLevelHeading: Boolean
 
         @inline_error_map(fieldValue, validationResult)
 
-          @options.toList.zipWithIndex.map{ case (option, index) =>
+        @options.toList.zipWithIndex.map { case (option, index) =>
+
+          @defining(optionHelpText.toList(index).body) { optionHelpTextBody =>
+
           <div
-            class="multiple-choice @if(orientation.toString.toLowerCase.equals("horizontal")) {inline}"
-            @if(optionHelpText(index).body.nonEmpty) {
+            class="multiple-choice @if(orientation == Horizontal) {inline}"
+            @if(optionHelpTextBody.nonEmpty) {
             data-target="helptext-@{fieldValue.id.appendIndex(index)}"
             }>
               <input id="@{fieldValue.id.appendIndex(index)}"
                      name="@{fieldValue.id}"
                      value="@index"
                      type="@inputType"
-                     @if(optionHelpText(index).body.nonEmpty) {
+                     @if(optionHelpTextBody.nonEmpty) {
                      aria-controls="helptext-@{fieldValue.id.appendIndex(index)}"
                      }
                      @validationResult.flatMap(_.getOptionalCurrentValue(fieldValue.id.value +
@@ -87,23 +90,22 @@ formLevelHeading: Boolean
               </label>
           </div>
 
-          @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("vertical")) {
-              @if(optionHelpText(index).body.nonEmpty){
+          @if(optionHelpTextBody.nonEmpty && orientation == Vertical) {
               <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-indent js-hidden" aria-hidden="true">
-                  @Html(optionHelpText(index).body)
+                  @Html(optionHelpTextBody)
               </div>
-              }
             }
           }
+	}
 
-          @options.toList.zipWithIndex.map{ case (option, index) =>
-              @if(optionHelpText.nonEmpty && orientation.toString.toLowerCase.equals("horizontal")) {
-                  @if(optionHelpText(index).body.nonEmpty){
+        @options.toList.zipWithIndex.map { case (option, index) =>
+	  @defining(optionHelpText.toList(index).body) { optionHelpTextBody =>
+              @if(optionHelpTextBody.nonEmpty && orientation == Horizontal) {
                   <div id="helptext-@{fieldValue.id.appendIndex(index)}" class="panel panel-border-narrow js-hidden" aria-hidden="true">
-                      @Html(optionHelpText(index).body)
+                      @Html(optionHelpTextBody)
                   </div>
-                  }
               }
           }
+	}
       </fieldset>
 </div>
