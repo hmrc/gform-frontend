@@ -62,6 +62,9 @@
 <div class="panel-indent panel-indent--gutter bold-small">
     @messages("save4later.mustSubmit", formCat)
 </div>
+
+@formTemplate.save4LaterInfoText.map(_.asHtml).getOrElse(Html(""))
+
 <p>@messages("save4later.youCan")</p>
 <ul class = "bullets">
    <li>

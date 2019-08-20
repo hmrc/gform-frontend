@@ -25,10 +25,6 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.validated._
-import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
-import org.intellij.markdown.html.HtmlGenerator
-import org.intellij.markdown.parser.MarkdownParser
-import org.jsoup.Jsoup
 import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.twirl.api.Html
@@ -37,6 +33,7 @@ import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -525,9 +522,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     infoText: LocalisedString,
     index: Int,
     ei: ExtraInfo)(implicit messages: Messages, l: LangADT) = {
-    val parsedMarkdownText = markDownParser(infoText.value)
-    val parsedContent = htmlBodyContents(parsedMarkdownText)
-    html.form.snippets.field_template_info(formComponent, infoType, Html(parsedContent), index)
+    val parsedContent = markDownParser(infoText)
+    html.form.snippets.field_template_info(formComponent, infoType, parsedContent, index)
   }
 
   private def htmlForFileUpload(
@@ -552,53 +548,27 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     )
   }
 
-  private def htmlBodyContents(html: String): String = {
-    val doc = Jsoup.parse(html)
-    doc.body().html()
-  }
-
-  private def markDownParser(markDownText: String): String =
-    if (markDownText.nonEmpty) {
-      val flavour = new GFMFlavourDescriptor
-      val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
-      new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
-    } else
-      markDownText
-
   private def htmlForChoice(
     formComponent: FormComponent,
     choice: ChoiceType,
     options: NonEmptyList[LocalisedString],
     orientation: Orientation,
     selections: List[Int],
-    optionalHelpText: Option[List[LocalisedString]],
+    optionalHelpText: Option[NonEmptyList[LocalisedString]],
     index: Int,
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated)(implicit messages: Messages, l: LangADT) = {
-
-    def addTargetToLinks(html: String) = {
-      val doc = Jsoup.parse(html)
-      doc.getElementsByTag("a").attr("target", "_blank")
-      doc.body().html()
-    }
 
     val prepopValues = ei.fieldData.data.get(formComponent.id) match {
       case None    => selections.map(_.toString).toSet
       case Some(_) => Set.empty[String] // Don't prepop something we already submitted
     }
 
-    val optionalHelpTextMarkDown: List[Html] = optionalHelpText
-      .map(_.map(ls => markDownParser(ls.value)))
-      .map(_.map(x =>
-        if (x.nonEmpty) {
-          Html(addTargetToLinks(x))
-        } else {
-          Html("")
-      }))
-      .getOrElse(
-        options.toList.map(_ => Html(""))
-      )
+    val optionalHelpTextMarkDown: NonEmptyList[Html] =
+      optionalHelpText.fold(options.map(_ => Html(""))) { helpTexts =>
+        helpTexts.map(ht => markDownParser(ht))
+      }
 
     val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
     choice match {
@@ -862,7 +832,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validatedType: ValidatedType[ValidationResult],
     obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT) = {
     val maybeHint =
-      formComponent.helpText.map(localisedString => localisedString.value).map(markDownParser).map(Html.apply)
+      formComponent.helpText.map(markDownParser)
 
     val (lhtml, limitReached) =
       getGroupForRendering(

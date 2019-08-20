@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,16 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.AckSection
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-@(ackSection: AckSection)
+import julienrf.json.derived
+import play.api.libs.json.OFormat
+import play.twirl.api.Html
+import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
-<h2 class="heading-medium">
- @{ackSection.title}
-</h2>
+case class Save4LaterInfoText(value: LocalisedString) extends AnyVal {
+  def asHtml(implicit l: LangADT): Html = markDownParser(value)
+}
 
-<p>
- @{ackSection.content}
-</p>
+object Save4LaterInfoText {
+
+  implicit val format: OFormat[Save4LaterInfoText] = derived.oformat
+
+}

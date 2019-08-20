@@ -396,7 +396,8 @@ class StructuredFormDataBuilderSpec extends Spec {
       declarationSection.getOrElse(DeclarationSection(toLocalisedString("Decl"), None, None, Nil)),
       Nil,
       null,
-      AvailableLanguages.default
+      AvailableLanguages.default,
+      null
     )
 
   def createNonRepeatingSection(fields: FormComponent*): Section =
