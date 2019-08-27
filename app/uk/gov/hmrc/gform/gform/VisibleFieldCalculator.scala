@@ -15,33 +15,25 @@
  */
 
 package uk.gov.hmrc.gform.gform
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
+import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object VisibleFieldCalculator {
   def apply(template: FormTemplate, data: FormData, formDataRecalculated: FormDataRecalculated): Seq[FormField] = {
-    val templateFormComponentIdsOfInvisibleFields = extractInvisibleFieldIds(template, data, formDataRecalculated)
-    data.fields.filterNot { field =>
-      val templateFormComponentIdOfField = field.id.reduceToTemplateFieldId
-      templateFormComponentIdsOfInvisibleFields.contains(templateFormComponentIdOfField)
+    val allSections = RepeatingComponentService.getAllSections(template, formDataRecalculated)
+    val sections = allSections.filter(formDataRecalculated.isVisible)
+    val visibleFormComponents: Seq[FormComponent] = submittedFCs(
+      formDataRecalculated,
+      sections
+        .flatMap(_.expandSectionRc(formDataRecalculated.data).allFCs)
+    )
+
+    val visibleFormComponentIds: Set[FormComponentId] = visibleFormComponents.map(_.id).toSet
+
+    data.fields.filter { field =>
+      visibleFormComponentIds(field.id)
     }
   }
-
-  private def extractInvisibleFieldIds(
-    template: FormTemplate,
-    data: FormData,
-    formDataRecalculated: FormDataRecalculated): Set[FormComponentId] = {
-    val invisibleSections = template.sections.filterNot(formDataRecalculated.isVisible)
-    invisibleSections.flatMap(extractFieldIds).toSet
-  }
-
-  private def extractFieldIds(section: Section): List[FormComponentId] =
-    section.fields.flatMap { fc =>
-      fc.`type` match {
-        case g: Group => extractFieldIds(g)
-        case _        => List(fc.id)
-      }
-    }
-
-  private def extractFieldIds(g: Group): List[FormComponentId] = g.fields.map(_.id)
 }
