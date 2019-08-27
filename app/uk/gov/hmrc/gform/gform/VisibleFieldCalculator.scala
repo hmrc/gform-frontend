@@ -20,15 +20,20 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object VisibleFieldCalculator {
   def apply(template: FormTemplate, data: FormData, formDataRecalculated: FormDataRecalculated): Seq[FormField] = {
-    val invisibleFields = extractInvisibleFieldIds(template, data, formDataRecalculated)
-    data.fields.filterNot(field => invisibleFields.contains(field.id))
+    val templateFormComponentIdsOfInvisibleFields = extractInvisibleFieldIds(template, data, formDataRecalculated)
+    data.fields.filterNot { field =>
+      val templateFormComponentIdOfField = field.id.reduceToTemplateFieldId
+      templateFormComponentIdsOfInvisibleFields.contains(templateFormComponentIdOfField)
+    }
   }
 
   private def extractInvisibleFieldIds(
     template: FormTemplate,
     data: FormData,
-    formDataRecalculated: FormDataRecalculated): Set[FormComponentId] =
-    template.sections.filterNot(formDataRecalculated.isVisible).flatMap(extractFieldIds).toSet
+    formDataRecalculated: FormDataRecalculated): Set[FormComponentId] = {
+    val invisibleSections = template.sections.filterNot(formDataRecalculated.isVisible)
+    invisibleSections.flatMap(extractFieldIds).toSet
+  }
 
   private def extractFieldIds(section: Section): List[FormComponentId] =
     section.fields.flatMap { fc =>
