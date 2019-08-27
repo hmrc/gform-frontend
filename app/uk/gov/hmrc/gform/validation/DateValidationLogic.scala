@@ -132,6 +132,11 @@ object DateValidationLogic {
     vars: Option[List[String]]
   )
 
+  def hasMaximumLength(str: String, maximumLength: Int, label: String)(
+    implicit messages: Messages): Validated[String, String] =
+    if (str.length > maximumLength) Invalid(messages("generic.error.maxLength", label, maximumLength))
+    else Valid(str)
+
   def isNumeric(str: String, timeUnitLabel: String, label: String)(implicit messages: Messages): ValidatedNumeric =
     if (str.isEmpty) Invalid(messages("field.error.required", label))
     else
