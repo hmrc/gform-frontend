@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
 
 class StructuredFormDataBuilderSpec extends Spec {
-  implicit val l = LangADT.En
+  private implicit val l = LangADT.En
 
   type EitherEffect[A] = Either[Throwable, A]
 
@@ -232,7 +232,7 @@ class StructuredFormDataBuilderSpec extends Spec {
         )
       ),
       createForm(
-        "revealYourSecrets"  -> "0",
+        "revealYourSecrets"  -> "0,",
         "revealedField1"     -> "revealedField1Value",
         "revealedDate"       -> "",
         "revealedDate-day"   -> "1",

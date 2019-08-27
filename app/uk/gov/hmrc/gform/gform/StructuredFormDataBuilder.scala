@@ -178,7 +178,7 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
   private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice)(
     implicit l: LangADT): F[Option[Field]] =
     formValuesByUnindexedId.get(id).map(_.head).flatTraverse { selectionStr =>
-      val selection = selectionStr.toInt
+      val selection = selectionStr.replaceAll(",", "").toInt
       revealingChoice.options.get(selection).traverse { rcElement =>
         revealedChoiceFields(rcElement).map { os =>
           Field(
