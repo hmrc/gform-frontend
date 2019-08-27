@@ -73,5 +73,5 @@ class ReviewController(
       .collect { case (k, Some(v)) => (k, v) }
 
   private def asyncToResult[A](async: Future[A])(implicit ec: ExecutionContext): Future[Result] =
-    fromFutureA(async).fold(ex => BadRequest(ex.error), _ => Ok)
+    fromFutureA(async).fold(ex => BadRequest(ex.error).as("text/plain"), _ => Ok)
 }
