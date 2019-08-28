@@ -176,10 +176,7 @@ object ComponentsValidatorHelper {
   def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]], partLabel: String = "")(
     implicit l: LangADT,
     messages: Messages): Set[String] = {
-    val varsList: List[String] = vars match {
-      case None    => List.empty
-      case Some(a) => a
-    }
+    val varsList: List[String] = vars.getOrElse(Nil)
     val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None, partLabel).trim :: varsList
     Set(
       fieldValue.errorMessage
