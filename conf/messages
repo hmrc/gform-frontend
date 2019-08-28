@@ -80,6 +80,8 @@ generic.longText.error.pattern={0} can only include letters, numbers, spaces and
 
 generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash key, uppercase letters, spaces, asterisks, round brackets, and hyphens
 
+generic.error.submissionRef={0} can only be of the form XXXX-XXXX-XXXX, where each X is an upper case letter or a digit
+
 enrolment.error.failed=Enrolment unsuccessful, please check your details and try again
 enrolment.error.regimeId=The registration number you have entered is for a different tax service
 enrolment.error.missingIdentifier=A registration number must be entered

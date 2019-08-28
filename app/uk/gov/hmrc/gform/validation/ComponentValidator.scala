@@ -22,17 +22,14 @@ import cats.implicits._
 import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
-import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.lookup.LookupOptions
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupInfo, LookupLabel, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure, validationSuccess }
-import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.{ ExecutionContext, Future }
 
 import scala.util.matching.Regex
 
@@ -68,7 +65,7 @@ object ComponentValidator {
     }
   }
 
-  def validateText(fieldValue: FormComponent, constraint: TextConstraint, retrievals: MaterialisedRetrievals)(
+  def validateText(fieldValue: FormComponent, constraint: TextConstraint)(
     data: FormDataRecalculated,
     lookupRegistry: LookupRegistry)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] =
     (fieldValue.mandatory, textData(data, fieldValue), constraint) match {
@@ -89,6 +86,8 @@ object ComponentValidator {
         validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
       case (_, value :: Nil, UkBankAccountNumber) =>
         validateBankAccountFormat(fieldValue, value)
+      case (_, value :: Nil, SubmissionRefFormat) =>
+        validateSubmissionRefFormat(fieldValue, value)
       case (_, value :: Nil, UTR)                       => checkId(fieldValue, value)
       case (_, value :: Nil, NINO)                      => checkId(fieldValue, value)
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
@@ -121,6 +120,14 @@ object ComponentValidator {
         val vars: List[String] = ValidationValues.bankAccountLength.toString :: Nil
         validationFailure(fieldValue, "generic.error.exactNumbers", Some(vars))
     }
+  }
+
+  private def validateSubmissionRefFormat(fieldValue: FormComponent, value: String)(
+    implicit messages: Messages,
+    l: LangADT): ValidatedType[Unit] = {
+    val str = value.replace(" ", "")
+    if (SubmissionRef.verifyCheckChar(str)) validationSuccess
+    else validationFailure(fieldValue, "generic.error.submissionRef", None)
   }
 
   private def validateNumber(

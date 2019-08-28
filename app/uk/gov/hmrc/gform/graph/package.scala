@@ -25,9 +25,6 @@ package object graph {
 
 package graph {
 
-  import julienrf.json.derived
-  import play.api.libs.json.OFormat
-
   case class RecData(
     data: Data,
     recalculatedTaxPeriod: Map[RecalculatedTaxPeriodKey, IdNumberValue]

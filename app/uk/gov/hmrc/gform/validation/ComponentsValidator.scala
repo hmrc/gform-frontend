@@ -73,15 +73,15 @@ class ComponentsValidator(
       case text @ Text(constraint, _, _, _) =>
         validIf(
           ComponentValidator
-            .validateText(fieldValue, constraint, retrievals)(data, lookupRegistry))
+            .validateText(fieldValue, constraint)(data, lookupRegistry))
       case TextArea(constraint, _, _) =>
         validIf(
           ComponentValidator
-            .validateText(fieldValue, constraint, retrievals)(data, lookupRegistry))
+            .validateText(fieldValue, constraint)(data, lookupRegistry))
       case address @ Address(_) => validIf(new AddressValidation().validateAddress(fieldValue, address)(data))
       case c @ Choice(_, _, _, _, _) =>
         validIf(ComponentValidator.validateChoice(fieldValue)(data))
-      case revealingChoice: RevealingChoice =>
+      case _: RevealingChoice =>
         validIf(ComponentValidator.validateChoice(fieldValue)(data))
       case Group(_, _, _, _, _, _)  => cvh.validF //a group is read-only
       case FileUpload()             => validateFileUpload(data, fieldValue)

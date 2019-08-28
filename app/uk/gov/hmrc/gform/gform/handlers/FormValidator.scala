@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.gform.handlers
 
-import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, Origin }
 import uk.gov.hmrc.gform.fileupload.Envelope
@@ -114,7 +113,7 @@ class FormValidator(implicit ec: ExecutionContext) {
     val sections = processData.sections
     val data = processData.data
 
-    new Origin(sections, data).availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) {
+    Origin(sections, data).availableSectionNumbers.foldLeft(Future.successful(None: Option[SectionNumber])) {
       case (accF, currentSn) =>
         accF.flatMap {
           case Some(sn) => Future.successful(Some(sn))
