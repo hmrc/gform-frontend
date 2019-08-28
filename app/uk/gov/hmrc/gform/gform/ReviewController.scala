@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
+import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -27,6 +28,7 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
+import uk.gov.hmrc.gform.logging.Loggers
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -58,12 +60,14 @@ class ReviewController(
   def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.UpdateFormField) {
       implicit request => implicit l => cache =>
-        (for {
+        val maybeUpdatedForm: Option[Form] = for {
           body  <- request.body.asJson
           field <- body.asOpt[FormField]
-        } yield FormDataHelpers.updateFormField(cache.form, field))
-          .fold(Future.successful(BadRequest))(updated =>
-            gformBackEnd.updateUserData(updated, updated.status).map(_ => Ok))
+        } yield FormDataHelpers.updateFormField(cache.form, field)
+
+        maybeUpdatedForm map { updated =>
+          asyncToResult(gformBackEnd.updateUserData(updated, updated.status))
+        } getOrElse Future.successful(BadRequest)
     }
 
   private def extractReviewData(request: Request[AnyContent]) =
@@ -73,5 +77,11 @@ class ReviewController(
       .collect { case (k, Some(v)) => (k, v) }
 
   private def asyncToResult[A](async: Future[A])(implicit ec: ExecutionContext): Future[Result] =
-    fromFutureA(async).fold(ex => BadRequest(ex.error).as("text/plain"), _ => Ok)
+    async
+      .map(_ => Ok)
+      .recoverWith {
+        case e: Exception =>
+          Logger.warn("Caught exception", e)
+          Future.successful(BadRequest(e.getStackTrace.map(_.toString).mkString("\n")))
+      }
 }
