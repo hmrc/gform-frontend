@@ -34,30 +34,40 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: LookupRegistry)(
   implicit me: MonadError[F, Throwable]) {
-  def acceptForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
+  def forceUpdateFormStatus(cache: AuthCacheWithForm, status: FormStatus, reviewData: Map[String, String])(
+    implicit hc: HeaderCarrier) =
+    gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form) >>
+      gformBackEnd.forceUpdateFormStatus(cache.form._id, status)
+
+  def acceptForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
     implicit request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
     l: LangADT): F[HttpResponse] =
-    submitReviewResults(cache, maybeAccessCode, Accepting)
+    submitReviewResults(updateWithReviewData(cache, reviewData), maybeAccessCode, Accepting)
 
   def returnForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
     implicit request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
     l: LangADT): F[HttpResponse] =
     submitReviewResults(
-      cache.copy(
-        form = cache.form.copy(thirdPartyData = cache.form.thirdPartyData.copy(reviewData = Some(reviewData)))),
+      updateWithReviewData(cache, reviewData),
       maybeAccessCode,
       Returning
     )
 
-  def submitFormBundle(
-    rootFormId: FormId)(implicit request: Request[AnyContent], headerCarrier: HeaderCarrier, l: LangADT): F[Unit] =
+  def submitFormBundle(cache: AuthCacheWithForm, reviewData: Map[String, String])(
+    implicit request: Request[AnyContent],
+    headerCarrier: HeaderCarrier,
+    l: LangADT): F[Unit] =
     for {
-      bundle           <- gformBackEnd.getFormBundle(rootFormId)
+      bundle           <- gformBackEnd.getFormBundle(cache.form._id)
       formDataToSubmit <- buildFormDataToSubmit(bundle)
-      result           <- gformBackEnd.submitFormBundle(rootFormId, formDataToSubmit)
+      _                <- gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form)
+      result           <- gformBackEnd.submitFormBundle(cache.form._id, formDataToSubmit)
     } yield result
+
+  private def updateWithReviewData(cache: AuthCacheWithForm, reviewData: Map[String, String]) =
+    cache.copy(form = cache.form.copy(thirdPartyData = cache.form.thirdPartyData.copy(reviewData = Some(reviewData))))
 
   private def submitReviewResults(
     cache: AuthCacheWithForm,
