@@ -16,19 +16,17 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.instances.future._
 import play.api.Logger
 import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.auth.models.OperationWithForm.ForceUpdateFormStatus
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.play.frontend.controller.FrontendController
-import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
-import uk.gov.hmrc.gform.logging.Loggers
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -42,7 +40,7 @@ class ReviewController(
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewAccepted) {
       implicit request => implicit l => cache =>
-        asyncToResult(reviewService.acceptForm(cache, maybeAccessCode))
+        asyncToResult(reviewService.acceptForm(cache, maybeAccessCode, extractReviewData(request)))
     }
 
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
@@ -54,7 +52,7 @@ class ReviewController(
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewSubmitted) {
       implicit request => implicit l => cache =>
-        asyncToResult(reviewService.submitFormBundle(cache.form._id))
+        asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request)))
     }
 
   def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
@@ -66,8 +64,14 @@ class ReviewController(
         } yield FormDataHelpers.updateFormField(cache.form, field)
 
         maybeUpdatedForm map { updated =>
-          asyncToResult(gformBackEnd.updateUserData(updated, updated.status))
+          asyncToResult(gformBackEnd.updateUserData(updated))
         } getOrElse Future.successful(BadRequest)
+    }
+
+  def forceUpdateFormStatus(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], status: FormStatus) =
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, ForceUpdateFormStatus) {
+      implicit request => implicit l => cache =>
+        asyncToResult(reviewService.forceUpdateFormStatus(cache, status, extractReviewData(request)))
     }
 
   private def extractReviewData(request: Request[AnyContent]) =

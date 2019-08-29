@@ -48,6 +48,7 @@ object Permissions {
       case (ViewDeclaration, _, Validated)                                 => permitted(operation, role, status)
       case (ViewSummary, Reviewer, NeedsReview)                            => permitted(operation, role, status)
       case (ViewSummary, _, Summary | Validated | Signed)                  => permitted(operation, role, status)
+      case (ForceUpdateFormStatus, Reviewer, _)                            => permitted(operation, role, status)
       case _                                                               => permitWithWarning(operation, role, status)
     }
 

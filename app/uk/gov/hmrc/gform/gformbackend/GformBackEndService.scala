@@ -50,12 +50,14 @@ trait GformBackEndAlgebra[F[_]] {
     l: LangADT,
     hc: HeaderCarrier): F[(HttpResponse, CustomerId)]
 
-  def updateUserData(updatedForm: Form, status: FormStatus)(implicit hc: HeaderCarrier): F[Unit]
+  def updateUserData(updatedForm: Form)(implicit hc: HeaderCarrier): F[Unit]
 
   def getFormBundle(rootFormId: FormId)(implicit hc: HeaderCarrier): F[NonEmptyList[FormId]]
 
   def submitFormBundle(rootFormId: FormId, bundle: NonEmptyList[BundledFormSubmissionData])(
     implicit hc: HeaderCarrier): F[Unit]
+
+  def forceUpdateFormStatus(formId: FormId, status: FormStatus)(implicit hc: HeaderCarrier): F[Unit]
 }
 
 class GformBackEndService(
@@ -90,10 +92,13 @@ class GformBackEndService(
     l: LangADT,
     hc: HeaderCarrier): Future[(HttpResponse, CustomerId)] =
     for {
-      _          <- updateUserData(cache.form, formStatus)
+      _          <- updateUserData(cache.form.copy(status = formStatus))
       customerId <- customerIdRecalculation.evaluateCustomerId(cache)
       response   <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails)
     } yield (response, customerId)
+
+  def forceUpdateFormStatus(formId: FormId, status: FormStatus)(implicit hc: HeaderCarrier): Future[Unit] =
+    gformConnector.forceUpdateFormStatus(formId, status)
 
   private def handleSubmission(
     maybeAccessCode: Option[AccessCode],
@@ -118,13 +123,13 @@ class GformBackEndService(
                  )
     } yield response
 
-  def updateUserData(updatedForm: Form, status: FormStatus)(implicit hc: HeaderCarrier): Future[Unit] =
+  def updateUserData(updatedForm: Form)(implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector
       .updateUserData(
         updatedForm._id,
         UserData(
           updatedForm.formData,
-          status,
+          updatedForm.status,
           updatedForm.visitsIndex,
           updatedForm.thirdPartyData
         )

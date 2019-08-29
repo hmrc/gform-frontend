@@ -17,6 +17,8 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import cats.data.NonEmptyList
+import cats.instances.future._
+import cats.syntax.functor._
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.gform.CustomerId
@@ -61,7 +63,12 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   def updateUserData(formId: FormId, userData: UserData)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] =
-    ws.PUT[UserData, HttpResponse](s"$baseUrl/forms/${formId.value}", userData).map(_ => ())
+    ws.PUT[UserData, HttpResponse](s"$baseUrl/forms/${formId.value}", userData).void
+
+  def forceUpdateFormStatus(formId: FormId, status: FormStatus)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Unit] =
+    ws.PUT[String, HttpResponse](s"$baseUrl/formBundles/${formId.value}/$status/forceStatus", "").void
 
   //TODO: now returns string, but it should return list of validations
   def validateSection(formId: FormId, sectionNumber: SectionNumber)(
@@ -70,7 +77,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[String](s"$baseUrl/forms/${formId.value}/validate-section/${sectionNumber.value}")
 
   def deleteForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
-    ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").map(_ => ())
+    ws.POSTEmpty[HttpResponse](baseUrl + s"/forms/${formId.value}/delete").void
 
   /******submission*******/
   def submitForm(
@@ -107,7 +114,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
         s"$baseUrl/formtemplates",
         template,
         Seq("Content-Type" -> ContentType.`application/json`.value))
-      .map(_ => ())
+      .void
 
   def getFormTemplate(
     formTemplateId: FormTemplateId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
@@ -119,7 +126,7 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******file-upload*******/
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
-    ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").map(_ => ())
+    ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").void
 
   /********Validators******/
   def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(
@@ -163,6 +170,6 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.POST[NonEmptyList[BundledFormSubmissionData], HttpResponse](
         s"$baseUrl/formBundles/${rootFormId.value}/submitAfterReview",
         bundle)
-      .map(_ => ())
+      .void
   }
 }
