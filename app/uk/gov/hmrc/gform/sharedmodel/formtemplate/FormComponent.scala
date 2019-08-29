@@ -22,6 +22,7 @@ import play.api.libs.json._
 import scala.util.Try
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.graph.Data
+import uk.gov.hmrc.gform.gform.ValidIfUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString }
 
@@ -63,12 +64,15 @@ case class FormComponent(
   presentationHint: Option[List[PresentationHint]] = None
 ) {
 
-  private def addFieldIndex(field: FormComponent, index: Int) = {
+  private def addFieldIndex(field: FormComponent, index: Int, group: Group) = {
     val fieldToUpdate = if (index === 0) field else field.copy(id = FormComponentId(index + "_" + field.id.value))
     val i = index + 1
+    val updValidIf = fieldToUpdate.validIf.map(ValidIfUpdater(_, index, group).updated)
     fieldToUpdate.copy(
       label = LabelHelper.buildRepeatingLabel(field.label, i),
-      shortName = LabelHelper.buildRepeatingLabel(field.shortName, i))
+      shortName = LabelHelper.buildRepeatingLabel(field.shortName, i),
+      validIf = updValidIf
+    )
   }
 
   private val expandGroup: Data => Group => Int => List[FormComponent] = data =>
@@ -77,7 +81,7 @@ case class FormComponent(
         val ids: List[FormComponentId] = groupIndex(index + 1, group)
         val toExpand: Boolean = ids.forall(data.contains)
         if (index === 0 || toExpand) {
-          group.fields.map(addFieldIndex(_, index))
+          group.fields.map(addFieldIndex(_, index, group))
         } else Nil
   }
 
@@ -91,7 +95,7 @@ case class FormComponent(
     expand(fc, expandGroup(data), expandRevealingChoice)
 
   private def expandAll(fc: FormComponent): List[FormComponent] =
-    expand(fc, group => index => group.fields.map(addFieldIndex(_, index)), expandRevealingChoice)
+    expand(fc, group => index => group.fields.map(addFieldIndex(_, index, group)), expandRevealingChoice)
 
   private def expand(
     fc: FormComponent,
@@ -106,9 +110,9 @@ case class FormComponent(
 
   private def expandWithCtx(fc: FormComponent): List[FormComponentWithCtx] =
     fc.`type` match {
-      case Group(fields, _, max, _, _, _) =>
+      case group @ Group(fields, _, max, _, _, _) =>
         (0 until max.getOrElse(1)).toList.flatMap(index =>
-          fields.map(field => FormComponentWithGroup(addFieldIndex(field, index), fc)))
+          fields.map(field => FormComponentWithGroup(addFieldIndex(field, index, group), fc)))
       case _ => FormComponentSimple(fc) :: Nil
     }
 

@@ -446,7 +446,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       toLocalisedString(""),
       None,
       None,
-      null,
+      None,
       true,
       true,
       true,
