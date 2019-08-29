@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.gform.gform
+
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
@@ -24,13 +25,18 @@ object VisibleFieldCalculator {
   def apply(template: FormTemplate, data: FormData, formDataRecalculated: FormDataRecalculated): Seq[FormField] = {
     val allSections = RepeatingComponentService.getAllSections(template, formDataRecalculated)
     val sections = allSections.filter(formDataRecalculated.isVisible)
-    val visibleFormComponents: Seq[FormComponent] = submittedFCs(
+    val visibleFormComponents: List[FormComponent] = submittedFCs(
       formDataRecalculated,
       sections
         .flatMap(_.expandSectionRc(formDataRecalculated.data).allFCs)
     )
 
-    val visibleFormComponentIds: Set[FormComponentId] = visibleFormComponents.map(_.id).toSet
+    val visibleFormComponentIds: Set[FormComponentId] = visibleFormComponents.flatMap { component =>
+      component match {
+        case fc @ IsMultiField(mf) => component.id :: mf.fields(fc.id).toList
+        case _                     => List(component.id)
+      }
+    }.toSet
 
     data.fields.filter { field =>
       visibleFormComponentIds(field.id)
