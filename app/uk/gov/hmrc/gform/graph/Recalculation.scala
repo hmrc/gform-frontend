@@ -22,29 +22,21 @@ import cats.syntax.either._
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import cats.syntax.applicative._
-import cats.syntax.traverse._
 import cats.instances.string._
 import cats.data.EitherT
-import java.text.NumberFormat
-import java.util.Locale
 
 import scala.language.higherKinds
-import scala.util.{ Failure, Success, Try }
 import scalax.collection.Graph
-import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
 import uk.gov.hmrc.gform.gform.AuthContextPrepop
 import uk.gov.hmrc.gform.graph.processor.UserCtxEvaluatorProcessor
-import uk.gov.hmrc.gform.models.ExpandUtils
-import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, IdNumberValue, RecalculatedTaxPeriodKey }
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
+import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RecalculatedTaxPeriodKey, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, IncludeIfGN, SimpleGN }
 import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
-import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
-import uk.gov.hmrc.gform.submission.SubmissionRef
 import uk.gov.hmrc.http.HeaderCarrier
 
 sealed trait RecalculationOp extends Product with Serializable

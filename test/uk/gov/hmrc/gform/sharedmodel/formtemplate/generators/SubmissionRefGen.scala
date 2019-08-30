@@ -17,8 +17,8 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
-import uk.gov.hmrc.gform.submission.SubmissionRef
 
 trait SubmissionRefGen {
   def submissionRefGen: Gen[SubmissionRef] =

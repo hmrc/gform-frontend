@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.submission
+package uk.gov.hmrc.gform.sharedmodel
 
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import play.api.libs.json.{ Format, JsString, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import cats.Eq
+import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 
 import scala.math.pow
@@ -28,6 +28,7 @@ import scala.util.Random
 
 case class SubmissionRef(value: String) extends AnyVal {
   override def toString = value
+  def withoutHyphens = value.replace("-", "")
 }
 
 object SubmissionRef {
@@ -36,6 +37,8 @@ object SubmissionRef {
   val comb: Stream[Int] = Stream.continually(List(1, 3)).flatten
 
   implicit val oformat: OFormat[SubmissionRef] = ValueClassFormat.oformat("submissionRef", SubmissionRef.apply, _.value)
+
+  implicit val equal: Eq[SubmissionRef] = Eq.fromUniversalEquals
 
   def apply(value: EnvelopeId): SubmissionRef = SubmissionRef(getSubmissionReference(value))
 
@@ -49,9 +52,9 @@ object SubmissionRef {
     } else { "" }
 
   def calculate(value: BigInteger, radix: Int, digits: Int, comb: Stream[Int]): String = {
-    val modulus: BigInteger = BigInteger.valueOf(pow(radix, digits).toLong)
+    val modulus: BigInteger = BigInteger.valueOf(pow(radix.toDouble, digits.toDouble).toLong)
     val derivedDigits = (value.mod(modulus) add modulus).toString(radix).takeRight(digits)
-    val checkCharacter = BigInteger.valueOf(calculateCheckCharacter(derivedDigits, radix, comb)).toString(radix)
+    val checkCharacter = BigInteger.valueOf(calculateCheckCharacter(derivedDigits, radix, comb).toLong).toString(radix)
     checkCharacter + derivedDigits
   }
 

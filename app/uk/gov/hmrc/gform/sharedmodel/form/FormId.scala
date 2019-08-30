@@ -19,9 +19,8 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import play.api.libs.json._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId, ValueClassFormat }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.submission.SubmissionRef
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, UserId, ValueClassFormat }
 
 case class FormId(value: String) extends AnyVal
 
