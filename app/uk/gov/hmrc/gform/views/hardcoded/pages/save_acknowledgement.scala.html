@@ -63,10 +63,9 @@
     @messages("save4later.mustSubmit", formCat)
 </div>
 
-@formTemplate.save4LaterInfoText.map(_.asHtml).getOrElse(Html(""))
-
 <p>@messages("save4later.youCan")</p>
-<ul class = "bullets">
+<ul class="bullets save4later">
+    @formTemplate.save4LaterInfoText.map(v => Html(s"""<li>${v.asHtml}</li>""")).getOrElse(Html(""))
    <li>
       <a href="@call">@messages("save4later.continue", formCat)</a>
    </li>

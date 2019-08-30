@@ -367,3 +367,7 @@ input::-webkit-search-results-decoration { display: none; }
 .alert > h2.heading-small {
   margin-top: 0;
 }
+
+.save4later > li > p {
+  margin: 0;
+}
