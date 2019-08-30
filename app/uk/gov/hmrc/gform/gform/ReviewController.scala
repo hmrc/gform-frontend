@@ -86,6 +86,7 @@ class ReviewController(
       .recoverWith {
         case e: Exception =>
           Logger.warn("Caught exception", e)
-          Future.successful(BadRequest(e.getStackTrace.map(_.toString).mkString("\n")))
+          Future.successful(BadRequest(
+            s"Caught an exception while attempting the operation. The exception message was:\n----\n${e.getMessage}\n----"))
       }
 }
