@@ -30,7 +30,6 @@ class MarkDownUtilSpec extends Spec with GeneratorDrivenPropertyChecks {
     val dataAndExpectations = Table(
       ("input", "output"),
       ("", ""),
-      ("<a>", """<a target="_blank"> </a>"""),
       (
         "link [making a claim](https://www.gov.uk/government)",
         """<p>link <a href="https://www.gov.uk/government" target="_blank">making a claim</a></p>""")
