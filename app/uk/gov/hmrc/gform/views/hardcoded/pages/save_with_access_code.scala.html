@@ -80,7 +80,8 @@
     @messages("accessCode.youCan")
   </p>
 
-  <ul class = "bullets">
+  <ul class="bullets save4later">
+    @formTemplate.save4LaterInfoText.map(v => Html(s"""<li>${v.asHtml}</li>""")).getOrElse(Html(""))
     <li>
       @messages("accessCode.exit")
     </li>

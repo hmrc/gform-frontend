@@ -20,14 +20,17 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
 object MarkDownUtil {
 
   private def addTargetToLinks(html: String): String = {
-    val doc = Jsoup.parse(html)
-    doc.getElementsByTag("a").attr("target", "_blank")
+    val doc: Document = Jsoup.parse(html)
+    doc
+      .getElementsByAttributeValueStarting("href", "http")
+      .attr("target", "_blank")
     doc.body().html()
   }
 
