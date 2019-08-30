@@ -20,8 +20,7 @@ import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
-import org.jsoup.nodes.{ Document, Node }
-import org.jsoup.select.NodeFilter
+import org.jsoup.nodes.Document
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 
