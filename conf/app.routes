@@ -11,9 +11,9 @@ POST          /form/:formTemplateId/:maybeAccessCode/:sectionNumber             
 
 GET           /delete/:formTemplateId                                                                            uk.gov.hmrc.gform.gform.FormController.deleteOnExit(formTemplateId: FormTemplateId)
 
+GET           /summary/pdf/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.SummaryController.downloadPDF(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /summary/:formTemplateId/                                                                          uk.gov.hmrc.gform.gform.SummaryController.summaryById(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /summary/:formTemplateId/:maybeAccessCode                                                          uk.gov.hmrc.gform.gform.SummaryController.summaryById(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
-GET           /summary/pdf/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.SummaryController.downloadPDF(formTemplateId: FormTemplateId, a: Option[AccessCode])
 GET           /declaration/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.DeclarationController.showDeclaration(a: Option[AccessCode], formTemplateId: FormTemplateId)
 GET           /declaration/:formTemplateId/:maybeAccessCode                                                      uk.gov.hmrc.gform.gform.DeclarationController.showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId)
 POST          /declaration/:formTemplateId/:maybeAccessCode                                                      uk.gov.hmrc.gform.gform.DeclarationController.submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
