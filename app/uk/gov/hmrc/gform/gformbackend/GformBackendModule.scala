@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import javax.inject.Inject
-
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
-class GformBackendModule @Inject()(wSHttpModule: WSHttpModule, configModule: ConfigModule) {
+class GformBackendModule(wSHttpModule: WSHttpModule, configModule: ConfigModule) {
 
   lazy val gformConnector: GformConnector = new GformConnector(wSHttpModule.auditableWSHttp, gformBaseUrl)
 
