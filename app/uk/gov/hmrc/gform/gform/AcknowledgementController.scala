@@ -70,7 +70,7 @@ class AcknowledgementController(
     eventId: String): Action[AnyContent] =
     auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
       cache.form.status match {
-        case Submitted =>
+        case Submitted | NeedsReview =>
           // format: OFF
           val formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
           val hashedValue =  nonRepudiationHelpers.computeHash(formString)
