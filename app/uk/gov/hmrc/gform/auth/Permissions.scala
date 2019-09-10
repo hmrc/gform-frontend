@@ -36,7 +36,7 @@ object Permissions {
     (operation, role, status) match {
       case (DownloadSummaryPdf, _, _)                                      => permitted(operation, role, status)
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => permitted(operation, role, status)
-      case (EditFormWith, Customer | Agent, _)                             => permitWithWarning(operation, role, status)
+      case (EditFormWith, Customer | Agent, _)                             => notPermitted(operation, role, status)
       case (EditFormWith, Reviewer, Submitted)                             => notPermitted(operation, role, status)
       case (EditFormWith, Reviewer, _)                                     => permitted(operation, role, status)
       case (ReviewAccepted, Reviewer, NeedsReview)                         => permitted(operation, role, status)
@@ -51,7 +51,7 @@ object Permissions {
       case (ViewSummary, Reviewer, NeedsReview | Accepted)                 => permitted(operation, role, status)
       case (ViewSummary, _, Summary | Validated | Signed)                  => permitted(operation, role, status)
       case (ForceUpdateFormStatus, Reviewer, _)                            => permitted(operation, role, status)
-      case _                                                               => permitWithWarning(operation, role, status)
+      case _                                                               => notPermitted(operation, role, status)
     }
 
   private def permitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
