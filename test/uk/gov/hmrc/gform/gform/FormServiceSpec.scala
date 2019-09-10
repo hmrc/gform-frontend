@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.ops.FormComponentOps
 class FormServiceSpec extends Spec {
 
   private val genFormComponent = FormComponentGen.formComponentGen()
-  private val sterling = Sterling(RoundingMode.defaultRoundingMode)
+  private val sterling = Sterling(RoundingMode.defaultRoundingMode, false)
   private val textSterlingConstraint = Text(sterling, Expr.additionIdentityExpr)
   private val genFormComponentSterlingConstraint: Gen[FormComponent] =
     genFormComponent.map(e => e.copy(`type` = textSterlingConstraint))

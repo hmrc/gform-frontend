@@ -41,8 +41,8 @@ object TextFormatter {
             getNumberConstraint(bd => NumberFormatUtil.roundAndFormat(bd, bd.scale, rm))
           case Number(_, _, rm, None) =>
             getNumberConstraint(bd => NumberFormatUtil.roundAndFormat(bd, bd.scale, rm))
-          case Sterling(rm) =>
-            getNumberConstraint(bd => currencyFormat.format(NumberSetScale.setScale(bd, 2, rm)))
+          case s: Sterling =>
+            getNumberConstraint(bd => currencyFormat.format(NumberSetScale.setScale(bd, 2, s.roundingMode)))
           case _ =>
             currentValue
         }

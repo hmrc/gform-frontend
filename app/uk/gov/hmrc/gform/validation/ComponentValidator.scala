@@ -81,8 +81,13 @@ object ComponentValidator {
       case (_, value :: Nil, BasicText)           => textValidation(fieldValue, value)
       case (_, value :: Nil, TextWithRestrictions(min, max)) =>
         textValidationWithConstraints(fieldValue, value, min, max)
-      case (_, value :: Nil, Sterling(_)) =>
-        validateNumber(fieldValue, value, ValidationValues.sterlingLength, TextConstraint.defaultFactionalDigits, false)
+      case (_, value :: Nil, s: Sterling) =>
+        validateNumber(
+          fieldValue,
+          value,
+          ValidationValues.sterlingLength,
+          TextConstraint.defaultFactionalDigits,
+          s.positiveOnly)
       case (_, value :: Nil, UkBankAccountNumber) =>
         validateBankAccountFormat(fieldValue, value)
       case (_, value :: Nil, SubmissionRefFormat) =>

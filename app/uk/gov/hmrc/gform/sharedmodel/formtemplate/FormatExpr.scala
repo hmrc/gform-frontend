@@ -42,7 +42,8 @@ object DateConstraintType {
 final case class DateConstraint(
   beforeAfterPrecisely: BeforeAfterPrecisely,
   dateFormat: DateConstraintInfo,
-  offset: OffsetDate)
+  offset: OffsetDate
+)
 
 object DateConstraint {
   implicit val format: OFormat[DateConstraint] = derived.oformat[DateConstraint]
@@ -125,7 +126,7 @@ object ConcreteDate {
 case class DateField(value: FormComponentId) extends DateConstraintInfo
 
 object DateConstraintInfo {
-  implicit val format: OFormat[DateConstraintInfo] = derived.oformat[DateConstraintInfo]
+  implicit val format: OFormat[DateConstraintInfo] = derived.oformat
 }
 
 case class OffsetDate(value: Int) extends AnyVal
@@ -141,9 +142,9 @@ object RoundingMode {
   case object Down extends RoundingMode
   case object Ceiling extends RoundingMode
   case object Floor extends RoundingMode
+  case object HalfEven extends RoundingMode
   case object HalfUp extends RoundingMode
   case object HalfDown extends RoundingMode
-  case object HalfEven extends RoundingMode
 
   val defaultRoundingMode: RoundingMode = Down
 
@@ -152,9 +153,9 @@ object RoundingMode {
     "Down"     -> Down,
     "Ceiling"  -> Ceiling,
     "Floor"    -> Floor,
-    "HalfUp"   -> HalfUp,
     "HalfDown" -> HalfDown,
-    "HalfEven" -> HalfEven
+    "HalfEven" -> HalfEven,
+    "HalfUp"   -> HalfUp
   )
 }
 
@@ -181,7 +182,7 @@ case class ShortText(min: Int, max: Int) extends TextConstraint
 object ShortText { val default = ShortText(0, 1000) }
 case class Lookup(register: Register) extends TextConstraint
 case class TextWithRestrictions(min: Int, max: Int) extends TextConstraint
-case class Sterling(roundingMode: RoundingMode) extends TextConstraint
+case class Sterling(roundingMode: RoundingMode, positiveOnly: Boolean) extends TextConstraint
 case object UkBankAccountNumber extends TextConstraint
 case object UkSortCodeFormat extends TextConstraint
 case object SubmissionRefFormat extends TextConstraint
@@ -200,10 +201,6 @@ case object CountryCode extends TextConstraint
 case object NonUkCountryCode extends TextConstraint
 case object CompanyRegistrationNumber extends TextConstraint
 case object EORI extends TextConstraint
-
-object Sterling {
-  val defaultRounding = Sterling(RoundingMode.defaultRoundingMode)
-}
 
 object TextConstraint {
   val defaultWholeDigits = 11

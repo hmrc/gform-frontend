@@ -22,8 +22,8 @@ package object ops {
 
   implicit class FormComponentOps(formComponent: FormComponent) {
     def isSterling = formComponent.`type` match {
-      case Text(Sterling(_), _, _, _)  => true
-      case TextArea(Sterling(_), _, _) => true
+      case Text(_: Sterling, _, _, _)  => true
+      case TextArea(_: Sterling, _, _) => true
       case _                           => false
     }
     def isNumber = formComponent.`type` match {

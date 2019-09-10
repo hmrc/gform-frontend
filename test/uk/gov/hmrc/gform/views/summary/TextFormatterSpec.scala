@@ -91,7 +91,7 @@ class TextFormatterSpec(implicit messages: Messages) extends Spec {
     def formatForConstraint(constraint: TextConstraint) =
       TextFormatter.formatText(Some(FieldOk(getComponent(constraint), input)))
 
-    formatForConstraint(Sterling.defaultRounding) shouldBe expectedSterling
+    formatForConstraint(Sterling(RoundingMode.defaultRoundingMode, false)) shouldBe expectedSterling
     formatForConstraint(Number()) shouldBe expectedNumber
     formatForConstraint(PositiveNumber()) shouldBe expectedNumber
   }
