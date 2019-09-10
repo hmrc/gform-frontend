@@ -110,8 +110,8 @@ object Javascript {
         case TextArea(Number(_, _, rm, _), _, _)         => Some(rm)
         case Text(PositiveNumber(_, _, rm, _), _, _, _)  => Some(rm)
         case TextArea(PositiveNumber(_, _, rm, _), _, _) => Some(rm)
-        case Text(Sterling(rm), _, _, _)                 => Some(rm)
-        case TextArea(Sterling(rm), _, _)                => Some(rm)
+        case Text(s: Sterling, _, _, _)                  => Some(s.roundingMode)
+        case TextArea(s: Sterling, _, _)                 => Some(s.roundingMode)
         case _                                           => None
       }
 

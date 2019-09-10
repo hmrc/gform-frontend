@@ -33,11 +33,19 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
 
   "Sterling Format" should "Valid with whole number below 11 digits" in createSuccessTest(
     "12345678910",
-    Sterling.defaultRounding)
-  "Sterling Format" should "" in createFailTest(
+    Sterling(RoundingMode.defaultRoundingMode, false))
+  "Sterling Format" should "Valid with negative number when positiveOnly is false" in createSuccessTest(
+    "-12345",
+    Sterling(RoundingMode.defaultRoundingMode, false))
+  "Sterling Format" should "Invalid with too many digits" in createFailTest(
     "1234567891011",
-    Sterling.defaultRounding,
+    Sterling(RoundingMode.defaultRoundingMode, false),
     "sample label must be at most 11 digits")
+  "Sterling Format" should "Invalid with negative number when positiveOnly is true" in createFailTest(
+    "-12345",
+    Sterling(RoundingMode.defaultRoundingMode, true),
+    "sample label must be a positive number")
+
   "UkBankAccountNumber Format" should "be valid with 8 digits" in createSuccessTest("12345678", UkBankAccountNumber)
 
   "UkBankAccountNumber Format" should "be invalid with 9" in createFailTest(
