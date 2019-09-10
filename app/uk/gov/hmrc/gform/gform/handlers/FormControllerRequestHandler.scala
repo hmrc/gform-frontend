@@ -37,38 +37,38 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     sectionNumber: SectionNumber,
     suppressErrors: SuppressErrors,
     cache: AuthCacheWithForm,
-    envelopeId: EnvelopeId,
+    envelope: Envelope,
     retrievals: MaterialisedRetrievals,
     data: FormDataRecalculated,
     sections: List[Section],
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(implicit hc: HeaderCarrier)
     : Future[(List[(FormComponent, FormFieldValidationResult)], ValidatedType[ValidationResult], Envelope)] =
     suppressErrors match {
       case SeYes =>
-        envelopeF(envelopeId).map((List.empty, ValidationResult.empty.valid, _))
+        Future.successful((List.empty, ValidationResult.empty.valid, envelope))
       case SeNo =>
         handleValidate(
           data,
           sections,
           sectionNumber,
-          envelopeId,
+          cache.form.envelopeId,
+          envelope,
           retrievals,
           cache.form.thirdPartyData,
           cache.formTemplate,
-          envelopeF,
           validateFormComponents,
-          evaluateValidation)
+          evaluateValidation
+        )
     }
 
   def handleForm(
     sectionNumber: SectionNumber,
     suppressErrors: SuppressErrors,
     cache: AuthCacheWithForm,
+    envelope: Envelope,
     recalculateDataAndSections: RecalculateDataAndSections[Future],
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(implicit hc: HeaderCarrier): Future[FormHandlerResult] = {
@@ -81,11 +81,10 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
                                        sectionNumber,
                                        suppressErrors,
                                        cache,
-                                       envelopeId,
+                                       envelope,
                                        retrievals,
                                        data,
                                        sections,
-                                       envelopeF,
                                        validateFormComponents,
                                        evaluateValidation
                                      )
@@ -97,10 +96,10 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     sections: List[Section],
     sn: SectionNumber,
     cache: AuthCacheWithForm,
+    envelope: Envelope,
     extractedValidateFormHelper: (
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(
@@ -111,18 +110,18 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       sections,
       sn,
       cache,
+      envelope,
       extractedValidateFormHelper,
-      envelopeF,
       validateFormComponents,
       evaluateValidation)
 
   def handleFastForwardValidate(
     processData: ProcessData,
     cache: AuthCacheWithForm,
+    envelope: Envelope,
     extractedValidateFormHelper: (
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation)(
     implicit hc: HeaderCarrier
@@ -130,8 +129,8 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     formValidator.fastForwardValidate(
       processData,
       cache,
+      envelope,
       extractedValidateFormHelper,
-      envelopeF,
       validateFormComponents,
       evaluateValidation)
 
@@ -140,10 +139,10 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     sections: List[Section],
     sectionNumber: SectionNumber,
     envelopeId: EnvelopeId,
+    envelope: Envelope,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation)(
     implicit hc: HeaderCarrier
@@ -153,10 +152,10 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
       sections,
       sectionNumber,
       envelopeId,
+      envelope,
       retrievals,
       thirdPartyData,
       formTemplate,
-      envelopeF,
       validateFormComponents,
       evaluateValidation)
 }

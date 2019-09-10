@@ -37,10 +37,10 @@ class FormValidator(implicit ec: ExecutionContext) {
     sections: List[Section],
     sn: SectionNumber,
     cache: AuthCacheWithForm,
+    envelope: Envelope,
     extractedValidateFormHelper: (
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(
@@ -51,10 +51,10 @@ class FormValidator(implicit ec: ExecutionContext) {
       sections,
       sn,
       cache.form.envelopeId,
+      envelope,
       cache.retrievals,
       cache.form.thirdPartyData,
       cache.formTemplate,
-      envelopeF,
       validateFormComponents,
       evaluateValidation
     ).map {
@@ -71,10 +71,10 @@ class FormValidator(implicit ec: ExecutionContext) {
     sections: List[Section],
     sectionNumber: SectionNumber,
     envelopeId: EnvelopeId,
+    envelope: Envelope,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(
@@ -86,7 +86,6 @@ class FormValidator(implicit ec: ExecutionContext) {
     val sectionFields = submittedFCs(formDataRecalculated, section.expandSectionRc(formDataRecalculated.data).allFCs) ++ nonSubmittedYet
 
     for {
-      envelope <- envelopeF(envelopeId)
       v <- validateFormComponents(
             sectionFields,
             section,
@@ -101,10 +100,10 @@ class FormValidator(implicit ec: ExecutionContext) {
   def fastForwardValidate(
     processData: ProcessData,
     cache: AuthCacheWithForm,
+    envelope: Envelope,
     extractedValidateFormHelper: (
       List[FormComponentValidation],
       ValidatedType[ValidationResult]) => FormValidationOutcome,
-    envelopeF: EnvelopeId => Future[Envelope],
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation)(
     implicit hc: HeaderCarrier
@@ -123,8 +122,8 @@ class FormValidator(implicit ec: ExecutionContext) {
               sections,
               currentSn,
               cache,
+              envelope,
               extractedValidateFormHelper,
-              envelopeF,
               validateFormComponents,
               evaluateValidation)
               .map {

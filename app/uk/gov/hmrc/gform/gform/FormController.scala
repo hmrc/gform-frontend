@@ -18,25 +18,21 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
 import cats.instances.option._
-import cats.syntax.applicative._
 import cats.syntax.apply._
 import cats.syntax.eq._
-import com.softwaremill.quicklens._
-import play.api.data
-import play.api.i18n.{ DefaultLangs, I18nSupport }
+import play.api.i18n.I18nSupport
 import play.api.mvc._
-import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.controllers.helpers._
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
-import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, NotToBeRedirected, ToBeRedirected }
+import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.models.gform.{ ForceReload, FormValidationOutcome, NoSpecificAction, ObligationsAction }
+import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
 import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -44,7 +40,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
-import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
 
 import scala.concurrent.Future
@@ -81,16 +76,20 @@ class FormController(
     suppressErrors: SuppressErrors) =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache =>
-        handler
-          .handleForm(
-            sectionNumber,
-            suppressErrors,
-            cache,
-            processDataService.recalculateDataAndSections,
-            fileUploadService.getEnvelope,
-            validationService.validateFormComponents,
-            validationService.evaluateValidation
-          )
+        fileUploadService
+          .getEnvelope(cache.form.envelopeId)
+          .flatMap { envelope =>
+            handler
+              .handleForm(
+                sectionNumber,
+                suppressErrors,
+                cache,
+                envelope,
+                processDataService.recalculateDataAndSections,
+                validationService.validateFormComponents,
+                validationService.evaluateValidation
+              )
+          }
           .map(handlerResult =>
             Ok(renderer.renderSection(
               maybeAccessCode,
@@ -127,13 +126,14 @@ class FormController(
         def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
           toResult: Option[SectionNumber] => Result): Future[Result] =
           for {
+            envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
             FormValidationOutcome(_, formData, v) <- handler.handleFormValidation(
                                                       processData.data,
                                                       processData.sections,
                                                       sectionNumber,
                                                       cache,
+                                                      envelope,
                                                       FormService.extractedValidateFormHelper,
-                                                      fileUploadService.getEnvelope,
                                                       validationService.validateFormComponents,
                                                       validationService.evaluateValidation
                                                     )
