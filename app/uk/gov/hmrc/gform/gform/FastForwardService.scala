@@ -22,7 +22,7 @@ import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
-import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm }
+import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -30,8 +30,8 @@ import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormStatus, InProgress, Summary, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, SeYes, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormStatus, InProgress, Summary, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SeYes, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -89,11 +89,12 @@ class FastForwardService(
     hc: HeaderCarrier,
     l: LangADT): Future[Result] =
     for {
+      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
       maybeSn <- handler.handleFastForwardValidate(
                   processData,
                   cache,
+                  envelope,
                   FormService.extractedValidateFormHelper,
-                  fileUploadService.getEnvelope,
                   validationService.validateFormComponents,
                   validationService.evaluateValidation
                 )
