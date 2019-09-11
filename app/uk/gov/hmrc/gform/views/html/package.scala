@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.gform.views
 
+import java.time.{ Instant, ZoneId }
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import play.api.i18n.Messages
 import play.twirl.api.{ Html, HtmlFormat }
 
@@ -38,4 +41,11 @@ package object html {
     dateParts(1) = messages(s"date.${dateParts(1)}")
     dateParts.mkString(" ")
   }
+
+  private val dtf = DateTimeFormatter
+    .ofPattern("dd MMM yyyy HH:mm:ss")
+    .withLocale(Locale.UK)
+    .withZone(ZoneId.of("Europe/London"))
+
+  def formatInstant(instant: Instant)(implicit messages: Messages): String = dtf.format(instant)
 }

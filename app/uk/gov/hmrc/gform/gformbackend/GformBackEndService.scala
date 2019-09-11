@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormStatus, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormIdData, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SubmissionData }
@@ -37,9 +37,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 trait GformBackEndAlgebra[F[_]] {
   def getForm(id: FormId)(implicit hc: HeaderCarrier): F[Form]
 
+  def getForm(id: FormIdData)(implicit hc: HeaderCarrier): F[Form]
+
   def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): F[FormTemplate]
 
-  def submissionDetails(formId: FormId)(implicit hc: HeaderCarrier): F[Submission]
+  def submissionDetails(formIdData: FormIdData)(implicit hc: HeaderCarrier): F[Submission]
 
   def submitWithUpdatedFormStatus(
     formStatus: FormStatus,
@@ -50,7 +52,7 @@ trait GformBackEndAlgebra[F[_]] {
     l: LangADT,
     hc: HeaderCarrier): F[(HttpResponse, CustomerId)]
 
-  def updateUserData(updatedForm: Form)(implicit hc: HeaderCarrier): F[Unit]
+  def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): F[Unit]
 
   def getFormBundle(rootFormId: FormId)(implicit hc: HeaderCarrier): F[NonEmptyList[FormId]]
 
@@ -70,6 +72,8 @@ class GformBackEndService(
 
   def getForm(id: FormId)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
 
+  def getForm(id: FormIdData)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
+
   def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): Future[FormTemplate] =
     gformConnector.getFormTemplate(id)
 
@@ -80,8 +84,8 @@ class GformBackEndService(
     implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector.submitFormBundle(rootFormId, bundle)
 
-  def submissionDetails(formId: FormId)(implicit hc: HeaderCarrier): Future[Submission] =
-    gformConnector.submissionDetails(formId)
+  def submissionDetails(formIdData: FormIdData)(implicit hc: HeaderCarrier): Future[Submission] =
+    gformConnector.submissionDetails(formIdData)
 
   def submitWithUpdatedFormStatus(
     formStatus: FormStatus,
@@ -92,7 +96,7 @@ class GformBackEndService(
     l: LangADT,
     hc: HeaderCarrier): Future[(HttpResponse, CustomerId)] =
     for {
-      _          <- updateUserData(cache.form.copy(status = formStatus))
+      _          <- updateUserData(cache.form.copy(status = formStatus), maybeAccessCode)
       customerId <- customerIdRecalculation.evaluateCustomerId(cache)
       response   <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails)
     } yield (response, customerId)
@@ -123,10 +127,10 @@ class GformBackEndService(
                  )
     } yield response
 
-  def updateUserData(updatedForm: Form)(implicit hc: HeaderCarrier): Future[Unit] =
+  def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector
       .updateUserData(
-        updatedForm._id,
+        FormIdData.fromForm(updatedForm, maybeAccessCode),
         UserData(
           updatedForm.formData,
           updatedForm.status,
@@ -145,7 +149,7 @@ class GformBackEndService(
     structuredFormData: StructuredFormValue.ObjectStructure
   )(implicit hc: HeaderCarrier): Future[HttpResponse] =
     gformConnector.submitForm(
-      FormId(retrievals, formTemplate._id, maybeAccessCode),
+      FormIdData(retrievals, formTemplate._id, maybeAccessCode),
       customerId,
       buildSubmissionData(htmlForPDF, customerId, retrievals, formTemplate, emailParameters, structuredFormData),
       AffinityGroupUtil.fromRetrievals(retrievals)

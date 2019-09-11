@@ -52,7 +52,7 @@ class ReviewController(
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewSubmitted) {
       implicit request => implicit l => cache =>
-        asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request)))
+        asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request), maybeAccessCode))
     }
 
   def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
@@ -64,14 +64,14 @@ class ReviewController(
         } yield FormDataHelpers.updateFormField(cache.form, field)
 
         maybeUpdatedForm map { updated =>
-          asyncToResult(gformBackEnd.updateUserData(updated))
+          asyncToResult(gformBackEnd.updateUserData(updated, maybeAccessCode))
         } getOrElse Future.successful(BadRequest)
     }
 
   def forceUpdateFormStatus(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], status: FormStatus) =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, ForceUpdateFormStatus) {
       implicit request => implicit l => cache =>
-        asyncToResult(reviewService.forceUpdateFormStatus(cache, status, extractReviewData(request)))
+        asyncToResult(reviewService.forceUpdateFormStatus(cache, status, extractReviewData(request), maybeAccessCode))
     }
 
   private def extractReviewData(request: Request[AnyContent]) =

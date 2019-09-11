@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _, _ }
@@ -223,7 +223,7 @@ class AuthenticatedRequestActions(
     f: AuthCacheWithForm => Future[Result])(maybeAccessCode: Option[AccessCode], formTemplate: FormTemplate)(
     retrievals: MaterialisedRetrievals)(role: Role)(implicit hc: HeaderCarrier): Future[Result] =
     for {
-      form   <- gformConnector.getForm(FormId(retrievals, formTemplate._id, maybeAccessCode))
+      form   <- gformConnector.getForm(FormIdData(retrievals, formTemplate._id, maybeAccessCode))
       result <- f(AuthCacheWithForm(retrievals, form, formTemplate, role))
     } yield result
 

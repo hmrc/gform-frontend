@@ -35,35 +35,53 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, NotFoundException }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-/**
-  * This connector originates in GFORM project.
-  * Edit it there first and propagate it from there.
-  *
-  * Is this still true? There are a lot of differences between the version in gform and this one
-  */
 class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******form*******/
   //TODO: remove userId since this information will be passed using HeaderCarrier
   def newForm(formTemplateId: FormTemplateId, userId: UserId, affinityGroup: Option[AffinityGroup])(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[NewFormData] = {
+    ec: ExecutionContext): Future[FormIdData] = {
     val ag = affinityGroup.map(a => "/" + AffinityGroupUtil.affinityGroupName(a)).getOrElse("")
-    ws.POSTEmpty[NewFormData](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}$ag")
+    ws.POSTEmpty[FormIdData](s"$baseUrl/new-form/${formTemplateId.value}/${userId.value}$ag")
   }
+
+  def getAllForms(userId: UserId, formTemplateId: FormTemplateId)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[List[FormOverview]] =
+    ws.GET[List[FormOverview]](s"$baseUrl/forms/all/${userId.value}/${formTemplateId.value}")
 
   def getForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] =
     ws.GET[Form](s"$baseUrl/forms/${formId.value}")
 
-  def maybeForm(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] =
-    ws.GET[Form](s"$baseUrl/forms/${formId.value}").map(Some(_)).recover {
+  def getForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Form] = {
+    val url =
+      formIdData match {
+        case FormIdData.Plain(userId, formTemplateId) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}"
+        case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}"
+      }
+    ws.GET[Form](url)
+  }
+
+  def maybeForm(formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Form]] =
+    getForm(formIdData).map(Some(_)).recover {
       case e: NotFoundException => None
     }
 
-  def updateUserData(formId: FormId, userData: UserData)(
+  def updateUserData(formIdData: FormIdData, userData: UserData)(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] =
-    ws.PUT[UserData, HttpResponse](s"$baseUrl/forms/${formId.value}", userData).void
+    ec: ExecutionContext): Future[Unit] = {
+    val url =
+      formIdData match {
+        case FormIdData.Plain(userId, formTemplateId) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}"
+        case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}"
+      }
+    ws.PUT[UserData, HttpResponse](url, userData).void
+  }
 
   def forceUpdateFormStatus(formId: FormId, status: FormStatus)(
     implicit hc: HeaderCarrier,
@@ -81,11 +99,19 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /******submission*******/
   def submitForm(
-    formId: FormId,
+    formIdData: FormIdData,
     customerId: CustomerId,
     submissionData: SubmissionData,
-    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    mkPost(customerId, submissionData, affinityGroup)(s"$baseUrl/forms/${formId.value}/submitForm")
+    affinityGroup: Option[AffinityGroup])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url =
+      formIdData match {
+        case FormIdData.Plain(userId, formTemplateId) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/submitForm"
+        case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}/submitForm"
+      }
+    mkPost(customerId, submissionData, affinityGroup)(url)
+  }
 
   /******test-only*******/
   def renderHandlebarPayload(
@@ -105,8 +131,17 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
       submissionData,
       Seq("customerId" -> customerId.id, "affinityGroup" -> affinityGroupNameO(affinityGroup)))
 
-  def submissionDetails(formId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] =
-    ws.GET[Submission](s"$baseUrl/forms/${formId.value}/submissionDetails")
+  def submissionDetails(
+    formIdData: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Submission] = {
+    val url =
+      formIdData match {
+        case FormIdData.Plain(userId, formTemplateId) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/submissionDetails"
+        case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
+          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}/submissionDetails"
+      }
+    ws.GET[Submission](url)
+  }
 
   /******formTemplate*******/
   def upsertTemplate(template: JsValue)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =

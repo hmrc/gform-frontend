@@ -16,11 +16,16 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import java.time.Instant
+import play.api.libs.json.{ Json, OFormat }
+import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 
-case class NewFormData(formId: FormId, formAccess: FormAccess)
+case class FormOverview(
+  submissionRef: Option[SubmissionRef],
+  createdAt: Instant,
+  updatedAt: Instant
+)
 
-object NewFormData {
-  implicit val format: OFormat[NewFormData] = derived.oformat
+object FormOverview {
+  implicit val format: OFormat[FormOverview] = Json.format
 }
