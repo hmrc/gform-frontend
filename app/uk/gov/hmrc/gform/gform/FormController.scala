@@ -161,7 +161,7 @@ class FormController(
                   result <- validateAndUpdateData(cacheUpd, newProcessData)(toResult) // recursive call
                 } yield result
               } else {
-                fastForwardService.updateUserData(cacheUpd, processData)(toResult)
+                fastForwardService.updateUserData(cacheUpd, processData, maybeAccessCode)(toResult)
               }
             }
           } yield res

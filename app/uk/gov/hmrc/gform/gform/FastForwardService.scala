@@ -30,8 +30,8 @@ import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormStatus, InProgress, Summary, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SeYes, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormStatus, InProgress, Summary, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, SeYes, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -59,7 +59,7 @@ class FastForwardService(
     l: LangADT): Future[Result] =
     for {
       processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload)
-      res         <- updateUserData(cache, processData)(redirectResult(cache, maybeAccessCode, processData, _))
+      res         <- updateUserData(cache, processData, maybeAccessCode)(redirectResult(cache, maybeAccessCode, processData, _))
     } yield res
 
   private def redirectResult(
@@ -74,7 +74,8 @@ class FastForwardService(
         Redirect(
           routes.FormController
             .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SeYes))
-      case None => Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
+      case None =>
+        Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
     }
 
   def deleteForm(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier): Future[Result] = {
@@ -84,7 +85,8 @@ class FastForwardService(
       .map(_ => Redirect(routes.NewFormController.dashboard(formTemplateId)))
   }
 
-  def updateUserData(cache: AuthCacheWithForm, processData: ProcessData)(toResult: Option[SectionNumber] => Result)(
+  def updateUserData(cache: AuthCacheWithForm, processData: ProcessData, maybeAccessCode: Option[AccessCode])(
+    toResult: Option[SectionNumber] => Result)(
     implicit messages: Messages,
     hc: HeaderCarrier,
     l: LangADT): Future[Result] =
@@ -104,7 +106,9 @@ class FastForwardService(
         processData.visitIndex,
         cache.form.thirdPartyData.modify(_.obligations).setTo(processData.obligations)
       )
-      res <- gformConnector.updateUserData(cache.form._id, userData).map(_ => toResult(maybeSn))
+      res <- gformConnector
+              .updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)
+              .map(_ => toResult(maybeSn))
     } yield res
 
 }

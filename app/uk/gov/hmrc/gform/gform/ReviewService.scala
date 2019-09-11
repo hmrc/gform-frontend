@@ -26,6 +26,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.sharedmodel.form.FormIdData
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepting, Form, FormId, FormStatus, Returning }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
@@ -34,9 +35,12 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: LookupRegistry)(
   implicit me: MonadError[F, Throwable]) {
-  def forceUpdateFormStatus(cache: AuthCacheWithForm, status: FormStatus, reviewData: Map[String, String])(
-    implicit hc: HeaderCarrier) =
-    gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form) >>
+  def forceUpdateFormStatus(
+    cache: AuthCacheWithForm,
+    status: FormStatus,
+    reviewData: Map[String, String],
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier) =
+    gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form, maybeAccessCode) >>
       gformBackEnd.forceUpdateFormStatus(cache.form._id, status)
 
   def acceptForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
@@ -55,14 +59,14 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
       Returning
     )
 
-  def submitFormBundle(cache: AuthCacheWithForm, reviewData: Map[String, String])(
+  def submitFormBundle(cache: AuthCacheWithForm, reviewData: Map[String, String], maybeAccessCode: Option[AccessCode])(
     implicit request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
     l: LangADT): F[Unit] =
     for {
       bundle           <- gformBackEnd.getFormBundle(cache.form._id)
       formDataToSubmit <- buildFormDataToSubmit(bundle)
-      _                <- gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form)
+      _                <- gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form, maybeAccessCode)
       result           <- gformBackEnd.submitFormBundle(cache.form._id, formDataToSubmit)
     } yield result
 
@@ -77,7 +81,7 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
     headerCarrier: HeaderCarrier,
     l: LangADT): F[HttpResponse] =
     for {
-      submission <- gformBackEnd.submissionDetails(cache.form._id)
+      submission <- gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode))
       result <- gformBackEnd.submitWithUpdatedFormStatus(
                  formStatus,
                  cache,

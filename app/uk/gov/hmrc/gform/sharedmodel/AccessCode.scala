@@ -22,4 +22,6 @@ case class AccessCode(value: String)
 
 object AccessCode {
   implicit val format: Format[AccessCode] = ValueClassFormat.simpleFormat(AccessCode.apply)(_.value)
+
+  def fromSubmissionRef(submissionRef: SubmissionRef): AccessCode = AccessCode(submissionRef.value)
 }

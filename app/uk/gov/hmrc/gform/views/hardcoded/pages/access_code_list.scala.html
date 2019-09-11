@@ -20,12 +20,15 @@
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.sharedmodel.{LangADT, SubmissionRef}
+@import uk.gov.hmrc.gform.sharedmodel.form.FormOverview
 @import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{renderMonth, getMonthValue}
+@import uk.gov.hmrc.gform.views.html.formatInstant
+@import uk.gov.hmrc.play.views.html.helpers.errorInline
 
 @(
         formTemplate: FormTemplate,
-        accessCodeList: List[AccessCodeLink],
+        formOverviews: List[FormOverview],
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
@@ -36,6 +39,10 @@
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{formTemplate.formName.value}
+
+@accessLink(submissionRef: SubmissionRef) = {
+  <a href="@{uk.gov.hmrc.gform.gform.routes.NewFormController.continue(formTemplate._id, submissionRef)}">@{submissionRef.value}</a>
+}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -53,15 +60,9 @@
     @heading
   </h1>
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newFormPost(formTemplate._id)}" method="POST" novalidate="novalidate">
-    @{CSRF.formField}
-    <input
-      id="@{AccessCodePage.optionKey}-@{AccessCodePage.optionAccess}"
-      type="hidden"
-      name="@{AccessCodePage.optionKey}"
-      value="@{AccessCodePage.optionNew}"
-    >
+  <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newSubmissionReference(formTemplate._id)}" method="POST" novalidate="novalidate">
     <div class="form-group">
+      @{CSRF.formField}
       <input type="submit" class="button" value="@{messages("accessCode.startNew", formCat)}" />
     </div>
   </form>
@@ -82,16 +83,16 @@
       @{messages("accessCodeLinks.modified")}
       </dd>
     </div>
-    @for(link <- accessCodeList) {
+    @for(formOverview <- formOverviews) {
         <div>
           <dt class="cya-question">
-            <a href="#">@{link.accessCode.value}</a>
+	  @{formOverview.submissionRef.fold(Html(""))(ac => accessLink(ac))}
           </dt>
           <dd class="cya-answer">
-            @{link.createdDate.toString}
+            @{formatInstant(formOverview.createdAt)}
           </dd>
           <dd class="cya-change">
-            @{link.lastModifiedDate.toString}
+            @{formatInstant(formOverview.updatedAt)}
           </dd>
         </div>
     }
