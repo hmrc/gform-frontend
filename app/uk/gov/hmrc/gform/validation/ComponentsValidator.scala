@@ -19,10 +19,11 @@ package uk.gov.hmrc.gform.validation
 import cats.data.Validated
 import cats.implicits._
 import play.api.i18n.Messages
+
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService, Infected }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -70,7 +71,11 @@ class ComponentsValidator(
             .validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
       case date @ Date(_, _, _) =>
         validIf(dateValidation.validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues), data))
-      case text @ Text(constraint, _, _, _) =>
+      case Text(SubmissionRefFormat, _, _, _) if (formTemplate.parentFormSubmissionRefs.contains(fieldValue.id)) =>
+        validIf(
+          ComponentValidator
+            .validateParentSubmissionRef(fieldValue, SubmissionRef(envelopeId))(data))
+      case Text(constraint, _, _, _) =>
         validIf(
           ComponentValidator
             .validateText(fieldValue, constraint)(data, lookupRegistry))

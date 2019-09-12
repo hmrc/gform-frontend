@@ -33,7 +33,6 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure,
 import scala.util.matching.Regex
 
 object ComponentValidator {
-
   private def textData(formData: FormDataRecalculated, fieldValue: FormComponent) =
     formData.data.get(fieldValue.id) match {
       case Some(s) => s.filterNot(_.isEmpty()).toList
@@ -111,6 +110,18 @@ object ComponentValidator {
         validateNumber(fieldValue, value, maxWhole, maxFractional, true)
       case (false, Nil, _)       => validationSuccess
       case (_, value :: rest, _) => validationSuccess // we don't support multiple values yet
+    }
+
+  def validateParentSubmissionRef(fieldValue: FormComponent, thisFormSubmissionRef: SubmissionRef)(
+    data: FormDataRecalculated)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] =
+    textData(data, fieldValue) match {
+      case value :: Nil =>
+        validateSubmissionRefFormat(fieldValue, value) andThen { _ =>
+          if (value === thisFormSubmissionRef.value)
+            validationFailure(fieldValue, "generic.error.parentSubmissionRefSameAsFormSubmissionRef", None)
+          else validationSuccess
+        }
+      case _ => validationSuccess
     }
 
   private def validateBankAccountFormat(fieldValue: FormComponent, value: String)(
