@@ -29,6 +29,7 @@
 @import play.twirl.api.Html
 
 @(fieldValue: FormComponent,
+buttonType: String,
 optionsSelectionsAndHiddenFields: NonEmptyList[(LocalisedString, Int => Boolean, List[Html])],
 validationResult: Option[FormFieldValidationResult],
 index: Int,
@@ -69,7 +70,7 @@ formLevelHeading: Boolean
                   <input id="@fcId"
                          name="@{fieldValue.id}"
                          value="@index"
-                         type="radio"
+                         type="@buttonType"
 			 @{if(isSelected(index)) "checked" else ""}
                   />
 

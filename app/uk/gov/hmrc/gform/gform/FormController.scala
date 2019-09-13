@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
-import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.fileupload.FileUploadAlgebra
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Data
@@ -49,7 +49,7 @@ class FormController(
   frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActionsAlgebra[Future],
-  fileUploadService: FileUploadService,
+  fileUploadService: FileUploadAlgebra[Future],
   validationService: ValidationService,
   renderer: SectionRenderingService,
   gformConnector: GformConnector,
@@ -122,7 +122,7 @@ class FormController(
     sectionNumber: SectionNumber
   ) = auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
     implicit request => implicit l => cache =>
-      processResponseDataFromBody(request) { (dataRaw: Data) =>
+      processResponseDataFromBody(request) { dataRaw: Data =>
         def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
           toResult: Option[SectionNumber] => Result): Future[Result] =
           for {
@@ -232,7 +232,7 @@ class FormController(
         for {
           processData <- processDataService
                           .getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, NoSpecificAction)
-          nav = new Navigator(sectionNumber, processData.sections, processData.data).navigate
+          nav = Navigator(sectionNumber, processData.sections, processData.data).navigate
           res <- nav match {
                   case SaveAndContinue           => processSaveAndContinue(processData)
                   case SaveAndExit               => processSaveAndExit(processData)

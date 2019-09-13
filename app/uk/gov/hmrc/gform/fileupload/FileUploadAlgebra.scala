@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,19 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
+package uk.gov.hmrc.gform.fileupload
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId }
+import uk.gov.hmrc.http.HeaderCarrier
 
-@(fieldValue: FormComponent, selectedHtml: List[Html], changeButton: Html)(implicit l:LangADT)
+import scala.concurrent.Future
 
-
-<div>
- <dt class="cya-question">
-  @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
- </dt>
- <dd class="cya-answer"/>
- <dd class="cya-change"></dd>
-</div>
-@selectedHtml
+trait FileUploadAlgebra[F[_]] {
+  def getEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Envelope]
+  def getMaybeEnvelope(envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Option[Envelope]]
+  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): F[Unit]
+}

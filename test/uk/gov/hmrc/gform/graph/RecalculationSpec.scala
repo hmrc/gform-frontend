@@ -37,7 +37,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
   type EitherEffect[A] = Either[GraphException, A]
 
   val recalculation: Recalculation[EitherEffect, GraphException] =
-    new Recalculation[EitherEffect, GraphException](booleanExprEval, ((s: GraphException) => s))
+    new Recalculation[EitherEffect, GraphException](booleanExprEval, (s: GraphException) => s)
 
   "recalculation" should "recalculate single dependency" in {
 
@@ -523,16 +523,19 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
         mkSection(
         List(mkFormComponent(
           "c",
-          RevealingChoice(NonEmptyList.of(
-            RevealingChoiceElement(
-              toLocalisedString("Yes"),
-              mkFormComponent("d", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
-              false),
-            RevealingChoiceElement(
-              toLocalisedString("No"),
-              mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
-              false)
-          ))
+          RevealingChoice(
+            NonEmptyList.of(
+              RevealingChoiceElement(
+                toLocalisedString("Yes"),
+                mkFormComponent("d", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
+                false),
+              RevealingChoiceElement(
+                toLocalisedString("No"),
+                mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
+                false)
+            ),
+            true
+          )
         ))) :: Nil
 
     forAll(data) { (input, expectedOutput) ⇒
@@ -545,8 +548,9 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     val data = Table(
       // format: off
       ("input", "output"),
-      (mkData("rc" -> "0", "a" -> "10", "b" -> "11"), mkData("rc" -> "0", "a" -> "10", "b" -> "11", "res" -> "10")),
-      (mkData("rc" -> "1", "a" -> "10", "b" -> "11"), mkData("rc" -> "1", "a" -> "10", "b" -> "11", "res" -> "11"))
+      (mkData("rc" -> "0", "a" -> "10", "b" -> "11"),   mkData("rc" -> "0", "a" -> "10", "b" -> "11", "res" -> "10")),
+      (mkData("rc" -> "1", "a" -> "10", "b" -> "11"),   mkData("rc" -> "1", "a" -> "10", "b" -> "11", "res" -> "11")),
+      (mkData("rc" -> "0,1", "a" -> "10", "b" -> "11"), mkData("rc" -> "0,1", "a" -> "10", "b" -> "11", "res" -> "21"))
       // format: on
     )
 
@@ -554,10 +558,13 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       mkSection(
         List(mkFormComponent(
           "rc",
-          RevealingChoice(NonEmptyList.of(
-            RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("a", Value) :: Nil, false),
-            RevealingChoiceElement(toLocalisedString("No"), mkFormComponent("b", Value) :: Nil, false)
-          ))
+          RevealingChoice(
+            NonEmptyList.of(
+              RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("a", Value) :: Nil, false),
+              RevealingChoiceElement(toLocalisedString("No"), mkFormComponent("b", Value) :: Nil, false)
+            ),
+            true
+          )
         ))) ::
         mkSection(List(mkFormComponent("res", Add(FormCtx("a"), FormCtx("b"))))) ::
         Nil

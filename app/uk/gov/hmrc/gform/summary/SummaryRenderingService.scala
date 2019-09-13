@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
 
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.future._
+import cats.syntax.foldable._
 import org.jsoup.Jsoup
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
@@ -30,13 +31,13 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gform.HtmlSanitiser
-import uk.gov.hmrc.gform.graph.Recalculation
+import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, PdfHtml, SubmissionRef }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormDataRecalculated, ValidationResult }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, Obligations, PdfHtml, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
@@ -312,24 +313,23 @@ object SummaryRenderingService {
 
             choice(fieldValue, selections, changeButton)
 
-          case rc @ RevealingChoice(os) =>
-            val selections: List[String] = os
-              .map(_.choice)
-              .zipWithIndex
+          case rc: RevealingChoice =>
+            val selections = rc.options.zipWithIndex
               .map {
-                case (option, index) =>
+                case (element, index) =>
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option)
+                    .map { _ =>
+                      Html("") ::
+                        element.revealingFields.map {
+                        valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
+                      }
+                    }
               }
-              .collect { case Some(selection) => selection.value }
+              .collect { case Some(html) => html }
+              .flatten
 
-            val hiddenFieldInfo = for {
-              field <- RevealingChoice.slice(fieldValue.id)(data.data)(rc)
-            } yield valueToHtml(field, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
-
-            val listOfHtml = choice(fieldValue, selections, changeButton) :: hiddenFieldInfo
-            revealingChoice(listOfHtml)
+            revealingChoice(fieldValue, selections, changeButton)
 
           case f @ FileUpload()         => file_upload(fieldValue, f, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.gform
 
-import cats.{ Monad, MonadError }
+import cats.MonadError
 import cats.data.NonEmptyList
 import cats.instances.option._
 import cats.instances.list._
@@ -26,6 +26,7 @@ import cats.syntax.traverse._
 import cats.syntax.foldable._
 import cats.syntax.option._
 import cats.syntax.functor._
+import cats.syntax.eq._
 import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.Form
@@ -80,7 +81,9 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
     }
 
   private def buildGroupFields(group: Group)(implicit l: LangADT): F[List[Field]] =
-    group.fields.flatTraverse { buildNonGroupField(_, repeatable = true) }
+    group.fields.flatTraverse {
+      buildNonGroupField(_, repeatable = true)
+    }
 
   private def buildNonGroupField(nonGroupField: FormComponent, repeatable: Boolean)(
     implicit l: LangADT): F[List[Field]] = {
@@ -115,7 +118,9 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
     mf: MultiField): Field =
     Field(
       FieldName(baseFieldId.value),
-      ArrayNode(values.toList.map { buildObjectStructureForMultiField(baseFieldId, _, mf) }),
+      ArrayNode(values.toList.map {
+        buildObjectStructureForMultiField(baseFieldId, _, mf)
+      }),
       Map.empty
     )
 
@@ -178,19 +183,57 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
   private def buildRevealingChoiceFields(id: FormComponentId, revealingChoice: RevealingChoice)(
     implicit l: LangADT): F[Option[Field]] =
     formValuesByUnindexedId.get(id).map(_.head).flatTraverse { selectionStr =>
-      val selection = selectionStr.toInt
-      revealingChoice.options.get(selection).traverse { rcElement =>
-        revealedChoiceFields(rcElement).map { os =>
-          Field(
-            FieldName(id.value),
-            ObjectStructure(
-              List(
-                Field(FieldName("choice"), TextNode(selection.toString)),
-                Field(FieldName("revealed"), ObjectStructure(os))
-              )
+      if (revealingChoice.multiValue)
+        buildMultiValueRevealingChoiceFields(id, revealingChoice, selectionStr.split(",").map(_.toInt).toList)
+      else
+        buildSingleValueRevealingChoiceFields(id, revealingChoice, selectionStr.toInt)
+    }
+
+  private def buildMultiValueRevealingChoiceFields(
+    id: FormComponentId,
+    revealingChoice: RevealingChoice,
+    selection: List[Int])(implicit l: LangADT): F[Option[Field]] = {
+    val revealedFieldsF = selection
+      .traverse { selection =>
+        revealingChoice.options.get(selection).traverse { rcElement =>
+          revealedChoiceFields(rcElement)
+        }
+      }
+      .map(_.flatten)
+      .map(_.flatten)
+
+    revealedFieldsF
+      .map { revealedFields =>
+        NonEmptyList
+          .fromList(selection)
+          .map { nonEmptySelection =>
+            Field(
+              FieldName(id.value),
+              ObjectStructure(
+                List(
+                  Field(FieldName("choices"), ArrayNode(nonEmptySelection.toList.map(_.toString).map(TextNode(_)))),
+                  Field(FieldName("revealed"), ObjectStructure(revealedFields))
+                ))
+            )
+          }
+      }
+  }
+
+  private def buildSingleValueRevealingChoiceFields(
+    id: FormComponentId,
+    revealingChoice: RevealingChoice,
+    selection: Int)(implicit l: LangADT): F[Option[Field]] =
+    revealingChoice.options.get(selection).traverse { rcElement =>
+      revealedChoiceFields(rcElement).map { os =>
+        Field(
+          FieldName(id.value),
+          ObjectStructure(
+            List(
+              Field(FieldName("choice"), TextNode(selection.toString)),
+              Field(FieldName("revealed"), ObjectStructure(os))
             )
           )
-        }
+        )
       }
     }
 
@@ -208,8 +251,8 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
     }
 
     def multiChoiceFieldId(field: FormComponent): Option[FormComponentId] = field.`type` match {
-      case c: Choice if c.`type` == Checkbox => field.id.some
-      case _                                 => None
+      case c: Choice if c.`type` === Checkbox => field.id.some
+      case _                                  => None
     }
 
     (for {

@@ -72,7 +72,6 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     validateFormComponents: ValidateFormComponents[Future],
     evaluateValidation: EvaluateValidation
   )(implicit hc: HeaderCarrier): Future[FormHandlerResult] = {
-    val envelopeId = cache.form.envelopeId
     val retrievals = cache.retrievals
 
     for {

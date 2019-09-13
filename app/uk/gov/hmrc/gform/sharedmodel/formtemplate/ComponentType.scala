@@ -22,9 +22,10 @@ import cats.syntax.foldable._
 import julienrf.json.derived
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
+
 import scala.util.Try
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
@@ -56,7 +57,8 @@ case class UkSortCode(value: Expr) extends ComponentType with MultiField {
 }
 
 object UkSortCode {
-  val fields = (id: FormComponentId) => NonEmptyList.of("1", "2", "3").map(id.withSuffix)
+  val fields: FormComponentId => NonEmptyList[FormComponentId] = (id: FormComponentId) =>
+    NonEmptyList.of("1", "2", "3").map(id.withSuffix)
 }
 
 case class Date(
@@ -68,7 +70,8 @@ case class Date(
 }
 
 case object Date {
-  val fields = (id: FormComponentId) => NonEmptyList.of("day", "month", "year").map(id.withSuffix)
+  val fields: FormComponentId => NonEmptyList[FormComponentId] = (id: FormComponentId) =>
+    NonEmptyList.of("day", "month", "year").map(id.withSuffix)
 }
 
 case class Address(international: Boolean) extends ComponentType with MultiField {
@@ -80,10 +83,11 @@ case class Address(international: Boolean) extends ComponentType with MultiField
 }
 
 case object Address {
-  val mandatoryFields = (id: FormComponentId) => List("street1").map(id.withSuffix)
-  val optionalFields = (id: FormComponentId) =>
+  val mandatoryFields: FormComponentId => List[FormComponentId] = id => List("street1").map(id.withSuffix)
+  val optionalFields: FormComponentId => List[FormComponentId] = id =>
     List("street2", "street3", "street4", "uk", "postcode", "country").map(id.withSuffix)
-  val fields = (id: FormComponentId) => NonEmptyList.fromListUnsafe(mandatoryFields(id) ++ optionalFields(id))
+  val fields: FormComponentId => NonEmptyList[FormComponentId] = id =>
+    NonEmptyList.fromListUnsafe(mandatoryFields(id) ++ optionalFields(id))
 
 }
 
@@ -91,8 +95,8 @@ object DisplayWidth extends Enumeration {
   type DisplayWidth = Value
   val XS, S, M, L, XL, XXL, DEFAULT = Value
 
-  implicit val displayWidthReads = Reads.enumNameReads(DisplayWidth)
-  implicit val displayWidthWrites = Writes.enumNameWrites
+  implicit val displayWidthReads: Reads[DisplayWidth] = Reads.enumNameReads(DisplayWidth)
+  implicit val displayWidthWrites: Writes[DisplayWidth] = Writes.enumNameWrites
 }
 
 sealed trait UpperCaseBoolean
@@ -120,27 +124,30 @@ final case object Inline extends ChoiceType
 
 object ChoiceType {
   implicit val format: OFormat[ChoiceType] = derived.oformat
+  implicit val equal: Eq[ChoiceType] = Eq.fromUniversalEquals
 }
 
 case class RevealingChoiceElement(choice: LocalisedString, revealingFields: List[FormComponent], selected: Boolean)
 object RevealingChoiceElement {
   implicit val format: OFormat[RevealingChoiceElement] = derived.oformat
 }
-case class RevealingChoice(options: NonEmptyList[RevealingChoiceElement]) extends ComponentType
+case class RevealingChoice(options: NonEmptyList[RevealingChoiceElement], multiValue: Boolean) extends ComponentType
 object RevealingChoice {
-  import JsonUtils._
-  implicit val format: OFormat[RevealingChoice] = derived.oformat
+  implicit val format: OFormat[RevealingChoice] = {
+    import JsonUtils._
+    derived.oformat
+  }
 
   val slice: FormComponentId => Data => RevealingChoice => List[FormComponent] = fcId =>
     data =>
       revealingChoice => {
-        val rFields =
-          for {
-            index <- data.get(fcId).toList.flatten.headOption
-            i     <- Try(index.toLong).toOption
-            rc    <- revealingChoice.options.get(i)
-          } yield rc.revealingFields
-        rFields.getOrElse(List.empty[FormComponent])
+        for {
+          indexes        <- data.get(fcId).toList.flatten.headOption.toList
+          index          <- indexes.split(",")
+          i              <- Try(index.toLong).toOption.toList
+          rc             <- revealingChoice.options.get(i).toList
+          revealingField <- rc.revealingFields
+        } yield revealingField
   }
 
 }
@@ -202,15 +209,15 @@ case class FileUpload() extends ComponentType
 
 object ComponentType {
 
-  implicit def readsNonEmptyList[T: Reads] = Reads[NonEmptyList[T]] { json =>
+  implicit def readsNonEmptyList[T: Reads]: Reads[NonEmptyList[T]] = Reads[NonEmptyList[T]] { json =>
     Json.fromJson[List[T]](json).flatMap {
       case Nil     => JsError(ValidationError(s"Required at least one element. Got: $json"))
       case x :: xs => JsSuccess(NonEmptyList(x, xs))
     }
   }
 
-  implicit def writesNonEmptyList[T: Writes] = Writes[NonEmptyList[T]] { v =>
-    JsArray((v.head :: v.tail).map(Json.toJson(_)).toList)
+  implicit def writesNonEmptyList[T: Writes]: Writes[NonEmptyList[T]] = Writes[NonEmptyList[T]] { v =>
+    JsArray((v.head :: v.tail).map(Json.toJson(_)))
   }
 
   implicit val format: OFormat[ComponentType] = derived.oformat

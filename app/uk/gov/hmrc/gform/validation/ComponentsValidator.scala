@@ -22,7 +22,7 @@ import play.api.i18n.Messages
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadService, Infected }
+import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadAlgebra, Infected }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
@@ -33,7 +33,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class ComponentsValidator(
   data: FormDataRecalculated,
-  fileUploadService: FileUploadService,
+  fileUploadService: FileUploadAlgebra[Future],
   envelopeId: EnvelopeId,
   retrievals: MaterialisedRetrievals,
   booleanExpr: BooleanExprEval[Future],
@@ -71,7 +71,7 @@ class ComponentsValidator(
             .validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
       case date @ Date(_, _, _) =>
         validIf(dateValidation.validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues), data))
-      case Text(SubmissionRefFormat, _, _, _) if (formTemplate.parentFormSubmissionRefs.contains(fieldValue.id)) =>
+      case Text(SubmissionRefFormat, _, _, _) if formTemplate.parentFormSubmissionRefs.contains(fieldValue.id) =>
         validIf(
           ComponentValidator
             .validateParentSubmissionRef(fieldValue, SubmissionRef(envelopeId))(data))
@@ -123,13 +123,13 @@ class ComponentsValidator(
 
 class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT) {
 
-  def validF(implicit ec: ExecutionContext) =
+  def validF(implicit ec: ExecutionContext): Future[ValidatedType[Unit]] =
     ValidationServiceHelper.validationSuccess.pure[Future]
 
-  def validateRF(fieldValue: FormComponent, value: String) =
+  def validateRF(fieldValue: FormComponent, value: String): Seq[String] => ValidatedType[Unit] =
     validateRequired(fieldValue, fieldValue.id.withSuffix(value), None, value) _
 
-  def validateFF(fieldValue: FormComponent, value: String) =
+  def validateFF(fieldValue: FormComponent, value: String): Seq[String] => ValidatedType[Unit] =
     validateForbidden(fieldValue, fieldValue.id.withSuffix(value)) _
 
   def validateRequired(

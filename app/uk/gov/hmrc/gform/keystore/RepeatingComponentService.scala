@@ -75,8 +75,8 @@ object RepeatingComponentService {
   private def copySection(section: Section, index: Int, data: FormDataRecalculated) = {
     def copyField(field: FormComponent): FormComponent = {
       val tpe = field.`type` match {
-        case rc @ RevealingChoice(options) =>
-          val optionsUpd = options.map(rce => rce.copy(revealingFields = rce.revealingFields.map(copyField)))
+        case rc: RevealingChoice =>
+          val optionsUpd = rc.options.map(rce => rce.copy(revealingFields = rce.revealingFields.map(copyField)))
           rc.copy(options = optionsUpd)
         case grp @ Group(fields, _, _, _, _, _) =>
           grp.copy(fields = fields.map(copyField))

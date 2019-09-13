@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrati
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
-import uk.gov.hmrc.gform.validation.ValidationUtil.{ ValidatedType, _ }
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -42,7 +42,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 //TODO: this validation must be performed on gform-backend site. Or else we will not able provide API for 3rd party services
 
 class ValidationService(
-  fileUploadService: FileUploadService,
+  fileUploadService: FileUploadAlgebra[Future],
   gformConnector: GformConnector,
   booleanExpr: BooleanExprEval[Future],
   lookupRegistry: LookupRegistry,

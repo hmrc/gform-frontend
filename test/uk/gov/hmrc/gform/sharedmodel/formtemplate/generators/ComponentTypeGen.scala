@@ -73,7 +73,10 @@ trait ComponentTypeGen {
     } yield RevealingChoiceElement(choice, revealingFields, selected)
 
   def revealingChoiceGen: Gen[RevealingChoice] =
-    PrimitiveGen.oneOrMoreGen(revealingChoiceElementGen).map(RevealingChoice(_))
+    for {
+      revealingChoiceElements <- PrimitiveGen.oneOrMoreGen(revealingChoiceElementGen)
+      multivalue              <- PrimitiveGen.booleanGen
+    } yield RevealingChoice(revealingChoiceElements, multivalue)
 
   def hmrcTaxPeriodGen: Gen[HmrcTaxPeriod] =
     for {

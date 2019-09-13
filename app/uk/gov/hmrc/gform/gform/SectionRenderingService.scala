@@ -479,8 +479,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           maybeValidated,
           ei,
           data)
-      case RevealingChoice(options) =>
-        htmlForRevealingChoice(formComponent, formTemplateId, options, index, maybeValidated, ei, data, obligations)
+      case RevealingChoice(options, multiValue) =>
+        htmlForRevealingChoice(
+          formComponent,
+          multiValue,
+          formTemplateId,
+          options,
+          index,
+          maybeValidated,
+          ei,
+          data,
+          obligations)
       case FileUpload() =>
         htmlForFileUpload(formComponent, formTemplateId, index, ei, data, ei.retrievals, maybeValidated)
       case InformationMessage(infoType, infoText) =>
@@ -612,19 +621,24 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   private def htmlForRevealingChoice(
     fieldValue: FormComponent,
+    multiValue: Boolean,
     formTemplateId: FormTemplateId,
     options: NonEmptyList[RevealingChoiceElement],
     index: Int,
     validatedType: ValidatedType[ValidationResult],
-    ei: ExtraInfo,
+    extraInfo: ExtraInfo,
     data: FormDataRecalculated,
     obligations: Obligations)(implicit request: Request[_], message: Messages, l: LangADT) = {
-    val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
-    val nestedEi = ei.copy(formLevelHeading = true)
+    val validatedValue = buildFormFieldValidationResult(fieldValue, extraInfo, validatedType, data)
+    val nestedEi = extraInfo.copy(formLevelHeading = true)
     val revealingChoicesList =
       options.map { o =>
         val isSelected: Int => Boolean =
-          index => ei.fieldData.data.get(fieldValue.id).flatMap(_.headOption).fold(o.selected)(_ === index.toString)
+          index =>
+            extraInfo.fieldData.data
+              .get(fieldValue.id)
+              .flatMap(_.headOption)
+              .fold(o.selected)(_.split(",") contains index.toString)
         (
           o.choice,
           isSelected,
@@ -633,7 +647,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       }
 
     html.form.snippets
-      .revealingChoice(fieldValue, revealingChoicesList, validatedValue, index, ei.section.title, ei.formLevelHeading)
+      .revealingChoice(
+        fieldValue,
+        if (multiValue) "checkbox" else "radio",
+        revealingChoicesList,
+        validatedValue,
+        index,
+        extraInfo.section.title,
+        extraInfo.formLevelHeading)
   }
   case class RevealingChoiceComponents(option: String, hiddenField: List[FormComponent])
 
