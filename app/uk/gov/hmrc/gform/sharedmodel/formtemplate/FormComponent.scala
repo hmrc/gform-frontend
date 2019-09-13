@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.instances.int._
 import cats.syntax.eq._
 import play.api.libs.json._
-import scala.util.Try
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.gform.ValidIfUpdater
@@ -104,7 +103,7 @@ case class FormComponent(
   ): List[FormComponent] =
     fc.`type` match {
       case g @ Group(fields, _, max, _, _, _) => (0 until max.getOrElse(1)).toList.flatMap(expandGroup(g))
-      case rc @ RevealingChoice(_)            => fc :: expandRc(rc)
+      case rc: RevealingChoice                => fc :: expandRc(rc)
       case _                                  => fc :: Nil
     }
 

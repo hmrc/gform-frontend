@@ -17,9 +17,8 @@
 package uk.gov.hmrc.gform.validation
 
 import cats.implicits._
-
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Choice, FormComponent, FormComponentId, RevealingChoice }
 
 case class FieldOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
 case class FieldGlobalOk(fieldValue: FormComponent, currentValue: String) extends FormFieldValidationResult
@@ -95,7 +94,7 @@ trait FormFieldValidationResult {
     case FieldGlobalOk(fieldValue, cv)       => List(FormField(fieldValue.id, cv))
     case ComponentField(fieldValue, data) =>
       fieldValue.`type` match {
-        case c: Choice =>
+        case _: Choice | _: RevealingChoice =>
           List(FormField(fieldValue.id, data.keys.map(_.replace(fieldValue.id.value, "")).mkString(",")))
         case _ => data.flatMap { case (suffix, value) => value.toFormField.map(withId(_, suffix)) }.toList
       }

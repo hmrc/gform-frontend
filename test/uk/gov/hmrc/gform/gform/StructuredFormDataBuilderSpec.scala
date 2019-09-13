@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
 
 class StructuredFormDataBuilderSpec extends Spec {
-  implicit val l = LangADT.En
+  private implicit val l: LangADT = LangADT.En
 
   type EitherEffect[A] = Either[Throwable, A]
 
@@ -224,11 +224,16 @@ class StructuredFormDataBuilderSpec extends Spec {
     )
   }
 
-  it must "create the correct JSON for RevealingChoice components in non-repeating sections" in {
+  it must "create the correct JSON for single value RevealingChoice components in non-repeating sections" in {
     validate(
       createFormTemplate(
         createNonRepeatingSection(
-          createRevealingChoice("revealYourSecrets", createNonGroupField("revealedField1"), createDate("revealedDate"))
+          createRevealingChoice(
+            "revealYourSecrets",
+            false,
+            createRevealingChoiceElement(createNonGroupField("revealedField1"), createDate("revealedDate")),
+            createRevealingChoiceElement(createNonGroupField("unrevealedField1"))
+          )
         )
       ),
       createForm(
@@ -237,7 +242,8 @@ class StructuredFormDataBuilderSpec extends Spec {
         "revealedDate"       -> "",
         "revealedDate-day"   -> "1",
         "revealedDate-month" -> "2",
-        "revealedDate-year"  -> "3"
+        "revealedDate-year"  -> "3",
+        "unrevealedField1"   -> "unrevealedField1Value"
       ),
       objectStructure(
         Field(
@@ -254,6 +260,53 @@ class StructuredFormDataBuilderSpec extends Spec {
                     field("day", textNode("1")),
                     field("month", textNode("2")),
                     field("year", textNode("3"))))
+              )
+            )
+          )
+        )
+      ).asRight
+    )
+  }
+
+  it must "create the correct JSON for multi value RevealingChoice components in non-repeating sections" in {
+    validate(
+      createFormTemplate(
+        createNonRepeatingSection(
+          createRevealingChoice(
+            "revealYourSecrets",
+            true,
+            createRevealingChoiceElement(createNonGroupField("revealedField1"), createDate("revealedDate")),
+            createRevealingChoiceElement(createNonGroupField("unrevealedField1")),
+            createRevealingChoiceElement(createNonGroupField("revealedField2"))
+          )
+        )
+      ),
+      createForm(
+        "revealYourSecrets"  -> "0,2",
+        "revealedField1"     -> "revealedField1Value",
+        "revealedDate"       -> "",
+        "revealedDate-day"   -> "1",
+        "revealedDate-month" -> "2",
+        "revealedDate-year"  -> "3",
+        "unrevealedField1"   -> "unrevealedField1Value",
+        "revealedField2"     -> "revealedField2Value"
+      ),
+      objectStructure(
+        Field(
+          FieldName("revealYourSecrets"),
+          objectStructure(
+            Field(FieldName("choices"), arrayNode(textNode("0"), textNode("2"))),
+            Field(
+              FieldName("revealed"),
+              objectStructure(
+                Field(FieldName("revealedField1"), textNode("revealedField1Value")),
+                field(
+                  "revealedDate",
+                  objectStructure(
+                    field("day", textNode("1")),
+                    field("month", textNode("2")),
+                    field("year", textNode("3")))),
+                Field(FieldName("revealedField2"), textNode("revealedField2Value"))
               )
             )
           )
@@ -478,10 +531,15 @@ class StructuredFormDataBuilderSpec extends Spec {
   def createDate(id: String): FormComponent =
     createFormComponent(id, Date(AnyDate, Offset(0), None))
 
-  def createRevealingChoice(id: String, selectedFields: FormComponent*): FormComponent =
-    createFormComponent(
-      id,
-      RevealingChoice(NonEmptyList.of(RevealingChoiceElement(toLocalisedString("Foo"), selectedFields.toList, true))))
+  def createRevealingChoice(
+    id: String,
+    multiValue: Boolean,
+    element1: RevealingChoiceElement,
+    elements: RevealingChoiceElement*): FormComponent =
+    createFormComponent(id, RevealingChoice(NonEmptyList.of(element1, elements: _*), multiValue))
+
+  def createRevealingChoiceElement(fields: FormComponent*): RevealingChoiceElement =
+    RevealingChoiceElement(toLocalisedString("foo"), fields.toList, false)
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

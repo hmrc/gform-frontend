@@ -27,7 +27,7 @@ object Fields {
 
   def evaluateWithSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
     dGetter: FormComponentId => Option[FormField]): List[(FormComponentId, FormFieldValidationResult)] = {
-    val data: FormComponentId => String = id => dGetter(id).headOption.map(_.value).getOrElse("")
+    val data: FormComponentId => String = id => dGetter(id).map(_.value).getOrElse("")
     fieldValue.`type` match {
       case UkSortCode(_) =>
         UkSortCode.fields(fieldValue.id).toList.map { fieldId =>
@@ -52,7 +52,7 @@ object Fields {
           }
         }
       case FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) |
-          Choice(_, _, _, _, _) | RevealingChoice(_) | HmrcTaxPeriod(_, _, _) =>
+          Choice(_, _, _, _, _) | RevealingChoice(_, _) | HmrcTaxPeriod(_, _, _) =>
         List[(FormComponentId, FormFieldValidationResult)]()
     }
   }
@@ -60,7 +60,7 @@ object Fields {
   def evaluateWithoutSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
     dGetter: FormComponentId => Option[FormField]): (FormComponentId, FormFieldValidationResult) = {
 
-    val data = dGetter(fieldValue.id).headOption.map(_.value).getOrElse("")
+    val data = dGetter(fieldValue.id).map(_.value).getOrElse("")
     gformErrors.get(fieldValue.id) match {
       //without suffix
       case Some(errors) => (fieldValue.id, FieldGlobalError(fieldValue, data, errors))
@@ -68,7 +68,7 @@ object Fields {
     }
   }
 
-  def evaluateComponent(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
+  private def evaluateComponent(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
     dGetter: FormComponentId => Option[FormField]) =
     (evaluateWithoutSuffix(fieldValue, gformErrors)(dGetter) :: evaluateWithSuffix(fieldValue, gformErrors)(dGetter))
       .map(kv => kv._1.value -> kv._2)
@@ -101,7 +101,7 @@ object Fields {
               FieldError(fieldValue, formField.value, errors))
         }
       case Choice(_, _, _, _, _) => evalChoice(fieldValue, gformErrors)(dataGetter)
-      case RevealingChoice(_)    => evalChoice(fieldValue, gformErrors)(dataGetter)
+      case _: RevealingChoice    => evalChoice(fieldValue, gformErrors)(dataGetter)
       case FileUpload() =>
         formFields.get(fieldValue.id).map { formField =>
           val fileName = envelope.files.find(_.fileId.value == formField.id.value).map(_.fileName).getOrElse("")
@@ -115,7 +115,7 @@ object Fields {
     }
   }
 
-  def evalChoice(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
+  private def evalChoice(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
     dGetter: FormComponentId => Option[FormField]) =
     dGetter(fieldValue.id).fold(Option.empty[FormFieldValidationResult]) { formField =>
       val data = formField.value
@@ -150,11 +150,9 @@ object Fields {
         case UkSortCode(_) => UkSortCode.fields(fv.id).toList.map(getFieldData)
         /* case RevealingChoice(options) =>
          *   List(getFieldData(fv.id)) ++ getFormFields(options.toList.flatMap(_.revealingFields)) */ // This causes double hidden field rendering for fields from RevealingChoice
-        case Text(_, _, _, _) | TextArea(_, _, _) | Choice(_, _, _, _, _) | HmrcTaxPeriod(_, _, _) |
-            RevealingChoice(_) =>
-          List(getFieldData(fv.id))
-        case FileUpload()             => List(getFieldData(fv.id))
-        case InformationMessage(_, _) => List(getFieldData(fv.id))
+        case _: Text | _: TextArea | _: Choice | _: HmrcTaxPeriod | _: RevealingChoice => List(getFieldData(fv.id))
+        case FileUpload()                                                              => List(getFieldData(fv.id))
+        case InformationMessage(_, _)                                                  => List(getFieldData(fv.id))
       }
     }
 

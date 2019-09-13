@@ -18,13 +18,13 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import org.scalatest.prop.TableFor4
 import uk.gov.hmrc.gform._
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.SectionGen
 import uk.gov.hmrc.gform.Helpers._
+
 class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
 
   "Section" should "round trip derived JSON" in {
@@ -56,7 +56,8 @@ class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
                 ),
                 false
               )
-            )
+            ),
+            true
           )
         ),
         mkFormComponent("f", Value)
@@ -71,13 +72,14 @@ class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
       (mkData(),                      all, all, List("a", "f")),
       (mkData("a" -> "not_a_number"), all, all, List("a", "f")),
       (mkData("a" -> "0"),            all, all, List("a", "b", "c", "f")),
-      (mkData("a" -> "1"),            all, all, List("a", "d", "e", "f"))
+      (mkData("a" -> "1"),            all, all, List("a", "d", "e", "f")),
+      (mkData("a" -> "0,1"),          all, all, all)
       // format: on
     )
 
     verifyTable(dataAndExpectations, section)
-
   }
+
   it should "support various form of expansions for Group" in {
     val section: Section = mkSection(
       List(

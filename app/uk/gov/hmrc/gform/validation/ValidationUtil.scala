@@ -38,12 +38,12 @@ object ValidationUtil {
 
   type ValidatedType[A] = Validated[GformError, A]
 
-  val printErrors: (Map[String, Set[String]]) => Set[String] = (map: Map[String, Set[String]]) => {
+  val printErrors: Map[String, Set[String]] => Set[String] = (map: Map[String, Set[String]]) => {
     map.foldLeft(Set[String]())(_ ++ _._2)
   }
 
   def isFormValid(errors: Map[FormComponent, FormFieldValidationResult]): Boolean =
-    !errors.values.view.exists(!_.isOk)
+    errors.values.view.forall(_.isOk)
 
   def renderErrors(value: String, validationResult: FormFieldValidationResult): Map[String, Set[String]] =
     validationResult match {
@@ -56,7 +56,7 @@ object ValidationUtil {
     }
 
   def evaluateWithSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
-    dGetter: (FormComponentId) => Seq[String]): List[(FormComponentId, FormFieldValidationResult)] =
+    dGetter: FormComponentId => Seq[String]): List[(FormComponentId, FormFieldValidationResult)] =
     fieldValue.`type` match {
       case UkSortCode(_) =>
         UkSortCode.fields(fieldValue.id).toList.map { fieldId =>
@@ -80,13 +80,13 @@ object ValidationUtil {
             case None         => (fieldId, FieldOk(fieldValue, dGetter(fieldId).headOption.getOrElse("")))
           }
         }
-      case Choice(_, _, _, _, _) | RevealingChoice(_) | FileUpload() | Group(_, _, _, _, _, _) |
-          InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) | HmrcTaxPeriod(_, _, _) =>
+      case _: Choice | _: RevealingChoice | _: FileUpload | _: Group | _: InformationMessage | _: Text | _: TextArea |
+          _: HmrcTaxPeriod =>
         List.empty[(FormComponentId, FormFieldValidationResult)]
     }
 
   def evaluateWithoutSuffix(fieldValue: FormComponent, gformErrors: Map[FormComponentId, Set[String]])(
-    dGetter: (FormComponentId) => Seq[String]): (FormComponentId, FormFieldValidationResult) =
+    dGetter: FormComponentId => Seq[String]): (FormComponentId, FormFieldValidationResult) =
     gformErrors.get(fieldValue.id) match {
       //without suffix
       case Some(errors) =>
@@ -107,18 +107,7 @@ object ValidationUtil {
       case Valid(_)        => Map.empty[FormComponentId, Set[String]]
     }
     def matchComponentType(fieldValue: FormComponent): FormFieldValidationResult = fieldValue.`type` match {
-      case sortCode @ UkSortCode(_) =>
-        val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
-          evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
-        val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
-          evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
-
-        val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
-          kv._1.value -> kv._2
-        }.toMap
-
-        ComponentField(fieldValue, dataMap)
-      case address @ Address(_) =>
+      case _: UkSortCode =>
         val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
           evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
         val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
@@ -130,7 +119,19 @@ object ValidationUtil {
 
         ComponentField(fieldValue, dataMap)
 
-      case date @ Date(_, _, _) =>
+      case _: Address =>
+        val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
+          evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
+        val valWithoutSuffixResult: (FormComponentId, FormFieldValidationResult) =
+          evaluateWithoutSuffix(fieldValue, gFormErrors)(dataGetter)
+
+        val dataMap = (valWithoutSuffixResult :: valSuffixResult).map { kv =>
+          kv._1.value -> kv._2
+        }.toMap
+
+        ComponentField(fieldValue, dataMap)
+
+      case _: Date =>
         val valSuffixResult: List[(FormComponentId, FormFieldValidationResult)] =
           evaluateWithSuffix(fieldValue, gFormErrors)(dataGetter)
 
@@ -154,11 +155,11 @@ object ValidationUtil {
           .fold[FormFieldValidationResult](
             FieldOk(fieldValue, data)
           )(errors => FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors))
-      case Group(_, _, _, _, _, _) => {
-        FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
-      }
 
-      case Choice(_, _, _, _, _) =>
+      case _: Group =>
+        FieldOk(fieldValue, "") //nothing to validate for group (TODO - review)
+
+      case _: Choice | _: RevealingChoice =>
         gFormErrors.get(fieldValue.id) match {
           case Some(errors) =>
             FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
@@ -170,28 +171,18 @@ object ValidationUtil {
             }
             ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
         }
-      case RevealingChoice(_) =>
-        gFormErrors.get(fieldValue.id) match {
-          case Some(errors) =>
-            FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
-          case None =>
-            val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
-              selectedValue.map { _ =>
-                fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
-              }.toMap
-            }
-            ComponentField(fieldValue, optionalData.getOrElse(Map.empty))
-        }
-      case FileUpload() => {
+
+      case _: FileUpload =>
         val fileName =
           envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("Upload document")
         gFormErrors.get(fieldValue.id) match {
           case Some(errors) => FieldError(fieldValue, fileName, errors)
           case None         => FieldOk(fieldValue, fileName)
         }
-      }
-      case InformationMessage(_, infoText) => FieldOk(fieldValue, "")
-      case HmrcTaxPeriod(_, _, _) =>
+
+      case _: InformationMessage => FieldOk(fieldValue, "")
+
+      case _: HmrcTaxPeriod =>
         gFormErrors.get(fieldValue.id) match {
           case Some(errors) =>
             FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
