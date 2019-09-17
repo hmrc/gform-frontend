@@ -351,7 +351,9 @@ case class AuthCacheWithForm(
   form: Form,
   formTemplate: FormTemplate,
   role: Role
-) extends AuthCache
+) extends AuthCache {
+  lazy val variadicFormData: VariadicFormData = VariadicFormData.buildFromMongoData(formTemplate, form.formData.toData)
+}
 
 case class AuthCacheWithoutForm(
   retrievals: MaterialisedRetrievals,

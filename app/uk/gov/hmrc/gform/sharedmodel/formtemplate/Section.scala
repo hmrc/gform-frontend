@@ -18,8 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
 import play.api.libs.json._
-import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.LocalisedString
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
 import scala.collection.immutable.List
@@ -28,6 +27,14 @@ sealed trait BaseSection {
   def title: LocalisedString
   def shortName: Option[LocalisedString]
   def fields: List[FormComponent]
+
+  def listBasicFormComponents: List[FormComponent] =
+    fields.flatMap { field =>
+      field.`type` match {
+        case g: Group => g.fields
+        case _        => List(field)
+      }
+    }
 }
 
 case class ExpandedSection(expandedFormComponents: List[ExpandedFormComponent], includeIf: Option[IncludeIf]) {
@@ -48,10 +55,10 @@ case class Section(
   continueLabel: Option[LocalisedString],
   continueIf: Option[ContinueIf]
 ) extends BaseSection {
-  def expandSection(data: Data): ExpandedSection =
+  def expandSection(data: VariadicFormData): ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponent(data)), includeIf) // TODO expand sections
 
-  def expandSectionRc(data: Data): ExpandedSection =
+  def expandSectionRc(data: VariadicFormData): ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponentRc(data)), includeIf) // TODO expand sections
 
   val expandSectionFull: ExpandedSection =
@@ -64,6 +71,9 @@ case class Section(
 
 object Section {
   implicit val format: OFormat[Section] = Json.format[Section]
+
+  def listBasicFormComponents(sections: List[BaseSection]): List[FormComponent] =
+    sections.flatMap(_.listBasicFormComponents)
 }
 
 case class DeclarationSection(

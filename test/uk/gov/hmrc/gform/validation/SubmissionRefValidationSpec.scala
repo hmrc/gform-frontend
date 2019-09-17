@@ -20,12 +20,12 @@ import cats.data.Validated
 import org.mockito.Mockito._
 import play.api.i18n.{ Lang, Messages, MessagesApi }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ FormComponentGen, SubmissionRefGen }
-import uk.gov.hmrc.gform.sharedmodel.LangADT
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IsUpperCase, SubmissionRefFormat, SubmissionReference, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IsUpperCase, SubmissionRefFormat, SubmissionReference, Text }
 
 class SubmissionRefValidationSpec extends Spec {
   "A valid submission reference" should "be accepted" in {
@@ -47,7 +47,7 @@ class SubmissionRefValidationSpec extends Spec {
         ComponentValidator.validateText(formComponent, SubmissionRefFormat)(
           FormDataRecalculated(
             Set.empty,
-            RecData(Map[FormComponentId, Seq[String]](formComponent.id -> Seq(submissionRef.value)), Map.empty)),
+            RecData(VariadicFormData.ones(formComponent.id -> submissionRef.value), Map.empty)),
           null) shouldBe Validated.Valid(())
     }
   }
@@ -73,7 +73,7 @@ class SubmissionRefValidationSpec extends Spec {
         ComponentValidator.validateText(formComponent, SubmissionRefFormat)(
           FormDataRecalculated(
             Set.empty,
-            RecData(Map[FormComponentId, Seq[String]](formComponent.id -> Seq("1" + submissionRef.value)), Map.empty)),
+            RecData(VariadicFormData.ones(formComponent.id -> ("1" + submissionRef.value)), Map.empty)),
           new LookupRegistry(Map.empty)
         ) shouldBe Validated.Invalid(Map(formComponent.id -> Set(formComponent.errorMessage.map(_.value).orNull)))
     }

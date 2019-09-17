@@ -33,12 +33,12 @@ object SortCodeValidation {
         .fields(fieldValue.id)
         .toList
         .map { fieldId =>
-          val sortCode: Seq[String] = data.data.get(fieldId).toList.flatten
-          (sortCode.filterNot(_.isEmpty), mandatory) match {
-            case (Nil, true) =>
+          val sortCode: Option[String] = data.data.one(fieldId).filterNot(_.isEmpty)
+          (sortCode, mandatory) match {
+            case (None, true) =>
               validationFailure(fieldValue, "generic.error.sortcode", None)
-            case (Nil, false)      => validationSuccess
-            case (value :: Nil, _) => checkLength(fieldValue, value, 2)
+            case (None, false)    => validationSuccess
+            case (Some(value), _) => checkLength(fieldValue, value, 2)
           }
         }
     )

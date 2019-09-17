@@ -17,14 +17,17 @@
 package uk.gov.hmrc.gform.models
 
 import cats.data.NonEmptyList
+import cats.instances.list._
+import cats.syntax.foldable._
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{ FlatSpec, Matchers }
 import ExpandUtils._
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
-import uk.gov.hmrc.gform.graph.{ Data, RecData }
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -33,7 +36,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
   private val lookupExtractors = new LookupExtractors(Map.empty)
 
   "submittedFCs" should "FormComponents reconstructed from data and ignore unrelated FormComponents" in {
-    val data = mkFormDataRecalculated(
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue(
       "repeatingSectionDriver",
       "repeatingSecondField",
       "repeatingThirdField-day",
@@ -148,17 +151,16 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     groupIndex(5, group) shouldBe expectedForIndex5
   }
 
-  "addNextGroup" should "add group contaning simple components" in {
+  "addNextGroup" should "add group containing simple components" in {
 
     val groupIds = "a" :: "b" :: "c" :: "d" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("HA"), mkGroup(groupIds))
 
-    val formData1 = "a" :: "b" :: "c" :: "d" :: Nil map (fcId => (FormComponentId(fcId), Seq("dummy"))) toMap
-    val formData2 = "a" :: "b" :: "c" :: "d" :: "1_a" :: "1_b" :: "1_c" :: "1_d" :: Nil map (fcId =>
-      (FormComponentId(fcId), Seq("dummy"))) toMap
+    val formData1 = variadicFormDataWithSingleValue("dummy", "a", "b", "c", "d")
+    val formData2 = variadicFormDataWithSingleValue("dummy", "a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
 
-    val expected1 = "1_a" :: "1_b" :: "1_c" :: "1_d" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
-    val expected2 = "2_a" :: "2_b" :: "2_c" :: "2_d" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
+    val expected1 = variadicFormDataWithSingleValue("", "1_a", "1_b", "1_c", "1_d")
+    val expected2 = variadicFormDataWithSingleValue("", "2_a", "2_b", "2_c", "2_d")
 
     val data1 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1))
     val data2 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2))
@@ -174,12 +176,12 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     val groupIds = "a" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("HA"), mkGroupWithDate(groupIds))
 
-    val formData1 = "a-day" :: "a-month" :: "a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq("dummy"))) toMap
-    val formData2 = "a-day" :: "a-month" :: "a-year" :: "1_a-day" :: "1_a-month" :: "1_a-year" :: Nil map (fcId =>
-      (FormComponentId(fcId), Seq("dummy"))) toMap
+    val formData1 = variadicFormDataWithSingleValue("dummy", "a-day", "a-month", "a-year")
+    val formData2 =
+      variadicFormDataWithSingleValue("dummy", "a-day", "a-month", "a-year", "1_a-day", "1_a-month", "1_a-year")
 
-    val expected1 = "1_a-day" :: "1_a-month" :: "1_a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
-    val expected2 = "2_a-day" :: "2_a-month" :: "2_a-year" :: Nil map (fcId => (FormComponentId(fcId), Seq(""))) toMap
+    val expected1 = variadicFormDataWithSingleValue("", "1_a-day", "1_a-month", "1_a-year")
+    val expected2 = variadicFormDataWithSingleValue("", "2_a-day", "2_a-month", "2_a-year")
 
     val data1 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData1))
     val data2 = FormDataRecalculated.empty.copy(recData = RecData.fromData(formData2))
@@ -196,7 +198,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     val groupIds = "a" :: "b" :: "c" :: "d" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("dummy"), mkGroup(groupIds))
 
-    val data = mkFormDataRecalculated(
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue(
       "unrelated",
       "a",
       "b",
@@ -221,69 +223,65 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     val res4 = removeGroupFromData(4, Some(group), data)
 
     val expected1 = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a")         -> List("1_A"),
-        FormComponentId("b")         -> List("1_B"),
-        FormComponentId("c")         -> List("1_C"),
-        FormComponentId("d")         -> List("1_D"),
-        FormComponentId("1_a")       -> List("2_A"),
-        FormComponentId("1_b")       -> List("2_B"),
-        FormComponentId("1_c")       -> List("2_C"),
-        FormComponentId("1_d")       -> List("2_D"),
-        FormComponentId("2_a")       -> List("3_A"),
-        FormComponentId("2_b")       -> List("3_B"),
-        FormComponentId("2_c")       -> List("3_C"),
-        FormComponentId("2_d")       -> List("3_D"),
-        FormComponentId("unrelated") -> List("UNRELATED")
-      ))
+      "a"         -> "1_A",
+      "b"         -> "1_B",
+      "c"         -> "1_C",
+      "d"         -> "1_D",
+      "1_a"       -> "2_A",
+      "1_b"       -> "2_B",
+      "1_c"       -> "2_C",
+      "1_d"       -> "2_D",
+      "2_a"       -> "3_A",
+      "2_b"       -> "3_B",
+      "2_c"       -> "3_C",
+      "2_d"       -> "3_D",
+      "unrelated" -> "UNRELATED"
+    )
     val expected2 = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a")         -> List("A"),
-        FormComponentId("b")         -> List("B"),
-        FormComponentId("c")         -> List("C"),
-        FormComponentId("d")         -> List("D"),
-        FormComponentId("1_a")       -> List("2_A"),
-        FormComponentId("1_b")       -> List("2_B"),
-        FormComponentId("1_c")       -> List("2_C"),
-        FormComponentId("1_d")       -> List("2_D"),
-        FormComponentId("2_a")       -> List("3_A"),
-        FormComponentId("2_b")       -> List("3_B"),
-        FormComponentId("2_c")       -> List("3_C"),
-        FormComponentId("2_d")       -> List("3_D"),
-        FormComponentId("unrelated") -> List("UNRELATED")
-      ))
+      "a"         -> "A",
+      "b"         -> "B",
+      "c"         -> "C",
+      "d"         -> "D",
+      "1_a"       -> "2_A",
+      "1_b"       -> "2_B",
+      "1_c"       -> "2_C",
+      "1_d"       -> "2_D",
+      "2_a"       -> "3_A",
+      "2_b"       -> "3_B",
+      "2_c"       -> "3_C",
+      "2_d"       -> "3_D",
+      "unrelated" -> "UNRELATED"
+    )
     val expected3 = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a")         -> List("A"),
-        FormComponentId("b")         -> List("B"),
-        FormComponentId("c")         -> List("C"),
-        FormComponentId("d")         -> List("D"),
-        FormComponentId("1_a")       -> List("1_A"),
-        FormComponentId("1_b")       -> List("1_B"),
-        FormComponentId("1_c")       -> List("1_C"),
-        FormComponentId("1_d")       -> List("1_D"),
-        FormComponentId("2_a")       -> List("3_A"),
-        FormComponentId("2_b")       -> List("3_B"),
-        FormComponentId("2_c")       -> List("3_C"),
-        FormComponentId("2_d")       -> List("3_D"),
-        FormComponentId("unrelated") -> List("UNRELATED")
-      ))
+      "a"         -> "A",
+      "b"         -> "B",
+      "c"         -> "C",
+      "d"         -> "D",
+      "1_a"       -> "1_A",
+      "1_b"       -> "1_B",
+      "1_c"       -> "1_C",
+      "1_d"       -> "1_D",
+      "2_a"       -> "3_A",
+      "2_b"       -> "3_B",
+      "2_c"       -> "3_C",
+      "2_d"       -> "3_D",
+      "unrelated" -> "UNRELATED"
+    )
     val expected4 = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a")         -> List("A"),
-        FormComponentId("b")         -> List("B"),
-        FormComponentId("c")         -> List("C"),
-        FormComponentId("d")         -> List("D"),
-        FormComponentId("1_a")       -> List("1_A"),
-        FormComponentId("1_b")       -> List("1_B"),
-        FormComponentId("1_c")       -> List("1_C"),
-        FormComponentId("1_d")       -> List("1_D"),
-        FormComponentId("2_a")       -> List("2_A"),
-        FormComponentId("2_b")       -> List("2_B"),
-        FormComponentId("2_c")       -> List("2_C"),
-        FormComponentId("2_d")       -> List("2_D"),
-        FormComponentId("unrelated") -> List("UNRELATED")
-      ))
+      "a"         -> "A",
+      "b"         -> "B",
+      "c"         -> "C",
+      "d"         -> "D",
+      "1_a"       -> "1_A",
+      "1_b"       -> "1_B",
+      "1_c"       -> "1_C",
+      "1_d"       -> "1_D",
+      "2_a"       -> "2_A",
+      "2_b"       -> "2_B",
+      "2_c"       -> "2_C",
+      "2_d"       -> "2_D",
+      "unrelated" -> "UNRELATED"
+    )
 
     res1 shouldBe expected1
     res2 shouldBe expected2
@@ -295,7 +293,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     val groupIds = "a" :: Nil map FormComponentId.apply
     val group = mkFormComponent(FormComponentId("dummy"), mkGroupWithDate(groupIds))
 
-    val data = mkFormDataRecalculated(
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue(
       "unrelated",
       "a-day",
       "a-month",
@@ -312,35 +310,32 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     val res3 = removeGroupFromData(3, Some(group), data)
 
     val expected1 = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a-day")     -> List("1_A-DAY"),
-        FormComponentId("a-month")   -> List("1_A-MONTH"),
-        FormComponentId("a-year")    -> List("1_A-YEAR"),
-        FormComponentId("1_a-day")   -> List("2_A-DAY"),
-        FormComponentId("1_a-month") -> List("2_A-MONTH"),
-        FormComponentId("1_a-year")  -> List("2_A-YEAR"),
-        FormComponentId("unrelated") -> List("UNRELATED")
-      ))
+      "a-day"     -> "1_A-DAY",
+      "a-month"   -> "1_A-MONTH",
+      "a-year"    -> "1_A-YEAR",
+      "1_a-day"   -> "2_A-DAY",
+      "1_a-month" -> "2_A-MONTH",
+      "1_a-year"  -> "2_A-YEAR",
+      "unrelated" -> "UNRELATED"
+    )
     val expected2 = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a-day")     -> List("A-DAY"),
-        FormComponentId("a-month")   -> List("A-MONTH"),
-        FormComponentId("a-year")    -> List("A-YEAR"),
-        FormComponentId("1_a-day")   -> List("2_A-DAY"),
-        FormComponentId("1_a-month") -> List("2_A-MONTH"),
-        FormComponentId("1_a-year")  -> List("2_A-YEAR"),
-        FormComponentId("unrelated") -> List("UNRELATED")
-      ))
+      "a-day"     -> "A-DAY",
+      "a-month"   -> "A-MONTH",
+      "a-year"    -> "A-YEAR",
+      "1_a-day"   -> "2_A-DAY",
+      "1_a-month" -> "2_A-MONTH",
+      "1_a-year"  -> "2_A-YEAR",
+      "unrelated" -> "UNRELATED"
+    )
     val expected3 = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a-day")     -> List("A-DAY"),
-        FormComponentId("a-month")   -> List("A-MONTH"),
-        FormComponentId("a-year")    -> List("A-YEAR"),
-        FormComponentId("1_a-day")   -> List("1_A-DAY"),
-        FormComponentId("1_a-month") -> List("1_A-MONTH"),
-        FormComponentId("1_a-year")  -> List("1_A-YEAR"),
-        FormComponentId("unrelated") -> List("UNRELATED")
-      ))
+      "a-day"     -> "A-DAY",
+      "a-month"   -> "A-MONTH",
+      "a-year"    -> "A-YEAR",
+      "1_a-day"   -> "1_A-DAY",
+      "1_a-month" -> "1_A-MONTH",
+      "1_a-year"  -> "1_A-YEAR",
+      "unrelated" -> "UNRELATED"
+    )
 
     res1 shouldBe expected1
     res2 shouldBe expected2
@@ -351,7 +346,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
 
     val groupIds = "a" :: "b" :: "c" :: "d" :: Nil map FormComponentId.apply
 
-    val data = mkFormDataRecalculated(
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue(
       "unrelated",
       "a",
       "b",
@@ -497,15 +492,14 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
 
   }
 
-  private def mkFormDataRecalculated(fcIds: String*): FormDataRecalculated =
-    FormDataRecalculated.empty.copy(
-      recData = RecData.fromData(fcIds.toList map (fcId => (FormComponentId(fcId), fcId.toUpperCase :: Nil)) toMap))
+  private def mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue(fcIds: String*): FormDataRecalculated =
+    mkFormDataRecalculated(fcIds.map(id => (id, id.toUpperCase)): _*)
 
   "getAlwaysEmptyHiddenGroup" should "should ignore Choice which is not part of a Group" in {
 
     val section = mkSection(mkFormComponent(FormComponentId("a"), choice) :: Nil)
 
-    val data = mkFormDataRecalculated("a")
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a")
 
     val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
@@ -538,7 +532,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       )
     )
 
-    val data = mkFormDataRecalculated("a")
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a")
 
     val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
@@ -556,7 +550,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       )
     )
 
-    val data = mkFormDataRecalculated("a", "1_a", "2_a")
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "1_a", "2_a")
 
     val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
@@ -575,7 +569,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       )
     )
 
-    val data = mkFormDataRecalculated("a", "b")
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "b")
 
     val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
@@ -595,7 +589,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       )
     )
 
-    val data = mkFormDataRecalculated("a", "b", "c", "1_a", "1_b", "1_c")
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "b", "c", "1_a", "1_b", "1_c")
 
     val res = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
@@ -616,7 +610,8 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       )
     )
 
-    val data = mkFormDataRecalculated("a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
+    val data =
+      mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "b", "c", "d", "1_a", "1_b", "1_c", "1_d")
 
     val emptyHidden = getAlwaysEmptyHiddenGroup(data, section, lookupExtractors)
 
@@ -641,7 +636,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       mkSection(mkFormComponent(FormComponentId("e"), Text(AnyText, Value)) :: Nil) ::
       mkSection(mkFormComponent(FormComponentId("f"), Text(AnyText, Value)) :: Nil) :: Nil
 
-    val data = mkFormDataRecalculated("a", "b", "c", "1_a", "1_b", "1_c", "e", "f")
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "b", "c", "1_a", "1_b", "1_c", "e", "f")
 
     val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data, lookupExtractors)
 
@@ -655,16 +650,15 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     ) map { case (id, comp) => mkFormComponent(FormComponentId(id), comp) }
 
     val expectedData = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a")   -> List(""),
-        FormComponentId("1_a") -> List(""),
-        FormComponentId("b")   -> List(""),
-        FormComponentId("1_b") -> List(""),
-        FormComponentId("c")   -> List("C"),
-        FormComponentId("1_c") -> List("1_C"),
-        FormComponentId("e")   -> List("E"),
-        FormComponentId("f")   -> List("F")
-      ))
+      "a"   -> "",
+      "1_a" -> "",
+      "b"   -> "",
+      "1_b" -> "",
+      "c"   -> "C",
+      "1_c" -> "1_C",
+      "e"   -> "E",
+      "f"   -> "F"
+    )
 
     dataUpd shouldBe expectedData
     hiddenFormComponent shouldBe expectedFC
@@ -677,16 +671,15 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       mkSection(mkFormComponent(FormComponentId("b"), choice) :: Nil) ::
       mkSection(mkFormComponent(FormComponentId("c"), Text(AnyText, Value)) :: Nil) :: Nil
 
-    val data = mkFormDataRecalculated("a", "b", "c")
+    val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "b", "c")
 
     val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data, lookupExtractors)
 
     val expectedData = mkFormDataRecalculated(
-      Map(
-        FormComponentId("a") -> List(""),
-        FormComponentId("b") -> List("B"),
-        FormComponentId("c") -> List("C")
-      ))
+      "a" -> "",
+      "b" -> "B",
+      "c" -> "C"
+    )
 
     val expectedFC = List(
       "a" -> choice,
@@ -772,6 +765,12 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       None
     )
 
-  private def mkFormDataRecalculated(data: Data): FormDataRecalculated =
-    FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
+  private def variadicFormDataWithSingleValue(value: String, ids: String*): VariadicFormData =
+    ids.toList.foldMap(id => VariadicFormData.one(FormComponentId(id), value))
+
+  private def variadicFormData(kv: (String, String)*): VariadicFormData =
+    kv.toList.foldMap { case (id, v) => VariadicFormData.one(FormComponentId(id), v) }
+
+  private def mkFormDataRecalculated(kv: (String, String)*): FormDataRecalculated =
+    FormDataRecalculated.empty.copy(recData = RecData.fromData(variadicFormData(kv: _*)))
 }

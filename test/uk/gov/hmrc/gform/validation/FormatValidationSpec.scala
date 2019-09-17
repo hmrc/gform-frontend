@@ -22,7 +22,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
@@ -76,10 +76,10 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
         None)
     val fieldValues = List(fieldValue)
 
-    val data = Map(
-      FormComponentId("n-1") -> Seq("12"),
-      FormComponentId("n-2") -> Seq("12"),
-      FormComponentId("n-3") -> Seq("12")
+    val data = VariadicFormData.ones(
+      FormComponentId("n-1") -> "12",
+      FormComponentId("n-2") -> "12",
+      FormComponentId("n-3") -> "12"
     )
 
     val result = validator(fieldValue, fieldValues, data)
@@ -107,10 +107,10 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
 
     val fieldValues = List(fieldValue)
 
-    val data = Map(
-      FormComponentId("n-1") -> Seq("12"),
-      FormComponentId("n-2") -> Seq("123"),
-      FormComponentId("n-3") -> Seq("12")
+    val data = VariadicFormData.ones(
+      FormComponentId("n-1") -> "12",
+      FormComponentId("n-2") -> "123",
+      FormComponentId("n-3") -> "12"
     )
 
     val result = validator(fieldValue, fieldValues, data)
@@ -138,10 +138,10 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
 
     val fieldValues = List(fieldValue)
 
-    val data = Map(
-      FormComponentId("n-1") -> Seq(""),
-      FormComponentId("n-2") -> Seq(""),
-      FormComponentId("n-3") -> Seq("")
+    val data = VariadicFormData.ones(
+      FormComponentId("n-1") -> "",
+      FormComponentId("n-2") -> "",
+      FormComponentId("n-3") -> ""
     )
 
     val result = validator(fieldValue, fieldValues, data)
@@ -169,10 +169,10 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
 
     val fieldValues = List(fieldValue)
 
-    val data = Map(
-      FormComponentId("n-1") -> Seq("-1"),
-      FormComponentId("n-2") -> Seq("24"),
-      FormComponentId("n-3") -> Seq("24")
+    val data = VariadicFormData.ones(
+      FormComponentId("n-1") -> "-1",
+      FormComponentId("n-2") -> "24",
+      FormComponentId("n-3") -> "24"
     )
 
     val result = validator(fieldValue, fieldValues, data)
@@ -200,10 +200,10 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
 
     val fieldValues = List(fieldValue)
 
-    val data = Map(
-      FormComponentId("n-1") -> Seq("1.2"),
-      FormComponentId("n-2") -> Seq("1.3"),
-      FormComponentId("n-3") -> Seq("1.2")
+    val data = VariadicFormData.ones(
+      FormComponentId("n-1") -> "1.2",
+      FormComponentId("n-2") -> "1.3",
+      FormComponentId("n-3") -> "1.2"
     )
 
     val result = validator(fieldValue, fieldValues, data)
@@ -386,7 +386,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
     validator(fieldValueFunction(constrait), getFormComponentList(constrait), getData(data)).toEither should beLeft(
       Map(default -> Set(errorMessage)))
 
-  private val getData: String => Map[FormComponentId, Seq[String]] = str => Map(default -> Seq(str))
+  private def getData(str: String) = VariadicFormData.ones(default -> str)
   private val getFormComponentList: TextConstraint => List[FormComponent] = contraint =>
     List(fieldValue(Text(contraint, Value)))
   val retrievals: MaterialisedRetrievals = mock[MaterialisedRetrievals]
@@ -394,10 +394,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
 
   private val lookupRegistry = new LookupRegistry(Map.empty)
 
-  private def validator(
-    fieldValue: FormComponent,
-    fieldValues: List[FormComponent],
-    data: Map[FormComponentId, Seq[String]]) =
+  private def validator(fieldValue: FormComponent, fieldValues: List[FormComponent], data: VariadicFormData) =
     new ComponentsValidator(
       mkFormDataRecalculated(data),
       mock[FileUploadService],

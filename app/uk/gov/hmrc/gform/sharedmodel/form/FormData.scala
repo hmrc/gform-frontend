@@ -20,13 +20,14 @@ import cats.Semigroup
 import cats.syntax.eq._
 import com.softwaremill.quicklens._
 import play.api.libs.json._
-import uk.gov.hmrc.gform.graph.{ Data, RecData }
+import uk.gov.hmrc.gform.graph.RecData
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
 import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphNode, IncludeIfGN, SimpleGN }
 
 case class FormDataRecalculated(invisible: Set[GraphNode], recData: RecData) {
 
-  val data = recData.data // ToDo JoVl Rename to recalculatedData
+  val data: VariadicFormData = recData.data // ToDo JoVl Rename to recalculatedData
 
   def isVisible(section: Section): Boolean =
     !invisible.exists {
@@ -45,7 +46,7 @@ object FormDataRecalculated {
 }
 
 case class FormData(fields: Seq[FormField]) extends AnyVal {
-  def toData: Data = fields.map(x => x.id -> List(x.value)).toMap
+  def toData: Map[FormComponentId, String] = fields.map(x => x.id -> x.value).toMap
   def find(id: FormComponentId): Option[String] = fields.find(_.id === id).map(_.value)
 }
 

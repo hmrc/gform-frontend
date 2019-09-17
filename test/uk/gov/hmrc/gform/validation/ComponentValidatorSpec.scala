@@ -15,10 +15,9 @@
  */
 
 package uk.gov.hmrc.gform.validation
-import org.jsoup.select.Evaluator.IsEmpty
 import org.scalatest.Matchers
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -201,8 +200,8 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
     formComponent.copy(`type` = componentType)
 
   private def emptyData(isEmpty: Boolean, formComponent: FormComponent) =
-    if (isEmpty) mkFormDataRecalculated(Map(FormComponentId(formComponent.id.value) -> Seq()))
-    else mkFormDataRecalculated(Map(FormComponentId(formComponent.id.value)         -> Seq("bing")))
+    if (isEmpty) mkFormDataRecalculated(VariadicFormData.manys(FormComponentId(formComponent.id.value) -> Seq()))
+    else mkFormDataRecalculated(VariadicFormData.manys(FormComponentId(formComponent.id.value)         -> Seq("bing")))
 
   private def isFormComponentMandatory(fieldValue: FormComponent, isMandatory: Boolean) =
     fieldValue.mandatory == isMandatory

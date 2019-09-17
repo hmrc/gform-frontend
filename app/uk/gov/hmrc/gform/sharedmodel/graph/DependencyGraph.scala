@@ -19,15 +19,16 @@ package uk.gov.hmrc.gform.sharedmodel.graph
 import cats.instances.either._
 import cats.syntax.functor._
 import scalax.collection.Graph
-import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
-import uk.gov.hmrc.gform.graph.Data
+import scalax.collection.GraphPredef._
+import scalax.collection.GraphEdge._
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object DependencyGraph {
 
   val emptyGraph: Graph[GraphNode, DiEdge] = Graph.empty
 
-  def toGraph(formTemplate: FormTemplate, data: Data): Graph[GraphNode, DiEdge] =
+  def toGraph(formTemplate: FormTemplate, data: VariadicFormData): Graph[GraphNode, DiEdge] =
     graphFrom(formTemplate.expandFormTemplate(data))
 
   def toGraphFull(formTemplate: FormTemplate): Graph[GraphNode, DiEdge] =

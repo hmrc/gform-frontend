@@ -100,7 +100,8 @@ object ValidationUtil {
     data: FormDataRecalculated,
     envelope: Envelope): List[FormFieldValidationResult] = {
 
-    val dataGetter: FormComponentId => Seq[String] = fId => data.data.get(fId).toList.flatten
+    // ToDo: This should be removed and replaced with data.data.one or data.data.many as appropriate
+    val dataGetter: FormComponentId => Seq[String] = fId => data.data.get(fId).toList.flatMap(_.toSeq)
 
     val gFormErrors = validationResult match {
       case Invalid(errors) => errors
@@ -164,7 +165,7 @@ object ValidationUtil {
           case Some(errors) =>
             FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
           case None =>
-            val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
+            val optionalData = data.data.many(fieldValue.id).map { selectedValue =>
               selectedValue.map { index =>
                 fieldValue.id.value + index -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
               }.toMap
@@ -187,8 +188,8 @@ object ValidationUtil {
           case Some(errors) =>
             FieldError(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""), errors)
           case None =>
-            val optionalData = data.data.get(fieldValue.id).map { selectedValue =>
-              selectedValue.map { index =>
+            val optionalData = data.data.one(fieldValue.id).map { selectedValue =>
+              selectedValue.map { _ =>
                 fieldValue.id.value -> FieldOk(fieldValue, dataGetter(fieldValue.id).headOption.getOrElse(""))
               }.toMap
 

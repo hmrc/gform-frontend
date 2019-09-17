@@ -433,7 +433,8 @@ trait ExampleFormField { dependsOn: ExampleFormTemplate with ExampleFieldId =>
     `fieldId - choice`          -> `formField - choice`
   )
 
-  def rawDataFromBrowser: Map[FormComponentId, Seq[String]] = data.mapValues(x => Seq(x.value))
+//  def rawDataFromBrowser: Map[FormComponentId, Seq[String]] = data.mapValues(x => Seq(x.value))
+  def rawDataFromBrowser: VariadicFormData = VariadicFormData(data.mapValues(x => VariadicValue.One(x.value)))
   def formDataRecalculated: FormDataRecalculated =
     FormDataRecalculated.empty.copy(recData = RecData.fromData(rawDataFromBrowser))
 }

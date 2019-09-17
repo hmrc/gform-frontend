@@ -25,14 +25,14 @@ import play.api.mvc.{ Action, AnyContent, Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
@@ -79,17 +79,17 @@ class DeclarationController(
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.SubmitDeclaration) {
       implicit request => implicit l => cacheOrig =>
-        processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
-          get(dataRaw, FormComponentId("save")) match {
-            case "Continue" :: Nil => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)
-            case _                 => Future.successful(BadRequest("Cannot determine action"))
+        processResponseDataFromBody(request, cacheOrig.formTemplate) { dataRaw =>
+          dataRaw.one(FormComponentId("save")) match {
+            case Some("Continue") => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)
+            case _                => Future.successful(BadRequest("Cannot determine action"))
           }
         }
     }
 
   private def continueToSubmitDeclaration(
     cache: AuthCacheWithForm,
-    dataRaw: Map[FormComponentId, Seq[String]],
+    dataRaw: VariadicFormData,
     maybeAccessCode: Option[AccessCode])(implicit request: Request[_], l: LangADT) = {
 
     import i18nSupport._
@@ -117,10 +117,7 @@ class DeclarationController(
       cache.form.thirdPartyData,
       cache.form.envelopeId)
 
-  private def extractFormDataFields(cache: AuthCacheWithForm) =
-    cache.form.formData.fields.map {
-      case FormField(id, value) => id -> (value :: Nil)
-    }.toMap
+  private def extractFormDataFields(cache: AuthCacheWithForm) = cache.variadicFormData
 
   private def processValidation(
     valType: ValidatedType[Unit],
@@ -194,7 +191,9 @@ class DeclarationController(
     val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
-        .map(name => FormField(FormComponentId(name), data.data(FormComponentId(name)).head))
+        .map(name => FormComponentId(name))
+        .map(formComponentId =>
+          FormField(formComponentId, data.data.get(formComponentId).toList.flatMap(_.toSeq).mkString(",")))
     }
     val updatedFields = form.formData.fields ++ submissibleFormFields
 

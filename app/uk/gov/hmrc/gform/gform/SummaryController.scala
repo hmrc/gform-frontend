@@ -66,7 +66,7 @@ class SummaryController(
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.AcceptSummary) {
       implicit request => implicit l => cache =>
-        processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
+        processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
           val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
           val formFieldValidationResultsF = for {
             envelope <- envelopeF
@@ -117,10 +117,10 @@ class SummaryController(
               }
             }
 
-          get(dataRaw, FormComponentId("save")) match {
-            case "Exit" :: Nil        => handleExit
-            case "Declaration" :: Nil => handleDeclaration
-            case _                    => BadRequest("Cannot determine action").pure[Future]
+          dataRaw.one(FormComponentId("save")) match {
+            case Some("Exit")        => handleExit
+            case Some("Declaration") => handleDeclaration
+            case _                   => BadRequest("Cannot determine action").pure[Future]
           }
         }
     }

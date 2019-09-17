@@ -23,7 +23,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.{ Monad, MonadError }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.graph.{ Data, RecData, Recalculation }
+import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
@@ -41,11 +41,13 @@ case class ProcessData(
 
 class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
 
-  def updateSectionVisits(dataRaw: Data, sections: List[Section], mongoSections: List[Section]): Set[Int] = {
+  def updateSectionVisits(
+    dataRaw: VariadicFormData,
+    sections: List[Section],
+    mongoSections: List[Section]): Set[Int] = {
     val visitIndex = dataRaw
-      .get(FormComponentId(VisitIndex.key))
-      .flatMap(_.headOption)
-      .map(VisitIndex.fromString)
+      .many(VisitIndex.formComponentId)
+      .map(VisitIndex.fromStrings)
       .getOrElse(VisitIndex.empty)
 
     visitIndex.visitsIndex
@@ -70,7 +72,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
     }
 
   def getProcessData(
-    dataRaw: Data,
+    dataRaw: VariadicFormData,
     cache: AuthCacheWithForm,
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[TaxResponse]],
     obligationsAction: ObligationsAction
@@ -81,7 +83,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
   ): F[ProcessData] =
     for {
       browserRecalculated <- recalculateDataAndSections(dataRaw, cache)
-      mongoRecalculated   <- recalculateDataAndSections(cache.form.formData.toData, cache)
+      mongoRecalculated   <- recalculateDataAndSections(cache.variadicFormData, cache)
       (data, sections) = browserRecalculated
       (oldData, mongoSections) = mongoRecalculated
       obligations <- new TaxPeriodStateChecker[F]().callDesIfNeeded(
@@ -106,7 +108,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
       ProcessData(dataUpd, sections, VisitIndex(newVisitIndex), obligations)
     }
 
-  def recalculateDataAndSections(data: Data, cache: AuthCacheWithForm)(
+  def recalculateDataAndSections(data: VariadicFormData, cache: AuthCacheWithForm)(
     implicit hc: HeaderCarrier,
     me: MonadError[F, E]
   ): F[(FormDataRecalculated, List[Section])] =

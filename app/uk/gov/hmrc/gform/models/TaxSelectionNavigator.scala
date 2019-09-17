@@ -54,12 +54,11 @@ trait TaxSelectionNavigator {
     data: FormDataRecalculated,
     taxResponse: TaxResponse): TaxSelectionNavigation = {
     val desPeriods: List[String] = taxResponse.obligation.obligations.flatMap(_.obligationDetails).map(_.periodKey)
-    (for {
-      maybePeriod <- data.data.get(taxResponse.id.recalculatedTaxPeriodKey.fcId)
-      periodValue <- maybePeriod.headOption
-    } yield periodValue).fold[TaxSelectionNavigation](GoBackToTaxPeriodSelection) { period =>
-      goBackIf(!desPeriods.contains(period))
-    }
+    data.data
+      .one(taxResponse.id.recalculatedTaxPeriodKey.fcId)
+      .fold[TaxSelectionNavigation](GoBackToTaxPeriodSelection) { period =>
+        goBackIf(!desPeriods.contains(period))
+      }
   }
 
   private def desHasMore(dataObligation: Obligation, desObligation: Obligation): Boolean =

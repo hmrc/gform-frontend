@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processRespo
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
@@ -127,7 +127,7 @@ class EnrolmentController(
       import cache._
       val checkEnrolment: ServiceId => NonEmptyList[Identifier] => EnrolM[CheckEnrolmentsResult] =
         serviceId => identifiers => EitherT.liftF(Kleisli(_ => auth.checkEnrolment(serviceId, identifiers)))
-      processResponseDataFromBody(request) { dataRaw: Map[FormComponentId, Seq[String]] =>
+      processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
         formTemplate.authConfig match {
           case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
             def handleContinue = {
@@ -179,9 +179,9 @@ class EnrolmentController(
                         .run(Env(formTemplate, retrievals, data))
               } yield res
             }
-            get(dataRaw, FormComponentId("save")) match {
-              case "Continue" :: Nil => handleContinue
-              case _                 => Future.successful(BadRequest("Cannot determine action"))
+            dataRaw.one(FormComponentId("save")) match {
+              case Some("Continue") => handleContinue
+              case _                => Future.successful(BadRequest("Cannot determine action"))
             }
           case _ =>
             Future.successful(

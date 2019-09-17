@@ -25,10 +25,9 @@ import cats.instances.list._
 import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.formDataMap
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gform.{ AuthContextPrepop, CustomerId }
-import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
+import uk.gov.hmrc.gform.sharedmodel.{ SubmissionRef, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ DestinationWithCustomerId, Destinations }
 import uk.gov.hmrc.gform.sharedmodel.form.EnvelopeId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -42,12 +41,7 @@ class CustomerIdRecalculation[F[_]: Monad](
   def evaluateCustomerId(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier): F[CustomerId] =
     customerIdExpressions(cache.formTemplate.destinations)
       .traverse { cid =>
-        recalculateCustomerId(
-          cid,
-          cache.retrievals,
-          cache.formTemplate,
-          formDataMap(cache.form.formData),
-          cache.form.envelopeId)
+        recalculateCustomerId(cid, cache.retrievals, cache.formTemplate, cache.variadicFormData, cache.form.envelopeId)
       }
       .map(_.filter(!_.isEmpty).headOption.getOrElse(CustomerId.empty))
 
@@ -61,14 +55,14 @@ class CustomerIdRecalculation[F[_]: Monad](
     expression: TextExpression,
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
-    data: Map[FormComponentId, Seq[String]],
+    data: VariadicFormData,
     envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[CustomerId] =
     (expression.expr match {
       case AuthCtx(value) => AuthContextPrepop.values(value, retrievals).pure[F]
 
       case EeittCtx(eeitt) => eeittId(eeitt, retrievals, formTemplate, hc)
 
-      case id: FormCtx => data.get(id.toFieldId).map(_.head).getOrElse("").pure[F]
+      case id: FormCtx => data.oneOrElse(id.toFieldId, "").pure[F]
 
       case SubmissionReference => SubmissionRef(envelopeId).toString.pure[F]
 

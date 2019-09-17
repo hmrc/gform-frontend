@@ -34,10 +34,7 @@ import scala.util.matching.Regex
 
 object ComponentValidator {
   private def textData(formData: FormDataRecalculated, fieldValue: FormComponent) =
-    formData.data.get(fieldValue.id) match {
-      case Some(s) => s.filterNot(_.isEmpty()).toList
-      case None    => Nil
-    }
+    formData.data.get(fieldValue.id).toSeq.flatMap(_.toSeq).filterNot(_.isEmpty())
 
   private def lookupValidation(
     fieldValue: FormComponent,
@@ -286,13 +283,10 @@ object ComponentValidator {
 
   def validateChoice(fieldValue: FormComponent)(
     data: FormDataRecalculated)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] = {
-    val choiceValue = data.data.get(fieldValue.id).toList.flatten.headOption
+    val choiceValue = data.data.get(fieldValue.id).toSeq.flatMap(_.toSeq).filterNot(_.isEmpty)
 
-    (fieldValue.mandatory, choiceValue) match {
-      case (true, None | Some("")) =>
-        validationFailure(fieldValue, "choice.error.required", None)
-      case _ => validationSuccess
-    }
+    if (fieldValue.mandatory && choiceValue.isEmpty) validationFailure(fieldValue, "choice.error.required", None)
+    else validationSuccess
   }
 
   private def surpassMaxLength(wholeOrFractional: String, maxLength: Int): Boolean =

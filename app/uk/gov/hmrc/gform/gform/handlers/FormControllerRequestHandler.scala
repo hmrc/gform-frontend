@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.gform.handlers
 import cats.syntax.validated._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.models.ProcessData
 import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
@@ -75,7 +74,7 @@ class FormControllerRequestHandler(formValidator: FormValidator)(implicit ec: Ex
     val retrievals = cache.retrievals
 
     for {
-      (data, sections) <- recalculateDataAndSections(FormDataHelpers.formDataMap(cache.form.formData), cache)
+      (data, sections) <- recalculateDataAndSections(cache.variadicFormData, cache)
       (errors, validate, envelope) <- handleSuppressErrors(
                                        sectionNumber,
                                        suppressErrors,

@@ -28,7 +28,7 @@ class TaxSelectionNavigatorTest extends Spec with ObligationValidatorTestFixture
     ("obligations match and selected still available",                      cachedData,                                      obligation, taxResponse,                                                DoNotGoBackToTaxPeriodSelection),
     ("more obligations are now available in DES",                           cachedData,                                      obligation, taxResponse.withObligations(moreObligationsAvailable),      GoBackToTaxPeriodSelection),
     ("less obligations are available but selected still available",         cachedData,                                      obligation, taxResponse.withObligations(lessObligationsAvailable),      DoNotGoBackToTaxPeriodSelection),
-    ("less obligations are available in DES and selected is not available", cachedData.updated(formComponentId, Seq("XXX")), obligation, taxResponse.withObligations(lessObligationsAvailable),      GoBackToTaxPeriodSelection),
+    ("less obligations are available in DES and selected is not available", cachedData addOne (formComponentId -> "XXX"),    obligation, taxResponse.withObligations(lessObligationsAvailable),      GoBackToTaxPeriodSelection),
     ("obligations size match but are different in DES",                     cachedData,                                      obligation, taxResponse.withObligations(differentObligationsAvailable), GoBackToTaxPeriodSelection)
   )
   // format: on

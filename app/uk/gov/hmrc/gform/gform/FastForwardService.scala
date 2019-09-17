@@ -21,17 +21,15 @@ import com.softwaremill.quicklens._
 import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormStatus, InProgress, Summary, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, SeYes, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormStatus, InProgress, Summary, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SeYes, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -49,14 +47,14 @@ class FastForwardService(
   def redirectContinue(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT) = {
-    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData) + cache.form.visitsIndex.toVisitsTuple
+    val dataRaw = cache.variadicFormData ++ cache.form.visitsIndex.variadicFormData
     redirectWithRecalculation(cache, dataRaw, maybeAccessCode)
   }
 
-  private def redirectWithRecalculation(cache: AuthCacheWithForm, dataRaw: Data, maybeAccessCode: Option[AccessCode])(
-    implicit messages: Messages,
-    hc: HeaderCarrier,
-    l: LangADT): Future[Result] =
+  private def redirectWithRecalculation(
+    cache: AuthCacheWithForm,
+    dataRaw: VariadicFormData,
+    maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT): Future[Result] =
     for {
       processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload)
       res         <- updateUserData(cache, processData, maybeAccessCode)(redirectResult(cache, maybeAccessCode, processData, _))
