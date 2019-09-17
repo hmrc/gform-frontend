@@ -1,0 +1,129 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import play.api.i18n.Messages.Implicits._
+@import play.api.mvc.Call
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.html.localisedDateString
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import java.time.format.DateTimeFormatter
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+
+
+@(formTemplate: FormTemplate, frontendAppConfig: FrontendAppConfig)(implicit request: Request[_], messages: Messages, l: LangADT)
+
+@formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
+@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
+@heading = @{messages("footer.links.accessibility.title", formCat)}
+
+
+@uk.gov.hmrc.gform.views.html.main_template(
+title = heading,
+serviceName = formTemplate.formName.value,
+bodyClasses = None,
+frontendAppConfig = frontendAppConfig,
+authConfig = Some(formTemplate.authConfig),
+formCategory = formTemplate.formCategory,
+languages = formTemplate.languages,
+templateId = formTemplate._id
+) {
+    <h1 class="govuk-heading-xl">@Messages("accessibility.heading") @formTemplate.formName.value</h1>
+
+    <p class="govuk-body-l">@Messages("accessibility.description1")</p>
+
+    <p class="govuk-body">@Messages("accessibility.description2") <a href="https://www.gov.uk/help/accessibility">@Messages("accessibility.page.title")</a> @Messages("accessibility.description2b")</p>
+
+    <p>@Messages("accessibility.description3")</p>
+
+    <h2 class="govuk-heading-l">@Messages("accessibility.subheading1")</h2>
+
+    <p class="govuk-body">@Messages("accessibility.content.block1.p1")</p>
+
+    <ul class="govuk-list govuk-list--bullet">
+        <li>@Messages("accessibility.content.block1.li1")</li>
+        <li>@Messages("accessibility.content.block1.li2")</li>
+        <li>@Messages("accessibility.content.block1.li3")</li>
+        <li>@Messages("accessibility.content.block1.li4")</li>
+        <li>@Messages("accessibility.content.block1.li5")</li>
+    </ul>
+
+    <p class="govuk-body">@Messages("accessibility.content.block1.p2")</p>
+
+    <p class="govuk-body"><a class="govuk-link" href="https://mcmw.abilitynet.org.uk/">AbilityNet</a> @Messages("accessibility.content.block1.p3")</p>
+
+    <h2 class="govuk-heading-l">@Messages("accessibility.subheading2")</h2>
+
+    <P class="govuk-body">@Messages("accessibility.content.block2.p1") <a class="govuk-link" href="https://www.w3.org/TR/WCAG21/">Web Content Accessibility Guidelines version 2.1 AA standard</a></P>
+
+    <p class="govuk-body">@Messages("accessibility.content.block2.p2")</p>
+
+    <p class="govuk-body">@Messages("accessibility.content.block2.p3")</p>
+
+    <ul>
+        <li>@Messages("accessibility.content.block2.li1")</li>
+        <li>@Messages("accessibility.content.block2.li2")</li>
+        <li>@Messages("accessibility.content.block2.li3")</li>
+    </ul>
+
+    <p class="govuk-body">If there are no issues, then say:</p>
+
+    <p class="govuk-body">There are no known accessibility issues within this service.]</p>
+
+    <h2 class="govuk-heading-l">What to do if you have difficulty using this service</h2>
+
+    <p class="govuk-body">If your service does provide support and you get requests for content in an alternative format, refer to the guidance on the Intranet for getting media in an alternative format.]</p>
+
+    <p class="govuk-body">If you have difficulty using this service, contact us by:</p>
+
+    <ul>
+        <li>email [email address]</li>
+        <li>call [phone number]</li>
+    </ul>
+
+    <h2 class="govuk-heading-l">Reporting accessibility problems with this service</h2>
+
+    <p class="govuk-body">We are always looking to improve the accessibility of this service. If you find any problems that are not listed on this page or think we are not meeting accessibility requirements, report the accessibility problem .</p>
+
+    <h2 class="govuk-heading-l">What to do if you are not happy with how we respond to your complaint</h2>
+
+    <p class="govuk-body">The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’). If you are not happy with how we respond to your complaint, <a href="">contact the Equality Advisory and Support Service</a> (EASS), or the <a href="">Equality Commission for Northern Ireland</a> (ECNI) if you live in Northern Ireland.</p>
+
+    <h2 class="govuk-heading-l">Contacting us by phone or getting a visit from us in person</h2>
+
+    <p class="govuk-body">We provide a text relay service if you are deaf, hearing impaired or have a speech impediment.</p>
+
+    <p class="govuk-body">We can provide a British Sign Language (BSL) interpreter, or you can arrange a visit from an HMRC advisor to help you complete the service.</p>
+
+    <p class="govuk-body">Find out how to <a href="" >contact us</a>.</p>
+
+    <h2 class="govuk-heading-l">Technical information about this service’s accessibility</h2>
+
+    <p class="govuk-body">HMRC is committed to making this service accessible, in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
+
+    <p class="govuk-body">This service is fully compliant with the <a href="">Web Content Accessibility Guidelines version 2.1 AA standard</a>.</p>
+
+    <h2 class="govuk-heading-l">How we tested this service</h2>
+
+    <p>The service was last tested on [date] and was checked for compliance with WCAG 2.1 AA.</p>
+
+    <p>The service was built using parts that were tested by the <a href="" >Digital Accessibility Centre</a>. The full service was tested by HMRC and included disabled users.</p>
+
+    <p>This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].</p>
+}
+

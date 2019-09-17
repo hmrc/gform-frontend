@@ -61,7 +61,8 @@ class RoutingModule(
     fileUploadModule.fileUploadController,
     gformModule.languageSwitchController,
     gformModule.lookupController,
-    gformModule.signOutController
+    gformModule.signOutController,
+    gformModule.accessibilityController
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(
