@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.form.FormStatus
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.TextExpression
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.{ Destination, DestinationId }
 
@@ -40,6 +41,11 @@ trait DestinationGen {
       Destination
         .HmrcDms(id, dmsFormId, customerId, classificationType, businessArea, includeIf, failOnError, false)
 
+  def hmrcDmsGen(includeIf: Option[String] = None, failOnError: Option[Boolean] = None): Gen[Destination.HmrcDms] =
+    hmrcDmsGen.map { g =>
+      g.copy(includeIf = includeIf.getOrElse(g.includeIf), failOnError = failOnError.getOrElse(g.failOnError))
+    }
+
   def handlebarsHttpApiGen: Gen[Destination.HandlebarsHttpApi] =
     for {
       id          <- destinationIdGen
@@ -51,6 +57,13 @@ trait DestinationGen {
       includeIf   <- includeIfGen
       failOnError <- PrimitiveGen.booleanGen
     } yield Destination.HandlebarsHttpApi(id, profile, uri, method, payload, payloadType, includeIf, failOnError)
+
+  def handlebarsHttpApiGen(
+    includeIf: Option[String] = None,
+    failOnError: Option[Boolean] = None): Gen[Destination.HandlebarsHttpApi] =
+    handlebarsHttpApiGen.map { g =>
+      g.copy(includeIf = includeIf.getOrElse(g.includeIf), failOnError = failOnError.getOrElse(g.failOnError))
+    }
 
   def compositeGen: Gen[Destination.Composite] =
     for {
@@ -67,14 +80,30 @@ trait DestinationGen {
       requiredState <- FormGen.formStatusGen
     } yield Destination.StateTransition(id, requiredState, includeIf, failOnError)
 
+  def stateTransitionGen(
+    includeIf: Option[String] = None,
+    failOnError: Option[Boolean] = None,
+    requiredState: Option[FormStatus] = None): Gen[Destination.StateTransition] =
+    stateTransitionGen.map { st =>
+      st.copy(
+        requiredState = requiredState.getOrElse(st.requiredState),
+        includeIf = includeIf.getOrElse(st.includeIf),
+        failOnError = failOnError.getOrElse(st.failOnError))
+    }
+
+  def logGen: Gen[Destination.Log] =
+    for {
+      id <- destinationIdGen
+    } yield Destination.Log(id)
+
   def singularDestinationGen: Gen[Destination] =
-    Gen.oneOf(hmrcDmsGen, handlebarsHttpApiGen, stateTransitionGen)
+    Gen.oneOf(hmrcDmsGen, handlebarsHttpApiGen, stateTransitionGen, logGen)
 
   def destinationGen: Gen[Destination] = Gen.frequency(10 -> singularDestinationGen, 1 -> compositeGen)
 
   def destinationWithFixedIdGen(id: DestinationId): Gen[Destination] = hmrcDmsGen.map(_.copy(id = id))
 
-  def includeIfGen: Gen[String] = Gen.oneOf(Gen.alphaNumStr, Gen.const("true"), Gen.const("false"))
+  def includeIfGen(): Gen[String] = Gen.oneOf(Gen.alphaNumStr, Gen.const("true"), Gen.const("false"))
 }
 
 object DestinationGen extends DestinationGen
