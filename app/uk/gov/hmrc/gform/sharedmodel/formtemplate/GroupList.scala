@@ -23,9 +23,6 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
   */
 case class GroupList(componentList: List[FormComponent]) extends AnyVal {
   def hasData(data: FormDataRecalculated): Boolean = componentList.exists { field =>
-    data.data.get(field.id) match {
-      case Some(x) if x.filter(_.nonEmpty).nonEmpty => true
-      case _                                        => false
-    }
+    data.data.get(field.id).exists(_.toSeq.exists(_.nonEmpty))
   }
 }

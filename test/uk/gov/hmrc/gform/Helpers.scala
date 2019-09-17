@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 object Helpers {
-  def mkData(fields: (String, String)*): Data =
-    fields.map { case (fcId, value) => FormComponentId(fcId) -> Seq(value) }.toMap
+  def mkData(fields: (String, String)*): VariadicFormData =
+    fields.foldLeft(VariadicFormData.empty) { case (acc, (fcId, value)) => acc addOne (FormComponentId(fcId) -> value) }
 
   def toLocalisedString(string: String) =
     LocalisedString(Map(LangADT.En -> string))

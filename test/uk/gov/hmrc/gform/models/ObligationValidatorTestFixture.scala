@@ -19,14 +19,13 @@ package uk.gov.hmrc.gform.models
 import java.time.LocalDate
 
 import com.softwaremill.quicklens._
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormCtx, HmrcTaxPeriod, IdType, RegimeType }
 
 trait ObligationValidatorTestFixture {
 
   val formComponentId = FormComponentId("1")
-  val cachedData: Data = Map(formComponentId -> Seq("16AZ"), FormComponentId("2") -> Seq("17BB"))
+  val cachedData: VariadicFormData = VariadicFormData.ones(formComponentId -> "16AZ", FormComponentId("2") -> "17BB")
   val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
   val recalculatedTaxPeriodKey: RecalculatedTaxPeriodKey = RecalculatedTaxPeriodKey(formComponentId, taxPeriod)
   val recalculatedTaxPeriod = Map(recalculatedTaxPeriodKey -> IdNumberValue("2"))

@@ -136,7 +136,7 @@ object Fields {
 
   def toFormField(fieldData: FormDataRecalculated, templateFields: List[FormComponent]): List[FormField] = {
     val getFieldData: FormComponentId => FormField = fieldId => {
-      val value = fieldData.data.get(fieldId).toList.flatten.headOption.getOrElse("")
+      val value = fieldData.data.get(fieldId).map(_.toSeq.mkString(",")).getOrElse("")
       FormField(fieldId, value)
     }
 
@@ -175,13 +175,12 @@ object Fields {
     val idsToRenderAsEmptyHidden = (alwaysEmptyHiddenGroup ++ alwaysEmptyHidden).map(_.id)
 
     val dataUpd = idsToRenderAsEmptyHidden.foldRight(data.data) {
-      case (id, acc) => acc.updated(id, "" :: Nil)
+      case (id, acc) => acc addOne (id -> "")
     }
 
     (
       submitted ++ alwaysEmptyHiddenGroup ++ alwaysEmptyHidden ++ hiddenFUs,
       data.copy(recData = data.recData.copy(data = dataUpd)))
-
   }
 
   def flattenGroups(fields: List[FormComponent]): List[FormComponent] =

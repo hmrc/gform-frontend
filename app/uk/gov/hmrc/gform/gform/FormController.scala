@@ -29,7 +29,6 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.fileupload.FileUploadAlgebra
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.gform.{ FormValidationOutcome, NoSpecificAction }
@@ -122,7 +121,7 @@ class FormController(
     sectionNumber: SectionNumber
   ) = auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
     implicit request => implicit l => cache =>
-      processResponseDataFromBody(request) { dataRaw: Data =>
+      processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
         def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
           toResult: Option[SectionNumber] => Result): Future[Result] =
           for {
@@ -150,7 +149,7 @@ class FormController(
                     .copy(thirdPartyData = after.copy(obligations = processData.obligations), formData = formData))
 
               if (needsSecondPhaseRecalculation.getOrElse(false)) {
-                val newDataRaw = formData.copy(fields = cache.form.visitsIndex.toFormField +: formData.fields).toData
+                val newDataRaw = cache.form.visitsIndex.variadicFormData ++ cache.variadicFormData
                 for {
                   newProcessData <- processDataService
                                      .getProcessData(

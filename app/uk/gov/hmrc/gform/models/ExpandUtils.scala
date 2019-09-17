@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.gform.models
 
+import cats.instances.list._
 import cats.syntax.eq._
+import cats.syntax.foldable._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object ExpandUtils {
@@ -37,7 +40,7 @@ object ExpandUtils {
   }
 
   def submittedFCs(data: FormDataRecalculated, formComponents: List[FormComponent]): List[FormComponent] = {
-    val fcIds: Set[FormComponentId] = data.data.keys.toSet
+    val fcIds: Set[FormComponentId] = data.data.keySet
 
     formComponents.filter {
       case fc @ IsMultiField(mf) => mf.fields(fc.id).forall(fcIds)
@@ -68,7 +71,7 @@ object ExpandUtils {
     val formComponents: List[FormComponent] = groupFcs.flatMap(_.expandFormComponent(data.data).formComponents)
     val filtered = formComponents.filter(fc => pf.lift(fc).isDefined)
 
-    val fcIds: Set[FormComponentId] = data.data.keys.toSet
+    val fcIds: Set[FormComponentId] = data.data.keySet
     val present = fcIds.filter(key => filtered.exists(_.id == key))
     filtered.take(Math.max(fieldsInGroups.size, present.size))
   }
@@ -142,7 +145,7 @@ object ExpandUtils {
   }
 
   private def occurrenceCount(ids: List[FormComponentId])(formData: FormDataRecalculated): Int = {
-    val res = formData.data.keys
+    val res = formData.data.keySet
       .filter { fcId =>
         ids.contains(stripAnyPrefix(fcId))
       }
@@ -163,7 +166,9 @@ object ExpandUtils {
         }
 
         val addedGroupIds = groupIndex(index + 1, group)
-        val newData = data.data ++ addedGroupIds.map(fcId => fcId -> Seq("")).toMap
+        val newData = addedGroupIds.foldLeft(data.data) { (acc, fcId) =>
+          acc addOne (fcId -> "")
+        }
 
         val anchor = group.fields
           .dropWhile {
@@ -190,11 +195,12 @@ object ExpandUtils {
     maybeGroupFc match {
       case None => data
       case Some(groupFC @ IsGroup(group)) =>
-        val allGroupFcIds: Set[FormComponentId] = groupFC.expandFormComponent(data.data).allIds.toSet
-        val groupIdToRemove = groupIndex(idx, group)
+        val allGroupComponents: ExpandedFormComponent = groupFC.expandFormComponent(data.data)
+        val allGroupIds: Set[FormComponentId] = allGroupComponents.allIds.toSet
+        val groupIdsToRemove: Seq[FormComponentId] = groupIndex(idx, group)
 
-        val updatedData: Map[FormComponentId, Seq[String]] = data.data -- groupIdToRemove
-        val remainingGroupIds: Set[FormComponentId] = updatedData.keys.toSet.filter(id => allGroupFcIds(id))
+        val updatedData: VariadicFormData = data.data -- groupIdsToRemove
+        val remainingGroupIds: Set[FormComponentId] = updatedData.keySet.filter(allGroupIds)
 
         val groupFcWithoutLast: FormComponent = {
           val groupUpd = group.copy(repeatsMax = Some(remainingGroupIds.size / group.fields.size))
@@ -206,15 +212,16 @@ object ExpandUtils {
 
         val sortedIntersect: List[FormComponentId] = remainingGroupIds.toList.map(appendZeroPrefix).sortBy(_.value)
 
-        val updatedMap: Map[FormComponentId, Seq[String]] =
-          noGaps
-            .zip(sortedIntersect)
-            .map {
-              case (targetFcId, sourceFcId) =>
-                (stripZeroPrefix(targetFcId), updatedData.getOrElse(stripZeroPrefix(sourceFcId), Seq.empty[String]))
-            }
-            .toMap
-        val newData = (updatedData -- allGroupFcIds) ++ updatedMap
+        val updatedMap = noGaps.zip(sortedIntersect).foldMap {
+          case (targetFcId, sourceFcId) =>
+            updatedData
+              .get(stripZeroPrefix(sourceFcId))
+              .fold(VariadicFormData.empty) { v =>
+                VariadicFormData.create(stripZeroPrefix(targetFcId) -> v)
+              }
+        }
+
+        val newData = (updatedData -- allGroupIds) ++ updatedMap
 
         data.copy(recData = data.recData.copy(data = newData))
 

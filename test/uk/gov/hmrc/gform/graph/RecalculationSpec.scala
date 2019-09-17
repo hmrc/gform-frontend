@@ -197,8 +197,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
     res match {
       case Right(formDataRecalculated) =>
-        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("AA111111A")))
-      case otherwise => fail
+        formDataRecalculated.data shouldBe VariadicFormData.ones(FormComponentId("a") -> "AA111111A")
+      case _ => fail
     }
   }
 
@@ -221,7 +221,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
     res match {
       case Right(formDataRecalculated) =>
-        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("data-returned-from-eeitt")))
+        formDataRecalculated.data shouldBe VariadicFormData.ones(FormComponentId("a") -> "data-returned-from-eeitt")
       case _ => fail
     }
   }
@@ -248,7 +248,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
     res match {
       case Right(formDataRecalculated) =>
-        formDataRecalculated.data shouldBe Map((FormComponentId("a"), Seq("individual")))
+        formDataRecalculated.data shouldBe VariadicFormData.ones(FormComponentId("a") -> "individual")
       case _ => fail
     }
   }
@@ -545,12 +545,15 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
   }
 
   it should "detect non-selected fields on revealing choice component" in {
+    implicit def bindFormComponentId[T](of: (String, T)): (FormComponentId, T) = (FormComponentId.apply(of._1), of._2)
+    import VariadicFormData.{ manys, ones }
+
     val data = Table(
       // format: off
       ("input", "output"),
-      (mkData("rc" -> "0", "a" -> "10", "b" -> "11"),   mkData("rc" -> "0", "a" -> "10", "b" -> "11", "res" -> "10")),
-      (mkData("rc" -> "1", "a" -> "10", "b" -> "11"),   mkData("rc" -> "1", "a" -> "10", "b" -> "11", "res" -> "11")),
-      (mkData("rc" -> "0,1", "a" -> "10", "b" -> "11"), mkData("rc" -> "0,1", "a" -> "10", "b" -> "11", "res" -> "21"))
+      (ones("rc" -> "0", "a" -> "10", "b" -> "11"),   ones("rc" -> "0", "a" -> "10", "b" -> "11", "res" -> "10")),
+      (ones("rc" -> "1", "a" -> "10", "b" -> "11"),   ones("rc" -> "1", "a" -> "10", "b" -> "11", "res" -> "11")),
+      (manys("rc" -> Seq("0", "1")) ++ ones("a" -> "10", "b" -> "11"), manys("rc" -> Seq("0", "1")) ++ ones("a" -> "10", "b" -> "11", "res" -> "21"))
       // format: on
     )
 
@@ -726,7 +729,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     }
   }
 
-  private def verify(input: Data, expectedOutput: Data, sections: List[Section])(implicit position: Position) = {
+  private def verify(input: VariadicFormData, expectedOutput: VariadicFormData, sections: List[Section])(
+    implicit position: Position) = {
     val output =
       recalculation.recalculateFormData(
         input,
@@ -737,7 +741,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
     Right(expectedOutput) shouldBe output.map(_.data)
   }
 
-  private def verifyRecData(input: Data, expectedRecData: RecData, sections: List[Section])(
+  private def verifyRecData(input: VariadicFormData, expectedRecData: RecData, sections: List[Section])(
     implicit position: Position) = {
     val output =
       recalculation.recalculateFormData(

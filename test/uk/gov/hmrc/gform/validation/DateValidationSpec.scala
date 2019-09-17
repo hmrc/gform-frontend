@@ -30,7 +30,7 @@ import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -83,10 +83,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.now().plusDays(2)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedDate, speccedDateList).futureValue
@@ -105,10 +105,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.now().plusDays(1)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -127,10 +127,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(6)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -149,10 +149,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(2)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -171,10 +171,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.now()
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -193,10 +193,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-4)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -215,10 +215,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.now()
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -237,10 +237,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.now().plusDays(-1)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -259,10 +259,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.now().plusDays(-2)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -281,10 +281,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val acceptedAfter = LocalDate.of(2017, 6, 16).plusDays(-6)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(acceptedAfter.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(acceptedAfter.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(acceptedAfter.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> acceptedAfter.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> acceptedAfter.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -303,10 +303,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val accepted = LocalDate.of(2017, 4, 16)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(accepted.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(accepted.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> accepted.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> accepted.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -325,10 +325,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val accepted = LocalDate.of(2020, 2, 29)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(accepted.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(accepted.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> accepted.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> accepted.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -347,10 +347,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val accepted = LocalDate.of(LocalDate.now().getYear + 1, 2, 29)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(accepted.getDayOfMonth.toString),
-        FormComponentId("accPeriodStartDate-month") -> Seq(accepted.getMonthValue.toString),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(accepted.getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> accepted.getDayOfMonth.toString,
+        FormComponentId("accPeriodStartDate-month") -> accepted.getMonthValue.toString,
+        FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -367,10 +367,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq("26"),
-        FormComponentId("accPeriodStartDate-month") -> Seq("02"),
-        FormComponentId("accPeriodStartDate-year")  -> Seq("2020")
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> "26",
+        FormComponentId("accPeriodStartDate-month") -> "02",
+        FormComponentId("accPeriodStartDate-year")  -> "2020"
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -387,10 +387,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq("26"),
-        FormComponentId("accPeriodStartDate-month") -> Seq("02"),
-        FormComponentId("accPeriodStartDate-year")  -> Seq("2020")
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> "26",
+        FormComponentId("accPeriodStartDate-month") -> "02",
+        FormComponentId("accPeriodStartDate-year")  -> "2020"
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -407,10 +407,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq("35"),
-        FormComponentId("accPeriodStartDate-month") -> Seq("12"),
-        FormComponentId("accPeriodStartDate-year")  -> Seq("2017")
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> "35",
+        FormComponentId("accPeriodStartDate-month") -> "12",
+        FormComponentId("accPeriodStartDate-year")  -> "2017"
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -428,10 +428,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq("15"),
-        FormComponentId("accPeriodStartDate-month") -> Seq("5"),
-        FormComponentId("accPeriodStartDate-year")  -> Seq("222017")
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> "15",
+        FormComponentId("accPeriodStartDate-month") -> "5",
+        FormComponentId("accPeriodStartDate-year")  -> "222017"
       ))
 
     val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -463,10 +463,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq("Tuesday"),
-        FormComponentId("accPeriodStartDate-month") -> Seq("Jan"),
-        FormComponentId("accPeriodStartDate-year")  -> Seq(LocalDate.now().getYear.toString)
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> "Tuesday",
+        FormComponentId("accPeriodStartDate-month") -> "Jan",
+        FormComponentId("accPeriodStartDate-year")  -> LocalDate.now().getYear.toString
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -498,10 +498,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate-day")   -> Seq(""),
-        FormComponentId("accPeriodStartDate-month") -> Seq(""),
-        FormComponentId("accPeriodStartDate-year")  -> Seq("")
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate-day")   -> "",
+        FormComponentId("accPeriodStartDate-month") -> "",
+        FormComponentId("accPeriodStartDate-year")  -> ""
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -534,10 +534,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate.day")   -> Seq("01"),
-        FormComponentId("accPeriodStartDate.month") -> Seq("01"),
-        FormComponentId("accPeriodStartDate.year")  -> Seq("1970")
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate.day")   -> "01",
+        FormComponentId("accPeriodStartDate.month") -> "01",
+        FormComponentId("accPeriodStartDate.year")  -> "1970"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
@@ -566,10 +566,10 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
     val fieldValues = List(fieldValue)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("accPeriodStartDate.day")   -> Seq("01"),
-        FormComponentId("accPeriodStartDate.month") -> Seq("01"),
-        FormComponentId("accPeriodStartDate.year")  -> Seq("1970")
+      VariadicFormData.ones(
+        FormComponentId("accPeriodStartDate.day")   -> "01",
+        FormComponentId("accPeriodStartDate.month") -> "01",
+        FormComponentId("accPeriodStartDate.year")  -> "1970"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue

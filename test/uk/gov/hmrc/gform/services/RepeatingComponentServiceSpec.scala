@@ -18,9 +18,9 @@ package uk.gov.hmrc.gform.services
 
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.graph.{ Data, RecData }
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -85,7 +85,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     val expectedList = List(thisSection1, sectionR, sectionR2)
 
     val formData = mkFormDataRecalculated(
-      Map(FormComponentId("firstName") -> Seq("ONE"), FormComponentId("1_firstName") -> Seq("TWO")))
+      VariadicFormData.ones(FormComponentId("firstName") -> "ONE", FormComponentId("1_firstName") -> "TWO"))
 
     RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
@@ -106,7 +106,7 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
         shortName = Some(toLocalisedString("shortName 1")))
     val expectedList = List(`section - group`, sectionR)
 
-    val formData = mkFormDataRecalculated(Map(`fieldId - firstName` -> Seq("1")))
+    val formData = mkFormDataRecalculated(VariadicFormData.ones(`fieldId - firstName` -> "1"))
 
     RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
@@ -132,11 +132,11 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
         shortName = Some(toLocalisedString("shortName 2")))
     val expectedList = List(`section - group`, sectionR1, sectionR2)
 
-    val formData = mkFormDataRecalculated(Map(`fieldId - firstName` -> Seq("2")))
+    val formData = mkFormDataRecalculated(VariadicFormData.ones(`fieldId - firstName` -> "2"))
 
     RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
   }
 
-  protected def mkFormDataRecalculated(data: Data): FormDataRecalculated =
+  protected def mkFormDataRecalculated(data: VariadicFormData): FormDataRecalculated =
     FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
 }

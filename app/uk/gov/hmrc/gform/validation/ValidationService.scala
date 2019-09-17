@@ -22,7 +22,7 @@ import cats.Monoid
 import play.api.i18n.{ I18nSupport, Messages }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
+import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload._
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.Recalculation
@@ -148,8 +148,7 @@ class ValidationService(
   private def validateUsingSectionValidators(v: Validator, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier,
     messages: Messages): Future[ValidatedType[ValidationResult]] = {
-    def dataGetter(fieldId: FormComponentId): String =
-      data.data.get(fieldId).toList.flatten.headOption.getOrElse("")
+    def dataGetter(fieldId: FormComponentId): String = data.data.oneOrElse(fieldId, "")
 
     def compare(postCode: String)(drr: DesRegistrationResponse): Boolean = {
       val maybePostalCode = drr.address match {
@@ -161,7 +160,7 @@ class ValidationService(
 
     v match {
       case HmrcRosmRegistrationCheckValidator(errorMessage, regime, utr, postcode) =>
-        def findByKey(key: String): String = data.data.get(FormComponentId(key)).toList.flatten.headOption.getOrElse("")
+        def findByKey(key: String): String = data.data.oneOrElse(FormComponentId(key), "")
 
         val utrValue = findByKey(utr.value)
         val postcodeValue = findByKey(postcode.value)
@@ -194,7 +193,7 @@ class ValidationService(
     implicit hc: HeaderCarrier,
     l: LangADT): Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
 
-    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
+    val dataRaw = cache.variadicFormData
 
     def filterSection(sections: List[Section], data: FormDataRecalculated): List[Section] =
       sections.filter(data.isVisible)

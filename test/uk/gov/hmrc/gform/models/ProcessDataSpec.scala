@@ -20,19 +20,18 @@ import cats.implicits._
 import org.scalatest.{ FlatSpec, Matchers }
 import org.scalatest.prop.TableDrivenPropertyChecks
 import uk.gov.hmrc.gform.GraphSpec
-import uk.gov.hmrc.gform.Helpers.mkData
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.form.VisitIndex
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
 class ProcessDataSpec extends FlatSpec with Matchers with GraphSpec with TableDrivenPropertyChecks {
 
   type EitherEffect[A] = Either[GraphException, A]
 
   val recalculation: Recalculation[EitherEffect, GraphException] =
-    new Recalculation[EitherEffect, GraphException](booleanExprEval, ((s: GraphException) => s))
+    new Recalculation[EitherEffect, GraphException](booleanExprEval, (s: GraphException) => s)
 
   val processDataService = new ProcessDataService[EitherEffect, GraphException](recalculation)
 
@@ -54,20 +53,21 @@ class ProcessDataSpec extends FlatSpec with Matchers with GraphSpec with TableDr
     val visibilityIndices = Table(
       // format: off
       ("input",  "expected"),
-      ("0",       Set(0)),
-      ("0,1",     Set(0,1)),
-      ("0,1,2",   Set(0,1)),
-      ("0,1,2,3", Set(0,1,2)),
-      ("1,2,3",   Set(1,2)),
-      ("2,3",     Set(2)),
-      ("3",       Set(2)),
-      ("3,100",   Set(2)),
-      ("3,X",     Set(2))
+      (Seq("0"),              Set(0)),
+      (Seq("0","1"),          Set(0,1)),
+      (Seq("0","1","2"),      Set(0,1)),
+      (Seq("0","1","2","3"),  Set(0,1,2)),
+      (Seq("1","2","3"),      Set(1,2)),
+      (Seq("2","3"),          Set(2)),
+      (Seq("3"),              Set(2)),
+      (Seq("3","100"),        Set(2)),
+      (Seq("3","X"),          Set(2))
       // format: on
     )
 
     forAll(visibilityIndices) { (input, expectedOuput) ⇒
-      val res = processDataService.updateSectionVisits(mkData(VisitIndex.key -> input), sections, mongoSections)
+      val res = processDataService
+        .updateSectionVisits(VariadicFormData.manys(VisitIndex.formComponentId -> input), sections, mongoSections)
       res shouldBe expectedOuput
     }
   }
@@ -92,18 +92,19 @@ class ProcessDataSpec extends FlatSpec with Matchers with GraphSpec with TableDr
     val visibilityIndices = Table(
       // format: off
       ("input",  "expected"),
-      ("0",       Set(0)),
-      ("0,1",     Set(0,1)),
-      ("0,1,2",   Set(0,1,2)),
-      ("0,1,2,3", Set(0,1,2,4)),
-      ("1,2,3",   Set(1,2,4)),
-      ("2,3",     Set(2,4)),
-      ("3",       Set(4))
+      (Seq("0"),              Set(0)),
+      (Seq("0","1"),          Set(0,1)),
+      (Seq("0","1","2"),      Set(0,1,2)),
+      (Seq("0","1","2","3"),  Set(0,1,2,4)),
+      (Seq("1","2","3"),      Set(1,2,4)),
+      (Seq("2","3"),          Set(2,4)),
+      (Seq("3"),              Set(4))
       // format: on
     )
 
     forAll(visibilityIndices) { (input, expectedOuput) ⇒
-      val res = processDataService.updateSectionVisits(mkData(VisitIndex.key -> input), sections, mongoSections)
+      val res = processDataService
+        .updateSectionVisits(VariadicFormData.manys(VisitIndex.formComponentId -> input), sections, mongoSections)
       res shouldBe expectedOuput
     }
   }

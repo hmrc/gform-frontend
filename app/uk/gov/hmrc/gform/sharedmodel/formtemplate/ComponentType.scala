@@ -24,8 +24,7 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 import scala.util.Try
-import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat, formtemplate }
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
@@ -138,18 +137,16 @@ object RevealingChoice {
     derived.oformat
   }
 
-  val slice: FormComponentId => Data => RevealingChoice => List[FormComponent] = fcId =>
+  val slice: FormComponentId => VariadicFormData => RevealingChoice => List[FormComponent] = fcId =>
     data =>
       revealingChoice => {
         for {
-          indexes        <- data.get(fcId).toList.flatten.headOption.toList
-          index          <- indexes.split(",")
+          index          <- data.get(fcId).toList.flatMap(_.toSeq)
           i              <- Try(index.toLong).toOption.toList
           rc             <- revealingChoice.options.get(i).toList
           revealingField <- rc.revealingFields
         } yield revealingField
   }
-
 }
 
 case class IdType(value: String) extends AnyVal

@@ -28,34 +28,32 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import scala.util.Try
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
-  def toFormField: FormField =
-    FormField(FormComponentId(VisitIndex.key), visitsIndex.mkString(","))
+  def toFormFields: Set[FormField] =
+    visitsIndex.map(i => FormField(VisitIndex.formComponentId, i.toString))
 
-  def toVisitsTuple: (FormComponentId, Seq[String]) =
-    (FormComponentId(VisitIndex.key), visitsIndex.mkString(",") :: Nil)
+  def variadicFormData: VariadicFormData =
+    VariadicFormData.manys(VisitIndex.formComponentId -> visitsIndex.toSeq.map(_.toString))
 
   def visit(sectionNumber: SectionNumber): VisitIndex = VisitIndex(visitsIndex + sectionNumber.value)
 }
 
 object VisitIndex {
 
-  val key = "_visits_"
+  val key: String = "_visits_"
 
-  val empty = VisitIndex(Set.empty)
+  val formComponentId: FormComponentId = FormComponentId(key)
+
+  val empty: VisitIndex = VisitIndex(Set.empty)
 
   implicit val format: OFormat[VisitIndex] = Json.format
 
-  def fromString(s: String): VisitIndex =
-    if (s.isEmpty) {
+  def fromStrings(s: Seq[String]): VisitIndex =
+    if (s.isEmpty)
       VisitIndex.empty
-    } else
-      VisitIndex(
-        s.split(",")
-          .toList
-          .flatMap { indexAsString =>
-            Try(indexAsString.toInt).toOption.fold(List.empty[Int])(_ :: Nil)
-          }
-          .toSet)
+    else
+      VisitIndex(s.flatMap { indexAsString =>
+        Try(indexAsString.toInt).toOption.fold(List.empty[Int])(_ :: Nil)
+      }.toSet)
 }
 
 case class Form(

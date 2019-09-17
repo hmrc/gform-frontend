@@ -16,24 +16,18 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, HmrcTaxPeriod }
 import uk.gov.hmrc.gform.sharedmodel.{ IdNumberValue, RecalculatedTaxPeriodKey }
-
-package object graph {
-  type Data = Map[FormComponentId, Seq[String]]
-}
 
 package graph {
 
-  case class RecData(
-    data: Data,
-    recalculatedTaxPeriod: Map[RecalculatedTaxPeriodKey, IdNumberValue]
-  ) {
+  import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+
+  case class RecData(data: VariadicFormData, recalculatedTaxPeriod: Map[RecalculatedTaxPeriodKey, IdNumberValue]) {
     val cleared = data -- recalculatedTaxPeriod.keySet.map(_.fcId)
   }
 
   object RecData {
-    val empty = fromData(Map.empty)
-    def fromData(data: Data): RecData = RecData(data, Map.empty[RecalculatedTaxPeriodKey, IdNumberValue])
+    val empty = fromData(VariadicFormData.empty)
+    def fromData(data: VariadicFormData): RecData = RecData(data, Map.empty[RecalculatedTaxPeriodKey, IdNumberValue])
   }
 }

@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -93,14 +93,15 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
     val tempList: List[FormComponent] = List(speccedAddress, speccedAddress)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("true"),
-        FormComponentId("x-street1")  -> Seq("S1"),
-        FormComponentId("x-street2")  -> Seq("S2"),
-        FormComponentId("x-street3")  -> Seq("S3"),
-        FormComponentId("x-street4")  -> Seq("S4"),
-        FormComponentId("x-postcode") -> Seq("P1 1P")
-      ))
+      VariadicFormData.ones(
+        FormComponentId("x-uk")       -> "true",
+        FormComponentId("x-street1")  -> "S1",
+        FormComponentId("x-street2")  -> "S2",
+        FormComponentId("x-street3")  -> "S3",
+        FormComponentId("x-street4")  -> "S4",
+        FormComponentId("x-postcode") -> "P1 1P"
+      )
+    )
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
     result.value should be(())
@@ -125,10 +126,10 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("true"),
-        FormComponentId("x-street1")  -> Seq("S"),
-        FormComponentId("x-postcode") -> Seq("P1 1P")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")       -> "true",
+        FormComponentId("x-street1")  -> "S",
+        FormComponentId("x-postcode") -> "P1 1P"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -155,13 +156,13 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("true"),
-        FormComponentId("x-street1")  -> Seq("S1"),
-        FormComponentId("x-street2")  -> Seq("S2"),
-        FormComponentId("x-street3")  -> Seq("S3"),
-        FormComponentId("x-street4")  -> Seq("S4"),
-        FormComponentId("x-postcode") -> Seq("BN11 7YHP")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")       -> "true",
+        FormComponentId("x-street1")  -> "S1",
+        FormComponentId("x-street2")  -> "S2",
+        FormComponentId("x-street3")  -> "S3",
+        FormComponentId("x-street4")  -> "S4",
+        FormComponentId("x-postcode") -> "BN11 7YHP"
       ))
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
@@ -188,10 +189,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("true"),
-        FormComponentId("x-postcode") -> Seq("P1 1P")
-      ))
+      VariadicFormData.ones(FormComponentId("x-uk") -> "true", FormComponentId("x-postcode") -> "P1 1P")
+    )
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
@@ -218,9 +217,9 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")      -> Seq("true"),
-        FormComponentId("x-street1") -> Seq("S")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")      -> "true",
+        FormComponentId("x-street1") -> "S"
       ))
 
     val result: ValidatedType[Unit] = new ComponentsValidator(
@@ -255,10 +254,10 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")      -> Seq("false"),
-        FormComponentId("x-street1") -> Seq("S"),
-        FormComponentId("x-country") -> Seq("C")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")      -> "false",
+        FormComponentId("x-street1") -> "S",
+        FormComponentId("x-country") -> "C"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -285,9 +284,9 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")      -> Seq("false"),
-        FormComponentId("x-street1") -> Seq("S")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")      -> "false",
+        FormComponentId("x-street1") -> "S"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -314,11 +313,11 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("false"),
-        FormComponentId("x-street1")  -> Seq("S"),
-        FormComponentId("x-postcode") -> Seq("P1 1P"),
-        FormComponentId("x-country")  -> Seq("C")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")       -> "false",
+        FormComponentId("x-street1")  -> "S",
+        FormComponentId("x-postcode") -> "P1 1P",
+        FormComponentId("x-country")  -> "C"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -345,10 +344,10 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")      -> Seq("true"),
-        FormComponentId("x-street1") -> Seq("S"),
-        FormComponentId("x-country") -> Seq("C")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")      -> "true",
+        FormComponentId("x-street1") -> "S",
+        FormComponentId("x-country") -> "C"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -379,10 +378,10 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x@uk")      -> Seq("true"),
-        FormComponentId("x@street1") -> Seq("S"),
-        FormComponentId("x@country") -> Seq("C")
+      VariadicFormData.ones(
+        FormComponentId("x@uk")      -> "true",
+        FormComponentId("x@street1") -> "S",
+        FormComponentId("x@country") -> "C"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -413,10 +412,10 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       Some(toLocalisedString("New Error Message")))
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x@uk")      -> Seq("true"),
-        FormComponentId("x@street1") -> Seq("S"),
-        FormComponentId("x@country") -> Seq("C")
+      VariadicFormData.ones(
+        FormComponentId("x@uk")      -> "true",
+        FormComponentId("x@street1") -> "S",
+        FormComponentId("x@country") -> "C"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -448,14 +447,15 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("true"),
-        FormComponentId("x-street1")  -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
-        FormComponentId("x-street2")  -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
-        FormComponentId("x-street3")  -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
-        FormComponentId("x-street4")  -> Seq(List.fill(ValidationValues.addressLine4)("a").mkString),
-        FormComponentId("x-postcode") -> Seq("C")
-      ))
+      VariadicFormData.ones(
+        FormComponentId("x-uk")       -> "true",
+        FormComponentId("x-street1")  -> List.fill(ValidationValues.addressLine)("a").mkString,
+        FormComponentId("x-street2")  -> List.fill(ValidationValues.addressLine)("a").mkString,
+        FormComponentId("x-street3")  -> List.fill(ValidationValues.addressLine)("a").mkString,
+        FormComponentId("x-street4")  -> List.fill(ValidationValues.addressLine4)("a").mkString,
+        FormComponentId("x-postcode") -> "C"
+      )
+    )
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
 
@@ -481,10 +481,10 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("true"),
-        FormComponentId("x-street1")  -> Seq(List.fill(ValidationValues.addressLine)("a").mkString),
-        FormComponentId("x-postcode") -> Seq("C")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")       -> "true",
+        FormComponentId("x-street1")  -> List.fill(ValidationValues.addressLine)("a").mkString,
+        FormComponentId("x-postcode") -> "C"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
@@ -511,13 +511,13 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         None)
 
     val data = mkFormDataRecalculated(
-      Map(
-        FormComponentId("x-uk")       -> Seq("true"),
-        FormComponentId("x-street1")  -> Seq(List.fill(36)("a").mkString),
-        FormComponentId("x-street2")  -> Seq(List.fill(36)("a").mkString),
-        FormComponentId("x-street3")  -> Seq(List.fill(36)("a").mkString),
-        FormComponentId("x-street4")  -> Seq(List.fill(28)("a").mkString),
-        FormComponentId("x-postcode") -> Seq("C")
+      VariadicFormData.ones(
+        FormComponentId("x-uk")       -> "true",
+        FormComponentId("x-street1")  -> List.fill(36)("a").mkString,
+        FormComponentId("x-street2")  -> List.fill(36)("a").mkString,
+        FormComponentId("x-street3")  -> List.fill(36)("a").mkString,
+        FormComponentId("x-street4")  -> List.fill(28)("a").mkString,
+        FormComponentId("x-postcode") -> "C"
       ))
 
     val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue

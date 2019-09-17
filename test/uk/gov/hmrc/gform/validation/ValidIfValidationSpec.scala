@@ -23,7 +23,7 @@ import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.FileUploadService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
@@ -87,7 +87,7 @@ class ValidIfValidationSpec(implicit messages: Messages, l: LangADT) extends Spe
       `fieldId - number` -> `formField - number`
     )
 
-    def validate(fieldValue: FormComponent, fieldValues: List[FormComponent], data: Map[FormComponentId, Seq[String]]) =
+    def validate(fieldValue: FormComponent, fieldValues: List[FormComponent], data: VariadicFormData) =
       new ComponentsValidator(
         mkFormDataRecalculated(data),
         mock[FileUploadService],

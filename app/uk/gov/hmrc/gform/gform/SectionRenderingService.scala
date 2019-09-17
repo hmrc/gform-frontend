@@ -22,7 +22,6 @@ import java.time.format.DateTimeFormatter
 
 import cats.data.NonEmptyList
 import cats.data.Validated.{ Invalid, Valid }
-import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.validated._
 import play.api.i18n.Messages
@@ -159,7 +158,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       .toFormField(fieldDataUpd, hiddenTemplateFields)
       .map(formField => html.form.snippets.hidden_field(formField))
 
-    val indices = html.form.snippets.hidden_field(visitsIndex.toFormField)
+    val indices = visitsIndex.toFormFields.toList.map(field => html.form.snippets.hidden_field(field))
 
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
 
@@ -181,7 +180,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       sectionNumber,
       section.title.value,
       section.description.map(ls => ls.value),
-      indices :: hiddenSnippets,
+      indices ::: hiddenSnippets,
       snippetsForFields,
       javascript,
       envelopeId,
@@ -569,10 +568,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated)(implicit messages: Messages, l: LangADT) = {
 
-    val prepopValues = ei.fieldData.data.get(formComponent.id) match {
-      case None    => selections.map(_.toString).toSet
-      case Some(_) => Set.empty[String] // Don't prepop something we already submitted
-    }
+    val prepopValues =
+      if (ei.fieldData.data.contains(formComponent.id)) Set.empty[String] // Don't prepop something we already submitted
+      else selections.map(_.toString).toSet
 
     val optionalHelpTextMarkDown: NonEmptyList[Html] =
       optionalHelpText.fold(options.map(_ => Html(""))) { helpTexts =>
@@ -637,8 +635,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           index =>
             extraInfo.fieldData.data
               .get(fieldValue.id)
-              .flatMap(_.headOption)
-              .fold(o.selected)(_.split(",") contains index.toString)
+              .fold(o.selected)(_.contains(index.toString))
         (
           o.choice,
           isSelected,
@@ -668,7 +665,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     isHidden: Boolean
   )(implicit l: LangADT): Html = {
 
-    val prepopValue = ei.fieldData.data.get(fieldValue.id).flatMap(_.headOption)
+    val prepopValue = ei.fieldData.data.one(fieldValue.id)
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
     if (isHidden)
       html.form.snippets
@@ -726,7 +723,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     data: FormDataRecalculated,
     isHidden: Boolean
   )(implicit messages: Messages, l: LangADT) = {
-    val prepopValue = ei.fieldData.data.get(formComponent.id).flatMap(_.headOption)
+    val prepopValue = ei.fieldData.data.one(formComponent.id)
     val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
     if (isHidden)
       html.form.snippets
@@ -759,7 +756,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated,
     isHidden: Boolean)(implicit messages: Messages, l: LangADT) = {
-    val prepopValue = ei.fieldData.data.get(formComponent.id).flatMap(_.headOption).getOrElse("")
+    val prepopValue = ei.fieldData.data.oneOrElse(formComponent.id, "")
     val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
     if (isHidden)
       html.form.snippets

@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.helpers.Extractors._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
@@ -246,18 +246,18 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
     override def formTemplate = super.formTemplate.copy(sections = List(section))
 
     override val formDataRecalculated = FormDataRecalculated.empty.copy(
-      recData = RecData.fromData(Map(
-        FormComponentId("Surname")              -> Seq("Test!Saxe-Coburg-Gotha!Test"),
-        FormComponentId("Info")                 -> Seq("Test!Royal!Test"),
-        FormComponentId("BirthDate-day")        -> Seq("19"),
-        FormComponentId("BirthDate-month")      -> Seq("11"),
-        FormComponentId("BirthDate-year")       -> Seq("1841"),
-        FormComponentId("HomeAddress-street1")  -> Seq("Test!Street!Test"),
-        FormComponentId("HomeAddress-street2")  -> Seq("Test!Second Street!Test"),
-        FormComponentId("HomeAddress-street3")  -> Seq("Test!Third Street!Test"),
-        FormComponentId("HomeAddress-street4")  -> Seq("Test!Town!Test"),
-        FormComponentId("HomeAddress-postcode") -> Seq("Test!PO32 6JX!Test"),
-        FormComponentId("HomeAddress-country")  -> Seq("Test!UK!Test")
+      recData = RecData.fromData(VariadicFormData.ones(
+        FormComponentId("Surname")              -> "Test!Saxe-Coburg-Gotha!Test",
+        FormComponentId("Info")                 -> "Test!Royal!Test",
+        FormComponentId("BirthDate-day")        -> "19",
+        FormComponentId("BirthDate-month")      -> "11",
+        FormComponentId("BirthDate-year")       -> "1841",
+        FormComponentId("HomeAddress-street1")  -> "Test!Street!Test",
+        FormComponentId("HomeAddress-street2")  -> "Test!Second Street!Test",
+        FormComponentId("HomeAddress-street3")  -> "Test!Third Street!Test",
+        FormComponentId("HomeAddress-street4")  -> "Test!Town!Test",
+        FormComponentId("HomeAddress-postcode") -> "Test!PO32 6JX!Test",
+        FormComponentId("HomeAddress-country")  -> "Test!UK!Test"
       )))
 
     override def fieldValues = formTemplate.sections.flatMap(_.fields)
@@ -499,7 +499,8 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
     )
     val renderWithDataMatching = SummaryRenderingService.summaryForRender(
       f,
-      FormDataRecalculated.empty.copy(recData = RecData.fromData(Map(FormComponentId("firstName") -> Seq("Pete")))),
+      FormDataRecalculated.empty.copy(
+        recData = RecData.fromData(VariadicFormData.ones(FormComponentId("firstName") -> "Pete"))),
       Some(accessCode),
       formTemplate,
       envelope,
@@ -510,7 +511,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
       f,
       FormDataRecalculated(
         Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
-        RecData.fromData(Map(FormComponentId("firstName") -> Seq("*Not*Pete")))),
+        RecData.fromData(VariadicFormData.ones(FormComponentId("firstName") -> "*Not*Pete"))),
       Some(accessCode),
       formTemplate,
       envelope,
@@ -586,7 +587,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
       f,
       FormDataRecalculated(
         Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
-        RecData.fromData(Map(FormComponentId("firstName") -> Seq("*Not*Pete")))),
+        RecData.fromData(VariadicFormData.ones(FormComponentId("firstName") -> "*Not*Pete"))),
       Some(accessCode),
       formTemplate,
       envelope,

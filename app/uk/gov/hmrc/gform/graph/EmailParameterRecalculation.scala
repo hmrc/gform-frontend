@@ -31,7 +31,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
   )(implicit hc: HeaderCarrier, me: MonadError[Future, Throwable]): Future[EmailParametersRecalculated] =
     recalculation
       .recalculateFormData(
-        cache.form.formData.toData,
+        cache.variadicFormData,
         formTemplateWithParametersAsComponents,
         cache.retrievals,
         cache.form.thirdPartyData,
@@ -91,11 +91,11 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
 
   private def parameterToTuple(
     parameter: EmailParameter,
-    formDataRecalculated: FormDataRecalculated): (String, Option[Seq[String]]) =
+    formDataRecalculated: FormDataRecalculated): (String, Option[String]) =
     (
       parameter.emailTemplateVariable,
       formDataRecalculated.data
-        .get(FormComponentId(parameter.emailTemplateVariable + "UniqueEmailParameter"))) //stops issues when template variable id is same as field id.
+        .one(FormComponentId(parameter.emailTemplateVariable + "UniqueEmailParameter"))) //stops issues when template variable id is same as field id.
 
   def parameterFormat(
     parameters: List[EmailParameter],
@@ -104,7 +104,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
       .map(parameter => parameterToTuple(parameter, formDataRecalculated))
       .map {
         case (variableId, parameterValue) =>
-          (EmailTemplateVariable(variableId), EmailParameterValue(parameterValue.flatMap(_.headOption).getOrElse("")))
+          (EmailTemplateVariable(variableId), EmailParameterValue(parameterValue.getOrElse("")))
       }
       .toMap
 

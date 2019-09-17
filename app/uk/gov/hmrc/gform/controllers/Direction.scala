@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.controllers
 
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
+import cats.syntax.show._
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.http.BadRequestException
@@ -68,15 +68,10 @@ case class Navigator(
     case other                         => throw new BadRequestException(s"Invalid action: $other")
   }
 
-  private def actionValue: String = {
-    val fieldId = FormComponentId("save")
-    FormDataHelpers
-      .get(data.data, fieldId)
-      .headOption
-      .getOrElse(
-        throw new BadRequestException(s"Missing '${fieldId.value}' form field")
-      )
-  }
+  private val actionValueFieldId = FormComponentId("save")
+  private def actionValue: String =
+    data.data
+      .oneOrElse(actionValueFieldId, throw new BadRequestException(show"Missing '$actionValueFieldId' form field"))
 
   private lazy val maxSectionNumber: SectionNumber = availableSectionNumbers.max(Ordering.by((_: SectionNumber).value))
 

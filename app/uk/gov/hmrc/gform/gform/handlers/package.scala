@@ -20,11 +20,10 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.Envelope
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, Section, SectionNumber }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Obligations }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Obligations, VariadicFormData }
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
@@ -50,7 +49,8 @@ package object handlers {
 
   type UpdateObligations[F[_]] = (FormId, UserData, Form, Form) => F[Unit]
 
-  type RecalculateDataAndSections[F[_]] = (Data, AuthCacheWithForm) => F[(FormDataRecalculated, List[Section])]
+  type RecalculateDataAndSections[F[_]] =
+    (VariadicFormData, AuthCacheWithForm) => F[(FormDataRecalculated, List[Section])]
 
   type ValidateForm[F[_]] = (
     FormDataRecalculated,

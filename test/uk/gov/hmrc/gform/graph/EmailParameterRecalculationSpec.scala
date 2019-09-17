@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData, VariadicValue }
 
 import scala.concurrent.ExecutionContext
 
@@ -36,7 +36,8 @@ class EmailParameterRecalculationSpec(implicit ec: ExecutionContext) extends Fla
 
     val emailParameters = List(EmailParameter("templateVarId", FormCtx("${fieldId}")))
 
-    val data: Data = Map(FormComponentId("templateVarIdUniqueEmailParameter") -> Seq("value"))
+    val data: VariadicFormData =
+      VariadicFormData(Map(FormComponentId("templateVarIdUniqueEmailParameter") -> VariadicValue.One("value")))
 
     emailParameterRecalculation
       .parameterFormat(emailParameters, FormDataRecalculated.empty.copy(recData = RecData.fromData(data))) shouldBe Map(

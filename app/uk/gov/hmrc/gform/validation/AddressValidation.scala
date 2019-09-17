@@ -30,7 +30,8 @@ class AddressValidation(implicit messages: Messages, l: LangADT) {
   val cvh = new ComponentsValidatorHelper()
 
   def validateAddress(fieldValue: FormComponent, address: Address)(data: FormDataRecalculated): ValidatedType[Unit] = {
-    val addressValueOf: String => Seq[String] = suffix => data.data.get(fieldValue.id.withSuffix(suffix)).toList.flatten
+    val addressValueOf: String => Seq[String] = suffix =>
+      data.data.get(fieldValue.id.withSuffix(suffix)).toSeq.flatMap(_.toSeq)
 
     def validateRequiredFieldSub(value: String, str: String) =
       validateRequiredField(value, str, fieldValue)(addressValueOf(value))

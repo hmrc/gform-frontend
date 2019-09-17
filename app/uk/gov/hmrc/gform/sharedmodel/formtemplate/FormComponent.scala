@@ -20,10 +20,9 @@ import cats.instances.int._
 import cats.syntax.eq._
 import play.api.libs.json._
 import shapeless.syntax.typeable._
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString, VariadicFormData }
 
 sealed trait FormComponentWithCtx {
   def id: FormComponentId = this match {
@@ -76,7 +75,7 @@ case class FormComponent(
     ).updated
   }
 
-  private val expandGroup: Data => Group => Int => List[FormComponent] = data =>
+  private val expandGroup: VariadicFormData => Group => Int => List[FormComponent] = data =>
     group =>
       index => {
         val ids: List[FormComponentId] = groupIndex(index + 1, group)
@@ -89,10 +88,10 @@ case class FormComponent(
   private val expandRevealingChoice: RevealingChoice => List[FormComponent] =
     _.options.toList.flatMap(_.revealingFields)
 
-  private def expandByDataRc(fc: FormComponent, data: Data): List[FormComponent] =
+  private def expandByDataRc(fc: FormComponent, data: VariadicFormData): List[FormComponent] =
     expand(fc, expandGroup(data), RevealingChoice.slice(fc.id)(data))
 
-  private def expandByData(fc: FormComponent, data: Data): List[FormComponent] =
+  private def expandByData(fc: FormComponent, data: VariadicFormData): List[FormComponent] =
     expand(fc, expandGroup(data), expandRevealingChoice)
 
   private def expandAll(fc: FormComponent): List[FormComponent] =
@@ -117,8 +116,10 @@ case class FormComponent(
       case _ => FormComponentSimple(fc) :: Nil
     }
 
-  def expandFormComponent(data: Data): ExpandedFormComponent = ExpandedFormComponent(expandByData(this, data))
-  def expandFormComponentRc(data: Data): ExpandedFormComponent = ExpandedFormComponent(expandByDataRc(this, data))
+  def expandFormComponent(data: VariadicFormData): ExpandedFormComponent =
+    ExpandedFormComponent(expandByData(this, data))
+  def expandFormComponentRc(data: VariadicFormData): ExpandedFormComponent =
+    ExpandedFormComponent(expandByDataRc(this, data))
 
   val expandFormComponentFull: ExpandedFormComponent = ExpandedFormComponent(expandAll(this))
 

@@ -47,20 +47,20 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
       List(validateDateRequiredField(fieldValue, data), validateDateImpl(fieldValue, date, otherFieldValue)(data)))
 
   private val dataGetter: (FormComponent, FormDataRecalculated) => String => Seq[String] = (fv, data) =>
-    suffix => data.data.get(fv.id.withSuffix(suffix)).toList.flatten
+    suffix => data.data.one(fv.id.withSuffix(suffix)).toList
 
   private def validateDateRequiredField(fieldValue: FormComponent, data: FormDataRecalculated): ValidatedType[Unit] = {
-    val dateValueOf = dataGetter(fieldValue, data)
+    val dateValueOf: String => Seq[String] = dataGetter(fieldValue, data)
 
-    val validatedResult = fieldValue.mandatory match {
-      case true =>
+    val validatedResult =
+      if (fieldValue.mandatory)
         List(
           cvh.validateRF(fieldValue, "day")(dateValueOf("day")),
           cvh.validateRF(fieldValue, "month")(dateValueOf("month")),
           cvh.validateRF(fieldValue, "year")(dateValueOf("year"))
         )
-      case false => List(().valid)
-    }
+      else List(().valid)
+
     Monoid[ValidatedType[Unit]].combineAll(validatedResult)
   }
 
@@ -271,10 +271,10 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
     errorMsg: Option[String],
     data: FormDataRecalculated,
     otherFormComponent: Option[FormComponent] = None): ValidatedLocalDate = {
-    val fieldIdList = Date.fields(formComponentId).map(fId => data.data.get(fId)).toList
+    val fieldIdList = Date.fields(formComponentId).map(fId => data.data.one(fId)).toList
 
     fieldIdList match {
-      case Some(day +: Nil) :: Some(month +: Nil) :: Some(year +: Nil) :: Nil =>
+      case Some(day) :: Some(month) :: Some(year) :: Nil =>
         validateLocalDate(formComponent, formComponentId, otherFormComponent, errorMsg, day, month, year) match {
           case Valid(ConcreteDate(ExactYear(concYear), ExactMonth(concMonth), ExactDay(concDay))) =>
             Try(LocalDate.of(concYear, concMonth, concDay)) match {

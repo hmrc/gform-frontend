@@ -20,7 +20,6 @@ import java.time.format.DateTimeFormatter
 
 import cats.data.Validated.{ Invalid, Valid }
 import cats.instances.future._
-import cats.syntax.foldable._
 import org.jsoup.Jsoup
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
@@ -28,15 +27,14 @@ import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gform.HtmlSanitiser
-import uk.gov.hmrc.gform.graph.{ Data, Recalculation }
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, LocalisedString, Obligations, PdfHtml, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, PdfHtml, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -96,12 +94,10 @@ class SummaryRenderingService(
 
     val extraData = cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
 
-    val formDataAsMap = cache.form.formData.toData
-
     val declaration: List[(FormComponent, Seq[String])] = for {
       formTemplateDecField <- flattenGroups(cache.formTemplate.declarationSection.fields)
-      formData             <- formDataAsMap.get(formTemplateDecField.id)
-    } yield (formTemplateDecField, formData)
+      formData             <- cache.variadicFormData.get(formTemplateDecField.id)
+    } yield (formTemplateDecField, formData.toSeq)
 
     val declarationExtraData = cya_section(
       messages("submission.declaration.details"),
@@ -128,7 +124,7 @@ class SummaryRenderingService(
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Html] = {
-    val dataRaw = FormDataHelpers.formDataMap(cache.form.formData)
+    val dataRaw = cache.variadicFormData
     val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
 
     import i18nSupport._

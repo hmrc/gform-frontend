@@ -20,7 +20,7 @@ import cats.instances.option._
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -64,9 +64,9 @@ class NavitagionSpec extends Spec with GraphSpec {
       continueIf = None
     )
 
-  def getAvailableSectionNumbers(sectionsData: List[Section], formData: Map[FormComponentId, String]) = {
+  def getAvailableSectionNumbers(sectionsData: List[Section], formData: VariadicFormData) = {
     val res = recalculation.recalculateFormData(
-      formData.map { case (k, v) => k -> Seq(v) },
+      formData,
       mkFormTemplate(sectionsData),
       ExampleData.authContext,
       ThirdPartyData.empty,
@@ -97,16 +97,16 @@ class NavitagionSpec extends Spec with GraphSpec {
   "Single page form" should "have section number 0 visible" in {
     val single = FormComponentId("single")
     val singleSection = makeSection(toLocalisedString("Single Page"), mkFormComponent(single))
-    val result = getAvailableSectionNumbers(singleSection :: Nil, Map.empty)
+    val result = getAvailableSectionNumbers(singleSection :: Nil, variadic())
 
     result shouldBe List(SectionNumber(0))
   }
 
   "Chain of section" should "hide all dependent section in the chain" in {
-    val result1 = getAvailableSectionNumbers(sections, Map(fcId1 -> "1", fcId2 -> "1", fcId3 -> "1"))
-    val result2 = getAvailableSectionNumbers(sections, Map(fcId1 -> "1", fcId2 -> "1", fcId3 -> "2"))
-    val result3 = getAvailableSectionNumbers(sections, Map(fcId1 -> "1", fcId2 -> "2", fcId3 -> "1"))
-    val result4 = getAvailableSectionNumbers(sections, Map(fcId1 -> "2", fcId2 -> "1", fcId3 -> "1"))
+    val result1 = getAvailableSectionNumbers(sections, variadic(fcId1 -> "1", fcId2 -> "1", fcId3 -> "1"))
+    val result2 = getAvailableSectionNumbers(sections, variadic(fcId1 -> "1", fcId2 -> "1", fcId3 -> "2"))
+    val result3 = getAvailableSectionNumbers(sections, variadic(fcId1 -> "1", fcId2 -> "2", fcId3 -> "1"))
+    val result4 = getAvailableSectionNumbers(sections, variadic(fcId1 -> "2", fcId2 -> "1", fcId3 -> "1"))
 
     result1 shouldBe List(SectionNumber(0), SectionNumber(1), SectionNumber(2), SectionNumber(3), SectionNumber(4))
     result2 shouldBe List(SectionNumber(0), SectionNumber(1), SectionNumber(2), SectionNumber(4))
@@ -114,4 +114,6 @@ class NavitagionSpec extends Spec with GraphSpec {
     result4 shouldBe List(SectionNumber(0), SectionNumber(4))
   }
 
+  private def variadic(data: (FormComponentId, String)*) =
+    VariadicFormData(data.toMap.mapValues(VariadicValue.One(_)))
 }

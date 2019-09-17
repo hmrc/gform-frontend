@@ -20,10 +20,10 @@ import cats.data.NonEmptyList
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.prop.TableFor4
 import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.SectionGen
 import uk.gov.hmrc.gform.Helpers._
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
 class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
 
@@ -66,14 +66,16 @@ class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
 
     val all = List("a", "b", "c", "d", "e", "f")
 
+    val aId = FormComponentId("a")
+
     val dataAndExpectations = Table(
       // format: off
       ("input", "full", "data", "rc"),
-      (mkData(),                      all, all, List("a", "f")),
-      (mkData("a" -> "not_a_number"), all, all, List("a", "f")),
-      (mkData("a" -> "0"),            all, all, List("a", "b", "c", "f")),
-      (mkData("a" -> "1"),            all, all, List("a", "d", "e", "f")),
-      (mkData("a" -> "0,1"),          all, all, all)
+      (VariadicFormData.manys(),                            all, all, List("a", "f")),
+      (VariadicFormData.manys(aId -> Seq("not_a_number")),  all, all, List("a", "f")),
+      (VariadicFormData.manys(aId -> Seq("0")),             all, all, List("a", "b", "c", "f")),
+      (VariadicFormData.manys(aId -> Seq("1")),             all, all, List("a", "d", "e", "f")),
+      (VariadicFormData.manys(aId -> Seq("0", "1")),           all, all, all)
       // format: on
     )
 
@@ -108,7 +110,7 @@ class SectionSpec extends Spec with GeneratorDrivenPropertyChecks {
   }
 
   private def verifyTable(
-    dataAndExpectations: TableFor4[Data, List[String], List[String], List[String]],
+    dataAndExpectations: TableFor4[VariadicFormData, List[String], List[String], List[String]],
     section: Section) = {
 
     def allIds(es: ExpandedSection): List[String] = es.allFCs.map(_.id.value)

@@ -18,10 +18,9 @@ package uk.gov.hmrc.gform.keystore
 
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
-import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.RepeatFormComponentIds
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -35,7 +34,7 @@ object RepeatingComponentService {
   def sumFunctionality(field: FormCtx, formTemplate: FormTemplate, data: FormDataRecalculated): BigDecimal = {
     val repeatFormComponentIds = getRepeatFormComponentIds(formTemplate.expandFormTemplate(data.data).allFormComponents)
     val fcIds: List[FormComponentId] = repeatFormComponentIds.op(FormComponentId(field.value))
-    fcIds.map(id => data.data.get(id).flatMap(_.headOption).fold(0: BigDecimal)(toBigDecimalDefault)).sum
+    fcIds.map(id => data.data.one(id).fold(0: BigDecimal)(toBigDecimalDefault)).sum
   }
 
   def getAllSections(formTemplate: FormTemplate, data: FormDataRecalculated): List[Section] =
@@ -108,17 +107,14 @@ object RepeatingComponentService {
 
     def evaluateTextExpression(str: String) = {
       val field = str.replaceFirst("""\$\{""", "").replaceFirst("""\}""", "")
-      if (field.startsWith("n_")) {
-        if (index == 1) {
-          val fieldName = field.replaceFirst("n_", "")
-          data.data.getOrElse(FormComponentId(fieldName), Seq("")).mkString
-        } else {
-          val fieldName = field.replaceFirst("n_", s"${index - 1}_")
-          data.data.getOrElse(FormComponentId(fieldName), Seq("")).mkString
-        }
-      } else {
-        data.data.getOrElse(FormComponentId(field), Seq("")).mkString
-      }
+
+      val fieldName =
+        if (field.startsWith("n_"))
+          if (index == 1) field.replaceFirst("n_", "")
+          else field.replaceFirst("n_", s"${index - 1}_")
+        else field
+
+      data.data.oneOrElse(FormComponentId(fieldName), "")
     }
 
     def getEvaluatedText(str: String) = {
@@ -174,13 +170,14 @@ object RepeatingComponentService {
   }
 
   private def getFormFieldIntValue(expr: TextExpression, data: FormDataRecalculated): Int = {
-
     val id = extractFieldId(expr)
 
-    data.data.get(FormComponentId(id)) match {
-      case Some(value) => Try(value.head.toInt).toOption.getOrElse(0)
-      case None        => 0
-    }
+    data.data
+      .one(FormComponentId(id))
+      .flatMap { v =>
+        Try(v.toInt).toOption
+      }
+      .getOrElse(0)
   }
 
   private def extractFieldId(expr: TextExpression) =
@@ -207,7 +204,7 @@ object RepeatingComponentService {
     formTemplate.sections.flatMap(section => findRepeatingGroups(None, section.fields)).toSet
   }
 
-  def atomicFields(section: BaseSection, data: Data): List[FormComponent] = {
+  def atomicFields(section: BaseSection, data: VariadicFormData): List[FormComponent] = {
     def loop(fields: List[FormComponent]): List[FormComponent] =
       fields
         .flatMap { fv =>

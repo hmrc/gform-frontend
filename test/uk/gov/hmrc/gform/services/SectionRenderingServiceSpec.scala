@@ -20,18 +20,17 @@ import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
-import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.Messages
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.SpecWithFakeApp
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
-import uk.gov.hmrc.gform.graph.{ Data, RecData }
+import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, NotChecked }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
 
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
@@ -54,12 +53,12 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         form,
         SectionNumber.firstSection,
         mkFormDataRecalculated(
-          Map(
-            FormComponentId("nameOfBusiness")  -> Seq(""),
-            FormComponentId("startDate-day")   -> Seq(""),
-            FormComponentId("startDate-month") -> Seq(""),
-            FormComponentId("startDate-year")  -> Seq(""),
-            FormComponentId("iptRegNum")       -> Seq("")
+          VariadicFormData.ones(
+            FormComponentId("nameOfBusiness")  -> "",
+            FormComponentId("startDate-day")   -> "",
+            FormComponentId("startDate-month") -> "",
+            FormComponentId("startDate-year")  -> "",
+            FormComponentId("iptRegNum")       -> ""
           )),
         formTemplate,
         Nil,
@@ -100,12 +99,12 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         form,
         SectionNumber.firstSection,
         mkFormDataRecalculated(
-          Map(
-            FormComponentId("nameOfBusiness")  -> Seq(""),
-            FormComponentId("startDate-day")   -> Seq(""),
-            FormComponentId("startDate-month") -> Seq(""),
-            FormComponentId("startDate-year")  -> Seq(""),
-            FormComponentId("iptRegNum")       -> Seq("")
+          VariadicFormData.ones(
+            FormComponentId("nameOfBusiness")  -> "",
+            FormComponentId("startDate-day")   -> "",
+            FormComponentId("startDate-month") -> "",
+            FormComponentId("startDate-year")  -> "",
+            FormComponentId("iptRegNum")       -> ""
           )),
         formTemplate,
         Nil,
@@ -173,10 +172,10 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         form,
         SectionNumber(1),
         mkFormDataRecalculated(
-          Map(
-            FormComponentId("firstName") -> Seq(""),
-            FormComponentId("surname")   -> Seq(""),
-            FormComponentId("facePhoto") -> Seq("")
+          VariadicFormData.ones(
+            FormComponentId("firstName") -> "",
+            FormComponentId("surname")   -> "",
+            FormComponentId("facePhoto") -> ""
           )),
         formTemplate,
         Nil,
@@ -372,9 +371,9 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         form,
         SectionNumber(0),
         mkFormDataRecalculated(
-          Map(
-            FormComponentId("firstName")   -> Seq(""),
-            FormComponentId("1_firstName") -> Seq("")
+          VariadicFormData.ones(
+            FormComponentId("firstName")   -> "",
+            FormComponentId("1_firstName") -> ""
           )),
         formTemplate,
         Nil,
@@ -470,6 +469,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
 
   private def toList(elements: Elements) = JavaConverters.asScalaIteratorConverter(elements.iterator).asScala.toList
 
-  private def mkFormDataRecalculated(data: Data): FormDataRecalculated =
+  private def mkFormDataRecalculated(data: VariadicFormData): FormDataRecalculated =
     FormDataRecalculated.empty.copy(recData = RecData.fromData(data))
 }
