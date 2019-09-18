@@ -291,3 +291,54 @@ helper.order={1} {0}
 
 # Summary alert
 summary.alert.title=Problemau gyda’ch ffurflen
+
+# Accessibility statement link
+footer.links.accessibility.title=Datganiad
+footer.links.accessibility.text=Datganiad
+
+accessibility.page.title=datganiad hygyrchedd
+accessibility.heading=Datganiad hygyrchedd ar gyfer
+accessibility.description1=Mae’r datganiad hygyrchedd hwn yn esbonio pa mor hygyrch yw’r gwasanaeth hwn, beth i’w wneud os ydych yn cael anhawster i’w ddefnyddio, a sut i roi gwybod am broblemau hygyrchedd gyda’r gwasanaeth.
+accessibility.description2=Mae’r gwasanaeth hwn yn rhan o wefan ehangach GOV.UK. Mae
+accessibility.description2b=ar wahân ar gyfer prif wefan GOV.UK.
+accessibility.description3=Mae’r dudalen hon ond yn cynnwys gwybodaeth am wasanaeth @serviceName, sydd ar gael yn  @serviceName.service.gov.uk
+accessibility.subheading1=Defnyddio’r gwasanaeth hwn
+accessibility.content.block1.p1=Mae’r gwasanaeth hwn wedi’i redeg gan Gyllid a Thollau EM (CThEM). Rydym am i gymaint o bobl â phosibl allu defnyddio’r gwasanaeth hwn. Mae hyn yn golygu y dylech allu:
+accessibility.content.block1.li1=newid lliwiau, lefelau cyferbyniad a ffontiau
+accessibility.content.block1.li2=chwyddo’r sgrin hyd at 300% heb i’r testun ddisgyn oddi ar y sgrin
+accessibility.content.block1.li3=mynd o ddechrau’r gwasanaeth i’r diwedd gan ddefnyddio bysellfwrdd yn unig
+accessibility.content.block1.li4=mynd o ddechrau’r gwasanaeth i’r diwedd gan ddefnyddio meddalwedd adnabod lleferydd
+accessibility.content.block1.li5=gwrando ar y gwasanaeth drwy ddefnyddio darllenydd sgrin (gan gynnwys y fersiynau diweddaraf o JAWS, NVDA a VoiceOver)
+accessibility.content.block1.p2=Rydym hefyd wedi sicrhau bod y testun a ddefnyddir yn y gwasanaeth mor syml â phosibl i’w ddeall.
+accessibility.content.block1.p3=Mae gan <a class="govuk-link" href="https://mcmw.abilitynet.org.uk/">AbilityNet</a> gyngor ar wneud eich dyfais yn haws i’w defnyddio os oes gennych anabledd.
+accessibility.subheading2=Pa mor hygyrch yw’r gwasanaeth hwn
+accessibility.content.block2.p1=Mae’r gwasanaeth hwn yn cydymffurfio’n llawn â
+accessibility.content.block2.p1.link=safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1
+accessibility.content.block2.p2=When using this service or any of the services that use HMRC’s new type of digital form, some people may find parts of them difficult to use:
+accessibility.content.block2.p3=People using a screen reader may occasionally:
+accessibility.content.block2.li1=not automatically be given part of the information that is visible on a page
+accessibility.content.block2.li2=need to navigate away from a question or around a page to find all the information they need to answer a question, or correct their answer
+accessibility.content.block2.li3=hear some content (such as page titles) repeated twice in a row
+accessibility.subheading3=Beth i’w wneud os ydych yn cael anhawster wrth ddefnyddio’r gwasanaeth hwn
+accessibility.content.block3.p1=Os ydych yn cael anhawster wrth ddefnyddio’r gwnasaneth hwn, cysylltwch â ni drwy:
+accessibility.subheading4=Rhoi gwybod am broblemau hygyrchedd gyda’r gwasanaeth hwn
+accessibility.content.block4.p1=Rydym bob amser yn ceisio gwella hygyrchedd y gwasanaeth hwn. Os byddwch yn dod o hyd i unrhyw broblemau nad ydynt wedi’u rhestru ar y dudalen hon, neu os ydych o’r farn nad ydym yn bodloni gofynion hygyrchedd, cysylltwch â
+accessibility.subheading5=Beth i’w wneud os nad ydych yn hapus â sut rydym yn ateb eich cwyn
+accessibility.content.block5.p1=Mae’r Comisiwn Cydraddoldeb a Hawliau Dynol (EHRC) yn gyfrifol am orfodi Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018 (y ‘rheoliadau hygyrchedd’). Os nad ydych yn hapus â sut rydym yn ateb eich cwyn, cysylltwch â’r <a href="https://www.equalityadvisoryservice.com/">Gwasanaeth Cynghori a Chymorth Cydraddoldeb</a> (EASS), neu’r <a href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) os ydych yn byw yng Ngogledd Iwerddon.
+accessibility.subheading6=Cysylltu â ni dros y ffôn neu gael ymweliad personol gennym
+accessibility.content.block6.p1=Rydym yn cynnig gwasanaeth text relay os ydych yn fyddar, â nam ar eich clyw neu os oes gennych nam ar eich lleferydd.
+accessibility.content.block6.p2=Gallwn ddarparu dehonglydd Iaith Arwyddion Prydain (BSL), neu gallwch drefnu ymweliad gan ymgynghorydd CThEM i’ch helpu i gwblhau’r gwasanaeth..
+accessibility.content.block6.p3=Gwybodaeth am sut i <a href="https://www.gov.uk/dealing-hmrc-additional-needs">gysylltu â ni</a>.
+accessibility.subheading7=Gwybodaeth dechnegol am hygyrchedd y gwasanaeth hwn
+accessibility.content.block7.p1=Mae CThEM wedi ymrwymo i wneud y gwasanaeth hwn yn hygyrch, yn unol â Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018.
+accessibility.content.block7.p2=Mae’r gwasanaeth hwn yn cydymffurfio’n llawn â safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block7.h21=Non-accessible content
+accessibility.content.block7.h21.p=The content listed below can be found in some of the services using HMRC’s new type of digital form. The content is non-accessible for the following reasons.
+accessibility.content.block7.h22=Non-compliance with the accessibility regulations
+accessibility.content.block7.h22.p1=In some services, small sections of information visible on the pages may not automatically be read out by a screen reader. This does not meet Web Content Accessibility Guidelines version 2.1 A standard, success criterion 3.3.2 (labels or instructions).
+accessibility.content.block7.h22.p2=We are in the process of reviewing existing services to fix this issue and all the issues listed on this page by 9 December 2019.  All new services will meet the Web Content Accessibility Guidelines standard. business
+accessibility.content.block7.h22.p3=In some services, some information is ordered in a way that may be more difficult to use for people using a screen reader. This does not meet WCAG 2.1 success criterion 1.3.2  (meaningful sequence).
+accessibility.content.block7.h22.p4=In some services, error messages may not contain enough information to help people to answer questions, this means that people using a screen reader may need to navigate around a page to get the information they need. This does not meet WCAG 2.1 success criterion 3.3.3 (error suggestion).
+accessibility.subheading8=Sut gwnaethom brofi’r gwasanaeth hwn
+accessibility.content.block7.p1=This service was built using a new type of digital form, using parts that were tested by the <a href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
+accessibility.content.block7.p2=This page was prepared on 23 September 2019.
