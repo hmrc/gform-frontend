@@ -29,7 +29,7 @@ class LookupLoader {
 
   implicit private val lookupIdCellDecoder: CellDecoder[LookupId] = implicitly[CellDecoder[String]].map(LookupId)
   implicit private val lookupLabelCellDecoder: CellDecoder[LookupLabel] =
-    implicitly[CellDecoder[String]].map(LookupLabel.apply)
+    implicitly[CellDecoder[String]].map(s => LookupLabel(s.trim))
 
   private def read(
     filename: String,
