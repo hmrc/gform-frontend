@@ -150,6 +150,7 @@
         </a>
     </li>
 }
+
 @size = @{formLanguages.languages.size}
 @formLanguageSet = @{formLanguages.languages.map(l => l.langADTToString)}
 @appLanguageSet = @{appConfig.availableLanguages.map{case(s,l) => l.code}.toSet}

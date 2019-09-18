@@ -37,5 +37,4 @@ class AccessibilityController(
 
       Future.successful(Ok(accessibility_statement(cache.formTemplate, frontendAppConfig)))
     }
-
 }
