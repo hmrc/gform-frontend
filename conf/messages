@@ -347,7 +347,7 @@ accessibility.content.block2.li3=hear some content (such as page titles) twice i
 accessibility.content.block2.p5=We sometimes require signed documents to be uploaded. There are alternative ways of providing these for people who are unable to do this or who would find this difficult, due to a disability.
 
 accessibility.subheading4=Reporting accessibility problems with this service
-accessibility.content.block4.p1=We are always looking to improve the accessibility of this service. If you find any problems that are not listed on this page or think we are not meeting accessibility requirements,
+accessibility.content.block4.p1=We are always looking to improve the accessibility of this service. If you find any problems that are not listed on this page or think we are not meeting accessibility requirements, <a class="report-error__toggle js-visible" id="get-help-action" href="form-label">report the accessibility problem.</a> <a class="report-error__toggle js-hidden" href="/contact/problem_reports_nonjs?service=GForm">report the accessibility problem.</a>
 
 accessibility.subheading5=What to do if you are not happy with how we respond to your complaint
 accessibility.content.block5.p1=The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’). If you are not happy with how we respond to your complaint, <a href="https://www.equalityadvisoryservice.com/">contact the Equality Advisory and Support Service</a> (EASS), or the <a href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) if you live in Northern Ireland.

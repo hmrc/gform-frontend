@@ -32,7 +32,6 @@
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("footer.links.accessibility.title", formCat)}
 
-
 @uk.gov.hmrc.gform.views.html.main_template(
 title = heading,
 serviceName = formTemplate.formName.value,
@@ -49,7 +48,7 @@ templateId = formTemplate._id
 
     <p class="govuk-body">@Messages("accessibility.description2") <a href="https://www.gov.uk/help/accessibility">@Messages("accessibility.page.title")</a> @Messages("accessibility.description2b")</p>
 
-    <p class="govuk-body">@Messages("accessibility.description3") @formTemplate.formName.value @Messages("accessibility.description3a") <a href="https://wwww.tax.service.gov.uk/submissions/new-form/@formTemplate._id">tax.service.gov.uk/@formTemplate._id</a>.</p>
+    <p class="govuk-body">@Messages("accessibility.description3") @formTemplate.formName.value @Messages("accessibility.description3a") <a href="https://www.tax.service.gov.uk/submissions/new-form/@formTemplate._id.value">tax.service.gov.uk/@formTemplate._id.value</a>.</p>
 
     <h2 class="govuk-heading-l">@Messages("accessibility.subheading1")</h2>
 
@@ -87,7 +86,9 @@ templateId = formTemplate._id
 
     <h2 class="govuk-heading-l">@Messages("accessibility.subheading4")</h2>
 
-    <p class="govuk-body">@Messages("accessibility.content.block4.p1")</p>
+    <p class="govuk-body">@Html(Messages("accessibility.content.block4.p1"))</p>
+    <script type="text/javascript">var reportProblemAjaxUrl = "/contact/problem_reports_ajax?service=GForm";</script>
+
 
     <h2 class="govuk-heading-l">@Messages("accessibility.subheading5")</h2>
 
