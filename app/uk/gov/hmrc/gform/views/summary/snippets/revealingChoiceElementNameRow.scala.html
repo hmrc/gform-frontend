@@ -14,17 +14,15 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.sharedmodel.{LangADT, LocalisedString}
 
-@(fieldValue: FormComponent, selectedHtml: List[Html], changeButton: Html)(implicit l:LangADT)
+@(fieldName: LocalisedString, answer: String, changeButton: Html)(implicit l:LangADT)
 
 
 <div>
  <dt class="cya-question">
-  @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
+  @fieldName.value
  </dt>
- <dd class="cya-answer"></dd>
- <dd class="cya-change"></dd>
+ <dd class="cya-answer">@answer</dd>
+ <dd class="cya-change">@changeButton</dd>
 </div>
-@selectedHtml

@@ -313,24 +313,25 @@ object SummaryRenderingService {
 
             choice(fieldValue, selections, changeButton)
 
-          case rc @ RevealingChoice(os, _) =>
-            val selections: List[String] = os
-              .map(_.choice)
-              .zipWithIndex
+          case rc: RevealingChoice =>
+            val selections = rc.options.zipWithIndex
               .map {
-                case (option, index) =>
+                case (element, index) =>
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option)
+                    .map { _ =>
+                      if (element.revealingFields.isEmpty)
+                        Seq(revealingChoiceElementNameRow(element.choice, messages("generic.Yes"), changeButton))
+                      else
+                        element.revealingFields.map {
+                          valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
+                        }
+                    }
               }
-              .collect { case Some(selection) => selection.value }
+              .collect { case Some(html) => html }
+              .flatten
 
-            val hiddenFieldInfo = for {
-              field <- RevealingChoice.slice(fieldValue.id)(data.data)(rc)
-            } yield valueToHtml(field, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
-
-            val listOfHtml = choice(fieldValue, selections, changeButton) :: hiddenFieldInfo
-            revealingChoice(listOfHtml)
+            revealingChoice(fieldValue, selections, changeButton)
 
           case f @ FileUpload()         => file_upload(fieldValue, f, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")
