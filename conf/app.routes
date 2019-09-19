@@ -49,5 +49,4 @@ GET           /lookup/:formTemplateId/:register/:query                          
 
 GET           /sign-out/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.SignOutController.signOut(formTemplateId: FormTemplateId)
 GET           /signed-out                                                                                        uk.gov.hmrc.gform.gform.SignOutController.showSignedOutPage(signBackInUrl: String)
-
 GET           /accessibility/:formTemplateId                                                                    uk.gov.hmrc.gform.gform.AccessibilityController.accessibilityPage(formTemplateId: FormTemplateId)
