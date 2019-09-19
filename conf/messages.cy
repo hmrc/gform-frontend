@@ -301,7 +301,7 @@ accessibility.description1=Mae’r datganiad hygyrchedd hwn yn esbonio pa mor hy
 accessibility.description2=Mae’r gwasanaeth hwn yn rhan o wefan ehangach GOV.UK. Mae
 accessibility.description2b=ar wahân ar gyfer prif wefan GOV.UK.
 accessibility.description3=Mae’r dudalen hon ond yn cynnwys gwybodaeth am wasanaeth
-accessibility.description3=, sydd ar gael yn
+accessibility.description3a=, sydd ar gael yn
 accessibility.subheading1=Defnyddio’r gwasanaeth hwn
 accessibility.content.block1.p1=Mae’r gwasanaeth hwn wedi’i redeg gan Gyllid a Thollau EM (CThEM). Rydym am i gymaint o bobl â phosibl allu defnyddio’r gwasanaeth hwn. Mae hyn yn golygu y dylech allu:
 accessibility.content.block1.li1=newid lliwiau, lefelau cyferbyniad a ffontiau
@@ -340,5 +340,5 @@ accessibility.content.block7.h22.p2=We are in the process of reviewing existing 
 accessibility.content.block7.h22.p3=In some services, some information is ordered in a way that may be more difficult to use for people using a screen reader. This does not meet WCAG 2.1 success criterion 1.3.2  (meaningful sequence).
 accessibility.content.block7.h22.p4=In some services, error messages may not contain enough information to help people to answer questions, this means that people using a screen reader may need to navigate around a page to get the information they need. This does not meet WCAG 2.1 success criterion 3.3.3 (error suggestion).
 accessibility.subheading8=Sut gwnaethom brofi’r gwasanaeth hwn
-accessibility.content.block7.p1=This service was built using a new type of digital form, using parts that were tested by the <a href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
-accessibility.content.block7.p2=This page was prepared on 23 September 2019.
+accessibility.content.block8.p1=This service was built using a new type of digital form, using parts that were tested by the <a href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
+accessibility.content.block8.p2=This page was prepared on 23 September 2019.
