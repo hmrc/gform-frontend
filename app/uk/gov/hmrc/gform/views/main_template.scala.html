@@ -59,7 +59,7 @@
 @mainScripts = {
   @scriptElem
   @if(webChat.nonEmpty) {
-    @uk.gov.hmrc.csp.WebchatClient.webchatClickToChatScriptPartial(webChatRoomId, webChatTemplateName)
+    @uk.gov.hmrc.gform.commons.WebchatUtil.WebchatClient.webchatClickToChatScriptPartial(webChatRoomId, webChatTemplateName)
   }
 }
 
