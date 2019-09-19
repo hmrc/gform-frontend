@@ -98,6 +98,7 @@ class RoutingModule(
     }
   }
 
+
   val httpRequestHandler: HttpRequestHandler = new CustomHttpRequestHandler(
     router,
     controllersModule.errorHandler,

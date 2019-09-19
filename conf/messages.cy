@@ -295,7 +295,6 @@ summary.alert.title=Problemau gyda’ch ffurflen
 # Accessibility statement link
 footer.links.accessibility.title=Datganiad
 footer.links.accessibility.text=Datganiad
-
 accessibility.page.title=datganiad hygyrchedd
 accessibility.heading=Datganiad hygyrchedd ar gyfer
 accessibility.description1=Mae’r datganiad hygyrchedd hwn yn esbonio pa mor hygyrch yw’r gwasanaeth hwn, beth i’w wneud os ydych yn cael anhawster i’w ddefnyddio, a sut i roi gwybod am broblemau hygyrchedd gyda’r gwasanaeth.
