@@ -88,22 +88,51 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       appendZeroPrefix(FormComponentId(input)) shouldBe FormComponentId(expectedOuput)
     }
   }
+
   "stripAnyPrefix" should "strip any prefix" in {
 
     val formComponentIds = Table(
       // format: off
-      ("input",     "output"),
-      ("abd",       "abd"),
-      ("1_abd",     "abd"),
-      ("1_",        ""),
-      ("123_abd",   "abd"),
-      ("123_",      ""),
-      ("das123_dd", "das123_dd")
+      ("input",       "output"),
+      ("abd",         "abd"),
+      ("1_abd",       "abd"),
+      ("1_",          ""),
+      ("1_1_",        "1_"),
+      ("123_abd",     "abd"),
+      ("123_",        ""),
+      ("das123_dd",   "das123_dd"),
+      ("1_test_1_1_", "test_1_1_")
       // format: on
     )
 
     forAll(formComponentIds) { (input, expectedOuput) ⇒
       stripAnyPrefix(FormComponentId(input)) shouldBe FormComponentId(expectedOuput)
+    }
+  }
+
+  "stripZeroPrefix" should "strip zero prefix" in {
+
+    val formComponentIds = Table(
+      // format: off
+      ("input",       "output"),
+      ("abd",         "abd"),
+      ("0_abd",       "abd"),
+      ("0_0_abd",     "0_abd"),
+      ("1_abd",       "1_abd"),
+      ("0_",          ""),
+      ("1_",          "1_"),
+      ("123_abd",     "123_abd"),
+      ("123_",        "123_"),
+      ("0123_",       "0123_"),
+      ("das0_dd",     "das0_dd"),
+      ("das123_dd",   "das123_dd"),
+      ("0_test_1_1_", "test_1_1_"),
+      ("1_test_1_1_", "1_test_1_1_")
+      // format: on
+    )
+
+    forAll(formComponentIds) { (input, expectedOuput) ⇒
+      stripZeroPrefix(FormComponentId(input)) shouldBe FormComponentId(expectedOuput)
     }
   }
 

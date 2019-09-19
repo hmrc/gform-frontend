@@ -113,13 +113,13 @@ object ExpandUtils {
     */
   def stripAnyPrefix(targetFcId: FormComponentId): FormComponentId =
     targetFcId.value match {
-      case NumericPrefix(prefix) => FormComponentId(targetFcId.value.replace(prefix + "_", ""))
+      case NumericPrefix(prefix) => FormComponentId(targetFcId.value.replaceFirst(prefix + "_", ""))
       case _                     => targetFcId
     }
 
   def stripZeroPrefix(targetFcId: FormComponentId): FormComponentId =
     targetFcId.value match {
-      case NumericPrefix(prefix) if prefix == "0" => FormComponentId(targetFcId.value.replace("0_", ""))
+      case NumericPrefix(prefix) if prefix == "0" => FormComponentId(targetFcId.value.replaceFirst("0_", ""))
       case _                                      => targetFcId
     }
 
