@@ -320,7 +320,7 @@ object SummaryRenderingService {
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
                     .map { _ =>
-                      Html("") ::
+                      revealingChoiceElementNameRow(element.choice, changeButton) ::
                         element.revealingFields.map {
                         valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
                       }
