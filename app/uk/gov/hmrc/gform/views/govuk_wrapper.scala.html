@@ -141,7 +141,16 @@
 }
 
 @footerTop = {}
-@footerLinks = {}
+@footerLinks = {
+    <li>
+        <a href='@uk.gov.hmrc.gform.gform.routes.AccessibilityController.accessibilityPage(templateId)' target="_blank"
+            data-sso="false"
+            data-journey-click="footer:Click:Accessibility">
+            @Messages("footer.links.accessibility.text")
+        </a>
+    </li>
+}
+
 @size = @{formLanguages.languages.size}
 @formLanguageSet = @{formLanguages.languages.map(l => l.langADTToString)}
 @appLanguageSet = @{appConfig.availableLanguages.map{case(s,l) => l.code}.toSet}
@@ -215,7 +224,7 @@
     insideHeader = insideHeader,
     afterHeader = afterHeader,
     footerTop = footerTop,
-    footerLinks = Some(uiLayouts.footer_links()),
+    footerLinks = Some(uiLayouts.footer_links(additionalLinks = Some(footerLinks))),
     nav = true
 )(
     content

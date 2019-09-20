@@ -291,3 +291,61 @@ helper.order={1} {0}
 
 # Summary alert
 summary.alert.title=Problemau gyda’ch ffurflen
+
+# Accessibility statement link
+footer.links.accessibility.title=Datganiad
+footer.links.accessibility.text=Datganiad
+accessibility.page.title=datganiad hygyrchedd
+
+accessibility.heading=Datganiad hygyrchedd ar gyfer
+accessibility.description1=Mae’r datganiad hygyrchedd hwn yn esbonio pa mor hygyrch yw’r gwasanaeth hwn, beth i’w wneud os ydych yn cael anhawster i’w ddefnyddio, a sut i roi gwybod am broblemau hygyrchedd gyda’r gwasanaeth.
+accessibility.description2=Mae’r gwasanaeth hwn yn rhan o wefan ehangach GOV.UK. Mae
+accessibility.description2b=ar wahân ar gyfer prif wefan GOV.UK.
+accessibility.description3=Mae’r dudalen hon yn cynnwys gwybodaeth am wasanaeth
+accessibility.description3a=, sydd ar gael yn
+
+accessibility.subheading1=Defnyddio’r gwasanaeth hwn
+accessibility.content.block1.p1=Mae’r gwasanaeth hwn wedi’i redeg gan Gyllid a Thollau EM (CThEM). Rydym am i gymaint o bobl â phosibl allu defnyddio’r gwasanaeth hwn. Mae hyn yn golygu y dylech allu:
+accessibility.content.block1.li1=newid lliwiau, lefelau cyferbyniad a ffontiau
+accessibility.content.block1.li2=chwyddo’r sgrin hyd at 300% heb i’r testun ddisgyn oddi ar y sgrin
+accessibility.content.block1.li3=mynd o ddechrau’r gwasanaeth i’r diwedd gan ddefnyddio bysellfwrdd yn unig
+accessibility.content.block1.li4=mynd o ddechrau’r gwasanaeth i’r diwedd gan ddefnyddio meddalwedd adnabod lleferydd
+accessibility.content.block1.li5=gwrando ar y gwasanaeth drwy ddefnyddio darllenydd sgrin (gan gynnwys y fersiynau diweddaraf o JAWS, NVDA a VoiceOver)
+accessibility.content.block1.p2=Rydym hefyd wedi sicrhau bod y testun a ddefnyddir yn y gwasanaeth mor syml â phosibl i’w ddeall.
+accessibility.content.block1.p3=Mae gan <a class="govuk-link" href="https://mcmw.abilitynet.org.uk/">AbilityNet</a> gyngor ar wneud eich dyfais yn haws i’w defnyddio os oes gennych anabledd.
+
+accessibility.subheading2=Pa mor hygyrch yw’r gwasanaeth hwn
+accessibility.content.block2.p1=Mae’r gwasanaeth hwn yn cydymffurfio’n llawn â
+accessibility.content.block2.p1.link=safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1
+accessibility.content.block2.p2=Mae’n rhan o grŵp o wasanaethau sydd wedi eu hadeiladu mewn ffordd debyg ac sydd â rhai problemau hygyrchedd cyffredi
+accessibility.content.block2.p3=Mae’n bosibl y bydd rhai pobl yn cael anhawster i ddefnyddio rhannau o’r gwasanaeth hwn.
+accessibility.content.block2.p4=Mae’n bosibl y bydd y canlynol weithiau yn wir ar gyfer pobl sy’n defnyddio darllenydd sgrin:
+accessibility.content.block2.li1=ni fyddant yn cael rhan o’r wybodaeth sy’n weladwy ar dudalen yn awtomatig
+accessibility.content.block2.li2=bydd angen iddynt lywio i ffwrdd o gwestiwn neu o amgylch tudalen i ddod o hyd i’r holl wybodaeth sydd ei hangen arnynt i ateb cwestiwn, neu gywiro eu hateb
+accessibility.content.block2.li3=byddant yn clywed rhywfaint o’r cynnwys (megis teitlau tudalennau) ddwywaith yn olynol
+accessibility.content.block2.p5=Byddwn weithiau yn ei gwneud yn ofynnol i uwchlwytho dogfennau wedi’u llofnodi. Mae yna ffyrdd gwahanol o ddarparu’r rhain ar gyfer pobl sy’n methu â gwneud hyn neu a fyddai’n ei chael hi’n anodd, oherwydd anabledd.
+
+accessibility.subheading4=Rhoi gwybod am broblemau hygyrchedd gyda’r gwasanaeth hwn
+accessibility.content.block4.p1=Rydym bob amser yn ceisio gwella hygyrchedd y gwasanaeth hwn. Os byddwch yn dod o hyd i unrhyw broblemau nad ydynt wedi’u rhestru ar y dudalen hon, neu os ydych o’r farn nad ydym yn bodloni gofynion hygyrchedd, cysylltwch â <a href="mailto:gforms.accessibility@digital.hmrc.gov.uk">gforms.accessibility@digital.hmrc.gov.uk</a>.
+accessibility.subheading5=Beth i’w wneud os nad ydych yn hapus â sut rydym yn ateb eich cwyn
+accessibility.content.block5.p1=Mae’r Comisiwn Cydraddoldeb a Hawliau Dynol (EHRC) yn gyfrifol am orfodi Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018 (y ‘rheoliadau hygyrchedd’). Os nad ydych yn hapus â sut rydym yn ateb eich cwyn, cysylltwch â’r <a href="https://www.equalityadvisoryservice.com/">Gwasanaeth Cynghori a Chymorth Cydraddoldeb</a> (EASS), neu’r <a href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) os ydych yn byw yng Ngogledd Iwerddon.
+
+accessibility.subheading6=Cysylltu â ni dros y ffôn neu gael ymweliad personol gennym
+accessibility.content.block6.p1=Rydym yn cynnig gwasanaeth text relay os ydych yn fyddar, â nam ar eich clyw neu os oes gennych nam ar eich lleferydd.
+accessibility.content.block6.p2=Gallwn ddarparu dehonglydd Iaith Arwyddion Prydain (BSL), neu gallwch drefnu ymweliad gan ymgynghorydd CThEM i’ch helpu i gwblhau’r gwasanaeth..
+accessibility.content.block6.p3=Gwybodaeth am sut i <a href="https://www.gov.uk/dealing-hmrc-additional-needs">gysylltu â ni</a>.
+
+accessibility.subheading7=Gwybodaeth dechnegol am hygyrchedd y gwasanaeth hwn
+accessibility.content.block7.p1=Mae CThEM wedi ymrwymo i wneud y gwasanaeth hwn yn hygyrch, yn unol â Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018.
+accessibility.content.block7.p2=Mae’r gwasanaeth hwn yn un o grŵp o wasanaethau sy’n cael eu hadeiladu mewn ffordd debyg ac sydd â rhai problemau hygyrchedd cyffredin. Mae’r gwasanaethau hyn yn cydymffurfio’n rhannol â <a class="govuk-link" href="https://www.w3.org/TR/WCAG21/">safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1</a>, oherwydd y diffyg cydymffurfio a restrir isod.
+accessibility.content.block7.h21=Non-Cynnwys nad yw’n hygyrch
+accessibility.content.block7.h21.p=Gall y cynnwys a restrir isod, nad yw’n hygyrch oherwydd y rhesymau a ganlyn, fod yn rhan o'r gwasanaeth hwn.
+accessibility.content.block7.h22=Diffyg cydymffurfio â’r rheoliadau hygyrchedd
+accessibility.content.block7.h22.p1=1. Mae’n bosibl na fydd darllenydd sgrin yn darllen yn awtomatig rannau bach o wybodaeth sydd i’w gweld ar y tudalennau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.2 (labels or instructions) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block7.h22.p2=2. Mae’n bosibl y bydd rhywfaint o wybodaeth wedi ei threfnu mewn ffordd sy’n anoddach ei defnyddio i bobl sy’n defnyddio darllenydd sgrin. Nid yw hyn yn bodloni maen prawf llwyddiant 1.3.2 (meaningful sequence) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block7.h22.p3=3. Mae’n bosibl na fydd rhai negeseuon gwall yn cynnwys yr wybodaeth lawn sydd ei hangen i helpu pobl i ateb cwestiynau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.3 (error suggestion) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block7.h22.p4=Rydym yn gweithio ar y materion hyn a byddwn yn eu trwsio erbyn 20 Rhagfyr 2019.
+
+accessibility.subheading8=Sut gwnaethom brofi’r gwasanaeth hwn
+accessibility.content.block8.p1=Adeiladwyd y gwasanaeth hwn gan ddefnyddio rhannau a brofwyd gan y Ganolfan Hygyrchedd Digidol ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â<a href="http://www.digitalaccessibilitycentre.org/">Ganolfan Hygyrchedd Digidol</a> ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block8.p2=Paratowyd y dudalen hon ar 23 Medi 2019. Cafodd ei diweddaru ddiwethaf ar 23 Medi 2019.
