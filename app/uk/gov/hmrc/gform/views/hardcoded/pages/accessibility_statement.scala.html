@@ -22,15 +22,14 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.html.localisedDateString
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
-@import java.time.format.DateTimeFormatter
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 
 @(formTemplate: FormTemplate, frontendAppConfig: FrontendAppConfig)(implicit request: Request[_], messages: Messages, l: LangADT)
 
-@formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("footer.links.accessibility.title", formCat)}
+
 
 @uk.gov.hmrc.gform.views.html.main_template(
 title = heading,
@@ -48,13 +47,13 @@ templateId = formTemplate._id
 
     <p class="govuk-body">@Messages("accessibility.description2") <a href="https://www.gov.uk/help/accessibility">@Messages("accessibility.page.title")</a> @Messages("accessibility.description2b")</p>
 
-    <p class="govuk-body">@Messages("accessibility.description3") @formTemplate.formName.value @Messages("accessibility.description3a") <a href="https://www.tax.service.gov.uk/submissions/new-form/@formTemplate._id.value">tax.service.gov.uk/@formTemplate._id.value</a>.</p>
+    <p class="govuk-body">@Messages("accessibility.description3") '@formTemplate.formName.value'@Messages("accessibility.description3a") <a href="https://www.tax.service.gov.uk/submissions/new-form/@formTemplate._id.value">tax.service.gov.uk/@formTemplate._id.value</a>.</p>
 
     <h2 class="govuk-heading-l">@Messages("accessibility.subheading1")</h2>
 
     <p class="govuk-body">@Messages("accessibility.content.block1.p1")</p>
 
-    <ul class="govuk-list govuk-list--bullet">
+    <ul class="bullets">
         <li>@Messages("accessibility.content.block1.li1")</li>
         <li>@Messages("accessibility.content.block1.li2")</li>
         <li>@Messages("accessibility.content.block1.li3")</li>
@@ -87,7 +86,6 @@ templateId = formTemplate._id
     <h2 class="govuk-heading-l">@Messages("accessibility.subheading4")</h2>
 
     <p class="govuk-body">@Html(Messages("accessibility.content.block4.p1"))</p>
-    <script type="text/javascript">var reportProblemAjaxUrl = "/contact/problem_reports_ajax?service=GForm";</script>
 
 
     <h2 class="govuk-heading-l">@Messages("accessibility.subheading5")</h2>
