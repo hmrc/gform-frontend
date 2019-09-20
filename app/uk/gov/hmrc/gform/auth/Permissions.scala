@@ -117,8 +117,8 @@ object Permissions {
 
   object CustomerEditableFormStatus {
     def unapply(status: FormStatus): Option[FormStatus] = status match {
-      case InProgress | Summary | Validated | Summary => Some(status)
-      case _                                          => None
+      case InProgress | Summary | Validated | Signed => Some(status)
+      case _                                         => None
     }
   }
 }
