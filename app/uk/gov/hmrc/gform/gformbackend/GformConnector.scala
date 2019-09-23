@@ -136,9 +136,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     val url =
       formIdData match {
         case FormIdData.Plain(userId, formTemplateId) =>
-          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/submissionDetails"
+          s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}"
         case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
-          s"$baseUrl/forms/${userId.value}/${formTemplateId.value}/${accessCode.value}/submissionDetails"
+          s"$baseUrl/submissionDetails/${userId.value}/${formTemplateId.value}/${accessCode.value}"
       }
     ws.GET[Submission](url)
   }
