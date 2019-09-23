@@ -342,9 +342,9 @@ accessibility.content.block7.p2=Mae’r gwasanaeth hwn yn un o grŵp o wasanaeth
 accessibility.content.block7.h21=Non-Cynnwys nad yw’n hygyrch
 accessibility.content.block7.h21.p=Gall y cynnwys a restrir isod, nad yw’n hygyrch oherwydd y rhesymau a ganlyn, fod yn rhan o'r gwasanaeth hwn.
 accessibility.content.block7.h22=Diffyg cydymffurfio â’r rheoliadau hygyrchedd
-accessibility.content.block7.h22.p1=Mae’n bosibl na fydd darllenydd sgrin yn darllen yn awtomatig rannau bach o wybodaeth sydd i’w gweld ar y tudalennau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.2 (labels or instructions) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
-accessibility.content.block7.h22.p2=Mae’n bosibl y bydd rhywfaint o wybodaeth wedi ei threfnu mewn ffordd sy’n anoddach ei defnyddio i bobl sy’n defnyddio darllenydd sgrin. Nid yw hyn yn bodloni maen prawf llwyddiant 1.3.2 (meaningful sequence) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
-accessibility.content.block7.h22.p3=Mae’n bosibl na fydd rhai negeseuon gwall yn cynnwys yr wybodaeth lawn sydd ei hangen i helpu pobl i ateb cwestiynau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.3 (error suggestion) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block7.h22.p1=1. Mae’n bosibl na fydd darllenydd sgrin yn darllen yn awtomatig rannau bach o wybodaeth sydd i’w gweld ar y tudalennau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.2 (labels or instructions) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block7.h22.p2=2. Mae’n bosibl y bydd rhywfaint o wybodaeth wedi ei threfnu mewn ffordd sy’n anoddach ei defnyddio i bobl sy’n defnyddio darllenydd sgrin. Nid yw hyn yn bodloni maen prawf llwyddiant 1.3.2 (meaningful sequence) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block7.h22.p3=3. Mae’n bosibl na fydd rhai negeseuon gwall yn cynnwys yr wybodaeth lawn sydd ei hangen i helpu pobl i ateb cwestiynau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.3 (error suggestion) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
 accessibility.content.block7.h22.p4=Rydym yn gweithio ar y materion hyn a byddwn yn eu trwsio erbyn 20 Rhagfyr 2019.
 
 accessibility.subheading8=Sut gwnaethom brofi’r gwasanaeth hwn
