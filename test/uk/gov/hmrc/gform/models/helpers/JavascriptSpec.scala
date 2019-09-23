@@ -62,7 +62,7 @@ class JavascriptSpec extends Spec {
 
   "if calculation references only a field in this section" should "not generate Javascript for the static calculation" in {
     val result = fieldJavascript(formComponent("staticExpr", FormCtx("thisSection")))
-    val jsExp = """BigNumber(getValue("thisSection", 0)).decimalPlaces(2, BigNumber.ROUND_DOWN);"""
+    val jsExp = """BigNumber(getValue("thisSection", 0)).decimalPlaces(numberOfDecimalPlaces, roundingMode);"""
     result should include(jsExp)
   }
 
@@ -74,13 +74,13 @@ class JavascriptSpec extends Spec {
         RepeatFormComponentIds(_ :: (1 until 5 map (i => FormComponentId(i + "_" + thisSection))).toList)
       )
     val jsExp =
-      """BigNumber(add(add(add(add(add(0, getValue("thisSection", 0)), getValue("1_thisSection", 0)), getValue("2_thisSection", 0)), getValue("3_thisSection", 0)), getValue("4_thisSection", 0))).decimalPlaces(2, BigNumber.ROUND_DOWN)"""
+      """BigNumber(add(add(add(add(add(0, getValue("thisSection", 0)), getValue("1_thisSection", 0)), getValue("2_thisSection", 0)), getValue("3_thisSection", 0)), getValue("4_thisSection", 0))).decimalPlaces(numberOfDecimalPlaces, roundingMode)"""
     result should include(jsExp)
   }
 
   "if calculation adds a field in this section" should "generate Javascript for the dynamic calculation" in {
     val result = fieldJavascript(formComponent("dynamicExpr", Add(FormCtx("thisSection"), c)))
-    val jsExp = """BigNumber(add(getValue("thisSection", 0), 5)).decimalPlaces(2, BigNumber.ROUND_DOWN);"""
+    val jsExp = """BigNumber(add(getValue("thisSection", 0), 5)).decimalPlaces(numberOfDecimalPlaces, roundingMode);"""
     result should include(jsExp)
   }
 
@@ -90,7 +90,7 @@ class JavascriptSpec extends Spec {
         "dynamicExpr",
         Add(c, Add(Subtraction(c, Subtraction(Multiply(c, Multiply(FormCtx("thisSection"), c)), c)), c))))
     val jsExp =
-      """BigNumber(add(5, add(subtract(5, subtract(multiply(5, multiply(getValue("thisSection", 1), 5)), 5)), 5))).decimalPlaces(2, BigNumber.ROUND_DOWN);"""
+      """BigNumber(add(5, add(subtract(5, subtract(multiply(5, multiply(getValue("thisSection", 0), 5)), 5)), 5))).decimalPlaces(numberOfDecimalPlaces, roundingMode);"""
     result should include(jsExp)
 
   }
