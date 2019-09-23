@@ -20,7 +20,8 @@ import cats.instances.int._
 import cats.syntax.eq._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
-class ValidIfUpdater(validIf: ValidIf, index: Int, baseIds: List[FormComponentId]) {
+class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: List[FormComponentId]) {
+
   private def expandFcId(fcId: FormComponentId): FormComponentId =
     if (baseIds.contains(fcId) && index =!= 0) FormComponentId(index + "_" + fcId.value) else fcId
 
@@ -47,11 +48,21 @@ class ValidIfUpdater(validIf: ValidIf, index: Int, baseIds: List[FormComponentId
     case otherwise                        => otherwise
   }
 
-  val updated = validIf.copy(expr = expandBooleanExpr(validIf.expr))
+  val updated = formComponent.copy(
+    validIf = formComponent.validIf.map(vi => ValidIf(expandBooleanExpr(vi.expr))),
+    `type` = formComponent.`type` match {
+      case t: Text          => t.copy(value = expandExpr(t.value))
+      case t: TextArea      => t.copy(value = expandExpr(t.value))
+      case t: UkSortCode    => t.copy(value = expandExpr(t.value))
+      case t: HmrcTaxPeriod => t.copy(idNumber = expandExpr(t.idNumber))
+      case otherwise        => otherwise
+    }
+  )
 }
 
-object ValidIfUpdater {
-  def apply(validIf: ValidIf, index: Int, group: Group) = new ValidIfUpdater(validIf, index, group.fields.map(_.id))
-  def apply(validIf: ValidIf, index: Int, section: Section) =
-    new ValidIfUpdater(validIf, index, section.fields.map(_.id))
+object FormComponentUpdater {
+  def apply(formComponent: FormComponent, index: Int, group: Group) =
+    new FormComponentUpdater(formComponent, index, group.fields.map(_.id))
+  def apply(formComponent: FormComponent, index: Int, section: Section) =
+    new FormComponentUpdater(formComponent, index, section.fields.map(_.id))
 }

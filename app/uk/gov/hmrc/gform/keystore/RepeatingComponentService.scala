@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.keystore
 
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
-import uk.gov.hmrc.gform.gform.ValidIfUpdater
+import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.graph.Data
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.RepeatFormComponentIds
@@ -82,12 +82,14 @@ object RepeatingComponentService {
           grp.copy(fields = fields.map(copyField))
         case t => t
       }
-      val updValidIf = field.validIf.map(ValidIfUpdater(_, index, section).updated)
-      field.copy(
-        id = FormComponentId(s"${index}_${field.id.value}"),
-        `type` = tpe,
-        validIf = updValidIf
-      )
+      FormComponentUpdater(
+        field.copy(
+          id = FormComponentId(s"${index}_${field.id.value}"),
+          `type` = tpe
+        ),
+        index,
+        section
+      ).updated
     }
 
     section.copy(

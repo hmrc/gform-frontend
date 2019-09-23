@@ -21,7 +21,7 @@ import cats.syntax.eq._
 import play.api.libs.json._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.graph.Data
-import uk.gov.hmrc.gform.gform.ValidIfUpdater
+import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString }
 
@@ -66,12 +66,14 @@ case class FormComponent(
   private def addFieldIndex(field: FormComponent, index: Int, group: Group) = {
     val fieldToUpdate = if (index === 0) field else field.copy(id = FormComponentId(index + "_" + field.id.value))
     val i = index + 1
-    val updValidIf = fieldToUpdate.validIf.map(ValidIfUpdater(_, index, group).updated)
-    fieldToUpdate.copy(
-      label = LabelHelper.buildRepeatingLabel(field.label, i),
-      shortName = LabelHelper.buildRepeatingLabel(field.shortName, i),
-      validIf = updValidIf
-    )
+    FormComponentUpdater(
+      fieldToUpdate.copy(
+        label = LabelHelper.buildRepeatingLabel(field.label, i),
+        shortName = LabelHelper.buildRepeatingLabel(field.shortName, i)
+      ),
+      index,
+      group
+    ).updated
   }
 
   private val expandGroup: Data => Group => Int => List[FormComponent] = data =>
