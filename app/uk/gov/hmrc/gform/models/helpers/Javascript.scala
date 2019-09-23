@@ -90,9 +90,9 @@ object Javascript {
          |function multiply(a, b) {
          |  return BigNumber(a).times(BigNumber(b));
          |};
-         |function displaySterling(result) {
-         |
-         |  return result < 0 ? result.replace("-", "-£") : '£' + BigNumber(result).toFormat(2)
+         |function displaySterling(result, precision, rounding) {
+         |  var r = BigNumber(result).toFormat(precision, rounding);
+         |  return result < 0 ? r.replace("-", "-£") : '£' + r;
          |};
          |""".stripMargin
   }
@@ -138,7 +138,7 @@ object Javascript {
         case Constant(amount)  => amount
         case Add(a, b)         => compute("add", a, b, additionIdentity)
         case Subtraction(a, b) => compute("subtract", a, b, additionIdentity)
-        case Multiply(a, b)    => compute("multiply", a, b, multiplicationIdentity)
+        case Multiply(a, b)    => compute("multiply", a, b, additionIdentity)
         case Sum(FormCtx(id))  => sum(id)
         case otherwise         => ""
       }
@@ -190,14 +190,23 @@ object Javascript {
     val elementId = field.id
     val functionName = JsFunction("compute" + elementId)
 
+    // format: off
     s"""|function $functionName() {
-        |  var result = BigNumber(${computeExpr(expr, additionIdentity)}).decimalPlaces(${roundToCtx(field)}, BigNumber.$elementRoundingMode);
-        |  document.getElementById("$elementId").value = result;
-        |  var total = document.getElementById("$elementId-total");
-        |  if(total) total.innerHTML = ${if (field.isSterling) "displaySterling(result)" else "result"};
-        |}
-        |${listeners(functionName)}
-        |""".stripMargin
+     |  var numberOfDecimalPlaces = ${roundToCtx(field)};
+     |  var roundingMode = BigNumber.$elementRoundingMode;
+     |  var result = BigNumber(${computeExpr(expr, additionIdentity)}).decimalPlaces(numberOfDecimalPlaces, roundingMode);
+     |  var element = document.getElementById("$elementId")
+     |  if(element) {
+     |    element.value = result;
+     |  }
+     |  var total = document.getElementById("$elementId-total");
+     |  if(total) {
+     |    total.innerHTML = ${if (field.isSterling) "displaySterling(result, numberOfDecimalPlaces, roundingMode)" else "result"};
+     |  }
+     |}
+     |${listeners(functionName)}
+     |""".stripMargin
+    // format: on
 
   }
 
