@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext
 trait Spec
     extends FlatSpecLike with Matchers with EitherMatchers with DiagrammedAssertions with TryValues with EitherValues
     with OptionValues with AppendedClues with ScalaFutures with StreamlinedXml with JsResultMatcher with Inside
-    with Eventually with ExampleData with PropertyChecks {
+    with Eventually with ExampleData with PropertyChecks with FormComponentMatcher {
 
   override implicit val patienceConfig =
     PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
