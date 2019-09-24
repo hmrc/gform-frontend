@@ -38,18 +38,18 @@ object Permissions {
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => permitted(operation, role, status)
       case (EditFormWith, Customer | Agent, _)                             => notPermitted(operation, role, status)
       case (EditFormWith, Reviewer, Submitted)                             => notPermitted(operation, role, status)
-      case (EditFormWith, Reviewer, StableReviewFormStatus(_)) =>
-        permittedWithTransientStateInfo(operation, role, status)
-      case (EditFormWith, Reviewer, _)                               => permitted(operation, role, status)
-      case (ReviewAccepted, Reviewer, NeedsReview)                   => permitted(operation, role, status)
-      case (ReviewReturned, Reviewer, NeedsReview)                   => permitted(operation, role, status)
-      case (ReviewReturned, Reviewer, Returning)                     => permittedWithTransientStateInfo(operation, role, status)
-      case (ReviewSubmitted, Reviewer, Accepted | NeedsReview)       => permitted(operation, role, status)
-      case (ReviewSubmitted, Reviewer, Submitting)                   => permittedWithTransientStateInfo(operation, role, status)
-      case (AcceptSummary, _, Summary | Validated)                   => permitted(operation, role, status)
-      case (AcceptSummary, Reviewer, NeedsReview)                    => permitted(operation, role, status)
-      case (SubmitDeclaration, Customer | Agent, Validated | Signed) => permitted(operation, role, status)
-      case (UpdateFormField, Reviewer, StableReviewFormStatus(_))    => permitted(operation, role, status)
+      case (EditFormWith, Reviewer, StableReviewFormStatus(_))             => permitted(operation, role, status)
+      case (EditFormWith, Reviewer, _)                                     => permitted(operation, role, status)
+      case (ReviewAccepted, Reviewer, NeedsReview)                         => permitted(operation, role, status)
+      case (ReviewAccepted, Reviewer, Accepting)                           => permittedWithTransientStateInfo(operation, role, status)
+      case (ReviewReturned, Reviewer, NeedsReview)                         => permitted(operation, role, status)
+      case (ReviewReturned, Reviewer, Returning)                           => permittedWithTransientStateInfo(operation, role, status)
+      case (ReviewSubmitted, Reviewer, Accepted | NeedsReview)             => permitted(operation, role, status)
+      case (ReviewSubmitted, Reviewer, Submitting)                         => permittedWithTransientStateInfo(operation, role, status)
+      case (AcceptSummary, _, Summary | Validated)                         => permitted(operation, role, status)
+      case (AcceptSummary, Reviewer, NeedsReview)                          => permitted(operation, role, status)
+      case (SubmitDeclaration, Customer | Agent, Validated | Signed)       => permitted(operation, role, status)
+      case (UpdateFormField, Reviewer, StableReviewFormStatus(_))          => permitted(operation, role, status)
       case (UpdateFormField, Reviewer, TransientReviewFormStatus(_)) =>
         permittedWithTransientStateInfo(operation, role, status)
       case (ViewDeclaration, _, Validated)                 => permitted(operation, role, status)
@@ -89,12 +89,12 @@ object Permissions {
   }
 
   private def notPermitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Loggers.permissions.warn(formatLogMessage(operation.toString, role, Some(status), "Invalid"))
+    Loggers.permissions.error(formatLogMessage(operation.toString, role, Some(status), "Invalid"))
     NotPermitted
   }
 
   private def notPermitted(operation: OperationWithoutForm, role: Role) = {
-    Loggers.permissions.warn(formatLogMessage(operation.toString, role, None, "Invalid"))
+    Loggers.permissions.error(formatLogMessage(operation.toString, role, None, "Invalid"))
     NotPermitted
   }
 
