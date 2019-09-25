@@ -18,11 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json._
 
-case class SectionNumber(value: Int) {
-  def >(sn: SectionNumber): Boolean = this.value > sn.value
-  def >=(sn: SectionNumber): Boolean = this.value >= sn.value
-  def <(sn: SectionNumber): Boolean = this.value < sn.value
-  def <=(sn: SectionNumber): Boolean = this.value <= sn.value
+case class SectionNumber(value: Int) extends Ordered[SectionNumber] {
+  override def compare(that: SectionNumber): Int = value.compare(that.value)
 }
 
 object SectionNumber {
