@@ -51,7 +51,7 @@ object Permissions {
       case (SubmitDeclaration, Customer | Agent, Validated | Signed)       => valid(operation, role, status)
       case (UpdateFormField, Reviewer, StableReviewFormStatus(_))          => valid(operation, role, status)
       case (UpdateFormField, Reviewer, TransientReviewFormStatus(_))       => validTransient(operation, role, status)
-      case (ViewDeclaration, _, Validated)                                 => valid(operation, role, status)
+      case (ViewDeclaration, _, Validated | InProgress)                    => valid(operation, role, status)
       case (ViewDeclaration, Reviewer, NeedsReview)                        => valid(operation, role, status)
       case (ViewSummary, Reviewer, NeedsReview | Accepted)                 => valid(operation, role, status)
       case (ViewSummary, Reviewer, TransientReviewFormStatus(_))           => validTransient(operation, role, status)
