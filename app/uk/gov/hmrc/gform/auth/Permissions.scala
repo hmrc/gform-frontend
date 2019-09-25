@@ -26,80 +26,101 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, Accepting, FormStatus, InP
 
 object Permissions {
   def apply(operation: OperationWithoutForm, role: Role): PermissionResult = (operation, role) match {
-    case (EditFormWithout, Agent | Customer) => permitted(operation, role)
-    case (ShowAccessCode, Agent | Customer)  => permitted(operation, role)
-    case (ViewDashboard, _)                  => permitted(operation, role)
-    case _                                   => notPermitted(operation, role)
+    case (EditFormWithout, Agent | Customer) => valid(operation, role)
+    case (ShowAccessCode, Agent | Customer)  => valid(operation, role)
+    case (ViewDashboard, _)                  => valid(operation, role)
+    case _                                   => mostLikelyInvalid(operation, role)
   }
 
   def apply(operation: OperationWithForm, role: Role, status: FormStatus): PermissionResult =
     (operation, role, status) match {
-      case (DownloadSummaryPdf, _, _)                                      => permitted(operation, role, status)
-      case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => permitted(operation, role, status)
-      case (EditFormWith, Customer | Agent, _)                             => notPermitted(operation, role, status)
-      case (EditFormWith, Reviewer, Submitted)                             => notPermitted(operation, role, status)
-      case (EditFormWith, Reviewer, StableReviewFormStatus(_))             => permitted(operation, role, status)
-      case (EditFormWith, Reviewer, _)                                     => permitted(operation, role, status)
-      case (ReviewAccepted, Reviewer, NeedsReview)                         => permitted(operation, role, status)
-      case (ReviewAccepted, Reviewer, Accepting)                           => permittedWithTransientStateInfo(operation, role, status)
-      case (ReviewReturned, Reviewer, NeedsReview)                         => permitted(operation, role, status)
-      case (ReviewReturned, Reviewer, Returning)                           => permittedWithTransientStateInfo(operation, role, status)
-      case (ReviewSubmitted, Reviewer, Accepted | NeedsReview)             => permitted(operation, role, status)
-      case (ReviewSubmitted, Reviewer, Submitting)                         => permittedWithTransientStateInfo(operation, role, status)
-      case (AcceptSummary, _, Summary | Validated)                         => permitted(operation, role, status)
-      case (AcceptSummary, Reviewer, NeedsReview)                          => permitted(operation, role, status)
-      case (SubmitDeclaration, Customer | Agent, Validated | Signed)       => permitted(operation, role, status)
-      case (UpdateFormField, Reviewer, StableReviewFormStatus(_))          => permitted(operation, role, status)
-      case (UpdateFormField, Reviewer, TransientReviewFormStatus(_)) =>
-        permittedWithTransientStateInfo(operation, role, status)
-      case (ViewDeclaration, _, Validated)                 => permitted(operation, role, status)
-      case (ViewDeclaration, Reviewer, NeedsReview)        => permitted(operation, role, status)
-      case (ViewSummary, Reviewer, NeedsReview | Accepted) => permitted(operation, role, status)
-      case (ViewSummary, Reviewer, TransientReviewFormStatus(_)) =>
-        permittedWithTransientStateInfo(operation, role, status)
-      case (ViewSummary, _, Summary | Validated | Signed) => permitted(operation, role, status)
-      case (ForceUpdateFormStatus, Reviewer, _)           => permitted(operation, role, status)
-      case _                                              => notPermitted(operation, role, status)
+      case (DownloadSummaryPdf, _, _)                                      => valid(operation, role, status)
+      case (_, _, Submitted)                                               => definitelyInvalid(operation, role, status)
+      case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => valid(operation, role, status)
+      case (EditFormWith, Customer | Agent, _)                             => mostLikelyInvalid(operation, role, status)
+      case (EditFormWith, Reviewer, StableReviewFormStatus(_))             => valid(operation, role, status)
+      case (EditFormWith, Reviewer, _)                                     => valid(operation, role, status)
+      case (ReviewAccepted, Reviewer, NeedsReview)                         => valid(operation, role, status)
+      case (ReviewAccepted, Reviewer, Accepting)                           => validTransient(operation, role, status)
+      case (ReviewReturned, Reviewer, NeedsReview)                         => valid(operation, role, status)
+      case (ReviewReturned, Reviewer, Returning)                           => validTransient(operation, role, status)
+      case (ReviewSubmitted, Reviewer, Accepted | NeedsReview)             => valid(operation, role, status)
+      case (ReviewSubmitted, Reviewer, Submitting)                         => validTransient(operation, role, status)
+      case (AcceptSummary, _, Summary | Validated | Signed)                => valid(operation, role, status)
+      case (AcceptSummary, Reviewer, NeedsReview)                          => valid(operation, role, status)
+      case (SubmitDeclaration, Customer | Agent, Validated | Signed)       => valid(operation, role, status)
+      case (UpdateFormField, Reviewer, StableReviewFormStatus(_))          => valid(operation, role, status)
+      case (UpdateFormField, Reviewer, TransientReviewFormStatus(_))       => validTransient(operation, role, status)
+      case (ViewDeclaration, _, Validated)                                 => valid(operation, role, status)
+      case (ViewDeclaration, Reviewer, NeedsReview)                        => valid(operation, role, status)
+      case (ViewSummary, Reviewer, NeedsReview | Accepted)                 => valid(operation, role, status)
+      case (ViewSummary, Reviewer, TransientReviewFormStatus(_))           => validTransient(operation, role, status)
+      case (ViewSummary, _, Summary | Validated | Signed | InProgress)     => valid(operation, role, status)
+      case (ForceUpdateFormStatus, Reviewer, _)                            => valid(operation, role, status)
+      case _                                                               => mostLikelyInvalid(operation, role, status)
     }
 
-  private def permitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
+  private def valid(operation: OperationWithForm, role: Role, status: FormStatus) = {
     Loggers.permissions.info(formatLogMessage(operation.toString, role, Some(status), "Valid"))
     Permitted
   }
 
-  private def permitted(operation: OperationWithoutForm, role: Role) = {
+  private def valid(operation: OperationWithoutForm, role: Role) = {
     Loggers.permissions.info(formatLogMessage(operation.toString, role, None, "Valid"))
     Permitted
   }
 
-  private def permittedWithTransientStateInfo(operation: OperationWithForm, role: Role, status: FormStatus) = {
+  private def validTransient(operation: OperationWithForm, role: Role, status: FormStatus) = {
     Loggers.permissions.info(
       formatLogMessage(
         operation.toString,
         role,
         Some(status),
-        "Valid for form stuck in a transient state. It is worth investigating why the form got stuck."))
+        "Valid",
+        "Form stuck in a transient state. It is worth investigating why the form got stuck."))
     Permitted
   }
 
-  private def permitWithWarning(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Loggers.permissions.warn(
-      formatLogMessage(operation.toString, role, Some(status), "Invalid") + "Allowing anyway. This should be fixed before going to production.")
-    Permitted
-  }
-
-  private def notPermitted(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Loggers.permissions.error(formatLogMessage(operation.toString, role, Some(status), "Invalid"))
+  private def mostLikelyInvalid(operation: OperationWithForm, role: Role, status: FormStatus) = {
+    Loggers.permissions.error(
+      formatLogMessage(
+        operation.toString,
+        role,
+        Some(status),
+        "Invalid",
+        "This combination is currently blocked. Verify that it should be."))
     NotPermitted
   }
 
-  private def notPermitted(operation: OperationWithoutForm, role: Role) = {
-    Loggers.permissions.error(formatLogMessage(operation.toString, role, None, "Invalid"))
+  private def mostLikelyInvalid(operation: OperationWithoutForm, role: Role) = {
+    Loggers.permissions.error(
+      formatLogMessage(
+        operation.toString,
+        role,
+        None,
+        "Invalid",
+        "This combination is currently blocked. Verify that it should be."))
     NotPermitted
   }
 
-  private def formatLogMessage(operation: String, role: Role, status: Option[FormStatus], validity: String) =
-    f"$validity%-20s $operation%-20s $role%-20s ${status.map(_.toString).getOrElse("")}%-20s"
+  private def definitelyInvalid(operation: OperationWithForm, role: Role, status: FormStatus) = {
+    Loggers.permissions.info(
+      formatLogMessage(
+        operation.toString,
+        role,
+        Some(status),
+        "Invalid",
+        "This combination has been examined and is correctly blocked."))
+    NotPermitted
+  }
+
+  private def formatLogMessage(
+    operation: String,
+    role: Role,
+    status: Option[FormStatus],
+    validity: String,
+    comment: String = "") =
+    f"$validity%-20s $operation%-20s $role%-20s ${status.map(_.toString).getOrElse("")}%-20s$comment"
 
   object StableReviewFormStatus {
     def unapply(status: FormStatus): Option[FormStatus] = status match {
