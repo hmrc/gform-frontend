@@ -25,7 +25,7 @@ import shapeless.syntax.typeable._
 import scala.language.higherKinds
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue }
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ And, BooleanExpr, Contains, Equals, Expr, FormComponentId, FormCtx, FormTemplate, GreaterThan, GreaterThanOrEquals, IsFalse, IsTrue, LessThan, LessThanOrEquals, Not, NotEquals, Or }
 import uk.gov.hmrc.gform.sharedmodel.graph.GraphNode
@@ -85,14 +85,8 @@ class BooleanExprEval[F[_]: Monad](
     }
 
     def includes(field: FormCtx, value: Expr): F[Boolean] = {
-      val options: F[List[String]] =
-        Convertible
-          .asString(evaluator.evalFormCtx(visSet, field, data), formTemplate)
-          .map(_.flatMap(_.cast[NewValue].map(_.value)))
-          .map {
-            case Some(v: String) => v.split(",").map(_.trim).filterNot(_.isEmpty).toList
-            case None            => Nil
-          }
+      val options: F[Set[String]] =
+        evaluator.evalVariadicFormCtx(visSet, field, data).toSet.flatMap((_: VariadicValue).toSet).pure[F]
 
       val testValue: F[Option[String]] =
         Convertible

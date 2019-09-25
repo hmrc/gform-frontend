@@ -339,10 +339,13 @@ class Evaluator[F[_]: Monad](
     }
   }
 
-  def evalFormCtx(visSet: Set[GraphNode], fc: FormCtx, dataLookup: VariadicFormData)(
-    implicit hc: HeaderCarrier): Convertible[F] =
+  def evalFormCtx(visSet: Set[GraphNode], fc: FormCtx, dataLookup: VariadicFormData): Convertible[F] =
     if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
     else getSubmissionData(dataLookup, fc.toFieldId)
+
+  def evalVariadicFormCtx(visSet: Set[GraphNode], fc: FormCtx, dataLookup: VariadicFormData): Option[VariadicValue] =
+    if (isHidden(fc.toFieldId, visSet)) None
+    else dataLookup.get(fc.toFieldId)
 
   def eval(
     visSet: Set[GraphNode],
