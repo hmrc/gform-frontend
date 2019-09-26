@@ -18,7 +18,9 @@ package uk.gov.hmrc.gform.gformbackend
 
 import cats.data.NonEmptyList
 import cats.instances.future._
+import cats.instances.string._
 import cats.syntax.functor._
+import cats.syntax.show._
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.gform.CustomerId
@@ -83,10 +85,10 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.PUT[UserData, HttpResponse](url, userData).void
   }
 
-  def forceUpdateFormStatus(formId: FormId, status: FormStatus)(
+  def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] =
-    ws.PUT[String, HttpResponse](s"$baseUrl/formBundles/${formId.value}/$status/forceStatus", "").void
+    ws.PUT[String, HttpResponse](s"$baseUrl/formBundles/${urlFragment(formId)}/$status/forceStatus", "").void
 
   //TODO: now returns string, but it should return list of validations
   def validateSection(formId: FormId, sectionNumber: SectionNumber)(
@@ -193,18 +195,26 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /****** Form Bundles ******/
   def getFormBundle(
-    rootFormId: FormId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormId]] = {
+    rootFormId: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormId]] = {
     import JsonUtils._
-    ws.GET[NonEmptyList[FormId]](s"$baseUrl/formBundles/${rootFormId.value}")
+    ws.GET[NonEmptyList[FormId]](show"$baseUrl/formBundles/${urlFragment(rootFormId)}")
   }
 
-  def submitFormBundle(rootFormId: FormId, bundle: NonEmptyList[BundledFormSubmissionData])(
+  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] = {
     import JsonUtils._
     ws.POST[NonEmptyList[BundledFormSubmissionData], HttpResponse](
-        s"$baseUrl/formBundles/${rootFormId.value}/submitAfterReview",
+        show"$baseUrl/formBundles/${urlFragment(rootFormId)}/submitAfterReview",
         bundle)
       .void
   }
+
+  private def urlFragment(formIdData: FormIdData): String =
+    formIdData match {
+      case FormIdData.Plain(userId, formTemplateId) =>
+        s"${userId.value}/${formTemplateId.value}"
+      case FormIdData.WithAccessCode(userId, formTemplateId, accessCode) =>
+        s"${userId.value}/${formTemplateId.value}/${accessCode.value}"
+    }
 }

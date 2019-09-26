@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.Show
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
 
@@ -31,4 +32,5 @@ object FormTemplateId {
     ValueClassFormat.vformat("formTemplateId", FormTemplateId.apply, x => JsString(x.value))
   val oformat: OFormat[FormTemplateId] = ValueClassFormat.oformat("formTemplateId", FormTemplateId.apply, _.value)
 
+  implicit val show: Show[FormTemplateId] = Show.show(_.value)
 }

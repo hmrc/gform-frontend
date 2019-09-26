@@ -41,7 +41,7 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
     reviewData: Map[String, String],
     maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier) =
     gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form, maybeAccessCode) >>
-      gformBackEnd.forceUpdateFormStatus(cache.form._id, status)
+      gformBackEnd.forceUpdateFormStatus(FormIdData.fromForm(cache.form, maybeAccessCode), status)
 
   def acceptForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
     implicit request: Request[AnyContent],
@@ -64,10 +64,10 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
     headerCarrier: HeaderCarrier,
     l: LangADT): F[Unit] =
     for {
-      bundle           <- gformBackEnd.getFormBundle(cache.form._id)
+      bundle           <- gformBackEnd.getFormBundle(FormIdData.fromForm(cache.form, maybeAccessCode))
       formDataToSubmit <- buildFormDataToSubmit(bundle)
       _                <- gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form, maybeAccessCode)
-      result           <- gformBackEnd.submitFormBundle(cache.form._id, formDataToSubmit)
+      result           <- gformBackEnd.submitFormBundle(FormIdData.fromForm(cache.form, maybeAccessCode), formDataToSubmit)
     } yield result
 
   private def updateWithReviewData(cache: AuthCacheWithForm, reviewData: Map[String, String]) =

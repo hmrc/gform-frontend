@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import cats.Show
 import play.api.libs.json.Format
 
 case class AccessCode(value: String)
@@ -24,4 +25,6 @@ object AccessCode {
   implicit val format: Format[AccessCode] = ValueClassFormat.simpleFormat(AccessCode.apply)(_.value)
 
   def fromSubmissionRef(submissionRef: SubmissionRef): AccessCode = AccessCode(submissionRef.value)
+
+  implicit val show: Show[AccessCode] = Show.show(_.value)
 }

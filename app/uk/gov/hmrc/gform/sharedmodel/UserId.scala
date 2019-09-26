@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import cats.Show
 import play.api.libs.json._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 
@@ -27,6 +28,8 @@ object UserId {
 
   val oformat: OFormat[UserId] = ValueClassFormat.oformat("userId", UserId.apply, _.value)
   implicit val vformat: OFormat[UserId] = ValueClassFormat.oformat("userId", UserId.apply, _.value)
+
+  implicit val show: Show[UserId] = Show.show(_.value)
 
   //
   //  //TODO: move validation logic to auth service.

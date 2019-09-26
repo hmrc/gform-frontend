@@ -54,12 +54,12 @@ trait GformBackEndAlgebra[F[_]] {
 
   def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): F[Unit]
 
-  def getFormBundle(rootFormId: FormId)(implicit hc: HeaderCarrier): F[NonEmptyList[FormId]]
+  def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): F[NonEmptyList[FormId]]
 
-  def submitFormBundle(rootFormId: FormId, bundle: NonEmptyList[BundledFormSubmissionData])(
+  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
     implicit hc: HeaderCarrier): F[Unit]
 
-  def forceUpdateFormStatus(formId: FormId, status: FormStatus)(implicit hc: HeaderCarrier): F[Unit]
+  def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit hc: HeaderCarrier): F[Unit]
 }
 
 class GformBackEndService(
@@ -77,10 +77,10 @@ class GformBackEndService(
   def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): Future[FormTemplate] =
     gformConnector.getFormTemplate(id)
 
-  def getFormBundle(rootFormId: FormId)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormId]] =
+  def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormId]] =
     gformConnector.getFormBundle(rootFormId)
 
-  def submitFormBundle(rootFormId: FormId, bundle: NonEmptyList[BundledFormSubmissionData])(
+  def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
     implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector.submitFormBundle(rootFormId, bundle)
 
@@ -101,7 +101,7 @@ class GformBackEndService(
       response   <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails)
     } yield (response, customerId)
 
-  def forceUpdateFormStatus(formId: FormId, status: FormStatus)(implicit hc: HeaderCarrier): Future[Unit] =
+  def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit hc: HeaderCarrier): Future[Unit] =
     gformConnector.forceUpdateFormStatus(formId, status)
 
   private def handleSubmission(
