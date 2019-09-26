@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.keystore
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
-import uk.gov.hmrc.gform.models.helpers.RepeatFormComponentIds
+import uk.gov.hmrc.gform.models.javascript.RepeatFormComponentIds
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -226,8 +226,5 @@ object RepeatingComponentService {
 
   def atomicFieldsFull(section: Section): List[FormComponent] =
     section.expandSectionFull.expandedFormComponents.flatMap(_.formComponents)
-
-  def atomicFieldsFullWithCtx(section: Section): List[FormComponentWithCtx] =
-    section.expandSectionFullWithCtx
 
 }

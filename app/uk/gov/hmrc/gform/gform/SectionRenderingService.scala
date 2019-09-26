@@ -40,9 +40,9 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
-import uk.gov.hmrc.gform.models.helpers.Javascript._
-import uk.gov.hmrc.gform.models.{ DateExpr, Dependecies, FormComponentIdDeps, SectionRenderingInformation }
+import uk.gov.hmrc.gform.models.{ DateExpr, SectionRenderingInformation }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
@@ -112,27 +112,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val section = dynamicSections(sectionNumber.value)
     val formLevelHeading = shouldDisplayHeading(section, formTemplate.GFC579Ready.getOrElse("false"))
 
-    val graph = DependencyGraph.toGraphFull(formTemplate)
-
-    val graphTopologicalOrder: Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] =
-      DependencyGraph.constructDependencyGraph(graph)
-
-    val dependencies: Dependecies = graphTopologicalOrder match {
-      case Left(_) => Dependecies(List.empty[FormComponentIdDeps])
-      case Right(lto) =>
-        val depLayers: Traversable[List[FormComponentId]] =
-          lto.map(_._2).map(_.collect { case SimpleGN(fcId) => fcId })
-        val (deps, _) =
-          depLayers
-            .foldRight((List.empty[FormComponentIdDeps], List.empty[FormComponentId])) {
-              case (layer, (deps, acc)) =>
-                val newDeps = layer.map { fcId =>
-                  FormComponentIdDeps(fcId, acc) // all of acc depends on fcId
-                }
-                (deps ++ newDeps, acc ++ layer)
-            }
-        Dependecies(deps)
-    }
     val ei = ExtraInfo(
       maybeAccessCode,
       sectionNumber,
@@ -148,10 +127,11 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber)
     val listResult = errors.map { case (_, validationResult) => validationResult }
 
-    val sectionAtomicFields = RepeatingComponentService.atomicFieldsFullWithCtx(section)
+    val jsFormComponentModels = section.jsFormComponentModels
     val allAtomicFields = dynamicSections.flatMap(RepeatingComponentService.atomicFieldsFull)
-    val javascript =
-      createJavascript(dynamicSections.flatMap(_.fields), sectionAtomicFields, allAtomicFields, dependencies)
+
+    val javascript = JavascriptMaker.generateJs(sectionNumber, dynamicSections, formTemplate)
+
     val (hiddenTemplateFields, fieldDataUpd) =
       Fields.getHiddenTemplateFields(section, dynamicSections, fieldData, lookupRegistry.extractors)
     val hiddenSnippets = Fields
@@ -425,23 +405,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       Nil
     )
     html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig, false)
-  }
-
-  private def createJavascript(
-    fieldList: List[FormComponent],
-    sectionAtomicFields: List[FormComponentWithCtx],
-    allAtomicFields: List[FormComponent],
-    dependencies: Dependecies): String = {
-    val groups: List[(FormComponentId, Group)] = fieldList
-      .filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel))
-      .collect {
-        case fc @ IsGroup(group) => (fc.id, group)
-      }
-
-    val repeatFormComponentIds = RepeatingComponentService.getRepeatFormComponentIds(allAtomicFields)
-
-    groups.map((collapsingGroupJavascript _).tupled).mkString("\n") +
-      fieldJavascript(sectionAtomicFields, allAtomicFields, repeatFormComponentIds, dependencies)
   }
 
   private def htmlFor(
