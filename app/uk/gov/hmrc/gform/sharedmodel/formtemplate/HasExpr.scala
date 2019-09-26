@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup }
+
 sealed trait ExprCardinality
 case class SingleExpr(expr: Expr) extends ExprCardinality
 case class MultipleExpr(fields: List[FormComponent]) extends ExprCardinality

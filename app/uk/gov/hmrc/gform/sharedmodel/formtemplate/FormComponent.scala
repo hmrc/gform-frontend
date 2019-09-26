@@ -22,17 +22,8 @@ import play.api.libs.json._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithGroup, JsFormComponentModel, JsFormComponentWithCtx, JsRevealingChoiceModel }
 import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString, VariadicFormData }
-
-sealed trait FormComponentWithCtx {
-  def id: FormComponentId = this match {
-    case FormComponentWithGroup(fc, _) => fc.id
-    case FormComponentSimple(fc)       => fc.id
-  }
-}
-
-case class FormComponentWithGroup(fc: FormComponent, parent: FormComponent) extends FormComponentWithCtx
-case class FormComponentSimple(fc: FormComponent) extends FormComponentWithCtx
 
 case class ExpandedFormComponent(formComponents: List[FormComponent]) extends AnyVal {
   def allIds: List[FormComponentId] = {
@@ -108,12 +99,17 @@ case class FormComponent(
       case _                                  => fc :: Nil
     }
 
-  private def expandWithCtx(fc: FormComponent): List[FormComponentWithCtx] =
+  private def mkJsFormComponentModels(fc: FormComponent): List[JsFormComponentModel] =
     fc.`type` match {
+      case RevealingChoice(options, _) =>
+        options.toList.zipWithIndex.flatMap {
+          case (option, index) =>
+            option.revealingFields.map(rf => JsRevealingChoiceModel(fc.id, index, rf))
+        }
       case group @ Group(fields, _, max, _, _, _) =>
         (0 until max.getOrElse(1)).toList.flatMap(index =>
-          fields.map(field => FormComponentWithGroup(addFieldIndex(field, index, group), fc)))
-      case _ => FormComponentSimple(fc) :: Nil
+          fields.map(field => JsFormComponentWithCtx(FormComponentWithGroup(addFieldIndex(field, index, group), fc))))
+      case _ => JsFormComponentWithCtx(FormComponentSimple(fc)) :: Nil
     }
 
   def expandFormComponent(data: VariadicFormData): ExpandedFormComponent =
@@ -123,7 +119,7 @@ case class FormComponent(
 
   val expandFormComponentFull: ExpandedFormComponent = ExpandedFormComponent(expandAll(this))
 
-  val expandFormComponentFullWithCtx: List[FormComponentWithCtx] = expandWithCtx(this)
+  val jsFormComponentModels: List[JsFormComponentModel] = mkJsFormComponentModels(this)
 
 }
 

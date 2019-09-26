@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models.helpers
+package uk.gov.hmrc.gform.models.javascript
 
-import uk.gov.hmrc.gform.models.Dependecies
+import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import FormComponentHelper.extractMaxFractionalDigits
+import uk.gov.hmrc.gform.models.helpers.FormComponentHelper.extractMaxFractionalDigits
 import uk.gov.hmrc.gform.ops._
 
-case class JsFunction(name: String) extends AnyVal {
+private case class JsFunction(name: String) extends AnyVal {
   override def toString = name
 }
 
@@ -30,20 +30,51 @@ case class RepeatFormComponentIds(op: FormComponentId => List[FormComponentId]) 
 object Javascript {
 
   def fieldJavascript(
-    sectionFields: List[FormComponentWithCtx],
+    jsFormComponentModels: List[JsFormComponentModel],
     allFields: List[FormComponent],
     repeatFormComponentIds: RepeatFormComponentIds,
-    dependencies: Dependecies): String = {
+    dependencies: Dependencies): String = {
 
-    val sectionFieldIds = sectionFields.map(_.id).toSet
+    val (jsRevealingChoiceModels, sectionFields) =
+      jsFormComponentModels.foldLeft((List.empty[JsRevealingChoiceModel], List.empty[FormComponentWithCtx])) {
+        case ((rcModel, fcWithCtx), next) =>
+          next match {
+            case x: JsRevealingChoiceModel => (x :: rcModel, fcWithCtx)
+            case x: JsFormComponentWithCtx => (rcModel, x.fcWithCtx :: fcWithCtx)
+          }
+      }
+
+    val dynamicFcIds = sectionFields.map(_.id).toSet ++ jsRevealingChoiceModels.map(_.fc.id).toSet
 
     def isDynamic(expr: Expr): Boolean = expr match {
-      case f @ FormCtx(_)              => sectionFieldIds.contains(f.toFieldId)
+      case f @ FormCtx(_)              => dynamicFcIds.contains(f.toFieldId)
       case Sum(f)                      => isDynamic(f)
       case Add(field1, field2)         => isDynamic(field1) || isDynamic(field2)
       case Subtraction(field1, field2) => isDynamic(field1) || isDynamic(field2)
       case Multiply(field1, field2)    => isDynamic(field1) || isDynamic(field2)
       case otherwise                   => false
+    }
+
+    val isHiddenScripts = jsRevealingChoiceModels.map {
+      case JsRevealingChoiceModel(rcFc, index, fc) =>
+        s"""|var isHidden${fc.id.value} = function () {
+            |  return document.getElementById("fields-${rcFc.value + index.toString}").classList.contains("js-hidden");
+            |};""".stripMargin
+    }
+    val isHiddenScripts2 = sectionFields.map { sf =>
+      s"""|var isHidden${sf.id.value} = function () {
+          |  return false;
+          |};""".stripMargin
+    }
+
+    val radiosAndCheckboxes = jsRevealingChoiceModels.map(_.fcId)
+
+    val mkEvents: JsFunction => List[String] = functionName =>
+      radiosAndCheckboxes.distinct.map { fcId =>
+        s"""|document.getElementsByName("${fcId.value}").forEach(function(element, index) {
+            |  element.addEventListener("change",$functionName);
+            |});
+            |""".stripMargin
     }
 
     val fieldIdWithExpr: List[(FormComponentWithCtx, Expr)] =
@@ -60,11 +91,23 @@ object Javascript {
       }
 
     fieldIdWithExpr
-      .map(x => toJavascriptFn(x._1, x._2, repeatFormComponentIds, dependencies.toLookup, groupFoldButtons.toMap))
+      .map {
+        case (formComponentWithCtx, expr) =>
+          toJavascriptFn(
+            formComponentWithCtx,
+            expr,
+            repeatFormComponentIds,
+            dependencies.toLookup,
+            groupFoldButtons.toMap,
+            mkEvents)
+      }
       .mkString("\n") +
-      """|function getValue(elementId, identity) {
+      isHiddenScripts.mkString("\n") +
+      isHiddenScripts2.mkString("\n") +
+      """|function getValue(elementId, identity, isHidden) {
          |   var el = document.getElementById(elementId);
-         |   if (el) {
+         |   var isVisible = !isHidden();
+         |   if (el && isVisible) {
          |     return getNumber(el.value.replace(/[£,]/g,''), identity);
          |   } else {
          |     return identity;
@@ -75,7 +118,7 @@ object Javascript {
          |  if (value == ""){
          |    return identity;
          |  } else {
-         |   return value.replace(",", "");
+         |    return value.replace(",", "");
          |  }
          |};
          |
@@ -102,7 +145,9 @@ object Javascript {
     expr: Expr,
     repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
-    groupFoldButtonLookup: Map[FormComponentId, FormComponentWithGroup]): String = {
+    groupFoldButtonLookup: Map[FormComponentId, FormComponentWithGroup],
+    radioAndCheckboxes: JsFunction => List[String]
+  ): String = {
 
     def getRoundingMode(fc: FormComponent) =
       fc.`type` match {
@@ -134,7 +179,7 @@ object Javascript {
         s"$operation(${computeExpr(left, id)}, ${computeExpr(right, id)})"
 
       expr match {
-        case FormCtx(id)       => s"""getValue("$id", $opIdentity)"""
+        case FormCtx(id)       => s"""getValue("$id", $opIdentity, isHidden$id)"""
         case Constant(amount)  => amount
         case Add(a, b)         => compute("add", a, b, additionIdentity)
         case Subtraction(a, b) => compute("subtract", a, b, additionIdentity)
@@ -165,7 +210,7 @@ object Javascript {
             deps
               .map { id =>
                 s"""|${hasFoldButton(id)}
-                    |var element$id = document.getElementById("$id")
+                    |var element$id = document.getElementById("$id");
                     |if (element$id) {
                     |  element$id.addEventListener("change",$functionName);
                     |  element$id.addEventListener("keyup",$functionName);
@@ -205,12 +250,13 @@ object Javascript {
      |  }
      |}
      |${listeners(functionName)}
+     |${radioAndCheckboxes(functionName).mkString("\n")}
      |""".stripMargin
     // format: on
 
   }
 
-  def roundToCtx(fc: FormComponentWithCtx) = fc match {
+  def roundToCtx(fc: FormComponentWithCtx): Int = fc match {
     case FormComponentWithGroup(fc, _) => extractMaxFractionalDigits(fc).maxDigits
     case FormComponentSimple(fc)       => extractMaxFractionalDigits(fc).maxDigits
   }

@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import cats.data.NonEmptyList
 import play.api.libs.json._
+import uk.gov.hmrc.gform.models.javascript.JsFormComponentModel
 import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormField
 
@@ -64,7 +65,7 @@ case class Section(
   val expandSectionFull: ExpandedSection =
     ExpandedSection(fields.map(_.expandFormComponentFull), includeIf) // TODO expand sections
 
-  val expandSectionFullWithCtx: List[FormComponentWithCtx] = fields.flatMap(_.expandFormComponentFullWithCtx)
+  val jsFormComponentModels: List[JsFormComponentModel] = fields.flatMap(_.jsFormComponentModels)
 
   def isRepeating: Boolean = repeatsMax.isDefined && repeatsMin.isDefined
 }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.models
+package uk.gov.hmrc.gform.models.javascript
 
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 case class FormComponentIdDeps(fid: FormComponentId, deps: List[FormComponentId])
-case class Dependecies(deps: List[FormComponentIdDeps]) extends AnyVal {
+case class Dependencies(deps: List[FormComponentIdDeps]) extends AnyVal {
   def toLookup: Map[FormComponentId, List[FormComponentId]] = deps.map(dep => (dep.fid, dep.deps)).toMap
 }

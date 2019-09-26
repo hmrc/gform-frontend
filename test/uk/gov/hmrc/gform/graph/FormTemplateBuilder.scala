@@ -34,6 +34,7 @@ object FormTemplateBuilder {
       None
     )
 
+  def mkSection(formComponents: FormComponent*): Section = mkSection(formComponents.toList)
   def mkSection(formComponents: List[FormComponent]) =
     Section(
       toLocalisedString("Section Name"),
@@ -106,6 +107,7 @@ object FormTemplateBuilder {
   def mkFormComponentEditable(fcId: String, expr: Expr): FormComponent =
     mkFormComponentEditable(fcId, Text(AnyText, expr))
 
+  def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
   def mkFormTemplate(sections: List[Section]) = FormTemplate.withDeprecatedDmsSubmission(
     FormTemplateId("tst1"),
     toLocalisedString("Dependecy heavy experiment"),

@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup, IsUpperCase, Number, PositiveNumber, Sterling, Text, TextArea }
+import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithCtx, FormComponentWithGroup }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, IsUpperCase, Number, PositiveNumber, Sterling, Text, TextArea }
 
 package object ops {
 
