@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform.auth
 
+import org.slf4j.helpers.NOPLogger
+import play.api.Logger
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.{ EditForm => EditFormWith, _ }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm.{ EditForm => EditFormWithout, _ }
 import uk.gov.hmrc.gform.auth.models.PermissionResult.{ NotPermitted, Permitted }
@@ -24,15 +26,26 @@ import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm, 
 import uk.gov.hmrc.gform.logging.Loggers
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepted, Accepting, FormStatus, InProgress, NeedsReview, Returning, Signed, Submitted, Submitting, Summary, Validated }
 
+import scala.io.Source
+
 object Permissions {
-  def apply(operation: OperationWithoutForm, role: Role): PermissionResult = (operation, role) match {
-    case (EditFormWithout, Agent | Customer) => valid(operation, role)
-    case (ShowAccessCode, Agent | Customer)  => valid(operation, role)
-    case (ViewDashboard, _)                  => valid(operation, role)
-    case _                                   => mostLikelyInvalid(operation, role)
-  }
+  def apply(operation: OperationWithoutForm, role: Role): PermissionResult =
+    evaluateOperationWithoutForm(operation, role)(Loggers.permissions)
 
   def apply(operation: OperationWithForm, role: Role, status: FormStatus): PermissionResult =
+    evaluateOperationWithForm(operation, role, status)(Loggers.permissions)
+
+  private[auth] def evaluateOperationWithoutForm(operation: OperationWithoutForm, role: Role)(
+    implicit logger: Logger): PermissionResult =
+    (operation, role) match {
+      case (EditFormWithout, Agent | Customer) => valid(operation, role)
+      case (ShowAccessCode, Agent | Customer)  => valid(operation, role)
+      case (ViewDashboard, _)                  => valid(operation, role)
+      case _                                   => mostLikelyInvalid(operation, role)
+    }
+
+  private[auth] def evaluateOperationWithForm(operation: OperationWithForm, role: Role, status: FormStatus)(
+    implicit logger: Logger): PermissionResult =
     (operation, role, status) match {
       case (DownloadSummaryPdf, _, _)                                      => valid(operation, role, status)
       case (_, _, Submitted)                                               => definitelyInvalid(operation, role, status)
@@ -61,18 +74,18 @@ object Permissions {
       case _                                                               => mostLikelyInvalid(operation, role, status)
     }
 
-  private def valid(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Loggers.permissions.info(formatLogMessage(operation.toString, role, Some(status), "Valid"))
+  private def valid(operation: OperationWithForm, role: Role, status: FormStatus)(implicit logger: Logger) = {
+    logger.info(formatLogMessage(operation.toString, role, Some(status), "Valid"))
     Permitted
   }
 
-  private def valid(operation: OperationWithoutForm, role: Role) = {
-    Loggers.permissions.info(formatLogMessage(operation.toString, role, None, "Valid"))
+  private def valid(operation: OperationWithoutForm, role: Role)(implicit logger: Logger) = {
+    logger.info(formatLogMessage(operation.toString, role, None, "Valid"))
     Permitted
   }
 
-  private def validTransient(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Loggers.permissions.info(
+  private def validTransient(operation: OperationWithForm, role: Role, status: FormStatus)(implicit logger: Logger) = {
+    logger.info(
       formatLogMessage(
         operation.toString,
         role,
@@ -82,8 +95,9 @@ object Permissions {
     Permitted
   }
 
-  private def mostLikelyInvalid(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Loggers.permissions.error(
+  private def mostLikelyInvalid(operation: OperationWithForm, role: Role, status: FormStatus)(
+    implicit logger: Logger) = {
+    logger.error(
       formatLogMessage(
         operation.toString,
         role,
@@ -93,8 +107,8 @@ object Permissions {
     NotPermitted
   }
 
-  private def mostLikelyInvalid(operation: OperationWithoutForm, role: Role) = {
-    Loggers.permissions.error(
+  private def mostLikelyInvalid(operation: OperationWithoutForm, role: Role)(implicit logger: Logger) = {
+    logger.error(
       formatLogMessage(
         operation.toString,
         role,
@@ -104,8 +118,9 @@ object Permissions {
     NotPermitted
   }
 
-  private def definitelyInvalid(operation: OperationWithForm, role: Role, status: FormStatus) = {
-    Loggers.permissions.info(
+  private def definitelyInvalid(operation: OperationWithForm, role: Role, status: FormStatus)(
+    implicit logger: Logger) = {
+    logger.info(
       formatLogMessage(
         operation.toString,
         role,
@@ -142,5 +157,121 @@ object Permissions {
       case InProgress | Summary | Validated | Signed => Some(status)
       case _                                         => None
     }
+  }
+}
+
+object PermissionsTable extends App {
+  import cats.syntax.eq._
+  import cats.instances.string._
+
+  sealed trait Row {
+    def operation: String
+    def role: String
+  }
+  case class RowWithoutForm(operation: String, role: String) extends Row
+  case class RowWithForm(operation: String, role: String, status: String) extends Row
+
+  private val roles = Set(Role.Customer, Role.Reviewer, Role.Agent)
+
+  private val logged: Map[Row, Boolean] = readLoggedOperations
+  println(logged)
+
+  private val enumeratedRows: Seq[(Row, Boolean)] = sort(enumerateRows)
+  println(enumeratedRows)
+
+  showTable("Tested", row => logged.contains(row))
+  println
+  showTable("Untested", row => !logged.contains(row))
+
+  private def showTable(title: String, pred: Row => Boolean): Unit = {
+    underline(title, "=")
+    underline(showRow("Form Status", "Role", "Operation", "Validity"), "-")
+
+    enumeratedRows.foreach {
+      case (row, valid) =>
+        if (pred(row)) println(show(row, valid))
+    }
+  }
+
+  private def underline(title: String, c: String): Unit = {
+    println(title)
+    println(c * title.length)
+  }
+
+  private def sort(map: Map[Row, Boolean]): Seq[(Row, Boolean)] =
+    map.toList.sortBy(row => (showStatus(row._1), row._1.role, row._1.operation, row._2))
+
+  private def show(row: Row, valid: Boolean): String =
+    showRow(showStatus(row), row.role, row.operation, if (valid) "Valid" else "Invalid")
+
+  private def showRow(status: String, role: String, operation: String, validity: String): String = {
+    val paddedValidity = pad(validity, 10)
+    val paddedOperation = pad(operation, 25)
+    val paddedRole = pad(role, 10)
+    val paddedStatus = pad(status, 20)
+
+    s"$paddedStatus$paddedRole$paddedOperation$paddedValidity"
+  }
+
+  private def showStatus(row: Row) = row match {
+    case _: RowWithoutForm => ""
+    case r: RowWithForm    => r.status
+  }
+
+  private def pad(s: String, l: Int) = s + (" " * (l - s.length))
+
+  private def enumerateRows: Map[Row, Boolean] =
+    enumerateWithoutFormPermittedRows ++ enumerateWithFormPermittedRows
+
+  private def enumerateWithoutFormPermittedRows: Map[Row, Boolean] = {
+    for {
+      operation <- Set(
+                    OperationWithoutForm.EditForm,
+                    OperationWithoutForm.ShowAccessCode,
+                    OperationWithoutForm.ViewDashboard)
+      role <- roles
+    } yield
+      RowWithoutForm(operation.toString, role.toString) -> (Permissions.evaluateOperationWithoutForm(operation, role)(
+        new Logger(NOPLogger.NOP_LOGGER)) === PermissionResult.Permitted)
+  }.toMap
+
+  private def enumerateWithFormPermittedRows: Map[Row, Boolean] = {
+    for {
+      operation <- Set(
+                    OperationWithForm.ForceUpdateFormStatus,
+                    OperationWithForm.SubmitDeclaration,
+                    OperationWithForm.EditForm,
+                    OperationWithForm.ReviewSubmitted,
+                    OperationWithForm.ReviewReturned,
+                    OperationWithForm.DownloadSummaryPdf,
+                    OperationWithForm.AcceptSummary,
+                    OperationWithForm.ReviewAccepted,
+                    OperationWithForm.UpdateFormField,
+                    OperationWithForm.ViewDeclaration,
+                    OperationWithForm.ViewSummary
+                  )
+      role   <- roles
+      status <- FormStatus.all
+    } yield
+      RowWithForm(operation.toString, role.toString, status.toString) -> (Permissions.evaluateOperationWithForm(
+        operation,
+        role,
+        status)(new Logger(NOPLogger.NOP_LOGGER)) === PermissionResult.Permitted)
+  }.toMap
+
+  private def readLoggedOperations: Map[Row, Boolean] = {
+    val logPattern =
+      """.{24}[A-Z]+ *(Valid|Invalid) *([A-Za-z]+) *(Customer|Agent|Reviewer) *([A-Za-z]*).*""".r
+
+    Source
+      .fromFile("logs/gform-frontend-permissions.log")
+      .getLines
+      .map {
+        case logPattern(validity, operationWithoutForm, role, "") =>
+          RowWithoutForm(operationWithoutForm, role) -> (validity === "Valid")
+        case logPattern(validity, operationWithForm, role, status) =>
+          RowWithForm(operationWithForm, role, status) -> (validity === "Valid")
+      }
+      .toMap
   }
 }
