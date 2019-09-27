@@ -121,8 +121,6 @@ object FormTemplateBuilder {
     "randd_confirmation_submission",
     Some(NonEmptyList
       .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email")))),
-    "http://www.google.co.uk",
-    "http://www.yahoo.co.uk",
     None,
     sections,
     AcknowledgementSection(
