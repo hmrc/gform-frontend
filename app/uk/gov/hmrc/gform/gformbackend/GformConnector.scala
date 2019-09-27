@@ -195,9 +195,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   /****** Form Bundles ******/
   def getFormBundle(
-    rootFormId: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormId]] = {
+    rootFormId: FormIdData)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[NonEmptyList[FormIdData]] = {
     import JsonUtils._
-    ws.GET[NonEmptyList[FormId]](show"$baseUrl/formBundles/${urlFragment(rootFormId)}")
+    ws.GET[NonEmptyList[FormIdData]](show"$baseUrl/formBundles/${urlFragment(rootFormId)}")
   }
 
   def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(

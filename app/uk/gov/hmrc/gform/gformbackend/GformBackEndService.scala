@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormIdData, FormStatus, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SubmissionData }
@@ -35,8 +35,6 @@ import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait GformBackEndAlgebra[F[_]] {
-  def getForm(id: FormId)(implicit hc: HeaderCarrier): F[Form]
-
   def getForm(id: FormIdData)(implicit hc: HeaderCarrier): F[Form]
 
   def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): F[FormTemplate]
@@ -54,7 +52,7 @@ trait GformBackEndAlgebra[F[_]] {
 
   def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): F[Unit]
 
-  def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): F[NonEmptyList[FormId]]
+  def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): F[NonEmptyList[FormIdData]]
 
   def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(
     implicit hc: HeaderCarrier): F[Unit]
@@ -70,14 +68,12 @@ class GformBackEndService(
   lookupRegistry: LookupRegistry)(implicit ec: ExecutionContext)
     extends GformBackEndAlgebra[Future] {
 
-  def getForm(id: FormId)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
-
   def getForm(id: FormIdData)(implicit hc: HeaderCarrier): Future[Form] = gformConnector.getForm(id)
 
   def getFormTemplate(id: FormTemplateId)(implicit hc: HeaderCarrier): Future[FormTemplate] =
     gformConnector.getFormTemplate(id)
 
-  def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormId]] =
+  def getFormBundle(rootFormId: FormIdData)(implicit hc: HeaderCarrier): Future[NonEmptyList[FormIdData]] =
     gformConnector.getFormBundle(rootFormId)
 
   def submitFormBundle(rootFormId: FormIdData, bundle: NonEmptyList[BundledFormSubmissionData])(

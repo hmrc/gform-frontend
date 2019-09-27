@@ -89,8 +89,9 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
                  Some(SubmissionDetails(submission, "")))
     } yield result._1
 
-  private def buildFormDataToSubmit(
-    formIds: NonEmptyList[FormId])(implicit hc: HeaderCarrier, l: LangADT): F[NonEmptyList[BundledFormSubmissionData]] =
+  private def buildFormDataToSubmit(formIds: NonEmptyList[FormIdData])(
+    implicit hc: HeaderCarrier,
+    l: LangADT): F[NonEmptyList[BundledFormSubmissionData]] =
     for {
       forms         <- getForms(formIds)
       formTemplates <- getFormTemplates(forms)
@@ -107,7 +108,7 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
         }
     }
 
-  private def getForms(formIds: NonEmptyList[FormId])(implicit hc: HeaderCarrier): F[NonEmptyList[Form]] =
+  private def getForms(formIds: NonEmptyList[FormIdData])(implicit hc: HeaderCarrier): F[NonEmptyList[Form]] =
     formIds.traverse(gformBackEnd.getForm)
 
   private def getFormTemplates(forms: NonEmptyList[Form])(
