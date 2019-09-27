@@ -27,8 +27,8 @@ import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.FormIdData
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT }
-import uk.gov.hmrc.gform.sharedmodel.form.{ Accepting, Form, FormId, FormStatus, Returning }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Accepting, Form, FormStatus, Returning }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -104,7 +104,9 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
     forms.traverse { form =>
       StructuredFormDataBuilder(form, formTemplates(form.formTemplateId), lookupRegistry)
         .map { sfd =>
-          BundledFormSubmissionData(form._id, sfd)
+          BundledFormSubmissionData(
+            FormIdData.fromForm(form, Some(AccessCode.fromSubmissionRef(SubmissionRef(form.envelopeId)))),
+            sfd)
         }
     }
 

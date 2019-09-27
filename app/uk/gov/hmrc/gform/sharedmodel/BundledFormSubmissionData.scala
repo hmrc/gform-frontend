@@ -17,10 +17,10 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json.{ Json, OFormat }
-import uk.gov.hmrc.gform.sharedmodel.form.FormId
+import uk.gov.hmrc.gform.sharedmodel.form.FormIdData
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 
-case class BundledFormSubmissionData(formId: FormId, structuredFormData: StructuredFormValue.ObjectStructure)
+case class BundledFormSubmissionData(formIdData: FormIdData, structuredFormData: StructuredFormValue.ObjectStructure)
 
 object BundledFormSubmissionData {
   implicit val format: OFormat[BundledFormSubmissionData] = Json.format[BundledFormSubmissionData]
