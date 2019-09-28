@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
 object Fields {
 
@@ -173,9 +174,12 @@ object Fields {
     val hiddenFUs = hiddenFileUploads(section)
 
     val idsToRenderAsEmptyHidden = (alwaysEmptyHiddenGroup ++ alwaysEmptyHidden).map(_.id)
+    val variadicFormComponentIds = VariadicFormData.listVariadicFormComponentIds(section.fields)
 
     val dataUpd = idsToRenderAsEmptyHidden.foldRight(data.data) {
-      case (id, acc) => acc addOne (id -> "")
+      case (id, acc) =>
+        if (variadicFormComponentIds(id.reduceToTemplateFieldId)) acc addMany (id -> Seq.empty)
+        else acc addOne (id                                                       -> "")
     }
 
     (

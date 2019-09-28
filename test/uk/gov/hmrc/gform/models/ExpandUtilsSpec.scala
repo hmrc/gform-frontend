@@ -27,7 +27,8 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
+import uk.gov.hmrc.gform.sharedmodel.VariadicValue.{ Many, One }
+import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -649,15 +650,15 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       "1_b" -> choice
     ) map { case (id, comp) => mkFormComponent(FormComponentId(id), comp) }
 
-    val expectedData = mkFormDataRecalculated(
-      "a"   -> "",
-      "1_a" -> "",
-      "b"   -> "",
-      "1_b" -> "",
-      "c"   -> "C",
-      "1_c" -> "1_C",
-      "e"   -> "E",
-      "f"   -> "F"
+    val expectedData = mkVariadicFormDataRecalculated(
+      "a"   -> Many(Seq.empty),
+      "1_a" -> Many(Seq.empty),
+      "b"   -> Many(Seq.empty),
+      "1_b" -> Many(Seq.empty),
+      "c"   -> One("C"),
+      "1_c" -> One("1_C"),
+      "e"   -> One("E"),
+      "f"   -> One("F")
     )
 
     dataUpd shouldBe expectedData
@@ -675,10 +676,10 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
 
     val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data, lookupExtractors)
 
-    val expectedData = mkFormDataRecalculated(
-      "a" -> "",
-      "b" -> "B",
-      "c" -> "C"
+    val expectedData = mkVariadicFormDataRecalculated(
+      "a" -> Many(Seq()),
+      "b" -> One("B"),
+      "c" -> One("C")
     )
 
     val expectedFC = List(
@@ -771,6 +772,13 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
   private def variadicFormData(kv: (String, String)*): VariadicFormData =
     kv.toList.foldMap { case (id, v) => VariadicFormData.one(FormComponentId(id), v) }
 
-  private def mkFormDataRecalculated(kv: (String, String)*): FormDataRecalculated =
-    FormDataRecalculated.empty.copy(recData = RecData.fromData(variadicFormData(kv: _*)))
+  private def mkFormDataRecalculated(kv: (String, String)*): FormDataRecalculated = {
+    val data: Seq[(String, VariadicValue)] = kv.map { case (k, v) => (k, One(v)) }
+    mkVariadicFormDataRecalculated(data: _*)
+  }
+
+  private def mkVariadicFormDataRecalculated(data: (String, VariadicValue)*): FormDataRecalculated = {
+    val fcData = data.map { case (k, v) => (FormComponentId(k), v) }
+    FormDataRecalculated.empty.copy(recData = RecData.fromData(VariadicFormData.create(fcData: _*)))
+  }
 }

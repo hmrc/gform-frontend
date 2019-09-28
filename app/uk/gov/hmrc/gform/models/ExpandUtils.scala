@@ -165,9 +165,12 @@ object ExpandUtils {
           existingData / group.fields.size
         }
 
+        val variadicFormComponentIds = VariadicFormData.listVariadicFormComponentIds(group.fields)
+
         val addedGroupIds = groupIndex(index + 1, group)
         val newData = addedGroupIds.foldLeft(data.data) { (acc, fcId) =>
-          acc addOne (fcId -> "")
+          if (variadicFormComponentIds(fcId.reduceToTemplateFieldId)) acc addMany (fcId -> Seq.empty)
+          else acc addOne (fcId                                                         -> "")
         }
 
         val anchor = group.fields

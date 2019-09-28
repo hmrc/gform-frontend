@@ -23,7 +23,6 @@ import com.softwaremill.quicklens._
 import play.api.mvc.Results._
 import play.api.mvc.{ AnyContent, Request, Result }
 import uk.gov.hmrc.gform.sharedmodel.{ VariadicFormData, VariadicValue }
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData.listVariadicFormComponentIds
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, FormField, FormId, VisitIndex }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplate, Group }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -71,8 +70,7 @@ object FormDataHelpers {
   private def buildVariadicFormDataFromBrowserPostData(
     template: FormTemplate,
     data: Map[FormComponentId, Seq[String]]): VariadicFormData = {
-    val variadicFormComponentIds =
-      listVariadicFormComponentIds(template.listBasicFormComponents) + VisitIndex.formComponentId
+    val variadicFormComponentIds = VariadicFormData.listVariadicFormComponentIds(template) + VisitIndex.formComponentId
 
     VariadicFormData(
       data
