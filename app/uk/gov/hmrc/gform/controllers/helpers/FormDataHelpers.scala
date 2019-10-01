@@ -78,7 +78,8 @@ object FormDataHelpers {
           case (id, s) => (id, variadicFormComponentIds(id.reduceToTemplateFieldId), s.toList)
         }
         .map {
-          case (id, true, s)           => (id, VariadicValue.Many(s.filterNot(_.isEmpty)))
+          case (id, true, values) =>
+            (id, VariadicValue.Many(values.mkString(",").split(",").map(_.trim).filterNot(_.isEmpty)))
           case (id, false, first :: _) => (id, VariadicValue.One(first))
           case (id, false, _) =>
             throw new IllegalArgumentException(
