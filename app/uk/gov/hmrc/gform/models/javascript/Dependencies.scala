@@ -21,4 +21,5 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 case class FormComponentIdDeps(fid: FormComponentId, deps: List[FormComponentId])
 case class Dependencies(deps: List[FormComponentIdDeps]) extends AnyVal {
   def toLookup: Map[FormComponentId, List[FormComponentId]] = deps.map(dep => (dep.fid, dep.deps)).toMap
+  def all: List[FormComponentId] = deps.flatMap(_.deps)
 }

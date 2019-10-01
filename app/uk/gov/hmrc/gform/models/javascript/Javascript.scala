@@ -44,7 +44,8 @@ object Javascript {
           }
       }
 
-    val dynamicFcIds = sectionFields.map(_.id).toSet ++ jsRevealingChoiceModels.map(_.fc.id).toSet
+    val sectionFieldIds = sectionFields.map(_.id).toSet
+    val dynamicFcIds = sectionFieldIds ++ jsRevealingChoiceModels.map(_.fc.id).toSet
 
     def isDynamic(expr: Expr): Boolean = expr match {
       case f @ FormCtx(_)              => dynamicFcIds.contains(f.toFieldId)
@@ -55,14 +56,16 @@ object Javascript {
       case otherwise                   => false
     }
 
+    val previousSectionIds: List[FormComponentId] = dependencies.all.filterNot(sectionFieldIds.contains)
+
     val isHiddenScripts = jsRevealingChoiceModels.map {
       case JsRevealingChoiceModel(rcFc, index, fc) =>
         s"""|var isHidden${fc.id.value} = function () {
             |  return document.getElementById("fields-${rcFc.value + index.toString}").classList.contains("js-hidden");
             |};""".stripMargin
     }
-    val isHiddenScripts2 = sectionFields.map { sf =>
-      s"""|var isHidden${sf.id.value} = function () {
+    val isHiddenScripts2 = (previousSectionIds ++ sectionFields.map(_.id)).map { fcId =>
+      s"""|var isHidden${fcId.value} = function () {
           |  return false;
           |};""".stripMargin
     }

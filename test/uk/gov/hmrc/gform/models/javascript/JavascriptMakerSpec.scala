@@ -41,7 +41,7 @@ class JavascriptMakerSpec extends Spec with GraphSpec {
 
   val processDataService = new ProcessDataService(recalculation)
 
-  private def javascript(formTemplate: FormTemplate): String = {
+  private def javascript(formTemplate: FormTemplate, sectionNumber: SectionNumber): String = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     val data: VariadicFormData = VariadicFormData.empty
     val cache: AuthCacheWithForm =
@@ -51,7 +51,6 @@ class JavascriptMakerSpec extends Spec with GraphSpec {
 
     val dynamicSections
       : List[Section] = result.right.get._2 // What a shame to do this unsafe '.get', but it is ok, since this code is not under the test.
-    val sectionNumber = SectionNumber(0)
 
     JavascriptMaker.generateJs(sectionNumber, dynamicSections, cache.formTemplate)
   }
@@ -112,9 +111,34 @@ class JavascriptMakerSpec extends Spec with GraphSpec {
          |};"""
     ).map(_.stripMargin)
 
-    val js = javascript(formTemplate)
+    val js = javascript(formTemplate, SectionNumber(0))
 
     snippets.foreach(snippet => js should include(snippet))
 
+  }
+
+  it should "render isHiddenX function for element on previous section" in {
+    val formTemplate: FormTemplate = mkFormTemplate(
+      mkSection(
+        mkFormComponent("addedValue", Value)
+      ),
+      mkSection(
+        mkFormComponent("addedValue2", Value),
+        mkFormComponent(
+          "totalAmount",
+          Add(FormCtx("addedValue"), FormCtx("addedValue2"))
+        ).copy(presentationHint = Some(List(TotalValue)))
+      )
+    )
+
+    val snippets = List(
+      """|var isHiddenaddedValue = function () {
+         |  return false;
+         |};"""
+    ).map(_.stripMargin)
+
+    val js = javascript(formTemplate, SectionNumber(1))
+
+    snippets.foreach(snippet => js should include(snippet))
   }
 }
