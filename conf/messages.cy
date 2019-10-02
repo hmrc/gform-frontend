@@ -303,7 +303,7 @@ accessibility.description1=Mae’r datganiad hygyrchedd hwn yn esbonio pa mor hy
 accessibility.description2=Mae’r gwasanaeth hwn yn rhan o wefan ehangach GOV.UK. Mae
 accessibility.description2b=ar wahân ar gyfer prif wefan GOV.UK.
 accessibility.description3=Mae’r dudalen hon yn cynnwys gwybodaeth am wasanaeth
-accessibility.description3a= sydd ar gael yn
+accessibility.description3a=sydd ar gael yn
 
 accessibility.subheading1=Defnyddio’r gwasanaeth hwn
 accessibility.content.block1.p1=Mae’r gwasanaeth hwn wedi’i redeg gan Gyllid a Thollau EM (CThEM). Rydym am i gymaint o bobl â phosibl allu defnyddio’r gwasanaeth hwn. Mae hyn yn golygu y dylech allu:
