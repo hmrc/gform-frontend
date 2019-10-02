@@ -53,21 +53,20 @@ class ProcessDataSpec extends FlatSpec with Matchers with GraphSpec with TableDr
     val visibilityIndices = Table(
       // format: off
       ("input",  "expected"),
-      (Seq("0"),              Set(0)),
-      (Seq("0","1"),          Set(0,1)),
-      (Seq("0","1","2"),      Set(0,1)),
-      (Seq("0","1","2","3"),  Set(0,1,2)),
-      (Seq("1","2","3"),      Set(1,2)),
-      (Seq("2","3"),          Set(2)),
-      (Seq("3"),              Set(2)),
-      (Seq("3","100"),        Set(2)),
-      (Seq("3","X"),          Set(2))
+      (Set(0),       Set(0)),
+      (Set(0,1),     Set(0,1)),
+      (Set(0,1,2),   Set(0,1)),
+      (Set(0,1,2,3), Set(0,1,2)),
+      (Set(1,2,3),   Set(1,2)),
+      (Set(2,3),     Set(2)),
+      (Set(3),       Set(2)),
+      (Set(3,100),   Set(2))
       // format: on
     )
 
     forAll(visibilityIndices) { (input, expectedOuput) ⇒
       val res = processDataService
-        .updateSectionVisits(VariadicFormData.manys(VisitIndex.formComponentId -> input), sections, mongoSections)
+        .updateSectionVisits(VariadicFormData.empty, sections, mongoSections, VisitIndex(input))
       res shouldBe expectedOuput
     }
   }
@@ -92,19 +91,19 @@ class ProcessDataSpec extends FlatSpec with Matchers with GraphSpec with TableDr
     val visibilityIndices = Table(
       // format: off
       ("input",  "expected"),
-      (Seq("0"),              Set(0)),
-      (Seq("0","1"),          Set(0,1)),
-      (Seq("0","1","2"),      Set(0,1,2)),
-      (Seq("0","1","2","3"),  Set(0,1,2,4)),
-      (Seq("1","2","3"),      Set(1,2,4)),
-      (Seq("2","3"),          Set(2,4)),
-      (Seq("3"),              Set(4))
+      (Set(0),       Set(0)),
+      (Set(0,1),     Set(0,1)),
+      (Set(0,1,2),   Set(0,1,2)),
+      (Set(0,1,2,3), Set(0,1,2,4)),
+      (Set(1,2,3),   Set(1,2,4)),
+      (Set(2,3),     Set(2,4)),
+      (Set(3),       Set(4))
       // format: on
     )
 
     forAll(visibilityIndices) { (input, expectedOuput) ⇒
       val res = processDataService
-        .updateSectionVisits(VariadicFormData.manys(VisitIndex.formComponentId -> input), sections, mongoSections)
+        .updateSectionVisits(VariadicFormData.empty, sections, mongoSections, VisitIndex(input))
       res shouldBe expectedOuput
     }
   }

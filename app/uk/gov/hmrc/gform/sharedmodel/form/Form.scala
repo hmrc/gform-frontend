@@ -28,32 +28,14 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import scala.util.Try
 
 case class VisitIndex(visitsIndex: Set[Int]) extends AnyVal {
-  def toFormFields: Set[FormField] =
-    visitsIndex.map(i => FormField(VisitIndex.formComponentId, i.toString))
-
-  def variadicFormData: VariadicFormData =
-    VariadicFormData.manys(VisitIndex.formComponentId -> visitsIndex.toSeq.map(_.toString))
-
   def visit(sectionNumber: SectionNumber): VisitIndex = VisitIndex(visitsIndex + sectionNumber.value)
+  def contains(index: Int): Boolean = visitsIndex.contains(index)
 }
 
 object VisitIndex {
 
-  val key: String = "_visits_"
-
-  val formComponentId: FormComponentId = FormComponentId(key)
-
-  val empty: VisitIndex = VisitIndex(Set.empty)
-
   implicit val format: OFormat[VisitIndex] = Json.format
 
-  def fromStrings(s: Seq[String]): VisitIndex =
-    if (s.isEmpty)
-      VisitIndex.empty
-    else
-      VisitIndex(s.flatMap { indexAsString =>
-        Try(indexAsString.toInt).toOption.fold(List.empty[Int])(_ :: Nil)
-      }.toSet)
 }
 
 case class Form(

@@ -104,7 +104,6 @@ class FormController(
               formMaxAttachmentSizeMB,
               contentTypes,
               cache.retrievals,
-              cache.form.visitsIndex.visit(sectionNumber),
               cache.form.thirdPartyData.obligations
             )))
     }
@@ -143,13 +142,18 @@ class FormController(
               val needsSecondPhaseRecalculation =
                 (before.desRegistrationResponse, after.desRegistrationResponse).mapN(_ =!= _)
 
+              val visitsIndex = cache.form.visitsIndex.visit(sectionNumber)
+
               val cacheUpd =
                 cache.copy(
                   form = cache.form
-                    .copy(thirdPartyData = after.copy(obligations = processData.obligations), formData = formData))
+                    .copy(
+                      thirdPartyData = after.copy(obligations = processData.obligations),
+                      formData = formData,
+                      visitsIndex = visitsIndex))
 
               if (needsSecondPhaseRecalculation.getOrElse(false)) {
-                val newDataRaw = cache.form.visitsIndex.variadicFormData ++ cache.variadicFormData
+                val newDataRaw = cache.variadicFormData
                 for {
                   newProcessData <- processDataService
                                      .getProcessData(
@@ -160,7 +164,8 @@ class FormController(
                   result <- validateAndUpdateData(cacheUpd, newProcessData)(toResult) // recursive call
                 } yield result
               } else {
-                fastForwardService.updateUserData(cacheUpd, processData, maybeAccessCode)(toResult)
+                fastForwardService
+                  .updateUserData(cacheUpd, processData.copy(visitsIndex = visitsIndex), maybeAccessCode)(toResult)
               }
             }
           } yield res

@@ -70,7 +70,7 @@ object FormDataHelpers {
   private def buildVariadicFormDataFromBrowserPostData(
     template: FormTemplate,
     data: Map[FormComponentId, Seq[String]]): VariadicFormData = {
-    val variadicFormComponentIds = VariadicFormData.listVariadicFormComponentIds(template) + VisitIndex.formComponentId
+    val variadicFormComponentIds = VariadicFormData.listVariadicFormComponentIds(template)
 
     VariadicFormData(
       data

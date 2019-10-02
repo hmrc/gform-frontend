@@ -36,7 +36,7 @@ import scala.util.Try
 case class ProcessData(
   data: FormDataRecalculated,
   sections: List[Section],
-  visitIndex: VisitIndex,
+  visitsIndex: VisitIndex,
   obligations: Obligations)
 
 class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
@@ -44,13 +44,9 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
   def updateSectionVisits(
     dataRaw: VariadicFormData,
     sections: List[Section],
-    mongoSections: List[Section]): Set[Int] = {
-    val visitIndex = dataRaw
-      .many(VisitIndex.formComponentId)
-      .map(VisitIndex.fromStrings)
-      .getOrElse(VisitIndex.empty)
-
-    visitIndex.visitsIndex
+    mongoSections: List[Section],
+    visitsIndex: VisitIndex): Set[Int] =
+    visitsIndex.visitsIndex
       .map { index =>
         Try(mongoSections(index)).toOption.fold(-1) { section =>
           val firstComponentId = section.fields.head.id
@@ -60,7 +56,6 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
         }
       }
       .filterNot(_ === -1)
-  }
 
   def hmrcTaxPeriodWithId(recData: RecData): Option[NonEmptyList[HmrcTaxPeriodWithEvaluatedId]] =
     recData.recalculatedTaxPeriod.map {
@@ -103,7 +98,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
         obligations,
         FormDataRecalculated.clearTaxResponses)
 
-      val newVisitIndex = updateSectionVisits(dataRaw, sections, mongoSections)
+      val newVisitIndex = updateSectionVisits(dataRaw, sections, mongoSections, cache.form.visitsIndex)
 
       ProcessData(dataUpd, sections, VisitIndex(newVisitIndex), obligations)
     }

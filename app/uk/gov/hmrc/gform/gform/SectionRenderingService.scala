@@ -105,7 +105,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formMaxAttachmentSizeMB: Int,
     contentTypes: List[ContentType],
     retrievals: MaterialisedRetrievals,
-    visitsIndex: VisitIndex,
     obligations: Obligations
   )(implicit request: Request[_], messages: Messages, l: LangADT): Html = {
 
@@ -138,8 +137,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       .toFormField(fieldDataUpd, hiddenTemplateFields)
       .map(formField => html.form.snippets.hidden_field(formField))
 
-    val indices = visitsIndex.toFormFields.toList.map(field => html.form.snippets.hidden_field(field))
-
     val pageLevelErrorHtml = generatePageLevelErrorHtml(listResult, List.empty)
 
     val originSection = Origin(formTemplate.sections, fieldData).minSectionNumber
@@ -160,7 +157,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       sectionNumber,
       section.title.value,
       section.description.map(ls => ls.value),
-      indices ::: hiddenSnippets,
+      hiddenSnippets,
       snippetsForFields,
       javascript,
       envelopeId,

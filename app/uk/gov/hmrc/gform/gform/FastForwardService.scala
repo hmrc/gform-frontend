@@ -47,7 +47,7 @@ class FastForwardService(
   def redirectContinue(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT) = {
-    val dataRaw = cache.variadicFormData ++ cache.form.visitsIndex.variadicFormData
+    val dataRaw = cache.variadicFormData
     redirectWithRecalculation(cache, dataRaw, maybeAccessCode)
   }
 
@@ -101,7 +101,7 @@ class FastForwardService(
       userData = UserData(
         cache.form.formData,
         maybeSn.fold(Summary: FormStatus)(_ => InProgress),
-        processData.visitIndex,
+        processData.visitsIndex,
         cache.form.thirdPartyData.modify(_.obligations).setTo(processData.obligations)
       )
       res <- gformConnector

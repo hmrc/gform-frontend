@@ -129,7 +129,7 @@ class FormValidator(implicit ec: ExecutionContext) {
               .map {
                 case FormValidationOutcome(isValid, _, _) =>
                   val section = sections(currentSn.value)
-                  val hasBeenVisited = processData.visitIndex.visitsIndex.contains(currentSn.value)
+                  val hasBeenVisited = processData.visitsIndex.contains(currentSn.value)
 
                   val stop = section.continueIf.contains(Stop) || !hasBeenVisited
                   if (isValid && !stop) None else Some(currentSn)

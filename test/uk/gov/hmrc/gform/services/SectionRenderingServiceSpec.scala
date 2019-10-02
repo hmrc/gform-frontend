@@ -69,7 +69,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         0,
         Nil,
         retrievals,
-        VisitIndex.empty,
         NotChecked
       )
 
@@ -81,7 +80,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
     hiddenFieldNames should be(
       List(
         "csrfToken",
-        VisitIndex.key,
         "nameOfBusiness",
         "startDate-day",
         "startDate-month",
@@ -115,7 +113,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         0,
         Nil,
         retrievals,
-        VisitIndex.empty,
         NotChecked
       )
 
@@ -129,7 +126,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         "csrfToken",
         "firstName",
         "surname",
-        VisitIndex.key,
         "nameOfBusiness",
         "startDate-day",
         "startDate-month",
@@ -155,7 +151,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         0,
         Nil,
         retrievals,
-        VisitIndex.empty,
         NotChecked
       )
 
@@ -186,7 +181,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         0,
         Nil,
         retrievals,
-        VisitIndex.empty,
         NotChecked
       )
 
@@ -195,7 +189,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
     val hiddenFieldNames = toList(doc.getElementsByAttributeValue("type", "hidden")).map(_.attr("name"))
     val visibleFields = toList(doc.getElementsByAttributeValue("type", "text")).map(_.attr("name"))
 
-    hiddenFieldNames should be(List("csrfToken", VisitIndex.key, "firstName", "surname", "facePhoto", "save"))
+    hiddenFieldNames should be(List("csrfToken", "firstName", "surname", "facePhoto", "save"))
     visibleFields should be(List("nameOfBusiness", "startDate-day", "startDate-month", "startDate-year", "iptRegNum"))
   }
 
@@ -279,7 +273,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         0,
         Nil,
         retrievals,
-        VisitIndex.empty,
         NotChecked
       )
 
@@ -333,7 +326,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         0,
         Nil,
         retrievals,
-        VisitIndex.empty,
         NotChecked
       )
 
@@ -384,7 +376,6 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
         0,
         Nil,
         retrievals,
-        VisitIndex.empty,
         NotChecked
       )
 
