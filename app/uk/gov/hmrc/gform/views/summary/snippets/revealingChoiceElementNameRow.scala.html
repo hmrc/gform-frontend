@@ -16,12 +16,11 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.{LangADT, LocalisedString}
 
-@(fieldName: LocalisedString, answer: String, changeButton: Html)(implicit l:LangADT)
+@(answer: String, changeButton: Html)(implicit l:LangADT)
 
 
 <div>
  <dt class="cya-question">
-  @fieldName.value
  </dt>
  <dd class="cya-answer">@answer</dd>
  <dd class="cya-change">@changeButton</dd>

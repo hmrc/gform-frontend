@@ -316,8 +316,12 @@ object SummaryRenderingService {
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
                     .map { _ =>
-                      if (element.revealingFields.isEmpty)
-                        Seq(revealingChoiceElementNameRow(element.choice, messages("generic.Yes"), changeButton))
+                      val revealingFieldsWithoutInfos = element.revealingFields.filter {
+                        case IsInformationMessage(_) => false
+                        case _                       => true
+                      }
+                      if (revealingFieldsWithoutInfos.isEmpty)
+                        Seq(revealingChoiceElementNameRow(element.choice.value, changeButton))
                       else
                         element.revealingFields.map {
                           valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
