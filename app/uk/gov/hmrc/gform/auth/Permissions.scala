@@ -59,7 +59,7 @@ object Permissions {
       case (ReviewReturned, Reviewer, Returning)                           => validTransient(operation, role, status)
       case (ReviewSubmitted, Reviewer, Accepted | NeedsReview)             => valid(operation, role, status)
       case (ReviewSubmitted, Reviewer, Submitting)                         => validTransient(operation, role, status)
-      case (AcceptSummary, _, Summary | Validated | Signed)                => valid(operation, role, status)
+      case (AcceptSummary, _, InProgress | Summary | Validated | Signed)   => valid(operation, role, status)
       case (AcceptSummary, Reviewer, NeedsReview)                          => valid(operation, role, status)
       case (SubmitDeclaration, Customer | Agent, Validated | Signed)       => valid(operation, role, status)
       case (UpdateFormField, Reviewer, StableReviewFormStatus(_))          => valid(operation, role, status)
