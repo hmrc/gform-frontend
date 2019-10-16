@@ -371,3 +371,14 @@ input::-webkit-search-results-decoration { display: none; }
 .save4later > li > p {
   margin: 0;
 }
+
+a:focus {
+   background-color: #ffdd00;
+   outline: 3px solid #ffdd00;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+   outline: 3px solid #ffdd00;
+}
