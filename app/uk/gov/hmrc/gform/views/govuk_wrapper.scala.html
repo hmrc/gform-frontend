@@ -105,20 +105,19 @@
     <meta name="format-detection" content="telephone=no" />
 }
 
-@navLinks = {
-  @if(authTimeout.signOutUrl != "") {
-    <li><a href="@{authTimeout.signOutUrl}/@{templateId.value}" id="signOut">@messages("linkText.signOut")</a></li>
-  } else {
-    None
-  }
+@signOutLink = {
+  <li><a href="@{authTimeout.signOutUrl}/@{templateId.value}" id="signOut">@messages("linkText.signOut")</a></li>
 }
 
 @insideHeader = {
+  @defining(if(authTimeout.signOutUrl.isEmpty) None else Some(signOutLink)) { navLinks =>
     @uiLayouts.header_nav(
       navTitle = Some(serviceTitle),
       navTitleLink = None,
       showBetaLink = false,
-      navLinks = Some(navLinks))
+      navLinks = navLinks
+    )
+  }
 }
 
 @afterHeader = {
