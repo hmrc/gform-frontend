@@ -111,8 +111,10 @@ object ComponentValidator {
 
   def validateParentSubmissionRef(fieldValue: FormComponent, thisFormSubmissionRef: SubmissionRef)(
     data: FormDataRecalculated)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] =
-    textData(data, fieldValue) match {
-      case value :: Nil =>
+    (fieldValue.mandatory, textData(data, fieldValue)) match {
+      case (true, Nil) =>
+        validationFailure(fieldValue, "generic.error.required", None)
+      case (_, value :: Nil) =>
         validateSubmissionRefFormat(fieldValue, value) andThen { _ =>
           if (value === thisFormSubmissionRef.value)
             validationFailure(fieldValue, "generic.error.parentSubmissionRefSameAsFormSubmissionRef", None)
