@@ -93,6 +93,7 @@ object ComponentValidator {
       case (_, value :: Nil, UkVrn)                     => checkVrn(fieldValue, value)
       case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
       case (_, value :: Nil, EORI)                      => checkEORI(fieldValue, value)
+      case (_, value :: Nil, UkEORI)                    => checkUkEORI(fieldValue, value)
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
@@ -233,6 +234,13 @@ object ComponentValidator {
     val str = value.replace(" ", "")
     val errorMSG = "generic.eori.error.pattern"
     sharedTextComponentValidator(fieldValue, str, 9, 17, ValidEORI, errorMSG)
+  }
+
+  private def checkUkEORI(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
+    val ValidUkEORI = "^[GB]{2}[0-9]{14}$".r
+    val str = value.replace(" ", "")
+    val errorMSG = "generic.ukEori.error.pattern"
+    sharedTextComponentValidator(fieldValue, str, 14, 14, ValidUkEORI, errorMSG)
   }
 
   private def checkNonUkCountryCode(fieldValue: FormComponent, value: String)(
