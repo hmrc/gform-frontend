@@ -353,7 +353,6 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
     UkEORI,
     "sample label is not a valid UK EORI")
 
-
   "NonUkCountryCode" should "return valid" in createSuccessTest("US", NonUkCountryCode)
   "NonUkCountryCode" should "return invalid if code is UK" in createFailTest(
     "UK",
