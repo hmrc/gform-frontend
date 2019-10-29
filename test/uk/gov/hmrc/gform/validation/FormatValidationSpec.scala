@@ -331,6 +331,28 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
     EORI,
     "sample label is not a valid EORI")
 
+  "UkEORI" should "return valid ukEORI with 12 digits" in createSuccessTest("GB123456789123", UkEORI)
+  "UkEORI" should "return invalid without one of the previous conditions" in createFailTest(
+    "GB10987654321",
+    UkEORI,
+    "sample label has fewer than 14 characters")
+  "UkEORI" should "return invalid as too many characters in data" in createFailTest(
+    "GB1234567891123",
+    UkEORI,
+    "sample label has more than 14 characters")
+  "UkEORI" should "return invalid as starts with number" in createFailTest(
+    "1GB12345678934",
+    UkEORI,
+    "sample label is not a valid UK EORI")
+  "UkEORI" should "return invalid as too few letters at start" in createFailTest(
+    "G1234567890123",
+    UkEORI,
+    "sample label is not a valid UK EORI")
+  "UkEORI" should "return invalid if contains special characters" in createFailTest(
+    "GB123456789*21",
+    UkEORI,
+    "sample label is not a valid UK EORI")
+
   "NonUkCountryCode" should "return valid" in createSuccessTest("US", NonUkCountryCode)
   "NonUkCountryCode" should "return invalid if code is UK" in createFailTest(
     "UK",
