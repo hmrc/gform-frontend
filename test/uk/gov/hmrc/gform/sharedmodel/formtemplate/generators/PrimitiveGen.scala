@@ -21,7 +21,18 @@ import cats.data.NonEmptyList
 import org.scalacheck.Gen
 
 trait PrimitiveGen {
-  def nonEmptyAlphaNumStrGen: Gen[String] = Gen.alphaNumStr.filter(_.nonEmpty)
+  def nonEmptyAsciiPrintableString: Gen[String] =
+    for {
+      f <- Gen.asciiPrintableChar
+      r <- Gen.asciiPrintableStr
+    } yield f.toString + r
+
+  def nonEmptyAlphaNumStrGen: Gen[String] =
+    for {
+      f <- Gen.alphaNumChar
+      r <- Gen.alphaNumStr
+    } yield f.toString + r
+
   def booleanGen: Gen[Boolean] = Gen.oneOf(false, true)
 
   def urlGen: Gen[String] =
@@ -56,15 +67,33 @@ trait PrimitiveGen {
     } yield NonEmptyList.of(t1, t2)
   )
 
+  def possiblyEmptyMapGen[K, V](keyGen: Gen[K], valueGen: Gen[V]): Gen[Map[K, V]] =
+    zeroOrMoreGen {
+      for {
+        k <- keyGen
+        v <- valueGen
+      } yield (k, v)
+    }.map(_.toMap)
+
   def localDateTimeGen: Gen[LocalDateTime] =
     for {
       year       <- Gen.chooseNum(1900, 2100)
       month      <- Gen.chooseNum(1, 12)
-      dayOfMonth <- Gen.chooseNum(1, 31)
+      dayOfMonth <- Gen.chooseNum(1, 28)
       hour       <- Gen.chooseNum(0, 23)
       minute     <- Gen.chooseNum(0, 59)
       second     <- Gen.chooseNum(0, 59)
     } yield LocalDateTime.of(year, month, dayOfMonth, hour, minute, second)
+
+  def jodaLocalDateTimeGen: Gen[org.joda.time.LocalDateTime] =
+    for {
+      year       <- Gen.chooseNum(1900, 2100)
+      month      <- Gen.chooseNum(1, 12)
+      dayOfMonth <- Gen.chooseNum(1, 28)
+      hour       <- Gen.chooseNum(0, 23)
+      minute     <- Gen.chooseNum(0, 59)
+      second     <- Gen.chooseNum(0, 59)
+    } yield new org.joda.time.LocalDateTime(year, month, dayOfMonth, hour, minute, second)
 
   def localDateGen: Gen[LocalDate] =
     for {
