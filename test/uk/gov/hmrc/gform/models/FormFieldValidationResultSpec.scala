@@ -46,7 +46,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         "day" -> FieldOk(
           FormComponent(
             FormComponentId("day"),
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("label"),
             None,
             None,
@@ -61,7 +61,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         "month" -> FieldOk(
           FormComponent(
             FormComponentId("month"),
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("label"),
             None,
             None,
@@ -76,7 +76,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         "year" -> FieldError(
           FormComponent(
             FormComponentId("year"),
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("label"),
             None,
             None,
@@ -104,7 +104,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         "day" -> FieldOk(
           FormComponent(
             FormComponentId("day"),
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("day"),
             None,
             None,
@@ -119,7 +119,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         "month" -> FieldOk(
           FormComponent(
             FormComponentId("month"),
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("month"),
             None,
             None,
@@ -134,7 +134,7 @@ class FormFieldValidationResultSpec extends FlatSpec with Matchers {
         "year" -> FieldOk(
           FormComponent(
             FormComponentId("year"),
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("year"),
             None,
             None,

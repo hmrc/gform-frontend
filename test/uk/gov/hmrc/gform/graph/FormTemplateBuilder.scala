@@ -102,10 +102,10 @@ object FormTemplateBuilder {
     )
 
   def mkFormComponent(fcId: String, expr: Expr): FormComponent =
-    mkFormComponent(fcId, Text(AnyText, expr))
+    mkFormComponent(fcId, Text(BasicText, expr))
 
   def mkFormComponentEditable(fcId: String, expr: Expr): FormComponent =
-    mkFormComponentEditable(fcId, Text(AnyText, expr))
+    mkFormComponentEditable(fcId, Text(BasicText, expr))
 
   def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
   def mkFormTemplate(sections: List[Section]) = FormTemplate.withDeprecatedDmsSubmission(

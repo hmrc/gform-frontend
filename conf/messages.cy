@@ -70,6 +70,8 @@ generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraif
 generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
 generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 07 00 00
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
+# TODO translate to welsh
+generic.error.email={0} must match code you received by email
 
 generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
 generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau a bachau crwn, sgwâr, onglog neu gyrliog, collnodau, cysylltnodau, llinellau toriad, atalnodau llawn, arwyddion punt, arwyddion plws, hanner colonau, colonau, serenigion, marciau cwestiwn, hafalnodau, blaenslaesau, ampersandau, ebychnodau, symbolau @, hashnodau, arwyddion doler, arwyddion ewro, acenion disgynedig, tildiau, dyfynodau dwbl a thanlinellau

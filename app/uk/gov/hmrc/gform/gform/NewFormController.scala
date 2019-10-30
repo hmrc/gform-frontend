@@ -67,6 +67,13 @@ class NewFormController(
     }
 
   /**
+    * To request a new confirmation code when verifying an email, user will have to start whole journey again in new session.
+    */
+  def dashboardWithNewSession(formTemplateId: FormTemplateId) = Action.async { implicit request =>
+    Redirect(routes.NewFormController.dashboard(formTemplateId)).withSession().pure[Future]
+  }
+
+  /**
     * This handles cases when draftRetrievalMethod submissionReference or formAccessCodeForAgents has been
     * added to the formTemplate after form went live without draftRetrievalMethod.
     *

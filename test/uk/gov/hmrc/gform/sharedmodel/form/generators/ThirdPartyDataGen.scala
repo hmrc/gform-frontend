@@ -17,6 +17,8 @@
 package uk.gov.hmrc.gform.sharedmodel.form.generators
 
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.models.email.emailFieldId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ FormComponentGen, PrimitiveGen }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.des.DesRegistrationResponseGen
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.ObligationsGen
@@ -26,7 +28,10 @@ trait ThirdPartyDataGen {
     for {
       desRegistrationResponse <- Gen.option(DesRegistrationResponseGen.desRegistrationResponseGen)
       obligations             <- ObligationsGen.obligationsGen
-    } yield ThirdPartyData(desRegistrationResponse, obligations)
+      emailVerification <- PrimitiveGen.possiblyEmptyMapGen(
+                            FormComponentGen.formComponentIdGen.map(fcId => emailFieldId(fcId)),
+                            EmailVerificationCodeGen.emailVerificationCodeGen)
+    } yield ThirdPartyData(desRegistrationResponse, obligations, emailVerification)
 }
 
 object ThirdPartyDataGen extends ThirdPartyDataGen

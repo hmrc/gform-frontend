@@ -56,14 +56,14 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     )
 
     val formComponents =
-      mkFormComponent(FormComponentId("repeatingSectionDriver"), Text(AnyText, Value)) ::
-        mkFormComponent(FormComponentId("repeatingSecondField"), Text(AnyText, Value)) ::
+      mkFormComponent(FormComponentId("repeatingSectionDriver"), Text(BasicText, Value)) ::
+        mkFormComponent(FormComponentId("repeatingSecondField"), Text(BasicText, Value)) ::
         mkFormComponent(FormComponentId("repeatingThirdField"), Date(AnyDate, Offset(0), None)) ::
         mkFormComponent(FormComponentId("repeatingFourthField"), Address(true)) ::
         mkFormComponent(FormComponentId("repeatingFifthField"), UkSortCode(Value)) :: Nil
 
     val unrelated =
-      mkFormComponent(FormComponentId("not-submitted-text"), Text(AnyText, Value)) ::
+      mkFormComponent(FormComponentId("not-submitted-text"), Text(BasicText, Value)) ::
         mkFormComponent(FormComponentId("not-submitted-address"), Address(true)) ::
         mkFormComponent(FormComponentId("not-submitted-ukSortCode"), UkSortCode(Value)) :: Nil
 
@@ -374,31 +374,31 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       List(
         GroupList(
           List(
-            mkFormComponent(FormComponentId("a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("1_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("1_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("2_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("2_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("3_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("3_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("3_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("3_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("3_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("3_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("3_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("3_d"), Text(BasicText, Value))
           ))
       )
 
@@ -408,7 +408,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
 
   "fillToMin" should "fill group to required min size" in {
 
-    def toComponent(fcId: String): FormComponent = mkFormComponent(FormComponentId(fcId), Text(AnyText, Value))
+    def toComponent(fcId: String): FormComponent = mkFormComponent(FormComponentId(fcId), Text(BasicText, Value))
 
     val groupIds = "a" :: "b" :: "c" :: "d" :: Nil map FormComponentId.apply
     val group = mkGroup(groupIds).copy(repeatsMin = Some(3))
@@ -432,24 +432,24 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       List(
         GroupList(
           List(
-            mkFormComponent(FormComponentId("a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("1_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("1_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("2_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("2_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_d"), Text(BasicText, Value))
           ))
       )
 
@@ -461,31 +461,31 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       List(
         GroupList(
           List(
-            mkFormComponent(FormComponentId("a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("1_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("1_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("1_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("1_d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("2_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("2_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("2_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("2_d"), Text(BasicText, Value))
           )),
         GroupList(
           List(
-            mkFormComponent(FormComponentId("3_a"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("3_b"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("3_c"), Text(AnyText, Value)),
-            mkFormComponent(FormComponentId("3_d"), Text(AnyText, Value))
+            mkFormComponent(FormComponentId("3_a"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("3_b"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("3_c"), Text(BasicText, Value)),
+            mkFormComponent(FormComponentId("3_d"), Text(BasicText, Value))
           ))
       )
 
@@ -586,7 +586,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       List(
         "a" -> choice,
         "b" -> choice,
-        "c" -> Text(AnyText, Value)
+        "c" -> Text(BasicText, Value)
       )
     )
 
@@ -607,7 +607,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
         "a" -> choice,
         "b" -> informationMessage,
         "c" -> FileUpload(),
-        "d" -> Text(AnyText, Value)
+        "d" -> Text(BasicText, Value)
       )
     )
 
@@ -629,21 +629,21 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
       List(
         "a" -> choice,
         "b" -> choice,
-        "c" -> Text(AnyText, Value)
+        "c" -> Text(BasicText, Value)
       )
     )
 
     val sections = section ::
-      mkSection(mkFormComponent(FormComponentId("e"), Text(AnyText, Value)) :: Nil) ::
-      mkSection(mkFormComponent(FormComponentId("f"), Text(AnyText, Value)) :: Nil) :: Nil
+      mkSection(mkFormComponent(FormComponentId("e"), Text(BasicText, Value)) :: Nil) ::
+      mkSection(mkFormComponent(FormComponentId("f"), Text(BasicText, Value)) :: Nil) :: Nil
 
     val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "b", "c", "1_a", "1_b", "1_c", "e", "f")
 
     val (hiddenFormComponent, dataUpd) = Fields.getHiddenTemplateFields(section, sections, data, lookupExtractors)
 
     val expectedFC = List(
-      "e"   -> Text(AnyText, Value),
-      "f"   -> Text(AnyText, Value),
+      "e"   -> Text(BasicText, Value),
+      "f"   -> Text(BasicText, Value),
       "a"   -> choice,
       "b"   -> choice,
       "1_a" -> choice,
@@ -670,7 +670,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
 
     val sections = section ::
       mkSection(mkFormComponent(FormComponentId("b"), choice) :: Nil) ::
-      mkSection(mkFormComponent(FormComponentId("c"), Text(AnyText, Value)) :: Nil) :: Nil
+      mkSection(mkFormComponent(FormComponentId("c"), Text(BasicText, Value)) :: Nil) :: Nil
 
     val data = mkFormDataRecalculatedUsingUpperCaseFormComponentIdForValue("a", "b", "c")
 
@@ -685,7 +685,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     val expectedFC = List(
       "a" -> choice,
       "b" -> choice,
-      "c" -> Text(AnyText, Value)
+      "c" -> Text(BasicText, Value)
     ) map { case (id, comp) => mkFormComponent(FormComponentId(id), comp) }
 
     dataUpd shouldBe expectedData
@@ -696,7 +696,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
   "hiddenFileUploads" should "return FileUpload components which are not part of a group" in {
     val fileUploadOutsideOfGroup = mkFormComponent(FormComponentId("a"), FileUpload())
     val fileUpload = mkFormComponent(FormComponentId("b"), FileUpload())
-    val text = mkFormComponent(FormComponentId("c"), Text(AnyText, Value))
+    val text = mkFormComponent(FormComponentId("c"), Text(BasicText, Value))
 
     val group = mkGroupWith(fileUpload :: Nil)
     val fileUploadInAGroup = mkFormComponent(FormComponentId("dummy"), group)
@@ -721,7 +721,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
 
   def mkGroup(groupIds: List[FormComponentId]) =
     Group(
-      groupIds.map(fcId => mkFormComponent(fcId, Text(AnyText, Value))),
+      groupIds.map(fcId => mkFormComponent(fcId, Text(BasicText, Value))),
       Vertical,
       repeatsMax = Some(5),
       repeatsMin = None,

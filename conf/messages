@@ -75,6 +75,7 @@ generic.error.sortcode={0} must be entered as 3 sets of 2 numbers, for example 0
 generic.error.exactNumbers={0} must be {1} numbers
 generic.error.lookup={0} must match one of the suggestions from the list
 generic.error.register={0} must be from a valid list, {1} is not a valid list
+generic.error.email={0} must match code you received by email
 
 generic.shortText.error.pattern={0} can only include letters, numbers, spaces, hyphens, ampersands and apostrophes
 generic.longText.error.pattern={0} can only include letters, numbers, spaces and round, square, angled or curly brackets, apostrophes, hyphens, dashes, periods, pound signs, plus signs, semi-colons, colons, asterisks, question marks, equal signs, forward slashes, ampersands, exclamation marks, @ signs, hash signs, dollar signs, euro signs, back ticks, tildes, double quotes and underscores
@@ -373,8 +374,3 @@ accessibility.content.block7.h22.p4=We are working on these issues and will fix 
 accessibility.subheading8=How we tested this service
 accessibility.content.block8.p1=This service was built using parts that were tested by <a href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
 accessibility.content.block8.p2=This page was prepared on 23 September 2019. It was last updated on 23 September 2019.
-
-
-
-
-

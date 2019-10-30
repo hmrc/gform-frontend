@@ -22,8 +22,10 @@ import play.api.libs.json._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, emailFieldId, verificationCodeFieldId }
 import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithGroup, JsFormComponentModel, JsFormComponentWithCtx, JsRevealingChoiceModel }
 import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString, VariadicFormData }
+import shapeless.tag
 
 case class ExpandedFormComponent(formComponents: List[FormComponent]) extends AnyVal {
   def allIds: List[FormComponentId] = {
@@ -224,5 +226,14 @@ object IsFileUpload {
     fc.`type` match {
       case i @ FileUpload() => true
       case _                => false
+    }
+}
+
+object IsEmailVerifier {
+  def unapply(formComponent: FormComponent): Option[(EmailFieldId, VerificationCodeFieldId)] =
+    formComponent.`type` match {
+      case Text(EmailVerifiedBy(fcId), _, _, _) =>
+        Some((emailFieldId(formComponent.id), verificationCodeFieldId(fcId)))
+      case _ => None
     }
 }

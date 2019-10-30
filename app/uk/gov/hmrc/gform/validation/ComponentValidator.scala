@@ -23,6 +23,8 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.emailaddress.EmailAddress
 import uk.gov.hmrc.gform.lookup.LookupOptions
+import uk.gov.hmrc.gform.models.email.EmailFieldId
+import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
@@ -33,8 +35,8 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure,
 import scala.util.matching.Regex
 
 object ComponentValidator {
-  private def textData(formData: FormDataRecalculated, fieldValue: FormComponent) =
-    formData.data.get(fieldValue.id).toSeq.flatMap(_.toSeq).filterNot(_.isEmpty())
+  private def textData(formData: FormDataRecalculated, fieldValue: FormComponent): List[String] =
+    formData.data.get(fieldValue.id).toSeq.flatMap(_.toSeq).filterNot(_.isEmpty()).toList
 
   private def lookupValidation(
     fieldValue: FormComponent,
@@ -70,7 +72,6 @@ object ComponentValidator {
           case _                                          => "generic.error.required"
         }
         validationFailure(fieldValue, key, None)
-      case (_, _, AnyText) => validationSuccess
       case (_, value :: Nil, Lookup(register)) =>
         lookupValidation(fieldValue, lookupRegistry, register, LookupLabel(value))
       case (_, value :: Nil, ShortText(min, max)) => shortTextValidation(fieldValue, value, min, max)
@@ -98,7 +99,7 @@ object ComponentValidator {
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
         validatePhoneNumber(fieldValue, value)
-      case (_, value :: Nil, Email) =>
+      case (_, value :: Nil, Email | EmailVerifiedBy(_)) =>
         Monoid.combine(
           email(fieldValue, value),
           textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))
@@ -324,4 +325,24 @@ object ComponentValidator {
       case regex() => validationSuccess
       case _       => validationFailure(fieldValue, messageKey, None)
     }
+
+  def validateEmailCode(
+    formComponent: FormComponent,
+    emailFieldId: EmailFieldId,
+    data: FormDataRecalculated,
+    thirdPartyData: ThirdPartyData
+  )(
+    implicit
+    messages: Messages,
+    l: LangADT
+  ): ValidatedType[Unit] = {
+    val fcId = formComponent.id
+    val expectedCode = thirdPartyData.emailVerification.get(emailFieldId).map(_.code)
+    val maybeCode: Option[String] = data.data.one(fcId)
+
+    val emailError = validationFailure(formComponent, "generic.error.email", None)
+
+    if (maybeCode === expectedCode.map(_.code)) validationSuccess else emailError
+
+  }
 }

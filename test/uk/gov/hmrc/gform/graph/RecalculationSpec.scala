@@ -412,7 +412,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
   it should "not recalculate sections which are invisible based on choice component" in {
 
-    val text = Text(AnyText, Value)
+    val text = Text(BasicText, Value)
     val choice =
       Choice(YesNo, NonEmptyList.of(toLocalisedString("yes"), toLocalisedString("no")), Vertical, List.empty, None)
 

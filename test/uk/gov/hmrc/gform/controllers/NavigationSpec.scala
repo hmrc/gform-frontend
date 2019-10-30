@@ -37,7 +37,7 @@ class NavitagionSpec extends Spec with GraphSpec {
 
   def mkFormComponent(formComponentId: FormComponentId): FormComponent = FormComponent(
     id = formComponentId,
-    `type` = Text(AnyText, Value),
+    `type` = Text(BasicText, Value),
     label = toLocalisedString(""),
     helpText = None,
     shortName = None,

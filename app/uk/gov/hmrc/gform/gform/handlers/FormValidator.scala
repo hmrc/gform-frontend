@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.models.ProcessData
 import uk.gov.hmrc.gform.models.gform.{ FormComponentValidation, FormValidationOutcome }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, FormFieldValidationResult, GetEmailCodeFieldMatcher }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -93,7 +93,8 @@ class FormValidator(implicit ec: ExecutionContext) {
             retrievals,
             thirdPartyData,
             formTemplate,
-            formDataRecalculated)
+            formDataRecalculated,
+            GetEmailCodeFieldMatcher(sections))
     } yield (evaluateValidation(v, allFC, formDataRecalculated, envelope), v, envelope)
   }
 

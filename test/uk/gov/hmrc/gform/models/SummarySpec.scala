@@ -57,7 +57,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
         List(
           FormComponent(
             `fieldId - iptRegNum`,
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("Insurance Premium Tax (IPT) number"),
             None,
             None,
@@ -84,7 +84,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
         List(
           FormComponent(
             `fieldId - firstName`,
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("First Name"),
             None,
             None,
@@ -111,7 +111,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
         List(
           FormComponent(
             `fieldId - businessName`,
-            Text(AnyText, Value),
+            Text(BasicText, Value),
             toLocalisedString("Name of business"),
             None,
             None,
@@ -186,7 +186,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
       List(
         FormComponent(
           FormComponentId("Surname"),
-          Text(AnyText, Value),
+          Text(BasicText, Value),
           toLocalisedString("Surname"),
           None,
           None,
@@ -199,7 +199,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
           None),
         FormComponent(
           FormComponentId("Info"),
-          Text(AnyText, Value),
+          Text(BasicText, Value),
           toLocalisedString("Info"),
           None,
           None,
@@ -343,7 +343,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
     val shortName = "JUST_A_VERY_SHORT_NAME"
     val addressField = FormComponent(
       id = FormComponentId("anId"),
-      `type` = Text(AnyText, Constant("DA")),
+      `type` = Text(BasicText, Constant("DA")),
       label = toLocalisedString("label"),
       shortName = Some(toLocalisedString(shortName)),
       helpText = None,
@@ -368,7 +368,7 @@ class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
     val label = "THIS_IS_A_LABEL"
     val addressField = FormComponent(
       id = FormComponentId("anId"),
-      `type` = Text(AnyText, Constant("DA")),
+      `type` = Text(BasicText, Constant("DA")),
       label = toLocalisedString(label),
       shortName = None,
       helpText = None,
