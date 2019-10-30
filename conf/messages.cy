@@ -327,7 +327,8 @@ accessibility.content.block2.li3=byddant yn clywed rhywfaint o’r cynnwys (megi
 accessibility.content.block2.p5=Byddwn weithiau yn ei gwneud yn ofynnol i uwchlwytho dogfennau wedi’u llofnodi. Mae yna ffyrdd gwahanol o ddarparu’r rhain ar gyfer pobl sy’n methu â gwneud hyn neu a fyddai’n ei chael hi’n anodd, oherwydd anabledd.
 
 accessibility.subheading4=Rhoi gwybod am broblemau hygyrchedd gyda’r gwasanaeth hwn
-accessibility.content.block4.p1=Rydym bob amser yn ceisio gwella hygyrchedd y gwasanaeth hwn. Os byddwch yn dod o hyd i unrhyw broblemau nad ydynt wedi’u rhestru ar y dudalen hon, neu os ydych o’r farn nad ydym yn bodloni gofynion hygyrchedd, cysylltwch â <a href="mailto:gforms.accessibility@digital.hmrc.gov.uk">gforms.accessibility@digital.hmrc.gov.uk</a>.
+accessibility.content.block4.p1=Rydym bob amser yn ceisio gwella hygyrchedd y gwasanaeth hwn. Os byddwch yn dod o hyd i unrhyw broblemau nad ydynt wedi’u rhestru ar y dudalen hon, neu os ydych o’r farn nad ydym yn bodloni gofynion hygyrchedd,
+accessibility.form.link=rhowch wybod am y broblem hygyrchedd
 accessibility.subheading5=Beth i’w wneud os nad ydych yn hapus â sut rydym yn ateb eich cwyn
 accessibility.content.block5.p1=Mae’r Comisiwn Cydraddoldeb a Hawliau Dynol (EHRC) yn gyfrifol am orfodi Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018 (y ‘rheoliadau hygyrchedd’). Os nad ydych yn hapus â sut rydym yn ateb eich cwyn, cysylltwch â’r <a href="https://www.equalityadvisoryservice.com/">Gwasanaeth Cynghori a Chymorth Cydraddoldeb</a> (EASS), neu’r <a href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) os ydych yn byw yng Ngogledd Iwerddon.
 
