@@ -69,7 +69,7 @@ class NumberValidationSpec(implicit messages: Messages, l: LangADT)
         ThirdPartyData.empty,
         ExampleData.formTemplate,
         lookupRegistry
-      ).validate(fieldValue, fieldValues)
+      ).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop)
 
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   }

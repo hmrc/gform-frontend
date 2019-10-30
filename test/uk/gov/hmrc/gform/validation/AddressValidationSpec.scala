@@ -102,7 +102,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-postcode") -> "P1 1P"
       )
     )
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value should be(())
   }
@@ -132,7 +133,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-postcode") -> "P1 1P"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value should be(())
   }
@@ -164,7 +166,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-street4")  -> "S4",
         FormComponentId("x-postcode") -> "BN11 7YHP"
       ))
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode is longer than 8 characters")))
@@ -192,7 +195,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       VariadicFormData.ones(FormComponentId("x-uk") -> "true", FormComponentId("x-postcode") -> "P1 1P")
     )
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(speccedAddress.id.withSuffix("street1") -> Set("l Building and street must be entered")))
@@ -230,7 +234,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       booleanExprEval,
       ThirdPartyData.empty,
       ExampleData.formTemplate,
-      lookupRegistry).validate(speccedAddress, tempList).futureValue
+      lookupRegistry).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l postcode must be entered")))
   }
@@ -260,7 +264,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-country") -> "C"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value should be(())
   }
@@ -289,7 +294,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-street1") -> "S"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("country") -> Set("l Country must be entered")))
   }
@@ -320,7 +326,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-country")  -> "C"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(speccedAddress.id.withSuffix("postcode") -> Set("l must not be entered")))
   }
@@ -350,7 +357,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-country") -> "C"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -384,7 +392,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x@country") -> "C"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -418,7 +427,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x@country") -> "C"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -457,7 +467,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       )
     )
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beRight(())
   }
@@ -487,7 +498,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-postcode") -> "C"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beRight(())
   }
@@ -520,7 +532,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("x-postcode") -> "C"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedAddress, tempList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedAddress, tempList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(

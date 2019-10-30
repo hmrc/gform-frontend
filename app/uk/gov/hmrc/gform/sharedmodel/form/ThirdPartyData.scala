@@ -17,7 +17,9 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.data.Validated.Valid
-import play.api.libs.json.{ Json, OFormat }
+import play.api.libs.json.{ Format, Json, OFormat }
+import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, JsonUtils }
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, Obligations }
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -25,12 +27,15 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],
   obligations: Obligations,
+  emailVerification: Map[EmailFieldId, EmailAndCode],
   reviewData: Option[Map[String, String]] = None
 ) {
   def updateFrom(vr: ValidatedType[ValidationResult]): ThirdPartyData =
     vr match {
-      case Valid(ValidationResult(Some(desRegistrationResponse))) =>
-        ThirdPartyData(Some(desRegistrationResponse), obligations, reviewData)
+      case Valid(ValidationResult(Some(desRegistrationResponse), m)) =>
+        ThirdPartyData(Some(desRegistrationResponse), obligations, emailVerification ++ m, reviewData)
+      case Valid(ValidationResult(None, m)) =>
+        ThirdPartyData(desRegistrationResponse, obligations, emailVerification ++ m, reviewData)
       case _ => this
     }
 
@@ -38,7 +43,8 @@ case class ThirdPartyData(
 }
 
 object ThirdPartyData {
-  val empty = ThirdPartyData(None, NotChecked)
-
+  val empty = ThirdPartyData(None, NotChecked, Map.empty)
+  implicit val formatMap: Format[Map[EmailFieldId, EmailAndCode]] =
+    JsonUtils.formatMap(a => emailFieldId(FormComponentId(a)), _.value)
   implicit val format: OFormat[ThirdPartyData] = Json.format
 }

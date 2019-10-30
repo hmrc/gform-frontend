@@ -28,7 +28,7 @@ class JavascriptSpec extends Spec {
   def formComponent(id: String, value: Expr = c) =
     FormComponent(
       FormComponentId(id),
-      Text(AnyText, value),
+      Text(BasicText, value),
       toLocalisedString(""),
       None,
       None,

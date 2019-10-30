@@ -75,7 +75,7 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
   private def formTemplateWithParametersAsComponents: FormTemplate = {
 
     val newFormComponents = cache.formTemplate.emailParameters.fold(List.empty[FormComponent])(_.toList.map(parameter =>
-      mkFormComponent(parameter.emailTemplateVariable, Text(AnyText, parameter.value))))
+      mkFormComponent(parameter.emailTemplateVariable, Text(BasicText, parameter.value))))
 
     val newSections = cache.formTemplate.sections ::: List(mkSection(newFormComponents))
 

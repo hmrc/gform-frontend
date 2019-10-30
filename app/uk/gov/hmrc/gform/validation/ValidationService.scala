@@ -29,10 +29,12 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
+import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId }
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -57,10 +59,13 @@ class ValidationService(
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    formTemplate: FormTemplate)(
+    formTemplate: FormTemplate,
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+  )(
     implicit hc: HeaderCarrier,
     messages: Messages,
-    l: LangADT): Future[ValidatedType[Unit]] =
+    l: LangADT
+  ): Future[ValidatedType[Unit]] =
     new ComponentsValidator(
       data,
       fileUploadService,
@@ -69,8 +74,8 @@ class ValidationService(
       booleanExpr,
       thirdPartyData,
       formTemplate,
-      lookupRegistry)
-      .validate(fieldValue, fieldValues)
+      lookupRegistry
+    ).validate(fieldValue, fieldValues, getEmailCodeFieldMatcher)
 
   def validateComponents(
     fieldValues: List[FormComponent],
@@ -78,12 +83,21 @@ class ValidationService(
     envelopeId: EnvelopeId,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
-    formTemplate: FormTemplate)(
-    implicit hc: HeaderCarrier,
-    messages: Messages,
-    l: LangADT): Future[ValidatedType[Unit]] =
+    formTemplate: FormTemplate,
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+  )(implicit hc: HeaderCarrier, messages: Messages, l: LangADT): Future[ValidatedType[Unit]] =
     fieldValues
-      .traverse(fv => validateFieldValue(fv, fieldValues, data, envelopeId, retrievals, thirdPartyData, formTemplate))
+      .traverse(
+        fv =>
+          validateFieldValue(
+            fv,
+            fieldValues,
+            data,
+            envelopeId,
+            retrievals,
+            thirdPartyData,
+            formTemplate,
+            getEmailCodeFieldMatcher))
       .map(Monoid[ValidatedType[Unit]].combineAll)
 
   def validateComponentsWithCache(cache: AuthCacheWithForm, declarationData: FormDataRecalculated)(
@@ -101,18 +115,49 @@ class ValidationService(
             cache.form.envelopeId,
             cache.retrievals,
             cache.form.thirdPartyData,
-            cache.formTemplate))
+            cache.formTemplate,
+            GetEmailCodeFieldMatcher.noop
+        ))
       .map(Monoid[ValidatedType[Unit]].combineAll)
+  }
+
+  private def sendVerificationEmails(
+    fieldValues: List[FormComponent],
+    data: FormDataRecalculated,
+    thirdPartyData: ThirdPartyData
+  )(
+    implicit
+    hc: HeaderCarrier,
+    messages: Messages
+  ): Future[ValidatedType[Map[EmailFieldId, EmailAndCode]]] = {
+
+    val emailFields: List[EmailFieldId] = fieldValues.collect { case IsEmailVerifier(fcId, _) => fcId }
+
+    def emailExist(formComponentId: EmailFieldId, email: String): Boolean =
+      thirdPartyData.emailVerification.get(formComponentId).fold(false)(_.email === email)
+
+    val emailAddressedToBeVerified: List[Option[(EmailFieldId, EmailAndCode)]] = emailFields.map { ef =>
+      val maybeEmail = data.data.one(ef)
+
+      maybeEmail.collect {
+        case email if !emailExist(ef, email) => ef -> EmailAndCode.emailVerificationCode(email)
+      }
+    }
+
+    emailAddressedToBeVerified.flatten
+      .traverse {
+        case res @ (_, EmailAndCode(email, code)) =>
+          gformConnector.sendEmail(NotifierEmailAddress(email), code).map(_ => res)
+      }
+      .map(_.toMap.valid)
   }
 
   private def validateUsingValidators(section: Section, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier,
-    messages: Messages): Future[ValidatedType[ValidationResult]] = {
-    val sv: Option[Validator] = section.validators
+    messages: Messages): Future[ValidatedType[ValidationResult]] =
     section.validators
       .map(validateUsingSectionValidators(_, data))
       .getOrElse(ValidationResult.empty.valid.pure[Future])
-  }
 
   def validateFormComponents(
     sectionFields: List[FormComponent],
@@ -121,16 +166,26 @@ class ValidationService(
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
-    data: FormDataRecalculated)(
-    implicit hc: HeaderCarrier,
-    messages: Messages,
-    l: LangADT): Future[ValidatedType[ValidationResult]] = {
+    data: FormDataRecalculated,
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+  )(implicit hc: HeaderCarrier, messages: Messages, l: LangADT): Future[ValidatedType[ValidationResult]] = {
     def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
 
     val eT = for {
-      _      <- lift(validateComponents(sectionFields, data, envelopeId, retrievals, thirdPartyData, formTemplate))
-      valRes <- lift(validateUsingValidators(section, data))
-    } yield valRes
+      _ <- lift(
+            validateComponents(
+              sectionFields,
+              data,
+              envelopeId,
+              retrievals,
+              thirdPartyData,
+              formTemplate,
+              getEmailCodeFieldMatcher))
+      valRes                <- lift(validateUsingValidators(section, data))
+      emailsForVerification <- lift(sendVerificationEmails(sectionFields, data, thirdPartyData))
+    } yield {
+      valRes.copy(emailVerification = emailsForVerification)
+    }
 
     eT.value.map(Validated.fromEither)
   }
@@ -176,7 +231,7 @@ class ValidationService(
             case CannotRetrieveResponse => Future.failed(new Exception("Call to des registration has failed"))
             case ServiceResponse(drr) =>
               Future.successful(
-                if (compare(postcodeValue)(drr)) ValidationResult(Some(drr)).valid
+                if (compare(postcodeValue)(drr)) ValidationResult(Some(drr), Map.empty).valid
                 else errors.invalid
               )
           }
@@ -225,7 +280,8 @@ class ValidationService(
                    retrievals,
                    cache.form.thirdPartyData,
                    cache.formTemplate,
-                   data))
+                   data,
+                   GetEmailCodeFieldMatcher(allSections)))
              .map(Monoid[ValidatedType[ValidationResult]].combineAll)
       v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
       errors = evaluateValidation(v, allFields, data, envelope).toMap

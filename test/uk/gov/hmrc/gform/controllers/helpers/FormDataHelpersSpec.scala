@@ -37,7 +37,7 @@ class FormDataHelpersSpec extends Spec {
       FormData(formFields),
       Accepted,
       VisitIndex(Set.empty),
-      ThirdPartyData(None, NotChecked),
+      ThirdPartyData(None, NotChecked, Map.empty),
       None
     )
 

@@ -17,10 +17,13 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.Monoid
+import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.sharedmodel.des.DesRegistrationResponse
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 case class ValidationResult(
-  desRegistrationResponse: Option[DesRegistrationResponse]
+  desRegistrationResponse: Option[DesRegistrationResponse],
+  emailVerification: Map[EmailFieldId, EmailAndCode]
 )
 
 object ValidationResult {
@@ -28,11 +31,11 @@ object ValidationResult {
   implicit val monoidIns: Monoid[ValidationResult] = new Monoid[ValidationResult] {
     def empty = ValidationResult.empty
     def combine(l: ValidationResult, r: ValidationResult): ValidationResult = (l, r) match {
-      case (ValidationResult(Some(drr)), _)                      => ValidationResult(Some(drr))
-      case (ValidationResult(None), ValidationResult(Some(drr))) => ValidationResult(Some(drr))
-      case (ValidationResult(None), ValidationResult(None))      => ValidationResult.empty
+      case (ValidationResult(Some(drr), m1), ValidationResult(_, m2))    => ValidationResult(Some(drr), m1 ++ m2)
+      case (ValidationResult(None, m1), ValidationResult(Some(drr), m2)) => ValidationResult(Some(drr), m1 ++ m2)
+      case (ValidationResult(None, m1), ValidationResult(None, m2))      => ValidationResult(None, m1 ++ m2)
     }
   }
 
-  val empty = ValidationResult(None)
+  val empty = ValidationResult(None, Map.empty)
 }

@@ -24,8 +24,8 @@ import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen
 
 class FormComponentSpec extends Spec {
-  private val exprText = Text(AnyText, Add(Constant("1"), FormCtx("other-field-id")))
-  private val exprTextArea = TextArea(AnyText, Value)
+  private val exprText = Text(BasicText, Add(Constant("1"), FormCtx("other-field-id")))
+  private val exprTextArea = TextArea(BasicText, Value)
   private val exprAddress = Address(international = false)
   private val exprUKSortCode = UkSortCode(Value)
   private val exprDate = Date(AnyDate, Offset(0), None)

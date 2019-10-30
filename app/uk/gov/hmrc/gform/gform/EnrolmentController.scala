@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
-import uk.gov.hmrc.gform.validation.ValidationService
+import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, GetEmailCodeFieldMatcher, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.frontend.controller.FrontendController
@@ -156,7 +156,8 @@ class EnrolmentController(
                                        EnvelopeId(""),
                                        retrievals,
                                        ThirdPartyData.empty,
-                                       formTemplate)
+                                       formTemplate,
+                                       GetEmailCodeFieldMatcher.noop)
                 enrolmentResultProcessor = new EnrolmentResultProcessor(
                   renderer.renderEnrolmentSection,
                   formTemplate,

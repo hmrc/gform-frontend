@@ -98,7 +98,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - firstName` = FormComponent(
     `fieldId - firstName`,
-    Text(AnyText, Constant("any text")),
+    Text(BasicText, Constant("any text")),
     toLocalisedString("First Name"),
     None,
     None,
@@ -114,7 +114,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - surname` = FormComponent(
     `fieldId - surname`,
-    Text(AnyText, Constant("any text")),
+    Text(BasicText, Constant("any text")),
     toLocalisedString("Last Name"),
     None,
     None,
@@ -130,7 +130,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - iptRegNum` = FormComponent(
     `fieldId - iptRegNum`,
-    Text(AnyText, Constant("any text")),
+    Text(BasicText, Constant("any text")),
     toLocalisedString("Insurance Premium Tax (IPT) number"),
     None,
     None,
@@ -146,7 +146,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - businessName` = FormComponent(
     `fieldId - businessName`,
-    Text(AnyText, Constant("any text")),
+    Text(BasicText, Constant("any text")),
     toLocalisedString("Name of business"),
     None,
     None,

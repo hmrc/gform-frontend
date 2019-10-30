@@ -24,7 +24,7 @@ import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormTemplate, Section, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, Obligations, VariadicFormData }
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, FormFieldValidationResult, GetEmailCodeFieldMatcher }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 package object handlers {
@@ -68,7 +68,8 @@ package object handlers {
     MaterialisedRetrievals,
     ThirdPartyData,
     FormTemplate,
-    FormDataRecalculated) => F[ValidatedType[ValidationResult]]
+    FormDataRecalculated,
+    GetEmailCodeFieldMatcher) => F[ValidatedType[ValidationResult]]
 
   type EvaluateValidation =
     (

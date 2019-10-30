@@ -426,7 +426,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
       ThirdPartyData.empty,
       ExampleData.formTemplate,
       lookupRegistry
-    ).validate(fieldValue, fieldValues).futureValue
+    ).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
   private val fieldValueFunction: TextConstraint => FormComponent = contraint => fieldValue(Text(contraint, Value))
 

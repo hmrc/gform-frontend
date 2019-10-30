@@ -89,7 +89,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(speccedDate, speccedDateList).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(speccedDate, speccedDateList, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -111,7 +112,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beRight(())
   }
@@ -133,7 +135,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -155,7 +158,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set("sample label must be after 21 June 2017")))
   }
@@ -177,7 +181,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -199,7 +204,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -221,7 +227,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -243,7 +250,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -265,7 +273,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -287,7 +296,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> acceptedAfter.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -309,7 +319,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -331,7 +342,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -353,7 +365,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> accepted.getYear.toString
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.value shouldBe (())
   }
@@ -373,7 +386,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> "2020"
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the last day of the month")))
   }
@@ -393,7 +407,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> "2020"
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(fieldValue.id -> Set(s"sample label must be the first day of the month")))
   }
@@ -413,7 +428,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> "2017"
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(fieldValue.id.withSuffix("day") -> Set(s"sample label day must not be greater than 31")))
@@ -434,7 +450,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> "222017"
       ))
 
-    val result = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(fieldValue.id.withSuffix("year") -> Set(s"sample label year must be a 4 digit number")))
@@ -469,7 +486,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> LocalDate.now().getYear.toString
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -504,7 +522,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate-year")  -> ""
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(
       Map(
@@ -540,7 +559,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate.year")  -> "1970"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("sample label is missing")))
   }
@@ -572,7 +592,8 @@ class DateValidationSpec(implicit messages: Messages, l: LangADT)
         FormComponentId("accPeriodStartDate.year")  -> "1970"
       ))
 
-    val result: ValidatedType[Unit] = mkComponentsValidator(data).validate(fieldValue, fieldValues).futureValue
+    val result: ValidatedType[Unit] =
+      mkComponentsValidator(data).validate(fieldValue, fieldValues, GetEmailCodeFieldMatcher.noop).futureValue
 
     result.toEither should beLeft(Map(FormComponentId("accPeriodStartDate") -> Set("New error message")))
   }

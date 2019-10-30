@@ -24,13 +24,38 @@ import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadAlgebra, Infected }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
+import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
+
+class EmailCodeFieldMatcher(
+  val fcId: VerificationCodeFieldId,
+  val fcIds: Map[VerificationCodeFieldId, EmailFieldId]
+) {
+  object EmailCodeField {
+    def unapply(formComponent: ComponentType): Option[EmailFieldId] = fcIds.get(fcId)
+  }
+}
+
+class GetEmailCodeFieldMatcher(sections: List[Section]) {
+  def apply(fc: FormComponent): EmailCodeFieldMatcher = {
+    val fcIds: Map[VerificationCodeFieldId, EmailFieldId] = sections
+      .flatMap(_.expandSectionFull.allFCs)
+      .collect { case IsEmailVerifier(emailFcId, codeFcId) => (codeFcId, emailFcId) }
+      .toMap
+    new EmailCodeFieldMatcher(verificationCodeFieldId(fc.id), fcIds)
+  }
+}
+
+object GetEmailCodeFieldMatcher {
+  def apply(sections: List[Section]) = new GetEmailCodeFieldMatcher(sections)
+  val noop = new GetEmailCodeFieldMatcher(Nil)
+}
 
 class ComponentsValidator(
   data: FormDataRecalculated,
@@ -40,8 +65,10 @@ class ComponentsValidator(
   booleanExpr: BooleanExprEval[Future],
   thirdPartyData: ThirdPartyData,
   formTemplate: FormTemplate,
-  lookupRegistry: LookupRegistry)(
-  implicit ec: ExecutionContext,
+  lookupRegistry: LookupRegistry
+)(
+  implicit
+  ec: ExecutionContext,
   messages: Messages,
   l: LangADT
 ) {
@@ -49,9 +76,15 @@ class ComponentsValidator(
   val cvh = new ComponentsValidatorHelper()
   val dateValidation = new DateValidation()
 
-  def validate(fieldValue: FormComponent, fieldValues: List[FormComponent])(
-    implicit hc: HeaderCarrier,
-    messages: Messages): Future[ValidatedType[Unit]] = {
+  def validate(
+    fieldValue: FormComponent,
+    fieldValues: List[FormComponent],
+    getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
+  )(
+    implicit
+    hc: HeaderCarrier,
+    messages: Messages
+  ): Future[ValidatedType[Unit]] = {
 
     def validIf(validationResult: ValidatedType[Unit]): Future[ValidatedType[Unit]] =
       (validationResult.isValid, fieldValue.validIf) match {
@@ -65,6 +98,8 @@ class ComponentsValidator(
         case _ => validationResult.pure[Future]
       }
 
+    val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcher(fieldValue)
+
     fieldValue.`type` match {
       case sortCode @ UkSortCode(_) =>
         validIf(
@@ -76,10 +111,10 @@ class ComponentsValidator(
         validIf(
           ComponentValidator
             .validateParentSubmissionRef(fieldValue, SubmissionRef(envelopeId))(data))
+      case emailCodeFieldMatcher.EmailCodeField(emailField) =>
+        validIf(ComponentValidator.validateEmailCode(fieldValue, emailField, data, thirdPartyData))
       case Text(constraint, _, _, _) =>
-        validIf(
-          ComponentValidator
-            .validateText(fieldValue, constraint)(data, lookupRegistry))
+        validIf(ComponentValidator.validateText(fieldValue, constraint)(data, lookupRegistry))
       case TextArea(constraint, _, _) =>
         validIf(
           ComponentValidator
