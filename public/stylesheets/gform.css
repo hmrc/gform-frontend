@@ -382,3 +382,11 @@ textarea:focus,
 select:focus {
    outline: 3px solid #ffdd00;
 }
+
+.transaction-banner--complete,
+.govuk-panel--confirmation,
+.govuk-box-highlight {
+   background: #00703c;
+}
+
+
