@@ -63,6 +63,7 @@ generic.error.maxDecimals=Rhaid i {0} beidio â chynnwys mwy na {1} lle degol
 generic.error.invalid=Nid yw {0} yn ddilys
 generic.vrn.error.pattern=Rhaid i {0} fod yn rhif 9 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789
 generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
+generic.ukEori.error.pattern={0} must be 12 numbers and start with GB, for example GB123456789012 //TODO Add in welsh translation of this exact text - AEO translations will contain this.
 generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif 6 digid gyda 2 lythyren ar y dechrau, er enghraifft 01234567 neu SC123456
 generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
