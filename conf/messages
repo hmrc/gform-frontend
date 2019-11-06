@@ -66,6 +66,7 @@ generic.error.maxDecimals={0} must be no more than {1} decimal places
 generic.error.invalid={0} is not valid
 generic.vrn.error.pattern={0} must be 9 numbers with GB at the start, for example GB123456789
 generic.eori.error.pattern={0} must be between 7 and 15 numbers and start with your country code, for example GB164538549000
+generic.ukEori.error.pattern={0} must be 12 numbers and start with GB, for example GB123456789012
 generic.crn.error.invalid={0} must be either 8 numbers or 6 numbers with 2 letters at the start, for example 01234567 or SC123456
 generic.nonUKCountryCode.error.pattern={0} must be entered in the correct format, for example FR
 generic.countryCode.error.pattern={0} must be entered in the correct format, for example FR
