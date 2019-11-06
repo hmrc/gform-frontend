@@ -237,7 +237,7 @@ object ComponentValidator {
   }
 
   private def checkUkEORI(fieldValue: FormComponent, value: String)(implicit messages: Messages, l: LangADT) = {
-    val ValidUkEORI = "^[GB]{2}[0-9]{14}$".r
+    val ValidUkEORI = "^[GB]{2}[0-9]{12}$".r
     val str = value.replace(" ", "")
     val errorMSG = "generic.ukEori.error.pattern"
     sharedTextComponentValidator(fieldValue, str, 14, 14, ValidUkEORI, errorMSG)
