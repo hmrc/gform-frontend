@@ -43,7 +43,7 @@ object EmailAndCode {
     def getConsonants(i: Int) = mkState(consonantStream, i)
 
     val refGen = for {
-      code <- getConsonants(6)
+      code <- getConsonants(4)
     } yield code
 
     refGen.runA(rnd).value
