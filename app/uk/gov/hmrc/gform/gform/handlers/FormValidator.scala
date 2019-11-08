@@ -90,6 +90,7 @@ class FormValidator(implicit ec: ExecutionContext) {
             sectionFields,
             section,
             envelopeId,
+            envelope,
             retrievals,
             thirdPartyData,
             formTemplate,

@@ -65,6 +65,7 @@ package object handlers {
     List[FormComponent],
     Section,
     EnvelopeId,
+    Envelope,
     MaterialisedRetrievals,
     ThirdPartyData,
     FormTemplate,

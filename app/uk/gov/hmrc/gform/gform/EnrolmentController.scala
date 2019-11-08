@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
@@ -154,6 +155,7 @@ class EnrolmentController(
                                        allFields,
                                        data,
                                        EnvelopeId(""),
+                                       Envelope.empty,
                                        retrievals,
                                        ThirdPartyData.empty,
                                        formTemplate,

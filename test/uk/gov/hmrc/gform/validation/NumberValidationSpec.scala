@@ -22,7 +22,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
@@ -62,8 +62,8 @@ class NumberValidationSpec(implicit messages: Messages, l: LangADT)
     def validate(fieldValue: FormComponent, fieldValues: List[FormComponent], data: VariadicFormData) =
       new ComponentsValidator(
         mkFormDataRecalculated(data),
-        mock[FileUploadService],
         EnvelopeId("whatever"),
+        Envelope.empty,
         retrievals,
         booleanExprEval,
         ThirdPartyData.empty,

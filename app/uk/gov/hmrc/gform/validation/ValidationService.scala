@@ -57,6 +57,7 @@ class ValidationService(
     fieldValues: List[FormComponent],
     data: FormDataRecalculated,
     envelopeId: EnvelopeId,
+    envelope: Envelope,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
@@ -68,8 +69,8 @@ class ValidationService(
   ): Future[ValidatedType[Unit]] =
     new ComponentsValidator(
       data,
-      fileUploadService,
       envelopeId,
+      envelope,
       retrievals,
       booleanExpr,
       thirdPartyData,
@@ -81,6 +82,7 @@ class ValidationService(
     fieldValues: List[FormComponent],
     data: FormDataRecalculated,
     envelopeId: EnvelopeId,
+    envelope: Envelope,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
@@ -94,13 +96,14 @@ class ValidationService(
             fieldValues,
             data,
             envelopeId,
+            envelope,
             retrievals,
             thirdPartyData,
             formTemplate,
             getEmailCodeFieldMatcher))
       .map(Monoid[ValidatedType[Unit]].combineAll)
 
-  def validateComponentsWithCache(cache: AuthCacheWithForm, declarationData: FormDataRecalculated)(
+  def validateComponentsWithCache(cache: AuthCacheWithForm, declarationData: FormDataRecalculated, envelope: Envelope)(
     implicit hc: HeaderCarrier,
     messages: Messages,
     l: LangADT): Future[ValidatedType[Unit]] = {
@@ -113,6 +116,7 @@ class ValidationService(
             fieldValues,
             declarationData,
             cache.form.envelopeId,
+            envelope,
             cache.retrievals,
             cache.form.thirdPartyData,
             cache.formTemplate,
@@ -163,6 +167,7 @@ class ValidationService(
     sectionFields: List[FormComponent],
     section: Section,
     envelopeId: EnvelopeId,
+    envelope: Envelope,
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
@@ -177,6 +182,7 @@ class ValidationService(
               sectionFields,
               data,
               envelopeId,
+              envelope,
               retrievals,
               thirdPartyData,
               formTemplate,
@@ -277,6 +283,7 @@ class ValidationService(
                    allFields,
                    section,
                    cache.form.envelopeId,
+                   envelope,
                    retrievals,
                    cache.form.thirdPartyData,
                    cache.formTemplate,

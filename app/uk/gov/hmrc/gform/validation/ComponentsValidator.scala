@@ -23,7 +23,7 @@ import play.api.i18n.Messages
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.fileupload.{ Error, File, FileUploadAlgebra, Infected }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, FileUploadAlgebra, Infected }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
@@ -59,8 +59,8 @@ object GetEmailCodeFieldMatcher {
 
 class ComponentsValidator(
   data: FormDataRecalculated,
-  fileUploadService: FileUploadAlgebra[Future],
   envelopeId: EnvelopeId,
+  envelope: Envelope,
   retrievals: MaterialisedRetrievals,
   booleanExpr: BooleanExprEval[Future],
   thirdPartyData: ThirdPartyData,
@@ -125,36 +125,32 @@ class ComponentsValidator(
       case _: RevealingChoice =>
         validIf(ComponentValidator.validateChoice(fieldValue)(data))
       case Group(_, _, _, _, _, _)  => cvh.validF //a group is read-only
-      case FileUpload()             => validateFileUpload(data, fieldValue)
+      case FileUpload()             => validateFileUpload(data, fieldValue, envelope).pure[Future]
       case InformationMessage(_, _) => cvh.validF
       case HmrcTaxPeriod(_, _, _) =>
         validIf(ComponentValidator.validateChoice(fieldValue)(data))
     }
   }
 
-  //TODO: this will be called many times per one form. Maybe there is a way to optimise it?
-  private def validateFileUpload(data: FormDataRecalculated, fieldValue: FormComponent)(
+  private def validateFileUpload(data: FormDataRecalculated, fieldValue: FormComponent, envelope: Envelope)(
     implicit hc: HeaderCarrier,
-    messages: Messages): Future[ValidatedType[Unit]] =
-    fileUploadService
-      .getEnvelope(envelopeId)
-      .map { envelope =>
-        val fileId = FileId(fieldValue.id.value)
-        val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
+    messages: Messages): ValidatedType[Unit] = {
+    val fileId = FileId(fieldValue.id.value)
+    val file: Option[File] = envelope.files.find(_.fileId.value == fileId.value)
 
-        file match {
-          case Some(File(fileId, Error(Some(reason)), _)) =>
-            validationFailure(fieldValue, "generic.error.unknownUpload", None)
-          case Some(File(fileId, Error(None), _)) =>
-            validationFailure(fieldValue, "generic.error.unknownUpload", None)
-          case Some(File(fileId, Infected, _)) =>
-            validationFailure(fieldValue, "generic.error.virus", None)
-          case Some(File(fileId, _, _)) => ValidationServiceHelper.validationSuccess
-          case None if fieldValue.mandatory =>
-            validationFailure(fieldValue, "generic.error.upload", None)
-          case None => validationSuccess
-        }
-      }
+    file match {
+      case Some(File(fileId, Error(Some(reason)), _)) =>
+        validationFailure(fieldValue, "generic.error.unknownUpload", None)
+      case Some(File(fileId, Error(None), _)) =>
+        validationFailure(fieldValue, "generic.error.unknownUpload", None)
+      case Some(File(fileId, Infected, _)) =>
+        validationFailure(fieldValue, "generic.error.virus", None)
+      case Some(File(fileId, _, _)) => ValidationServiceHelper.validationSuccess
+      case None if fieldValue.mandatory =>
+        validationFailure(fieldValue, "generic.error.upload", None)
+      case None => validationSuccess
+    }
+  }
 }
 
 class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT) {

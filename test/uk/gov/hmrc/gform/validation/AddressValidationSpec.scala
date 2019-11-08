@@ -26,7 +26,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
@@ -64,8 +64,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
   private def mkComponentsValidator(data: FormDataRecalculated): ComponentsValidator =
     new ComponentsValidator(
       data,
-      mock[FileUploadService],
       EnvelopeId("whatever"),
+      Envelope.empty,
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,
@@ -228,8 +228,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
 
     val result: ValidatedType[Unit] = new ComponentsValidator(
       data,
-      mock[FileUploadService],
       EnvelopeId("whatever"),
+      Envelope.empty,
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,

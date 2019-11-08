@@ -24,6 +24,7 @@ case class Envelope(
 )
 
 object Envelope {
+  val empty = Envelope(Nil)
   implicit val reads: Reads[Envelope] = envelopeRawReads.map(er => Envelope(er.files.getOrElse(Nil)))
   private lazy val envelopeRawReads = Json.reads[EnvelopeRaw]
 }

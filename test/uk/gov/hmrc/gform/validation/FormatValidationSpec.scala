@@ -20,7 +20,7 @@ import cats.instances.future._
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
@@ -419,8 +419,8 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
   private def validator(fieldValue: FormComponent, fieldValues: List[FormComponent], data: VariadicFormData) =
     new ComponentsValidator(
       mkFormDataRecalculated(data),
-      mock[FileUploadService],
       EnvelopeId("whatever"),
+      Envelope.empty,
       retrievals,
       booleanExprEval,
       ThirdPartyData.empty,

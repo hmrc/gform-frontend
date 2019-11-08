@@ -95,10 +95,12 @@ class DeclarationController(
     import i18nSupport._
 
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
+
     for {
       cacheWithHiddenSectionDataRemoved <- removeHiddenSectionData(cache)
-      valRes                            <- validationService.validateComponentsWithCache(cacheWithHiddenSectionDataRemoved, declarationData)
-      response                          <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
+      valRes <- validationService
+                 .validateComponentsWithCache(cacheWithHiddenSectionDataRemoved, declarationData, Envelope.empty)
+      response <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
     } yield response
   }
 
@@ -205,6 +207,6 @@ class DeclarationController(
     data: FormDataRecalculated,
     formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
     val declarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
-    validationService.evaluateValidation(validationResult, declarationFields, data, Envelope(Nil))
+    validationService.evaluateValidation(validationResult, declarationFields, data, Envelope.empty)
   }
 }
