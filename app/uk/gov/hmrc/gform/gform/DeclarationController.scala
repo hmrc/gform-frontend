@@ -37,8 +37,8 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.frontend.controller.FrontendController
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.Future
 

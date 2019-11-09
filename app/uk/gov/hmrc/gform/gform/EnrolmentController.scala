@@ -46,7 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, GetEmailCodeFieldMatcher, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
-import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 

@@ -38,7 +38,7 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
-import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 

@@ -20,7 +20,7 @@ package auth
 import play.api.i18n.I18nSupport
 import play.api.mvc.Action
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.Future
 

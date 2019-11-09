@@ -41,7 +41,7 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
-import uk.gov.hmrc.play.config.{ AssetsConfig, OptimizelyConfig }
+import uk.gov.hmrc.play.config.{ AssetsConfig, GTMConfig, OptimizelyConfig }
 
 class ApplicationLoader extends play.api.ApplicationLoader {
   def load(context: Context): Application = {
@@ -61,13 +61,13 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
 
   private implicit val executionContext = play.api.libs.concurrent.Execution.defaultContext
 
-  private val akkaModule = new AkkaModule(materializer, actorSystem)
+  protected val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(context, self)
 
   protected val configModule = new ConfigModule(playBuiltInsModule)
   private val metricsModule = new MetricsModule(playBuiltInsModule, akkaModule, configModule)
   protected val auditingModule = new AuditingModule(configModule, akkaModule, playBuiltInsModule)
-  private val wSHttpModule = new WSHttpModule(auditingModule, configModule)
+  private val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule)
 
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
 
@@ -127,7 +127,11 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     lookupRegistry
   )
 
+  val applicationCrypto = new ApplicationCrypto(configModule.playConfiguration.underlying)
+  applicationCrypto.verifyConfiguration()
+
   private val frontendFiltersModule = new FrontendFiltersModule(
+    applicationCrypto,
     playBuiltInsModule,
     akkaModule,
     configModule,
@@ -154,12 +158,14 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
   override lazy val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
   override def router: Router = routingModule.router
 
-  lazy val optimizelyConfig: OptimizelyConfig = new OptimizelyConfig(configuration)
-  lazy val assetsConfig: AssetsConfig = new AssetsConfig(configuration)
+  val optimizelyConfig: OptimizelyConfig = new OptimizelyConfig(configuration)
+  val assetsConfig: AssetsConfig = new AssetsConfig(configuration)
+  val gtmConfig: GTMConfig = new GTMConfig(configuration)
 
-  lazy val customInjector
-    : Injector = new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi + optimizelyConfig + assetsConfig
-  override lazy val application = new DefaultApplication(
+  val customInjector: Injector =
+    new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi + optimizelyConfig + assetsConfig + gtmConfig
+
+  private val app = new DefaultApplication(
     environment,
     applicationLifecycle,
     customInjector,
@@ -170,12 +176,12 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     materializer
   )
 
+  override lazy val application = app
+
   def initialize() = {
 
     val appName = configModule.appConfig.appName
     Logger.info(s"Starting frontend $appName in mode ${environment.mode}")
-    val applicationCrypto = new ApplicationCrypto(configModule.playConfiguration.underlying)
-    applicationCrypto.verifyConfiguration()
     MDC.put("appName", appName)
     val loggerDateFormat: Option[String] = configuration.getString("logger.json.dateformat")
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))

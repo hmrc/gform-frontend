@@ -10,7 +10,10 @@ object Dependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "frontend-bootstrap" % "12.4.0",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "5.1.0",
+    "uk.gov.hmrc" %% "play-ui" % "8.3.0-play-25",
+    "uk.gov.hmrc" %% "govuk-template" % "5.43.0-play-25",
+    "uk.gov.hmrc" %% "play-graphite" % "4.7.0",
     "uk.gov.hmrc" %% "auth-client" % "2.19.0-play-25",
     "uk.gov.hmrc" %% "domain" % "5.3.0",
     "uk.gov.hmrc" %% "play-partials" % "6.5.0",

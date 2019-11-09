@@ -27,7 +27,7 @@ import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupInfo, LookupLabel, LookupReg
 import uk.gov.hmrc.gform.models.LookupQuery
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register }
-import uk.gov.hmrc.play.frontend.controller.FrontendController
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 class LookupController(
   auth: AuthenticatedRequestActions,
