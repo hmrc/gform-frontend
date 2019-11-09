@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.gform.auth
 
-import play.api.Play
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.gform.InjectionDodge
 import uk.gov.hmrc.gform.auth.models.UserDetails

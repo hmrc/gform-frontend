@@ -17,80 +17,42 @@
 package uk.gov.hmrc.gform.playcomponents
 
 import akka.stream.Materializer
-import org.joda.time.Duration
 import play.api.Configuration
 import play.api.http.HttpErrorHandler
 import play.api.libs.crypto.CSRFTokenSigner
 import play.api.mvc.EssentialFilter
 import play.filters.csrf.CSRFComponents
+import play.filters.headers.{ SecurityHeadersConfig, SecurityHeadersFilter }
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
-import uk.gov.hmrc.play.frontend.bootstrap.FrontendFilters
-import uk.gov.hmrc.play.frontend.filters._
 import uk.gov.hmrc.crypto.ApplicationCrypto
+import uk.gov.hmrc.play.bootstrap.filters.frontend.crypto.{ DefaultCookieCryptoFilter, SessionCookieCrypto }
+import uk.gov.hmrc.play.bootstrap.filters.frontend.deviceid.DefaultDeviceIdFilter
+import uk.gov.hmrc.play.bootstrap.filters.{ CacheControlConfig, CacheControlFilter, DefaultLoggingFilter, FrontendFilters, MDCFilter }
+import uk.gov.hmrc.play.bootstrap.filters.frontend.{ DefaultFrontendAuditFilter, HeadersFilter, SessionTimeoutFilter, SessionTimeoutFilterConfig }
+
+import scala.concurrent.ExecutionContext
 
 class FrontendFiltersModule(
+  applicationCrypto: ApplicationCrypto,
   playBuiltInsModule: PlayBuiltInsModule,
   akkaModule: AkkaModule,
   configModule: ConfigModule,
   auditingModule: AuditingModule,
   metricsModule: MetricsModule,
   controllersModule: ControllersModule
-) { self =>
+)(implicit ec: ExecutionContext) { self =>
+  private implicit val materializer: Materializer = akkaModule.materializer
 
-  private val frontendAuditFilter = new FrontendAuditFilter {
+  private val frontendAuditFilter = new DefaultFrontendAuditFilter(
+    configModule.playConfiguration,
+    configModule.controllerConfigs,
+    auditingModule.auditConnector,
+    materializer) {
     override val maskedFormFields = Seq("password")
-    override val applicationPort = None
-    override val auditConnector = auditingModule.auditConnector
-    override def controllerNeedsAuditing(controllerName: String) =
-      configModule.controllerConfig.paramsForController(controllerName).needsAuditing
-    override implicit val mat: Materializer = akkaModule.materializer
-    override val appName: String = configModule.appConfig.appName
-  }
-
-  private val loggingFilter = new FrontendLoggingFilter {
-    override def controllerNeedsLogging(controllerName: String) =
-      configModule.controllerConfig.paramsForController(controllerName).needsLogging
-    override implicit def mat: Materializer = akkaModule.materializer
-  }
-
-  private val csrfExceptionsFilter: CSRFExceptionsFilter = {
-    val uriWhiteList =
-      configModule.playConfiguration.getStringSeq("csrfexceptions.whitelist").getOrElse(Seq.empty).toSet
-    new CSRFExceptionsFilter(uriWhiteList)
-  }
-
-  private val deviceIdCookieFilter = DeviceIdCookieFilter(
-    configModule.appConfig.appName,
-    auditingModule.auditConnector
-  )
-
-  private val sessionTimeoutFilter: SessionTimeoutFilter = {
-    //Copy paste from deprecated uk.gov.hmrc.play.frontend.bootstrap.GlobalSettings
-    val defaultTimeout = Duration.standardMinutes(15)
-
-    val timeoutDuration = configModule.playConfiguration
-      .getLong("session.timeoutSeconds")
-      .map(Duration.standardSeconds)
-      .getOrElse(defaultTimeout)
-
-    val wipeIdleSession = configModule.playConfiguration
-      .getBoolean("session.wipeIdleSession")
-      .getOrElse(true)
-
-    val additionalSessionKeysToKeep = configModule.playConfiguration
-      .getStringSeq("session.additionalSessionKeysToKeep")
-      .getOrElse(Seq.empty)
-      .toSet
-
-    new SessionTimeoutFilter(
-      timeoutDuration = timeoutDuration,
-      additionalSessionKeysToKeep = additionalSessionKeysToKeep,
-      onlyWipeAuthToken = !wipeIdleSession
-    )
   }
 
   private val cSRFComponents = new CSRFComponents {
@@ -100,36 +62,21 @@ class FrontendFiltersModule(
     override implicit def materializer: Materializer = playBuiltInsModule.builtInComponents.materializer
   }
 
-  private def applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
-  private val sessionCookieCryptoFilter = new SessionCookieCryptoFilter(applicationCrypto)
+  private val cookieCryptoFilter =
+    new DefaultCookieCryptoFilter(new SessionCookieCrypto(applicationCrypto.SessionCookieCrypto))
 
-  lazy val httpFilters: Seq[EssentialFilter] = {
-
-    val securityFiltersFactory = new SecurityHeadersFilterFactory {
-      override def configuration = configModule.playConfiguration
-    }
-
-    lazy val ff = new FrontendFilters {
-      override def loggingFilter = self.loggingFilter
-      override def securityFilter = securityFiltersFactory.newInstance
-      override def frontendAuditFilter = self.frontendAuditFilter
-      override def metricsFilter = metricsModule.metricsFilter
-      override def deviceIdFilter = self.deviceIdCookieFilter
-      override def csrfFilter =
-        cSRFComponents.csrfFilter // was: CSRFFilter()(akkaModule.materializer) //It's deprecated however this is how platform ops instantiated it.
-      override def sessionTimeoutFilter = self.sessionTimeoutFilter
-      override def csrfExceptionsFilter = self.csrfExceptionsFilter
-      override def sessionCookieCryptoFilter = self.sessionCookieCryptoFilter
-
-      override def frontendFilters: Seq[EssentialFilter] = {
-        val enableSecurityHeaderFilter =
-          configModule.playConfiguration.getBoolean("security.headers.filter.enabled").getOrElse(true)
-        if (enableSecurityHeaderFilter) Seq(securityFilter) ++ defaultFrontendFilters
-        else defaultFrontendFilters
-      }
-    }
-
-    ff.frontendFilters.filter(_ != RecoveryFilter) //RecoveryFilter unveils internal error messages from connectors
-  }
-
+  lazy val httpFilters: Seq[EssentialFilter] = new FrontendFilters(
+    configModule.playConfiguration,
+    new DefaultLoggingFilter(configModule.controllerConfigs),
+    new HeadersFilter(materializer),
+    SecurityHeadersFilter(SecurityHeadersConfig.fromConfiguration(configModule.playConfiguration)),
+    frontendAuditFilter,
+    metricsModule.metricsFilter,
+    new DefaultDeviceIdFilter(configModule.playConfiguration, auditingModule.auditConnector),
+    cSRFComponents.csrfFilter,
+    cookieCryptoFilter,
+    new SessionTimeoutFilter(SessionTimeoutFilterConfig.fromConfig(configModule.playConfiguration)),
+    new CacheControlFilter(CacheControlConfig.fromConfig(configModule.playConfiguration), materializer),
+    new MDCFilter(akkaModule.materializer, configModule.playConfiguration)
+  ).filters
 }

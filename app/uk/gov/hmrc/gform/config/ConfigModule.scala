@@ -23,6 +23,7 @@ import play.api.Mode.Mode
 import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.play.bootstrap.config.ControllerConfigs
 import uk.gov.hmrc.play.config.{ ControllerConfig, ServicesConfig }
 
 class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
@@ -52,6 +53,9 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
     c.baseUrl("email")
     c
   }
+
+  val controllerConfigs = ControllerConfigs.fromConfig(playConfiguration)
+
   val controllerConfig: ControllerConfig = new ControllerConfig {
     val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }

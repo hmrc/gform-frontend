@@ -16,12 +16,15 @@
 
 package uk.gov.hmrc.gform.wshttp
 
+import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 
-class WSHttpModule(auditingModule: AuditingModule, configModule: ConfigModule) {
-
-  val auditableWSHttp: WSHttp = new WSHttp {
-    //    override val hooks: Seq[HttpHook] = Seq(auditingModule.httpAuditingHook)
-  }
+class WSHttpModule(auditingModule: AuditingModule, configModule: ConfigModule, akkaModule: AkkaModule) {
+  val auditableWSHttp: WSHttp = new WSHttpImpl(
+    auditingModule.auditConnector,
+    configModule.playConfiguration,
+    Some(configModule.typesafeConfig),
+    akkaModule.actorSystem
+  )
 }
