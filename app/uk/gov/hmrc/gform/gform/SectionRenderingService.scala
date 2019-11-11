@@ -246,7 +246,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       fieldData,
       formTemplate,
-      Envelope(Nil),
+      Envelope.empty,
       List(formTemplate.declarationSection),
       0,
       formTemplate.declarationSection,
@@ -310,7 +310,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       FormDataRecalculated.empty,
       formTemplate,
-      Envelope(Nil),
+      Envelope.empty,
       List(formTemplate.acknowledgementSection),
       0,
       formTemplate.declarationSection,
@@ -374,12 +374,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       SectionNumber(0),
       fieldData,
       formTemplate,
-      Envelope(Nil),
+      Envelope.empty,
       List(enrolmentSection),
       0,
       enrolmentSection,
       emptyRetrievals,
-      formLevelHeading = true)
+      formLevelHeading = true
+    )
     val listResult = errors.map { case (_, validationResult) => validationResult }
     val snippets =
       enrolmentSection.fields.map(formComponent =>

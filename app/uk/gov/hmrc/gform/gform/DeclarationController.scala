@@ -95,7 +95,6 @@ class DeclarationController(
     import i18nSupport._
 
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
-
     for {
       cacheWithHiddenSectionDataRemoved <- removeHiddenSectionData(cache)
       valRes <- validationService

@@ -48,7 +48,7 @@ class EnrolmentResultProcessor(
     validationResult: ValidatedType[ValidationResult]
   ): List[(FormComponent, FormFieldValidationResult)] = {
     val enrolmentFields = Fields.flattenGroups(enrolmentSection.fields)
-    evaluateValidation(validationResult, enrolmentFields, data, Envelope(Nil))
+    evaluateValidation(validationResult, enrolmentFields, data, Envelope.empty)
   }
 
   private def evaluateValidation(
