@@ -24,7 +24,8 @@
 )(
         implicit
         request: Request[_],
-        messages: Messages
+        messages: Messages,
+        viewHelpers: ViewHelpersAlgebra
 )
 
 @heading = @{messages("signedOut.title")}

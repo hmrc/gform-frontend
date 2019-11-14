@@ -22,26 +22,34 @@ import play.api._
 import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject.{ Injector, SimpleInjector }
-import play.api.mvc.EssentialFilter
+import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.mvc.{ DefaultSessionCookieBaker, EssentialFilter, SessionCookieBaker }
 import play.api.routing.Router
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.ControllersModule
+import controllers.{ ControllersModule, ErrResponder, ErrorHandler }
+import _root_.controllers.AssetsComponents
+import play.api.libs.crypto.{ CookieSigner, DefaultCookieSigner }
+import play.filters.csrf.CSRFComponents
+import uk.gov.hmrc.csp.{ CachedStaticHtmlPartialProvider, WebchatClient }
+import uk.gov.hmrc.csp.config.ApplicationConfig
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.metrics.MetricsModule
+import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.gform.views.{ ViewHelpers, ViewHelpersAlgebra }
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.config.{ AssetsConfig, GTMConfig, OptimizelyConfig }
+import uk.gov.hmrc.play.views.html.layouts.{ GTMSnippet, OptimizelySnippet }
 
 class ApplicationLoader extends play.api.ApplicationLoader {
   def load(context: Context): Application = {
@@ -49,25 +57,58 @@ class ApplicationLoader extends play.api.ApplicationLoader {
       _.configure(context.environment)
     }
     val applicationModule = new ApplicationModule(context)
-    applicationModule.application
     applicationModule.initialize()
     applicationModule.application
   }
 }
 
-class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(context) with I18nComponents { self =>
+class ApplicationModule(context: Context)
+    extends BuiltInComponentsFromContext(context) with AssetsComponents with AhcWSComponents with I18nComponents
+    with CSRFComponents {
+  self =>
 
   Logger.info(s"Starting GFORM-FRONTEND (ApplicationModule)...")
 
-  private implicit val executionContext = play.api.libs.concurrent.Execution.defaultContext
-
   protected val akkaModule = new AkkaModule(materializer, actorSystem)
-  private val playBuiltInsModule = new PlayBuiltInsModule(context, self)
+  private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
-  protected val configModule = new ConfigModule(playBuiltInsModule)
-  private val metricsModule = new MetricsModule(playBuiltInsModule, akkaModule, configModule)
+  private val webchatClient =
+    new WebchatClient(
+      new CachedStaticHtmlPartialProvider(
+        wsClient,
+        context.initialConfiguration,
+        playBuiltInsModule.builtInComponents.actorSystem),
+      new ApplicationConfig(context.initialConfiguration)
+    )
+
+  private implicit val viewHelpers: ViewHelpersAlgebra = new ViewHelpers(
+    new OptimizelySnippet(new OptimizelyConfig(context.initialConfiguration)),
+    new AssetsConfig(context.initialConfiguration),
+    new GTMSnippet(new GTMConfig(context.initialConfiguration)),
+    webchatClient
+  )
+
+  protected val configModule = new ConfigModule(context, playBuiltInsModule)
   protected val auditingModule = new AuditingModule(configModule, akkaModule, playBuiltInsModule)
-  private val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule)
+
+  val errResponder: ErrResponder = new ErrResponder(
+    configModule.frontendAppConfig,
+    auditingModule.httpAuditingService,
+    playBuiltInsModule.i18nSupport
+  )
+
+  override lazy val httpErrorHandler: ErrorHandler = new ErrorHandler(
+    configModule.environment,
+    configModule.playConfiguration,
+    configModule.context.sourceMapper,
+    errResponder
+  )
+
+  private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
+  private val graphiteModule =
+    new GraphiteModule(environment, configuration, configModule.runMode, applicationLifecycle, metricsModule)
+
+  protected lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule, this)
 
   private val gformBackendModule = new GformBackendModule(wSHttpModule, configModule)
 
@@ -77,12 +118,25 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
 
   private val lookupRegistry = new LookupRegistry(new uk.gov.hmrc.gform.LookupLoader().registerLookup)
 
+  private val sessionCookieBaker: SessionCookieBaker = {
+    val httpConfiguration: HttpConfiguration =
+      new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
+
+    val secretConfiguration: SecretConfiguration = httpConfiguration.secret
+    val config: SessionConfiguration = httpConfiguration.session
+    val cookieSigner: CookieSigner = new DefaultCookieSigner(secretConfiguration)
+    new DefaultSessionCookieBaker(config, secretConfiguration, cookieSigner)
+  }
+
   private val controllersModule = new ControllersModule(
     configModule,
     authModule,
     gformBackendModule,
     playBuiltInsModule,
-    auditingModule
+    auditingModule,
+    this,
+    sessionCookieBaker,
+    errResponder
   )
 
   private val fileUploadModule = new FileUploadModule(
@@ -116,18 +170,21 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     auditingModule,
     playBuiltInsModule,
     graphModule,
-    lookupRegistry
+    lookupRegistry,
+    errResponder
   )
 
   private val testOnlyModule = new TestOnlyModule(
+    configModule,
     playBuiltInsModule,
     gformBackendModule,
     controllersModule,
     graphModule,
-    lookupRegistry
+    lookupRegistry,
+    this
   )
 
-  val applicationCrypto = new ApplicationCrypto(configModule.playConfiguration.underlying)
+  val applicationCrypto: ApplicationCrypto = new ApplicationCrypto(configModule.typesafeConfig)
   applicationCrypto.verifyConfiguration()
 
   private val frontendFiltersModule = new FrontendFiltersModule(
@@ -137,7 +194,9 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     configModule,
     auditingModule,
     metricsModule,
-    controllersModule
+    controllersModule,
+    this,
+    sessionCookieBaker
   )
 
   private val routingModule = new RoutingModule(
@@ -150,12 +209,13 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     fileUploadModule,
     testOnlyModule,
     frontendFiltersModule,
-    controllersModule
+    controllersModule,
+    this,
+    httpErrorHandler
   )
 
-  override lazy val httpErrorHandler: HttpErrorHandler = controllersModule.errorHandler
   override lazy val httpRequestHandler: HttpRequestHandler = routingModule.httpRequestHandler
-  override lazy val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
+  override val httpFilters: Seq[EssentialFilter] = frontendFiltersModule.httpFilters
   override def router: Router = routingModule.router
 
   val optimizelyConfig: OptimizelyConfig = new OptimizelyConfig(configuration)
@@ -163,13 +223,14 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
   val gtmConfig: GTMConfig = new GTMConfig(configuration)
 
   val customInjector: Injector =
-    new SimpleInjector(injector) + playBuiltInsModule.ahcWSComponents.wsApi + optimizelyConfig + assetsConfig + gtmConfig
+    new SimpleInjector(injector) + wsClient + optimizelyConfig + assetsConfig + gtmConfig
 
   private val app = new DefaultApplication(
     environment,
     applicationLifecycle,
     customInjector,
     configuration,
+    requestFactory,
     httpRequestHandler,
     httpErrorHandler,
     actorSystem,
@@ -183,10 +244,9 @@ class ApplicationModule(context: Context) extends BuiltInComponentsFromContext(c
     val appName = configModule.appConfig.appName
     Logger.info(s"Starting frontend $appName in mode ${environment.mode}")
     MDC.put("appName", appName)
-    val loggerDateFormat: Option[String] = configuration.getString("logger.json.dateformat")
+    val loggerDateFormat: Option[String] = configuration.getOptional[String]("logger.json.dateformat")
     loggerDateFormat.foreach(str => MDC.put("logger.json.dateformat", str))
-    metricsModule.graphiteService.startReporter()
     Logger.info(
-      s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getString("http.port")}")
+      s"Started Fronted $appName in mode ${environment.mode} at port ${application.configuration.getOptional[String]("http.port")}")
   }
 }

@@ -16,14 +16,18 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.api.mvc.{ Action, AnyContent, Controller }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import play.api.i18n.{ I18nSupport, MessagesApi }
+import play.api.i18n.I18nSupport
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.signed_out
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
-class SignOutController(config: FrontendAppConfig, implicit val messagesApi: MessagesApi)
-    extends Controller with I18nSupport {
+class SignOutController(config: FrontendAppConfig, messagesControllerComponents: MessagesControllerComponents)(
+  implicit viewHelpers: ViewHelpersAlgebra)
+    extends FrontendController(messagesControllerComponents) with I18nSupport {
   implicit val frontendConfig: FrontendAppConfig = config
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = Action { implicit request =>
     val signBackInURL = routes.NewFormController.dashboard(formTemplateId).url

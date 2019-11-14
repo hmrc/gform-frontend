@@ -16,21 +16,20 @@
 
 package uk.gov.hmrc.gform.gform
 
-import play.api.mvc.{ Action, AnyContent, Controller }
+import play.api.Configuration
+import play.api.i18n.{ I18nSupport, Lang }
+import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.gform.config.FrontendAppConfig
-import play.api.i18n.{ I18nSupport, Lang, MessagesApi }
-import uk.gov.hmrc.play.language.LanguageUtils
+import uk.gov.hmrc.play.language.{ LanguageController, LanguageUtils }
 
-class LanguageSwitchController(config: FrontendAppConfig, implicit val messagesApi: MessagesApi)
-    extends Controller with I18nSupport {
+class LanguageSwitchController(
+  configuration: Configuration,
+  languageUtils: LanguageUtils,
+  config: FrontendAppConfig,
+  controllerComponents: ControllerComponents)
+    extends LanguageController(configuration, languageUtils, controllerComponents) with I18nSupport {
 
   protected def fallbackURL: String = "/"
 
   protected def languageMap: Map[String, Lang] = config.availableLanguages
-
-  def switchToLanguage(language: String): Action[AnyContent] = Action { implicit request =>
-    val lang = languageMap.getOrElse(language, Lang("en"))
-    val redirectURL = request.headers.get(REFERER).getOrElse(fallbackURL)
-    Redirect(redirectURL).withLang(Lang.apply(lang.code)).flashing(LanguageUtils.FlashWithSwitchIndicator)
-  }
 }

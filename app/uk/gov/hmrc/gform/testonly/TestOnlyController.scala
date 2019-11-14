@@ -21,18 +21,17 @@ import akka.util.ByteString
 import cats.MonadError
 import cats.data.EitherT
 import cats.instances.future._
+import play.api.{ Configuration, Mode }
 import play.api.libs.json.Json
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
-import uk.gov.hmrc.gform.InjectionDodge
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
-import uk.gov.hmrc.gform.gform.FrontEndSubmissionVariablesBuilder
-import uk.gov.hmrc.gform.gform.{ CustomerId, StructuredFormDataBuilder }
+import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -42,18 +41,20 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import uk.gov.hmrc.play.config.ServicesConfig
 
 class TestOnlyController(
   proxy: ProxyActions,
   gformConnector: GformConnector,
   lookupRegistry: LookupRegistry,
   auth: AuthenticatedRequestActions,
-  customerIdRecalculation: CustomerIdRecalculation[Future]
-) extends FrontendController with ServicesConfig {
-  override protected def mode = InjectionDodge.mode
-  override protected def runModeConfiguration = InjectionDodge.configuration
+  customerIdRecalculation: CustomerIdRecalculation[Future],
+  controllerComponents: MessagesControllerComponents,
+  override protected val mode: Mode,
+  override protected val runModeConfiguration: Configuration
+)(implicit ec: ExecutionContext)
+    extends FrontendController(controllerComponents: MessagesControllerComponents) with ServicesConfig {
 
   def proxyToGform(path: String): Action[Source[ByteString, _]] = proxy(gformBaseUrl)(path)
 

@@ -21,7 +21,7 @@ import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.SpecWithFakeApp
+import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.connectors.EeittConnector
@@ -36,11 +36,12 @@ import uk.gov.hmrc.gform.models.mappings.{ NINO => MNINO, VATReg => MVATReg }
 import scala.concurrent.Future
 import Function.const
 
-class AuthServiceSpec extends ExampleData with SpecWithFakeApp {
+class AuthServiceSpec extends ExampleData with Spec {
 
   behavior of "Authentication and authorisation Service"
 
   implicit val l: LangADT = LangADT.En
+  implicit val hc = HeaderCarrier()
 
   val appConfig = AppConfig(
     appName = "appName",

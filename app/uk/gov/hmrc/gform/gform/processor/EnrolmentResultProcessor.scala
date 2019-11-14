@@ -19,9 +19,10 @@ package uk.gov.hmrc.gform.gform.processor
 import cats.data.Validated.Invalid
 import cats.syntax.validated._
 import play.api.i18n.Messages
-import play.api.mvc.{ AnyContent, Request, Result, Results }
+import play.api.mvc.{ AnyContent, Request, Result }
 import play.twirl.api.Html
 import play.api.mvc.Results.{ Ok, Redirect }
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.fileupload.Envelope
@@ -33,7 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResu
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormComponent, FormTemplate }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationUtil }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
 
 class EnrolmentResultProcessor(
   renderEnrolmentSection: RenderEnrolmentSection,
@@ -42,7 +43,7 @@ class EnrolmentResultProcessor(
   enrolmentSection: EnrolmentSection,
   data: FormDataRecalculated,
   frontendAppConfig: FrontendAppConfig
-) {
+)(implicit viewHelpers: ViewHelpersAlgebra) {
 
   private def getErrorMap(
     validationResult: ValidatedType[ValidationResult]

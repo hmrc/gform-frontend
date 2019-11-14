@@ -16,33 +16,16 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
-import akka.stream.Materializer
 import play.api._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, I18nSupport, MessagesApi }
-import play.api.inject.ApplicationLifecycle
-import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.i18n.{ I18nSupport, Langs, MessagesApi }
 
 class PlayBuiltInsModule(
-  val context: ApplicationLoader.Context,
   val builtInComponents: BuiltInComponents
 ) { self =>
 
-  val ahcWSComponents: AhcWSComponents = new AhcWSComponents {
-    override def environment: Environment = context.environment
-    override def configuration: Configuration = context.initialConfiguration
-    override def applicationLifecycle: ApplicationLifecycle = context.lifecycle
-    override def materializer: Materializer = builtInComponents.materializer
-  }
+  val langs: Langs = builtInComponents.langs
 
-  val langs: DefaultLangs = new DefaultLangs(
-    builtInComponents.configuration
-  )
-
-  val messagesApi: MessagesApi = new DefaultMessagesApi(
-    builtInComponents.environment,
-    builtInComponents.configuration,
-    langs
-  )
+  val messagesApi: MessagesApi = builtInComponents.messagesApi
 
   val i18nSupport: I18nSupport = new I18nSupport {
     override def messagesApi: MessagesApi = self.messagesApi

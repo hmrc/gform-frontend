@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.gform.testonly
 
+import play.api.libs.ws.ahc.AhcWSComponents
+import uk.gov.hmrc.gform.config.ConfigModule
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.controllers.ControllersModule
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
@@ -25,23 +28,27 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
 class TestOnlyModule(
+  configModule: ConfigModule,
   playBuiltInsModule: PlayBuiltInsModule,
   gformBackendModule: GformBackendModule,
   controllersModule: ControllersModule,
   graphModule: GraphModule,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  ahcWSComponents: AhcWSComponents
 )(
   implicit ec: ExecutionContext
 ) {
 
-  private val proxyActions = new ProxyActions(playBuiltInsModule.ahcWSComponents.wsClient)
+  private val proxyActions = new ProxyActions(ahcWSComponents.wsClient)(controllersModule.messagesControllerComponents)
 
   val testOnlyController = new TestOnlyController(
     proxyActions,
     gformBackendModule.gformConnector,
     lookupRegistry,
     controllersModule.authenticatedRequestActions,
-    graphModule.customerIdRecalculation
+    graphModule.customerIdRecalculation,
+    controllersModule.messagesControllerComponents,
+    configModule.mode,
+    configModule.playConfiguration
   )
-
 }

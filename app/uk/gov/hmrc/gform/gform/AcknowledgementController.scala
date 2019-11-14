@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.gform
 
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -27,10 +27,10 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class AcknowledgementController(
   i18nSupport: I18nSupport,
@@ -40,8 +40,10 @@ class AcknowledgementController(
   summaryRenderingService: SummaryRenderingService,
   authService: AuthService,
   gformConnector: GformConnector,
-  nonRepudiationHelpers: NonRepudiationHelpers
-) extends FrontendController {
+  nonRepudiationHelpers: NonRepudiationHelpers,
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
+    extends FrontendController(messagesControllerComponents) {
 
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],

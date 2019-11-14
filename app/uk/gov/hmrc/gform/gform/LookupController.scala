@@ -19,20 +19,22 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.syntax.applicative._
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, AnyContent }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
+
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupInfo, LookupLabel, LookupRegistry, ShowAll }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, ShowAll }
 import uk.gov.hmrc.gform.models.LookupQuery
-import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, Register }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 class LookupController(
   auth: AuthenticatedRequestActions,
-  lookupRegistry: LookupRegistry
-) extends FrontendController {
+  lookupRegistry: LookupRegistry,
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
+    extends FrontendController(messagesControllerComponents) {
 
   def lookupAll(formTemplateId: FormTemplateId, register: Register): Action[AnyContent] =
     lookup(formTemplateId, register, LookupQuery.Empty)

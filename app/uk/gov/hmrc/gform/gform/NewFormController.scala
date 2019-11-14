@@ -16,28 +16,27 @@
 
 package uk.gov.hmrc.gform.gform
 
-import java.time.LocalDateTime
-
 import cats.instances.future._
 import cats.syntax.applicative._
 import play.api.{ Logger, data }
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.models.{ AccessCodeLink, AccessCodePage }
+import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormIdData, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
-import uk.gov.hmrc.gform.views.html.form._
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 case class AccessCodeForm(accessCode: Option[String], accessOption: String)
 
@@ -47,9 +46,10 @@ class NewFormController(
   auth: AuthenticatedRequestActions,
   fileUploadService: FileUploadService,
   gformConnector: GformConnector,
-  fastForwardService: FastForwardService
-) extends FrontendController {
-
+  fastForwardService: FastForwardService,
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext, viewHelpers: ViewHelpersAlgebra)
+    extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
 
   implicit val frontendConfig: FrontendAppConfig = frontendAppConfig
@@ -170,7 +170,8 @@ class NewFormController(
     }
 
   private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm)(
-    implicit hc: HeaderCarrier,
+    implicit
+    request: Request[AnyContent],
     l: LangADT) = {
 
     def notFound(formIdData: FormIdData) =

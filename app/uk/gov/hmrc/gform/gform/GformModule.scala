@@ -17,12 +17,14 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
+import uk.gov.hmrc.csp.config.ApplicationConfig
+import uk.gov.hmrc.csp.{ CachedStaticHtmlPartialProvider, WebchatClient }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.ControllersModule
+import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrResponder }
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormValidator }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
@@ -34,7 +36,9 @@ import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
 import uk.gov.hmrc.gform.validation.ValidationModule
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
+import uk.gov.hmrc.play.language.LanguageUtils
 
 class GformModule(
   configModule: ConfigModule,
@@ -48,9 +52,11 @@ class GformModule(
   auditingModule: AuditingModule,
   playBuiltInsModule: PlayBuiltInsModule,
   graphModule: GraphModule,
-  lookupRegistry: LookupRegistry
+  lookupRegistry: LookupRegistry,
+  errorResponder: ErrResponder
 )(
-  implicit ec: ExecutionContext
+  implicit ec: ExecutionContext,
+  viewHelpers: ViewHelpersAlgebra
 ) {
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(
@@ -68,7 +74,8 @@ class GformModule(
     graphModule.recalculation,
     authModule.taxEnrolmentsConnector,
     authModule.ggConnector,
-    configModule.frontendAppConfig
+    configModule.frontendAppConfig,
+    controllersModule.messagesControllerComponents
   )
 
   val processDataService: ProcessDataService[Future, Throwable] =
@@ -90,7 +97,8 @@ class GformModule(
     controllersModule.authenticatedRequestActions,
     fileUploadModule.fileUploadService,
     gformBackendModule.gformConnector,
-    fastForwardService
+    fastForwardService,
+    controllersModule.messagesControllerComponents
   )
 
   val formController: FormController = new FormController(
@@ -105,7 +113,8 @@ class GformModule(
     processDataService,
     formControllerRequestHandler,
     lookupRegistry.extractors,
-    fastForwardService
+    fastForwardService,
+    controllersModule.messagesControllerComponents
   )
 
   val summaryRenderingService = new SummaryRenderingService(
@@ -124,9 +133,10 @@ class GformModule(
     pdfGeneratorModule.pdfGeneratorService,
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
-    controllersModule.errResponder,
+    errorResponder,
     graphModule.recalculation,
-    summaryRenderingService
+    summaryRenderingService,
+    controllersModule.messagesControllerComponents
   )
 
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
@@ -137,19 +147,22 @@ class GformModule(
     summaryRenderingService,
     authModule.authService,
     gformBackendModule.gformConnector,
-    new NonRepudiationHelpers(auditingModule)
+    new NonRepudiationHelpers(auditingModule),
+    controllersModule.messagesControllerComponents
   )
 
   val errorController = new ErrorController(
     configModule.frontendAppConfig,
-    playBuiltInsModule.i18nSupport
+    playBuiltInsModule.i18nSupport,
+    controllersModule.messagesControllerComponents
   )
 
   val agentEnrolmentController = new AgentEnrolmentController(
     configModule.appConfig,
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport,
-    controllersModule.authenticatedRequestActions
+    controllersModule.authenticatedRequestActions,
+    controllersModule.messagesControllerComponents
   )
 
   val gformBackEndService = new GformBackEndService(
@@ -169,7 +182,8 @@ class GformModule(
     validationModule.validationService,
     authModule.authService,
     graphModule.recalculation,
-    gformBackEndService
+    gformBackEndService,
+    controllersModule.messagesControllerComponents
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry)
@@ -177,26 +191,35 @@ class GformModule(
   val reviewController = new ReviewController(
     controllersModule.authenticatedRequestActions,
     gformBackEndService,
-    reviewService
+    reviewService,
+    controllersModule.messagesControllerComponents
   )
 
   val languageSwitchController: LanguageSwitchController =
-    new LanguageSwitchController(configModule.frontendAppConfig, playBuiltInsModule.messagesApi)
+    new LanguageSwitchController(
+      configModule.playConfiguration,
+      new LanguageUtils(playBuiltInsModule.langs, configModule.playConfiguration)(playBuiltInsModule.messagesApi),
+      configModule.frontendAppConfig,
+      controllersModule.messagesControllerComponents
+    )
 
   val lookupController = new LookupController(
     controllersModule.authenticatedRequestActions,
-    lookupRegistry
+    lookupRegistry,
+    controllersModule.messagesControllerComponents
   )
 
   val signOutController: SignOutController =
     new SignOutController(
       configModule.frontendAppConfig,
-      playBuiltInsModule.messagesApi
+      controllersModule.messagesControllerComponents
     )
 
   val staticPagesController: StaticPagesController =
     new StaticPagesController(
       controllersModule.authenticatedRequestActions,
       playBuiltInsModule.i18nSupport,
-      configModule.frontendAppConfig)
+      configModule.frontendAppConfig,
+      controllersModule.messagesControllerComponents
+    )
 }

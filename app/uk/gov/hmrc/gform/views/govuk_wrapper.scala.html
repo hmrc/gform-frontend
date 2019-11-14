@@ -14,11 +14,8 @@
  * limitations under the License.
  *@
 
+@import _root_.play.twirl.api.HtmlFormat
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import layouts.{govuk_template => hmrcGovUkTemplate}
-@import uk.gov.hmrc.play.views.html.{layouts => uiLayouts}
-@import uk.gov.hmrc.play.views.html.layouts
-@import uk.gov.hmrc.play.views.html.{helpers => uiHelpers}
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.config.JSConfig
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
@@ -41,7 +38,7 @@
   includeHMRCBranding: Boolean,
   formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId
-)(implicit messages: Messages)
+)(implicit messages: Messages, viewHelpers: ViewHelpersAlgebra)
 
 @scriptElement = {
   @scriptElem
@@ -74,7 +71,7 @@
 }
 
 @head = {
-    @uiLayouts.head(
+    @viewHelpers.head(
       linkElem = Some(linkElement),
       headScripts = None)
     @if(appConfig.googleTagManagerIdAvailable) {
@@ -111,7 +108,7 @@
 
 @insideHeader = {
   @defining(if(authTimeout.signOutUrl.isEmpty) None else Some(signOutLink)) { navLinks =>
-    @uiLayouts.header_nav(
+    @viewHelpers.headerNav(
       navTitle = Some(serviceTitle),
       navTitleLink = None,
       showBetaLink = false,
@@ -131,7 +128,7 @@
 }
 
 @bodyEnd = {
-    @uiLayouts.footer(
+    @viewHelpers.footer(
       analyticsToken = Some(appConfig.analyticsToken),
       analyticsHost = appConfig.analyticsHost,
       ssoUrl = None,
@@ -190,7 +187,7 @@
 }
 
 @serviceInfo = {
-    @uiLayouts.serviceInfo(
+    @viewHelpers.serviceInfo(
       betaBanner = betaBanner,
       includeGridWrapper = false,
       includeHMRCBranding = includeHMRCBranding,
@@ -200,14 +197,14 @@
 
 @mainContentHeader = {
   @if(contentHeader.nonEmpty) {
-    @uiLayouts.main_content_header(contentHeader = contentHeader.getOrElse(Html("")))
+    @viewHelpers.mainContentHeader(contentHeader = contentHeader.getOrElse(Html("")))
   }
 }
 
-@getHelpForm = @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
+@getHelpForm = @{viewHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
 
 @content = {
-    @uiLayouts.main_content(
+    @viewHelpers.mainContent(
       article = mainContent,
       mainClass = mainClass,
       mainDataAttributes = mainDataAttributes,
@@ -217,14 +214,14 @@
       sidebar = sidebar)
 }
 
-@hmrcGovUkTemplate(Some(headTitle), bodyClasses)(
+@{viewHelpers.govUkTemplate(Some(headTitle), bodyClasses)(
     head = head,
     bodyEnd = bodyEnd,
     insideHeader = insideHeader,
     afterHeader = afterHeader,
     footerTop = footerTop,
-    footerLinks = Some(uiLayouts.footer_links(additionalLinks = Some(footerLinks))),
+    footerLinks = Some(viewHelpers.footerLinks(additionalLinks = Some(footerLinks))),
     nav = true
 )(
     content
-)
+)}

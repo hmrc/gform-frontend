@@ -20,13 +20,12 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
         accessCode: AccessCode,
         formTemplate: FormTemplate,
         frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages, l:LangADT)
+)(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {

@@ -20,7 +20,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.typesafe.config.Config
 import play.api.libs.json.Writes
-import play.api.libs.ws.WSRequest
+import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.libs.ws.ahc.AhcWSClient
 import uk.gov.hmrc.http.hooks.HttpHook
 
@@ -56,4 +56,6 @@ class StubbedWSHttp(response: HttpResponse) extends WSHttp {
   override protected def actorSystem: ActorSystem = null
 
   override protected def configuration: Option[Config] = None
+
+  override val wsClient: WSClient = null
 }

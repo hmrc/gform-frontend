@@ -21,7 +21,7 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(formTemplate: FormTemplate, frontendAppConfig: FrontendAppConfig)(implicit request: Request[_], messages: Messages, l: LangADT)
+@(formTemplate: FormTemplate, frontendAppConfig: FrontendAppConfig)(implicit request: Request[_], messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @title = @{messages("enrolment.help.title")}
 

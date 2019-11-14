@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.wshttp
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
 import play.api.Configuration
+import play.api.libs.ws.WSClient
 import uk.gov.hmrc.http.hooks.HttpHooks
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -32,7 +33,8 @@ class WSHttpImpl(
   override val auditConnector: AuditConnector,
   override val appNameConfiguration: Configuration,
   override val configuration: Option[Config],
-  override val actorSystem: ActorSystem
+  override val actorSystem: ActorSystem,
+  override val wsClient: WSClient
 ) extends WSHttp with HttpHooks with HttpAuditing with AppName {
   override val hooks = Seq(AuditingHook)
 }

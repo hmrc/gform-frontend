@@ -21,7 +21,7 @@ import cats.instances.future._
 import cats.syntax.validated._
 import play.api.Logger
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auditing.{ AuditService, loggingHelpers }
 import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
@@ -40,7 +40,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class DeclarationController(
   i18nSupport: I18nSupport,
@@ -51,8 +51,10 @@ class DeclarationController(
   validationService: ValidationService,
   authService: AuthService,
   recalculation: Recalculation[Future, Throwable],
-  gformBackEnd: GformBackEndAlgebra[Future]
-) extends FrontendController {
+  gformBackEnd: GformBackEndAlgebra[Future],
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
+    extends FrontendController(messagesControllerComponents) {
 
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewDeclaration) {

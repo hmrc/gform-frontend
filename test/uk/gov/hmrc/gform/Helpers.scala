@@ -23,7 +23,7 @@ object Helpers {
   def mkData(fields: (String, String)*): VariadicFormData =
     fields.foldLeft(VariadicFormData.empty) { case (acc, (fcId, value)) => acc addOne (FormComponentId(fcId) -> value) }
 
-  def toLocalisedString(string: String) =
+  def toLocalisedString(string: String): LocalisedString =
     LocalisedString(Map(LangADT.En -> string))
 
   def toLocalisedString(string: Option[String]): Option[LocalisedString] = string.map(s => toLocalisedString(s))

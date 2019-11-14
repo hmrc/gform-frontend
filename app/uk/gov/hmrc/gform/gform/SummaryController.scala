@@ -21,8 +21,9 @@ import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import org.jsoup.Jsoup
 import play.api.http.HttpEntity
-import play.api.i18n.I18nSupport
-import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
+import play.api.i18n.{ I18nSupport, Messages }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, ResponseHeader, Result }
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -36,6 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -52,8 +54,10 @@ class SummaryController(
   frontendAppConfig: FrontendAppConfig,
   errResponder: ErrResponder,
   recalculation: Recalculation[Future, Throwable],
-  summaryRenderingService: SummaryRenderingService
-) extends FrontendController {
+  summaryRenderingService: SummaryRenderingService,
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext, viewHelpers: ViewHelpersAlgebra)
+    extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
 
@@ -65,7 +69,7 @@ class SummaryController(
 
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.AcceptSummary) {
-      implicit request => implicit l => cache =>
+      implicit request: Request[AnyContent] => implicit l => cache =>
         processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
           val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
           val formFieldValidationResultsF = for {
@@ -140,9 +144,9 @@ class SummaryController(
           )
     }
 
-  private def pdfHeader(summaryHtml: String, formTemplate: FormTemplate)(
-    implicit ec: ExecutionContext,
-    l: LangADT): String = {
+  private def pdfHeader(
+    summaryHtml: String,
+    formTemplate: FormTemplate)(implicit ec: ExecutionContext, l: LangADT, messages: Messages): String = {
     val headerHtml = pdf_header(formTemplate).toString()
     val doc = Jsoup.parse(summaryHtml)
     doc.select("article[class*=content__body]").prepend(headerHtml)

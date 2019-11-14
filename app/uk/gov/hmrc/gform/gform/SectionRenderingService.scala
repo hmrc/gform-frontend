@@ -25,12 +25,14 @@ import cats.data.Validated.{ Invalid, Valid }
 import cats.syntax.eq._
 import cats.syntax.validated._
 import play.api.i18n.Messages
-import play.api.mvc.Request
+import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.Html
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals, UserDetails }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -48,10 +50,9 @@ import uk.gov.hmrc.gform.sharedmodel.config.ContentType
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, SimpleGN }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
-import uk.gov.hmrc.gform.views.html
+import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -75,7 +76,8 @@ case class Errors(html: Html) extends HasErrors
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
 class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegistry: LookupRegistry)(
-  implicit ec: ExecutionContext
+  implicit ec: ExecutionContext,
+  viewHelpers: ViewHelpersAlgebra
 ) {
 
   case class ExtraInfo(
@@ -125,9 +127,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val actionForm = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber)
     val listResult = errors.map { case (_, validationResult) => validationResult }
-
-    val jsFormComponentModels = section.jsFormComponentModels
-    val allAtomicFields = dynamicSections.flatMap(RepeatingComponentService.atomicFieldsFull)
 
     val javascript = JavascriptMaker.generateJs(sectionNumber, dynamicSections, formTemplate)
 
@@ -402,7 +401,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       0,
       Nil
     )
-    html.form.form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig, false)
+    html.form
+      .form(formTemplate, pageLevelErrorHtml, renderingInfo, false, true, true, frontendAppConfig, false)
   }
 
   private def htmlFor(
@@ -413,7 +413,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     data: FormDataRecalculated,
     maybeValidated: ValidatedType[ValidationResult],
     isHidden: Boolean = false,
-    obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT): Html =
+    obligations: Obligations)(implicit request: RequestHeader, messages: Messages, l: LangADT): Html =
     formComponent.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(formComponent, sortCode, expr, formComponent.id, index, maybeValidated, ei, data, isHidden)
@@ -587,7 +587,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validatedType: ValidatedType[ValidationResult],
     extraInfo: ExtraInfo,
     data: FormDataRecalculated,
-    obligations: Obligations)(implicit request: Request[_], message: Messages, l: LangADT) = {
+    obligations: Obligations)(implicit request: RequestHeader, message: Messages, l: LangADT) = {
     val validatedValue = buildFormFieldValidationResult(fieldValue, extraInfo, validatedType, data)
     val nestedEi = extraInfo.copy(formLevelHeading = true)
     val revealingChoicesList =
@@ -788,7 +788,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated,
     validatedType: ValidatedType[ValidationResult],
-    obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT): Html = {
+    obligations: Obligations)(implicit request: RequestHeader, messages: Messages, l: LangADT): Html = {
     val grpHtml = htmlForGroup0(grp, formTemplateId, formComponent, index, ei, data, validatedType, obligations)
 
     val isChecked = FormDataHelpers
@@ -809,7 +809,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     ei: ExtraInfo,
     data: FormDataRecalculated,
     validatedType: ValidatedType[ValidationResult],
-    obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT) = {
+    obligations: Obligations)(implicit request: RequestHeader, messages: Messages, l: LangADT) = {
     val maybeHint =
       formComponent.helpText.map(markDownParser)
 
@@ -852,7 +852,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
-    obligations: Obligations)(implicit request: Request[_], messages: Messages, l: LangADT): (List[Html], Boolean) =
+    obligations: Obligations)(implicit request: RequestHeader, messages: Messages, l: LangADT): (List[Html], Boolean) =
     if (groupField.repeatsMax.isDefined) {
       val (groupList, isLimit) = getRepeatingGroupsForRendering(formComponent, groupField, ei.fieldData)
       val gl: List[GroupList] = groupList

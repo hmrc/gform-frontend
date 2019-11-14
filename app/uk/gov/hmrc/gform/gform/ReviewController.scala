@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.Logger
-import play.api.mvc.{ Action, AnyContent, Request, Result }
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, Result }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.ForceUpdateFormStatus
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
@@ -25,16 +25,17 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
+import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ReviewController(
   auth: AuthenticatedRequestActionsAlgebra[Future],
   gformBackEnd: GformBackEndAlgebra[Future],
-  reviewService: ReviewService[Future])
-    extends FrontendController {
+  reviewService: ReviewService[Future],
+  messagesControllerComponents: MessagesControllerComponents)(implicit ec: ExecutionContext)
+    extends FrontendController(messagesControllerComponents) {
 
   //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =

@@ -23,7 +23,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.views.html.form.errors._
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
         formTemplate: FormTemplate,
@@ -33,7 +32,8 @@
   implicit
   request: Request[_],
   messages: Messages,
-  l:LangADT
+  l:LangADT,
+  viewHelpers: ViewHelpersAlgebra
 )
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}

@@ -30,9 +30,9 @@ trait SpecWithFakeApp extends Spec with BaseOneServerPerSuite with FakeApplicati
   private val context: Context = ApplicationLoader.createContext(env)
 
   lazy val applicationModule = new ApplicationModule(context) {
-    override lazy val httpFilters = Nil
-    lazy val wSHttpModule = new WSHttpModule(auditingModule, configModule, akkaModule) {
-      override val auditableWSHttp: WSHttp = new StubbedWSHttp(
+    override val httpFilters = Nil
+    override lazy val wSHttpModule = new WSHttpModule(null, null, null, null) {
+      override lazy val auditableWSHttp: WSHttp = new StubbedWSHttp(
         HttpResponse(200)
       )
     }

@@ -19,10 +19,8 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
-@import uk.gov.hmrc.play.views.html.helpers._
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT)
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @currentValueLines = @{TextFormatter.formatText(validationResult).split("\\R")}
 
@@ -36,7 +34,7 @@
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    errorInline("summary", e, Seq())
+    viewHelpers.errorInline("summary", e, Seq())
 }}
 
 <div>

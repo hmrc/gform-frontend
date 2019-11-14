@@ -16,14 +16,13 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.ValidationUtil
-@import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult])
+@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult])(implicit viewHelpers: ViewHelpersAlgebra)
 
 @{
   val map: Map[String, Set[String]] = validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
   val errors: Set[String] = ValidationUtil.printErrors(map)
 
-  errors.map(e => errorInline(fieldValue.id.value, e, Seq("error-message")))
+  errors.map(e => viewHelpers.errorInline(fieldValue.id.value, e, Seq("error-message")))
 }

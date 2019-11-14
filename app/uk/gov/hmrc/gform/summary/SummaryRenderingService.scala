@@ -24,6 +24,7 @@ import org.jsoup.Jsoup
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
 import play.twirl.api.{ Html, HtmlFormat }
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -40,6 +41,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.http.HeaderCarrier
@@ -51,7 +53,7 @@ class SummaryRenderingService(
   fileUploadService: FileUploadService,
   recalculation: Recalculation[Future, Throwable],
   validationService: ValidationService,
-  frontendAppConfig: FrontendAppConfig) {
+  frontendAppConfig: FrontendAppConfig)(implicit viewHelpers: ViewHelpersAlgebra) {
 
   def createHtmlForPdf(
     maybeAccessCode: Option[AccessCode],
@@ -172,7 +174,8 @@ object SummaryRenderingService {
     implicit
     request: Request[_],
     messages: Messages,
-    l: LangADT): Html = {
+    l: LangADT,
+    viewHelpers: ViewHelpersAlgebra): Html = {
     val sfr =
       summaryForRender(
         validatedType,
@@ -203,7 +206,7 @@ object SummaryRenderingService {
     envelope: Envelope,
     obligations: Obligations,
     reviewerComments: Option[String] = None
-  )(implicit messages: Messages, l: LangADT): List[Html] = {
+  )(implicit messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {

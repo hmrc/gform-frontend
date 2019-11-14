@@ -385,7 +385,7 @@ trait ExampleFormTemplate {
       emailTemplateId = emailTemplateId,
       emailParameters = emailParameters,
       webChat = webChat,
-      sections = List.empty[Section],
+      sections = allSections,
       acknowledgementSection = acknowledgementSection,
       declarationSection = DeclarationSection(toLocalisedString("Declaration"), None, None, Nil),
       parentFormSubmissionRefs = None

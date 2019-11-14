@@ -19,7 +19,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 @import uk.gov.hmrc.gform.models.SectionRenderingInformation
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default => FormCatDefault }
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   timeMessage: String,
@@ -28,7 +27,11 @@
   formTemplate: FormTemplate,
   eventId: String,
   frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages, l:LangADT)
+)(implicit
+  request: Request[_],
+  messages: Messages,
+  l:LangADT,
+  iewHelpers: ViewHelpersAlgebra)
 
 @formCat = @{messages(s"formCategory.${formCategory.getString}")}
 @heading = @{messages("ack.title", formCat)}

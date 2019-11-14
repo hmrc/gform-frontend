@@ -20,15 +20,14 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
-import play.api.libs.ws.{ StreamedBody, WSClient, WSRequest }
+import play.api.libs.ws.{ WSClient, WSRequest }
 import play.api.mvc._
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.LoggingDetails
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-class ProxyActions(wsClient: WSClient)(
+class ProxyActions(wsClient: WSClient)(controllerComponents: ControllerComponents)(
   implicit ec: ExecutionContext
 ) {
 
@@ -36,21 +35,22 @@ class ProxyActions(wsClient: WSClient)(
     * This creates actions which proxies incoming request to remote service.
     */
   def apply(remoteServiceBaseUrl: String)(path: String): Action[Source[ByteString, _]] =
-    Action.async(streamedBodyParser(ec)) { implicit inboundRequest: Request[Source[ByteString, _]] =>
-      for {
-        outboundRequest  <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
-        streamedResponse <- outboundRequest.stream
-      } yield {
-        val headersMap = streamedResponse.headers.headers
-        val contentLength = headersMap.get(contentLengthHeaderKey).flatMap(_.headOption.map(_.toLong))
-        val contentType = headersMap.get(contentTypeHeaderKey).map(_.mkString(", "))
-        Result(
-          ResponseHeader(
-            streamedResponse.headers.status,
-            streamedResponse.headers.headers.mapValues(_.head).filter(filterOutContentHeaders)),
-          Streamed(streamedResponse.body, contentLength, contentType)
-        )
-      }
+    controllerComponents.actionBuilder.async(streamedBodyParser(ec)) {
+      implicit inboundRequest: Request[Source[ByteString, _]] =>
+        for {
+          outboundRequest  <- proxyRequest(s"$remoteServiceBaseUrl/$path", inboundRequest)
+          streamedResponse <- outboundRequest.stream
+        } yield {
+          val headersMap = streamedResponse.headers
+          val contentLength = headersMap.get(contentLengthHeaderKey).flatMap(_.headOption.map(_.toLong))
+          val contentType = headersMap.get(contentTypeHeaderKey).map(_.mkString(", "))
+          Result(
+            ResponseHeader(
+              streamedResponse.status,
+              streamedResponse.headers.mapValues(_.head).filter(filterOutContentHeaders)),
+            Streamed(streamedResponse.bodyAsSource, contentLength, contentType)
+          )
+        }
     }
 
   private lazy val contentTypeHeaderKey = "Content-Type"
@@ -65,9 +65,9 @@ class ProxyActions(wsClient: WSClient)(
       .url(s"$path")
       .withFollowRedirects(false)
       .withMethod(inboundRequest.method)
-      .withHeaders(processHeaders(inboundRequest.headers, extraHeaders = Nil): _*)
-      .withQueryString(inboundRequest.queryString.mapValues(_.head).toSeq: _*)
-      .withBody(StreamedBody(inboundRequest.body))
+      .withHttpHeaders(processHeaders(inboundRequest.headers, extraHeaders = Nil): _*)
+      .withQueryStringParameters(inboundRequest.queryString.mapValues(_.head).toSeq: _*)
+      .withBody(inboundRequest.body)
   )
 
   private def processHeaders(inboundHeaders: Headers, extraHeaders: Seq[(String, String)]): Seq[(String, String)] =

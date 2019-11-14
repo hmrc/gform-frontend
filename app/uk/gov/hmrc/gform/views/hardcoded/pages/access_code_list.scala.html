@@ -24,7 +24,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.form.FormOverview
 @import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{renderMonth, getMonthValue}
 @import uk.gov.hmrc.gform.views.html.formatInstant
-@import uk.gov.hmrc.play.views.html.helpers.errorInline
 
 @(
         formTemplate: FormTemplate,
@@ -34,7 +33,8 @@
         implicit
         request: Request[_],
         messages: Messages,
-        l: LangADT
+        l: LangADT,
+        viewHelpers: ViewHelpersAlgebra
 )
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}

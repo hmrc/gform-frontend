@@ -18,47 +18,36 @@ package uk.gov.hmrc.gform.config
 
 import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import net.ceedubs.ficus.Ficus._
-import play.api.{ Configuration, Environment }
-import play.api.Mode.Mode
+import play.api.{ ApplicationLoader, Configuration, Environment }
+import play.api.Mode
 import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
-import uk.gov.hmrc.play.bootstrap.config.ControllerConfigs
-import uk.gov.hmrc.play.config.{ ControllerConfig, ServicesConfig }
+import uk.gov.hmrc.play.audit.http.config.AuditingConfig
+import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, RunMode, ServicesConfig }
 
-class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
+class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule) {
 
-  val playConfiguration: Configuration = playBuiltInsModule.context.initialConfiguration
+  val playConfiguration: Configuration = context.initialConfiguration
   val typesafeConfig: TypeSafeConfig = ConfigFactory.load()
-  val environment: Environment = playBuiltInsModule.context.environment
+  val environment: Environment = context.environment
+
+  val mode: Mode = environment.mode
+  val runMode: RunMode = new RunMode(playConfiguration, mode)
 
   val timeOut: Int = typesafeConfig.getInt("future.timeout")
 
   val appConfig: AppConfig = AppConfig.loadOrThrow()
 
-  val serviceConfig: ServicesConfig = {
-    val c = new ServicesConfig {
-      //watch out!
-      // ServicesConfig requires running play application so if we don't override these
-      // we will experience 'Caused by: java.lang.RuntimeException: There is no started application'
-      override protected def runModeConfiguration: Configuration = playConfiguration
-
-      override protected def mode: Mode = playBuiltInsModule.context.environment.mode
-    }
-
-    //ensure eagerly that all configs are in place (below will eagerly throw exception if some of the config are missing)
-    c.baseUrl("gform")
-    c.baseUrl("auth")
-    c.baseUrl("eeitt")
-    c.baseUrl("email")
-    c
-  }
+  val serviceConfig = new ServicesConfig(playConfiguration, runMode)
 
   val controllerConfigs = ControllerConfigs.fromConfig(playConfiguration)
 
   val controllerConfig: ControllerConfig = new ControllerConfig {
     val controllerConfigs: TypeSafeConfig = typesafeConfig.as[TypeSafeConfig]("controllers")
   }
+
+  val auditingConfig: AuditingConfig = new AuditingConfigProvider(playConfiguration, runMode, appConfig.appName).get()
 
   val availableLanguages: Map[String, Lang] = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy"))
   def routeToSwitchLanguage: String => Call =
@@ -75,7 +64,8 @@ class ConfigModule(playBuiltInsModule: PlayBuiltInsModule) {
       )
     val contactFormServiceIdentifier = "GForm"
     FrontendAppConfig(
-      albAdminIssuerUrl = playConfiguration.getString("albAdminIssuerUrl").getOrElse("idp-url-variable-not-set"),
+      albAdminIssuerUrl =
+        playConfiguration.getOptional[String]("albAdminIssuerUrl").getOrElse("idp-url-variable-not-set"),
       assetsPrefix = typesafeConfig.getString(s"assets.url") + typesafeConfig.getString(s"assets.version"),
       analyticsToken = typesafeConfig.getString(s"google-analytics.token"),
       analyticsHost = typesafeConfig.getString(s"google-analytics.host"),

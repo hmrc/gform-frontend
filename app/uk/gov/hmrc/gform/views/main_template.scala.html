@@ -18,7 +18,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{DevelopmentPhase,  ResearchBanner, AuthConfig}
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
-@import uk.gov.hmrc.play.views.html.layouts
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.WebChat
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormCategory
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default, FormTemplateId}
@@ -38,7 +37,7 @@
   formCategory: FormCategory = Default,
   languages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId
-)(mainContent: Html)(implicit request : Request[_], messages: Messages)
+)(mainContent: Html)(implicit request : Request[_], messages: Messages, viewHelpers: ViewHelpersAlgebra)
 
 @serviceInfo = {}
 
@@ -59,7 +58,7 @@
 @mainScripts = {
   @scriptElem
   @if(webChat.nonEmpty) {
-    @uk.gov.hmrc.csp.WebchatClient.webchatClickToChatScriptPartial(webChatRoomId, webChatTemplateName)
+    @viewHelpers.webchatClickToChatScriptPartial(webChatRoomId, webChatTemplateName)
   }
 }
 
@@ -86,7 +85,7 @@
 
 @sidebar = @{
   if(webChat.nonEmpty) {
-    layouts.sidebar(webchatSidebar, Some("sidebar"))
+    viewHelpers.sidebar(webchatSidebar, Some("sidebar"))
   } else {
     Html("")
   }
@@ -102,7 +101,7 @@
   bodyClasses = bodyClasses,
   sidebar = sidebar,
   contentHeader = contentHeader,
-  mainContent = layouts.article(mainContent),
+  mainContent = viewHelpers.article(mainContent),
   serviceInfoContent = serviceInfo,
   scriptElem = Some(mainScripts),
   authConfig = authConfig,

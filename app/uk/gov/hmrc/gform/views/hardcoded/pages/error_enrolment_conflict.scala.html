@@ -16,7 +16,6 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 
 @(
@@ -26,7 +25,8 @@ frontendAppConfig: FrontendAppConfig
 implicit
 request: Request[_],
 messages: Messages,
-l:LangADT
+l:LangADT,
+viewHelpers: ViewHelpersAlgebra
 )
 
 @heading = @{"You need to request access to use this service"}
