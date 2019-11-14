@@ -39,7 +39,8 @@ case class UserDetails(
 
 object UserDetails {
   val pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-  implicit val dateFormat = Format[LocalDate](Reads.jodaLocalDateReads(pattern), Writes.jodaLocalDateWrites(pattern))
+  implicit val dateFormat =
+    Format[LocalDate](JodaReads.jodaLocalDateReads(pattern), JodaWrites.jodaLocalDateWrites(pattern))
 
   implicit lazy val format: OFormat[UserDetails] = Json.format[UserDetails]
 }

@@ -23,7 +23,6 @@
 @import uk.gov.hmrc.gform.views.html.localisedDateString
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
 @import java.time.format.DateTimeFormatter
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 
 @(
@@ -31,7 +30,7 @@
     formTemplate: FormTemplate,
     call: Call,
     frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages,l:LangADT)
+)(implicit request: Request[_], messages: Messages,l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}

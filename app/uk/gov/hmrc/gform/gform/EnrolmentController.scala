@@ -29,12 +29,13 @@ import cats.syntax.traverse._
 import cats.syntax.validated._
 import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.I18nSupport
-import play.api.mvc.{ AnyContent, Request, Result }
+import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
-import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.{ get, processResponseDataFromBody }
+import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
@@ -43,8 +44,9 @@ import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
-import uk.gov.hmrc.gform.validation.{ EmailCodeFieldMatcher, GetEmailCodeFieldMatcher, ValidationService }
+import uk.gov.hmrc.gform.validation.{ GetEmailCodeFieldMatcher, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -67,10 +69,12 @@ class EnrolmentController(
   recalculation: Recalculation[Future, Throwable],
   taxEnrolmentConnector: TaxEnrolmentsConnector,
   ggConnector: GovernmentGatewayConnector,
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  messagesControllerComponents: MessagesControllerComponents
 )(
-  implicit ec: ExecutionContext
-) extends FrontendController {
+  implicit ec: ExecutionContext,
+  viewHelpers: ViewHelpersAlgebra
+) extends FrontendController(messagesControllerComponents) {
 
   type Ctx[A] = ReaderT[Future, Env, A]
   type EnrolM[A] = EitherT[Ctx, SubmitEnrolmentError, A]

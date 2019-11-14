@@ -20,29 +20,71 @@ import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
-import play.api.i18n.Messages
+import play.api.i18n.{ Lang, Messages }
+import play.api.libs.typedmap.{ TypedEntry, TypedMap }
+import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
-import uk.gov.hmrc.gform.SpecWithFakeApp
+import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult, VisitIndex }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
+import uk.gov.hmrc.gform.views.{ ViewHelpers, ViewHelpersAlgebra }
+import uk.gov.hmrc.http.HeaderCarrier
+import play.filters.csrf.CSRF
+import play.filters.csrf.CSRF.{ Token, TokenInfo }
+import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.collection.JavaConverters
 import scala.collection.immutable.List
 
-class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) extends SpecWithFakeApp {
+class SectionRenderingServiceSpec extends Spec {
 
-  implicit val request =
-    FakeRequest().copyFakeRequest(tags = Map("CSRF_TOKEN_NAME" -> "csrfToken", "CSRF_TOKEN" -> "o'ight mate?"))
+  implicit val request: Request[AnyContentAsEmpty.type] =
+    FakeRequest()
+      .withAttrs(TypedMap(TypedEntry(CSRF.Token.InfoAttr, TokenInfo(Token("csrfToken", "Bar")))))
 
   val retrievals = authContext
 
   private val lookupRegistry = new LookupRegistry(Map.empty)
+
+  private implicit val langADT = LangADT.En
+
+  private implicit val messages = new Messages {
+    override def lang: Lang = Lang.defaultLang
+
+    override def apply(key: String, args: Any*): String = key + "_value"
+
+    override def apply(keys: Seq[String], args: Any*): String = keys.mkString("_")
+
+    override def translate(key: String, args: Seq[Any]): Option[String] = Some(apply(key))
+
+    override def isDefinedAt(key: String): Boolean = true
+  }
+
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  private implicit val viewHelpers: ViewHelpersAlgebra = new ViewHelpers(null, null, null, null) {
+    override def head(linkElem: Option[Html], headScripts: Option[Html]): HtmlFormat.Appendable = null
+
+    override def footer(
+      analyticsToken: scala.Option[scala.Predef.String],
+      analyticsHost: scala.Predef.String,
+      ssoUrl: scala.Option[scala.Predef.String],
+      scriptElem: scala.Option[play.twirl.api.Html],
+      gaCalls: scala.Option[(String, String) => Html],
+      analyticsAnonymizeIp: scala.Boolean,
+      analyticsAdditionalJs: scala.Option[play.twirl.api.Html],
+      allowQueryStringInAnalytics: scala.Boolean): HtmlFormat.Appendable =
+      null
+
+    override def webchatClickToChatScriptPartial(entryPoint: String, template: String)(implicit request: Request[_]) =
+      Html("WebChat stuff goes here")
+  }
 
   val testService = new SectionRenderingService(frontendAppConfig, lookupRegistry)
 
@@ -60,7 +102,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
             FormComponentId("startDate-year")  -> "",
             FormComponentId("iptRegNum")       -> ""
           )),
-        formTemplate,
+        formTemplate.copy(webChat = None),
         Nil,
         Envelope.empty,
         envelopeId,
@@ -386,7 +428,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
     doc.getElementsByAttributeValue("href", addButtonValue).size shouldBe 0
     doc.getElementsByAttributeValue("name", fieldName).size shouldBe 1
     doc.getElementsByAttributeValue("name", "1_" + fieldName).size shouldBe 1
-    doc.getElementsContainingOwnText("Remove REPEAT_LABEL").size shouldBe 2
+    doc.getElementsContainingOwnText(messages("linkText.removeRepeatedGroup")).size shouldBe 2
   }
 
   it should "generate declaration page" in {
@@ -409,7 +451,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
 
     hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List())
-    buttons should be(List(("Accept and submit")))
+    buttons should be(List(messages("button.acceptAndSubmit")))
   }
 
   it should "generate declaration page with submit claim button" in {
@@ -432,7 +474,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
 
     hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List())
-    buttons should be(List(("Accept and submit claim")))
+    buttons should be(List(messages("button.acceptAndSubmitForm")))
   }
 
   it should "generate declaration page with submit return button" in {
@@ -455,7 +497,7 @@ class SectionRenderingServiceSpec(implicit messages: Messages, l: LangADT) exten
 
     hiddenFieldNames should be(List("csrfToken", "save"))
     visibleFields should be(List())
-    buttons should be(List(("Accept and submit return")))
+    buttons should be(List(messages("button.acceptAndSubmitForm")))
   }
 
   private def toList(elements: Elements) = JavaConverters.asScalaIteratorConverter(elements.iterator).asScala.toList

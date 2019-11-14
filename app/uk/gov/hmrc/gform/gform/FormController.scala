@@ -22,6 +22,7 @@ import cats.syntax.apply._
 import cats.syntax.eq._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
@@ -38,10 +39,11 @@ import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.validation.ValidationService
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 class FormController(
   appConfig: AppConfig,
@@ -55,8 +57,10 @@ class FormController(
   processDataService: ProcessDataService[Future, Throwable],
   handler: FormControllerRequestHandler,
   lookupExtractors: LookupExtractors,
-  fastForwardService: FastForwardService
-) extends FrontendController {
+  fastForwardService: FastForwardService,
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext, viewHelpers: ViewHelpersAlgebra)
+    extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
 

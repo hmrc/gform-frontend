@@ -19,7 +19,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId }
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   fieldValue: FormComponent,
@@ -27,7 +26,7 @@
   formLevelHeading: Boolean,
   prepop: Option[String],
   validationResult: Option[FormFieldValidationResult],
-  index: Int)(implicit l:LangADT)
+  index: Int)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @currentValue = @{validationResult.flatMap(_.getCurrentValue)}
 

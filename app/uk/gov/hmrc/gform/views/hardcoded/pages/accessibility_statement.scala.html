@@ -22,14 +22,12 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.views.html.localisedDateString
 @import uk.gov.hmrc.gform.views.hardcoded.pages._
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-
-@(formTemplate: FormTemplate, frontendAppConfig: FrontendAppConfig)(implicit request: Request[_], messages: Messages, l: LangADT)
+@(formTemplate: FormTemplate,
+  frontendAppConfig: FrontendAppConfig)(implicit request: Request[_], messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("footer.links.accessibility.title", formCat)}
-
 
 @uk.gov.hmrc.gform.views.html.main_template(
 title = heading,

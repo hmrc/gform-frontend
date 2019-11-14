@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
-import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId }
+import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
@@ -251,15 +251,15 @@ class ValidationService(
   }
 
   def validateForm(cache: AuthCacheWithForm, envelope: Envelope, retrievals: MaterialisedRetrievals)(
-    implicit hc: HeaderCarrier,
+    implicit
+    hc: HeaderCarrier,
+    messages: Messages,
     l: LangADT): Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
 
     val dataRaw = cache.variadicFormData
 
     def filterSection(sections: List[Section], data: FormDataRecalculated): List[Section] =
       sections.filter(data.isVisible)
-
-    import i18nSupport._
 
     for {
       data <- recalculation.recalculateFormData(

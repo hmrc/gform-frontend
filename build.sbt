@@ -31,7 +31,13 @@ lazy val microservice = (project in file("."))
       "uk.gov.hmrc.gform.sharedmodel._",
       "uk.gov.hmrc.gform.auth._",
       "uk.gov.hmrc.gform.models._"
+    ),
+    TwirlKeys.templateImports ++= Seq(
+      "uk.gov.hmrc.gform.sharedmodel._",
+      "uk.gov.hmrc.csp.WebchatClient",
+      "uk.gov.hmrc.gform.views.ViewHelpersAlgebra"
     )
+
 //TODO enable it and fix errors in code!!!
 //      scalacOptions ++= Seq(
 //        "-Xfatal-warnings",

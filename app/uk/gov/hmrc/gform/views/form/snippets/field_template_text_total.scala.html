@@ -21,15 +21,12 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
-@import uk.gov.hmrc.gform.views.html.form.snippets.hidden_field_populated
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import java.text.NumberFormat
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 @import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-
-@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l:LangADT)
+@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
 @currentSterling = @{ toBigDecimalDefault(validatedValue) }

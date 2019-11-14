@@ -24,10 +24,7 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import play.twirl.api.Html
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.sharedmodel.LocalisedString
-
-
 
 @(inputType: String,
 fieldValue: FormComponent,
@@ -39,7 +36,7 @@ optionHelpText: NonEmptyList[Html],
 index: Int,
 sectionTitle: String,
 formLevelHeading: Boolean
-)(implicit l: LangADT)
+)(implicit l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)

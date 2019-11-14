@@ -16,36 +16,32 @@
 
 package uk.gov.hmrc.gform.controllers
 
+import play.api.BuiltInComponents
+import play.api.mvc.{ DefaultMessagesActionBuilderImpl, DefaultMessagesControllerComponents, MessagesControllerComponents, SessionCookieBaker }
+
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.gform.FormService
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 class ControllersModule(
   configModule: ConfigModule,
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
   playBuiltInsModule: PlayBuiltInsModule,
-  auditingModule: AuditingModule
+  auditingModule: AuditingModule,
+  builtInComponents: BuiltInComponents,
+  sessionCookieBaker: SessionCookieBaker,
+  errResponder: ErrResponder
 )(
-  implicit ec: ExecutionContext
+  implicit ec: ExecutionContext,
+  viewHelpers: ViewHelpersAlgebra
 ) {
 
-  val errResponder: ErrResponder = new ErrResponder(
-    configModule.frontendAppConfig,
-    auditingModule.httpAuditingService,
-    playBuiltInsModule.i18nSupport
-  )
-
-  val errorHandler: ErrorHandler = new ErrorHandler(
-    playBuiltInsModule.context.environment,
-    playBuiltInsModule.context.initialConfiguration,
-    playBuiltInsModule.context.sourceMapper,
-    errResponder
-  )
+  private implicit val messagesApi = builtInComponents.messagesApi
 
   val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
     gformBackendModule.gformConnector,
@@ -55,6 +51,19 @@ class ControllersModule(
     authModule.authConnector,
     playBuiltInsModule.i18nSupport,
     playBuiltInsModule.langs,
-    errResponder
+    builtInComponents.defaultActionBuilder,
+    errResponder,
+    sessionCookieBaker
   )
+
+  val messagesControllerComponents: MessagesControllerComponents = new DefaultMessagesControllerComponents(
+    new DefaultMessagesActionBuilderImpl(builtInComponents.defaultBodyParser, playBuiltInsModule.messagesApi),
+    builtInComponents.defaultActionBuilder,
+    builtInComponents.playBodyParsers,
+    playBuiltInsModule.messagesApi,
+    playBuiltInsModule.langs,
+    builtInComponents.fileMimeTypes,
+    ec
+  )
+
 }

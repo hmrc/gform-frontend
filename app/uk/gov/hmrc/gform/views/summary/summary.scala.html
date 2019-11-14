@@ -20,7 +20,6 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
 
 @(
@@ -33,7 +32,7 @@
     frontendAppConfig: FrontendAppConfig,
     reviewerComments : Option[String],
     includeCSRF: Boolean
-)(implicit request: Request[_], messages: Messages, l:LangADT)
+)(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @heading = @{messages("summary.title")}
 
@@ -88,12 +87,12 @@
                 <button type="submit" class="button" value="Declaration">@messages(continueLabelKey)</button>
             </div>
             <div class="js-visible">
-              @if(renderComeBackLater) {
-                <div class="form-group">
-                  <a href="#" id="saveComeBackLaterExit">@messages("linkText.saveAndComeBackLater")</a>
-                </div>
-              }
+            @if(renderComeBackLater) {
+            <div class="form-group">
+                <a href="#" id="saveComeBackLaterExit">@messages("linkText.saveAndComeBackLater")</a>
             </div>
+            }
+        </div>
         </div>
     </form>
 }

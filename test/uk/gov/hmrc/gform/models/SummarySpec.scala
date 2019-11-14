@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.validated._
 import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
-import play.api.i18n.Messages
+import play.api.i18n.{ Lang, Messages }
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.Helpers.toLocalisedString
 import uk.gov.hmrc.gform.Spec
@@ -35,11 +35,29 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsS
 import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.collection.immutable.List
 import uk.gov.hmrc.http.HeaderCarrier
 
-class SummarySpec(implicit messages: Messages, l: LangADT) extends Spec {
+class SummarySpec extends Spec {
+
+  private implicit val langADT = LangADT.En
+  private implicit val messages = new Messages {
+    override def lang: Lang = Lang.defaultLang
+
+    override def apply(key: String, args: Any*): String =
+      if (key == "date.November") "November"
+      else key + "_value"
+
+    override def apply(keys: Seq[String], args: Any*): String = keys.mkString("_")
+
+    override def translate(key: String, args: Seq[Any]): Option[String] = Some(apply(key))
+
+    override def isDefinedAt(key: String): Boolean = true
+  }
+
+  private implicit val viewHelpers: ViewHelpersAlgebra = null
 
   trait Test extends ExampleData {
     override def dmsSubmission =

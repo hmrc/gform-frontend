@@ -21,10 +21,8 @@
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-
-@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l: LangADT)
+@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l: LangADT, viewHelpers: ViewHelpersAlgebra)
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }

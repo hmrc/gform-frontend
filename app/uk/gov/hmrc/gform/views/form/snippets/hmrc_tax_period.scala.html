@@ -23,7 +23,6 @@
 @import uk.gov.hmrc.gform.gform.OptionParams
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper._
 @import java.time.LocalDate
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   inputType: String,
@@ -34,7 +33,7 @@
   index: Int,
   formLevelHeading: Boolean,
   setValue: String
-)(implicit messages: Messages, l: LangADT)
+)(implicit messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 

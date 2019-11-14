@@ -19,7 +19,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
   fieldValue: FormComponent,
@@ -29,7 +28,7 @@
   optionHelpText: NonEmptyList[Html],
   index: Int,
   sectionTitle: String
-)(implicit l:LangADT)
+)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -48,7 +47,7 @@
         }
 
         @if(hasErrors) {
-          @errorInline(fieldValue.id.value, fieldValue.errorMessage.map(ls => ls.value).getOrElse("Please enter required data"), Seq("error-message"))
+          @viewHelpers.errorInline(fieldValue.id.value, fieldValue.errorMessage.map(ls => ls.value).getOrElse("Please enter required data"), Seq("error-message"))
         }
       </div>
 

@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.gform.playcomponents
 
-import controllers.Assets
+import controllers.AssetsComponents
 import play.api.Logger
 import play.api.http.HttpRequestHandler
 import play.api.routing.Router
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.controllers.ControllersModule
+import uk.gov.hmrc.gform.controllers.{ ControllersModule, ErrorHandler }
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
 import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
@@ -40,14 +40,16 @@ class RoutingModule(
   fileUploadModule: FileUploadModule,
   testOnlyModule: TestOnlyModule,
   frontendFiltersModule: FrontendFiltersModule,
-  controllersModule: ControllersModule
+  controllersModule: ControllersModule,
+  assetsComponents: AssetsComponents,
+  errorHandler: ErrorHandler
 ) { self =>
 
   //This must be called before `controllers.template.routes` gets read be classloader ...
   template.RoutesPrefix.setPrefix("/template")
 
   private val appRoutes: app.Routes = new app.Routes(
-    controllersModule.errorHandler,
+    errorHandler,
     gformModule.newFormController,
     gformModule.formController,
     gformModule.summaryController,
@@ -57,7 +59,7 @@ class RoutingModule(
     gformModule.enrolmentController,
     gformModule.agentEnrolmentController,
     gformModule.reviewController,
-    new Assets(controllersModule.errorHandler),
+    assetsComponents.assets,
     fileUploadModule.fileUploadController,
     gformModule.languageSwitchController,
     gformModule.lookupController,
@@ -66,17 +68,20 @@ class RoutingModule(
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(
-    controllersModule.errorHandler,
+    errorHandler,
     appRoutes,
-    new controllers.template.Template(controllersModule.errorHandler),
-    new HealthController(configModule.playConfiguration, configModule.environment),
+    new controllers.template.Template(errorHandler, assetsComponents.assetsMetadata),
+    new HealthController(
+      configModule.playConfiguration,
+      configModule.environment,
+      controllersModule.messagesControllerComponents),
     metricsModule.metricsController
   )
 
   //we don't need it always, lets leave it lazy
   private lazy val testOnlyDoNotUseInAppConfRoutes: testOnlyDoNotUseInAppConf.Routes =
     new testOnlyDoNotUseInAppConf.Routes(
-      controllersModule.errorHandler,
+      errorHandler,
       prodRoutes,
       testOnlyModule.testOnlyController
     )
@@ -100,7 +105,7 @@ class RoutingModule(
 
   val httpRequestHandler: HttpRequestHandler = new CustomHttpRequestHandler(
     router,
-    controllersModule.errorHandler,
+    errorHandler,
     playBuiltInsModule.builtInComponents.httpConfiguration,
     frontendFiltersModule.httpFilters
   )

@@ -21,10 +21,10 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import java.util.UUID
-import play.api.Logger
 
+import play.api.Logger
 import play.api.http.HeaderNames
-import play.api.i18n.{ I18nSupport, Lang, Langs }
+import play.api.i18n.{ I18nSupport, Lang, Langs, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -34,14 +34,15 @@ import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormId, FormIdData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.SessionKeys
-import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _, _ }
+import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _ }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.auth.core.InsufficientEnrolments
+import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -68,9 +69,14 @@ class AuthenticatedRequestActions(
   val authConnector: AuthConnector,
   i18nSupport: I18nSupport,
   langs: Langs,
-  errResponder: ErrResponder
+  actionBuilder: ActionBuilder[Request, AnyContent],
+  errResponder: ErrResponder,
+  sessionCookieBaker: SessionCookieBaker
 )(
-  implicit ec: ExecutionContext
+  implicit
+  ec: ExecutionContext,
+  messagesApi: MessagesApi,
+  viewHelpers: ViewHelpersAlgebra
 ) extends AuthenticatedRequestActionsAlgebra[Future] with AuthorisedFunctions {
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =
@@ -119,7 +125,7 @@ class AuthenticatedRequestActions(
       CheckEnrolmentsResult.InvalidIdentifiers
   }
 
-  def keepAlive(): Action[AnyContent] = Action.async { implicit request =>
+  def keepAlive(): Action[AnyContent] = actionBuilder.async { implicit request =>
     val predicate = AuthProviders(AuthProvider.GovernmentGateway)
     for {
       authResult <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
@@ -153,7 +159,7 @@ class AuthenticatedRequestActions(
     }
 
   def asyncNoAuth(formTemplateId: FormTemplateId)(
-    f: Request[AnyContent] => LangADT => FormTemplate => Future[Result]): Action[AnyContent] = Action.async {
+    f: Request[AnyContent] => LangADT => FormTemplate => Future[Result]): Action[AnyContent] = actionBuilder.async {
     implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
@@ -164,11 +170,12 @@ class AuthenticatedRequestActions(
   }
 
   def async(formTemplateId: FormTemplateId)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
-    implicit request =>
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
+    actionBuilder.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
       for {
+        _            <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
                        .authenticateAndAuthorise(
@@ -186,13 +193,14 @@ class AuthenticatedRequestActions(
                      retrievals => role => f(newRequest)(l)(AuthCacheWithoutForm(retrievals, formTemplate, role))
                  )
       } yield result
-  }
+    }
 
   def asyncGGAuth(formTemplateId: FormTemplateId)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {
-    implicit request =>
+    f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
+    actionBuilder.async { implicit request =>
       val predicate = AuthProviders(AuthProvider.GovernmentGateway)
       for {
+        _            <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult   <- ggAuthorised(request)(RecoverAuthResult.noop)(predicate)
         result <- authResult match {
@@ -201,7 +209,7 @@ class AuthenticatedRequestActions(
                    case _ => errResponder.forbidden(request, "Access denied")
                  }
       } yield result
-  }
+    }
 
   def authAndRetrieveForm(
     formTemplateId: FormTemplateId,
@@ -217,10 +225,12 @@ class AuthenticatedRequestActions(
 
   def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
     f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
-    Action.async { implicit request =>
+    actionBuilder.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
       for {
+        _            <- MDCHelpers.addFormTemplateIdToMdc(formTemplateId)
+        _            <- MDCHelpers.addAccessCodeToMdc(maybeAccessCode)
         formTemplate <- gformConnector.getFormTemplate(formTemplateId)
         authResult <- authService
                        .authenticateAndAuthorise(
@@ -244,6 +254,7 @@ class AuthenticatedRequestActions(
     retrievals: MaterialisedRetrievals)(role: Role)(implicit hc: HeaderCarrier): Future[Result] =
     for {
       form   <- gformConnector.getForm(FormIdData(retrievals, formTemplate._id, maybeAccessCode))
+      _      <- MDCHelpers.addFormIdToMdc(form._id)
       result <- f(AuthCacheWithForm(retrievals, form, formTemplate, role))
     } yield result
 
@@ -271,7 +282,7 @@ class AuthenticatedRequestActions(
             pageTitle = "Access denied",
             heading = "Access denied",
             message = message,
-            frontendAppConfig = frontendAppConfig)).pure[Future]
+            frontendAppConfig = frontendAppConfig)(request.messages, viewHelpers)).pure[Future]
       case AuthForbidden(message) =>
         errResponder.forbidden(request, message)
     }
@@ -310,10 +321,10 @@ class AuthenticatedRequestActions(
       val sessionCookie =
         Session.encodeAsCookie(request.session - EEITTAuthConfig.nonAgentIdName - EEITTAuthConfig.agentIdName)
       val updatedCookies = request.cookies
-        .filterNot(cookie => cookie.name.equals(Session.COOKIE_NAME))
+        .filterNot(cookie => cookie.name.equals(sessionCookieBaker.COOKIE_NAME))
         .toSeq :+ sessionCookie
       val updatedHeaders = request.headers.replace(HeaderNames.COOKIE -> Cookies.encodeCookieHeader(updatedCookies))
-      Request[AnyContent](request.copy(headers = updatedHeaders), request.body)
+      Request[AnyContent](request.withHeaders(updatedHeaders), request.body)
     case _ => request
   }
 

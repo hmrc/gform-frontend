@@ -19,21 +19,19 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
-@import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
  fieldValue: FormComponent,
  validationResult: Option[FormFieldValidationResult],
  changeButton: Html,
  maybeObligationDetail: Option[ObligationDetail]
-)(implicit messages: Messages, l:LangADT)
+)(implicit messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    errorInline("summary", e, Seq()) }}
+    viewHelpers.errorInline("summary", e, Seq()) }}
 
 <div>
     <dt class="cya-question@if(hasErrors) { summary--error}">

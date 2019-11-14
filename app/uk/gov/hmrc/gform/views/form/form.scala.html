@@ -21,7 +21,6 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.views.html.specimen
 
 @(
@@ -37,7 +36,8 @@
   implicit
   request: Request[_], //required by CSRF.formField
   messages: Messages,
-  l:LangADT
+  l:LangADT,
+  viewHelpers: ViewHelpersAlgebra
 )
 
 @heading = @{page.sectionTitle}

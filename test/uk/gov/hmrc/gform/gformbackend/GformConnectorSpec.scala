@@ -17,13 +17,12 @@
 package uk.gov.hmrc.gform.gformbackend
 
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.SpecWithFakeApp
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.DeclarationSection
+import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.wshttp.StubbedWSHttp
 import uk.gov.hmrc.http._
 
-class GformConnectorSpec extends SpecWithFakeApp {
+class GformConnectorSpec extends Spec {
 
   behavior of "GformConnector.formTemplate - happy path"
 
@@ -128,6 +127,7 @@ class GformConnectorSpec extends SpecWithFakeApp {
       responseStatus = status,
       responseJson = responseJson
     )
+
     lazy val wSHttp = new StubbedWSHttp(r)
     lazy val connector = new GformConnector(wSHttp, "baseUrl")
     implicit lazy val hc: HeaderCarrier = HeaderCarrier()

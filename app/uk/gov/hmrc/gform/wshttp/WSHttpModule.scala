@@ -16,15 +16,24 @@
 
 package uk.gov.hmrc.gform.wshttp
 
+import play.api.libs.ws.WSClient
+import play.api.libs.ws.ahc.AhcWSComponents
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.config.ConfigModule
 
-class WSHttpModule(auditingModule: AuditingModule, configModule: ConfigModule, akkaModule: AkkaModule) {
-  val auditableWSHttp: WSHttp = new WSHttpImpl(
+class WSHttpModule(
+  auditingModule: AuditingModule,
+  configModule: ConfigModule,
+  akkaModule: AkkaModule,
+  ahcWSComponents: AhcWSComponents) {
+  lazy val auditableWSHttp: WSHttp = new WSHttpImpl(
     auditingModule.auditConnector,
     configModule.playConfiguration,
     Some(configModule.typesafeConfig),
-    akkaModule.actorSystem
+    akkaModule.actorSystem,
+    wsClient
   )
+
+  def wsClient: WSClient = ahcWSComponents.wsClient
 }

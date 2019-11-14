@@ -16,10 +16,8 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@import uk.gov.hmrc.play.views.html.helpers._
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(fieldValue: FormComponent, validationResultO: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT)
+@(fieldValue: FormComponent, validationResultO: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
     @validationResult = @{
         //it's always there, TODO: change template signature
@@ -31,7 +29,7 @@
     }
 
     @showError(e: String) = @{
-        errorInline(e, e, Seq("error-message"))
+        viewHelpers.errorInline(e, e, Seq("error-message"))
     }
 
     <div>

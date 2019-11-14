@@ -29,7 +29,7 @@ class AuditingModule(configModule: ConfigModule, akkaModule: AkkaModule, playBui
   self =>
 
   lazy val auditConnector: AuditConnector =
-    new DefaultAuditConnector(configModule.playConfiguration, configModule.environment)
+    new DefaultAuditConnector(configModule.auditingConfig)
 
   lazy val auditService = new AuditService {
     override def auditConnector = self.auditConnector

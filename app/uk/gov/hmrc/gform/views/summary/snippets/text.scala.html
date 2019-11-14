@@ -20,18 +20,17 @@
 @import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 @import uk.gov.hmrc.play.views.html.helpers.errorInline
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 @(
  fieldValue: FormComponent,
  validationResult: Option[FormFieldValidationResult],
  changeButton: Html
-)(implicit messages: Messages,l:LangADT)
+)(implicit messages: Messages,l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    errorInline(fieldValue.id.value, e, Seq("error-message"))
+    viewHelpers.errorInline(fieldValue.id.value, e, Seq("error-message"))
 }}
 
 <div>

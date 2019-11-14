@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.gform.auth
 
+import play.api.{ Configuration, Mode }
 import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.gform.InjectionDodge
 import uk.gov.hmrc.gform.auth.models.UserDetails
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.http.HeaderCarrier
@@ -25,9 +25,12 @@ import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class AuthConnector(baseUrl: String, wsHttp: WSHttp) extends PlayAuthConnector with ServicesConfig {
-  override protected def mode = InjectionDodge.mode
-  override protected def runModeConfiguration = InjectionDodge.configuration
+class AuthConnector(
+  baseUrl: String,
+  wsHttp: WSHttp,
+  override protected val mode: Mode,
+  override protected val runModeConfiguration: Configuration)
+    extends PlayAuthConnector with ServicesConfig {
   val serviceUrl = baseUrl
   lazy val http = wsHttp
 

@@ -18,9 +18,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.sharedmodel.LangADT
 
-@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit messages: Messages, l: LangADT)
+@(international: Boolean, fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @safeId(id: String) = @{
   fieldValue.id.withSuffix(id).toString
@@ -100,7 +99,7 @@
       @safeError(suffix : String) = @{
       val errors: Set[String] = validationResult.map(_.fieldErrorsWithSuffix(suffix)).getOrElse(Set())
 
-      errors.map(e => errorInline(suffix, e, Seq("error-message")))
+      errors.map(e => viewHelpers.errorInline(suffix, e, Seq("error-message")))
       }
 
       <div class="form-group@if(safeError("street1").nonEmpty){ form-group-error }">

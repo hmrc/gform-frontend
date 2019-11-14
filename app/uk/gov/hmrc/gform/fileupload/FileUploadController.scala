@@ -16,18 +16,23 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormId, FormIdData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+
+import scala.concurrent.ExecutionContext
 
 class FileUploadController(
   fileUploadService: FileUploadService,
   auth: AuthenticatedRequestActions,
-  gformConnector: GformConnector
-) extends FrontendController {
+  gformConnector: GformConnector,
+  messagesControllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
+    extends FrontendController(messagesControllerComponents) {
 
   def deleteFile(
     formTemplateId: FormTemplateId,

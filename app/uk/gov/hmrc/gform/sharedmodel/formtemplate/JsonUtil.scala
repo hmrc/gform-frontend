@@ -31,8 +31,8 @@ trait JsonUtils {
   def reads[T: Reads: TypeTag]: Reads[NonEmptyList[T]] =
     Reads
       .of[List[T]]
-      .collect(
-        ValidationError(s"expected a NonEmptyList of ${implicitly[TypeTag[T]].tpe} but got an empty list instead")) {
+      .collect(JsonValidationError(
+        s"expected a NonEmptyList of ${implicitly[TypeTag[T]].tpe} but got an empty list instead")) {
         case head :: tail => NonEmptyList(head, tail)
       }
 

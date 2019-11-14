@@ -36,7 +36,8 @@ class FileUploadModule(
   val fileUploadController = new FileUploadController(
     fileUploadService,
     controllersModule.authenticatedRequestActions,
-    gformBackendModule.gformConnector
+    gformBackendModule.gformConnector,
+    controllersModule.messagesControllerComponents
   )
 
   private lazy val fileUploadBaseUrl = {

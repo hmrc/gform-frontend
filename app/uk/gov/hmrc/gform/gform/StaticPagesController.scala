@@ -17,9 +17,11 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.i18n.I18nSupport
+import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ accessibility_statement, help_with_registration }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -28,10 +30,11 @@ import scala.concurrent.Future
 class StaticPagesController(
   auth: AuthenticatedRequestActions,
   i18nSupport: I18nSupport,
-  frontendAppConfig: FrontendAppConfig
-) extends FrontendController {
+  frontendAppConfig: FrontendAppConfig,
+  messagesControllerComponents: MessagesControllerComponents)(implicit viewHelpers: ViewHelpersAlgebra)
+    extends FrontendController(messagesControllerComponents) {
 
-  def accessibilityPage(formTemplateId: FormTemplateId) =
+  def accessibilityPage(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.asyncNoAuth(formTemplateId) { implicit request => implicit l => formTemplate =>
       import i18nSupport._
 

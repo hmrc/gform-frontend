@@ -17,33 +17,22 @@
 package uk.gov.hmrc.gform.metrics
 
 import com.kenshoo.play.metrics.{ MetricsController, MetricsFilter, MetricsFilterImpl, MetricsImpl }
+import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 
-class MetricsModule(playBuiltInsModule: PlayBuiltInsModule, akkaModule: AkkaModule, configModule: ConfigModule) {
+import scala.concurrent.ExecutionContext
 
-  val metricsFilter: MetricsFilter = new MetricsFilterImpl(metrics)(akkaModule.materializer)
+class MetricsModule(
+  configModule: ConfigModule,
+  akkaModule: AkkaModule,
+  controllerComponents: ControllerComponents,
+  ec: ExecutionContext) {
 
-  val metricsController: MetricsController = new MetricsController(metrics)
+  val metrics = new MetricsImpl(configModule.context.lifecycle, configModule.context.initialConfiguration)
 
-  val graphiteService = new GraphiteService(
-    // format: OFF
-    enabled          = metricsPluginEnabled && graphitePublisherEnabled,
-    graphiteInterval = configModule.playConfiguration.getLong("microservice.metrics.graphite.interval").getOrElse(10L),
-    host             = configModule.typesafeConfig.getString("microservice.metrics.graphite.host"),
-    port             = configModule.typesafeConfig.getInt("microservice.metrics.graphite.port"),
-    prefix           = configModule.typesafeConfig.getString("microservice.metrics.graphite.prefix"),
-    registryName     = configModule.typesafeConfig.getString("metrics.name")
-  // format: ON
-  )
+  val metricsFilter: MetricsFilter = new MetricsFilterImpl(metrics)(akkaModule.materializer, ec)
 
-  private lazy val metrics = new MetricsImpl(
-    playBuiltInsModule.context.lifecycle,
-    playBuiltInsModule.context.initialConfiguration
-  )
-  private lazy val metricsPluginEnabled: Boolean = configModule.typesafeConfig.getBoolean("metrics.enabled")
-  private lazy val graphitePublisherEnabled: Boolean =
-    configModule.typesafeConfig.getBoolean("microservice.metrics.graphite.enabled")
+  val metricsController = new MetricsController(metrics, controllerComponents)
 
 }

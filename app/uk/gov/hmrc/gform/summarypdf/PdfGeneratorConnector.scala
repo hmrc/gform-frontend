@@ -18,15 +18,14 @@ package uk.gov.hmrc.gform.summarypdf
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import play.api.libs.ws.StreamedResponse
 import uk.gov.hmrc.gform.sharedmodel.PdfHtml
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.gform.wshttp.WSHttp
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp)(
   implicit ec: ExecutionContext
@@ -38,17 +37,15 @@ class PdfGeneratorConnector(servicesConfig: ServicesConfig, wSHttp: WSHttp)(
     wSHttp
       .buildRequest(url)
       .withMethod("POST")
-      .withHeaders(headers: _*)
+      .withHttpHeaders(headers: _*)
       .withBody(payload.mapValues(_.map(_.html)))
       .stream()
-      .flatMap {
-        case StreamedResponse(response, body) =>
-          val status = response.status
-          if (status >= 200 && status < 300) {
-            Future.successful(body)
-          } else {
-            Future.failed(new Exception(s"POST to $url failed with status $status"))
-          }
+      .flatMap { response =>
+        val status = response.status
+        if (status >= 200 && status < 300)
+          Future.successful(response.bodyAsSource)
+        else
+          Future.failed(new Exception(s"POST to $url failed with status $status"))
       }
   }
 

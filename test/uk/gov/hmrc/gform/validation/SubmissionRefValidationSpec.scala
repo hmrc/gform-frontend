@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.validation
 
 import cats.data.Validated
 import org.mockito.Mockito._
-import play.api.i18n.{ Lang, Messages, MessagesApi }
+import play.api.i18n.{ Lang, Messages, MessagesApi, MessagesImpl }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ FormComponentGen, SubmissionRefGen }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.Spec
@@ -42,7 +42,7 @@ class SubmissionRefValidationSpec extends Spec {
         implicit val langADT: LangADT = LangADT.En
         val lang = Lang(langADT.langADTToString)
         val messagesApi = org.scalatest.mockito.MockitoSugar.mock[MessagesApi]
-        implicit val messages: Messages = Messages(lang, messagesApi)
+        implicit val messages: Messages = MessagesImpl(lang, messagesApi)
 
         ComponentValidator.validateText(formComponent, SubmissionRefFormat)(
           FormDataRecalculated(
@@ -68,7 +68,7 @@ class SubmissionRefValidationSpec extends Spec {
         val messagesApi = org.scalatest.mockito.MockitoSugar.mock[MessagesApi]
         when(messagesApi("helper.order", formComponent.label.value, "")(lang))
           .thenReturn("foo")
-        implicit val messages: Messages = Messages(lang, messagesApi)
+        implicit val messages: Messages = MessagesImpl(lang, messagesApi)
 
         ComponentValidator.validateText(formComponent, SubmissionRefFormat)(
           FormDataRecalculated(
