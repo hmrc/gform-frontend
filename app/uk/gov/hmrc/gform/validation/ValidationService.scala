@@ -271,16 +271,15 @@ class ValidationService(
              )
       allSections = RepeatingComponentService.getAllSections(cache.formTemplate, data)
       sections = filterSection(allSections, data)
-      allFields = submittedFCs(
-        data,
-        sections
-          .flatMap(_.expandSectionRc(data.data).allFCs)
-      )
+      allFields = sections.flatMap(_.expandSectionRc(data.data).allFCs)
+      allRequiredFields = allFields.filter(_.mandatory)
+      allSubmittedFields = submittedFCs(data, allFields)
+      allFieldsToValidate = (allRequiredFields.toSet ++ allSubmittedFields.toSet).toList
       v1 <- sections
              .traverse(
                section =>
                  validateFormComponents(
-                   allFields,
+                   allFieldsToValidate,
                    section,
                    cache.form.envelopeId,
                    envelope,
@@ -288,10 +287,11 @@ class ValidationService(
                    cache.form.thirdPartyData,
                    cache.formTemplate,
                    data,
-                   GetEmailCodeFieldMatcher(allSections)))
+                   GetEmailCodeFieldMatcher(allSections)
+               ))
              .map(Monoid[ValidatedType[ValidationResult]].combineAll)
-      v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFields, envelope))
-      errors = evaluateValidation(v, allFields, data, envelope).toMap
+      v = Monoid.combine(v1, ValidationUtil.validateFileUploadHasScannedFiles(allFieldsToValidate, envelope))
+      errors = evaluateValidation(v, allFieldsToValidate, data, envelope).toMap
     } yield (v, errors)
 
   }
