@@ -145,7 +145,7 @@
         <a href='@uk.gov.hmrc.gform.gform.routes.AccessibilityController.accessibilityPage(templateId)' target="_blank"
             data-sso="false"
             data-journey-click="footer:Click:Accessibility">
-            @Messages("footer.links.accessibility.text")
+           @Messages("footer.links.accessibility.text")
         </a>
     </li>
 }
@@ -204,7 +204,16 @@
   }
 }
 
-@getHelpForm = @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
+@getHelpForm = {
+        @if(templateId.value == "apply-customs-comprehensive-guarantee") {
+        <div class="report-error">
+            <a  href="/contact/accessibility?service=gForm&userAction=%2F@{templateId.value}%2F@title.replace(' ', '-')" target="_blank">@Messages("deskpro.new.content")</a>
+        </div>
+        } else {
+        @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
+        }
+
+}
 
 @content = {
     @uiLayouts.main_content(
