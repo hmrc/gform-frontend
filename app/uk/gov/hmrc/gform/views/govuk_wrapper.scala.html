@@ -23,6 +23,7 @@
 @import uk.gov.hmrc.gform.config.JSConfig
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 
+
 @(appConfig: FrontendAppConfig,
   title: String,
   serviceTitle: String,
@@ -207,7 +208,7 @@
 @getHelpForm = {
         @if(templateId.value == "apply-customs-comprehensive-guarantee") {
         <div class="report-error">
-            <a  href="/contact/accessibility?service=gForm&userAction=%2F@{templateId.value}%2F@title.replace(' ', '-')" target="_blank">@Messages("deskpro.new.content")</a>
+            <a  href="/contact/accessibility?service=gForm&userAction=/@helper.urlEncode(templateId.value)/@helper.urlEncode(title)" target="_blank">@Messages("deskpro.new.content")</a>
         </div>
         } else {
         @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
