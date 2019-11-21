@@ -208,7 +208,7 @@
 @getHelpForm = {
         @if(templateId.value == "apply-customs-comprehensive-guarantee") {
         <div class="report-error">
-            <a  href="/contact/accessibility?service=gForm&userAction=/@helper.urlEncode(templateId.value)/@helper.urlEncode(title)" target="_blank">@Messages("deskpro.new.content")</a>
+            <a  href="/contact/accessibility?service=gForm&userAction=/@templateId.value/@helper.urlEncode(title)" target="_blank">@Messages("deskpro.new.content")</a>
         </div>
         } else {
         @{uiHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
