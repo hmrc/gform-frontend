@@ -57,6 +57,9 @@ case class FormTemplate(
   languages: AvailableLanguages,
   save4LaterInfoText: Option[Save4LaterInfoText]
 ) {
+
+  val isSpecimen: Boolean = _id.value.startsWith("specimen-")
+
   def listAllSections: List[BaseSection] =
     sections ::: List(declarationSection, acknowledgementSection)
 

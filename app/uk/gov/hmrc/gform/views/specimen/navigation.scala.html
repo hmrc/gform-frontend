@@ -1,0 +1,73 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import cats.syntax.eq._
+@import cats.instances.int._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionTitle4Ga }
+@import uk.gov.hmrc.gform.models.SectionRenderingInformation
+
+@(formTemplate: FormTemplate,
+  sectionRenderingInformation: SectionRenderingInformation
+)(implicit l: LangADT)
+
+@navigationLink(sectionIndex: Int, label: String, templateId: String) = {
+  @defining(formTemplate.sections(sectionIndex)) { section =>
+    @defining(SectionTitle4Ga.sectionTitle4GaFactory(section.title.value).value) { sectionTitle4Ga =>
+      <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionIndex&se=t">@label</a>
+    }
+  }
+}
+
+@defining(
+  formTemplate._id.value,
+  formTemplate.sections(sectionRenderingInformation.sectionNumber.value),
+  sectionRenderingInformation.sectionNumber.value,
+  formTemplate.sections.size) { case (templateId, section, sectionNumber, total) =>
+
+  @if(sectionNumber >= 1) {
+    @navigationLink(sectionNumber - 1, "Previous", templateId)
+  } else {
+    Previous
+  }
+
+  <select id="specimenNavigation">
+    @formTemplate.sections.zipWithIndex.map { case (section, sectionIndex) =>
+      @defining(section.title.value, if(sectionNumber === sectionIndex) "selected" else "") { case (title, selected) =>
+	@defining(
+	  SectionTitle4Ga.sectionTitle4GaFactory(title).value,
+	  title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
+          <option value="@sectionIndex" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex + 1}/@total - @titleTrimmed</option>
+        }
+      }
+    }
+  </select>
+
+  @if(sectionNumber < total - 1) {
+    @navigationLink(sectionNumber + 1, "Next", templateId)
+  } else {
+    Next
+  }
+
+  <script type="text/javascript">
+    document.getElementById("specimenNavigation").addEventListener("change", function(el) {
+      var index = el.target.value;
+      var sectionTitle4Ga = el.target.options[index].getAttribute("data-title");
+      window.location.href = '/submissions/form/@templateId/' + sectionTitle4Ga + '?n=' + index + '&se=t';
+    });
+  </script>
+
+}
