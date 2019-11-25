@@ -22,6 +22,7 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
+@import uk.gov.hmrc.gform.views.html.specimen
 
 @(
   formTemplate: FormTemplate,
@@ -109,6 +110,10 @@
         }
       </div>
     </form>
+
+    @if(formTemplate.isSpecimen) {
+      @specimen.navigation(formTemplate, page)
+    }
 
     <script type="text/javascript">
       window.gform = window.gform || {};
