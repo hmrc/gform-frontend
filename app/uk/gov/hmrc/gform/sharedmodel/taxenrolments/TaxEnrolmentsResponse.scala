@@ -21,4 +21,6 @@ sealed trait TaxEnrolmentsResponse extends Product with Serializable
 object TaxEnrolmentsResponse {
   case object Success extends TaxEnrolmentsResponse
   case object Conflict extends TaxEnrolmentsResponse
+  case object InvalidCredentials extends TaxEnrolmentsResponse
+  case object InvalidIdentifiers extends TaxEnrolmentsResponse
 }

@@ -194,8 +194,8 @@ class GformModule(
       playBuiltInsModule.messagesApi
     )
 
-  val accessibilityController: AccessibilityController =
-    new AccessibilityController(
+  val staticPagesController: StaticPagesController =
+    new StaticPagesController(
       controllersModule.authenticatedRequestActions,
       playBuiltInsModule.i18nSupport,
       configModule.frontendAppConfig)

@@ -85,9 +85,22 @@ generic.error.telephoneNumber={0} can only contain numbers, plus signs, a hash k
 generic.error.submissionRef={0} not found. Enter a valid {0} in the correct format. This must be 14 characters and only include numbers, hyphens and upper case letters, for example ABCD-1234-1234
 generic.error.parentSubmissionRefSameAsFormSubmissionRef={0} must be the submission reference of a parent form. The value entered is the submission reference of this form.
 
-enrolment.error.failed=Enrolment unsuccessful, please check your details and try again
+enrolment.error.failed=The registration details you entered cannot be found or are linked with a different Government Gateway account. You can:
+enrolment.error.failed.step1=check your details and try again
+enrolment.error.failed.step2=get help with signing in to this service (opens in a new window or tab)
 enrolment.error.regimeId=The registration number you have entered is for a different tax service
 enrolment.error.missingIdentifier=A registration number must be entered
+
+enrolment.help.title=Get help with your registration details
+enrolment.help.description=Contact HMRC to get help with your registration details so that you can sign in to the service that you are registered for.
+enrolment.help.contact.title=Phone
+enrolment.help.contact.telephone=Telephone:
+enrolment.help.contact.textphone=Textphone:
+enrolment.help.contact.outside=Outside UK:
+enrolment.help.opening.times=Opening times:
+enrolment.help.open.days=Monday to Friday: 8am to 6pm
+enrolment.help.closed.days=Closed weekends and bank holidays.
+enrolment.help.call.charges=Find out about call charges
 
 # Access code form field errors
 accessOption.error.required=Select whether you would like to access an existing {0} or start a new one

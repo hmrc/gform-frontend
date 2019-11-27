@@ -228,8 +228,13 @@ class EnrolmentController(
         enrolmentResponse <- enrolmentService.enrolUser[F](serviceId, identifiers, verifiers, retrievals)
         result <- enrolmentResponse match {
                    case ServiceResponse(TaxEnrolmentsResponse.Success)  => checkEnrolment(identifiers)
-                   case ServiceResponse(TaxEnrolmentsResponse.Conflict) => EnrolmentConflict.pure[F]
-                   case _                                               => EnrolmentFailed.pure[F]
+                   case ServiceResponse(TaxEnrolmentsResponse.Conflict) => CheckEnrolmentsResult.Conflict.pure[F]
+                   case ServiceResponse(TaxEnrolmentsResponse.InvalidIdentifiers) =>
+                     CheckEnrolmentsResult.InvalidIdentifiers.pure[F]
+                   case ServiceResponse(TaxEnrolmentsResponse.InvalidCredentials) =>
+                     CheckEnrolmentsResult.InvalidCredentials.pure[F]
+                   case _ =>
+                     CheckEnrolmentsResult.Failed.pure[F]
                  }
       } yield result
 
@@ -243,7 +248,7 @@ class EnrolmentController(
           _             <- validateIdentifiers[F](identifierss, postCheck)
           initialResult <- tryEnrolment(verifiers, identifiers)
           reattemptResult <- (initialResult, enrolmentAction) match {
-                              case (EnrolmentFailed, LegacyFcEnrolmentVerifier(value)) =>
+                              case (CheckEnrolmentsResult.InvalidIdentifiers, LegacyFcEnrolmentVerifier(value)) =>
                                 tryEnrolment(List(Verifier(value, "FC")), identifiers)
                               case _ =>
                                 initialResult.pure[F]

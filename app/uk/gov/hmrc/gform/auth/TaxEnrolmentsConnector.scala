@@ -56,11 +56,22 @@ class TaxEnrolmentsConnector(baseUrl: String, http: WSHttp) {
         List.empty[(String, String)]
       )
       .map { httpResponse =>
-        httpResponse.status match {
-          case 201 => ServiceResponse(TaxEnrolmentsResponse.Success)
-          case 409 => ServiceResponse(TaxEnrolmentsResponse.Conflict)
+        val status = httpResponse.status
+        status match {
+          case 201 =>
+            Logger.info(s"Calling tax enrolment returned $status: Success.")
+            ServiceResponse(TaxEnrolmentsResponse.Success)
+          case 400 =>
+            Logger.info(s"Calling tax enrolment returned $status: InvalidIdentifiers.")
+            ServiceResponse(TaxEnrolmentsResponse.InvalidIdentifiers)
+          case 403 =>
+            Logger.info(s"Calling tax enrolment returned $status: InvalidCredentials.")
+            ServiceResponse(TaxEnrolmentsResponse.InvalidCredentials)
+          case 409 =>
+            Logger.info(s"Calling tax enrolment returned $status: Conflict.")
+            ServiceResponse(TaxEnrolmentsResponse.Conflict)
           case other =>
-            Logger.error(s"Problem when calling tax enrolment, Http status: $other, body: ${httpResponse.body}")
+            Logger.error(s"Problem when calling tax enrolment. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse
         }
       }

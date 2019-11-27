@@ -21,6 +21,7 @@ import cats.data.NonEmptyList
 import cats.instances.future._
 import cats.syntax.applicative._
 import java.util.UUID
+import play.api.Logger
 
 import play.api.http.HeaderNames
 import play.api.i18n.{ I18nSupport, Lang, Langs }
@@ -40,6 +41,7 @@ import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _, _ }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.auth.core.InsufficientEnrolments
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -96,7 +98,14 @@ class AuthenticatedRequestActions(
       .retrieve(Retrievals.allEnrolments) {
         case enrolments => checkIdentifiers(identifiers)(enrolments).pure[Future]
       }
-      .recoverWith { case _ => EnrolmentFailed.pure[Future] }
+      .recoverWith {
+        case ex @ InsufficientEnrolments(enrolment) =>
+          Logger.error("tax-enrolment service returned 201, but enrolment check in auth failed", ex)
+          CheckEnrolmentsResult.InsufficientEnrolments.pure[Future]
+        case ex =>
+          Logger.error("tax-enrolment service returned 201, but auth call failed unexpectedly", ex)
+          CheckEnrolmentsResult.Failed.pure[Future]
+      }
   }
 
   private def toIdentifier(ei: EnrolmentIdentifier): Identifier = Identifier(ei.key, ei.value)
@@ -105,9 +114,9 @@ class AuthenticatedRequestActions(
 
     val matIdentifiers: Set[Identifier] = enrolments.enrolments.flatMap(_.identifiers).map(toIdentifier)
     if (identifiers.toList.toSet.subsetOf(matIdentifiers))
-      EnrolmentSuccessful
+      CheckEnrolmentsResult.Successful
     else
-      EnrolmentFailed
+      CheckEnrolmentsResult.InvalidIdentifiers
   }
 
   def keepAlive(): Action[AnyContent] = Action.async { implicit request =>
@@ -142,6 +151,17 @@ class AuthenticatedRequestActions(
         case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
       }
     }
+
+  def asyncNoAuth(formTemplateId: FormTemplateId)(
+    f: Request[AnyContent] => LangADT => FormTemplate => Future[Result]): Action[AnyContent] = Action.async {
+    implicit request =>
+      implicit val l: LangADT = getCurrentLanguage(request)
+
+      for {
+        formTemplate <- gformConnector.getFormTemplate(formTemplateId)
+        result       <- f(request)(l)(formTemplate)
+      } yield result
+  }
 
   def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] = Action.async {

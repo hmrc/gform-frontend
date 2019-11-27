@@ -78,9 +78,22 @@ generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau
 
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
-enrolment.error.failed=Ymrestriad aflwyddiannus, gwiriwch eich data a rhowch gynnig arni eto
+enrolment.error.failed=The registration details you entered cannot be found or are linked with a different Government Gateway account. You can:
+enrolment.error.failed.step1=check your details and try again
+enrolment.error.failed.step2=get help with signing in to this service (opens in a new window or tab)
 enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasanaeth dreth wahanol
 enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
+
+enrolment.help.title=Get help with your registration details
+enrolment.help.description=Contact HMRC to get help with your registration details so that you can sign in to the service that you are registered for.
+enrolment.help.contact.title=Phone
+enrolment.help.contact.telephone=Telephone:
+enrolment.help.contact.textphone=Textphone:
+enrolment.help.contact.outside=Outside UK:
+enrolment.help.opening.times=Opening times:
+enrolment.help.open.days=Monday to Friday: 8am to 6pm
+enrolment.help.closed.days=Closed weekends and bank holidays.
+enrolment.help.call.charges=Find out about call charges
 
 # Access code form field errors
 accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd
