@@ -1,0 +1,58 @@
+@*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import play.api.i18n.Messages.Implicits._
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.sharedmodel.LangADT
+
+@(formTemplate: FormTemplate, frontendAppConfig: FrontendAppConfig)(implicit request: Request[_], messages: Messages, l: LangADT)
+
+@title = @{messages("enrolment.help.title")}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+    title = title,
+    serviceName = formTemplate.formName.value,
+    bodyClasses = None,
+    frontendAppConfig = frontendAppConfig,
+    authConfig = Some(formTemplate.authConfig),
+    formCategory = formTemplate.formCategory,
+    languages = formTemplate.languages,
+    templateId = formTemplate._id
+) {
+    <h1 class="heading-large">@title</h1>
+
+    <p>@messages("enrolment.help.description")</p>
+
+    <h2>@messages("enrolment.help.contact.title")</h2>
+
+    <div class="panel">
+      <p>@messages("enrolment.help.contact.telephone")<br/><strong>0300 200 3701</strong></p>
+      <p>@messages("enrolment.help.contact.textphone")<br/><strong>0300 200 3719</strong></p>
+      <p>@messages("enrolment.help.contact.outside")<br/><strong>+44 2920 501 261</strong></p>
+    </div>
+
+    <div>
+      <h3>@messages("enrolment.help.opening.times")</h3>
+      <p>@messages("enrolment.help.open.days")</p>
+      <p>@messages("enrolment.help.closed.days")</p>
+    </div>
+
+    <a href="https://www.gov.uk/call-charges">@messages("enrolment.help.call.charges")</a>
+
+}

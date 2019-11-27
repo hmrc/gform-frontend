@@ -97,14 +97,18 @@ class EnrolmentResultProcessor(
   def processEnrolmentResult(
     authRes: CheckEnrolmentsResult)(implicit request: Request[AnyContent], messages: Messages, l: LangADT): Result =
     authRes match {
-      case EnrolmentConflict =>
+      case CheckEnrolmentsResult.Conflict =>
         Ok(uk.gov.hmrc.gform.views.html.hardcoded.pages.error_enrolment_conflict(formTemplate, frontendAppConfig))
-      case EnrolmentSuccessful =>
+      case CheckEnrolmentsResult.Successful =>
         Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplate._id).url)
-      case EnrolmentFailed =>
-        val globalError = html.form.errors.error_global(messages("enrolment.error.failed"))
+      case CheckEnrolmentsResult.InvalidIdentifiers | CheckEnrolmentsResult.InvalidCredentials |
+          CheckEnrolmentsResult.InsufficientEnrolments =>
+        val globalError = html.form.errors.error_global_enrolment(formTemplate._id)
         val globalErrors = globalError :: Nil
         val validationResult = ValidationResult.empty.valid
         getResult(validationResult, globalErrors)
+      case CheckEnrolmentsResult.Failed =>
+        // Nothing we can do here, so technical difficulties it is.
+        throw new Exception("Enrolment has failed. Most probable reason is enrolment service being unavailable")
     }
 }
