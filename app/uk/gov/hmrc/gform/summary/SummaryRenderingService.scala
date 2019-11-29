@@ -336,7 +336,7 @@ object SummaryRenderingService {
 
             revealingChoice(fieldValue, selections, changeButton)
 
-          case f @ FileUpload()         => file_upload(fieldValue, f, validate(fieldValue), changeButton)
+          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
 
