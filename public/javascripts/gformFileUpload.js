@@ -238,14 +238,14 @@
         }, function (err) {
           $input.removeAttr('aria-busy')
           handleError($input, err.statusText)
-        }) 
+        })
     }
 
 
     // Handle file upload request
     function uploadFile(file, fileId) {
       var formData = new FormData();
-      formData.append(fileId, file, file.name.replace(/\\/g,'/').replace(/.*\//, ''));
+      formData.append(fileId, file, fileId + '_' + file.name.replace(/\\/g,'/').replace(/.*\//, ''));
       return $.ajax({
         url: '/file-upload/upload/envelopes/' + window.gform.envelopeId + '/files/' + fileId,
         type: 'POST',
@@ -267,7 +267,7 @@
         .attr('tabIndex', '-1')
         .trigger('focus');
     }
-    
+
     // Display the uploaded file name and delete button
     function makeFileEntry(name, fileId, formTemplateId, accessCode) {
       return $('<span>' + name + '</span> <a href="#" class="delete-file" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">' + strings.deleteLabel[lang] + '</span><span class="visuallyhidden">' + strings.deleteLabel[lang] + ' ' + name + '</span></a>')
@@ -313,7 +313,7 @@
       $('#' + fileId + '-files').empty();
       $('#' + fileId).val('');
     }
-    
+
     // Set up file upload
     self.initFileUpload = function () {
       init()

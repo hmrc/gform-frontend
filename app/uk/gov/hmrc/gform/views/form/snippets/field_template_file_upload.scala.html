@@ -49,7 +49,7 @@
   validationResult.exists(_.isNotOk)
 }
 
-@defining(fieldValue.id.value,formTemplateId.value, maybeAccessCode.getOrElse("-"), currentValue.getOrElse("")){ case (fileId, templateId, accessCode, cv) =>
+@defining(fieldValue.id.value, formTemplateId.value, maybeAccessCode.getOrElse("-"), currentValue.getOrElse("")){ case (fileId, templateId, accessCode, cv) =>
   <div class="form-group@if(hasErrors) { form-group-error}">
 
     <label class="form-label" for="@fileId">
@@ -80,7 +80,7 @@
 
   <div id="@fileId-files" class="@{"uploaded-files" + {if(cv != "") " subsection" else "" }}">
     @if(cv != ""){
-      <span href="#">@cv</span>
+      <span href="#">@{cv.replace(fileId + "_", "")}</span>
       <a
         href="#"
         class="delete-file"
