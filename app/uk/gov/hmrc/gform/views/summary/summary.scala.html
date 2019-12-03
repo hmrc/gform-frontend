@@ -19,6 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
 
@@ -30,8 +31,8 @@
     renderComeBackLater: Boolean,
     continueLabelKey: String,
     frontendAppConfig: FrontendAppConfig,
-    reviewerComments : Option[String],
-    includeCSRF: Boolean
+    summaryPagePurpose: SummaryPagePurpose,
+    reviewerComments : Option[String]
 )(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @heading = @{messages("summary.title")}
@@ -62,7 +63,7 @@
 
     <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
 
-        @if(includeCSRF) {
+        @if(summaryPagePurpose.forUser) {
             @CSRF.formField
         }
 

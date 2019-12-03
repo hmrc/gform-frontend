@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
-import uk.gov.hmrc.gform.gform.HtmlSanitiser
+import uk.gov.hmrc.gform.gform.{ HtmlSanitiser, SummaryPagePurpose }
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
@@ -57,16 +57,20 @@ class SummaryRenderingService(
   def createHtmlForPdf(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    submissionDetails: Option[SubmissionDetails])(
-    implicit request: Request[_],
+    submissionDetails: Option[SubmissionDetails],
+    summaryPagePurpose: SummaryPagePurpose
+  )(
+    implicit
+    request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[PdfHtml] = {
+    ec: ExecutionContext
+  ): Future[PdfHtml] = {
     import i18nSupport._
 
     // ToDo: Why do we sanitise just the summaryHtml and not the whole thing after adding the extra data?
     for {
-      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, false)
+      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, summaryPagePurpose)
     } yield
       PdfHtml(
         addExtraDataToHTML(
@@ -120,8 +124,10 @@ class SummaryRenderingService(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    includeCSRF: Boolean = true)(
-    implicit request: Request[_],
+    summaryPagePurpose: SummaryPagePurpose
+  )(
+    implicit
+    request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Html] = {
@@ -151,7 +157,7 @@ class SummaryRenderingService(
         frontendAppConfig,
         cache.form.thirdPartyData.obligations,
         cache.form.thirdPartyData.reviewComments,
-        includeCSRF
+        summaryPagePurpose
       )
 
   }
@@ -168,22 +174,23 @@ object SummaryRenderingService {
     frontendAppConfig: FrontendAppConfig,
     obligations: Obligations,
     reviewerComments: Option[String],
-    checkCSRF: Boolean
+    summaryPagePurpose: SummaryPagePurpose
   )(
     implicit
     request: Request[_],
     messages: Messages,
     l: LangADT,
     viewHelpers: ViewHelpersAlgebra): Html = {
-    val sfr =
-      summaryForRender(
-        validatedType,
-        formFields,
-        maybeAccessCode,
-        formTemplate,
-        envelope,
-        obligations,
-        reviewerComments)
+    val sfr = summaryForRender(
+      validatedType,
+      formFields,
+      maybeAccessCode,
+      formTemplate,
+      envelope,
+      obligations,
+      summaryPagePurpose,
+      reviewerComments
+    )
     summary(
       formTemplate,
       sfr,
@@ -192,8 +199,8 @@ object SummaryRenderingService {
       retrievals.renderSaveAndComeBackLater,
       retrievals.continueLabelKey,
       frontendAppConfig,
-      reviewerComments,
-      checkCSRF
+      summaryPagePurpose,
+      reviewerComments
     )
   }
 
@@ -204,6 +211,7 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     envelope: Envelope,
     obligations: Obligations,
+    summaryPagePurpose: SummaryPagePurpose,
     reviewerComments: Option[String] = None
   )(implicit messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra): List[Html] = {
 
@@ -335,7 +343,7 @@ object SummaryRenderingService {
 
             revealingChoice(fieldValue, selections, changeButton)
 
-          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton)
+          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton, summaryPagePurpose)
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
 

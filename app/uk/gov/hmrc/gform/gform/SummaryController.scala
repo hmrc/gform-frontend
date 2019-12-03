@@ -64,7 +64,9 @@ class SummaryController(
   def summaryById(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
       implicit request => implicit l => cache =>
-        summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache).map(Ok(_))
+        summaryRenderingService
+          .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)
+          .map(Ok(_))
     }
 
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
@@ -133,7 +135,8 @@ class SummaryController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadSummaryPdf) {
       implicit request => implicit l => cache =>
         for {
-          summaryHml <- summaryRenderingService.getSummaryHTML(formTemplateId, maybeAccessCode, cache, false)
+          summaryHml <- summaryRenderingService
+                         .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)
           htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHml, submitted = false)
           withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
           pdfStream <- pdfService.generatePDF(PdfHtml(withPDFHeader))

@@ -75,7 +75,11 @@ class AcknowledgementController(
         for {
           submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
           htmlForPDF <- summaryRenderingService
-                         .createHtmlForPdf(maybeAccessCode, cache, Some(SubmissionDetails(submission, hashedValue)))
+                         .createHtmlForPdf(
+                           maybeAccessCode,
+                           cache,
+                           Some(SubmissionDetails(submission, hashedValue)),
+                           SummaryPagePurpose.ForUser)
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield
           Result(

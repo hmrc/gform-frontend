@@ -21,7 +21,7 @@ import cats.instances.future._
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
+import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormStatus, UserData }
@@ -109,7 +109,8 @@ class GformBackEndService(
     l: LangADT,
     hc: HeaderCarrier): Future[HttpResponse] =
     for {
-      htmlForPDF         <- summaryRenderingService.createHtmlForPdf(maybeAccessCode, cache, submissionDetails)
+      htmlForPDF <- summaryRenderingService
+                     .createHtmlForPdf(maybeAccessCode, cache, submissionDetails, SummaryPagePurpose.ForDms)
       emailParameter     <- EmailParameterRecalculation(cache).recalculateEmailParameters(recalculation)
       structuredFormData <- StructuredFormDataBuilder(cache.form, cache.formTemplate, lookupRegistry)
       response <- handleSubmission(

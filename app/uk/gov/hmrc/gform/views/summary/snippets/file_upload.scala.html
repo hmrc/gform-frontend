@@ -14,13 +14,23 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
+@(
+    fieldValue: FormComponent,
+    validationResult: Option[FormFieldValidationResult],
+    changeButton: Html,
+    summaryPagePurpose: SummaryPagePurpose
+)(
+    implicit
+    l:LangADT,
+    viewHelpers: ViewHelpersAlgebra
+)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
@@ -33,7 +43,7 @@
     @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
   <dd class="cya-answer">
-    @{if(hasErrors) errors else validationResult.map(_.getCurrentValue.getOrElse("").replace(fieldValue.id + "_", "")).getOrElse("")}
+    @{if(hasErrors) errors else validationResult.flatMap(result => summaryPagePurpose.fileName(result.getCurrentValue, fieldValue)).getOrElse("")}
   </dd>
   <dd class="cya-change">
     @changeButton
