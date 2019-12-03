@@ -24,11 +24,10 @@ import org.jsoup.Jsoup
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
 import play.twirl.api.{ Html, HtmlFormat }
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
 import uk.gov.hmrc.gform.gform.HtmlSanitiser
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -50,7 +49,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class SummaryRenderingService(
   i18nSupport: I18nSupport,
-  fileUploadService: FileUploadService,
+  fileUploadAlgebra: FileUploadAlgebra[Future],
   recalculation: Recalculation[Future, Throwable],
   validationService: ValidationService,
   frontendAppConfig: FrontendAppConfig)(implicit viewHelpers: ViewHelpersAlgebra) {
@@ -127,7 +126,7 @@ class SummaryRenderingService(
     hc: HeaderCarrier,
     ec: ExecutionContext): Future[Html] = {
     val dataRaw = cache.variadicFormData
-    val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
+    val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
 
     import i18nSupport._
 

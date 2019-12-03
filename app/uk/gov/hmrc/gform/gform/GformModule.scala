@@ -145,7 +145,6 @@ class GformModule(
     pdfGeneratorModule.pdfGeneratorService,
     sectionRenderingService,
     summaryRenderingService,
-    authModule.authService,
     gformBackendModule.gformConnector,
     new NonRepudiationHelpers(auditingModule),
     controllersModule.messagesControllerComponents

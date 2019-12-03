@@ -38,4 +38,5 @@ object OperationWithForm {
   final case object ViewDeclaration extends OperationWithForm
   final case object ViewSummary extends OperationWithForm
   final case object ForceUpdateFormStatus extends OperationWithForm
+  final case object ViewAcknowledgement extends OperationWithForm
 }

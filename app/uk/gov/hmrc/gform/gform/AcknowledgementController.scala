@@ -19,8 +19,8 @@ package uk.gov.hmrc.gform.gform
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
-import uk.gov.hmrc.gform.auth.AuthService
-import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
+import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
@@ -34,11 +34,10 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class AcknowledgementController(
   i18nSupport: I18nSupport,
-  auth: AuthenticatedRequestActions,
+  auth: AuthenticatedRequestActionsAlgebra[Future],
   pdfService: PdfGeneratorService,
   renderer: SectionRenderingService,
   summaryRenderingService: SummaryRenderingService,
-  authService: AuthService,
   gformConnector: GformConnector,
   nonRepudiationHelpers: NonRepudiationHelpers,
   messagesControllerComponents: MessagesControllerComponents
@@ -50,45 +49,39 @@ class AcknowledgementController(
     formTemplateId: FormTemplateId,
     eventId: String
   ): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      import i18nSupport._
-      cache.form.status match {
-        case Submitted | NeedsReview =>
-          renderer
-            .renderAcknowledgementSection(
-              maybeAccessCode,
-              cache.formTemplate,
-              cache.retrievals,
-              eventId,
-              cache.form.envelopeId)
-            .map(Ok(_))
-        case _ => Future.successful(BadRequest)
-      }
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
+      implicit request => implicit l => cache =>
+        import i18nSupport._
+        renderer
+          .renderAcknowledgementSection(
+            maybeAccessCode,
+            cache.formTemplate,
+            cache.retrievals,
+            eventId,
+            cache.form.envelopeId)
+          .map(Ok(_))
     }
 
   def downloadPDF(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId,
     eventId: String): Action[AnyContent] =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache =>
-      cache.form.status match {
-        case Submitted | NeedsReview =>
-          // format: OFF
-          val formString  =  nonRepudiationHelpers.formDataToJson(cache.form)
-          val hashedValue =  nonRepudiationHelpers.computeHash(formString)
-          nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
+      implicit request => implicit l => cache =>
+        val formString = nonRepudiationHelpers.formDataToJson(cache.form)
+        val hashedValue = nonRepudiationHelpers.computeHash(formString)
+        nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
 
-          for {
-            submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
-            htmlForPDF <- summaryRenderingService.createHtmlForPdf(maybeAccessCode, cache, Some(SubmissionDetails(submission, hashedValue)))
-            pdfStream  <- pdfService.generatePDF(htmlForPDF)
-          } yield Result(
+        for {
+          submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
+          htmlForPDF <- summaryRenderingService
+                         .createHtmlForPdf(maybeAccessCode, cache, Some(SubmissionDetails(submission, hashedValue)))
+          pdfStream <- pdfService.generatePDF(htmlForPDF)
+        } yield
+          Result(
             header = ResponseHeader(200, Map.empty),
             body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
           )
-      // format: ON
-        case _ => Future.successful(BadRequest)
-      }
     }
 
   def exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =

@@ -48,6 +48,7 @@ object Permissions {
     implicit logger: Logger): PermissionResult =
     (operation, role, status) match {
       case (DownloadSummaryPdf, _, _)                                      => valid(operation, role, status)
+      case (ViewAcknowledgement, _, Submitted | NeedsReview)               => valid(operation, role, status)
       case (_, _, Submitted)                                               => definitelyInvalid(operation, role, status)
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => valid(operation, role, status)
       case (EditFormWith, Customer | Agent, _)                             => mostLikelyInvalid(operation, role, status)
