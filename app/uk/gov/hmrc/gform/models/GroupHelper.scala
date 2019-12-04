@@ -16,16 +16,14 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Group
 
 //TODO: move it to repeatgroups package
 object GroupHelper {
 
-  def buildRepeatLabel(group: Group, instance: Int)(implicit l: LangADT): LocalisedString = {
-    val rawlabel = group.repeatLabel.getOrElse(LocalisedString(Map(l -> "")))
-    rawlabel.copy(m = rawlabel.m.map {
-      case (lang, message) => (lang, message.replace("$n", instance.toString))
-    })
+  def buildRepeatLabel(group: Group, instance: Int): SmartString = {
+    val rawlabel = group.repeatLabel.getOrElse(SmartString.empty)
+    rawlabel.replace("$n", instance.toString)
   }
 }

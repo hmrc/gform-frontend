@@ -17,10 +17,9 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 
 object FormTemplateBuilder {
 
@@ -37,7 +36,7 @@ object FormTemplateBuilder {
   def mkSection(formComponents: FormComponent*): Section = mkSection(formComponents.toList)
   def mkSection(formComponents: List[FormComponent]) =
     Section(
-      toLocalisedString("Section Name"),
+      toSmartString("Section Name"),
       None,
       None,
       None,
@@ -52,7 +51,7 @@ object FormTemplateBuilder {
 
   def mkSectionIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf) =
     Section(
-      toLocalisedString("Section Name"),
+      toSmartString("Section Name"),
       None,
       None,
       None,
@@ -65,7 +64,7 @@ object FormTemplateBuilder {
       None
     )
 
-  val ls = toLocalisedString("Label")
+  val ls = toSmartString("Label")
 
   def mkFormComponent(fcId: String, ct: ComponentType) =
     FormComponent(
@@ -124,12 +123,12 @@ object FormTemplateBuilder {
     None,
     sections,
     AcknowledgementSection(
-      toLocalisedString("Acknowledgement Page"),
-      Some(toLocalisedString("this page is to acknowledge submission")),
-      Some(toLocalisedString("shortName for acknowledgement")),
+      toSmartString("Acknowledgement Page"),
+      Some(toSmartString("this page is to acknowledge submission")),
+      Some(toSmartString("shortName for acknowledgement")),
       List.empty[FormComponent]
     ),
-    DeclarationSection(toLocalisedString("Declaration"), None, None, Nil),
+    DeclarationSection(toSmartString("Declaration"), None, None, Nil),
     None
   )
 

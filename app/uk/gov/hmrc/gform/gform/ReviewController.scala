@@ -40,25 +40,25 @@ class ReviewController(
   //TODO make all three a single endpoint
   def reviewAccepted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewAccepted) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         asyncToResult(reviewService.acceptForm(cache, maybeAccessCode, extractReviewData(request)))
     }
 
   def reviewReturned(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewReturned) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         asyncToResult(reviewService.returnForm(cache, maybeAccessCode, extractReviewData(request)))
     }
 
   def reviewSubmitted(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ReviewSubmitted) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         asyncToResult(reviewService.submitFormBundle(cache, extractReviewData(request), maybeAccessCode))
     }
 
   def updateFormField(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.UpdateFormField) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         val maybeUpdatedForm: Option[Form] = for {
           body  <- request.body.asJson
           field <- body.asOpt[FormField]
@@ -71,7 +71,7 @@ class ReviewController(
 
   def forceUpdateFormStatus(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], status: FormStatus) =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, ForceUpdateFormStatus) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         asyncToResult(reviewService.forceUpdateFormStatus(cache, status, extractReviewData(request), maybeAccessCode))
     }
 

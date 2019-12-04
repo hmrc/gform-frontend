@@ -22,7 +22,7 @@
 
 @(formTemplate: FormTemplate,
   sectionRenderingInformation: SectionRenderingInformation
-)(implicit l: LangADT)
+)(implicit l: LangADT, sse: SmartStringEvaluator)
 
 @navigationLink(sectionIndex: Int, label: String, templateId: String) = {
   @defining(formTemplate.sections(sectionIndex)) { section =>

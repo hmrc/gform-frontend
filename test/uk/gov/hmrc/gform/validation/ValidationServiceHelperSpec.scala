@@ -17,9 +17,8 @@
 package uk.gov.hmrc.gform.validation
 
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 
@@ -33,7 +32,7 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
       FormComponent(
         formComponentId,
         date,
-        toLocalisedString(""),
+        toSmartString(""),
         None,
         None,
         None,
@@ -57,7 +56,7 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
   val beforeFormComponent = FormComponent(
     beforeFormComponentId,
     beforeDate,
-    toLocalisedString(""),
+    toSmartString(""),
     None,
     None,
     None,
@@ -72,7 +71,7 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
     FormComponent(
       afterFormComponentId,
       afterDate,
-      toLocalisedString(""),
+      toSmartString(""),
       None,
       None,
       None,
@@ -99,7 +98,7 @@ class ValidationServiceHelperSpec(implicit messages: Messages) extends Spec {
         FormComponent(
           formComponentId,
           beforeDate,
-          toLocalisedString(""),
+          toSmartString(""),
           None,
           None,
           None,

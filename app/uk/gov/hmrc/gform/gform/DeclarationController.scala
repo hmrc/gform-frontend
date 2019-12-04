@@ -29,7 +29,6 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseData
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
 import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, FileUploadService }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -39,6 +38,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -60,13 +60,13 @@ class DeclarationController(
 
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewDeclaration) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         Future.successful(Ok(renderDeclarationSection(cache, maybeAccessCode)))
     }
 
-  private def renderDeclarationSection(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode])(
-    implicit request: Request[_],
-    l: LangADT) = {
+  private def renderDeclarationSection(
+    cache: AuthCacheWithForm,
+    maybeAccessCode: Option[AccessCode])(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
     import i18nSupport._
 
     renderer
@@ -82,7 +82,7 @@ class DeclarationController(
 
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.SubmitDeclaration) {
-      implicit request => implicit l => cacheOrig =>
+      implicit request => implicit l => cacheOrig => implicit sse =>
         val envelopeId = cacheOrig.form.envelopeId
         fileUploadService.getEnvelope(envelopeId).flatMap { envelope =>
           processResponseDataFromBody(request, cacheOrig.formTemplate) { dataRaw =>
@@ -100,7 +100,11 @@ class DeclarationController(
     dataRaw: VariadicFormData,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
-    envelope: Envelope)(implicit request: Request[_], l: LangADT) = {
+    envelope: Envelope)(
+    implicit
+    request: Request[_],
+    l: LangADT,
+    lise: SmartStringEvaluator) = {
 
     import i18nSupport._
 
@@ -158,7 +162,7 @@ class DeclarationController(
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
     attachments: Attachments
-  )(implicit request: Request[_], l: LangADT) = valType match {
+  )(implicit request: Request[_], l: LangADT, lise: SmartStringEvaluator) = valType match {
     case Valid(())                     => processValid(cache, data, maybeAccessCode, attachments)
     case validationResult @ Invalid(_) => processInvalid(maybeAccessCode, cache, data, validationResult)
   }
@@ -167,14 +171,21 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT): Future[Result] =
+    validationResult: Invalid[GformError])(
+    implicit request: Request[_],
+    l: LangADT,
+    sse: SmartStringEvaluator): Future[Result] =
     Future.successful(Ok(createHtmlForInvalidSubmission(maybeAccessCode, cache, data, validationResult)))
 
   private def processValid(
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
     maybeAccessCode: Option[AccessCode],
-    attachments: Attachments)(implicit request: Request[_], l: LangADT): Future[Result] = {
+    attachments: Attachments)(
+    implicit
+    request: Request[_],
+    l: LangADT,
+    lise: SmartStringEvaluator): Future[Result] = {
     val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
     gformBackEnd
       .submitWithUpdatedFormStatus(Signed, updatedCache, maybeAccessCode, None, attachments)
@@ -208,7 +219,7 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT) = {
+    validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
     import i18nSupport._
 
     renderer.renderDeclarationSection(

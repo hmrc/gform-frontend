@@ -18,7 +18,13 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT, messages: Messages)
+@(fieldValue: FormComponent,
+  validationResult: Option[FormFieldValidationResult],
+  changeButton: Html)(
+  implicit
+    l:LangADT,
+    messages: Messages,
+    sse: SmartStringEvaluator)
 
 @safeId(id: String) = @{
   fieldValue.id.withSuffix(id).toString

@@ -22,7 +22,16 @@
 @import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
-@(fieldValue: FormComponent, textArea: TextArea, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l: LangADT, viewHelpers: ViewHelpersAlgebra)
+@(fieldValue: FormComponent,
+  textArea: TextArea,
+  prepop: Option[String],
+  validationResult: Option[FormFieldValidationResult],
+  index: Int, sectionTitle: String,
+  formLevelHeading: Boolean)(
+  implicit
+    l: LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    sse: SmartStringEvaluator)
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
 }

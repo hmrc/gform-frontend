@@ -17,8 +17,6 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.instances.future._
-import uk.gov.hmrc.csp.config.ApplicationConfig
-import uk.gov.hmrc.csp.{ CachedStaticHtmlPartialProvider, WebchatClient }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auditing.AuditingModule
@@ -75,7 +73,8 @@ class GformModule(
     authModule.taxEnrolmentsConnector,
     authModule.ggConnector,
     configModule.frontendAppConfig,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    graphModule.smartStringEvaluatorFactory
   )
 
   val processDataService: ProcessDataService[Future, Throwable] =
@@ -88,7 +87,8 @@ class GformModule(
     validationModule.validationService,
     gformBackendModule.gformConnector,
     processDataService,
-    formControllerRequestHandler
+    formControllerRequestHandler,
+    graphModule.smartStringEvaluatorFactory
   )
 
   val newFormController: NewFormController = new NewFormController(

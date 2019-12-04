@@ -25,7 +25,7 @@
         title: String,
         sectionNumber: SectionNumber,
         sectionTitle4Ga: SectionTitle4Ga,
-        fieldValue: FormComponent)(implicit messages: Messages, l:LangADT)
+        fieldValue: FormComponent)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @if(fieldValue.editable) {
  <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes).url}">

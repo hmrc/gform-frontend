@@ -22,13 +22,13 @@
 
 @(
   fieldValue: FormComponent,
-  options: NonEmptyList[String],
+  options: NonEmptyList[SmartString],
   prepop: Set[String],
   validationResult: Option[FormFieldValidationResult],
   optionHelpText: NonEmptyList[Html],
   index: Int,
-  sectionTitle: String
-)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
+  sectionTitle: SmartString
+)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)
@@ -65,7 +65,7 @@
               <label
                 for="@{fieldValue.id}@index"
                 class="choice-list__item__block-label">
-                  @option
+                  @option.value
               </label>
           </div>
           }

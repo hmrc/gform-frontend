@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.models.javascript
 import cats.data.NonEmptyList
 import cats.implicits._
 import uk.gov.hmrc.gform.GraphSpec
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
@@ -65,13 +65,13 @@ class JavascriptMakerSpec extends Spec with GraphSpec {
           RevealingChoice(
             NonEmptyList.of(
               RevealingChoiceElement(
-                toLocalisedString("Yes"),
+                toSmartString("Yes"),
                 List(
                   mkFormComponent("lossAmount", Value)
                 ),
                 false),
               RevealingChoiceElement(
-                toLocalisedString("Option 2"),
+                toSmartString("Option 2"),
                 List(
                   mkFormComponent("amount12", Value),
                   mkFormComponent("amount22", Value)

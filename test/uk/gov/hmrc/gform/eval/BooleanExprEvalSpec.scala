@@ -17,9 +17,9 @@
 package uk.gov.hmrc.gform.eval
 
 import org.scalatest.mockito.MockitoSugar.mock
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, Contains, Equals, FormComponent, FormComponentId, FormCtx, GreaterThan, GreaterThanOrEquals, LessThan, LessThanOrEquals, NotEquals, Number, Text }
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
@@ -228,7 +228,7 @@ class BooleanExprEvalSpec extends Spec with GraphSpec {
     def `fieldValue - zero` = FormComponent(
       `fieldId - zero`,
       Text(Number(), Constant("0")),
-      toLocalisedString("sample label"),
+      toSmartString("sample label"),
       None,
       None,
       None,

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel
+package uk.gov.hmrc.gform.eval.smartstring
 
-object LabelHelper {
-  def buildRepeatingLabel(shortName: Option[SmartString], index: Int): Option[SmartString] =
-    shortName.map(buildRepeatingLabel(_, index))
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
-  def buildRepeatingLabel(ls: SmartString, index: Int): SmartString =
-    ls.replace("$n", index.toString)
+trait SmartStringEvaluator {
+  def apply(s: SmartString): String
 }

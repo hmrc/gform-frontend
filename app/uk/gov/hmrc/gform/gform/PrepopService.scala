@@ -17,7 +17,8 @@
 package uk.gov.hmrc.gform.gform
 
 import play.api.Logger
-import scala.concurrent.ExecutionContext
+
+import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.models.mappings.{ HMRCOBTDSORG, IRCT, IRSA, NINO }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -39,7 +40,11 @@ class PrepopService(eeittService: EeittService)(
   implicit ec: ExecutionContext
 ) {
 
-  def eeittPrepop(eeitt: Eeitt, retrievals: MaterialisedRetrievals, formTemplate: FormTemplate, hc: HeaderCarrier) = {
+  def eeittPrepop(
+    eeitt: Eeitt,
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate,
+    hc: HeaderCarrier): Future[String] = {
     implicit val hc_ = hc
     eeittService.getValue(eeitt, retrievals, formTemplate).recover {
       case NonFatal(error) =>

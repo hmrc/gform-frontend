@@ -32,7 +32,7 @@
   validationResult: Option[FormFieldValidationResult],
   index: Int,
   formMaxAttachmentSizeMB: Int
-)(implicit messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra)
+)(implicit messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @label = @{
   if (fieldValue.label.value.nonEmpty) { fieldValue.label.value } else { messages("file.upload") }

@@ -20,7 +20,7 @@ import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -43,7 +43,7 @@ class NumberValidationSpec(implicit messages: Messages, l: LangADT)
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Value),
-      toLocalisedString("sample label"),
+      toSmartString("sample label"),
       None,
       None,
       None,

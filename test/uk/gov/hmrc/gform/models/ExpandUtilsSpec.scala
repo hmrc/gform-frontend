@@ -22,7 +22,7 @@ import cats.syntax.foldable._
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{ FlatSpec, Matchers }
 import ExpandUtils._
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.lookup.LookupExtractors
@@ -716,8 +716,8 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
   }
 
   val choice =
-    Choice(YesNo, NonEmptyList.of(toLocalisedString("yes"), toLocalisedString("no")), Vertical, List.empty, None)
-  val informationMessage = InformationMessage(StandardInfo, toLocalisedString("info-text"))
+    Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None)
+  val informationMessage = InformationMessage(StandardInfo, toSmartString("info-text"))
 
   def mkGroup(groupIds: List[FormComponentId]) =
     Group(
@@ -753,7 +753,7 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
     FormComponent(
       fcId,
       ct,
-      toLocalisedString("some-component"),
+      toSmartString("some-component"),
       None,
       None,
       None,

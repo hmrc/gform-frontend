@@ -16,15 +16,21 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.instances.future._
+import java.util.concurrent.TimeUnit
 
-import scala.concurrent.{ ExecutionContext, Future }
+import cats.Id
+import cats.instances.future._
+import cats.syntax.show._
+
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.gform.PrepopService
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Eeitt, FormTemplate }
+import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.typeclasses.identityThrowableMonadError
 
 class GraphModule(
   authModule: AuthModule
@@ -43,4 +49,10 @@ class GraphModule(
     (e, mr, ft, hc) => authModule.eeittService.getValue(e, mr, ft)(hc)
 
   val customerIdRecalculation = new CustomerIdRecalculation(eeittId)
+
+  private val idEvaluator: Evaluator[Id] = new Evaluator[Id]((_, _, template, _) =>
+    throw new Exception(show"Cannot do eeitt prepop here! FormTemplate is ${template._id}"))
+
+  val smartStringEvaluatorFactory: SmartStringEvaluatorFactory =
+    new RealSmartStringEvaluatorFactory(idEvaluator)
 }

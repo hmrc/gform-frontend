@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.graph
 
-import cats.{ Applicative, Monad, MonadError }
+import cats.{ Applicative, Id, Monad, MonadError }
 import cats.syntax.eq._
 import cats.syntax.either._
 import cats.syntax.functor._
@@ -28,6 +28,7 @@ import cats.data.EitherT
 import scala.language.higherKinds
 import scalax.collection.Graph
 import scalax.collection.GraphEdge._
+import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberFormatUtil }
 import uk.gov.hmrc.gform.eval.BooleanExprEval
@@ -327,7 +328,7 @@ class Evaluator[F[_]: Monad](
   val eeittPrepop: (Eeitt, MaterialisedRetrievals, FormTemplate, HeaderCarrier) => F[String]
 ) {
 
-  val defaultF: F[String] = "0".pure[F]
+  def defaultF[T[_]: Applicative]: T[String] = "0".pure[T]
 
   private def evalRosm(thirdPartyData: ThirdPartyData, rosmProp: RosmProp): RecalculationOp = {
     val f = thirdPartyData.desRegistrationResponse.fold(RecalculationOp.setEmpty) _
@@ -417,6 +418,30 @@ class Evaluator[F[_]: Monad](
             thirdPartyData,
             envelopeId))
     }
+
+  def evalAsString(
+    recalculated: FormDataRecalculated,
+    fcId: FormComponentId,
+    expr: Expr,
+    retrievals: MaterialisedRetrievals,
+    formTemplate: FormTemplate,
+    thirdPartyData: ThirdPartyData,
+    envelopeId: EnvelopeId)(implicit hc: HeaderCarrier): F[Option[String]] =
+    Convertible
+      .asString(
+        eval(
+          recalculated.invisible,
+          fcId,
+          expr,
+          recalculated.recData.data,
+          retrievals,
+          formTemplate,
+          thirdPartyData,
+          envelopeId),
+        formTemplate
+      )
+      .map(_.flatMap(_.cast[NewValue]).map(_.value))
+
   private def getSubmissionData(dataLookup: VariadicFormData, fcId: FormComponentId): Convertible[F] =
     dataLookup.get(fcId).toList.flatMap(_.toSeq).headOption match {
       case None        => Converted((NonComputable: Computable).pure[F])

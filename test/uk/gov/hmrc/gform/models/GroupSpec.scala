@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.models
 
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
@@ -37,7 +37,7 @@ class GroupSpec extends Spec {
         FormComponent(
           FormComponentId("tid"),
           Text(BasicText, Value),
-          toLocalisedString("tlabel"),
+          toSmartString("tlabel"),
           None,
           None,
           None,
@@ -50,8 +50,8 @@ class GroupSpec extends Spec {
       Horizontal,
       Some(5),
       Some(1),
-      Some(toLocalisedString("repeatLabel")),
-      Some(toLocalisedString("repeatAddAnotherText"))
+      Some(toSmartString("repeatLabel")),
+      Some(toSmartString("repeatAddAnotherText"))
     )
 
     FormDataHelpers.dataEnteredInGroup(grp, VariadicFormData.empty) should be(false)

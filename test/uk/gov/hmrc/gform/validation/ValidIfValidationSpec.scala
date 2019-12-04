@@ -19,11 +19,11 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormField, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
@@ -69,7 +69,7 @@ class ValidIfValidationSpec(implicit messages: Messages, l: LangADT) extends Spe
     override def `fieldValue - number` = FormComponent(
       `fieldId - number`,
       Text(Number(), Value),
-      toLocalisedString("sample label"),
+      toSmartString("sample label"),
       None,
       None,
       Some(ValidIf(Equals(FormCtx("number"), Constant("15")))),

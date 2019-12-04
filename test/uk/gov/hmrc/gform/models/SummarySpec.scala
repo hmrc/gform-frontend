@@ -22,7 +22,7 @@ import org.jsoup.Jsoup
 import org.scalatest.mockito.MockitoSugar.mock
 import play.api.i18n.{ Lang, Messages }
 import play.api.mvc.Call
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.{ SummaryPagePurpose, routes }
@@ -64,7 +64,7 @@ class SummarySpec extends Spec {
       DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
     def section0 =
       Section(
-        toLocalisedString("Your details"),
+        toSmartString("Your details"),
         None,
         None,
         None,
@@ -76,7 +76,7 @@ class SummarySpec extends Spec {
           FormComponent(
             `fieldId - iptRegNum`,
             Text(BasicText, Value),
-            toLocalisedString("Insurance Premium Tax (IPT) number"),
+            toSmartString("Insurance Premium Tax (IPT) number"),
             None,
             None,
             None,
@@ -85,13 +85,14 @@ class SummarySpec extends Spec {
             true,
             false,
             false,
-            None)),
+            None
+          )),
         None,
         None
       )
     def section1 =
       Section(
-        toLocalisedString("About you"),
+        toSmartString("About you"),
         None,
         None,
         None,
@@ -103,7 +104,7 @@ class SummarySpec extends Spec {
           FormComponent(
             `fieldId - firstName`,
             Text(BasicText, Value),
-            toLocalisedString("First Name"),
+            toSmartString("First Name"),
             None,
             None,
             None,
@@ -118,7 +119,7 @@ class SummarySpec extends Spec {
       )
     def section2 =
       Section(
-        toLocalisedString("Business details"),
+        toSmartString("Business details"),
         None,
         None,
         None,
@@ -130,7 +131,7 @@ class SummarySpec extends Spec {
           FormComponent(
             `fieldId - businessName`,
             Text(BasicText, Value),
-            toLocalisedString("Name of business"),
+            toSmartString("Name of business"),
             None,
             None,
             None,
@@ -207,7 +208,7 @@ class SummarySpec extends Spec {
   it should "display values for each field type with a submissible field, " in new Test {
 
     val section = Section(
-      toLocalisedString("Personal details"),
+      toSmartString("Personal details"),
       None,
       None,
       None,
@@ -219,7 +220,7 @@ class SummarySpec extends Spec {
         FormComponent(
           FormComponentId("Surname"),
           Text(BasicText, Value),
-          toLocalisedString("Surname"),
+          toSmartString("Surname"),
           None,
           None,
           None,
@@ -232,7 +233,7 @@ class SummarySpec extends Spec {
         FormComponent(
           FormComponentId("Info"),
           Text(BasicText, Value),
-          toLocalisedString("Info"),
+          toSmartString("Info"),
           None,
           None,
           None,
@@ -247,7 +248,7 @@ class SummarySpec extends Spec {
         FormComponent(
           FormComponentId("BirthDate"),
           Date(AnyDate, Offset(0), None),
-          toLocalisedString("Birth date"),
+          toSmartString("Birth date"),
           None,
           None,
           None,
@@ -256,11 +257,12 @@ class SummarySpec extends Spec {
           true,
           false,
           false,
-          None),
+          None
+        ),
         FormComponent(
           FormComponentId("HomeAddress"),
           Address(international = false),
-          toLocalisedString("Home address"),
+          toSmartString("Home address"),
           None,
           None,
           None,
@@ -269,7 +271,8 @@ class SummarySpec extends Spec {
           true,
           false,
           false,
-          None)
+          None
+        )
       ),
       None,
       None
@@ -326,7 +329,7 @@ class SummarySpec extends Spec {
 
   it should "display the shortName as section title if present" in new Test {
     val shortName = "THIS_IS_A_VERY_VERY_VERY_SHORT_NAME"
-    val section = section0.copy(shortName = Some(toLocalisedString(shortName)))
+    val section = section0.copy(shortName = Some(toSmartString(shortName)))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -348,8 +351,8 @@ class SummarySpec extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Address(false),
-      label = toLocalisedString("label"),
-      shortName = Some(toLocalisedString(shortName)),
+      label = toSmartString("label"),
+      shortName = Some(toSmartString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -359,7 +362,8 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("Address section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("Address section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -380,7 +384,7 @@ class SummarySpec extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Address(false),
-      label = toLocalisedString(label),
+      label = toSmartString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -390,7 +394,8 @@ class SummarySpec extends Spec {
       derived = true,
       errorMessage = None
     )
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("Address section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("Address section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -411,8 +416,8 @@ class SummarySpec extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Text(BasicText, Constant("DA")),
-      label = toLocalisedString("label"),
-      shortName = Some(toLocalisedString(shortName)),
+      label = toSmartString("label"),
+      shortName = Some(toSmartString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -422,7 +427,8 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -443,7 +449,7 @@ class SummarySpec extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Text(BasicText, Constant("DA")),
-      label = toLocalisedString(label),
+      label = toSmartString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -454,7 +460,8 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -474,9 +481,9 @@ class SummarySpec extends Spec {
     val shortName = "JUST_A_VERY_SHORT_NAME"
     val addressField = FormComponent(
       id = FormComponentId("anId"),
-      `type` = Choice(Radio, NonEmptyList.of(toLocalisedString("u")), Vertical, List(), None),
-      label = toLocalisedString("label"),
-      shortName = Some(toLocalisedString(shortName)),
+      `type` = Choice(Radio, NonEmptyList.of(toSmartString("u")), Vertical, List(), None),
+      label = toSmartString("label"),
+      shortName = Some(toSmartString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -486,7 +493,8 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -506,8 +514,8 @@ class SummarySpec extends Spec {
     val label = "THIS_IS_A_LABEL"
     val addressField = FormComponent(
       id = FormComponentId("anId"),
-      `type` = Choice(Radio, NonEmptyList.of(toLocalisedString("u")), Vertical, List(), None),
-      label = toLocalisedString(label),
+      `type` = Choice(Radio, NonEmptyList.of(toSmartString("u")), Vertical, List(), None),
+      label = toSmartString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -518,7 +526,8 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render =
@@ -540,8 +549,8 @@ class SummarySpec extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Date(AnyDate, Offset(0), None),
-      label = toLocalisedString("label"),
-      shortName = Some(toLocalisedString(shortName)),
+      label = toSmartString("label"),
+      shortName = Some(toSmartString(shortName)),
       helpText = None,
       validIf = None,
       mandatory = true,
@@ -551,7 +560,8 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -572,7 +582,7 @@ class SummarySpec extends Spec {
     val addressField = FormComponent(
       id = FormComponentId("anId"),
       `type` = Date(AnyDate, Offset(0), None),
-      label = toLocalisedString(label),
+      label = toSmartString(label),
       shortName = None,
       helpText = None,
       validIf = None,
@@ -583,7 +593,8 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
 
-    val section = section0.copy(fields = List(addressField), shortName = Some(toLocalisedString("A section")))
+    val section =
+      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -639,7 +650,7 @@ class SummarySpec extends Spec {
         List(),
         Horizontal
       ),
-      toLocalisedString("Test!group-label!Test"),
+      toSmartString("Test!group-label!Test"),
       None,
       None,
       None,
@@ -651,7 +662,7 @@ class SummarySpec extends Spec {
       None
     )
     override def section0 =
-      Section(toLocalisedString(""), None, None, None, None, None, None, None, List(groupFieldValue), None, None)
+      Section(toSmartString(""), None, None, None, None, None, None, None, List(groupFieldValue), None, None)
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     val render0 =
       SummaryRenderingService
@@ -667,7 +678,7 @@ class SummarySpec extends Spec {
     val formTemplateWGroupWithShortname = formTemplate.copy(
       sections = List(
         Section(
-          toLocalisedString(""),
+          toSmartString(""),
           None,
           None,
           None,
@@ -675,7 +686,7 @@ class SummarySpec extends Spec {
           None,
           None,
           None,
-          List(groupFieldValue.copy(shortName = Some(toLocalisedString("Test!group-shortname!Test")))),
+          List(groupFieldValue.copy(shortName = Some(toSmartString("Test!group-shortname!Test")))),
           None,
           None
         ))
@@ -695,7 +706,6 @@ class SummarySpec extends Spec {
   }
 
   "The Change hrefs" should "link to the correct page" in new Test {
-
     val includeIf = IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))
 
     override val formTemplate = super.formTemplate.copy(
@@ -713,10 +723,9 @@ class SummarySpec extends Spec {
       NotChecked,
       SummaryPagePurpose.ForUser
     )
-    val htmls = summaryForRender
 
     {
-      val htmlAheadOfSection0 = htmls(1)
+      val htmlAheadOfSection0 = summaryForRender(1)
       val doc = Jsoup.parse(htmlAheadOfSection0.toString)
       val urlOfHrefToSection0 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController
@@ -725,7 +734,7 @@ class SummarySpec extends Spec {
       urlOfHrefToSection0 shouldBe targetUrl
     }
     {
-      val htmlAheadOfSection2 = htmls(4)
+      val htmlAheadOfSection2 = summaryForRender(4)
       val doc = Jsoup.parse(htmlAheadOfSection2.toString)
       val urlOfHrefToSection2 = doc.select("a:contains(Change)").get(0).attributes().get("href")
       val targetUrl = uk.gov.hmrc.gform.gform.routes.FormController

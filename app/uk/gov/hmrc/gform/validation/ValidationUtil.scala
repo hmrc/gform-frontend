@@ -23,6 +23,7 @@ import cats.Monoid
 import cats.data.Validated
 import cats.data.Validated.{ Invalid, Valid }
 import play.api.Logger
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Other, Quarantined }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
@@ -214,7 +215,8 @@ object ValidationUtil {
   }
 
   def validateFileUploadHasScannedFiles(fieldValues: List[FormComponent], e: Envelope)(
-    implicit l: LangADT): Validated[GformError, ValidationResult] = {
+    implicit l: LangADT,
+    sse: SmartStringEvaluator): Validated[GformError, ValidationResult] = {
     val fileUploads: Map[FormComponentId, FormComponent] = fieldValues.collect {
       case fv @ FormComponent(id, _: FileUpload, _, _, _, _, _, _, _, _, _, _, _) => id -> fv
     }.toMap

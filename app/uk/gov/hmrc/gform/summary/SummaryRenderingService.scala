@@ -38,6 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, PdfHtml
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
@@ -64,7 +65,8 @@ class SummaryRenderingService(
     request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
-    ec: ExecutionContext
+    ec: ExecutionContext,
+    lise: SmartStringEvaluator
   ): Future[PdfHtml] = {
     import i18nSupport._
 
@@ -85,7 +87,8 @@ class SummaryRenderingService(
   private def addExtraDataToHTML(html: String, submissionDetails: Option[SubmissionDetails], cache: AuthCacheWithForm)(
     implicit hc: HeaderCarrier,
     messages: Messages,
-    curLang: LangADT): String = {
+    curLang: LangADT,
+    lise: SmartStringEvaluator): String = {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val formattedTime = submissionDetails.map(sd =>
@@ -130,7 +133,8 @@ class SummaryRenderingService(
     request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Html] = {
+    ec: ExecutionContext,
+    lise: SmartStringEvaluator): Future[Html] = {
     val dataRaw = cache.variadicFormData
     val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
 
@@ -180,17 +184,19 @@ object SummaryRenderingService {
     request: Request[_],
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra): Html = {
-    val sfr = summaryForRender(
-      validatedType,
-      formFields,
-      maybeAccessCode,
-      formTemplate,
-      envelope,
-      obligations,
-      summaryPagePurpose,
-      reviewerComments
-    )
+    viewHelpers: ViewHelpersAlgebra,
+    lise: SmartStringEvaluator): Html = {
+    val sfr =
+      summaryForRender(
+        validatedType,
+        formFields,
+        maybeAccessCode,
+        formTemplate,
+        envelope,
+        obligations,
+        summaryPagePurpose,
+        reviewerComments
+      )
     summary(
       formTemplate,
       sfr,
@@ -213,7 +219,12 @@ object SummaryRenderingService {
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose,
     reviewerComments: Option[String] = None
-  )(implicit messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra): List[Html] = {
+  )(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {

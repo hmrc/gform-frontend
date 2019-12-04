@@ -28,7 +28,7 @@
   orientation: Orientation,
   disableAddButton: Boolean,
   index: Int
-)(implicit messages: Messages, l:LangADT)
+)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @repeatCount = @{groupField.repeatsMin.getOrElse(0)}
 

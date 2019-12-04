@@ -23,12 +23,13 @@ import play.api.i18n.Messages
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.eval.BooleanExprEval
-import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, FileUploadAlgebra, Infected }
+import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Infected }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -70,7 +71,8 @@ class ComponentsValidator(
   implicit
   ec: ExecutionContext,
   messages: Messages,
-  l: LangADT
+  l: LangADT,
+  sse: SmartStringEvaluator
 ) {
 
   val cvh = new ComponentsValidatorHelper()
@@ -153,7 +155,7 @@ class ComponentsValidator(
   }
 }
 
-class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT) {
+class ComponentsValidatorHelper(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) {
 
   def validF(implicit ec: ExecutionContext): Future[ValidatedType[Unit]] =
     ValidationServiceHelper.validationSuccess.pure[Future]
@@ -194,7 +196,7 @@ object ComponentsValidatorHelper {
     fieldValue: FormComponent,
     workedOnId: FormComponentId,
     otherFormComponent: Option[FormComponent],
-    partLabel: String)(implicit l: LangADT, messages: Messages): String =
+    partLabel: String)(implicit l: LangADT, sse: SmartStringEvaluator, messages: Messages): String =
     otherFormComponent match {
       case Some(x) if x.id === workedOnId =>
         x.shortName.map { _.value + " " + partLabel }.getOrElse(x.label.value + " " + partLabel)
@@ -212,6 +214,7 @@ object ComponentsValidatorHelper {
 
   def errors(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]], partLabel: String = "")(
     implicit l: LangADT,
+    sse: SmartStringEvaluator,
     messages: Messages): Set[String] = {
     val varsList: List[String] = vars.getOrElse(Nil)
     val withDescriptor: List[String] = fieldDescriptor(fieldValue, fieldValue.id, None, partLabel).trim :: varsList
@@ -223,6 +226,7 @@ object ComponentsValidatorHelper {
 
   def getError(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
     implicit l: LangADT,
+    sse: SmartStringEvaluator,
     messages: Messages): Validated[Map[FormComponentId, Set[String]], Nothing] =
     Map(fieldValue.id -> errors(fieldValue, messageKey, vars)).invalid
 }

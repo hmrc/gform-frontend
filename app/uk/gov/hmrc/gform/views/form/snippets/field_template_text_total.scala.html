@@ -26,7 +26,17 @@
 @import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 @import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
 
-@(fieldValue: FormComponent, text: Text, prepop: Option[String], validationResult: Option[FormFieldValidationResult], index: Int, sectionTitle: String, formLevelHeading: Boolean)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
+@(fieldValue: FormComponent,
+  text: Text,
+  prepop: Option[String],
+  validationResult: Option[FormFieldValidationResult],
+  index: Int,
+  sectionTitle: String,
+  formLevelHeading: Boolean)(
+  implicit
+    l:LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    sse: SmartStringEvaluator)
 
 @validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
 @currentSterling = @{ toBigDecimalDefault(validatedValue) }

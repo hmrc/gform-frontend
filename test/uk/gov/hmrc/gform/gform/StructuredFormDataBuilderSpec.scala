@@ -21,10 +21,10 @@ import cats.instances.either._
 import cats.syntax.either._
 import org.scalatest.Assertion
 import org.scalactic.source.Position
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.lookup._
-import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT, LocalisedString }
+import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LangADT }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.structuredform._
@@ -443,8 +443,8 @@ class StructuredFormDataBuilderSpec extends Spec {
       null,
       null,
       List(section),
-      acknowledgementSection.getOrElse(AcknowledgementSection(toLocalisedString("Ack"), None, None, Nil)),
-      declarationSection.getOrElse(DeclarationSection(toLocalisedString("Decl"), None, None, Nil)),
+      acknowledgementSection.getOrElse(AcknowledgementSection(toSmartString("Ack"), None, None, Nil)),
+      declarationSection.getOrElse(DeclarationSection(toSmartString("Decl"), None, None, Nil)),
       Nil,
       null,
       AvailableLanguages.default,
@@ -494,7 +494,7 @@ class StructuredFormDataBuilderSpec extends Spec {
     FormComponent(
       FormComponentId(id),
       componentType,
-      toLocalisedString(""),
+      toSmartString(""),
       None,
       None,
       None,
@@ -511,7 +511,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       id,
       Choice(
         Checkbox,
-        NonEmptyList.of(toLocalisedString("One"), toLocalisedString("Two"), toLocalisedString("Three")),
+        NonEmptyList.of(toSmartString("One"), toSmartString("Two"), toSmartString("Three")),
         Vertical,
         Nil,
         None))
@@ -521,7 +521,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       id,
       Choice(
         Radio,
-        NonEmptyList.of(toLocalisedString("One"), toLocalisedString("Two"), toLocalisedString("Three")),
+        NonEmptyList.of(toSmartString("One"), toSmartString("Two"), toSmartString("Three")),
         Vertical,
         Nil,
         None))
@@ -537,7 +537,7 @@ class StructuredFormDataBuilderSpec extends Spec {
     createFormComponent(id, RevealingChoice(NonEmptyList.of(element1, elements: _*), multiValue))
 
   def createRevealingChoiceElement(fields: FormComponent*): RevealingChoiceElement =
-    RevealingChoiceElement(toLocalisedString("foo"), fields.toList, false)
+    RevealingChoiceElement(toSmartString("foo"), fields.toList, false)
 
   def createAddress(id: String): FormComponent = createFormComponent(id, Address(false))
 

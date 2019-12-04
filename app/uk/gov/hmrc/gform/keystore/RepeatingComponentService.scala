@@ -20,7 +20,7 @@ import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.javascript.RepeatFormComponentIds
-import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
@@ -98,39 +98,11 @@ object RepeatingComponentService {
     )
   }
 
-  private def optBuildText(
-    maybeLs: Option[LocalisedString],
-    index: Int,
-    data: FormDataRecalculated): Option[LocalisedString] = maybeLs.map(ls => buildText(ls, index, data))
+  private def optBuildText(maybeLs: Option[SmartString], index: Int, data: FormDataRecalculated): Option[SmartString] =
+    maybeLs.map(ls => buildText(ls, index, data))
 
-  private def buildText(ls: LocalisedString, index: Int, data: FormDataRecalculated): LocalisedString = {
-
-    def evaluateTextExpression(str: String) = {
-      val field = str.replaceFirst("""\$\{""", "").replaceFirst("""\}""", "")
-
-      val fieldName =
-        if (field.startsWith("n_"))
-          if (index == 1) field.replaceFirst("n_", "")
-          else field.replaceFirst("n_", s"${index - 1}_")
-        else field
-
-      data.data.oneOrElse(FormComponentId(fieldName), "")
-    }
-
-    def getEvaluatedText(str: String) = {
-      val pattern = """.*(\$\{.*\}).*""".r
-      val expression = str match {
-        case pattern(txtExpr) => txtExpr
-        case _                => ""
-      }
-      val evaluatedText = evaluateTextExpression(expression)
-      str.replace(expression, evaluatedText)
-    }
-
-    ls.copy(m = ls.m.map {
-      case (lang, message) => (lang, getEvaluatedText(message).replace("$n", index.toString))
-    })
-  }
+  private def buildText(ls: SmartString, index: Int, data: FormDataRecalculated): SmartString =
+    ls.replace("$n", index.toString)
 
   //This Evaluation is for the repeating sections, this will not become values.
   private def evaluateExpression(expr: Expr, formTemplate: FormTemplate, data: FormDataRecalculated): Int = {

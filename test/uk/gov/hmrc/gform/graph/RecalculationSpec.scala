@@ -414,7 +414,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
 
     val text = Text(BasicText, Value)
     val choice =
-      Choice(YesNo, NonEmptyList.of(toLocalisedString("yes"), toLocalisedString("no")), Vertical, List.empty, None)
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None)
 
     val formComponentIds = Table(
       // format: off
@@ -526,11 +526,11 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
           RevealingChoice(
             NonEmptyList.of(
               RevealingChoiceElement(
-                toLocalisedString("Yes"),
+                toSmartString("Yes"),
                 mkFormComponent("d", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
                 false),
               RevealingChoiceElement(
-                toLocalisedString("No"),
+                toSmartString("No"),
                 mkFormComponent("e", Add(FormCtx("a"), FormCtx("b"))) :: Nil,
                 false)
             ),
@@ -563,8 +563,8 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
           "rc",
           RevealingChoice(
             NonEmptyList.of(
-              RevealingChoiceElement(toLocalisedString("Yes"), mkFormComponent("a", Value) :: Nil, false),
-              RevealingChoiceElement(toLocalisedString("No"), mkFormComponent("b", Value) :: Nil, false)
+              RevealingChoiceElement(toSmartString("Yes"), mkFormComponent("a", Value) :: Nil, false),
+              RevealingChoiceElement(toSmartString("No"), mkFormComponent("b", Value) :: Nil, false)
             ),
             true
           )

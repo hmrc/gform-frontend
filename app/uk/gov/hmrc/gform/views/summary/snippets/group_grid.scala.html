@@ -18,7 +18,13 @@
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
-@(fieldValue: FormComponent, fields: List[Option[FormFieldValidationResult]], isLabel: Boolean, changeButton: Html)(implicit l:LangADT)
+@(fieldValue: FormComponent,
+  fields: List[Option[FormFieldValidationResult]],
+  isLabel: Boolean,
+  changeButton: Html)(
+  implicit
+    l:LangADT,
+    sse: SmartStringEvaluator)
 
   <div>
     <dt class="cya-question">

@@ -30,7 +30,7 @@ import cats.syntax.validated._
 import cats.{ Applicative, Monad, Traverse }
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ AnyContent, MessagesControllerComponents, Request }
-import uk.gov.hmrc.csp.WebchatClient
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
@@ -40,11 +40,12 @@ import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.processor.EnrolmentResultProcessor
 import uk.gov.hmrc.gform.graph.{ Convertible, Evaluator, NewValue, Recalculation }
 import uk.gov.hmrc.gform.models.helpers.Fields
-import uk.gov.hmrc.gform.sharedmodel.{ ServiceCallResponse, ServiceResponse }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, ServiceCallResponse, ServiceResponse }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
-import uk.gov.hmrc.gform.validation.{ GetEmailCodeFieldMatcher, ValidationService }
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, GetEmailCodeFieldMatcher, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
@@ -70,7 +71,8 @@ class EnrolmentController(
   taxEnrolmentConnector: TaxEnrolmentsConnector,
   ggConnector: GovernmentGatewayConnector,
   frontendAppConfig: FrontendAppConfig,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(
   implicit ec: ExecutionContext,
   viewHelpers: ViewHelpersAlgebra
@@ -106,19 +108,18 @@ class EnrolmentController(
   import i18nSupport._
 
   def showEnrolment(formTemplateId: FormTemplateId) =
-    auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => cache =>
+    auth.asyncGGAuth(formTemplateId) { implicit request: Request[AnyContent] => implicit l => cache =>
       cache.formTemplate.authConfig match {
         case HasEnrolmentSection((_, enrolmentSection, _, _)) =>
           Ok(
-            renderer
-              .renderEnrolmentSection(
-                cache.formTemplate,
-                cache.retrievals,
-                enrolmentSection,
-                FormDataRecalculated.empty,
-                Nil,
-                Nil,
-                ValidationResult.empty.valid)
+            renderEnrolmentSection(
+              cache.formTemplate,
+              cache.retrievals,
+              enrolmentSection,
+              FormDataRecalculated.empty,
+              Nil,
+              Nil,
+              ValidationResult.empty.valid)
           ).pure[Future]
         case _ =>
           Redirect(uk.gov.hmrc.gform.auth.routes.ErrorController.insufficientEnrolments())
@@ -126,6 +127,32 @@ class EnrolmentController(
             .pure[Future]
       }
     }
+
+  private def renderEnrolmentSection(
+    formTemplate: FormTemplate,
+    retrievals: MaterialisedRetrievals,
+    enrolmentSection: EnrolmentSection,
+    recalculatedFormData: FormDataRecalculated,
+    errors: List[(FormComponent, FormFieldValidationResult)],
+    globalErrors: List[Html],
+    validatedType: ValidatedType[ValidationResult])(implicit request: Request[_], l: LangADT) = {
+    implicit val sse = smartStringEvaluatorFactory(
+      recalculatedFormData,
+      retrievals,
+      ThirdPartyData.empty,
+      EnvelopeId("empty"),
+      formTemplate)
+
+    renderer
+      .renderEnrolmentSection(
+        formTemplate,
+        retrievals,
+        enrolmentSection,
+        recalculatedFormData,
+        errors,
+        globalErrors,
+        ValidationResult.empty.valid)
+  }
 
   def submitEnrolment(formTemplateId: FormTemplateId) =
     auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => cache =>
@@ -135,7 +162,9 @@ class EnrolmentController(
       processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
         formTemplate.authConfig match {
           case HasEnrolmentSection((serviceId, enrolmentSection, postCheck, lfcev)) =>
-            def handleContinue = {
+            def handleContinueWithData(data: FormDataRecalculated) = {
+              implicit val sse =
+                smartStringEvaluatorFactory(data, cache.retrievals, ThirdPartyData.empty, EnvelopeId(""), formTemplate)
 
               implicit val EC = enrolmentConnect
               implicit val GGC = ggConnect
@@ -143,17 +172,6 @@ class EnrolmentController(
 
               val allFields = Fields.flattenGroups(enrolmentSection.fields)
               for {
-                data <- recalculation
-                         .recalculateFormDataWithLookup(
-                           dataRaw,
-                           formTemplate,
-                           retrievals,
-                           ThirdPartyData.empty,
-                           EnvelopeId(""),
-                           enrolmentSection.fields
-                             .map(fc => fc.id -> fc)
-                             .toMap
-                         )
                 validationResult <- validationService
                                      .validateComponents(
                                        allFields,
@@ -163,9 +181,9 @@ class EnrolmentController(
                                        retrievals,
                                        ThirdPartyData.empty,
                                        formTemplate,
-                                       GetEmailCodeFieldMatcher.noop)
+                                       GetEmailCodeFieldMatcher.noop)(hc, request2Messages, l, sse)
                 enrolmentResultProcessor = new EnrolmentResultProcessor(
-                  renderer.renderEnrolmentSection,
+                  renderEnrolmentSection,
                   formTemplate,
                   retrievals,
                   enrolmentSection,
@@ -186,6 +204,22 @@ class EnrolmentController(
                         .run(Env(formTemplate, retrievals, data))
               } yield res
             }
+
+            def handleContinue =
+              for {
+                data <- recalculation
+                         .recalculateFormDataWithLookup(
+                           dataRaw,
+                           formTemplate,
+                           retrievals,
+                           ThirdPartyData.empty,
+                           EnvelopeId(""),
+                           enrolmentSection.fields
+                             .map(fc => fc.id -> fc)
+                             .toMap
+                         )
+                res <- handleContinueWithData(data)
+              } yield res
             dataRaw.one(FormComponentId("save")) match {
               case Some("Continue") => handleContinue
               case _                => Future.successful(BadRequest("Cannot determine action"))

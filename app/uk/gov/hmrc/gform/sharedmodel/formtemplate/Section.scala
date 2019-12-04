@@ -19,14 +19,13 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.data.NonEmptyList
 import play.api.libs.json._
 import uk.gov.hmrc.gform.models.javascript.JsFormComponentModel
-import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.form.FormField
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, SmartString, VariadicFormData }
 
 import scala.collection.immutable.List
 
 sealed trait BaseSection {
-  def title: LocalisedString
-  def shortName: Option[LocalisedString]
+  def title: SmartString
+  def shortName: Option[SmartString]
   def fields: List[FormComponent]
 }
 
@@ -36,16 +35,16 @@ case class ExpandedSection(expandedFormComponents: List[ExpandedFormComponent], 
 }
 
 case class Section(
-  title: LocalisedString,
-  description: Option[LocalisedString],
-  shortName: Option[LocalisedString],
-  progressIndicator: Option[LocalisedString] = None,
+  title: SmartString,
+  description: Option[SmartString],
+  shortName: Option[SmartString],
+  progressIndicator: Option[SmartString] = None,
   includeIf: Option[IncludeIf],
   repeatsMax: Option[TextExpression],
   repeatsMin: Option[TextExpression],
   validators: Option[Validator], //TODO List instead of Option
   fields: List[FormComponent],
-  continueLabel: Option[LocalisedString],
+  continueLabel: Option[SmartString],
   continueIf: Option[ContinueIf]
 ) extends BaseSection {
   def expandSection(data: VariadicFormData): ExpandedSection =
@@ -67,9 +66,9 @@ object Section {
 }
 
 case class DeclarationSection(
-  title: LocalisedString,
-  description: Option[LocalisedString],
-  shortName: Option[LocalisedString],
+  title: SmartString,
+  description: Option[SmartString],
+  shortName: Option[SmartString],
   fields: List[FormComponent]
 ) extends BaseSection
 
@@ -78,9 +77,9 @@ object DeclarationSection {
 }
 
 case class AcknowledgementSection(
-  title: LocalisedString,
-  description: Option[LocalisedString],
-  shortName: Option[LocalisedString],
+  title: SmartString,
+  description: Option[SmartString],
+  shortName: Option[SmartString],
   fields: List[FormComponent]
 ) extends BaseSection
 
@@ -89,8 +88,8 @@ object AcknowledgementSection {
 }
 
 case class EnrolmentSection(
-  title: LocalisedString,
-  shortName: Option[LocalisedString],
+  title: SmartString,
+  shortName: Option[SmartString],
   fields: List[FormComponent],
   identifiers: NonEmptyList[IdentifierRecipe],
   verifiers: List[VerifierRecipe]
@@ -100,11 +99,6 @@ object EnrolmentSection {
   import JsonUtils._
   implicit val format: OFormat[EnrolmentSection] = Json.format[EnrolmentSection]
 }
-
-case class SectionFormField(
-  title: String,
-  fields: List[(List[FormField], FormComponent)]
-)
 
 case class IdentifierRecipe(key: String, value: FormCtx)
 object IdentifierRecipe {

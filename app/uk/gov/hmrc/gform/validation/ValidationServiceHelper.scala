@@ -21,6 +21,7 @@ import play.api.i18n.Messages
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.getError
 
 object ValidationServiceHelper {
@@ -37,6 +38,7 @@ object ValidationServiceHelper {
 
   def validationFailure(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
     implicit l: LangADT,
-    messages: Messages) =
+    messages: Messages,
+    sse: SmartStringEvaluator) =
     getError(fieldValue, messageKey, vars)
 }

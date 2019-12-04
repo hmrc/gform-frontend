@@ -33,7 +33,7 @@
   index: Int,
   formLevelHeading: Boolean,
   setValue: String
-)(implicit messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
+)(implicit messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 

@@ -25,6 +25,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.typeclasses.Now
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper._
 import uk.gov.hmrc.gform.validation.ValidationUtil._
@@ -34,7 +35,7 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
 import scala.util.{ Failure, Success, Try }
 
-class DateValidation(implicit messages: Messages, l: LangADT) {
+class DateValidation(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) {
 
   val cvh = new ComponentsValidatorHelper()
 
@@ -65,7 +66,10 @@ class DateValidation(implicit messages: Messages, l: LangADT) {
   }
 
   private def validateDateImpl(fieldValue: FormComponent, date: Date, otherFieldValue: Option[FormComponent])(
-    data: FormDataRecalculated)(implicit messages: Messages, l: LangADT): ValidatedType[Unit] =
+    data: FormDataRecalculated)(
+    implicit messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator): ValidatedType[Unit] =
     date.constraintType match {
 
       case AnyDate =>

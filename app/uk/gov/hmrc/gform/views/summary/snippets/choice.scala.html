@@ -16,7 +16,12 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
-@(fieldValue: FormComponent, selections: List[String], changeButton: Html)(implicit l:LangADT)
+@(fieldValue: FormComponent,
+  selections: List[String],
+  changeButton: Html)(
+  implicit
+    l:LangADT,
+    sse: SmartStringEvaluator)
 
 @selectedHtml = @{
   selections.map{ selection => <p>{selection}</p> }

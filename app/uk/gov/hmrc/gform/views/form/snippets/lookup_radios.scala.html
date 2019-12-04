@@ -26,7 +26,7 @@
   formLevelHeading: Boolean,
   prepop: Option[String],
   validationResult: Option[FormFieldValidationResult],
-  index: Int)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
+  index: Int)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @currentValue = @{validationResult.flatMap(_.getCurrentValue)}
 

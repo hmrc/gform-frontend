@@ -23,14 +23,15 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar.mock
 import org.scalatest.{ FlatSpec, Matchers }
 import play.api.i18n.Messages
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.GraphSpec
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Address, FormComponent, FormComponentId }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -45,7 +46,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
     FormComponent(
       FormComponentId("x"),
       baseAddress,
-      toLocalisedString("l"),
+      toSmartString("l"),
       None,
       None,
       None,
@@ -60,6 +61,10 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
   private val lookupRegistry = new LookupRegistry(Map.empty)
 
   implicit lazy val hc = HeaderCarrier()
+
+  implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
+    override def apply(s: SmartString): String = s.rawValue(LangADT.En)
+  }
 
   private def mkComponentsValidator(data: FormDataRecalculated): ComponentsValidator =
     new ComponentsValidator(
@@ -79,7 +84,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -115,7 +120,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -146,7 +151,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -180,7 +185,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -209,7 +214,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -246,7 +251,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -277,7 +282,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -307,7 +312,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -339,7 +344,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -374,7 +379,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -409,7 +414,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
     val speccedAddress = FormComponent(
       FormComponentId("x"),
       address,
-      toLocalisedString("l"),
+      toSmartString("l"),
       None,
       None,
       None,
@@ -418,7 +423,8 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       false,
       true,
       false,
-      Some(toLocalisedString("New Error Message")))
+      Some(toSmartString("New Error Message"))
+    )
 
     val data = mkFormDataRecalculated(
       VariadicFormData.ones(
@@ -445,7 +451,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -480,7 +486,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
@@ -511,7 +517,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
       FormComponent(
         FormComponentId("x"),
         address,
-        toLocalisedString("l"),
+        toSmartString("l"),
         None,
         None,
         None,
