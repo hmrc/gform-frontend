@@ -29,7 +29,7 @@ import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 
 import scala.collection.immutable.List
 
@@ -83,7 +83,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - facePhoto` = FormComponent(
     `fieldId - facePhoto`,
     FileUpload(),
-    toLocalisedString("Attach evidence of your smile"),
+    toSmartString("Attach evidence of your smile"),
     helpText = None,
     None,
     None,
@@ -99,7 +99,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - firstName` = FormComponent(
     `fieldId - firstName`,
     Text(BasicText, Constant("any text")),
-    toLocalisedString("First Name"),
+    toSmartString("First Name"),
     None,
     None,
     None,
@@ -115,7 +115,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - surname` = FormComponent(
     `fieldId - surname`,
     Text(BasicText, Constant("any text")),
-    toLocalisedString("Last Name"),
+    toSmartString("Last Name"),
     None,
     None,
     None,
@@ -131,7 +131,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - iptRegNum` = FormComponent(
     `fieldId - iptRegNum`,
     Text(BasicText, Constant("any text")),
-    toLocalisedString("Insurance Premium Tax (IPT) number"),
+    toSmartString("Insurance Premium Tax (IPT) number"),
     None,
     None,
     None,
@@ -147,7 +147,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - businessName` = FormComponent(
     `fieldId - businessName`,
     Text(BasicText, Constant("any text")),
-    toLocalisedString("Name of business"),
+    toSmartString("Name of business"),
     None,
     None,
     None,
@@ -163,7 +163,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - startDate` = FormComponent(
     `fieldId - startDate`,
     Date(AnyDate, Offset(0), None),
-    toLocalisedString("Your Start Date"),
+    toSmartString("Your Start Date"),
     None,
     None,
     None,
@@ -178,8 +178,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - info` = FormComponent(
     `fieldId - businessName`,
-    InformationMessage(NoFormat, toLocalisedString("some text")),
-    toLocalisedString("someLabel"),
+    InformationMessage(NoFormat, toSmartString("some text")),
+    toSmartString("someLabel"),
     None,
     None,
     validIf,
@@ -203,7 +203,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - group` = FormComponent(
     id = FormComponentId("GroupFieldValueId"),
     `type` = `group - type`,
-    label = toLocalisedString("group FieldValue label"),
+    label = toSmartString("group FieldValue label"),
     helpText = None,
     shortName = None,
     validIf = None,
@@ -217,7 +217,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def `fieldValue - number` = FormComponent(
     `fieldId - number`,
     Text(Number(), Value),
-    toLocalisedString("sample label"),
+    toSmartString("sample label"),
     None,
     None,
     validIf,
@@ -231,8 +231,8 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `fieldValue - choice` = FormComponent(
     `fieldId - choice`,
-    Choice(Radio, NonEmptyList.of(toLocalisedString("u"), toLocalisedString("v")), Vertical, List(), None),
-    toLocalisedString("sample label"),
+    Choice(Radio, NonEmptyList.of(toSmartString("u"), toSmartString("v")), Vertical, List(), None),
+    toSmartString("sample label"),
     None,
     None,
     validIf,
@@ -247,7 +247,7 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
   def fieldValue(text: Text) = FormComponent(
     default,
     text,
-    toLocalisedString("sample label"),
+    toSmartString("sample label"),
     None,
     None,
     None,
@@ -272,7 +272,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
   def `section - about you` =
     Section(
-      toLocalisedString("About you"),
+      toSmartString("About you"),
       None,
       None,
       None,
@@ -291,7 +291,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
 
   def `section - businessDetails` =
     Section(
-      toLocalisedString("Business details"),
+      toSmartString("Business details"),
       None,
       None,
       None,
@@ -309,7 +309,7 @@ trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
     )
 
   def `repeating section` = Section(
-    toLocalisedString("Repeating section"),
+    toSmartString("Repeating section"),
     None,
     None,
     None,
@@ -367,9 +367,9 @@ trait ExampleFormTemplate {
 
   def acknowledgementSection =
     AcknowledgementSection(
-      toLocalisedString("Acknowledgement Page"),
-      Some(toLocalisedString("this page is to acknowledge submission")),
-      Some(toLocalisedString("shortName for acknowledgement")),
+      toSmartString("Acknowledgement Page"),
+      Some(toSmartString("this page is to acknowledge submission")),
+      Some(toSmartString("shortName for acknowledgement")),
       List(`fieldValue - info`)
     )
 
@@ -387,7 +387,7 @@ trait ExampleFormTemplate {
       webChat = webChat,
       sections = allSections,
       acknowledgementSection = acknowledgementSection,
-      declarationSection = DeclarationSection(toLocalisedString("Declaration"), None, None, Nil),
+      declarationSection = DeclarationSection(toSmartString("Declaration"), None, None, Nil),
       parentFormSubmissionRefs = None
     )
 }

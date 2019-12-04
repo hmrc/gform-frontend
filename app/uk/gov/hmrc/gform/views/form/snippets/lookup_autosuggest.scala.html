@@ -29,7 +29,7 @@
   prepop: Option[String],
   validationResult: Option[FormFieldValidationResult],
   index: Int
-)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
+)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @currentValue = @{validationResult.flatMap(_.getCurrentValue)}
 @label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}

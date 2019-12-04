@@ -22,7 +22,6 @@ import cats.syntax.apply._
 import cats.syntax.eq._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
@@ -38,6 +37,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -78,7 +78,7 @@ class FormController(
     sectionTitle4Ga: SectionTitle4Ga,
     suppressErrors: SuppressErrors) =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         fileUploadService
           .getEnvelope(cache.form.envelopeId)
           .flatMap { envelope =>
@@ -114,7 +114,7 @@ class FormController(
 
   def deleteOnExit(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, noAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         fastForwardService.deleteForm(cache)
     }
 
@@ -123,7 +123,7 @@ class FormController(
     maybeAccessCode: Option[AccessCode],
     sectionNumber: SectionNumber
   ) = auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.EditForm) {
-    implicit request => implicit l => cache =>
+    implicit request => implicit l => cache => implicit sse =>
       processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
         def validateAndUpdateData(cache: AuthCacheWithForm, processData: ProcessData)(
           toResult: Option[SectionNumber] => Result): Future[Result] =

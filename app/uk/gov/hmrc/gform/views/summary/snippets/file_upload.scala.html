@@ -29,7 +29,8 @@
 )(
     implicit
     l:LangADT,
-    viewHelpers: ViewHelpersAlgebra
+    viewHelpers: ViewHelpersAlgebra,
+    sse: SmartStringEvaluator
 )
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}

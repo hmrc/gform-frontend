@@ -19,9 +19,8 @@ package uk.gov.hmrc.gform.gform
 import cats.instances.future._
 import cats.syntax.applicative._
 import play.api.{ Logger, data }
-import play.api.i18n.I18nSupport
+import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
@@ -31,6 +30,7 @@ import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
@@ -134,7 +134,7 @@ class NewFormController(
 
   def decision(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, noAccessCode, OperationWithForm.EditForm) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         choice.bindFromRequest
           .fold(
             _ =>
@@ -163,7 +163,7 @@ class NewFormController(
         handleForm(formIdData)(newForm(formTemplateId, cache)) { form =>
           cache.formTemplate.draftRetrievalMethod match {
             case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
-              fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), noAccessCode)
+              redirectContinue(cache, form, noAccessCode)
             case _ => Ok(continue_form_page(cache.formTemplate, choice, frontendAppConfig)).pure[Future]
           }
         }
@@ -180,7 +180,7 @@ class NewFormController(
     for {
       formIdData <- startFreshForm(formTemplateId, cache.retrievals)
       res <- handleForm(formIdData)(notFound(formIdData)) { form =>
-              fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), formIdData.maybeAccessCode)
+              redirectContinue(cache, form, formIdData.maybeAccessCode)
             }
     } yield res
   }
@@ -209,7 +209,7 @@ class NewFormController(
       maybeAccessCode.fold(noAccessCodeProvided) { accessCode =>
         val formIdData = FormIdData.WithAccessCode(UserId(cache.retrievals), formTemplateId, accessCode)
         handleForm(formIdData)(notFound(cache.formTemplate).pure[Future]) { form =>
-          fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), Some(accessCode))
+          redirectContinue(cache, form, maybeAccessCode)
         }
       }
     }
@@ -274,7 +274,7 @@ class NewFormController(
         val accessCode = AccessCode.fromSubmissionRef(submissionRef)
         val formIdData = FormIdData.WithAccessCode(userId, formTemplateId, accessCode)
         handleForm(formIdData)(notFound) { form =>
-          fastForwardService.redirectContinue(cache.toAuthCacheWithForm(form), Some(accessCode))
+          redirectContinue(cache, form, Some(accessCode))
         }
     }
 
@@ -305,4 +305,13 @@ class NewFormController(
       maybeForm <- getForm(formIdData)
       result    <- maybeForm.fold(notFound)(found)
     } yield result
+
+  def redirectContinue(cache: AuthCacheWithoutForm, form: Form, accessCode: Option[AccessCode])(
+    implicit hc: HeaderCarrier,
+    l: LangADT,
+    messages: Messages) = {
+    val acwf = cache.toAuthCacheWithForm(form)
+    fastForwardService.redirectContinue(acwf, accessCode)
+  }
+
 }

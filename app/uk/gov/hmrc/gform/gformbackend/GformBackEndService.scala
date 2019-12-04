@@ -27,6 +27,7 @@ import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalcul
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormStatus, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormComponentId, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.submission.Submission
@@ -50,7 +51,8 @@ trait GformBackEndAlgebra[F[_]] {
     attachments: Attachments)(
     implicit request: Request[_],
     l: LangADT,
-    hc: HeaderCarrier): F[(HttpResponse, CustomerId)]
+    hc: HeaderCarrier,
+    lise: SmartStringEvaluator): F[(HttpResponse, CustomerId)]
 
   def updateUserData(updatedForm: Form, maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): F[Unit]
 
@@ -93,7 +95,8 @@ class GformBackEndService(
     attachments: Attachments)(
     implicit request: Request[_],
     l: LangADT,
-    hc: HeaderCarrier): Future[(HttpResponse, CustomerId)] =
+    hc: HeaderCarrier,
+    lise: SmartStringEvaluator): Future[(HttpResponse, CustomerId)] =
     for {
       _          <- updateUserData(cache.form.copy(status = formStatus), maybeAccessCode)
       customerId <- customerIdRecalculation.evaluateCustomerId(cache)
@@ -108,7 +111,11 @@ class GformBackEndService(
     cache: AuthCacheWithForm,
     customerId: CustomerId,
     submissionDetails: Option[SubmissionDetails],
-    attachments: Attachments)(implicit request: Request[_], l: LangADT, hc: HeaderCarrier): Future[HttpResponse] =
+    attachments: Attachments)(
+    implicit request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    lise: SmartStringEvaluator): Future[HttpResponse] =
     for {
       htmlForPDF <- summaryRenderingService
                      .createHtmlForPdf(maybeAccessCode, cache, submissionDetails, SummaryPagePurpose.ForDms)

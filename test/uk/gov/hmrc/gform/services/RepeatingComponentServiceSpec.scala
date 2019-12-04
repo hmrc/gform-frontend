@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.services
 
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
@@ -29,8 +29,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
-  implicit lazy val hc = HeaderCarrier()
-  implicit val l = LangADT.En
+  private implicit lazy val hc = HeaderCarrier()
+  private implicit val l = LangADT.En
 
   "getAllSections" should "return only sections in template when no repeating sections are defined" in {
 
@@ -48,52 +48,10 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     RepeatingComponentService.getAllSections(formTemplate, FormDataRecalculated.empty) shouldBe expectedList
   }
 
-  it should "return dynamically created sections (title and shortName text built dynamically) when field to track in repeating group, and non-empty form data" in {
-
-    val thisGroup = `group - type`.copy(
-      repeatsMax = Some(4),
-      repeatsMin = Some(1),
-      repeatLabel = Some(toLocalisedString("RepGrpLabel")),
-      repeatAddAnotherText = Some(toLocalisedString("AddButtonLabel"))
-    )
-
-    val thisGroupFieldValue = `fieldValue - group`.copy(`type` = thisGroup)
-
-    val thisSection1 = `section - group`.copy(fields = List(thisGroupFieldValue))
-
-    val thisSection2 = `repeating section`.copy(
-      title = toLocalisedString("""${n_firstName}, $n"""),
-      shortName = Some(toLocalisedString("""$n, ${n_firstName}""")),
-      fields = List(
-        `fieldValue - firstName`
-      )
-    )
-    val formTemplate = super.formTemplate.copy(sections = List(thisSection1, thisSection2))
-
-    val textFieldR = `fieldValue - firstName`.copy(id = FormComponentId(s"1_${`fieldId - firstName`.value}"))
-    val sectionR = thisSection2.copy(
-      fields = List(textFieldR),
-      title = toLocalisedString("ONE, 1"),
-      shortName = Some(toLocalisedString("1, ONE")))
-
-    val textFieldR2 = `fieldValue - firstName`.copy(id = FormComponentId(s"2_${`fieldId - firstName`.value}"))
-    val sectionR2 = thisSection2.copy(
-      fields = List(textFieldR2),
-      title = toLocalisedString("TWO, 2"),
-      shortName = Some(toLocalisedString("2, TWO")))
-
-    val expectedList = List(thisSection1, sectionR, sectionR2)
-
-    val formData = mkFormDataRecalculated(
-      VariadicFormData.ones(FormComponentId("firstName") -> "ONE", FormComponentId("1_firstName") -> "TWO"))
-
-    RepeatingComponentService.getAllSections(formTemplate, formData) shouldBe expectedList
-  }
-
   it should "return a dynamically created section when field to track in a NON-repeating group" in {
     val thisSection2 = `repeating section`.copy(
-      title = toLocalisedString("Repeating section title $n"),
-      shortName = Some(toLocalisedString("shortName $n"))
+      title = toSmartString("Repeating section title $n"),
+      shortName = Some(toSmartString("shortName $n"))
     )
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, thisSection2))
@@ -102,8 +60,9 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     val sectionR = thisSection2
       .copy(
         fields = List(textFieldDosR),
-        title = toLocalisedString("Repeating section title 1"),
-        shortName = Some(toLocalisedString("shortName 1")))
+        title = toSmartString("Repeating section title 1"),
+        shortName = Some(toSmartString("shortName 1"))
+      )
     val expectedList = List(`section - group`, sectionR)
 
     val formData = mkFormDataRecalculated(VariadicFormData.ones(`fieldId - firstName` -> "1"))
@@ -113,8 +72,8 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
 
   it should "return dynamically created sections (title and shortName text built dynamically) when field to track in a NON-repeating group, with form data" in {
     val thisSection2 = `repeating section`.copy(
-      title = toLocalisedString("Repeating section title $n"),
-      shortName = Some(toLocalisedString("shortName $n"))
+      title = toSmartString("Repeating section title $n"),
+      shortName = Some(toSmartString("shortName $n"))
     )
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, thisSection2))
 
@@ -123,13 +82,15 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
     val sectionR1 = thisSection2
       .copy(
         fields = List(textFieldDos1),
-        title = toLocalisedString("Repeating section title 1"),
-        shortName = Some(toLocalisedString("shortName 1")))
+        title = toSmartString("Repeating section title 1"),
+        shortName = Some(toSmartString("shortName 1"))
+      )
     val sectionR2 = thisSection2
       .copy(
         fields = List(textFieldDos2),
-        title = toLocalisedString("Repeating section title 2"),
-        shortName = Some(toLocalisedString("shortName 2")))
+        title = toSmartString("Repeating section title 2"),
+        shortName = Some(toSmartString("shortName 2"))
+      )
     val expectedList = List(`section - group`, sectionR1, sectionR2)
 
     val formData = mkFormDataRecalculated(VariadicFormData.ones(`fieldId - firstName` -> "2"))

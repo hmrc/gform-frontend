@@ -20,11 +20,10 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.foldable._
 import julienrf.json.derived
-import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 import scala.util.Try
-import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ SmartString, ValueClassFormat, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DisplayWidth.DisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ FieldName, RoboticsXml, StructuredFormDataFieldNamePurpose }
 
@@ -44,6 +43,15 @@ case class Text(
   displayWidth: DisplayWidth = DisplayWidth.DEFAULT,
   toUpperCase: UpperCaseBoolean = IsNotUpperCase
 ) extends ComponentType
+
+sealed trait UpperCaseBoolean
+
+case object IsUpperCase extends UpperCaseBoolean
+case object IsNotUpperCase extends UpperCaseBoolean
+
+object UpperCaseBoolean {
+  implicit val format: OFormat[UpperCaseBoolean] = derived.oformat
+}
 
 case class TextArea(
   constraint: TextConstraint,
@@ -98,21 +106,12 @@ object DisplayWidth extends Enumeration {
   implicit val displayWidthWrites: Writes[DisplayWidth] = Writes.enumNameWrites
 }
 
-sealed trait UpperCaseBoolean
-
-case object IsUpperCase extends UpperCaseBoolean
-case object IsNotUpperCase extends UpperCaseBoolean
-
-object UpperCaseBoolean {
-  implicit val format: OFormat[UpperCaseBoolean] = derived.oformat
-}
-
 case class Choice(
   `type`: ChoiceType,
-  options: NonEmptyList[LocalisedString],
+  options: NonEmptyList[SmartString],
   orientation: Orientation,
   selections: List[Int],
-  optionHelpText: Option[NonEmptyList[LocalisedString]]
+  optionHelpText: Option[NonEmptyList[SmartString]]
 ) extends ComponentType
 
 sealed trait ChoiceType
@@ -126,7 +125,7 @@ object ChoiceType {
   implicit val equal: Eq[ChoiceType] = Eq.fromUniversalEquals
 }
 
-case class RevealingChoiceElement(choice: LocalisedString, revealingFields: List[FormComponent], selected: Boolean)
+case class RevealingChoiceElement(choice: SmartString, revealingFields: List[FormComponent], selected: Boolean)
 object RevealingChoiceElement {
   implicit val format: OFormat[RevealingChoiceElement] = derived.oformat
 }
@@ -194,13 +193,13 @@ case class Group(
   orientation: Orientation,
   repeatsMax: Option[Int] = None,
   repeatsMin: Option[Int] = None,
-  repeatLabel: Option[LocalisedString] = None,
-  repeatAddAnotherText: Option[LocalisedString] = None
+  repeatLabel: Option[SmartString] = None,
+  repeatAddAnotherText: Option[SmartString] = None
 ) extends ComponentType {
   val baseGroupList = GroupList(fields)
 }
 
-case class InformationMessage(infoType: InfoType, infoText: LocalisedString) extends ComponentType
+case class InformationMessage(infoType: InfoType, infoText: SmartString) extends ComponentType
 
 case class FileUpload() extends ComponentType
 

@@ -37,7 +37,8 @@
   request: Request[_], //required by CSRF.formField
   messages: Messages,
   l:LangADT,
-  viewHelpers: ViewHelpersAlgebra
+  viewHelpers: ViewHelpersAlgebra,
+  sse: SmartStringEvaluator
 )
 
 @heading = @{page.sectionTitle}

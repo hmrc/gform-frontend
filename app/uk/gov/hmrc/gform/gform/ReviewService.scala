@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormIdData
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, BundledFormSubmissionData, LangADT, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Accepting, Form, FormStatus, Returning }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.summary.SubmissionDetails
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
@@ -40,20 +41,22 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
     cache: AuthCacheWithForm,
     status: FormStatus,
     reviewData: Map[String, String],
-    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier) =
+    maybeAccessCode: Option[AccessCode])(implicit hc: HeaderCarrier): F[Unit] =
     gformBackEnd.updateUserData(updateWithReviewData(cache, reviewData).form, maybeAccessCode) >>
       gformBackEnd.forceUpdateFormStatus(FormIdData.fromForm(cache.form, maybeAccessCode), status)
 
   def acceptForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
     implicit request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
-    l: LangADT): F[HttpResponse] =
+    l: LangADT,
+    sse: SmartStringEvaluator): F[HttpResponse] =
     submitReviewResults(updateWithReviewData(cache, reviewData), maybeAccessCode, Accepting)
 
   def returnForm(cache: AuthCacheWithForm, maybeAccessCode: Option[AccessCode], reviewData: Map[String, String])(
     implicit request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
-    l: LangADT): F[HttpResponse] =
+    l: LangADT,
+    sse: SmartStringEvaluator): F[HttpResponse] =
     submitReviewResults(
       updateWithReviewData(cache, reviewData),
       maybeAccessCode,
@@ -80,7 +83,8 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
     formStatus: FormStatus)(
     implicit request: Request[AnyContent],
     headerCarrier: HeaderCarrier,
-    l: LangADT): F[HttpResponse] =
+    l: LangADT,
+    sse: SmartStringEvaluator): F[HttpResponse] =
     for {
       submission <- gformBackEnd.submissionDetails(FormIdData.fromForm(cache.form, maybeAccessCode))
       result <- gformBackEnd.submitWithUpdatedFormStatus(

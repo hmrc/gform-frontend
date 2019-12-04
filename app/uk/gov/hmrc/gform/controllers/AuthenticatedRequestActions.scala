@@ -41,7 +41,9 @@ import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _ }
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.InsufficientEnrolments
+import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel._
+import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.concurrent.Future
@@ -58,7 +60,7 @@ trait AuthenticatedRequestActionsAlgebra[F[_]] {
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => F[Result]): Action[AnyContent]
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => F[Result]): Action[AnyContent]
 }
 
 class AuthenticatedRequestActions(
@@ -71,7 +73,9 @@ class AuthenticatedRequestActions(
   langs: Langs,
   actionBuilder: ActionBuilder[Request, AnyContent],
   errResponder: ErrResponder,
-  sessionCookieBaker: SessionCookieBaker
+  sessionCookieBaker: SessionCookieBaker,
+  recalculation: Recalculation[Future, Throwable],
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(
   implicit
   ec: ExecutionContext,
@@ -215,16 +219,18 @@ class AuthenticatedRequestActions(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     operation: OperationWithForm)(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
-    async(formTemplateId, maybeAccessCode) { request => lang => cache =>
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => Future[Result])
+    : Action[AnyContent] =
+    async(formTemplateId, maybeAccessCode) { request => lang => cache => smartStringEvaluator =>
       Permissions.apply(operation, cache.role, cache.form.status) match {
-        case PermissionResult.Permitted    => f(request)(lang)(cache)
+        case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)
         case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
       }
     }
 
   def async(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])(
-    f: Request[AnyContent] => LangADT => AuthCacheWithForm => Future[Result]): Action[AnyContent] =
+    f: Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => Future[Result])
+    : Action[AnyContent] =
     actionBuilder.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)
 
@@ -249,13 +255,22 @@ class AuthenticatedRequestActions(
       } yield result
     }
 
-  private def withForm(
-    f: AuthCacheWithForm => Future[Result])(maybeAccessCode: Option[AccessCode], formTemplate: FormTemplate)(
-    retrievals: MaterialisedRetrievals)(role: Role)(implicit hc: HeaderCarrier): Future[Result] =
+  private def withForm(f: AuthCacheWithForm => SmartStringEvaluator => Future[Result])(
+    maybeAccessCode: Option[AccessCode],
+    formTemplate: FormTemplate)(retrievals: MaterialisedRetrievals)(
+    role: Role)(implicit hc: HeaderCarrier, l: LangADT): Future[Result] =
     for {
-      form   <- gformConnector.getForm(FormIdData(retrievals, formTemplate._id, maybeAccessCode))
-      _      <- MDCHelpers.addFormIdToMdc(form._id)
-      result <- f(AuthCacheWithForm(retrievals, form, formTemplate, role))
+      form <- gformConnector.getForm(FormIdData(retrievals, formTemplate._id, maybeAccessCode))
+      _    <- MDCHelpers.addFormIdToMdc(form._id)
+      cache = AuthCacheWithForm(retrievals, form, formTemplate, role)
+      recalculatedData <- recalculation.recalculateFormData(
+                           cache.variadicFormData,
+                           formTemplate,
+                           cache.retrievals,
+                           form.thirdPartyData,
+                           form.envelopeId)
+      smartStringEvaluator = smartStringEvaluatorFactory.apply(recalculatedData, retrievals, form, formTemplate)
+      result <- f(cache)(smartStringEvaluator)
     } yield result
 
   private def handleAuthResults(

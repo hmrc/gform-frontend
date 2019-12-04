@@ -24,6 +24,7 @@ import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
+import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
@@ -35,7 +36,8 @@ class ControllersModule(
   auditingModule: AuditingModule,
   builtInComponents: BuiltInComponents,
   sessionCookieBaker: SessionCookieBaker,
-  errResponder: ErrResponder
+  errResponder: ErrResponder,
+  graphModule: GraphModule
 )(
   implicit ec: ExecutionContext,
   viewHelpers: ViewHelpersAlgebra
@@ -53,7 +55,9 @@ class ControllersModule(
     playBuiltInsModule.langs,
     builtInComponents.defaultActionBuilder,
     errResponder,
-    sessionCookieBaker
+    sessionCookieBaker,
+    graphModule.recalculation,
+    graphModule.smartStringEvaluatorFactory
   )
 
   val messagesControllerComponents: MessagesControllerComponents = new DefaultMessagesControllerComponents(

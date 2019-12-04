@@ -20,7 +20,13 @@
 @import uk.gov.hmrc.gform.views._
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
-@(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult], changeButton: Html)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
+@(fieldValue: FormComponent,
+  validationResult: Option[FormFieldValidationResult],
+  changeButton: Html)(
+  implicit
+    l:LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    sse: SmartStringEvaluator)
 
 @currentValueLines = @{TextFormatter.formatText(validationResult).split("\\R")}
 

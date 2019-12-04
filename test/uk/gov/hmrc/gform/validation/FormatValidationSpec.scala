@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -64,7 +64,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
       FormComponent(
         FormComponentId("n"),
         text,
-        toLocalisedString("sample label"),
+        toSmartString("sample label"),
         None,
         None,
         None,
@@ -94,7 +94,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
       FormComponent(
         FormComponentId("n"),
         text,
-        toLocalisedString("sample label"),
+        toSmartString("sample label"),
         None,
         None,
         None,
@@ -125,7 +125,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
       FormComponent(
         FormComponentId("n"),
         text,
-        toLocalisedString("sample label"),
+        toSmartString("sample label"),
         None,
         None,
         None,
@@ -156,7 +156,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
       FormComponent(
         FormComponentId("n"),
         text,
-        toLocalisedString("sample label"),
+        toSmartString("sample label"),
         None,
         None,
         None,
@@ -187,7 +187,7 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
       FormComponent(
         FormComponentId("n"),
         text,
-        toLocalisedString("sample label"),
+        toSmartString("sample label"),
         None,
         None,
         None,

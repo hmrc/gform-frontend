@@ -21,11 +21,12 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.errors
 import uk.gov.hmrc.gform.validation.ValidationServiceHelper.validationSuccess
 
-class AddressValidation(implicit messages: Messages, l: LangADT) {
+class AddressValidation(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) {
 
   val cvh = new ComponentsValidatorHelper()
 

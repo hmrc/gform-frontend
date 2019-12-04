@@ -30,12 +30,12 @@
 
 @(fieldValue: FormComponent,
 buttonType: String,
-optionsSelectionsAndHiddenFields: NonEmptyList[(LocalisedString, Int => Boolean, List[Html])],
+optionsSelectionsAndHiddenFields: NonEmptyList[(SmartString, Int => Boolean, List[Html])],
 validationResult: Option[FormFieldValidationResult],
 index: Int,
-sectionTitle: LocalisedString,
+sectionTitle: SmartString,
 formLevelHeading: Boolean
-)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra)
+)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)

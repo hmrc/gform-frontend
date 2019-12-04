@@ -22,7 +22,8 @@ import org.intellij.markdown.parser.MarkdownParser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import play.twirl.api.Html
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString }
+import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString }
 
 object MarkDownUtil {
 
@@ -34,8 +35,11 @@ object MarkDownUtil {
     doc.body().html()
   }
 
-  def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = {
-    val markDownText = ls.value
+  def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = markDownParser(ls.value)
+
+  def markDownParser(ls: SmartString)(implicit l: LangADT, sse: SmartStringEvaluator): Html = markDownParser(ls.value)
+
+  private def markDownParser(markDownText: String): Html = {
     val flavour = new GFMFlavourDescriptor
     val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
     val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml

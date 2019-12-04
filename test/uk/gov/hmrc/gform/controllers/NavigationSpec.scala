@@ -17,10 +17,9 @@
 package uk.gov.hmrc.gform.controllers
 
 import cats.instances.option._
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
-import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, LocalisedString, VariadicFormData, VariadicValue }
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, SmartString, VariadicFormData, VariadicValue }
 import uk.gov.hmrc.gform.sharedmodel.form.ThirdPartyData
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
@@ -38,7 +37,7 @@ class NavitagionSpec extends Spec with GraphSpec {
   def mkFormComponent(formComponentId: FormComponentId): FormComponent = FormComponent(
     id = formComponentId,
     `type` = Text(BasicText, Value),
-    label = toLocalisedString(""),
+    label = toSmartString(""),
     helpText = None,
     shortName = None,
     validIf = None,
@@ -50,7 +49,7 @@ class NavitagionSpec extends Spec with GraphSpec {
     presentationHint = None
   )
 
-  def makeSection(title: LocalisedString, formComponent: FormComponent, includeIf: Option[IncludeIf] = None): Section =
+  def makeSection(title: SmartString, formComponent: FormComponent, includeIf: Option[IncludeIf] = None): Section =
     Section(
       title = title,
       description = None,
@@ -86,17 +85,17 @@ class NavitagionSpec extends Spec with GraphSpec {
   val fcId4 = FormComponentId("fcId4")
   val fcId5 = FormComponentId("fcId5")
 
-  val section1 = makeSection(toLocalisedString("Page 1"), mkFormComponent(fcId1))
-  val section2 = makeSection(toLocalisedString("Page 2"), mkFormComponent(fcId2), dependsOn(fcId1))
-  val section3 = makeSection(toLocalisedString("Page 3"), mkFormComponent(fcId3), dependsOn(fcId2))
-  val section4 = makeSection(toLocalisedString("Page 4"), mkFormComponent(fcId4), dependsOn(fcId3))
-  val section5 = makeSection(toLocalisedString("Page 5"), mkFormComponent(fcId5))
+  val section1 = makeSection(toSmartString("Page 1"), mkFormComponent(fcId1))
+  val section2 = makeSection(toSmartString("Page 2"), mkFormComponent(fcId2), dependsOn(fcId1))
+  val section3 = makeSection(toSmartString("Page 3"), mkFormComponent(fcId3), dependsOn(fcId2))
+  val section4 = makeSection(toSmartString("Page 4"), mkFormComponent(fcId4), dependsOn(fcId3))
+  val section5 = makeSection(toSmartString("Page 5"), mkFormComponent(fcId5))
 
   val sections = section1 :: section2 :: section3 :: section4 :: section5 :: Nil
 
   "Single page form" should "have section number 0 visible" in {
     val single = FormComponentId("single")
-    val singleSection = makeSection(toLocalisedString("Single Page"), mkFormComponent(single))
+    val singleSection = makeSection(toSmartString("Single Page"), mkFormComponent(single))
     val result = getAvailableSectionNumbers(singleSection :: Nil, variadic())
 
     result shouldBe List(SectionNumber(0))

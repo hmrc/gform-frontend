@@ -24,7 +24,7 @@ import play.api.i18n.{ Lang, Messages }
 import play.api.libs.typedmap.{ TypedEntry, TypedMap }
 import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.FakeRequest
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.gform.SectionRenderingService
@@ -189,7 +189,7 @@ class SectionRenderingServiceSpec extends Spec {
         Envelope.empty,
         envelopeId,
         ValidationResult.empty.valid,
-        List(allSections.head.copy(progressIndicator = Some(toLocalisedString("Progress Indicator")))),
+        List(allSections.head.copy(progressIndicator = Some(toSmartString("Progress Indicator")))),
         0,
         Nil,
         retrievals,
@@ -281,8 +281,8 @@ class SectionRenderingServiceSpec extends Spec {
 
       FormComponent(
         id = FormComponentId("testInfoField"),
-        `type` = InformationMessage(StandardInfo, toLocalisedString(markdown)),
-        label = toLocalisedString("This is the field label"),
+        `type` = InformationMessage(StandardInfo, toSmartString(markdown)),
+        label = toSmartString("This is the field label"),
         helpText = None,
         shortName = None,
         validIf = None,
@@ -345,8 +345,8 @@ class SectionRenderingServiceSpec extends Spec {
       orientation = Horizontal,
       repeatsMax = Some(3),
       repeatsMin = Some(1),
-      repeatLabel = Some(toLocalisedString("REPEAT_LABEL")),
-      repeatAddAnotherText = Some(toLocalisedString("repeatAddAnotherText"))
+      repeatLabel = Some(toSmartString("REPEAT_LABEL")),
+      repeatAddAnotherText = Some(toSmartString("repeatAddAnotherText"))
     )
 
     override def allSections = List(
@@ -391,8 +391,8 @@ class SectionRenderingServiceSpec extends Spec {
       orientation = Horizontal,
       repeatsMax = Some(2),
       repeatsMin = Some(1),
-      repeatLabel = Some(toLocalisedString("REPEAT_LABEL")),
-      repeatAddAnotherText = Some(toLocalisedString("repeatAddAnotherText"))
+      repeatLabel = Some(toSmartString("REPEAT_LABEL")),
+      repeatAddAnotherText = Some(toSmartString("repeatAddAnotherText"))
     )
 
     override def allSections = List(

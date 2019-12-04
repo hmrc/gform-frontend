@@ -17,7 +17,6 @@
 package uk.gov.hmrc.gform.commons
 
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.prop.TableDrivenPropertyChecks.{ Table, forAll }
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.Helpers.toLocalisedString

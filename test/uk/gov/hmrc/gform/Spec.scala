@@ -21,7 +21,8 @@ import org.scalatest._
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.time.{ Millis, Span }
-import uk.gov.hmrc.gform.sharedmodel.ExampleData
+import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, SmartString }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 
 import scala.concurrent.ExecutionContext
 
@@ -34,4 +35,8 @@ trait Spec
     PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
+    override def apply(s: SmartString): String = s.rawValue(LangADT.En)
+  }
 }

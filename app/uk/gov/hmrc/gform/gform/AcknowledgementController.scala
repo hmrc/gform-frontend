@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -50,7 +51,7 @@ class AcknowledgementController(
     eventId: String
   ): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         import i18nSupport._
         renderer
           .renderAcknowledgementSection(
@@ -67,7 +68,7 @@ class AcknowledgementController(
     formTemplateId: FormTemplateId,
     eventId: String): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         val formString = nonRepudiationHelpers.formDataToJson(cache.form)
         val hashedValue = nonRepudiationHelpers.computeHash(formString)
         nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)

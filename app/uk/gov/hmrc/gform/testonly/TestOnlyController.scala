@@ -87,7 +87,7 @@ class TestOnlyController(
     destinationId: DestinationId,
     maybeAccessCode: Option[AccessCode]
   ) =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit lang => cache =>
+    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit lang => cache => _ =>
       import cache._
       withHandlebarPayload {
         for {

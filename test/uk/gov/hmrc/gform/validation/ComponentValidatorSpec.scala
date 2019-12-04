@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.validation
 import org.scalatest.Matchers
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, VariadicFormData }
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.{ GraphSpec, Spec }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ FormComponentGen, FormatExprGen }
@@ -68,7 +68,7 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
   private val formComponent = FormComponent(
     FormComponentId("formComponent"),
     telephoneConstraint,
-    toLocalisedString("formComponentLabel"),
+    toSmartString("formComponentLabel"),
     None,
     None,
     None,
@@ -116,7 +116,7 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
   val shortTextComponent = FormComponent(
     FormComponentId("formComponent"),
     Text(ShortText(3, 5), Value),
-    toLocalisedString("formComponentLabel"),
+    toSmartString("formComponentLabel"),
     None,
     None,
     None,

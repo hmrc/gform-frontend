@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormStatus, InProgress, Summary, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SeYes, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -41,7 +42,8 @@ class FastForwardService(
   validationService: ValidationService,
   gformConnector: GformConnector,
   processDataService: ProcessDataService[Future, Throwable],
-  handler: FormControllerRequestHandler
+  handler: FormControllerRequestHandler,
+  smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(implicit ec: ExecutionContext) {
 
   def redirectContinue(
@@ -55,16 +57,22 @@ class FastForwardService(
     cache: AuthCacheWithForm,
     dataRaw: VariadicFormData,
     maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT): Future[Result] =
-    for {
-      processData <- processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload)
-      res         <- updateUserData(cache, processData, maybeAccessCode)(redirectResult(cache, maybeAccessCode, processData, _))
-    } yield res
+    processDataService.getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload).flatMap {
+      processData =>
+        implicit val sse = smartStringEvaluatorFactory(
+          processData.data,
+          cache.retrievals,
+          cache.form.thirdPartyData,
+          cache.form.envelopeId,
+          cache.formTemplate)
+        updateUserData(cache, processData, maybeAccessCode)(redirectResult(cache, maybeAccessCode, processData, _))
+    }
 
   private def redirectResult(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
-    maybeSectionNumber: Option[SectionNumber])(implicit l: LangADT): Result =
+    maybeSectionNumber: Option[SectionNumber])(implicit l: LangADT, sse: SmartStringEvaluator): Result =
     maybeSectionNumber match {
       case Some(sn) =>
         val section = processData.sections(sn.value)
@@ -87,7 +95,8 @@ class FastForwardService(
     toResult: Option[SectionNumber] => Result)(
     implicit messages: Messages,
     hc: HeaderCarrier,
-    l: LangADT): Future[Result] =
+    l: LangADT,
+    sse: SmartStringEvaluator): Future[Result] =
     for {
       envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
       maybeSn <- handler.handleFastForwardValidate(

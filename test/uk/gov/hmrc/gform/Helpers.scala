@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 object Helpers {
@@ -27,4 +27,8 @@ object Helpers {
     LocalisedString(Map(LangADT.En -> string))
 
   def toLocalisedString(string: Option[String]): Option[LocalisedString] = string.map(s => toLocalisedString(s))
+
+  def toSmartString(string: String): SmartString =
+    SmartString(toLocalisedString(string), Nil)
+
 }

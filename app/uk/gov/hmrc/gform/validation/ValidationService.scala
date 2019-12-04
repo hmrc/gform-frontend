@@ -35,6 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrati
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -65,7 +66,8 @@ class ValidationService(
   )(
     implicit hc: HeaderCarrier,
     messages: Messages,
-    l: LangADT
+    l: LangADT,
+    sse: SmartStringEvaluator
   ): Future[ValidatedType[Unit]] =
     new ComponentsValidator(
       data,
@@ -87,7 +89,11 @@ class ValidationService(
     thirdPartyData: ThirdPartyData,
     formTemplate: FormTemplate,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
-  )(implicit hc: HeaderCarrier, messages: Messages, l: LangADT): Future[ValidatedType[Unit]] =
+  )(
+    implicit hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator): Future[ValidatedType[Unit]] =
     fieldValues
       .traverse(
         fv =>
@@ -106,7 +112,8 @@ class ValidationService(
   def validateComponentsWithCache(cache: AuthCacheWithForm, declarationData: FormDataRecalculated, envelope: Envelope)(
     implicit hc: HeaderCarrier,
     messages: Messages,
-    l: LangADT): Future[ValidatedType[Unit]] = {
+    l: LangADT,
+    sse: SmartStringEvaluator): Future[ValidatedType[Unit]] = {
     val fieldValues: List[FormComponent] = Fields.flattenGroups(cache.formTemplate.declarationSection.fields)
     fieldValues
       .traverse(
@@ -173,7 +180,11 @@ class ValidationService(
     formTemplate: FormTemplate,
     data: FormDataRecalculated,
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
-  )(implicit hc: HeaderCarrier, messages: Messages, l: LangADT): Future[ValidatedType[ValidationResult]] = {
+  )(
+    implicit hc: HeaderCarrier,
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator): Future[ValidatedType[ValidationResult]] = {
     def lift[T](fv: Future[ValidatedType[T]]) = EitherT(fv.map(_.toEither))
 
     val eT = for {
@@ -254,7 +265,9 @@ class ValidationService(
     implicit
     hc: HeaderCarrier,
     messages: Messages,
-    l: LangADT): Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
+    l: LangADT,
+    sse: SmartStringEvaluator)
+    : Future[(ValidatedType[ValidationResult], Map[FormComponent, FormFieldValidationResult])] = {
 
     val dataRaw = cache.variadicFormData
 

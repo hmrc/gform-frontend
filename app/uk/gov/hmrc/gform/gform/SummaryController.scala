@@ -23,7 +23,6 @@ import org.jsoup.Jsoup
 import play.api.http.HttpEntity
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, Request, ResponseHeader, Result }
-import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers._
@@ -63,7 +62,7 @@ class SummaryController(
 
   def summaryById(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewSummary) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         summaryRenderingService
           .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)
           .map(Ok(_))
@@ -71,7 +70,7 @@ class SummaryController(
 
   def submit(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.AcceptSummary) {
-      implicit request: Request[AnyContent] => implicit l => cache =>
+      implicit request: Request[AnyContent] => implicit l => cache => implicit sse =>
         processResponseDataFromBody(request, cache.formTemplate) { dataRaw =>
           val envelopeF = fileUploadService.getEnvelope(cache.form.envelopeId)
           val formFieldValidationResultsF = for {
@@ -133,7 +132,7 @@ class SummaryController(
 
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadSummaryPdf) {
-      implicit request => implicit l => cache =>
+      implicit request => implicit l => cache => implicit sse =>
         for {
           summaryHml <- summaryRenderingService
                          .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)

@@ -128,6 +128,10 @@ class ApplicationModule(context: Context)
     new DefaultSessionCookieBaker(config, secretConfiguration, cookieSigner)
   }
 
+  private val graphModule = new GraphModule(
+    authModule
+  )
+
   private val controllersModule = new ControllersModule(
     configModule,
     authModule,
@@ -136,7 +140,8 @@ class ApplicationModule(context: Context)
     auditingModule,
     this,
     sessionCookieBaker,
-    errResponder
+    errResponder,
+    graphModule
   )
 
   private val fileUploadModule = new FileUploadModule(
@@ -144,10 +149,6 @@ class ApplicationModule(context: Context)
     configModule,
     controllersModule,
     gformBackendModule
-  )
-
-  private val graphModule = new GraphModule(
-    authModule
   )
 
   private val validationModule = new ValidationModule(

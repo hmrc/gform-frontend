@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.syntax.applicative._
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals }
 import uk.gov.hmrc.gform.graph.{ NonConvertible, RecalculationOp }
@@ -46,12 +46,8 @@ class UserCtxEvaluatorProcessorTest extends Spec {
 
   it should "return enrolledIdentifier value when authModule in authConfig are set" in new UserCtxEvaluatorProcessor[Id] {
     val retrievals: AuthenticatedRetrievals = materialisedRetrievalsAgent.copy(enrolments = Enrolments(multi))
-    val enrSec = EnrolmentSection(
-      toLocalisedString("title"),
-      None,
-      Nil,
-      NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))),
-      Nil)
+    val enrSec =
+      EnrolmentSection(toSmartString("title"), None, Nil, NonEmptyList.one(IdentifierRecipe("key", FormCtx(""))), Nil)
     val auth = HmrcEnrolmentModule(
       EnrolmentAuth(
         ServiceId("IR-CT"),

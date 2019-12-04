@@ -28,15 +28,15 @@
 
 @(inputType: String,
 fieldValue: FormComponent,
-options: NonEmptyList[LocalisedString],
+options: NonEmptyList[SmartString],
 orientation: Orientation,
 prepop: Set[String],
 validationResult: Option[FormFieldValidationResult],
 optionHelpText: NonEmptyList[Html],
 index: Int,
-sectionTitle: String,
+sectionTitle: SmartString,
 formLevelHeading: Boolean
-)(implicit l: LangADT, viewHelpers: ViewHelpersAlgebra)
+)(implicit l: LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @hasErrors = @{
   validationResult.exists(_.isNotOk)

@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.sharedmodel
+package uk.gov.hmrc.gform
 
-object LabelHelper {
-  def buildRepeatingLabel(shortName: Option[SmartString], index: Int): Option[SmartString] =
-    shortName.map(buildRepeatingLabel(_, index))
+import cats.{ Id, MonadError, StackSafeMonad }
 
-  def buildRepeatingLabel(ls: SmartString, index: Int): SmartString =
-    ls.replace("$n", index.toString)
+package object typeclasses {
+  implicit val identityThrowableMonadError: MonadError[Id, Throwable] = new MonadError[Id, Throwable]
+  with StackSafeMonad[Id] {
+    override def pure[A](x: A): Id[A] = x
+
+    override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(fa)
+
+    override def raiseError[A](e: Throwable): Id[A] = throw e
+
+    override def handleErrorWith[A](fa: Id[A])(f: Throwable => Id[A]): Id[A] = fa
+  }
 }

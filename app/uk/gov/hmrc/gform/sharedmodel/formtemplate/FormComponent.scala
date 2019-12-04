@@ -24,8 +24,7 @@ import uk.gov.hmrc.gform.gform.FormComponentUpdater
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, emailFieldId, verificationCodeFieldId }
 import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithGroup, JsFormComponentModel, JsFormComponentWithCtx, JsRevealingChoiceModel }
-import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, LocalisedString, VariadicFormData }
-import shapeless.tag
+import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, SmartString, VariadicFormData }
 
 case class ExpandedFormComponent(formComponents: List[FormComponent]) extends AnyVal {
   def allIds: List[FormComponentId] = {
@@ -42,16 +41,16 @@ case class ExpandedFormComponent(formComponents: List[FormComponent]) extends An
 case class FormComponent(
   id: FormComponentId,
   `type`: ComponentType,
-  label: LocalisedString,
-  helpText: Option[LocalisedString],
-  shortName: Option[LocalisedString],
+  label: SmartString,
+  helpText: Option[SmartString],
+  shortName: Option[SmartString],
   validIf: Option[ValidIf],
   mandatory: Boolean,
   editable: Boolean,
   submissible: Boolean,
   derived: Boolean,
   onlyShowOnSummary: Boolean = false,
-  errorMessage: Option[LocalisedString],
+  errorMessage: Option[SmartString],
   presentationHint: Option[List[PresentationHint]] = None
 ) {
 
@@ -130,11 +129,7 @@ object FormComponent {
 }
 
 object IsText {
-  def unapply(fc: FormComponent): Option[Text] =
-    fc.`type` match {
-      case t @ Text(_, _, _, _) => Some(t)
-      case _                    => None
-    }
+  def unapply(fc: FormComponent): Option[Text] = fc.`type`.cast[Text]
 }
 
 object IsCapitalised {
@@ -146,87 +141,47 @@ object IsCapitalised {
 }
 
 object IsTextArea {
-  def unapply(fc: FormComponent): Option[TextArea] =
-    fc.`type` match {
-      case t @ TextArea(_, _, _) => Some(t)
-      case _                     => None
-    }
+  def unapply(fc: FormComponent): Option[TextArea] = fc.`type`.cast[TextArea]
 }
 
 object IsGroup {
-  def unapply(fc: FormComponent): Option[Group] =
-    fc.`type` match {
-      case g @ Group(_, _, _, _, _, _) => Some(g)
-      case _                           => None
-    }
+  def unapply[S](fc: FormComponent): Option[Group] = fc.`type`.cast[Group]
 }
 
 object IsMultiField {
-  def unapply(fc: FormComponent): Option[MultiField] =
-    fc.`type` match {
-      case d: MultiField => Some(d)
-      case _             => None
-    }
+  def unapply(fc: FormComponent): Option[MultiField] = fc.`type`.cast[MultiField]
 }
 
 object IsDate {
-  def unapply(fc: FormComponent): Option[Date] =
-    fc.`type` match {
-      case d @ Date(_, _, _) => Some(d)
-      case _                 => None
-    }
+  def unapply(fc: FormComponent): Option[Date] = fc.`type`.cast[Date]
 }
 
 object IsChoice {
-  def unapply(fc: FormComponent): Option[Choice] =
-    fc.`type` match {
-      case c @ Choice(_, _, _, _, _) => Some(c)
-      case _                         => None
-    }
+  def unapply(fc: FormComponent): Option[Choice] = fc.`type`.cast[Choice]
 }
 
 object IsRevealingChoice {
-  def unapply(fc: FormComponent): Option[RevealingChoice] = fc.`type`.cast[RevealingChoice]
+  def unapply[S](fc: FormComponent): Option[RevealingChoice] = fc.`type`.cast[RevealingChoice]
 }
 
 object IsAddress {
-  def unapply(fc: FormComponent): Option[Address] =
-    fc.`type` match {
-      case a @ Address(_) => Some(a)
-      case _              => None
-    }
+  def unapply(fc: FormComponent): Option[Address] = fc.`type`.cast[Address]
 }
 
 object IsUkSortCode {
-  def unapply(fc: FormComponent): Option[UkSortCode] =
-    fc.`type` match {
-      case u @ UkSortCode(_) => Some(u)
-      case _                 => None
-    }
+  def unapply(fc: FormComponent): Option[UkSortCode] = fc.`type`.cast[UkSortCode]
 }
 
 object IsInformationMessage {
-  def unapply(fc: FormComponent): Option[InformationMessage] =
-    fc.`type` match {
-      case i @ InformationMessage(_, _) => Some(i)
-      case _                            => None
-    }
+  def unapply(fc: FormComponent): Option[InformationMessage] = fc.`type`.cast[InformationMessage]
 }
 
 object IsHmrcTaxPeriod {
-  def unapply(fc: FormComponent): Option[HmrcTaxPeriod] =
-    fc.`type` match {
-      case i @ HmrcTaxPeriod(_, _, _) => Some(i)
-      case _                          => None
-    }
+  def unapply(fc: FormComponent): Option[HmrcTaxPeriod] = fc.`type`.cast[HmrcTaxPeriod]
 }
 
 object IsFileUpload {
-  def unapply(fc: FormComponent): Boolean =
-    fc.`type` match {
-      case i @ FileUpload() => true
-      case _                => false
-    }
+  def unapply(fc: FormComponent): Boolean = fc.`type`.cast[FileUpload].isDefined
 }
 
 object IsEmailVerifier {
