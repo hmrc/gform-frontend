@@ -21,11 +21,12 @@ import cats.instances.future._
 import play.api.mvc.Request
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder, SummaryPagePurpose }
 import uk.gov.hmrc.gform.graph.{ CustomerIdRecalculation, EmailParameterRecalculation, Recalculation }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, FormStatus, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormComponentId, FormTemplate, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, BundledFormSubmissionData, LangADT, PdfHtml, SubmissionData }
 import uk.gov.hmrc.gform.submission.Submission
@@ -45,7 +46,8 @@ trait GformBackEndAlgebra[F[_]] {
     formStatus: FormStatus,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    submissionDetails: Option[SubmissionDetails])(
+    submissionDetails: Option[SubmissionDetails],
+    attachments: Attachments)(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier): F[(HttpResponse, CustomerId)]
@@ -87,14 +89,15 @@ class GformBackEndService(
     formStatus: FormStatus,
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    submissionDetails: Option[SubmissionDetails])(
+    submissionDetails: Option[SubmissionDetails],
+    attachments: Attachments)(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier): Future[(HttpResponse, CustomerId)] =
     for {
       _          <- updateUserData(cache.form.copy(status = formStatus), maybeAccessCode)
       customerId <- customerIdRecalculation.evaluateCustomerId(cache)
-      response   <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails)
+      response   <- handleSubmission(maybeAccessCode, cache, customerId, submissionDetails, attachments)
     } yield (response, customerId)
 
   def forceUpdateFormStatus(formId: FormIdData, status: FormStatus)(implicit hc: HeaderCarrier): Future[Unit] =
@@ -104,10 +107,8 @@ class GformBackEndService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     customerId: CustomerId,
-    submissionDetails: Option[SubmissionDetails])(
-    implicit request: Request[_],
-    l: LangADT,
-    hc: HeaderCarrier): Future[HttpResponse] =
+    submissionDetails: Option[SubmissionDetails],
+    attachments: Attachments)(implicit request: Request[_], l: LangADT, hc: HeaderCarrier): Future[HttpResponse] =
     for {
       htmlForPDF <- summaryRenderingService
                      .createHtmlForPdf(maybeAccessCode, cache, submissionDetails, SummaryPagePurpose.ForDms)
@@ -120,7 +121,8 @@ class GformBackEndService(
                    maybeAccessCode,
                    customerId,
                    htmlForPDF,
-                   structuredFormData
+                   structuredFormData,
+                   attachments
                  )
     } yield response
 
@@ -143,12 +145,20 @@ class GformBackEndService(
     maybeAccessCode: Option[AccessCode],
     customerId: CustomerId,
     htmlForPDF: PdfHtml,
-    structuredFormData: StructuredFormValue.ObjectStructure
+    structuredFormData: StructuredFormValue.ObjectStructure,
+    attachments: Attachments
   )(implicit hc: HeaderCarrier): Future[HttpResponse] =
     gformConnector.submitForm(
       FormIdData(retrievals, formTemplate._id, maybeAccessCode),
       customerId,
-      buildSubmissionData(htmlForPDF, customerId, retrievals, formTemplate, emailParameters, structuredFormData),
+      buildSubmissionData(
+        htmlForPDF,
+        customerId,
+        retrievals,
+        formTemplate,
+        emailParameters,
+        structuredFormData,
+        attachments),
       AffinityGroupUtil.fromRetrievals(retrievals)
     )
 
@@ -158,10 +168,12 @@ class GformBackEndService(
     retrievals: MaterialisedRetrievals,
     formTemplate: FormTemplate,
     emailParameters: EmailParametersRecalculated,
-    structuredFormData: StructuredFormValue.ObjectStructure): SubmissionData =
+    structuredFormData: StructuredFormValue.ObjectStructure,
+    attachments: Attachments): SubmissionData =
     SubmissionData(
       htmlForPDF,
       FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, customerId),
       structuredFormData,
-      emailParameters)
+      emailParameters,
+      attachments)
 }

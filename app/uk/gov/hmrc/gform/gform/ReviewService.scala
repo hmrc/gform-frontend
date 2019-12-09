@@ -24,6 +24,7 @@ import cats.syntax.functor._
 import cats.syntax.traverse._
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
+import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.FormIdData
@@ -86,7 +87,8 @@ class ReviewService[F[_]](gformBackEnd: GformBackEndAlgebra[F], lookupRegistry: 
                  formStatus,
                  cache,
                  maybeAccessCode,
-                 Some(SubmissionDetails(submission, "")))
+                 Some(SubmissionDetails(submission, "")),
+                 Attachments.empty)
     } yield result._1
 
   private def buildFormDataToSubmit(formIds: NonEmptyList[FormIdData])(
