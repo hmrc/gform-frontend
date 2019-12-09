@@ -38,7 +38,7 @@ GET           /assets/*file                                                     
 
 GET           /keep-alive                                                                                        uk.gov.hmrc.gform.gform.FormController.keepAlive()
 
-DELETE        /api/forms/:formTemplateId/:maybeAccessCode/deleteFile/:fileId                                     uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileId: FileId)
+DELETE        /api/forms/:formTemplateId/:maybeAccessCode/removeFile/:fileId                                     uk.gov.hmrc.gform.fileupload.FileUploadController.deleteFile(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode], fileId: FileId)
 
 GET           /exit-survey/:formTemplateId                                                                       uk.gov.hmrc.gform.gform.AcknowledgementController.exitSurvey(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 

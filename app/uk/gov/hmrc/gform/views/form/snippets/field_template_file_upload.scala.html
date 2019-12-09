@@ -83,12 +83,12 @@
       <span href="#">@{cv.replace(fileId + "_", "")}</span>
       <a
         href="#"
-        class="delete-file"
+        class="remove-file"
         data-file-id="@fileId"
         data-form-id="@templateId"
         data-access-code="@accessCode">
-        <span aria-hidden="true">@messages("file.delete")</span>
-        <span class="visuallyhidden">@messages("file.delete.file", cv)</span>
+        <span aria-hidden="true">@messages("file.remove")</span>
+        <span class="visuallyhidden">@messages("file.remove.file", cv)</span>
       </a>
     }
   </div>

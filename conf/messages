@@ -225,8 +225,8 @@ taxPeriod.noResults=There are no options to display for this user
 
 # File upload
 file.upload=Upload a file
-file.delete=Delete
-file.delete.file=Delete {0}
+file.remove=Remove
+file.remove.file=Remove {0}
 
 # Sort code
 sortcode.part=Sort code part {0}

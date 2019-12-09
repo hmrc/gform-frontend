@@ -216,8 +216,8 @@ taxPeriod.noResults=Nid oes opsiynau i’w dangos ar gyfer y defnyddiwr hwn
 
 # File upload
 file.upload=Uwchlwytho ffeil
-file.delete=Dileu
-file.delete.file=Dileu {0}
+file.remove=Dileu
+file.remove.file=Dileu {0}
 
 # Sort code
 sortcode.part=Cod didoli rhan {0}

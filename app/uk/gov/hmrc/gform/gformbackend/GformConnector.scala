@@ -159,8 +159,8 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
     ws.GET[FormTemplate](s"$baseUrl/formtemplates/${formTemplateId.value}")
 
   /******file-upload*******/
-  def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
-    ws.DELETE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").void
+  def removeFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
+    ws.REMOVE[HttpResponse](s"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").void
 
   /********Validators******/
   def validatePostCodeUtr(utr: String, desRegistrationRequest: DesRegistrationRequest)(

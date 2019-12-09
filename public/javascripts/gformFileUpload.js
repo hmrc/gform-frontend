@@ -13,16 +13,16 @@
       en: "The file type {0} is not permitted. You can only upload {1}",
       cy: "Ni chaniateir y math o ffeil {0}. Gallwch ond uwchlwytho {1}"
     },
-    invalidFileToDelete: {
-      en: "Could not delete file, file is invalid",
+    invalidFileToRemove: {
+      en: "Could not remove file, file is invalid",
       cy: "Doedd dim modd dileu ffeil, mae’r ffeil yn annilys"
     },
     unexpectedError: {
       en: "An unexpected error occurred",
       cy: "Mae gwall annisgwyl wedi digwydd"
     },
-    deleteLabel: {
-      en: "Delete",
+    removeLabel: {
+      en: "Remove",
       cy: "Dileu"
     }
   };
@@ -197,7 +197,7 @@
     // Set up event handlers etc
     function init () {
       $('.file-upload').on('change', handleFileUpload);
-      $('.uploaded-files').on('click', '.delete-file', handleFileDelete);
+      $('.uploaded-files').on('click', '.remove-file', handleFileRemove);
     }
 
 
@@ -268,13 +268,13 @@
         .trigger('focus');
     }
 
-    // Display the uploaded file name and delete button
+    // Display the uploaded file name and remove button
     function makeFileEntry(name, fileId, formTemplateId, accessCode) {
-      return $('<span>' + name + '</span> <a href="#" class="delete-file" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">' + strings.deleteLabel[lang] + '</span><span class="visuallyhidden">' + strings.deleteLabel[lang] + ' ' + name + '</span></a>')
+      return $('<span>' + name + '</span> <a href="#" class="remove-file" data-file-id="' + fileId + '" data-form-id="' + formTemplateId + '" data-access-code="' + accessCode + '"><span aria-hidden="true">' + strings.removeLabel[lang] + '</span><span class="visuallyhidden">' + strings.removeLabel[lang] + ' ' + name + '</span></a>')
     }
 
-    // Handle file deletion
-    function handleFileDelete (e) {
+    // Handle file removal
+    function handleFileRemove (e) {
       e.preventDefault();
 
       disableSubmitButton()
@@ -285,30 +285,30 @@
       t.attr('aria-busy', 'true');
 
       if (!d.fileId) {
-        handleError($('#' + d.formId), strings.invalidFileToDelete[lang]);
+        handleError($('#' + d.formId), strings.invalidFileToRemove[lang]);
       }
 
-      var deleteUrl = '/submissions/api/forms/' + d.formId + '/' + d.accessCode + '/deleteFile/' + d.fileId + '';
+      var removeUrl = '/submissions/api/forms/' + d.formId + '/' + d.accessCode + '/removeFile/' + d.fileId + '';
 
-      return fileDelete (deleteUrl)
+      return fileRemove (removeUrl)
       .then(function(response) {
-        fileDeleteSuccess(d.fileId, t)
+        fileRemovalSuccess(d.fileId, t)
       }, function (err) {
         t.removeAttr('aria-busy')
         handleError($('#' + d.fileId), err.responseJSON && err.responseJSON.message ? err.responseJSON.message : strings.unexpectedError[lang]);
       })
     }
 
-    // Delete file
-    function fileDelete (deleteUrl) {
+    // Remove file
+    function fileRemove (removeUrl) {
       return $.ajax({
-        url: deleteUrl,
+        url: removeUrl,
         type: 'DELETE'
       });
     }
 
     // File deletion succeeded
-    function fileDeleteSuccess (fileId) {
+    function fileRemovalSuccess (fileId) {
       enableSubmitButton()
       $('#' + fileId + '-files').empty();
       $('#' + fileId).val('');

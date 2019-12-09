@@ -39,8 +39,8 @@ class FileUploadConnector(wSHttp: WSHttp, baseUrl: String)(
       case e: NotFoundException => None
     }
 
-  def deleteFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
-    Logger.info(s" delete file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
+  def removeFile(envelopeId: EnvelopeId, fileId: FileId)(implicit hc: HeaderCarrier): Future[Unit] = {
+    Logger.info(s" remove file, envelopeId: '${envelopeId.value}', fileId: '${fileId.value}', ${loggingHelpers
       .cleanHeaderCarrierHeader(hc)}")
     wSHttp
       .DELETE[HttpResponse](s"$baseUrl/envelopes/${envelopeId.value}/files/${fileId.value}")
