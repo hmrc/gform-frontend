@@ -288,7 +288,7 @@
         handleError($('#' + d.formId), strings.invalidFileToDelete[lang]);
       }
 
-      var deleteUrl = '/submissions/api/forms/' + d.formId + '/' + d.accessCode + '/deleteFile/' + d.fileId + '';
+      var deleteUrl = '/submissions/api/forms/' + d.formId + '/' + d.accessCode + '/' + d.fileId + '';
 
       return fileDelete (deleteUrl)
       .then(function(response) {
