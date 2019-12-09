@@ -16,12 +16,24 @@
 
 package uk.gov.hmrc.gform.fileupload
 
+import cats.syntax.eq._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.form.FileId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+
+case class Attachments(files: List[FormComponentId])
+
+object Attachments {
+  val empty = Attachments(Nil)
+  implicit val format = Json.format[Attachments]
+}
 
 case class Envelope(
   files: List[File]
-)
+) {
+  def contains(formComponentId: FormComponentId): Boolean =
+    files.exists(file => file.fileId.toFieldId === formComponentId)
+}
 
 object Envelope {
   val empty = Envelope(Nil)

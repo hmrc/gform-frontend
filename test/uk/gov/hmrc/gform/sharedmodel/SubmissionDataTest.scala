@@ -18,7 +18,8 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable }
+import uk.gov.hmrc.gform.fileupload.Attachments
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParameterValue, EmailParametersRecalculated, EmailTemplateVariable, FormComponentId }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
 class SubmissionDataTest extends Spec {
@@ -32,7 +33,8 @@ class SubmissionDataTest extends Spec {
       EmailParametersRecalculated(
         Map(
           EmailTemplateVariable("variable1") -> EmailParameterValue("value1"),
-          EmailTemplateVariable("variable2") -> EmailParameterValue("value2")))
+          EmailTemplateVariable("variable2") -> EmailParameterValue("value2"))),
+      Attachments(FormComponentId("proof") :: Nil)
     )
 
     Json.toJson(submissionData) should be(expectedJson)
@@ -48,28 +50,37 @@ class SubmissionDataTest extends Spec {
           |  "variables": {
           |    "value": {
           |      "user": {
-          |      "enrolledIdentifier": "ITC"
+          |        "enrolledIdentifier": "ITC"
           |      }
           |    }
           |  },
           |  "structuredFormData": {
           |    "fields": [
-          |     {
-          |       "name": "foo",
-          |       "value": {
-          |         "TextNode" : {
-          |           "value" : "fooValue"
-          |         }
-          |       },
-          |         "alternativeFieldNames":{}
-          |     }
-          |   ]
+          |      {
+          |        "name": "foo",
+          |        "value": {
+          |          "TextNode": {
+          |            "value": "fooValue"
+          |          }
+          |        },
+          |        "alternativeFieldNames": {}
+          |      }
+          |    ]
           |  },
           |  "emailParameters": {
-          |     "emailParametersMap": {
-          |       "variable1": { "value":"value1" },
-          |       "variable2": { "value":"value2" }
-          |     }
+          |    "emailParametersMap": {
+          |      "variable1": {
+          |        "value": "value1"
+          |      },
+          |      "variable2": {
+          |        "value": "value2"
+          |      }
+          |    }
+          |  },
+          |  "attachments": {
+          |    "files": [
+          |      "proof"
+          |    ]
           |  }
           |}""".stripMargin
     )

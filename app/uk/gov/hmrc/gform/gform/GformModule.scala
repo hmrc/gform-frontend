@@ -182,7 +182,8 @@ class GformModule(
     authModule.authService,
     graphModule.recalculation,
     gformBackEndService,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    fileUploadModule.fileUploadService
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry)

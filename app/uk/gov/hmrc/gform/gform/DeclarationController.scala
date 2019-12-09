@@ -27,8 +27,9 @@ import uk.gov.hmrc.gform.auth.AuthService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActionsAlgebra }
-import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope, FileUploadService }
 import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
+import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.helpers.Fields
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -52,7 +53,8 @@ class DeclarationController(
   authService: AuthService,
   recalculation: Recalculation[Future, Throwable],
   gformBackEnd: GformBackEndAlgebra[Future],
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  fileUploadService: FileUploadService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
@@ -81,10 +83,14 @@ class DeclarationController(
   def submitDeclaration(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.SubmitDeclaration) {
       implicit request => implicit l => cacheOrig =>
-        processResponseDataFromBody(request, cacheOrig.formTemplate) { dataRaw =>
-          dataRaw.one(FormComponentId("save")) match {
-            case Some("Continue") => continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode)
-            case _                => Future.successful(BadRequest("Cannot determine action"))
+        val envelopeId = cacheOrig.form.envelopeId
+        fileUploadService.getEnvelope(envelopeId).flatMap { envelope =>
+          processResponseDataFromBody(request, cacheOrig.formTemplate) { dataRaw =>
+            dataRaw.one(FormComponentId("save")) match {
+              case Some("Continue") =>
+                continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode, envelopeId, envelope)
+              case _ => Future.successful(BadRequest("Cannot determine action"))
+            }
           }
         }
     }
@@ -92,24 +98,48 @@ class DeclarationController(
   private def continueToSubmitDeclaration(
     cache: AuthCacheWithForm,
     dataRaw: VariadicFormData,
-    maybeAccessCode: Option[AccessCode])(implicit request: Request[_], l: LangADT) = {
+    maybeAccessCode: Option[AccessCode],
+    envelopeId: EnvelopeId,
+    envelope: Envelope)(implicit request: Request[_], l: LangADT) = {
 
     import i18nSupport._
 
     val declarationData = FormDataRecalculated(Set.empty, RecData.fromData(dataRaw))
     for {
-      cacheWithHiddenSectionDataRemoved <- removeHiddenSectionData(cache)
+      tuple <- removeHiddenSectionDataAndCalculateAttachments(cache, envelope)
+      (cacheWithHiddenSectionDataRemoved, attachments) = tuple
+      _ <- cleanseEnvelope(envelopeId, envelope, attachments)
       valRes <- validationService
                  .validateComponentsWithCache(cacheWithHiddenSectionDataRemoved, declarationData, Envelope.empty)
-      response <- processValidation(valRes, maybeAccessCode, cacheWithHiddenSectionDataRemoved, declarationData)
+      response <- processValidation(
+                   valRes,
+                   maybeAccessCode,
+                   cacheWithHiddenSectionDataRemoved,
+                   declarationData,
+                   attachments)
     } yield response
   }
 
-  private def removeHiddenSectionData(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
+  private def cleanseEnvelope(envelopeId: EnvelopeId, envelope: Envelope, attachments: Attachments)(
+    implicit hc: HeaderCarrier): Future[List[Unit]] = {
+    val lookup = attachments.files.toSet
+    val toRemove = envelope.files.filterNot { file =>
+      lookup.contains(file.fileId.toFieldId)
+    }
+
+    Logger.warn(s"Removing ${toRemove.size} files from envelopeId $envelopeId.")
+
+    Future.traverse(toRemove) { file =>
+      fileUploadService.deleteFile(envelopeId, file.fileId)
+    }
+  }
+
+  private def removeHiddenSectionDataAndCalculateAttachments(cache: AuthCacheWithForm, envelope: Envelope)(
+    implicit hc: HeaderCarrier) =
     recalculateFormData(cache).map { data =>
-      val visibleFields: Seq[FormField] = VisibleFieldCalculator(cache.formTemplate, cache.form.formData, data)
+      val (visibleFields, attachments) = VisibleFieldCalculator(cache.formTemplate, cache.form.formData, data, envelope)
       val updatedForm = cache.form.copy(formData = cache.form.formData.copy(fields = visibleFields))
-      cache.copy(form = updatedForm)
+      (cache.copy(form = updatedForm), attachments)
     }
 
   private def recalculateFormData(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier) =
@@ -126,9 +156,10 @@ class DeclarationController(
     valType: ValidatedType[Unit],
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    data: FormDataRecalculated
+    data: FormDataRecalculated,
+    attachments: Attachments
   )(implicit request: Request[_], l: LangADT) = valType match {
-    case Valid(())                     => processValid(cache, data, maybeAccessCode)
+    case Valid(())                     => processValid(cache, data, maybeAccessCode, attachments)
     case validationResult @ Invalid(_) => processInvalid(maybeAccessCode, cache, data, validationResult)
   }
 
@@ -139,12 +170,14 @@ class DeclarationController(
     validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT): Future[Result] =
     Future.successful(Ok(createHtmlForInvalidSubmission(maybeAccessCode, cache, data, validationResult)))
 
-  private def processValid(cache: AuthCacheWithForm, data: FormDataRecalculated, maybeAccessCode: Option[AccessCode])(
-    implicit request: Request[_],
-    l: LangADT): Future[Result] = {
+  private def processValid(
+    cache: AuthCacheWithForm,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    attachments: Attachments)(implicit request: Request[_], l: LangADT): Future[Result] = {
     val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
     gformBackEnd
-      .submitWithUpdatedFormStatus(Signed, updatedCache, maybeAccessCode, None)
+      .submitWithUpdatedFormStatus(Signed, updatedCache, maybeAccessCode, None, attachments)
       .map {
         case (_, customerId) => showAcknowledgement(updatedCache, maybeAccessCode, customerId)
       }

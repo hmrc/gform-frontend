@@ -16,13 +16,18 @@
 
 package uk.gov.hmrc.gform.gform
 
+import uk.gov.hmrc.gform.fileupload.{ Attachments, Envelope }
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 object VisibleFieldCalculator {
-  def apply(template: FormTemplate, data: FormData, formDataRecalculated: FormDataRecalculated): Seq[FormField] = {
+  def apply(
+    template: FormTemplate,
+    data: FormData,
+    formDataRecalculated: FormDataRecalculated,
+    envelope: Envelope): (Seq[FormField], Attachments) = {
     val allSections = RepeatingComponentService.getAllSections(template, formDataRecalculated)
     val visibleSections = allSections.filter(formDataRecalculated.isVisible)
     val formComponentsInVisibleSections =
@@ -35,6 +40,10 @@ object VisibleFieldCalculator {
       formComponentsInVisibleSections
     )
 
+    val visibleFileUploads = visibleFormComponents.collect {
+      case fc @ IsFileUpload() if envelope.contains(fc.id) => fc.id
+    }
+
     val visibleFormComponentIds: Set[FormComponentId] = visibleFormComponents.flatMap { component =>
       component match {
         case fc @ IsMultiField(mf) => component.id :: mf.fields(fc.id).toList
@@ -42,8 +51,10 @@ object VisibleFieldCalculator {
       }
     }.toSet
 
-    data.fields.filter { field =>
+    val visibleFields = data.fields.filter { field =>
       visibleFormComponentIds(field.id)
     }
+
+    (visibleFields, Attachments(visibleFileUploads))
   }
 }

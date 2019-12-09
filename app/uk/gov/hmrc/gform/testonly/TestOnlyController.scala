@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.controllers.helpers.ProxyActions
 import uk.gov.hmrc.gform.core._
 import uk.gov.hmrc.gform.exceptions.UnexpectedState
+import uk.gov.hmrc.gform.fileupload.Attachments
 import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder, StructuredFormDataBuilder }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
@@ -123,7 +124,8 @@ class TestOnlyController(
         PdfHtml("htmlForPDF"),
         FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, customerId),
         structuredFormData,
-        emailParameters)
+        emailParameters,
+        Attachments.empty)
 
       httpResponse <- recov(
                        gformConnector
