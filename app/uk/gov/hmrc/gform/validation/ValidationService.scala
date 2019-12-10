@@ -35,7 +35,7 @@ import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrati
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -165,7 +165,8 @@ class ValidationService(
 
   private def validateUsingValidators(section: Section, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier,
-    messages: Messages): Future[ValidatedType[ValidationResult]] =
+    messages: Messages,
+    sse: SmartStringEvaluator): Future[ValidatedType[ValidationResult]] =
     section.validators
       .map(validateUsingSectionValidators(_, data))
       .getOrElse(ValidationResult.empty.valid.pure[Future])
@@ -219,7 +220,8 @@ class ValidationService(
 
   private def validateUsingSectionValidators(v: Validator, data: FormDataRecalculated)(
     implicit hc: HeaderCarrier,
-    messages: Messages): Future[ValidatedType[ValidationResult]] = {
+    messages: Messages,
+    sse: SmartStringEvaluator): Future[ValidatedType[ValidationResult]] = {
     def dataGetter(fieldId: FormComponentId): String = data.data.oneOrElse(fieldId, "")
 
     def compare(postCode: String)(drr: DesRegistrationResponse): Boolean = {
@@ -237,7 +239,7 @@ class ValidationService(
         val utrValue = findByKey(utr.value)
         val postcodeValue = findByKey(postcode.value)
 
-        val errors = Map(utr.toFieldId -> Set(errorMessage), postcode.toFieldId -> Set(errorMessage))
+        val errors = Map(utr.toFieldId -> Set(errorMessage.value), postcode.toFieldId -> Set(errorMessage.value))
 
         val desRegistrationRequest = DesRegistrationRequest(regime, false, false)
 
@@ -254,7 +256,8 @@ class ValidationService(
           }
       case BankAccoutnModulusCheck(errorMessage, accountNumber, sortCode) =>
         val sortCodeCombined = UkSortCode.fields(sortCode.toFieldId).toList.map(dataGetter).mkString("-")
-        val errors = Map(accountNumber.toFieldId -> Set(errorMessage), sortCode.toFieldId -> Set(errorMessage))
+        val errors =
+          Map(accountNumber.toFieldId -> Set(errorMessage.value), sortCode.toFieldId -> Set(errorMessage.value))
         gformConnector
           .validateBankModulus(dataGetter(accountNumber.toFieldId), sortCodeCombined)
           .map(b => if (b) ValidationResult.empty.valid else errors.invalid)

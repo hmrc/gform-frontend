@@ -19,9 +19,10 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 sealed trait Validator {
-  def errorMessage: String
+  def errorMessage: SmartString
 }
 
 case object Validator {
@@ -35,7 +36,11 @@ case object Validator {
   implicit val format: OFormat[Validator] = OFormatWithTemplateReadFallback(templateReads)
 }
 
-case class HmrcRosmRegistrationCheckValidator(errorMessage: String, regime: String, utr: FormCtx, postcode: FormCtx)
+case class HmrcRosmRegistrationCheckValidator(
+  errorMessage: SmartString,
+  regime: String,
+  utr: FormCtx,
+  postcode: FormCtx)
     extends Validator {
   val utrFieldId = FormComponentId(utr.value)
   val postcodeFieldId = FormComponentId(postcode.value)
@@ -43,7 +48,7 @@ case class HmrcRosmRegistrationCheckValidator(errorMessage: String, regime: Stri
 
 object HmrcRosmRegistrationCheckValidator {
   private val readCustom: Reads[HmrcRosmRegistrationCheckValidator] =
-    ((JsPath \ "errorMessage").read[String] and
+    ((JsPath \ "errorMessage").read[SmartString] and
       (JsPath \ "parameters" \ "regime").read[String] and
       (JsPath \ "parameters" \ "utr").read(FormCtx.readsForTemplateJson) and
       (JsPath \ "parameters" \ "postcode")
@@ -52,7 +57,8 @@ object HmrcRosmRegistrationCheckValidator {
   implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = OFormatWithTemplateReadFallback(readCustom)
 }
 
-case class BankAccoutnModulusCheck(errorMessage: String, accountNumber: FormCtx, sortCode: FormCtx) extends Validator {
+case class BankAccoutnModulusCheck(errorMessage: SmartString, accountNumber: FormCtx, sortCode: FormCtx)
+    extends Validator {
 
   val accountNumberId = accountNumber.toFieldId
   val sortCodeId = sortCode.toFieldId
@@ -60,7 +66,7 @@ case class BankAccoutnModulusCheck(errorMessage: String, accountNumber: FormCtx,
 
 object BankAccoutnModulusCheck {
   private val readCustom: Reads[BankAccoutnModulusCheck] =
-    ((JsPath \ "errorMessage").read[String] and
+    ((JsPath \ "errorMessage").read[SmartString] and
       (JsPath \ "parameters" \ "accountNumber").read(FormCtx.readsForTemplateJson) and
       (JsPath \ "parameters" \ "sortCode").read(FormCtx.readsForTemplateJson))(BankAccoutnModulusCheck.apply _)
 
