@@ -40,8 +40,11 @@ object VisibleFieldCalculator {
       formComponentsInVisibleSections
     )
 
+    val wvfu = new WithVisibleFileUploads(envelope)
+
     val visibleFileUploads = visibleFormComponents.collect {
-      case fc @ IsFileUpload() if envelope.contains(fc.id) => fc.id
+      case IsGroup(wvfu.WithVisibleFileUploads(fileUploads)) => fileUploads
+      case fc @ IsFileUpload() if envelope.contains(fc.id)   => List(fc.id)
     }
 
     val visibleFormComponentIds: Set[FormComponentId] = visibleFormComponents.flatMap { component =>
@@ -55,6 +58,17 @@ object VisibleFieldCalculator {
       visibleFormComponentIds(field.id)
     }
 
-    (visibleFields, Attachments(visibleFileUploads))
+    (visibleFields, Attachments(visibleFileUploads.flatten))
+  }
+}
+
+private class WithVisibleFileUploads(envelope: Envelope) {
+  object WithVisibleFileUploads {
+    def unapply(group: Group): Option[List[FormComponentId]] = {
+      val fcIds = group.fields.collect {
+        case fc @ IsFileUpload() if envelope.contains(fc.id) => fc.id
+      }
+      if (fcIds.isEmpty) None else Some(fcIds)
+    }
   }
 }
