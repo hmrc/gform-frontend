@@ -303,7 +303,7 @@
     function fileDelete (deleteUrl) {
       return $.ajax({
         url: deleteUrl,
-        type: 'DELETE'
+        type: 'GET'
       });
     }
 
