@@ -39,7 +39,6 @@ case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
 case class FormTemplate(
   _id: FormTemplateId,
   formName: LocalisedString,
-  description: LocalisedString,
   developmentPhase: Option[DevelopmentPhase],
   formCategory: FormCategory,
   draftRetrievalMethod: DraftRetrievalMethod,
@@ -75,7 +74,6 @@ object FormTemplate {
   private case class DeprecatedFormTemplateWithDmsSubmission(
     _id: FormTemplateId,
     formName: LocalisedString,
-    description: LocalisedString,
     developmentPhase: Option[DevelopmentPhase],
     formCategory: FormCategory,
     draftRetrievalMethod: DraftRetrievalMethod,
@@ -95,7 +93,6 @@ object FormTemplate {
       FormTemplate(
         _id: FormTemplateId,
         formName: LocalisedString,
-        description: LocalisedString,
         developmentPhase: Option[DevelopmentPhase],
         formCategory: FormCategory,
         draftRetrievalMethod: DraftRetrievalMethod,
@@ -138,7 +135,6 @@ object FormTemplate {
   def withDeprecatedDmsSubmission(
     _id: FormTemplateId,
     formName: LocalisedString,
-    description: LocalisedString,
     developmentPhase: Option[DevelopmentPhase] = Some(ResearchBanner),
     formCategory: FormCategory,
     draftRetrievalMethod: DraftRetrievalMethod = OnePerUser(ContinueOrDeletePage.Show),
@@ -157,7 +153,6 @@ object FormTemplate {
     DeprecatedFormTemplateWithDmsSubmission(
       _id,
       formName,
-      description,
       developmentPhase,
       formCategory,
       draftRetrievalMethod,
