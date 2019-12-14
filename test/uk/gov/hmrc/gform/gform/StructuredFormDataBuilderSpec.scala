@@ -440,7 +440,6 @@ class StructuredFormDataBuilderSpec extends Spec {
       null,
       null,
       null,
-      null,
       List(section),
       acknowledgementSection.getOrElse(AcknowledgementSection(toSmartString("Ack"), None, None, Nil)),
       declarationSection.getOrElse(DeclarationSection(toSmartString("Decl"), None, None, Nil)),
