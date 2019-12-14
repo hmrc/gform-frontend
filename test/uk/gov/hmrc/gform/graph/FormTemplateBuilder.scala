@@ -114,7 +114,6 @@ object FormTemplateBuilder {
     Some(BetaBanner),
     Default,
     OnePerUser(ContinueOrDeletePage.Show),
-    None,
     DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
