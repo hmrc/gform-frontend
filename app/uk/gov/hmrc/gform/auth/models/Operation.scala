@@ -22,6 +22,7 @@ object OperationWithoutForm {
   final case object EditForm extends OperationWithoutForm
   final case object ShowAccessCode extends OperationWithoutForm
   final case object ViewDashboard extends OperationWithoutForm
+  final case object Lookup extends OperationWithoutForm
 }
 
 sealed trait OperationWithForm extends Product with Serializable

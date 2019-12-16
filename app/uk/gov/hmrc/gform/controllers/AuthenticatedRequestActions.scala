@@ -173,7 +173,7 @@ class AuthenticatedRequestActions(
       } yield result
   }
 
-  def async(formTemplateId: FormTemplateId)(
+  private def async(formTemplateId: FormTemplateId)(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
     actionBuilder.async { implicit request =>
       implicit val l: LangADT = getCurrentLanguage(request)

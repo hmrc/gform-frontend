@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.fileupload
 
 import play.api.mvc.MessagesControllerComponents
+import uk.gov.hmrc.gform.auth.models.OperationWithForm.EditForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
@@ -38,11 +39,12 @@ class FileUploadController(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
     fileId: FileId
-  ) = auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit l => cache => _ =>
-    for {
-      form <- gformConnector.getForm(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
-      _    <- fileUploadService.deleteFile(form.envelopeId, fileId)
-    } yield NoContent
+  ) = auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, EditForm) {
+    implicit request => implicit l => cache => _ =>
+      for {
+        form <- gformConnector.getForm(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
+        _    <- fileUploadService.deleteFile(form.envelopeId, fileId)
+      } yield NoContent
   }
 
 }
