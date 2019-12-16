@@ -224,10 +224,6 @@
 
       $input.attr('aria-busy', true);
 
-      if (window.gform.contentTypes.indexOf(file.type) === null) {
-        return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
-      }
-
       if (window.gform.contentTypes.indexOf(file.type) === 0  || window.gform.contentTypes.indexOf(file.type) !== humanReadableMimeTypes) {
               return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
       }
