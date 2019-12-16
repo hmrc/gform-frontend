@@ -228,6 +228,12 @@
         return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
       }
 
+      if (window.gform.contentTypes.indexOf(file.type) != humanReadableMimeTypes) {
+              return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
+      }
+
+
+
       if (file.size > (maxFileSize * 1024 * 1024)) {
         return handleError($input, interpolate(strings.maxSizeError[lang], [maxFileSize]));
       }
