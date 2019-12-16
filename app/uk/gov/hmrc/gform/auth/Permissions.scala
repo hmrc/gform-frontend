@@ -38,6 +38,7 @@ object Permissions {
   private[auth] def evaluateOperationWithoutForm(operation: OperationWithoutForm, role: Role)(
     implicit logger: Logger): PermissionResult =
     (operation, role) match {
+      case (Lookup, _)                         => valid(operation, role)
       case (EditFormWithout, Agent | Customer) => valid(operation, role)
       case (ShowAccessCode, Agent | Customer)  => valid(operation, role)
       case (ViewDashboard, _)                  => valid(operation, role)
