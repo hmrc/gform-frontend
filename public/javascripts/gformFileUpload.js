@@ -224,11 +224,14 @@
 
       $input.attr('aria-busy', true);
 
-      if (window.gform.contentTypes.indexOf(file.type) === 0  || window.gform.contentTypes.indexOf(file.type) !== humanReadableMimeTypes) {
-              return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
+
+      if (window.gform.contentTypes.indexOf(file.type) === null) {
+        return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
       }
 
-
+      if (window.gform.contentTypes.indexOf(file.type) === 0) {
+              return handleError($input, interpolate(strings.fileTypeError[lang], [transformMimeTypes(file.type), transformMimeTypes(window.gform.contentTypes)]));
+      }
 
       if (file.size > (maxFileSize * 1024 * 1024)) {
         return handleError($input, interpolate(strings.maxSizeError[lang], [maxFileSize]));
@@ -305,7 +308,7 @@
     function fileDelete (deleteUrl) {
       return $.ajax({
         url: deleteUrl,
-        type: 'DELETE'
+        type: 'GET'
       });
     }
 
