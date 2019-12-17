@@ -382,7 +382,7 @@ accessibility.content.block7.h22=Non-compliance with the accessibility regulatio
 accessibility.content.block7.h22.p1=Small sections of information visible on the pages may not automatically be read out by a screen reader. This does not meet WCAG 2.1 success criterion 3.3.2 (labels or instructions).
 accessibility.content.block7.h22.p2=Some information may be ordered in a way that is more difficult to use for people using a screen reader. This does not meet WCAG 2.1 success criterion 1.3.2 (meaningful sequence).
 accessibility.content.block7.h22.p3=Some error messages may not contain the full information needed to help people to answer questions. This does not meet WCAG 2.1 success criterion 3.3.3 (error suggestion).
-accessibility.content.block7.h22.p4=We are working on these issues and will fix them by 20 December 2019.
+accessibility.content.block7.h22.p4=We are working on these issues and will fix them by 31 March 2020.
 
 accessibility.subheading8=How we tested this service
 accessibility.content.block8.p1=This service was built using parts that were tested by <a href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
