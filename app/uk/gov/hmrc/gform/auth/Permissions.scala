@@ -20,7 +20,7 @@ import org.slf4j.helpers.NOPLogger
 import play.api.Logger
 import uk.gov.hmrc.gform.auth.models.OperationWithForm.{ EditForm => EditFormWith, _ }
 import uk.gov.hmrc.gform.auth.models.OperationWithoutForm.{ EditForm => EditFormWithout, _ }
-import uk.gov.hmrc.gform.auth.models.PermissionResult.{ NotPermitted, Permitted }
+import uk.gov.hmrc.gform.auth.models.PermissionResult.{ FormSubmitted, NotPermitted, Permitted }
 import uk.gov.hmrc.gform.auth.models.Role.{ Agent, Customer, Reviewer }
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm, PermissionResult, Role }
 import uk.gov.hmrc.gform.logging.Loggers
@@ -50,7 +50,7 @@ object Permissions {
     (operation, role, status) match {
       case (DownloadSummaryPdf, _, _)                                      => valid(operation, role, status)
       case (ViewAcknowledgement, _, Submitted | NeedsReview)               => valid(operation, role, status)
-      case (_, _, Submitted)                                               => definitelyInvalid(operation, role, status)
+      case (_, _, Submitted)                                               => formSubmitted(operation, role, status)
       case (EditFormWith, Agent | Customer, CustomerEditableFormStatus(_)) => valid(operation, role, status)
       case (EditFormWith, Customer | Agent, _)                             => mostLikelyInvalid(operation, role, status)
       case (EditFormWith, Reviewer, StableReviewFormStatus(_))             => valid(operation, role, status)
@@ -130,6 +130,17 @@ object Permissions {
         "Invalid",
         "This combination has been examined and is correctly blocked."))
     NotPermitted
+  }
+
+  private def formSubmitted(operation: OperationWithForm, role: Role, status: FormStatus)(implicit logger: Logger) = {
+    logger.info(
+      formatLogMessage(
+        operation.toString,
+        role,
+        Some(status),
+        "FormSubmitted",
+        "This combination has been blocked because the form has been submitted."))
+    FormSubmitted
   }
 
   private def formatLogMessage(

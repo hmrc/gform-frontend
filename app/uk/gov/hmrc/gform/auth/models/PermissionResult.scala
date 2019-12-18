@@ -23,6 +23,7 @@ sealed trait PermissionResult extends Product with Serializable
 object PermissionResult {
   final case object Permitted extends PermissionResult
   final case object NotPermitted extends PermissionResult
+  final case object FormSubmitted extends PermissionResult
 
   implicit val equal: Eq[PermissionResult] = Eq.fromUniversalEquals
 }

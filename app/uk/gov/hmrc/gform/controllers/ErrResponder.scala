@@ -23,6 +23,7 @@ import play.api.mvc.Results.{ BadRequest, Forbidden, InternalServerError, NotFou
 import play.api.mvc.{ RequestHeader, Result }
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.concurrent.Future
@@ -66,6 +67,9 @@ class ErrResponder(
     Future.successful(BadRequest(renderBadRequest(requestHeader)))
   }
 
+  def formSubmitted(requestHeader: RequestHeader, formTemplateId: FormTemplateId): Future[Result] =
+    Future.successful(Forbidden(renderFormSubmitted(requestHeader, formTemplateId)))
+
   def notFound(requestHeader: RequestHeader, message: String): Future[Result] = {
     Logger.logger.info(s"Page NotFound: $message")
     httpAuditingService.auditNotFound(requestHeader)
@@ -85,6 +89,12 @@ class ErrResponder(
     "We're sorry, but this page is restricted.",
     frontendAppConfig
   )
+
+  private def renderFormSubmitted(implicit request: RequestHeader, formTemplateId: FormTemplateId) =
+    renderFormAlreadySubmittedPage(
+      formTemplateId,
+      frontendAppConfig
+    )
 
   private def renderNotFound(implicit request: RequestHeader) = renderErrorPage(
     pageTitle = Messages("global.error.pageNotFound404.title"),
@@ -107,4 +117,8 @@ class ErrResponder(
     frontendAppConfig: FrontendAppConfig
   )(implicit request: RequestHeader) = views.html.error_template(pageTitle, heading, message, frontendAppConfig)
 
+  private def renderFormAlreadySubmittedPage(
+    formTemplateId: FormTemplateId,
+    frontendAppConfig: FrontendAppConfig
+  )(implicit request: RequestHeader) = views.html.form_already_submitted(formTemplateId, frontendAppConfig)
 }

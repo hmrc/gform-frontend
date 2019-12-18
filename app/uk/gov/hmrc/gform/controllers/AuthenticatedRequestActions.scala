@@ -157,8 +157,9 @@ class AuthenticatedRequestActions(
     f: Request[AnyContent] => LangADT => AuthCacheWithoutForm => Future[Result]): Action[AnyContent] =
     authWithoutRetrievingForm(formTemplateId) { request => lang => cache =>
       Permissions.apply(operation, cache.role) match {
-        case PermissionResult.Permitted    => f(request)(lang)(cache)
-        case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
+        case PermissionResult.Permitted     => f(request)(lang)(cache)
+        case PermissionResult.NotPermitted  => errResponder.forbidden(request, "Access denied")
+        case PermissionResult.FormSubmitted => errResponder.formSubmitted(request, formTemplateId)
       }
     }
 
@@ -223,8 +224,9 @@ class AuthenticatedRequestActions(
     : Action[AnyContent] =
     async(formTemplateId, maybeAccessCode) { request => lang => cache => smartStringEvaluator =>
       Permissions.apply(operation, cache.role, cache.form.status) match {
-        case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)
-        case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
+        case PermissionResult.Permitted     => f(request)(lang)(cache)(smartStringEvaluator)
+        case PermissionResult.NotPermitted  => errResponder.forbidden(request, "Access denied")
+        case PermissionResult.FormSubmitted => errResponder.formSubmitted(request, formTemplateId)
       }
     }
 
