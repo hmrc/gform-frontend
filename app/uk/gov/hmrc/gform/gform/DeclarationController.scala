@@ -205,7 +205,7 @@ class DeclarationController(
 
     Redirect(
       uk.gov.hmrc.gform.gform.routes.AcknowledgementController
-        .showAcknowledgement(maybeAccessCode, cache.form.formTemplateId, submissionEventId))
+        .showAcknowledgement(maybeAccessCode, cache.form.formTemplateId))
   }
 
   private def auditSubmissionEvent(cache: AuthCacheWithForm, customerId: CustomerId)(implicit request: Request[_]) =

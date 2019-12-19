@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents, ResponseHeader, Result }
+import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gformbackend.GformConnector
@@ -26,7 +27,7 @@ import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
+import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -41,39 +42,36 @@ class AcknowledgementController(
   summaryRenderingService: SummaryRenderingService,
   gformConnector: GformConnector,
   nonRepudiationHelpers: NonRepudiationHelpers,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  customerIdRecalulation: CustomerIdRecalculation[Future],
+  auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
   def showAcknowledgement(
     maybeAccessCode: Option[AccessCode],
-    formTemplateId: FormTemplateId,
-    eventId: String
+    formTemplateId: FormTemplateId
   ): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
       implicit request => implicit l => cache => implicit sse =>
         import i18nSupport._
         renderer
-          .renderAcknowledgementSection(
-            maybeAccessCode,
-            cache.formTemplate,
-            cache.retrievals,
-            eventId,
-            cache.form.envelopeId)
+          .renderAcknowledgementSection(maybeAccessCode, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
           .map(Ok(_))
     }
 
-  def downloadPDF(
-    maybeAccessCode: Option[AccessCode],
-    formTemplateId: FormTemplateId,
-    eventId: String): Action[AnyContent] =
+  def downloadPDF(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
       implicit request => implicit l => cache => implicit sse =>
         val formString = nonRepudiationHelpers.formDataToJson(cache.form)
         val hashedValue = nonRepudiationHelpers.computeHash(formString)
-        nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
 
         for {
+          customerId <- customerIdRecalulation.evaluateCustomerId(cache)
+          eventId = auditService
+            .calculateSubmissionEvent(cache.form, cache.formTemplate, cache.retrievals, customerId)
+            .eventId
+          _          <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
           submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
           htmlForPDF <- summaryRenderingService
                          .createHtmlForPdf(

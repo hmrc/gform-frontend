@@ -25,7 +25,6 @@
   supportContents: SectionRenderingInformation,
   formCategory: FormCategory,
   formTemplate: FormTemplate,
-  eventId: String,
   frontendAppConfig: FrontendAppConfig
 )(implicit
   request: Request[_],
@@ -71,7 +70,7 @@
 
   <p>
     <a
-      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id, eventId).url"
+      href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id).url"
       class="print-link print-hidden js-visible">
         @messages("ack.pdfLink", formCat)
     </a>

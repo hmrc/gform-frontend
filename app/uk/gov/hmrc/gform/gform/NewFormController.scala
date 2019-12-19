@@ -30,7 +30,6 @@ import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
-import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }

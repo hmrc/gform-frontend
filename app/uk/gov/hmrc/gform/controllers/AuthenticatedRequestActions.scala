@@ -159,7 +159,7 @@ class AuthenticatedRequestActions(
       Permissions.apply(operation, cache.role) match {
         case PermissionResult.Permitted     => f(request)(lang)(cache)
         case PermissionResult.NotPermitted  => errResponder.forbidden(request, "Access denied")
-        case PermissionResult.FormSubmitted => errResponder.formSubmitted(request, formTemplateId)
+        case PermissionResult.FormSubmitted => errResponder.forbidden(request, "Access denied")
       }
     }
 
@@ -224,9 +224,12 @@ class AuthenticatedRequestActions(
     : Action[AnyContent] =
     async(formTemplateId, maybeAccessCode) { request => lang => cache => smartStringEvaluator =>
       Permissions.apply(operation, cache.role, cache.form.status) match {
-        case PermissionResult.Permitted     => f(request)(lang)(cache)(smartStringEvaluator)
-        case PermissionResult.NotPermitted  => errResponder.forbidden(request, "Access denied")
-        case PermissionResult.FormSubmitted => errResponder.formSubmitted(request, formTemplateId)
+        case PermissionResult.Permitted    => f(request)(lang)(cache)(smartStringEvaluator)
+        case PermissionResult.NotPermitted => errResponder.forbidden(request, "Access denied")
+        case PermissionResult.FormSubmitted =>
+          Redirect(
+            uk.gov.hmrc.gform.gform.routes.AcknowledgementController
+              .showAcknowledgement(maybeAccessCode, formTemplateId)).pure[Future]
       }
     }
 

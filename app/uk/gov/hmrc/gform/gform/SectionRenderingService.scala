@@ -303,7 +303,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
-    eventId: String,
     envelopeId: EnvelopeId)(
     implicit hc: HeaderCarrier,
     request: Request[_],
@@ -360,7 +359,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       )
     } yield
       uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
-        .acknowledgement(timeMessage, renderingInfo, formCategory, formTemplate, eventId, frontendAppConfig)
+        .acknowledgement(timeMessage, renderingInfo, formCategory, formTemplate, frontendAppConfig)
   }
 
   def renderEnrolmentSection(
