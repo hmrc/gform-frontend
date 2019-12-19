@@ -24,11 +24,11 @@
 
 
 @errorContentHeader = {
-  <h1>Form already submitted</h1>
+  <h1 class="govuk-heading-xl">Form already submitted</h1>
 }
 
 @mainContent = {
-  <p>The form you are trying to access has already been submitted.</p>
+  <p class="govuk-body">The form you are trying to access has already been submitted.</p>
 }
 
 @govuk_wrapper(appConfig = frontendAppConfig, title = "Form already submitted", serviceTitle = "Form already submitted", headTitle = "Form already submitted", contentHeader = Some(errorContentHeader), mainContent = mainContent, authConfig = None, includeHMRCBranding = false, templateId = FormTemplateId(""))
