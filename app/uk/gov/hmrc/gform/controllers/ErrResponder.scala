@@ -106,5 +106,4 @@ class ErrResponder(
     message: String,
     frontendAppConfig: FrontendAppConfig
   )(implicit request: RequestHeader) = views.html.error_template(pageTitle, heading, message, frontendAppConfig)
-
 }

@@ -147,7 +147,9 @@ class GformModule(
     summaryRenderingService,
     gformBackendModule.gformConnector,
     new NonRepudiationHelpers(auditingModule),
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    graphModule.customerIdRecalculation,
+    auditingModule.auditService
   )
 
   val errorController = new ErrorController(
