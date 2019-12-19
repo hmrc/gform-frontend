@@ -189,7 +189,7 @@ object PermissionsTable extends App {
   private val logged: Map[Row, Boolean] = readLoggedOperations
   println(logged)
 
-  private val enumeratedRows: Seq[(Row, Boolean)] = sort(enumerateRows)
+  private val enumeratedRows: Seq[(Row, PermissionResult)] = sort(enumerateRows)
   println(enumeratedRows)
 
   showTable("Tested", row => logged.contains(row))
@@ -211,11 +211,20 @@ object PermissionsTable extends App {
     println(c * title.length)
   }
 
-  private def sort(map: Map[Row, Boolean]): Seq[(Row, Boolean)] =
-    map.toList.sortBy(row => (showStatus(row._1), row._1.role, row._1.operation, row._2))
+  private def sort(map: Map[Row, PermissionResult]): Seq[(Row, PermissionResult)] =
+    map.toList.sortBy(row => (showStatus(row._1), row._1.role, row._1.operation))
 
-  private def show(row: Row, valid: Boolean): String =
-    showRow(showStatus(row), row.role, row.operation, if (valid) "Valid" else "Invalid")
+  private def show(row: Row, valid: PermissionResult): String =
+    showRow(
+      showStatus(row),
+      row.role,
+      row.operation,
+      valid match {
+        case PermissionResult.Permitted     => "Permitted"
+        case PermissionResult.NotPermitted  => "Not Permitted"
+        case PermissionResult.FormSubmitted => "Form Submitted"
+      }
+    )
 
   private def showRow(status: String, role: String, operation: String, validity: String): String = {
     val paddedValidity = pad(validity, 10)
@@ -233,22 +242,23 @@ object PermissionsTable extends App {
 
   private def pad(s: String, l: Int) = s + (" " * (l - s.length))
 
-  private def enumerateRows: Map[Row, Boolean] =
+  private def enumerateRows: Map[Row, PermissionResult] =
     enumerateWithoutFormPermittedRows ++ enumerateWithFormPermittedRows
 
-  private def enumerateWithoutFormPermittedRows: Map[Row, Boolean] = {
+  private def enumerateWithoutFormPermittedRows: Map[Row, PermissionResult] = {
     for {
       operation <- Set(
                     OperationWithoutForm.EditForm,
                     OperationWithoutForm.ShowAccessCode,
-                    OperationWithoutForm.ViewDashboard)
+                    OperationWithoutForm.ViewDashboard,
+                    OperationWithoutForm.Lookup)
       role <- roles
     } yield
       RowWithoutForm(operation.toString, role.toString) -> (Permissions.evaluateOperationWithoutForm(operation, role)(
-        new Logger(NOPLogger.NOP_LOGGER)) === PermissionResult.Permitted)
+        new Logger(NOPLogger.NOP_LOGGER)))
   }.toMap
 
-  private def enumerateWithFormPermittedRows: Map[Row, Boolean] = {
+  private def enumerateWithFormPermittedRows: Map[Row, PermissionResult] = {
     for {
       operation <- Set(
                     OperationWithForm.ForceUpdateFormStatus,
@@ -261,20 +271,19 @@ object PermissionsTable extends App {
                     OperationWithForm.ReviewAccepted,
                     OperationWithForm.UpdateFormField,
                     OperationWithForm.ViewDeclaration,
-                    OperationWithForm.ViewSummary
+                    OperationWithForm.ViewSummary,
+                    OperationWithForm.ViewAcknowledgement
                   )
       role   <- roles
       status <- FormStatus.all
     } yield
-      RowWithForm(operation.toString, role.toString, status.toString) -> (Permissions.evaluateOperationWithForm(
-        operation,
-        role,
-        status)(new Logger(NOPLogger.NOP_LOGGER)) === PermissionResult.Permitted)
+      RowWithForm(operation.toString, role.toString, status.toString) -> (Permissions
+        .evaluateOperationWithForm(operation, role, status)(new Logger(NOPLogger.NOP_LOGGER)))
   }.toMap
 
   private def readLoggedOperations: Map[Row, Boolean] = {
     val logPattern =
-      """.{24}[A-Z]+ *(Valid|Invalid) *([A-Za-z]+) *(Customer|Agent|Reviewer) *([A-Za-z]*).*""".r
+      """.*(Valid|Invalid) *([A-Za-z]+) *(Customer|Agent|Reviewer) *([A-Za-z]*).*""".r
 
     Source
       .fromFile("logs/gform-frontend-permissions.log")
