@@ -51,7 +51,8 @@ case class FormComponent(
   derived: Boolean,
   onlyShowOnSummary: Boolean = false,
   errorMessage: Option[SmartString],
-  presentationHint: Option[List[PresentationHint]] = None
+  presentationHint: Option[List[PresentationHint]] = None,
+  validators: List[FormComponentValidator] = Nil
 ) {
 
   private def addFieldIndex(field: FormComponent, index: Int, group: Group) = {

@@ -56,6 +56,9 @@ class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: Li
       case t: UkSortCode    => t.copy(value = expandExpr(t.value))
       case t: HmrcTaxPeriod => t.copy(idNumber = expandExpr(t.idNumber))
       case otherwise        => otherwise
+    },
+    validators = formComponent.validators.map { fcv =>
+      fcv.copy(validIf = ValidIf(expandBooleanExpr(fcv.validIf.expr)))
     }
   )
 }

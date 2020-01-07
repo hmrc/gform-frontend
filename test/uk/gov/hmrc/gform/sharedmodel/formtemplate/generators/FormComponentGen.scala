@@ -54,6 +54,7 @@ trait FormComponentGen {
       onlyShowOnSummary <- PrimitiveGen.booleanGen
       errorMessage      <- Gen.option(errorMessageGen)
       presentationHint  <- Gen.option(PrimitiveGen.zeroOrMoreGen(PresentationHintGen.presentationHintGen))
+      validators        <- PrimitiveGen.zeroOrMoreGen(FormComponentValidatorGen.formComponentValidatorGen)
     } yield
       FormComponent(
         id,
@@ -68,7 +69,8 @@ trait FormComponentGen {
         derived,
         onlyShowOnSummary,
         errorMessage,
-        presentationHint
+        presentationHint,
+        validators
       )
 }
 
