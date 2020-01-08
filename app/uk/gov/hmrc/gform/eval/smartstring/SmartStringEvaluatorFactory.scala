@@ -58,7 +58,7 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
     new SmartStringEvaluator {
       override def apply(s: SmartString): String = {
         import scala.collection.JavaConverters._
-        new MessageFormat(s.rawValue(l))
+        new MessageFormat(s.rawValue(l).replaceAll("'", "''"))
           .format(
             s.interpolations
               .map(eval(_))
