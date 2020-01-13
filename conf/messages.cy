@@ -228,10 +228,11 @@ assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 
 # Summary
 summary.title=Gwiriwch eich atebion
-summary.intro=Sicrhewch fod yr wybodaeth rydych wedi’i rhoi yn gywir cyn cyflwyno’ch {0}
+summary.intro=Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir
 summary.nowSend=Nawr anfonwch eich {0}
-summary.printMsg=Gallwch argraffu’r dudalen grynodeb hon a dod yn ôl yn ddiweddarach i gwblhau’ch {0}
-summary.printLinkText=Argraffu neu gadw copi PDF o’ch atebion
+summary.printMsg=Mae angen i chi gyflwyno’ch {0} ar y sgrin nesaf
+summary.printLinkTextForeword=Cyn i chi wneud hyn,
+summary.printLinkText=gallwch argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)
 summary.change=Newid
 
 # Acknowledgement
