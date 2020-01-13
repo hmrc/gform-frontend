@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.eval.BooleanExprEval
 import uk.gov.hmrc.gform.fileupload.{ Envelope, Error, File, Infected }
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, verificationCodeFieldId }
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString, SubmissionRef }
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -78,8 +78,60 @@ class ComponentsValidator(
   val cvh = new ComponentsValidatorHelper()
   val dateValidation = new DateValidation()
 
+  private[validation] def validIf(formComponent: FormComponent, validationResult: ValidatedType[Unit])(
+    implicit
+    hc: HeaderCarrier): Future[ValidatedType[Unit]] =
+    if (validationResult.isValid) {
+      findFirstCustomValidationError(formComponent)
+        .flatMap(produceCustomValidationErrorOrDefaultValidationResult(formComponent, _, validationResult))
+    } else validationResult.pure[Future]
+
+  private def produceCustomValidationErrorOrDefaultValidationResult(
+    formComponent: FormComponent,
+    customValidationError: Option[SmartString],
+    validationResult: ValidatedType[Unit])(
+    implicit
+    hc: HeaderCarrier): Future[ValidatedType[Unit]] =
+    customValidationError
+      .map(produceValidationError(formComponent, _).pure[Future])
+      .getOrElse(defaultFormComponentValidIf(formComponent, validationResult))
+
+  private def findFirstCustomValidationError(formComponent: FormComponent)(
+    implicit
+    hc: HeaderCarrier): Future[Option[SmartString]] =
+    evaluateCustomValidators(formComponent)
+      .map(_.find(listItem => !listItem._1).map(_._2))
+
+  private def evaluateCustomValidators(formComponent: FormComponent)(
+    implicit
+    hc: HeaderCarrier): Future[List[(Boolean, SmartString)]] =
+    formComponent.validators.traverse { v =>
+      booleanExpr
+        .isTrue(v.validIf.expr, data.data, retrievals, data.invisible, thirdPartyData, envelopeId, formTemplate)
+        .map(b => (b, v.errorMessage))
+    }
+
+  private def produceValidationError(formComponent: FormComponent, message: SmartString)(
+    implicit
+    hc: HeaderCarrier): Validated[Map[FormComponentId, Set[String]], Nothing] =
+    Validated.invalid(Map[FormComponentId, Set[String]](formComponent.id -> Set(message.value)))
+
+  private def defaultFormComponentValidIf(formComponent: FormComponent, validationResult: ValidatedType[Unit])(
+    implicit
+    hc: HeaderCarrier): Future[ValidatedType[Unit]] =
+    formComponent.validIf match {
+      case Some(vi) =>
+        booleanExpr
+          .isTrue(vi.expr, data.data, retrievals, data.invisible, thirdPartyData, envelopeId, formTemplate)
+          .map {
+            case false => validationFailure(formComponent, "generic.error.required", None)
+            case true  => validationResult
+          }
+      case None => validationResult.pure[Future]
+    }
+
   def validate(
-    fieldValue: FormComponent,
+    formComponent: FormComponent,
     fieldValues: List[FormComponent],
     getEmailCodeFieldMatcher: GetEmailCodeFieldMatcher
   )(
@@ -88,49 +140,43 @@ class ComponentsValidator(
     messages: Messages
   ): Future[ValidatedType[Unit]] = {
 
-    def validIf(validationResult: ValidatedType[Unit]): Future[ValidatedType[Unit]] =
-      (validationResult.isValid, fieldValue.validIf) match {
-        case (true, Some(vi)) =>
-          booleanExpr
-            .isTrue(vi.expr, data.data, retrievals, data.invisible, thirdPartyData, envelopeId, formTemplate)
-            .map {
-              case false => validationFailure(fieldValue, "generic.error.required", None)
-              case true  => validationResult
-            }
-        case _ => validationResult.pure[Future]
-      }
+    val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcher(formComponent)
 
-    val emailCodeFieldMatcher: EmailCodeFieldMatcher = getEmailCodeFieldMatcher(fieldValue)
-
-    fieldValue.`type` match {
+    formComponent.`type` match {
       case sortCode @ UkSortCode(_) =>
         validIf(
+          formComponent,
           SortCodeValidation
-            .validateSortCode(fieldValue, sortCode, fieldValue.mandatory)(data))
+            .validateSortCode(formComponent, sortCode, formComponent.mandatory)(data))
       case date @ Date(_, _, _) =>
-        validIf(dateValidation.validateDate(fieldValue, date, getCompanionFieldComponent(date, fieldValues), data))
-      case Text(SubmissionRefFormat, _, _, _) if formTemplate.parentFormSubmissionRefs.contains(fieldValue.id) =>
         validIf(
+          formComponent,
+          dateValidation.validateDate(formComponent, date, getCompanionFieldComponent(date, fieldValues), data))
+      case Text(SubmissionRefFormat, _, _, _) if formTemplate.parentFormSubmissionRefs.contains(formComponent.id) =>
+        validIf(
+          formComponent,
           ComponentValidator
-            .validateParentSubmissionRef(fieldValue, SubmissionRef(envelopeId))(data))
+            .validateParentSubmissionRef(formComponent, SubmissionRef(envelopeId))(data))
       case emailCodeFieldMatcher.EmailCodeField(emailField) =>
-        validIf(ComponentValidator.validateEmailCode(fieldValue, emailField, data, thirdPartyData))
+        validIf(formComponent, ComponentValidator.validateEmailCode(formComponent, emailField, data, thirdPartyData))
       case Text(constraint, _, _, _) =>
-        validIf(ComponentValidator.validateText(fieldValue, constraint)(data, lookupRegistry))
+        validIf(formComponent, ComponentValidator.validateText(formComponent, constraint)(data, lookupRegistry))
       case TextArea(constraint, _, _) =>
         validIf(
+          formComponent,
           ComponentValidator
-            .validateText(fieldValue, constraint)(data, lookupRegistry))
-      case address @ Address(_) => validIf(new AddressValidation().validateAddress(fieldValue, address)(data))
+            .validateText(formComponent, constraint)(data, lookupRegistry))
+      case address @ Address(_) =>
+        validIf(formComponent, new AddressValidation().validateAddress(formComponent, address)(data))
       case c @ Choice(_, _, _, _, _) =>
-        validIf(ComponentValidator.validateChoice(fieldValue)(data))
+        validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
       case _: RevealingChoice =>
-        validIf(ComponentValidator.validateChoice(fieldValue)(data))
+        validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
       case Group(_, _, _, _, _, _)  => cvh.validF //a group is read-only
-      case FileUpload()             => validateFileUpload(data, fieldValue, envelope).pure[Future]
+      case FileUpload()             => validateFileUpload(data, formComponent, envelope).pure[Future]
       case InformationMessage(_, _) => cvh.validF
       case HmrcTaxPeriod(_, _, _) =>
-        validIf(ComponentValidator.validateChoice(fieldValue)(data))
+        validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
     }
   }
 

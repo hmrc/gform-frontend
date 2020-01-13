@@ -37,7 +37,7 @@ trait AuditService {
 
     val optSortCode: List[FormComponent] = sections.flatMap { section =>
       val groupFields = section.fields.collect {
-        case FormComponent(_, Group(fields, _, _, _, _, _), _, _, _, _, _, _, _, _, _, _, _) => fields
+        case FormComponent(_, Group(fields, _, _, _, _, _), _, _, _, _, _, _, _, _, _, _, _, _) => fields
       }.flatten
       (groupFields ++ section.fields.filter(_.`type` match {
         case x: Group => false
