@@ -55,7 +55,7 @@
         @heading
       </h1>
       <p>
-        @messages("summary.intro", messages(s"formCategory.${formCategory.getString}"))
+        @messages("summary.intro")
       </p>
     </div>
 
@@ -77,7 +77,7 @@
             @messages("summary.printMsg", messages(s"formCategory.${formCategory.getString}")).
           </p>
           <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url">@messages("summary.printLinkText")</a>
+            @messages("summary.printLinkTextForeword") <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url" target="_blank">@messages("summary.printLinkText")</a>.
           </p>
         </div>
 
