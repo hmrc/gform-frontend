@@ -19,5 +19,5 @@ package uk.gov.hmrc.gform.eval.smartstring
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 trait SmartStringEvaluator {
-  def apply(s: SmartString): String
+  def apply(s: SmartString, markDown: Boolean): String
 }

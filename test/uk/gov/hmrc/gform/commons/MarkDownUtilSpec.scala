@@ -19,7 +19,7 @@ package uk.gov.hmrc.gform.commons
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.Helpers.toLocalisedString
+import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 class MarkDownUtilSpec extends Spec with GeneratorDrivenPropertyChecks {
@@ -38,7 +38,7 @@ class MarkDownUtilSpec extends Spec with GeneratorDrivenPropertyChecks {
     )
 
     forAll(dataAndExpectations) { (input, expected) =>
-      val res = MarkDownUtil.markDownParser(toLocalisedString(input))
+      val res = MarkDownUtil.markDownParser(toSmartString(input))
 
       res should be(Html(expected))
 
