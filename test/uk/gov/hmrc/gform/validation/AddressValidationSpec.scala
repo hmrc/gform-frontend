@@ -63,7 +63,7 @@ class AddressValidationSpec(implicit messages: Messages, l: LangADT)
   implicit lazy val hc = HeaderCarrier()
 
   implicit val smartStringEvaluator: SmartStringEvaluator = new SmartStringEvaluator {
-    override def apply(s: SmartString): String = s.rawValue(LangADT.En)
+    override def apply(s: SmartString, markDown: Boolean): String = s.rawValue(LangADT.En)
   }
 
   private def mkComponentsValidator(data: FormDataRecalculated): ComponentsValidator =

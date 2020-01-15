@@ -20,6 +20,8 @@ import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 package object smartstring {
   implicit class SmartStringEvaluationSyntax(s: SmartString)(implicit evaluator: SmartStringEvaluator) {
-    def value(): String = evaluator(s)
+    def value(): String = evaluator(s, false)
+
+    def valueForMarkdown(): String = evaluator(s, true)
   }
 }

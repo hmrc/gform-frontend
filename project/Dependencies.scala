@@ -25,7 +25,7 @@ object Dependencies {
     "org.typelevel" %% "cats-core" % "1.6.0",
     "org.typelevel" %% "cats-mtl-core" % "0.5.0" exclude("org.scalacheck", "scalacheck_2.11"),
     "com.github.pureconfig" %% "pureconfig" % "0.10.2",
-    "org.jetbrains" % "markdown" % "0.1.33",
+    "org.jetbrains" % "markdown" % "0.1.41",
     "com.chuusai" %% "shapeless" % "2.3.3",
     "uk.gov.hmrc" %% "emailaddress" % "3.2.0",
     "org.scala-graph" %% "graph-core" % "1.12.5",

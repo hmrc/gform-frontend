@@ -37,7 +37,8 @@ object MarkDownUtil {
 
   def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = markDownParser(ls.value)
 
-  def markDownParser(ls: SmartString)(implicit l: LangADT, sse: SmartStringEvaluator): Html = markDownParser(ls.value)
+  def markDownParser(ls: SmartString)(implicit sse: SmartStringEvaluator): Html =
+    markDownParser(ls.valueForMarkdown)
 
   private def markDownParser(markDownText: String): Html = {
     val flavour = new GFMFlavourDescriptor

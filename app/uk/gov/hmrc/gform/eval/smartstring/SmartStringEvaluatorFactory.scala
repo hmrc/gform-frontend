@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.eval.smartstring
 import java.text.MessageFormat
 
 import cats.Id
+import org.intellij.markdown.html.entities.EntityConverter
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.graph.Evaluator
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormDataRecalculated, ThirdPartyData }
@@ -42,6 +43,10 @@ trait SmartStringEvaluatorFactory {
 }
 
 class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStringEvaluatorFactory {
+
+  private val markdownControlCharacters =
+    List("""\""", "/", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
+
   def apply(
     recalculatedFormData: FormDataRecalculated,
     retrievals: MaterialisedRetrievals,
@@ -56,14 +61,22 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
     envelopeId: EnvelopeId,
     formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator =
     new SmartStringEvaluator {
-      override def apply(s: SmartString): String = {
+      override def apply(s: SmartString, markDown: Boolean): String = {
         import scala.collection.JavaConverters._
-        new MessageFormat(s.rawValue(l).replaceAll("'", "''"))
+        new MessageFormat(s.rawValue(l))
           .format(
             s.interpolations
-              .map(eval(_))
+              .map { interpolation =>
+                val interpolated = eval(interpolation)
+                if (markDown) {
+                  escapeMarkdown(interpolated)
+                } else {
+                  interpolated
+                }
+              }
               .asJava
               .toArray)
+
       }
 
       private def eval(expr: Expr): String =
@@ -77,5 +90,13 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
             thirdPartyData,
             envelopeId)
           .getOrElse("")
+
+      private def escapeMarkdown(s: String): String = {
+        val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)
+        markdownControlCharacters.foldLeft(replacedEntities) {
+          case (escaped, specialChar) =>
+            escaped.replace(specialChar, "\\" + specialChar)
+        }
+      }
     }
 }
