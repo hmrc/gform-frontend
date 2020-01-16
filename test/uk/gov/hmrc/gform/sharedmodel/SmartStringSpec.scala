@@ -22,49 +22,8 @@ import org.scalacheck.Gen
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.{ ExprGen, PrimitiveGen }
 
 class SmartStringSpec extends Spec {
-  "JSON" should "read a simple String" in {
-    forAll(Gen.asciiStr) { s =>
-      val c = condition(s)
-      verifyRead(
-        SmartString(LocalisedString(Map(LangADT.En -> c)), Nil),
-        s""""$c""""
-      )
-    }
-  }
 
-  it should "read a LocalisedString map without interpolations" in {
-    forAll(Gen.asciiStr, Gen.asciiStr) { (english, welsh) =>
-      val cEnglish = condition(english)
-      val cWelsh = condition(welsh)
-
-      verifyRead(
-        SmartString(LocalisedString(Map(LangADT.En -> cEnglish, LangADT.Cy -> cWelsh)), Nil),
-        s"""|{
-            |  "en": "$cEnglish",
-            |  "cy": "$cWelsh"
-            |}""".stripMargin
-      )
-    }
-  }
-
-  it should "read a LocalisedString map with interpolations" in {
-    forAll(Gen.asciiStr, Gen.asciiStr, PrimitiveGen.zeroOrMoreGen(ExprGen.exprGen())) { (english, welsh, exprs) =>
-      val cEnglish = condition(english)
-      val cWelsh = condition(welsh)
-      val interpolations = exprs.map(Expr.format.writes).map(_.toString).mkString(", ")
-
-      verifyRead(
-        SmartString(LocalisedString(Map(LangADT.En -> cEnglish, LangADT.Cy -> cWelsh)), exprs),
-        s"""|{
-            |  "en": "$cEnglish",
-            |  "cy": "$cWelsh",
-            |  "interpolations": [ $interpolations ]
-            |}""".stripMargin
-      )
-    }
-  }
-
-  it should "round trip" in {
+  "JSON" should "round trip" in {
     forAll(Gen.asciiStr, Gen.asciiStr, PrimitiveGen.zeroOrMoreGen(ExprGen.exprGen())) { (english, welsh, exprs) =>
       val cEnglish = condition(english)
       val cWelsh = condition(welsh)

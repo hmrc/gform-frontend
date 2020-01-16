@@ -16,8 +16,10 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.instances.list._
 import cats.instances.int._
 import cats.syntax.eq._
+import cats.syntax.foldable._
 import play.api.libs.json._
 import shapeless.syntax.typeable._
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
@@ -27,6 +29,7 @@ import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentW
 import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, SmartString, VariadicFormData }
 
 case class ExpandedFormComponent(formComponents: List[FormComponent]) extends AnyVal {
+  // ToDo Lance - Shouldn't we be recursing into Group and RevealingChoice
   def allIds: List[FormComponentId] = {
     def recurse(formComponent: FormComponent): List[FormComponentId] =
       formComponent match {
@@ -54,6 +57,27 @@ case class FormComponent(
   presentationHint: Option[List[PresentationHint]] = None,
   validators: List[FormComponentValidator] = Nil
 ) {
+  private def updateField(i: Int, fc: FormComponent): FormComponent =
+    fc.copy(
+      label = LabelHelper.buildRepeatingLabel(fc.label, i),
+      shortName = LabelHelper.buildRepeatingLabel(fc.shortName, i))
+
+  private def loop(fc: FormComponent): List[FormComponent] =
+    fc.`type` match {
+      case Group(fields, _, max, _, _, _) =>
+        val expandedFields =
+          for {
+            field <- fields
+            res <- updateField(1, field) :: (1 until max.getOrElse(1))
+                    .map(i => updateField(i + 1, field.copy(id = FormComponentId(i + "_" + field.id.value))))
+                    .toList
+          } yield res
+        expandedFields.flatMap(loop) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
+      case RevealingChoice(options, _) => fc :: options.toList.foldMap(_.revealingFields.map(loop)).flatten
+      case _                           => fc :: Nil
+    }
+
+  lazy val expandedFormComponents: List[FormComponent] = loop(this)
 
   private def addFieldIndex(field: FormComponent, index: Int, group: Group) = {
     val fieldToUpdate = if (index === 0) field else field.copy(id = FormComponentId(index + "_" + field.id.value))

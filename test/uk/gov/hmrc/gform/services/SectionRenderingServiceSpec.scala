@@ -27,6 +27,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.formtemplate.SectionSyntax
 import uk.gov.hmrc.gform.gform.SectionRenderingService
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup.LookupRegistry
@@ -151,7 +152,7 @@ class SectionRenderingServiceSpec extends Spec {
         Envelope.empty,
         envelopeId,
         ValidationResult.empty.valid,
-        allSections.map(sc => sc.copy(fields = sc.fields.map(f => f.copy(onlyShowOnSummary = true)))),
+        allSections.map(sc => sc.updateFields(sc.page.fields.map(f => f.copy(onlyShowOnSummary = true)))),
         0,
         Nil,
         retrievals,
@@ -189,7 +190,7 @@ class SectionRenderingServiceSpec extends Spec {
         Envelope.empty,
         envelopeId,
         ValidationResult.empty.valid,
-        List(allSections.head.copy(progressIndicator = Some(toSmartString("Progress Indicator")))),
+        List(allSections.head.updateProgressIndicator(Some(toSmartString("Progress Indicator")))),
         0,
         Nil,
         retrievals,
@@ -294,7 +295,8 @@ class SectionRenderingServiceSpec extends Spec {
       )
     }
 
-    override def `section - about you` = super.`section - about you`.copy(fields = List(`fieldValue - firstName`))
+    override def `section - about you` =
+      super.`section - about you`.updateFields(List(`fieldValue - firstName`))
 
     override def allSections = List(
       `section - about you`

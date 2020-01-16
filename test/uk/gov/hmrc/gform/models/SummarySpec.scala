@@ -24,6 +24,7 @@ import play.api.i18n.{ Lang, Messages }
 import play.api.mvc.Call
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.formtemplate.SectionSyntax
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.gform.{ SummaryPagePurpose, routes }
 import uk.gov.hmrc.gform.graph.RecData
@@ -63,87 +64,84 @@ class SummarySpec extends Spec {
     override def dmsSubmission =
       DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
     def section0 =
-      Section(
-        toSmartString("Your details"),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        List(
-          FormComponent(
-            `fieldId - iptRegNum`,
-            Text(BasicText, Value),
-            toSmartString("Insurance Premium Tax (IPT) number"),
-            None,
-            None,
-            None,
-            true,
-            true,
-            true,
-            false,
-            false,
-            None
-          )),
-        None,
-        None
-      )
+      Section.NonRepeatingPage(
+        Page(
+          toSmartString("Your details"),
+          None,
+          None,
+          None,
+          None,
+          None,
+          List(
+            FormComponent(
+              `fieldId - iptRegNum`,
+              Text(BasicText, Value),
+              toSmartString("Insurance Premium Tax (IPT) number"),
+              None,
+              None,
+              None,
+              true,
+              true,
+              true,
+              false,
+              false,
+              None
+            )),
+          None,
+          None
+        ))
     def section1 =
-      Section(
-        toSmartString("About you"),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        List(
-          FormComponent(
-            `fieldId - firstName`,
-            Text(BasicText, Value),
-            toSmartString("First Name"),
-            None,
-            None,
-            None,
-            true,
-            true,
-            true,
-            false,
-            false,
-            None)),
-        None,
-        None
-      )
-    def section2 =
-      Section(
-        toSmartString("Business details"),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        List(
-          FormComponent(
-            `fieldId - businessName`,
-            Text(BasicText, Value),
-            toSmartString("Name of business"),
-            None,
-            None,
-            None,
-            true,
-            true,
-            true,
-            false,
-            false,
-            None)),
-        None,
-        None
-      )
+      Section.NonRepeatingPage(
+        Page(
+          toSmartString("About you"),
+          None,
+          None,
+          None,
+          None,
+          None,
+          List(
+            FormComponent(
+              `fieldId - firstName`,
+              Text(BasicText, Value),
+              toSmartString("First Name"),
+              None,
+              None,
+              None,
+              true,
+              true,
+              true,
+              false,
+              false,
+              None)),
+          None,
+          None
+        ))
+    def section2: Section =
+      Section.NonRepeatingPage(
+        Page(
+          toSmartString("Business details"),
+          None,
+          None,
+          None,
+          None,
+          None,
+          List(
+            FormComponent(
+              `fieldId - businessName`,
+              Text(BasicText, Value),
+              toSmartString("Name of business"),
+              None,
+              None,
+              None,
+              true,
+              true,
+              true,
+              false,
+              false,
+              None)),
+          None,
+          None
+        ))
 
     override def `formField - iptRegNum` = super.`formField - iptRegNum`.copy(value = "Test!Your details!Test")
     override def `formField - firstName` = super.`formField - firstName`.copy(value = "Test!About you!Test")
@@ -207,76 +205,75 @@ class SummarySpec extends Spec {
 
   it should "display values for each field type with a submissible field, " in new Test {
 
-    val section = Section(
-      toSmartString("Personal details"),
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      List(
-        FormComponent(
-          FormComponentId("Surname"),
-          Text(BasicText, Value),
-          toSmartString("Surname"),
-          None,
-          None,
-          None,
-          true,
-          true,
-          true,
-          false,
-          false,
-          None),
-        FormComponent(
-          FormComponentId("Info"),
-          Text(BasicText, Value),
-          toSmartString("Info"),
-          None,
-          None,
-          None,
-          true,
-          true,
-          submissible = false,
-          false,
-          false,
-          None,
-          presentationHint = Some(List(InvisibleInSummary))
+    val section = Section.NonRepeatingPage(
+      Page(
+        toSmartString("Personal details"),
+        None,
+        None,
+        None,
+        None,
+        None,
+        List(
+          FormComponent(
+            FormComponentId("Surname"),
+            Text(BasicText, Value),
+            toSmartString("Surname"),
+            None,
+            None,
+            None,
+            true,
+            true,
+            true,
+            false,
+            false,
+            None),
+          FormComponent(
+            FormComponentId("Info"),
+            Text(BasicText, Value),
+            toSmartString("Info"),
+            None,
+            None,
+            None,
+            true,
+            true,
+            submissible = false,
+            false,
+            false,
+            None,
+            presentationHint = Some(List(InvisibleInSummary))
+          ),
+          FormComponent(
+            FormComponentId("BirthDate"),
+            Date(AnyDate, Offset(0), None),
+            toSmartString("Birth date"),
+            None,
+            None,
+            None,
+            true,
+            true,
+            true,
+            false,
+            false,
+            None
+          ),
+          FormComponent(
+            FormComponentId("HomeAddress"),
+            Address(international = false),
+            toSmartString("Home address"),
+            None,
+            None,
+            None,
+            true,
+            true,
+            true,
+            false,
+            false,
+            None
+          )
         ),
-        FormComponent(
-          FormComponentId("BirthDate"),
-          Date(AnyDate, Offset(0), None),
-          toSmartString("Birth date"),
-          None,
-          None,
-          None,
-          true,
-          true,
-          true,
-          false,
-          false,
-          None
-        ),
-        FormComponent(
-          FormComponentId("HomeAddress"),
-          Address(international = false),
-          toSmartString("Home address"),
-          None,
-          None,
-          None,
-          true,
-          true,
-          true,
-          false,
-          false,
-          None
-        )
-      ),
-      None,
-      None
-    )
+        None,
+        None
+      ))
 
     override def formTemplate = super.formTemplate.copy(sections = List(section))
 
@@ -329,7 +326,7 @@ class SummarySpec extends Spec {
 
   it should "display the shortName as section title if present" in new Test {
     val shortName = "THIS_IS_A_VERY_VERY_VERY_SHORT_NAME"
-    val section = section0.copy(shortName = Some(toSmartString(shortName)))
+    val section = section0.updateShortName(Some(toSmartString(shortName)))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -363,7 +360,7 @@ class SummarySpec extends Spec {
     )
 
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("Address section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("Address section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -395,7 +392,7 @@ class SummarySpec extends Spec {
       errorMessage = None
     )
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("Address section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("Address section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -428,7 +425,7 @@ class SummarySpec extends Spec {
     )
 
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -461,7 +458,7 @@ class SummarySpec extends Spec {
     )
 
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -494,7 +491,7 @@ class SummarySpec extends Spec {
     )
 
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -527,7 +524,7 @@ class SummarySpec extends Spec {
     )
 
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render =
@@ -561,7 +558,7 @@ class SummarySpec extends Spec {
     )
 
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -594,7 +591,7 @@ class SummarySpec extends Spec {
     )
 
     val section =
-      section0.copy(fields = List(addressField), shortName = Some(toSmartString("A section")))
+      section0.updateFields(List(addressField)).updateShortName(Some(toSmartString("A section")))
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
@@ -613,7 +610,7 @@ class SummarySpec extends Spec {
   it should "not render sections with includeIf expressions that evaluate to false" in new Test {
 
     val includeIf = IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))
-    override val section2 = super.section2.copy(includeIf = Some(includeIf))
+    override val section2 = super.section2.updateIncludeIf(Some(includeIf))
     override val formTemplate = super.formTemplate.copy(
       sections = List(section2)
     )
@@ -641,7 +638,7 @@ class SummarySpec extends Spec {
     )
     renderWithDataMismatch.size shouldBe 0
   }
-
+//
   it should "display Group Labels (or Group Short Names if specified)" in new Test {
 
     val groupFieldValue = FormComponent(
@@ -662,7 +659,7 @@ class SummarySpec extends Spec {
       None
     )
     override def section0 =
-      Section(toSmartString(""), None, None, None, None, None, None, None, List(groupFieldValue), None, None)
+      Section.NonRepeatingPage(Page(toSmartString(""), None, None, None, None, None, List(groupFieldValue), None, None))
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     val render0 =
       SummaryRenderingService
@@ -677,19 +674,18 @@ class SummarySpec extends Spec {
     extractAllTestStringValues(render0) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
       sections = List(
-        Section(
-          toSmartString(""),
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-          None,
-          List(groupFieldValue.copy(shortName = Some(toSmartString("Test!group-shortname!Test")))),
-          None,
-          None
-        ))
+        Section.NonRepeatingPage(
+          Page(
+            toSmartString(""),
+            None,
+            None,
+            None,
+            None,
+            None,
+            List(groupFieldValue.copy(shortName = Some(toSmartString("Test!group-shortname!Test")))),
+            None,
+            None
+          )))
     )
 
     val filedValues1 = formTemplate.sections.flatMap(_.fields)
@@ -709,7 +705,7 @@ class SummarySpec extends Spec {
     val includeIf = IncludeIf(Equals(FormCtx("firstName"), Constant("Pete")))
 
     override val formTemplate = super.formTemplate.copy(
-      sections = List(section0, section1.copy(includeIf = Some(includeIf)), section2)
+      sections = List(section0, section1.updateIncludeIf(Some(includeIf)), section2)
     )
 
     val summaryForRender = SummaryRenderingService.summaryForRender(

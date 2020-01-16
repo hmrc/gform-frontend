@@ -35,34 +35,32 @@ object FormTemplateBuilder {
 
   def mkSection(formComponents: FormComponent*): Section = mkSection(formComponents.toList)
   def mkSection(formComponents: List[FormComponent]) =
-    Section(
-      toSmartString("Section Name"),
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      formComponents,
-      None,
-      None
-    )
+    Section.NonRepeatingPage(
+      Page(
+        toSmartString("Section Name"),
+        None,
+        None,
+        None,
+        None,
+        None,
+        formComponents,
+        None,
+        None
+      ))
 
   def mkSectionIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf) =
-    Section(
-      toSmartString("Section Name"),
-      None,
-      None,
-      None,
-      Some(includeIf),
-      None,
-      None,
-      None,
-      formComponents,
-      None,
-      None
-    )
+    Section.NonRepeatingPage(
+      Page(
+        toSmartString("Section Name"),
+        None,
+        None,
+        None,
+        Some(includeIf),
+        None,
+        formComponents,
+        None,
+        None
+      ))
 
   val ls = toSmartString("Label")
 

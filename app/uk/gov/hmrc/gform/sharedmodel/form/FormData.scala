@@ -45,9 +45,9 @@ object FormDataRecalculated {
       .setTo(data.recData.cleared)
 }
 
-case class FormData(fields: Seq[FormField]) extends AnyVal {
-  def toData: Map[FormComponentId, String] = fields.map(x => x.id -> x.value).toMap
-  def find(id: FormComponentId): Option[String] = fields.find(_.id === id).map(_.value)
+case class FormData(fields: Seq[FormField]) {
+  lazy val toData: Map[FormComponentId, String] = fields.map(x => x.id -> x.value).toMap
+  def find(id: FormComponentId): Option[String] = toData.get(id)
 }
 
 object FormData {

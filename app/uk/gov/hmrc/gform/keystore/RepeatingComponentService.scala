@@ -39,15 +39,11 @@ object RepeatingComponentService {
 
   def getAllSections(formTemplate: FormTemplate, data: FormDataRecalculated): List[Section] =
     formTemplate.sections
-      .flatMap { section =>
-        if (isRepeatingSection(section)) {
-          generateDynamicSections(section, formTemplate, data)
-        } else {
-          List(section)
-        }
+      .flatMap {
+        case s: Section.NonRepeatingPage => List(s)
+        case s: Section.RepeatingPage    => generateDynamicSections(s, formTemplate, data)
+        case s: Section.AddToList        => ???
       }
-
-  def isRepeatingSection(section: Section): Boolean = section.repeatsMax.isDefined && section.repeatsMin.isDefined
 
   def reduceToTemplateFieldId(fieldId: FormComponentId): FormComponentId = {
     val repeatingGroupFieldId = """^\d+_(.+)""".r
@@ -59,7 +55,7 @@ object RepeatingComponentService {
   }
 
   private def generateDynamicSections(
-    section: Section,
+    section: Section.RepeatingPage,
     formTemplate: FormTemplate,
     data: FormDataRecalculated): List[Section] = {
 
@@ -71,7 +67,7 @@ object RepeatingComponentService {
 
   }
 
-  private def copySection(section: Section, index: Int, data: FormDataRecalculated) = {
+  private def copySection(section: Section.RepeatingPage, index: Int, data: FormDataRecalculated) = {
     def copyField(field: FormComponent): FormComponent = {
       val tpe = field.`type` match {
         case rc: RevealingChoice =>
@@ -92,9 +88,10 @@ object RepeatingComponentService {
     }
 
     section.copy(
-      title = buildText(section.title, index, data),
-      shortName = optBuildText(section.shortName, index, data),
-      fields = section.fields.map(copyField)
+      page = section.page.copy(
+        title = buildText(section.title, index, data),
+        shortName = optBuildText(section.shortName, index, data),
+        fields = section.fields.map(copyField))
     )
   }
 

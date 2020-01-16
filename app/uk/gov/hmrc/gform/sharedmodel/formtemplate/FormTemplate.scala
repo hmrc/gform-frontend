@@ -91,23 +91,23 @@ object FormTemplate {
     save4LaterInfoText: Option[Save4LaterInfoText]) {
     def toNewForm: FormTemplate =
       FormTemplate(
-        _id: FormTemplateId,
-        formName: LocalisedString,
-        developmentPhase: Option[DevelopmentPhase],
-        formCategory: FormCategory,
-        draftRetrievalMethod: DraftRetrievalMethod,
+        _id,
+        formName,
+        developmentPhase,
+        formCategory,
+        draftRetrievalMethod,
         destinations = dmsSubmission,
-        authConfig: formtemplate.AuthConfig,
-        emailTemplateId: String,
-        emailParameters: Option[NonEmptyList[EmailParameter]],
-        webChat: Option[WebChat],
-        sections: List[Section],
-        acknowledgementSection: AcknowledgementSection,
-        declarationSection: DeclarationSection,
+        authConfig,
+        emailTemplateId,
+        emailParameters,
+        webChat,
+        sections,
+        acknowledgementSection,
+        declarationSection,
         parentFormSubmissionRefs.toList.flatten,
-        GFC579Ready: Option[String],
-        languages: AvailableLanguages,
-        save4LaterInfoText: Option[Save4LaterInfoText]
+        GFC579Ready,
+        languages,
+        save4LaterInfoText
       )
   }
 
@@ -159,7 +159,7 @@ object FormTemplate {
       dmsSubmission,
       authConfig,
       emailTemplateId,
-      emailParameters: Option[NonEmptyList[EmailParameter]],
+      emailParameters,
       webChat,
       sections,
       acknowledgementSection,

@@ -50,18 +50,17 @@ class NavitagionSpec extends Spec with GraphSpec {
   )
 
   def makeSection(title: SmartString, formComponent: FormComponent, includeIf: Option[IncludeIf] = None): Section =
-    Section(
-      title = title,
-      description = None,
-      shortName = None,
-      includeIf = includeIf,
-      repeatsMax = None,
-      repeatsMin = None,
-      validators = None,
-      fields = formComponent :: Nil,
-      continueLabel = None,
-      continueIf = None
-    )
+    Section.NonRepeatingPage(
+      Page(
+        title = title,
+        description = None,
+        shortName = None,
+        includeIf = includeIf,
+        validators = None,
+        fields = formComponent :: Nil,
+        continueLabel = None,
+        continueIf = None
+      ))
 
   def getAvailableSectionNumbers(sectionsData: List[Section], formData: VariadicFormData) = {
     val res = recalculation.recalculateFormData(

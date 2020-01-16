@@ -61,19 +61,18 @@ case class EmailParameterRecalculation(cache: AuthCacheWithForm)(implicit ex: Ex
     )
 
   private def mkSection(formComponents: List[FormComponent]): Section =
-    Section(
-      toSmartString("Section Name"),
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      formComponents,
-      None,
-      None
-    )
+    Section.NonRepeatingPage(
+      Page(
+        toSmartString("Section Name"),
+        None,
+        None,
+        None,
+        None,
+        None,
+        formComponents,
+        None,
+        None
+      ))
 
   private def formTemplateWithParametersAsComponents: FormTemplate = {
 

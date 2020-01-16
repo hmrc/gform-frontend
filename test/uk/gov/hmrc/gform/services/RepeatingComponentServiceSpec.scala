@@ -18,6 +18,7 @@ package uk.gov.hmrc.gform.services
 
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.formtemplate.SectionSyntax
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, VariadicFormData }
@@ -49,20 +50,18 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
   }
 
   it should "return a dynamically created section when field to track in a NON-repeating group" in {
-    val thisSection2 = `repeating section`.copy(
-      title = toSmartString("Repeating section title $n"),
-      shortName = Some(toSmartString("shortName $n"))
-    )
+    val thisSection2 = `repeating section`
+      .updateTitle(toSmartString("Repeating section title $n"))
+      .updateShortName(Some(toSmartString("shortName $n")))
 
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, thisSection2))
 
     val textFieldDosR = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
     val sectionR = thisSection2
-      .copy(
-        fields = List(textFieldDosR),
-        title = toSmartString("Repeating section title 1"),
-        shortName = Some(toSmartString("shortName 1"))
-      )
+      .updateTitle(toSmartString("Repeating section title 1"))
+      .updateShortName(Some(toSmartString("shortName 1")))
+      .updateFields(List(textFieldDosR))
+
     val expectedList = List(`section - group`, sectionR)
 
     val formData = mkFormDataRecalculated(VariadicFormData.ones(`fieldId - firstName` -> "1"))
@@ -71,26 +70,23 @@ class RepeatingComponentServiceSpec extends Spec with ExampleData {
   }
 
   it should "return dynamically created sections (title and shortName text built dynamically) when field to track in a NON-repeating group, with form data" in {
-    val thisSection2 = `repeating section`.copy(
-      title = toSmartString("Repeating section title $n"),
-      shortName = Some(toSmartString("shortName $n"))
-    )
+    val thisSection2 = `repeating section`
+      .updateTitle(toSmartString("Repeating section title $n"))
+      .updateShortName(Some(toSmartString("shortName $n")))
     val formTemplate = super.formTemplate.copy(sections = List(`section - group`, thisSection2))
 
     val textFieldDos1 = `fieldValue - surname`.copy(id = FormComponentId(s"1_${`fieldId - surname`.value}"))
     val textFieldDos2 = `fieldValue - surname`.copy(id = FormComponentId(s"2_${`fieldId - surname`.value}"))
     val sectionR1 = thisSection2
-      .copy(
-        fields = List(textFieldDos1),
-        title = toSmartString("Repeating section title 1"),
-        shortName = Some(toSmartString("shortName 1"))
-      )
+      .updateFields(List(textFieldDos1))
+      .updateTitle(toSmartString("Repeating section title 1"))
+      .updateShortName(Some(toSmartString("shortName 1")))
+
     val sectionR2 = thisSection2
-      .copy(
-        fields = List(textFieldDos2),
-        title = toSmartString("Repeating section title 2"),
-        shortName = Some(toSmartString("shortName 2"))
-      )
+      .updateFields(List(textFieldDos2))
+      .updateTitle(toSmartString("Repeating section title 2"))
+      .updateShortName(Some(toSmartString("shortName 2")))
+
     val expectedList = List(`section - group`, sectionR1, sectionR2)
 
     val formData = mkFormDataRecalculated(VariadicFormData.ones(`fieldId - firstName` -> "2"))

@@ -450,33 +450,23 @@ class StructuredFormDataBuilderSpec extends Spec {
     )
 
   def createNonRepeatingSection(fields: FormComponent*): Section =
-    Section(
-      null,
-      null,
-      null,
-      null,
-      null,
-      None,
-      None,
-      null,
-      fields.toList,
-      null,
-      null
-    )
+    Section.NonRepeatingPage(
+      Page(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        fields.toList,
+        null,
+        null
+      ))
 
   def createRepeatingSection(fields: FormComponent*): Section =
-    Section(
-      null,
-      null,
-      null,
-      null,
-      null,
-      Some(TextExpression(Value)),
-      Some(TextExpression(Value)),
-      null,
-      fields.toList,
-      null,
-      null
+    Section.RepeatingPage(
+      Page(null, null, null, null, null, null, fields.toList, null, null),
+      TextExpression(Value)
     )
 
   def createNonGroupField(id: String): FormComponent =
