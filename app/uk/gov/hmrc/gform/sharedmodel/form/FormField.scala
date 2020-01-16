@@ -20,14 +20,15 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
+// Contains the *value* of a FormComponentId, where the FormComponentId is either:
+//   * the FormComponentId of a FormComponent with a singular value ComponentType, such as a Text or TextArea, OR
+//   * the synthesised FormComponentId of a MultiField ComponentType, such as Date (see MultiField.fields)
 case class FormField(id: FormComponentId, value: String)
 
 object FormField {
 
-  implicit val reads: Reads[FormField] = (
-    (FormComponentId.oformat: Reads[FormComponentId]) and
-      (JsPath \ "value").read[String]
-  )(FormField.apply _)
+  implicit val reads: Reads[FormField] = ((FormComponentId.oformat: Reads[FormComponentId]) and
+    (JsPath \ "value").read[String])(FormField.apply _)
 
   implicit val writes = OWrites[FormField] { formField =>
     Json.obj("id"      -> formField.id) ++

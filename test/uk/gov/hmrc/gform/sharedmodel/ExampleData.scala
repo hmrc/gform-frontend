@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 
+import scala.collection.immutable
 import scala.collection.immutable.List
 
 object ExampleData extends ExampleData
@@ -261,75 +262,66 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
 }
 
+trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
+  def nonRepeatingPageSection(
+    title: String = "About you",
+    validators: Option[Validator] = None,
+    fields: List[FormComponent] = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
+    includeIf: Option[IncludeIf] = None) =
+    Section.NonRepeatingPage(
+      Page(
+        toSmartString(title),
+        None,
+        None,
+        None,
+        includeIf,
+        validators,
+        fields,
+        None,
+        None
+      ))
+
+  def `section - about you`: Section =
+    nonRepeatingPageSection(
+      fields = List(`fieldValue - firstName`, `fieldValue - surname`, `fieldValue - facePhoto`),
+      validators = None)
+
+  def `section - businessDetails` =
+    nonRepeatingPageSection(
+      title = "Business details",
+      validators = None,
+      fields = List(`fieldValue - businessName`, `fieldValue - startDate`, `fieldValue - iptRegNum`))
+
+  def `repeating section` =
+    Section.RepeatingPage(
+      Page(
+        toSmartString("Repeating section"),
+        None,
+        None,
+        None,
+        None,
+        None,
+        List(`fieldValue - surname`),
+        None,
+        None
+      ),
+      repeats = TextExpression(FormCtx(`fieldId - firstName`.value))
+    )
+
+  def `section - group` =
+    nonRepeatingPageSection(
+      fields = List(`fieldValue - group`)
+    )
+
+  def allSections = List(`section - about you`, `section - businessDetails`)
+}
+
 trait ExampleSectionNumber {
   val `sectionNumber-1` = SectionNumber(-1)
   val sectionNumber0 = SectionNumber(0)
   val sectionNumber1 = SectionNumber(1)
   val sectionNumber2 = SectionNumber(2)
   val sectionNumber3 = SectionNumber(3)
-}
-trait ExampleSection { dependecies: ExampleFieldId with ExampleFieldValue =>
-
-  def `section - about you` =
-    Section(
-      toSmartString("About you"),
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      List(
-        `fieldValue - firstName`,
-        `fieldValue - surname`,
-        `fieldValue - facePhoto`
-      ),
-      None,
-      None
-    )
-
-  def `section - businessDetails` =
-    Section(
-      toSmartString("Business details"),
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      List(
-        `fieldValue - businessName`,
-        `fieldValue - startDate`,
-        `fieldValue - iptRegNum`
-      ),
-      None,
-      None
-    )
-
-  def `repeating section` = Section(
-    toSmartString("Repeating section"),
-    None,
-    None,
-    None,
-    None,
-    repeatsMax = Some(TextExpression(FormCtx(`fieldId - firstName`.value))),
-    repeatsMin = Some(TextExpression(FormCtx(`fieldId - firstName`.value))),
-    None,
-    List(
-      `fieldValue - surname`
-    ),
-    None,
-    None
-  )
-
-  def `section - group` = `section - about you`.copy(fields = List(`fieldValue - group`))
-
-  def allSections = List(
-    `section - about you`,
-    `section - businessDetails`
-  )
 }
 
 trait ExampleValidator {

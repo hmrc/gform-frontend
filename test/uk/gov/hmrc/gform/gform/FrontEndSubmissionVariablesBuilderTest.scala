@@ -19,18 +19,18 @@ package uk.gov.hmrc.gform.gform
 import com.softwaremill.quicklens._
 import play.api.libs.json.Json
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments, AffinityGroup => CoreAffinityGroup }
+import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.auth.models.AuthenticatedRetrievals
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
 import FrontEndSubmissionVariablesBuilder._
+import uk.gov.hmrc.gform.formtemplate.SectionSyntax
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormComponentGen._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
 import uk.gov.hmrc.gform.sharedmodel.FrontEndSubmissionVariables
 
 class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
-
   forAll(formTemplateGen) { template =>
     it should s"Build a data structure with valid key value pair for ${template._id}" in new IdentifierExtractor {
       val userCtx = UserCtx(uk.gov.hmrc.gform.sharedmodel.formtemplate.EnrolledIdentifier)
@@ -42,10 +42,10 @@ class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
       val actual = FrontEndSubmissionVariablesBuilder(
         retrievals,
         template
-          .modify(_.sections.each.fields.each.`type`)
-          .setTo(enrolledIdType)
-          .modify(_.authConfig)
-          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)),
+          .copy(
+            sections = template.sections.map(s => s.updateFields(s.fields.map(_.copy(`type` = enrolledIdType)))),
+            authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
+          ),
         CustomerId("cid")
       )
 
@@ -69,10 +69,10 @@ class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
 
       val templateWithAtLeastTwoFields =
         template
-          .modify(_.sections.each.fields)
-          .setTo(List(valueComponent, usrCtxComponent))
-          .modify(_.authConfig)
-          .setTo(HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth))
+          .copy(
+            sections = template.sections.map(s => s.updateFields(List(valueComponent, usrCtxComponent))),
+            authConfig = HmrcAgentWithEnrolmentModule(AllowAnyAgentAffinityUser, enrolmentAuth)
+          )
 
       val actual = FrontEndSubmissionVariablesBuilder(retrievals, templateWithAtLeastTwoFields, CustomerId("cid"))
       actual shouldBe FrontEndSubmissionVariables(
@@ -91,5 +91,4 @@ class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
     None,
     None
   )
-
 }

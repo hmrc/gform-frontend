@@ -25,6 +25,8 @@ import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, IncludeIf, IsFalse }
 import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
 
+import scala.collection.immutable.List
+
 class SaveSpec extends Spec {
 
   behavior of "navigate - Save"
@@ -84,8 +86,13 @@ class SaveSpec extends Spec {
       FormDataRecalculated(
         Set(IncludeIfGN(FormComponentId("includeId_X"), includeIf)),
         RecData.fromData(rawDataFromBrowser))
-    override def `section - businessDetails` =
-      super.`section - businessDetails`.copy(includeIf = Some(includeIf))
-  }
 
+    override def `section - businessDetails` =
+      nonRepeatingPageSection(
+        title = "Business details",
+        validators = None,
+        includeIf = Some(includeIf),
+        fields = List(`fieldValue - businessName`, `fieldValue - startDate`, `fieldValue - iptRegNum`)
+      )
+  }
 }
