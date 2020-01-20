@@ -1,7 +1,7 @@
-id,name,en,cy
-0_internal,Savings or earnings,Savings or earnings,Savings or earnings
-1_internal,Selling something,Selling something,Selling something
-5,Loan,Loan,Loan
-11,Inheritance,Inheritance,Inheritance
-12,Gambling,Gambling,Gambling
-13,Other,Other,Other
+id,	name,	en,	cy
+0_internal,	Savings or earnings,	Savings or earnings,	Cynilion neu enillion
+1_internal,	Selling something,	Selling something,	Gwerthu rhywbeth
+5,	Loan,	Loan,	Benthyciad
+11,	Inheritance,	Inheritance, Etifeddiant
+12,	Gambling,	Gambling,	Hapchwarae / Gamblo
+13,	Other,	Other,	Arall
