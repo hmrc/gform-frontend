@@ -1,21 +1,21 @@
-ID,Name,en,cy
-1,For Family,Family costs,Family costs
-2,Purchase Of Private Vehicle,Vehicle,Vehicle
-3,Purchase Of Commercial Vehicle (&or Parts),Buying commercial vehicle or parts,Buying commercial vehicle or parts
-4,Purchase Of Property,Property,Property
-5,Purchase Of Antiques,Antiques,Antiques
-6,Purchase Ragtrade,Clothing,Clothing
-7,Purchase Precious Metals / Gems,Jewellery,Jewellery
-8,Purchase Other (business),Other business costs,Other business costs
-9,Purchase Other Private,Other Purchase,Other Purchase
-10,Shopping / Tourism,Shopping or tourism,Shopping or tourism
-11,Expenses,Expenses,Expenses
-12,Wages,Wages,Wages
-13,Investment,Investment,Investment
-14,Medical,Medical costs,Medical costs
-15,Other,Other,Other
-16,Not Given,Not Given,Not Given
-17,Education Fees,Education fees,Education fees
-18,Gambling,Gambling,Gambling
-19,Ransom,Paying a ransom,Paying a ransom
-20,Personal,Personal,Personal
+ID,	Name,	en,	cy,
+1,	For Family,	Family costs,	Costau teulu
+2,	Purchase Of Private Vehicle,	Vehicle,	Cerbyd
+3,	Purchase Of Commercial Vehicle (&or Parts),	Buying commercial vehicle or parts,	Prynu cerbyd neu rannau masnachol
+4,	Purchase Of Property,	Property,	Eiddo
+5,	Purchase Of Antiques,	Antiques,	Hen bethau
+6,	Purchase Ragtrade,	Clothing,	Dillad
+7,	Purchase Precious Metals / Gems,	Jewellery,	Gemwaith
+8,	Purchase Other (business),	Other business costs,	Costau eraill busnes
+9,	Purchase Other Private,	Other Purchase,	Prynu rhywbeth arall
+10,	Shopping / Tourism,	Shopping or tourism,	Siopa neu dwristiaeth
+11,	Expenses,	Expenses,	Treuliau
+12,	Wages,	Wages,	Cyflogau
+13,	Investment,	Investment, Buddsoddiad
+14,	Medical,	Medical costs,	Costau meddygol
+15,	Other,	Other,	Arall
+16,	Not Given,	Not Given,	Heb ei roi
+17,	Education Fees,	Education fees,	Ffioedd addysg
+18,	Gambling,	Gambling,	Hapchwarae / Gamblo
+19,	Ransom,	Paying a ransom,	Talu pridwerth
+20,	Personal,	Personal,	Personol

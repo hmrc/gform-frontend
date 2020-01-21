@@ -70,8 +70,8 @@ class LookupLoader {
 
   // format: off
   private val cashType                 = read("BCD-CashType.csv",                 "ID",           "en",   "cy",   mkRadioLookup)
-  private val country                  = read("BCD-Country.csv",                  "CountryCode",  "Name", "Name", mkAjaxLookup(ShowAll.Disabled))
-  private val currency                 = read("BCD-Currency.csv",                 "CurrencyCode", "Name", "Name", mkAjaxLookup(ShowAll.Disabled))
+  private val country                  = read("BCD-Country.csv",                  "CountryCode",  "Name", "cy", mkAjaxLookup(ShowAll.Disabled))
+  private val currency                 = read("BCD-Currency.csv",                 "CurrencyCode", "Name", "cy", mkAjaxLookup(ShowAll.Disabled))
   private val intent                   = read("BCD-Intent.csv",                   "ID",           "en",   "cy",   mkRadioLookup)
   private val intercept                = read("BCD-Intercept.csv",                "ID",           "Name", "Name", mkRadioLookup)
   private val origin                   = read("BCD-Origin.csv",                   "ID",           "en",   "cy",   mkAjaxLookup(ShowAll.Enabled))
