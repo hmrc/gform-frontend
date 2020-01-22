@@ -1,5 +1,5 @@
-id,	name,	en,	cy
-1,	Family costs,	Family costs,	Costau teulu
-14,	Medical costs,	Medical costs,	Costau meddygol
-17,	Education fees,	Education fees,	Ffioedd addysg
-15,	Other,	Other,	Arall
+id, name, en, cy
+1, Family costs, Family costs, Costau teulu
+14, Medical costs, Medical costs, Costau meddygol
+17, Education fees, Education fees, Ffioedd addysg
+15, Other, Other, Arall

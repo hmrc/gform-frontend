@@ -1,17 +1,17 @@
-ID,	Name,	en,	cy
-1,	From Family,	Family,	Teulu
-2,	From Friend,	Friend,	Ffrind
-3,	Savings Cash,	Personal cash savings,	Cynilion arian parod personol
-4,	Savings Bank,	Personal savings in a bank,	Cynilion personol yn y banc
-5,	Loan,	Loan,	Benthyciad
-6,	Sale Of Property,	Property,	Eiddo
-7,	Sale Of Vehicle, Vehicle,	Cerbyd
-8,	Sale Other,	Other sale,	Gwerthiant arall
-9,	Own Earnings,	Personal earnings,	Enillion personol
-10,	Others Earnings,	Others Earnings,	Enillion pobl eraill
-11,	Inheritance,	Inheritance,	Etifeddiant
-12,	Gambling,	Gambling,	Hapchwarae / Gamblo
-13,	Other,	Other,	Arall
-14,	Not Given,	Not Given,	Heb ei roi
-15,	From Business,	Business,	Busnes
-16,	Personal,	Personal,	Personol
+ID, Name, en, cy
+1, From Family, Family, Teulu
+2, From Friend, Friend, Ffrind
+3, Savings Cash, Personal cash savings, Cynilion arian parod personol
+4, Savings Bank, Personal savings in a bank, Cynilion personol yn y banc
+5, Loan, Loan, Benthyciad
+6, Sale Of Property, Property, Eiddo
+7, Sale Of Vehicle, Vehicle, Cerbyd
+8, Sale Other, Other sale, Gwerthiant arall
+9, Own Earnings, Personal earnings, Enillion personol
+10, Others Earnings, Others Earnings, Enillion pobl eraill
+11, Inheritance, Inheritance, Etifeddiant
+12, Gambling, Gambling, Hapchwarae / Gamblo
+13, Other, Other, Arall
+14, Not Given, Not Given, Heb ei roi
+15, From Business, Business, Busnes
+16, Personal, Personal, Personol
