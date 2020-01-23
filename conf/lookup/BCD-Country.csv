@@ -1,267 +1,266 @@
-CountryCode,	Name,	InEU,	cy
-
-AC,	Alderney,	0,	Alderney
-AD,	Andorra,	0,	Andorra
-AE,	United Arab Emirates,	0,	Yr Emiraethau Arabaidd Unedig
-AF,	Afghanistan,	0,	Afghanistan
-AG,	Antigua and Barbuda,	0,	Antigua a Barbuda
-AI,	Anguilla,	0,	Anguilla
-AL,	Albania,	0,	Albania
-AM,	Armenia,	0,	Armenia
-AN,	Netherlands Antilles,	0,	Antilles yr Iseldiroedd
-AO,	Angola,	0,	Angola
-AQ,	Antarctica,	0,	Antarctica
-AR,	Argentina,	0,	Yr Ariannin
-AS,	American Samoa,	0,	Samoa America
-AT,	Austria,	1,	Awstria
-AU,	Australia,	0,	Awstralia
-AW,	Aruba,	0,	Arwba
-AX,	Aland Islands,	0,	Ynysoedd Åland
-AZ,	Azerbaijan,	0,	Azerbaijan
-BA,	Bosnia-Herzegovina,	0,	Bosnia-Herzegovina
-BB,	Barbados,	0,	Barbados
-BD,	Bangladesh,	0,	Bangladesh
-BE,	Belgium,	1,	Gwlad Belg
-BF,	Burkina Faso,	0,	Bwrcina Faso
-BG,	Bulgaria,	1,	Bwlgaria
-BH,	Bahrain,	0,	Bahrain
-BI,	Burundi,	0,	Bwrwndi
-BJ,	Benin,	0,	Benin
-BL,	Saint Barthelemy,	0,	Saint Barthélemy
-BM,	Bermuda,	0,	Bermuda
-BN,	Brunei,	0,	Brunei
-BO,	Bolivia,	0,	Bolivia
-BQ,	"Bonaire, Sint Eustatius and Saba",	0,	"Bonaire, Sint Eustatius a Saba"
-BR,	Brazil,	0,	Brasil
-BS,	Bahamas,	0,	Bahamas
-BT,	Bhutan,	0,	Bhutan
-BV,	Bouvet Island,	0,	Ynys Bouvet
-BW,	Botswana,	0,	Botswana
-BY,	Belarus,	0,	Belarus
-BZ,	Belize,	0,	Belize
-CA,	Canada,	0,	Canada
-CC,	Cocos Islands,	0,	Ynysoedd Cocos
-CD,	Congo (Democratic Republic of the),	0,	Gweriniaeth Ddemocrataidd y Congo
-CE,	Channel Islands,	0,	Ynysoedd y Sianel
-CF,	Central Africa Republic,	0,	Gweriniaeth Canol Affrica
-CG,	Congo,	0,	Congo
-CH,	Switzerland,	0,	Y Swistir
-CI,	Cote D'Ivoire,	0,	Côte D'Ivoire
-CK,	Cook Islands,	0,	Ynysoedd Cook
-CL,	Chile,	0,	Chile
-CM,	Cameroon,	0,	Camerŵn
-CN,	China,	0,	Tsieina
-CO,	Colombia,	0,	Colombia
-CR,	Costa Rica,	0,	Costa Rica
-CS,	Czechoslovakia,	0,	Tsiecoslofacia
-CU,	Cuba,	0,	Cuba
-CV,	Cape Verde,	0,	Cabo Verde
-CW,	Curacao,	0,	Curaçao
-CX,	Christmas Islands,	0,	Ynys y Nadolig
-CY,	Cyprus,	1,	Cyprus
-CZ,	Czech Republic,	1,	Y Weriniaeth Tsiec
-DE,	Germany,	1,	Yr Almaen
-DJ,	Djibouti,	0,	Djibouti
-DK,	Denmark,	1,	Denmarc
-DM,	Dominica,	0,	Dominica
-DO,	Dominican Republic,	0,	Gweriniaeth Dominica
-DZ,	Algeria,	0,	Algeria
-EC,	Ecuador,	0,	Ecuador
-EE,	Estonia,	1,	Estonia
-EG,	Egypt,	0,	Yr Aifft
-EH,	Western Sahara,	0,	Gorllewin Sahara
-ER,	Eritrea,	0,	Eritrea
-ES,	Spain,	1,	Sbaen
-ET,	Ethiopia,	0,	Ethiopia
-FI,	Finland, 1,	Y Ffindir
-FJ,	Fiji,	0,	Ffiji
-FK,	Falklands Islands and dependencies,	0,	Ynysoedd Falkland a'r tiriogaethau dibynnol
-FM,	Micronesia,	0,	Micronesia
-FO,	Faroe Islands,	0,	Ynysoedd Føroyar
-FR,	France,	1,	Ffrainc
-FX,	"France, Metropolitan",	1,	"Ffrainc, Métropolitan"
-GA,	Gabon,	0,	Gabon
-GD,	Grenada,	0,	Grenada
-GE,	Georgia,	0,	Georgia
-GF,	French Guiana,	0,	Guyane Ffrengig
-GG,	Guernsey,	0,	Guernsey
-GH,	Ghana,	0,	Ghana
-GI,	Gibraltar,	0,	Gibraltar
-GL,	Greenland,	0,	Yr Ynys Las
-GM,	Gambia,	0,	Gambia
-GN,	Guinea,	0,	Guinée
-GP,	Guadeloupe,	0,	Guadeloupe
-GQ,	Equatorial Guinea,	0,	Guinea Gyhydeddol
-GR, Greece,	0,	Gwlad Groeg
-GS,	South Georgia and South Sandwich Islands,	0,	Ynysoedd De Georgia a De Sandwich
-GT,	Guatemala,	0,	Gwatemala
-GU,	Guam,	0,	Gwam
-GW,	Guinea Bissau,	0,	Guiné-Bissau
-GY,	Guyana,	0,	Guyana
-HK,	Hong Kong,	0,	Hong Kong
-HM,	Heard Island and McDonald Islands,	0,	Ynys Heard ac Ynysoedd McDonald
-HN,	Honduras,	0,	Honduras
-HR,	Croatia,	1,	Croatia
-HT,	Haiti,	0,	Haiti
-HU,	Hungary,	1,	Hwngari
-IC,	Canary Islands,	0,	Yr Ynysoedd Dedwydd
-ID,	Indonesia,	0,	Indonesia
-IE,	Ireland,	1,	Iwerddon
-IL,	Israel,	0,	Israel
-IM,	Isle of Man,	0,	Ynys Manaw
-IN,	India,	0,	India
-IO,	British Indian Ocean Territory,	0,	Tiriogaeth Brydeinig Cefnfor India
-IQ,	Iraq,	0,	Irac
-IR,	Iran,	0,	Iran
-IS,	Iceland,	0,	Gwlad yr Iâ
-IT,	Italy,	1,	Yr Eidal
-JE,	Jersey,	0,	Jersey
-JM,	Jamaica,	0,	Jamaica
-JO,	Jordan,	0,	Gwlad yr Iorddonen
-JP,	Japan,	0,	Japan
-KE,	Kenya,	0,	Kenya
-KG,	Kyrgyzstan,	0,	Kyrgyzstan
-KH,	Cambodia,	0,	Cambodia
-KI,	Kiribati,	0,	Kiribati
-KM,	Comoros,	0,	Comoros
-KN,	St Kitts and Nevis,	0,	St Kitts a Nevis
-KP,	North Korea,	0,	Gogledd Korea
-KR,	South Korea,	0,	De Korea
-KW,	Kuwait,	0,	Kuwait
-KY,	Cayman Islands,	0,	Ynysoedd Caiman
-KZ,	Kazakhstan,	0,	Kazakhstan
-LA,	Laos,	0,	Laos
-LB,	Lebanon,	0,	Libanus
-LC,	St Lucia,	0,	St Lucia
-LI,	Liechtenstein,	0,	Liechtenstein
-LK,	Sri Lanka,	0,	Sri Lanka
-LR,	Liberia,	0,	Liberia
-LS,	Lesotho,	0,	Lesotho
-LT,	Lithuania,	1,	Lithuania
-LU,	Luxembourg,	1,	Lwcsembwrg
-LV,	Latvia,	1,	Latvia
-LY,	Libya,	0,	Libya
-MA,	Morocco,	0,	Moroco
-MC,	Monaco,	0,	Monaco
-MD,	Moldova,	0,	Moldova
-ME,	Montenegro,	0,	Montenegro
-MF,	Saint Martin,	0,	Saint Martin
-MG,	Madagascar,	0,	Madagascar
-MH,	Marshall Islands,	0,	Ynysoedd Marshall
-MK,	Macedonia,	0,	Macedonia
-ML,	Mali,	0,	Mali
-MM,	Myanmar,	0,	Myanmar
-MN,	Mongolia,	0,	Mongolia
-MO,	Macao,	0,	Macau
-MP,	Northern Mariana Islands,	0,	Ynysoedd Gogledd Mariana
-MQ,	Martinique,	0,	Martinique
-MR,	Mauritania,	0,	Mauritania
-MS,	Montserrat,	0,	Montserrat
-MT,	Malta,	1,	Malta
-MU,	Mauritius,	0,	Mauritius
-MV,	Maldives,	0,	Maldives
-MW,	Malawi,	0,	Malawi
-MX,	Mexico,	0,	Mecsico
-MY,	Malaysia,	0,	Malaysia
-MZ,	Mozambique,	0,	Moçambique
-NA,	Namibia,	0,	Namibia
-NC,	New Caledonia,	0,	Caledonia Newydd
-NE,	Niger,	0,	Niger
-NF,	Norfolk Island,	0,	Ynys Norfolk
-NG,	Nigeria,	0,	Nigeria
-NI,	Nicaragua,	0,	Nicaragua
-NK,	NOT KNOWN,	0,	DDIM YN HYSBYS
-NL,	Netherlands,	1,	Yr Iseldiroedd
-NO,	Norway,	0,	Norwy
-NP,	Nepal,	0,	Nepal
-NR,	Nauru,	0,	Nauru
-NT,	Neutral Zone,	0,	Parth Niwtral
-NU,	Niue,	0,	Niue
-NZ,	New Zealand,	0,	Seland Newydd
-OM,	Oman,	0,	Oman
-PA,	Panama,	0,	Panamá
-PE,	Peru,	0,	Periw
-PF,	French Polynesia,	0,	Polynesia Ffrengig
-PG,	Papua New Guinea,	0,	Papua Guinea Newydd
-PH,	Philippines,	0,	Pilipinas
-PK,	Pakistan,	0,	Pakistan
-PL,	Poland,	1,	Gwlad Pwyl
-PM,	St Pierre and Miquelon,	0,	Saint Pierre a Miquelon
-PN,	Pitcairn,	0,	Pitcairn
-PR,	Puerto Rico,	0,	Puerto Rico
-PS,	Palestinian Territory,	0,	Tiriogaeth Palesteina
-PT,	Portuga,l	1,	Portiwgal
-PW,	Palau,	0,	Palau
-PY,	Paraguay,	0,	Paraguay
-QA,	Qatar,	0,	Qatar
-RE,	Reunion,	0,	Réunion
-RO,	Romania,	1,	România
-RS,	Serbia,	0,	Serbia
-RU,	Russia,	0,	Rwsia
-RW,	Rwanda,	0,	Rwanda
-SA,	Saudi Arabia,	0,	Saudi Arabia
-SB,	Solomon Islands,	0,	Ynysoedd Solomon
-SC,	Seychelles,	0,	Seychelles
-SD,	Sudan,	0,	Swdan
-SE,	Sweden,	1,	Sweden
-SG,	Singapore,	0,	Singapôr
-SH,	"St Helena, Ascension and Tristan da Cunha",	0,	"Saint Helena, Ynys y Dyrchafael a Tristan da Cunha"
-SI,	Slovenia,	1,	Slovenia
-SJ,	Svalbard and Jan Mayen Islands,	0,	Ynysoedd Svalbard a Jan Mayen
-SK,	Slovakia,	1,	Slovakia
-SL,	Sierra Leone,	0,	Sierra Leone
-SM,	San Marino,	0,	San Marino
-SN,	Senegal,	0,	Senegal
-SO,	Somalia,	0,	Somalia
-SR,	Surinam,	0,	Suriname
-SS,	South Sudan,	0,	De Swdan
-ST,	Sao Tome and Principe,	0,	São Tomé a Príncipe
-SV,	El Salvado,r	0,	El Salvador
-SX,	Sint Maarten (Dutch part),	0,	Sint Maarten (Iseldiraidd)
-SY,	Syria,	0, Syria
-SZ,	Swaziland,	0,	Gwlad Swazi
-TC,	Turks and Caicos Islands,	0,	Ynysoedd Turks a Caicos
-TD,	Chad,	0,	Tchad
-TF,	French Southern Territories,	0,	Tiriogaethau Deheuol Ffrainc
-TG,	Togo,	0, Togo
-TH,	Thailand,	0,	Gwlad Thai
-TJ,	Tajikistan,	0,	Tajikistan
-TK,	Tokelau,	0,	Tokelau
-TL,	Timor-Leste,	0,	Timor-Leste
-TM,	Turkmenistan,	0,	Turkmenistan
-TN,	Tunisia,	0,	Tunisia
-TO,	Tonga,	0,	Tonga
-TP,	East Timor,	0,	Timor-Leste
-TR,	Turkey,	0,	Twrci
-TT,	Trinidad and Tobago,	0,	Trinidad a Thobago
-TV,	Tuvalu,	0,	Tuvalu
-TW,	Taiwan,	0,	Taiwan
-TZ,	Tanzania,	0,	Tanzania
-UA,	Ukraine,	0,	Ukrain
-UG,	Uganda,	0,	Uganda
-UK,	United Kingdom,	1,	Y Deyrnas Unedig
-UM,	United States Minor outlying islands,	0,	Mân Ynysoedd Pellennig yr Unol Daleithiau
-US,	United States,	0,	Yr Unol Daleithiau
-UY,	Uruguay,	0,	Uruguay
-UZ,	Uzbekistan,	0,	Uzbekistan
-VA,	Vatican City State,	0,	Gwladwriaeth Dinas y Fatican
-VC,	St Vincent and the Grenadines,	0,	Saint Vincent a’r Grenadines
-VE,	Venezuela,	0,	Venezuela
-VG,	"Virgin Islands, British",	0,	"Ynysoedd y Wyryf, Prydeinig"
-VI,	"Virgin Islands, United States",	0,	"Ynysoedd y Wyryf, Yr Unol Daleithiau"
-VN,	Vietnam, 0,	Viet Nam
-VU,	Vanuatu,	0,	Vanuatu
-WF,	Wallis and Futuna,	0,	Wallis a Futuna
-WS,	Samoa,	0,	Samoa
-XC,	Ceuta,	0,	Ceuta
-XK,	Kosovo,	0,	Kosovo
-XL,	Melilla, 0, 	Melilla
-XS,	Serbia,	0,	Serbia
-YE,	Yemen,	0,	Yemen
-YT,	Mayotte,	0,	Mayotte
-YU,	Yugoslavia,	0,	Iwgoslafia
-ZA,	South Africa,	0,	De Affrica
-ZM,	Zambia,	0,	Zambia
-ZR,	Zaire,	0,	Zaire
-ZW,	Zimbabwe,	0,	Zimbabwe
-ZZ,	Missing,	0,	Ddim yma
+CountryCode, Name, InEU, cy
+AC, Alderney, 0, Alderney
+AD, Andorra, 0, Andorra
+AE, United Arab Emirates, 0, Yr Emiraethau Arabaidd Unedig
+AF, Afghanistan, 0, Afghanistan
+AG, Antigua and Barbuda, 0, Antigua a Barbuda
+AI, Anguilla, 0, Anguilla
+AL,	Albania, 0, Albania
+AM,	Armenia, 0, Armenia
+AN, Netherlands Antilles, 0, Antilles yr Iseldiroedd
+AO, Angola, 0, Angola
+AQ,	Antarctica,	0, Antarctica
+AR, Argentina, 0, Yr Ariannin
+AS, American Samoa, 0, Samoa America
+AT, Austria, 1, Awstria
+AU, Australia, 0, Awstralia
+AW, Aruba, 0, Arwba
+AX, Aland Islands, 0, Ynysoedd Åland
+AZ, Azerbaijan, 0, Azerbaijan
+BA, Bosnia-Herzegovina, 0, Bosnia-Herzegovina
+BB, Barbados, 0, Barbados
+BD, Bangladesh, 0, Bangladesh
+BE, Belgium, 1, Gwlad Belg
+BF, Burkina Faso, 0, Bwrcina Faso
+BG, Bulgaria, 1, Bwlgaria
+BH, Bahrain, 0, Bahrain
+BI, Burundi, 0, Bwrwndi
+BJ, Benin, 0, Benin
+BL, Saint Barthelemy, 0, Saint Barthélemy
+BM, Bermuda, 0, Bermuda
+BN, Brunei, 0, Brunei
+BO, Bolivia, 0, Bolivia
+BQ, "Bonaire, Sint Eustatius and Saba", 0, "Bonaire, Sint Eustatius a Saba"
+BR,	Brazil, 0, Brasil
+BS,	Bahamas, 0, Bahamas
+BT,	Bhutan, 0, Bhutan
+BV,	Bouvet Island, 0, Ynys Bouvet
+BW,	Botswana, 0, Botswana
+BY,	Belarus, 0, Belarus
+BZ,	Belize, 0, Belize
+CA,	Canada, 0, Canada
+CC,	Cocos Islands, 0, Ynysoedd Cocos
+CD,	Congo (Democratic Republic of the), 0, Gweriniaeth Ddemocrataidd y Congo
+CE,	Channel Islands, 0, Ynysoedd y Sianel
+CF,	Central Africa Republic, 0, Gweriniaeth Canol Affrica
+CG,	Congo, 0, Congo
+CH,	Switzerland, 0, Y Swistir
+CI,	Cote D'Ivoire, 0, Côte D'Ivoire
+CK,	Cook Islands, 0, Ynysoedd Cook
+CL,	Chile, 0, Chile
+CM,	Cameroon, 0, Camerŵn
+CN,	China, 0, Tsieina
+CO,	Colombia, 0, Colombia
+CR,	Costa Rica,	0, Costa Rica
+CS,	Czechoslovakia,	0, Tsiecoslofacia
+CU,	Cuba, 0, Cuba
+CV,	Cape Verde, 0, Cabo Verde
+CW,	Curacao, 0, Curaçao
+CX,	Christmas Islands, 0, Ynys y Nadolig
+CY,	Cyprus, 1, Cyprus
+CZ,	Czech Republic, 1, Y Weriniaeth Tsiec
+DE,	Germany, 1, Yr Almaen
+DJ,	Djibouti, 0, Djibouti
+DK,	Denmark, 1, Denmarc
+DM,	Dominica, 0, Dominica
+DO,	Dominican Republic, 0, Gweriniaeth Dominica
+DZ,	Algeria, 0, Algeria
+EC,	Ecuador, 0, Ecuador
+EE,	Estonia, 1, Estonia
+EG,	Egypt, 0, Yr Aifft
+EH,	Western Sahara, 0, Gorllewin Sahara
+ER,	Eritrea, 0, Eritrea
+ES,	Spain, 1, Sbaen
+ET,	Ethiopia, 0, Ethiopia
+FI,	Finland, 1, Y Ffindir
+FJ,	Fiji, 0, Ffiji
+FK,	Falklands Islands and dependencies,	0, Ynysoedd Falkland a'r tiriogaethau dibynnol
+FM,	Micronesia,	0, Micronesia
+FO,	Faroe Islands, 0, Ynysoedd Føroyar
+FR,	France,	1, Ffrainc
+FX,	"France, Metropolitan",	1, "Ffrainc, Métropolitan"
+GA,	Gabon, 0, Gabon
+GD,	Grenada, 0, Grenada
+GE,	Georgia, 0, Georgia
+GF,	French Guiana, 0, Guyane Ffrengig
+GG,	Guernsey, 0, Guernsey
+GH,	Ghana, 0, Ghana
+GI,	Gibraltar, 0, Gibraltar
+GL,	Greenland, 0, Yr Ynys Las
+GM,	Gambia,	0, Gambia
+GN,	Guinea,	0, Guinée
+GP,	Guadeloupe,	0, Guadeloupe
+GQ,	Equatorial Guinea, 0, Guinea Gyhydeddol
+GR, Greece, 0, Gwlad Groeg
+GS,	South Georgia and South Sandwich Islands, 0, Ynysoedd De Georgia a De Sandwich
+GT,	Guatemala, 0, Gwatemala
+GU,	Guam, 0, Gwam
+GW,	Guinea Bissau, 0, Guiné-Bissau
+GY,	Guyana,	0, Guyana
+HK,	Hong Kong, 0, Hong Kong
+HM,	Heard Island and McDonald Islands, 0, Ynys Heard ac Ynysoedd McDonald
+HN,	Honduras, 0, Honduras
+HR,	Croatia, 1, Croatia
+HT,	Haiti, 0, Haiti
+HU,	Hungary, 1, Hwngari
+IC,	Canary Islands, 0, Yr Ynysoedd Dedwydd
+ID,	Indonesia, 0, Indonesia
+IE,	Ireland, 1, Iwerddon
+IL,	Israel, 0, Israel
+IM,	Isle of Man, 0, Ynys Manaw
+IN,	India, 0, India
+IO,	British Indian Ocean Territory, 0, Tiriogaeth Brydeinig Cefnfor India
+IQ,	Iraq, 0, Irac
+IR,	Iran, 0, Iran
+IS,	Iceland, 0, Gwlad yr Iâ
+IT,	Italy, 1, Yr Eidal
+JE,	Jersey, 0, Jersey
+JM,	Jamaica, 0, Jamaica
+JO,	Jordan, 0, Gwlad yr Iorddonen
+JP,	Japan, 0, Japan
+KE,	Kenya, 0, Kenya
+KG,	Kyrgyzstan, 0, Kyrgyzstan
+KH,	Cambodia, 0, Cambodia
+KI,	Kiribati, 0, Kiribati
+KM,	Comoros, 0, Comoros
+KN,	St Kitts and Nevis, 0, St Kitts a Nevis
+KP,	North Korea, 0, Gogledd Korea
+KR,	South Korea, 0, De Korea
+KW,	Kuwait, 0, Kuwait
+KY,	Cayman Islands, 0, Ynysoedd Caiman
+KZ,	Kazakhstan,	0, Kazakhstan
+LA,	Laos, 0, Laos
+LB,	Lebanon, 0, Libanus
+LC,	St Lucia, 0, St Lucia
+LI,	Liechtenstein, 0, Liechtenstein
+LK,	Sri Lanka, 0, Sri Lanka
+LR,	Liberia, 0, Liberia
+LS,	Lesotho, 0, Lesotho
+LT,	Lithuania, 1, Lithuania
+LU,	Luxembourg, 1, Lwcsembwrg
+LV,	Latvia,	1, Latvia
+LY,	Libya, 0, Libya
+MA,	Morocco, 0, Moroco
+MC,	Monaco, 0, Monaco
+MD,	Moldova, 0, Moldova
+ME,	Montenegro, 0, Montenegro
+MF,	Saint Martin, 0, Saint Martin
+MG,	Madagascar, 0, Madagascar
+MH,	Marshall Islands, 0, Ynysoedd Marshall
+MK,	Macedonia, 0, Macedonia
+ML,	Mali, 0, Mali
+MM,	Myanmar, 0, Myanmar
+MN,	Mongolia, 0, Mongolia
+MO,	Macao, 0, Macau
+MP,	Northern Mariana Islands, 0, Ynysoedd Gogledd Mariana
+MQ,	Martinique, 0, Martinique
+MR,	Mauritania, 0, Mauritania
+MS,	Montserrat, 0, Montserrat
+MT,	Malta, 1, Malta
+MU,	Mauritius, 0, Mauritius
+MV,	Maldives, 0, Maldives
+MW,	Malawi, 0, Malawi
+MX,	Mexico, 0, Mecsico
+MY,	Malaysia, 0, Malaysia
+MZ,	Mozambique, 0, Moçambique
+NA,	Namibia, 0, Namibia
+NC,	New Caledonia, 0, Caledonia Newydd
+NE,	Niger, 0, Niger
+NF,	Norfolk Island, 0, Ynys Norfolk
+NG,	Nigeria, 0, Nigeria
+NI,	Nicaragua, 0, Nicaragua
+NK,	NOT KNOWN, 0, DDIM YN HYSBYS
+NL,	Netherlands, 1, Yr Iseldiroedd
+NO,	Norway, 0, Norwy
+NP,	Nepal, 0, Nepal
+NR,	Nauru, 0, Nauru
+NT,	Neutral Zone, 0, Parth Niwtral
+NU,	Niue, 0, Niue
+NZ,	New Zealand, 0, Seland Newydd
+OM,	Oman, 0, Oman
+PA,	Panama, 0, Panamá
+PE,	Peru, 0, Periw
+PF,	French Polynesia, 0, Polynesia Ffrengig
+PG,	Papua New Guinea, 0, Papua Guinea Newydd
+PH,	Philippines, 0, Pilipinas
+PK,	Pakistan, 0, Pakistan
+PL,	Poland, 1, Gwlad Pwyl
+PM,	St Pierre and Miquelon, 0, Saint Pierre a Miquelon
+PN,	Pitcairn, 0, Pitcairn
+PR,	Puerto Rico, 0, Puerto Rico
+PS,	Palestinian Territory, 0, Tiriogaeth Palesteina
+PT,	Portugal, 1, Portiwgal
+PW,	Palau, 0, Palau
+PY,	Paraguay, 0, Paraguay
+QA,	Qatar, 0, Qatar
+RE,	Reunion, 0, Réunion
+RO,	Romania, 1, România
+RS,	Serbia, 0, Serbia
+RU,	Russia, 0, Rwsia
+RW,	Rwanda, 0, Rwanda
+SA,	Saudi Arabia, 0, Saudi Arabia
+SB,	Solomon Islands, 0, Ynysoedd Solomon
+SC,	Seychelles,	0, Seychelles
+SD,	Sudan, 0, Swdan
+SE,	Sweden, 1, Sweden
+SG,	Singapore, 0, Singapôr
+SH,	"St Helena, Ascension and Tristan da Cunha", 0,	"Saint Helena, Ynys y Dyrchafael a Tristan da Cunha"
+SI,	Slovenia, 1, Slovenia
+SJ,	Svalbard and Jan Mayen Islands,	0, Ynysoedd Svalbard a Jan Mayen
+SK,	Slovakia, 1, Slovakia
+SL,	Sierra Leone, 0, Sierra Leone
+SM,	San Marino, 0, San Marino
+SN,	Senegal, 0, Senegal
+SO,	Somalia, 0, Somalia
+SR,	Surinam, 0, Suriname
+SS,	South Sudan, 0, De Swdan
+ST,	Sao Tome and Principe, 0, São Tomé a Príncipe
+SV,	El Salvador, 0, El Salvador
+SX,	Sint Maarten (Dutch part), 0, Sint Maarten (Iseldiraidd)
+SY,	Syria, 0, Syria
+SZ,	Swaziland, 0, Gwlad Swazi
+TC,	Turks and Caicos Islands, 0, Ynysoedd Turks a Caicos
+TD,	Chad, 0, Tchad
+TF,	French Southern Territories, 0, Tiriogaethau Deheuol Ffrainc
+TG,	Togo, 0, Togo
+TH,	Thailand, 0, Gwlad Thai
+TJ,	Tajikistan, 0, Tajikistan
+TK,	Tokelau, 0, Tokelau
+TL,	Timor-Leste, 0, Timor-Leste
+TM,	Turkmenistan, 0, Turkmenistan
+TN,	Tunisia, 0, Tunisia
+TO,	Tonga, 0, Tonga
+TP,	East Timor, 0, Timor-Leste
+TR,	Turkey, 0, Twrci
+TT,	Trinidad and Tobago, 0, Trinidad a Thobago
+TV,	Tuvalu,	0, Tuvalu
+TW,	Taiwan, 0, Taiwan
+TZ,	Tanzania, 0, Tanzania
+UA,	Ukraine, 0, Ukrain
+UG,	Uganda, 0, Uganda
+UK,	United Kingdom, 1, Y Deyrnas Unedig
+UM,	United States Minor outlying islands, 0, Mân Ynysoedd Pellennig yr Unol Daleithiau
+US,	United States, 0, Yr Unol Daleithiau
+UY,	Uruguay, 0, Uruguay
+UZ,	Uzbekistan, 0, Uzbekistan
+VA,	Vatican City State, 0, Gwladwriaeth Dinas y Fatican
+VC,	St Vincent and the Grenadines, 0, Saint Vincent a’r Grenadines
+VE,	Venezuela, 0, Venezuela
+VG,	"Virgin Islands, British", 0, "Ynysoedd y Wyryf, Prydeinig"
+VI,	"Virgin Islands, United States", 0, "Ynysoedd y Wyryf, Yr Unol Daleithiau"
+VN,	Vietnam, 0, Viet Nam
+VU,	Vanuatu, 0, Vanuatu
+WF,	Wallis and Futuna, 0, Wallis a Futuna
+WS,	Samoa, 0, Samoa
+XC,	Ceuta, 0, Ceuta
+XK,	Kosovo, 0, Kosovo
+XL,	Melilla, 0,  Melilla
+XS,	Serbia, 0, Serbia
+YE,	Yemen, 0, Yemen
+YT,	Mayotte, 0, Mayotte
+YU,	Yugoslavia, 0,Iwgoslafia
+ZA,	South Africa, 0, De Affrica
+ZM,	Zambia, 0, Zambia
+ZR,	Zaire, 0, Zaire
+ZW,	Zimbabwe, 0, Zimbabwe
+ZZ,	Missing, 0, Ddim yma

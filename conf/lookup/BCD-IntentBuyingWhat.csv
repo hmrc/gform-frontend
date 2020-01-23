@@ -1,5 +1,5 @@
-id,	name,	en,	cy
-0_internal,	Major purchase,	Major purchase,	Prynu rhywbeth sylweddol
-6,	Clothing,	Clothing,	Dillad
-10,	Shopping or tourism,	Shopping or tourism,	Siopa neu dwristiaeth
-9,	Other Purchase,	Other Purchase,	Prynu rhywbeth arall
+id, name, en, cy
+0_internal, Major purchase, Major purchase, Prynu rhywbeth sylweddol
+6, Clothing, Clothing, Dillad
+10, Shopping or tourism, Shopping or tourism, Siopa neu dwristiaeth
+9, Other Purchase, Other Purchase, Prynu rhywbeth arall
