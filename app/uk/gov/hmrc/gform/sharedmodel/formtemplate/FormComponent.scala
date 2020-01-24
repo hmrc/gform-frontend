@@ -210,10 +210,10 @@ object IsFileUpload {
 }
 
 object IsEmailVerifier {
-  def unapply(formComponent: FormComponent): Option[(EmailFieldId, VerificationCodeFieldId)] =
+  def unapply(formComponent: FormComponent): Option[(EmailFieldId, EmailVerifiedBy)] =
     formComponent.`type` match {
-      case Text(EmailVerifiedBy(fcId), _, _, _) =>
-        Some((emailFieldId(formComponent.id), verificationCodeFieldId(fcId)))
+      case Text(evb @ EmailVerifiedBy(_, _), _, _, _) =>
+        Some((emailFieldId(formComponent.id), evb))
       case _ => None
     }
 }

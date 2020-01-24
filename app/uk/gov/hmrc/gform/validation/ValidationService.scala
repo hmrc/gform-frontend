@@ -31,7 +31,9 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.models.helpers.Fields
+import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse, InternationalAddress, UkAddress }
+import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
 import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
@@ -142,23 +144,29 @@ class ValidationService(
     messages: Messages
   ): Future[ValidatedType[Map[EmailFieldId, EmailAndCode]]] = {
 
-    val emailFields: List[EmailFieldId] = fieldValues.collect { case IsEmailVerifier(fcId, _) => fcId }
+    val emailFields: List[(EmailFieldId, EmailVerifierService)] = fieldValues.collect {
+      case IsEmailVerifier(fcId, emailVerifiedBy) => (fcId, emailVerifiedBy.emailVerifierService)
+    }
 
     def emailExist(formComponentId: EmailFieldId, email: String): Boolean =
       thirdPartyData.emailVerification.get(formComponentId).fold(false)(_.email === email)
 
-    val emailAddressedToBeVerified: List[Option[(EmailFieldId, EmailAndCode)]] = emailFields.map { ef =>
-      val maybeEmail = data.data.one(ef)
+    val emailAddressedToBeVerified: List[Option[(EmailFieldId, EmailAndCode, EmailVerifierService)]] =
+      emailFields.map {
+        case (ef, emailVerifierService) =>
+          val maybeEmail = data.data.one(ef)
 
-      maybeEmail.collect {
-        case email if !emailExist(ef, email) => ef -> EmailAndCode.emailVerificationCode(email)
+          maybeEmail.collect {
+            case email if !emailExist(ef, email) =>
+              (ef, EmailAndCode.emailVerificationCode(email), emailVerifierService)
+          }
       }
-    }
-
     emailAddressedToBeVerified.flatten
       .traverse {
-        case res @ (_, EmailAndCode(email, code)) =>
-          gformConnector.sendEmail(NotifierEmailAddress(email), code).map(_ => res)
+        case (emailFieldId, eac @ EmailAndCode(email, code), emailVerifierService) =>
+          gformConnector
+            .sendEmail(NotifierEmailAddress(email), ConfirmationCodeWithEmailService(code, emailVerifierService))
+            .map(_ => (emailFieldId, eac))
       }
       .map(_.toMap.valid)
   }
