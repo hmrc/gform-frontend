@@ -17,16 +17,16 @@
 package uk.gov.hmrc.gform.sharedmodel.form.generators
 
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.email.EmailConfirmationCode
 import uk.gov.hmrc.gform.sharedmodel.form.EmailAndCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.PrimitiveGen
-import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierConfirmationCode
 
 trait EmailVerificationCodeGen {
   def emailVerificationCodeGen: Gen[EmailAndCode] =
     for {
       email <- PrimitiveGen.nonEmptyAsciiPrintableString
       code  <- PrimitiveGen.nonEmptyAsciiPrintableString
-    } yield EmailAndCode(email, NotifierConfirmationCode(code))
+    } yield EmailAndCode(email, EmailConfirmationCode(code))
 }
 
 object EmailVerificationCodeGen extends EmailVerificationCodeGen

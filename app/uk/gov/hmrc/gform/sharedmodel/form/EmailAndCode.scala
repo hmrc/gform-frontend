@@ -19,10 +19,10 @@ package uk.gov.hmrc.gform.sharedmodel.form
 import cats.data.State
 import julienrf.json.derived
 import play.api.libs.json.OFormat
-import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierConfirmationCode
+import uk.gov.hmrc.gform.sharedmodel.email.EmailConfirmationCode
 import uk.gov.hmrc.gform.typeclasses.Rnd
 
-case class EmailAndCode(email: String, code: NotifierConfirmationCode)
+case class EmailAndCode(email: String, code: EmailConfirmationCode)
 
 object EmailAndCode {
 
@@ -50,7 +50,7 @@ object EmailAndCode {
   }
 
   def emailVerificationCode(email: String): EmailAndCode =
-    EmailAndCode(email, NotifierConfirmationCode(random))
+    EmailAndCode(email, EmailConfirmationCode(random))
 
   implicit val format: OFormat[EmailAndCode] = derived.oformat
 }

@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import cats.Eq
 import julienrf.json.derived
 import play.api.libs.json._
+import uk.gov.hmrc.gform.sharedmodel.EmailVerifierService
 
 sealed trait FormatExpr
 final case class OrientationFormat(value: String) extends FormatExpr
@@ -192,7 +193,8 @@ case object TelephoneNumber extends TextConstraint {
 }
 
 case object Email extends TextConstraint
-case class EmailVerifiedBy(formComponentId: FormComponentId) extends TextConstraint
+case class EmailVerifiedBy(formComponentId: FormComponentId, emailVerifierService: EmailVerifierService)
+    extends TextConstraint
 case object UTR extends TextConstraint
 case object NINO extends TextConstraint
 case object UkVrn extends TextConstraint

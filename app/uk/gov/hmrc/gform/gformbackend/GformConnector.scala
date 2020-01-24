@@ -28,7 +28,8 @@ import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil._
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.config.{ ContentType, ExposedConfig }
 import uk.gov.hmrc.gform.sharedmodel.des.{ DesRegistrationRequest, DesRegistrationResponse }
-import uk.gov.hmrc.gform.sharedmodel.notifier.{ NotifierConfirmationCode, NotifierEmailAddress }
+import uk.gov.hmrc.gform.sharedmodel.email.ConfirmationCodeWithEmailService
+import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
@@ -209,13 +210,13 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
 
   def sendEmail(
     emailAddress: NotifierEmailAddress,
-    notifierConfirmationCode: NotifierConfirmationCode
+    notifierConfirmationCode: ConfirmationCodeWithEmailService
   )(
     implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Unit] =
-    ws.POST[NotifierConfirmationCode, HttpResponse](
+    ws.POST[ConfirmationCodeWithEmailService, HttpResponse](
         show"$baseUrl/email/$emailAddress",
         notifierConfirmationCode,
         Seq("Content-Type" -> ContentType.`application/json`.value))
