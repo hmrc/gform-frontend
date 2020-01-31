@@ -33,7 +33,7 @@ generic.Warning=Rhybudd
 
 # Form categories
 formCategory.form=ffurflen
-formCategory.return=ffurflen Dreth
+formCategory.return=datganiad
 formCategory.claim=hawliad
 
 
@@ -63,37 +63,37 @@ generic.error.maxDecimals=Rhaid i {0} beidio â chynnwys mwy na {1} lle degol
 generic.error.invalid=Nid yw {0} yn ddilys
 generic.vrn.error.pattern=Rhaid i {0} fod yn rhif 9 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789
 generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
-generic.ukEori.error.pattern={0} must be 12 numbers and start with GB, for example GB123456789012 //TODO Add in welsh translation of this exact text - AEO translations will contain this.
+generic.ukEori.error.pattern=Rhaid i {0} fod yn rhif 12 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789012
 generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif 6 digid gyda 2 lythyren ar y dechrau, er enghraifft 01234567 neu SC123456
 generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.governmentId.error.pattern=Rhaid nodi {0} yn y fformat cywir
 generic.error.sortcode=Rhaid nodi {0} fel 3 set o rifau 2 ddigid, er enghraifft 07 00 00
 generic.error.exactNumbers=Rhaid i {0} fod yn rhif {1} digid
-# TODO translate to welsh
-generic.error.email={0} must match code you received by email
+generic.error.lookup=Rhaid i {0} gyd-fynd ag un o’r awgrymiadau o’r rhestr
+generic.error.email=Rhaid i {0} gyd-fynd â’r cod rydych wedi ei gael drwy e-bost
 
 generic.shortText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau, cysylltnodau, ampersandau a chollnodau
 generic.longText.error.pattern=Gall {0} ond cynnwys llythrennau, rhifau, bylchau a bachau crwn, sgwâr, onglog neu gyrliog, collnodau, cysylltnodau, llinellau toriad, atalnodau llawn, arwyddion punt, arwyddion plws, hanner colonau, colonau, serenigion, marciau cwestiwn, hafalnodau, blaenslaesau, ampersandau, ebychnodau, symbolau @, hashnodau, arwyddion doler, arwyddion ewro, acenion disgynedig, tildiau, dyfynodau dwbl a thanlinellau
 
 generic.error.telephoneNumber=Gall {0} ond cynnwys rhifau, arwyddion plws, hashnod, priflythrennau, bylchau, serenigion, bachau crwn a chysylltnodau
 
-enrolment.error.failed=The registration details you entered cannot be found or are linked with a different Government Gateway account. You can:
-enrolment.error.failed.step1=check your details and try again
-enrolment.error.failed.step2=get help with signing in to this service (opens in a new window or tab)
+enrolment.error.failed=Ni ellir dod o hyd i’r manylion cofrestru a nodwyd gennych neu mae cysylltiad rhyngddynt â chyfrif Porth y Llywodraeth gwahanol. Gallwch wneud y canlynol:
+enrolment.error.failed.step1=gwirio’ch manylion a rhoi cynnig arall arni
+enrolment.error.failed.step2=cael help gyda mewngofnodi i’r gwasanaeth hwn (yn agor ffenestr neu dab newydd)
 enrolment.error.regimeId=Mae’r rhif cofrestru a nodwyd gennych ar gyfer gwasanaeth dreth wahanol
 enrolment.error.missingIdentifier=Rhaid nodi rhif cofrestru
 
-enrolment.help.title=Get help with your registration details
-enrolment.help.description=Contact HMRC to get help with your registration details so that you can sign in to the service that you are registered for.
-enrolment.help.contact.title=Phone
-enrolment.help.contact.telephone=Telephone:
-enrolment.help.contact.textphone=Textphone:
-enrolment.help.contact.outside=Outside UK:
-enrolment.help.opening.times=Opening times:
-enrolment.help.open.days=Monday to Friday: 8am to 6pm
-enrolment.help.closed.days=Closed weekends and bank holidays.
-enrolment.help.call.charges=Find out about call charges
+enrolment.help.title=Help gyda’ch manylion cofrestru
+enrolment.help.description=Cysylltwch â CThEM am help gyda’ch manylion cofrestru er mwyn i chi allu mewngofnodi i’r gwasanaeth rydych wedi cofrestru ar ei gyfer.
+enrolment.help.contact.title=Ffôn
+enrolment.help.contact.telephone=Ffôn:
+enrolment.help.contact.textphone=Ffôn testun:
+enrolment.help.contact.outside=Y tu allan i'r DU:
+enrolment.help.opening.times=Oriau agor:
+enrolment.help.open.days=Dydd Llun i Ddydd Gwener, 08:00 i 18:00
+enrolment.help.closed.days=Ar gau ar benwythnosau a gwyliau’r banc.
+enrolment.help.call.charges=Gwybodaeth am gostau galwadau
 
 # Access code form field errors
 accessOption.error.required=Dewiswch p’un a hoffech gyrchu {0} sydd ohoni, neu ddechrau un newydd
@@ -140,6 +140,7 @@ internationalAddress.line4.label=llinell 4
 internationalAddress.country.label=gwlad
 
 # Generic address
+address.isUK=Ai cyfeiriad yn y DU yw hwn?
 address.line4.error.maxLength=Rhaid i linell 4 {0} beidio â bod yn fwy na {1} o gymeriadau
 address.line.error.maxLength=Rhaid i linell {1} {0} beidio â bod yn fwy na {2} o gymeriadau
 
@@ -237,7 +238,7 @@ summary.change=Newid
 ack.title=Cyflwynwyd eich {0}
 ack.submissionReference=Cyfeirnod eich cyflwyniad yw
 ack.sentEmail=Rydym wedi anfon e-bost cadarnhau atoch
-ack.pdfLink=Gweld copi PDF o’ch {0} y gallwch ei gadw neu argraffu
+ack.pdfLink=Argraffu neu gadw copi PDF o’ch atebion
 ack.whatHappensNext=Yr hyn sy’n digwydd nesaf
 ack.beforeYouGo=Cyn i chi fynd
 ack.feedbackText1=Rydym yn defnyddio adborth i wella ein gwasanaethau. Cwblhewch yr
