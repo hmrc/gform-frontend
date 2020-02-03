@@ -106,7 +106,7 @@ object ComponentValidator {
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
         validatePhoneNumber(fieldValue, value)
-      case (_, value :: Nil, Email | EmailVerifiedBy(_)) =>
+      case (_, value :: Nil, Email | EmailVerifiedBy(_, _)) =>
         Monoid.combine(
           email(fieldValue, value),
           textValidationWithConstraints(fieldValue, value, 0, ValidationValues.emailLimit))

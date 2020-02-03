@@ -47,7 +47,10 @@ class GetEmailCodeFieldMatcher(sections: List[Section]) {
   def apply(fc: FormComponent): EmailCodeFieldMatcher = {
     val fcIds: Map[VerificationCodeFieldId, EmailFieldId] = sections
       .flatMap(_.expandSectionFull.allFCs)
-      .collect { case IsEmailVerifier(emailFcId, codeFcId) => (codeFcId, emailFcId) }
+      .collect {
+        case IsEmailVerifier(emailFcId, emailVerifiedBy) =>
+          (verificationCodeFieldId(emailVerifiedBy.formComponentId), emailFcId)
+      }
       .toMap
     new EmailCodeFieldMatcher(verificationCodeFieldId(fc.id), fcIds)
   }
