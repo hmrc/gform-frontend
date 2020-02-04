@@ -32,7 +32,6 @@ import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -61,8 +60,7 @@ class SummarySpec extends Spec {
   private implicit val viewHelpers: ViewHelpersAlgebra = null
 
   trait Test extends ExampleData {
-    override def dmsSubmission =
-      DmsSubmission("DMS-ID-XX", TextExpression(AuthCtx(PayeNino)), "some-classification-type", "some-business-area")
+
     def section0 =
       Section.NonRepeatingPage(
         Page(
