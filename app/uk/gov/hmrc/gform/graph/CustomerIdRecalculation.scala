@@ -46,7 +46,6 @@ class CustomerIdRecalculation[F[_]: Monad](
       .map(_.filter(!_.isEmpty).headOption.getOrElse(CustomerId.empty))
 
   private def customerIdExpressions(destinations: Destinations) = destinations match {
-    case d: Destinations.DmsSubmission => List(d.customerId)
     case ds: Destinations.DestinationList =>
       ds.destinations.collect { case d: DestinationWithCustomerId => d.customerId }
   }

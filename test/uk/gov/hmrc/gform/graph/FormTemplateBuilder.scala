@@ -18,8 +18,11 @@ package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DmsSubmission
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
+import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
 object FormTemplateBuilder {
 
@@ -105,13 +108,23 @@ object FormTemplateBuilder {
     mkFormComponentEditable(fcId, Text(BasicText, expr))
 
   def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
-  def mkFormTemplate(sections: List[Section]) = FormTemplate.withDeprecatedDmsSubmission(
+  def mkFormTemplate(sections: List[Section]) = FormTemplate(
     FormTemplateId("tst1"),
     toLocalisedString("Dependecy heavy experiment"),
     Some(BetaBanner),
     Default,
     OnePerUser(ContinueOrDeletePage.Show),
-    DmsSubmission("R&D", TextExpression(FormCtx("utrRepComp")), "CCG-CT-RandDreports", "CCG", None),
+    DestinationList(
+      NonEmptyList.of(HmrcDms(
+        DestinationId("TestHmrcDmsId"),
+        "TestHmrcDmsFormId",
+        TextExpression(Constant("TestHmrcDmsCustomerId")),
+        "TestHmrcDmsClassificationType",
+        "TestHmrcDmsBusinessArea",
+        "",
+        true,
+        true
+      ))),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
     Some(NonEmptyList
@@ -125,6 +138,9 @@ object FormTemplateBuilder {
       List.empty[FormComponent]
     ),
     DeclarationSection(toSmartString("Declaration"), None, None, Nil),
+    Nil,
+    Some("false"),
+    AvailableLanguages.default,
     None
   )
 
