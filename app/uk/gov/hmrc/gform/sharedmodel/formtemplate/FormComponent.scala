@@ -16,30 +16,20 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import cats.data.NonEmptyList
 import cats.instances.list._
 import cats.instances.int._
 import cats.syntax.eq._
 import cats.syntax.foldable._
 import play.api.libs.json._
 import shapeless.syntax.typeable._
+import uk.gov.hmrc.gform.eval.ExprType
 import uk.gov.hmrc.gform.gform.FormComponentUpdater
+import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.ExpandUtils._
+import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, VerificationCodeFieldId, emailFieldId, verificationCodeFieldId }
-import uk.gov.hmrc.gform.models.javascript.{ FormComponentSimple, FormComponentWithGroup, JsFormComponentModel, JsFormComponentWithCtx, JsRevealingChoiceModel }
-import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, SmartString, VariadicFormData }
-
-case class ExpandedFormComponent(formComponents: List[FormComponent]) extends AnyVal {
-  // ToDo Lance - Shouldn't we be recursing into Group and RevealingChoice
-  def allIds: List[FormComponentId] = {
-    def recurse(formComponent: FormComponent): List[FormComponentId] =
-      formComponent match {
-        case IsMultiField(mf) => mf.fields(formComponent.id).toList
-        case _                => List(formComponent.id)
-      }
-
-    formComponents.flatMap(recurse)
-  }
-}
+import uk.gov.hmrc.gform.sharedmodel.{ LabelHelper, SmartString, SourceOrigin, VariadicFormData }
 
 case class FormComponent(
   id: FormComponentId,
@@ -58,98 +48,44 @@ case class FormComponent(
   validators: List[FormComponentValidator] = Nil
 ) {
 
+  val modelComponentId: ModelComponentId = id.modelComponentId
+
+  val baseComponentId: BaseComponentId = id.baseComponentId
+
+  def atomicFormComponentId(atom: Atom): ModelComponentId.Atomic = id.toAtomicFormComponentId(atom)
+
+  def childrenFormComponents: List[FormComponent] = `type` match {
+    case t: RevealingChoice => t.options.toList.flatMap(_.revealingFields)
+    case t: Group           => t.fields
+    case _                  => Nil
+  }
+
+  def lookupFor: Map[ModelComponentId, FormComponent] = multiValueId.lookupFor(this)
+
+  val multiValueId: MultiValueId = modelComponentId.fold(
+    pure =>
+      this match {
+        case IsMultiField(multifield) => MultiValueId.multiValue(pure, multifield.fields(pure.indexedComponentId))
+        case _                        => MultiValueId.pure(pure)
+    }
+  )(
+    atomic => throw new IllegalArgumentException(s"$atomic cannot be broken into multiValues")
+  )
+
+  def firstAtomModelComponentId: ModelComponentId.Atomic = multiValueId.firstAtomModelComponentId
+
+  def getType: ExprType = this match {
+    case IsText(Text(Sterling(_, _), _, _, _))             => ExprType.Sterling
+    case IsText(Text(Number(_, _, _, _), _, _, _))         => ExprType.Number
+    case IsText(Text(PositiveNumber(_, 0, _, _), _, _, _)) => ExprType.WholeNumber
+    case IsText(Text(PositiveNumber(_, _, _, _), _, _, _)) => ExprType.Number
+    case IsChoice(_)                                       => ExprType.ChoiceSelection
+    case IsRevealingChoice(_)                              => ExprType.ChoiceSelection
+    case _                                                 => ExprType.String
+  }
+
   def hideOnSummary: Boolean =
     presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) || IsInformationMessage.unapply(this).isDefined
-
-  private def updateField(i: Int, fc: FormComponent): FormComponent =
-    fc.copy(
-      label = LabelHelper.buildRepeatingLabel(fc.label, i),
-      shortName = LabelHelper.buildRepeatingLabel(fc.shortName, i))
-
-  private def loop(fc: FormComponent): List[FormComponent] =
-    fc.`type` match {
-      case Group(fields, max, _, _, _) =>
-        val expandedFields =
-          for {
-            field <- fields
-            res <- updateField(1, field) :: (1 until max.getOrElse(1))
-                    .map(i => updateField(i + 1, field.copy(id = FormComponentId(i + "_" + field.id.value))))
-                    .toList
-          } yield res
-        expandedFields.flatMap(loop) // for case when there is group inside group (Note: it does not work, we would need to handle prefix)
-      case RevealingChoice(options, _) => fc :: options.toList.foldMap(_.revealingFields.map(loop)).flatten
-      case _                           => fc :: Nil
-    }
-
-  lazy val expandedFormComponents: List[FormComponent] = loop(this)
-
-  private def addFieldIndex(field: FormComponent, index: Int, group: Group) = {
-    val fieldToUpdate = if (index === 0) field else field.copy(id = FormComponentId(index + "_" + field.id.value))
-    val i = index + 1
-    FormComponentUpdater(
-      fieldToUpdate.copy(
-        label = LabelHelper.buildRepeatingLabel(field.label, i),
-        shortName = LabelHelper.buildRepeatingLabel(field.shortName, i)
-      ),
-      index,
-      group
-    ).updated
-  }
-
-  private val expandGroup: VariadicFormData => Group => Int => List[FormComponent] = data =>
-    group =>
-      index => {
-        val ids: List[FormComponentId] = groupIndex(index + 1, group)
-        val toExpand: Boolean = ids.forall(data.contains)
-        if (index === 0 || toExpand) {
-          group.fields.map(addFieldIndex(_, index, group))
-        } else Nil
-  }
-
-  private val expandRevealingChoice: RevealingChoice => List[FormComponent] =
-    _.options.toList.flatMap(_.revealingFields)
-
-  private def expandByDataRc(fc: FormComponent, data: VariadicFormData): List[FormComponent] =
-    expand(fc, expandGroup(data), RevealingChoice.slice(fc.id)(data))
-
-  private def expandByData(fc: FormComponent, data: VariadicFormData): List[FormComponent] =
-    expand(fc, expandGroup(data), expandRevealingChoice)
-
-  private def expandAll(fc: FormComponent): List[FormComponent] =
-    expand(fc, group => index => group.fields.map(addFieldIndex(_, index, group)), expandRevealingChoice)
-
-  private def expand(
-    fc: FormComponent,
-    expandGroup: Group => Int => List[FormComponent],
-    expandRc: RevealingChoice => List[FormComponent]
-  ): List[FormComponent] =
-    fc.`type` match {
-      case g @ Group(fields, max, _, _, _) => (0 until max.getOrElse(1)).toList.flatMap(expandGroup(g))
-      case rc: RevealingChoice             => fc :: expandRc(rc)
-      case _                               => fc :: Nil
-    }
-
-  private def mkJsFormComponentModels(fc: FormComponent): List[JsFormComponentModel] =
-    fc.`type` match {
-      case RevealingChoice(options, _) =>
-        options.toList.flatMap { option =>
-          option.revealingFields.map(rf => JsRevealingChoiceModel(fc.id, rf))
-        }
-      case group @ Group(fields, max, _, _, _) =>
-        (0 until max.getOrElse(1)).toList.flatMap(index =>
-          fields.map(field => JsFormComponentWithCtx(FormComponentWithGroup(addFieldIndex(field, index, group), fc))))
-      case _ => JsFormComponentWithCtx(FormComponentSimple(fc)) :: Nil
-    }
-
-  def expandFormComponent(data: VariadicFormData): ExpandedFormComponent =
-    ExpandedFormComponent(expandByData(this, data))
-  def expandFormComponentRc(data: VariadicFormData): ExpandedFormComponent =
-    ExpandedFormComponent(expandByDataRc(this, data))
-
-  val expandFormComponentFull: ExpandedFormComponent = ExpandedFormComponent(expandAll(this))
-
-  val jsFormComponentModels: List[JsFormComponentModel] = mkJsFormComponentModels(this)
-
 }
 
 object FormComponent {
@@ -173,7 +109,7 @@ object IsTextArea {
 }
 
 object IsGroup {
-  def unapply[S](fc: FormComponent): Option[Group] = fc.`type`.cast[Group]
+  def unapply(fc: FormComponent): Option[Group] = fc.`type`.cast[Group]
 }
 
 object IsMultiField {
@@ -189,7 +125,7 @@ object IsChoice {
 }
 
 object IsRevealingChoice {
-  def unapply[S](fc: FormComponent): Option[RevealingChoice] = fc.`type`.cast[RevealingChoice]
+  def unapply(fc: FormComponent): Option[RevealingChoice] = fc.`type`.cast[RevealingChoice]
 }
 
 object IsAddress {
@@ -212,6 +148,10 @@ object IsFileUpload {
   def unapply(fc: FormComponent): Boolean = fc.`type`.cast[FileUpload].isDefined
 }
 
+object IsTime {
+  def unapply(fc: FormComponent): Option[Time] = fc.`type`.cast[Time]
+}
+
 object IsEmailVerifier {
   def unapply(formComponent: FormComponent): Option[(EmailFieldId, EmailVerifiedBy)] =
     formComponent.`type` match {
@@ -219,4 +159,12 @@ object IsEmailVerifier {
         Some((emailFieldId(formComponent.id), evb))
       case _ => None
     }
+}
+
+object AllValidIfs {
+  def unapply(fc: FormComponent): Option[List[ValidIf]] = (fc.validIf, fc.validators.map(_.validIf)) match {
+    case (None, Nil)     => None
+    case (None, xs2)     => Some(xs2)
+    case (Some(xs), xs2) => Some(xs :: xs2)
+  }
 }

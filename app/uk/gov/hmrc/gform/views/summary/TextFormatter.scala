@@ -16,11 +16,18 @@
 
 package uk.gov.hmrc.gform.views.summary
 
+import cats.syntax.eq._
 import cats.syntax.option._
+import play.api.i18n.Messages
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.{ NumberFormatUtil, NumberSetScale }
+import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.fileupload.Envelope
+import uk.gov.hmrc.gform.models.Atom
+import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions
+import uk.gov.hmrc.gform.sharedmodel.form.FileId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, HtmlFieldId }
 import uk.gov.hmrc.gform.commons.NumberFormatUtil._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 
@@ -51,21 +58,47 @@ object TextFormatter {
     maybeBigDecimal.fold(currentValue)(f)
   }
 
-  def formatText(validationResult: Option[FormFieldValidationResult])(implicit l: LangADT): String = {
-    val currentValue = validationResult match {
-      case Some(result) => result.getCurrentValue.getOrElse("")
-      case None         => ""
-    }
+  def formatText(
+    validationResult: FormFieldValidationResult,
+    envelope: Envelope
+  )(
+    implicit l: LangADT,
+    messages: Messages,
+    evaluator: SmartStringEvaluator
+  ): String = {
+    val currentValue = validationResult.getCurrentValue.getOrElse("")
 
-    def getValue(componentType: ComponentType): String = componentType match {
-      case x: Text => componentText(currentValue, x)
-
+    def getValue(formComponent: FormComponent): String = formComponent match {
+      case IsText(text)     => componentText(currentValue, text)
+      case IsFileUpload()   => envelope.userFileName(formComponent)
+      case IsChoice(choice) => choice.renderToString(formComponent, validationResult).mkString("<br>")
+      case IsUkSortCode(sortCode) =>
+        sortCode
+          .fields(formComponent.modelComponentId.indexedComponentId)
+          .map(modelComponentId => validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId)))
+          .toList
+          .mkString("-")
+      case IsAddress(address) =>
+        Address
+          .renderToString(formComponent, validationResult)
+          .mkString("<br>")
+      case IsDate(date) =>
+        def monthToString(atom: Atom, s: String): String = atom match {
+          case Date.month =>
+            val monthValue = DateHelperFunctions.getMonthValue(s)
+            messages(s"date.$monthValue")
+          case _ => s
+        }
+        date
+          .fields(formComponent.modelComponentId.indexedComponentId)
+          .map(modelComponentId =>
+            monthToString(modelComponentId.atom, validationResult.getCurrentValue(HtmlFieldId.pure(modelComponentId))))
+          .toList
+          .mkString(" ")
       case _ => currentValue
     }
 
-    validationResult
-      .map(result => getValue(result.fieldValue.`type`))
-      .getOrElse("")
+    getValue(validationResult.formComponent)
   }
 
   def appendUnit(constraint: TextConstraint)(implicit l: LangADT): Option[String] = constraint match {

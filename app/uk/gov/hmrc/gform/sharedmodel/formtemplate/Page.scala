@@ -17,9 +17,12 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json.{ Json, OFormat }
+import cats.syntax.eq._
 import uk.gov.hmrc.gform.sharedmodel.SmartString
+import uk.gov.hmrc.gform.gform.RenderUnit
+import uk.gov.hmrc.gform.models.{ Basic, PageMode }
 
-case class Page(
+case class Page[A <: PageMode](
   title: SmartString,
   description: Option[SmartString],
   shortName: Option[SmartString],
@@ -30,11 +33,30 @@ case class Page(
   continueLabel: Option[SmartString],
   continueIf: Option[ContinueIf]
 ) {
-  lazy val expandedFormComponents: List[FormComponent] = fields.flatMap(_.expandedFormComponents)
 
-  val expandFieldsFull: List[ExpandedFormComponent] = fields.map(_.expandFormComponentFull)
+  val allIds: List[FormComponentId] = fields.map(_.id) ++ fields.flatMap(_.childrenFormComponents.map(_.id))
+
+  def renderUnits: List[RenderUnit] = fields.foldRight(List.empty[RenderUnit]) {
+    case (formComponent, (h @ RenderUnit.Group(baseComponentId, groupFormComponents)) :: xs) =>
+      formComponent match {
+        case IsGroup(group) =>
+          if (baseComponentId === formComponent.baseComponentId)
+            h.prepend((group, formComponent)) :: xs
+          else
+            RenderUnit.group(group, formComponent) :: h :: xs
+        case otherwise => RenderUnit.pure(formComponent) :: h :: xs
+      }
+    case (formComponent, acc) =>
+      val start = formComponent match {
+        case IsGroup(group) => RenderUnit.group(group, formComponent)
+        case otherwise      => RenderUnit.pure(formComponent)
+      }
+      start :: acc
+  }
+  val isTerminationPage: Boolean = continueIf.contains(Stop)
+
 }
 
 object Page {
-  implicit val pageFormat: OFormat[Page] = Json.format[Page]
+  implicit val pageFormat: OFormat[Page[Basic]] = Json.format[Page[Basic]]
 }

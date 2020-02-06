@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate.generators
 import org.scalacheck.Gen
+import uk.gov.hmrc.gform.models.ids.generators.ModelComponentIdGen
 import uk.gov.hmrc.gform.sharedmodel.UserId
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.form.generators.{ EnvelopeExpiryDateGen, ThirdPartyDataGen }
@@ -26,7 +27,7 @@ trait FormGen {
   def userIdGen: Gen[UserId] = PrimitiveGen.nonEmptyAlphaNumStrGen.map(UserId(_))
   def formFieldGen: Gen[FormField] =
     for {
-      id    <- FormComponentGen.formComponentIdGen
+      id    <- ModelComponentIdGen.modelComponentIdGen
       value <- Gen.alphaNumStr
     } yield FormField(id, value)
   def formDataGen: Gen[FormData] = PrimitiveGen.zeroOrMoreGen(formFieldGen).map(FormData(_))
@@ -54,6 +55,7 @@ trait FormGen {
         visitIndex,
         thirdPartyData,
         expiryDate
+        //EvaluationResults.empty
       )
 }
 

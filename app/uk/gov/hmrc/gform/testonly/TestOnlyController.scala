@@ -38,7 +38,9 @@ import uk.gov.hmrc.gform.gform.{ CustomerId, FrontEndSubmissionVariablesBuilder,
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SubmissionData }
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, SectionSelectorType }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, AffinityGroupUtil, LangADT, PdfHtml, SourceOrigin, SubmissionData }
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.form.FormId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EmailParametersRecalculated, FormTemplate, FormTemplateId }
@@ -52,7 +54,6 @@ class TestOnlyController(
   gformConnector: GformConnector,
   lookupRegistry: LookupRegistry,
   auth: AuthenticatedRequestActions,
-  customerIdRecalculation: CustomerIdRecalculation[Future],
   controllerComponents: MessagesControllerComponents,
   override protected val mode: Mode,
   override protected val runModeConfiguration: Configuration
@@ -89,19 +90,103 @@ class TestOnlyController(
   private def recov[A](f: Future[A])(errorMsg: String)(implicit ec: ExecutionContext): FOpt[A] =
     fromFutureOptA(f.map(Right.apply).recover { case e => Left(UnexpectedState(errorMsg + "\n" + e.getMessage)) })
 
+  def handlebarModel(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) =
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+      implicit request => implicit lang => cache => _ => formModelOptics =>
+        import cache._
+        implicit val data = cache.variadicFormData[SectionSelectorType.WithAcknowledgement]
+        val customerId =
+          CustomerIdRecalculation
+            .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
+              cache,
+              formModelOptics.formModelVisibilityOptics)
+
+        withHandlebarPayload {
+          for {
+            res <- fetchHandlebarModel(
+                    form,
+                    formTemplate,
+                    formModelOptics.formModelVisibilityOptics,
+                    customerId,
+                    retrievals)
+          } yield res
+        }
+    }
+
+  private def fetchHandlebarModel(
+    form: Form,
+    formTemplate: FormTemplate,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
+    customerId: CustomerId,
+    retrievals: MaterialisedRetrievals
+  )(
+    implicit
+    l: LangADT,
+    me: MonadError[Future, Throwable],
+    hc: HeaderCarrier
+  ): EitherT[Future, UnexpectedState, Result] = {
+
+    val emailParameters = EmailParametersRecalculated(Map.empty)
+    val affinityGroup = AffinityGroupUtil.fromRetrievals(retrievals)
+
+    for {
+      structuredFormData <- fromFutureA(
+                             StructuredFormDataBuilder[DataOrigin.Mongo, Future](
+                               formModelVisibilityOptics,
+                               formTemplate.destinations,
+                               lookupRegistry))
+
+      submissionData = SubmissionData(
+        PdfHtml("htmlForPDF"),
+        FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
+        structuredFormData,
+        emailParameters,
+        Attachments.empty
+      )
+
+      httpResponse <- recov(
+                       gformConnector
+                         .renderHandlebarModel(
+                           formTemplate._id,
+                           form._id,
+                           customerId,
+                           submissionData,
+                           affinityGroup
+                         ))("Error when calling gform service.")
+
+    } yield Ok(httpResponse.body)
+
+  }
+
   def handlebarPayload(
     formTemplateId: FormTemplateId,
     destinationId: DestinationId,
     maybeAccessCode: Option[AccessCode]
   ) =
-    auth.async(formTemplateId, maybeAccessCode) { implicit request => implicit lang => cache => _ =>
-      import cache._
-      withHandlebarPayload {
-        for {
-          customerId <- fromFutureA(customerIdRecalculation.evaluateCustomerId(cache))
-          res        <- fetchHandlebarPayload(form, formTemplate, customerId, destinationId, retrievals)
-        } yield res
-      }
+    auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+      implicit request => implicit lang => cache => _ => formModelOptics =>
+        import cache._
+        implicit val data = cache.variadicFormData[SectionSelectorType.WithAcknowledgement]
+        val customerId =
+          CustomerIdRecalculation
+            .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
+              cache,
+              formModelOptics.formModelVisibilityOptics)
+
+        withHandlebarPayload {
+          for {
+            res <- fetchHandlebarPayload(
+                    form,
+                    formTemplate,
+                    formModelOptics.formModelVisibilityOptics,
+                    customerId,
+                    destinationId,
+                    retrievals)
+          } yield res
+        }
     }
 
   private def withHandlebarPayload(
@@ -114,25 +199,34 @@ class TestOnlyController(
   private def fetchHandlebarPayload(
     form: Form,
     formTemplate: FormTemplate,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     customerId: CustomerId,
     destinationId: DestinationId,
-    retrievals: MaterialisedRetrievals)(
-    implicit l: LangADT,
+    retrievals: MaterialisedRetrievals
+  )(
+    implicit
+    l: LangADT,
     me: MonadError[Future, Throwable],
-    hc: HeaderCarrier): EitherT[Future, UnexpectedState, Result] = {
+    hc: HeaderCarrier
+  ): EitherT[Future, UnexpectedState, Result] = {
 
     val emailParameters = EmailParametersRecalculated(Map.empty)
     val affinityGroup = AffinityGroupUtil.fromRetrievals(retrievals)
 
     for {
-      structuredFormData <- fromFutureA(StructuredFormDataBuilder[Future](form, formTemplate, lookupRegistry))
+      structuredFormData <- fromFutureA(
+                             StructuredFormDataBuilder[DataOrigin.Mongo, Future](
+                               formModelVisibilityOptics,
+                               formTemplate.destinations,
+                               lookupRegistry))
 
       submissionData = SubmissionData(
         PdfHtml("htmlForPDF"),
-        FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, customerId),
+        FrontEndSubmissionVariablesBuilder(retrievals, formTemplate, formModelVisibilityOptics, customerId),
         structuredFormData,
         emailParameters,
-        Attachments.empty)
+        Attachments.empty
+      )
 
       httpResponse <- recov(
                        gformConnector

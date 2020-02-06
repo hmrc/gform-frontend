@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.views.summary
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FieldOk
@@ -88,8 +89,9 @@ class TextFormatterSpec(implicit messages: Messages) extends Spec {
   )
 
   forAll(equalsCombinations) { (input, expectedSterling, expectedNumber) =>
+    implicit val l: LangADT = LangADT.En
     def formatForConstraint(constraint: TextConstraint) =
-      TextFormatter.formatText(Some(FieldOk(getComponent(constraint), input)))(LangADT.En)
+      TextFormatter.formatText(FieldOk(getComponent(constraint), input), Envelope.empty)
 
     formatForConstraint(Sterling(RoundingMode.defaultRoundingMode, false)) shouldBe expectedSterling
     formatForConstraint(Number()) shouldBe expectedNumber

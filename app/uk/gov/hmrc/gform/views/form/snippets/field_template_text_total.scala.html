@@ -14,6 +14,7 @@
  * limitations under the License.
  *@
 
+@import cats.data.NonEmptyList
 @import uk.gov.hmrc.gform.gform.FormRender
 @import uk.gov.hmrc.gform.views.components.TotalText
 
@@ -35,5 +36,5 @@
     </span>
 
 
-    @(hidden_field_populated(List(FormRender(id, id, totalText.currentValue))))
+    @(hidden_field_populated(NonEmptyList.one(FormRender(id, id, totalText.currentValue))))
 </div>

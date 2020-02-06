@@ -23,8 +23,11 @@ import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.graph.{ RecData, Recalculation }
+import uk.gov.hmrc.gform.models.{ FormModel, FormModelBuilder, SectionSelectorType }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
@@ -45,7 +48,7 @@ class AcknowledgementController(
   gformConnector: GformConnector,
   nonRepudiationHelpers: NonRepudiationHelpers,
   messagesControllerComponents: MessagesControllerComponents,
-  customerIdRecalulation: CustomerIdRecalculation[Future],
+  recalculation: Recalculation[Future, Throwable],
   auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
@@ -54,45 +57,59 @@ class AcknowledgementController(
     maybeAccessCode: Option[AccessCode],
     formTemplateId: FormTemplateId
   ): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
-      implicit request => implicit l => cache => implicit sse =>
+    auth.authAndRetrieveForm[SectionSelectorType.Normal](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ViewAcknowledgement) {
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         import i18nSupport._
 
         cache.formTemplate.destinations match {
           case destinationList: DestinationList =>
-            renderer
-              .renderAcknowledgementSection(
-                maybeAccessCode,
-                cache.formTemplate,
-                destinationList,
-                cache.retrievals,
-                cache.form.envelopeId)
-              .map(Ok(_))
-
+            Future.successful(
+              Ok(
+                renderer
+                  .renderAcknowledgementSection(
+                    maybeAccessCode,
+                    cache.formTemplate,
+                    destinationList,
+                    cache.retrievals,
+                    cache.form.envelopeId)))
           case _ =>
             Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
         }
     }
 
   def downloadPDF(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
-    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
-      implicit request => implicit l => cache => implicit sse =>
+    auth.authAndRetrieveForm[SectionSelectorType.WithAcknowledgement](
+      formTemplateId,
+      maybeAccessCode,
+      OperationWithForm.ViewAcknowledgement) {
+      implicit request => implicit l => cache => implicit sse => formModelOptics =>
         val formString = nonRepudiationHelpers.formDataToJson(cache.form)
         val hashedValue = nonRepudiationHelpers.computeHash(formString)
 
+        val customerId = CustomerIdRecalculation
+          .evaluateCustomerId[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
+            cache,
+            formModelOptics.formModelVisibilityOptics)
+
+        val eventId = auditService
+          .calculateSubmissionEvent(cache.form, formModelOptics.formModelVisibilityOptics, cache.retrievals, customerId)
+          .eventId
+
         for {
-          customerId <- customerIdRecalulation.evaluateCustomerId(cache)
-          eventId = auditService
-            .calculateSubmissionEvent(cache.form, cache.formTemplate, cache.retrievals, customerId)
-            .eventId
+
           _          <- nonRepudiationHelpers.sendAuditEvent(hashedValue, formString, eventId)
           submission <- gformConnector.submissionDetails(FormIdData(cache.retrievals, formTemplateId, maybeAccessCode))
           htmlForPDF <- summaryRenderingService
-                         .createHtmlForPdf(
+                         .createHtmlForPdf[DataOrigin.Mongo, SectionSelectorType.WithAcknowledgement](
                            maybeAccessCode,
                            cache,
                            Some(SubmissionDetails(submission, hashedValue)),
-                           SummaryPagePurpose.ForUser)
+                           SummaryPagePurpose.ForUser,
+                           formModelOptics
+                         )
           pdfStream <- pdfService.generatePDF(htmlForPDF)
         } yield
           Result(

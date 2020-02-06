@@ -79,8 +79,8 @@ class GformModule(
     def error: Throwable = new Exception("Call to des to retrieve obligation-data has failed")
   }
 
-  val processDataService: ProcessDataService[Future, Throwable] =
-    new ProcessDataService[Future, Throwable](graphModule.recalculation, taxPeriodStateChecker)
+  val processDataService: ProcessDataService[Future] =
+    new ProcessDataService[Future](graphModule.recalculation, taxPeriodStateChecker)
 
   val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator())
 
@@ -100,6 +100,7 @@ class GformModule(
     fileUploadModule.fileUploadService,
     gformBackendModule.gformConnector,
     fastForwardService,
+    graphModule.recalculation,
     controllersModule.messagesControllerComponents
   )
 
@@ -116,6 +117,7 @@ class GformModule(
     formControllerRequestHandler,
     lookupRegistry.extractors,
     fastForwardService,
+    graphModule.recalculation,
     controllersModule.messagesControllerComponents
   )
 
@@ -142,7 +144,6 @@ class GformModule(
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
     errorResponder,
-    graphModule.recalculation,
     summaryRenderingService,
     controllersModule.messagesControllerComponents
   )
@@ -165,7 +166,7 @@ class GformModule(
     gformBackendModule.gformConnector,
     new NonRepudiationHelpers(auditingModule),
     controllersModule.messagesControllerComponents,
-    graphModule.customerIdRecalculation,
+    graphModule.recalculation,
     auditingModule.auditService
   )
 
@@ -187,8 +188,6 @@ class GformModule(
   val gformBackEndService = new GformBackEndService(
     gformBackendModule.gformConnector,
     summaryRenderingService,
-    graphModule.recalculation,
-    graphModule.customerIdRecalculation,
     lookupRegistry
   )
 
@@ -196,17 +195,16 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     auditingModule.auditService,
-    pdfGeneratorService,
-    sectionRenderingService,
+    fileUploadModule.fileUploadService,
     validationModule.validationService,
-    authModule.authService,
-    graphModule.recalculation,
+    sectionRenderingService,
+    gformBackendModule.gformConnector,
+    processDataService,
     gformBackEndService,
-    controllersModule.messagesControllerComponents,
-    fileUploadModule.fileUploadService
+    controllersModule.messagesControllerComponents
   )
 
-  val reviewService = new ReviewService(gformBackEndService, lookupRegistry)
+  val reviewService = new ReviewService(gformBackEndService, lookupRegistry, graphModule.recalculation)
 
   val reviewController = new ReviewController(
     controllersModule.authenticatedRequestActions,

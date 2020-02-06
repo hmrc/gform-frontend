@@ -22,7 +22,6 @@ import julienrf.json.derived
 sealed trait ContinueIf
 case object Continue extends ContinueIf
 case object Stop extends ContinueIf
-case class Conditional(expr: BooleanExpr) extends ContinueIf
 
 object ContinueIf {
   implicit val format: OFormat[ContinueIf] = derived.oformat

@@ -19,26 +19,38 @@ package uk.gov.hmrc.gform.validation
 import cats.implicits._
 import play.api.i18n.Messages
 import shapeless.syntax.typeable._
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
-import uk.gov.hmrc.gform.validation.ComponentsValidatorHelper.getError
+import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 
 object ValidationServiceHelper {
-  def getCompanionFieldComponent(formComponent: Date, formComponentList: List[FormComponent]): Option[FormComponent] =
-    (for {
-      dateConstraints <- formComponent.constraintType.cast[DateConstraints].toSeq
-      dateConstraint  <- dateConstraints.constraints
-      dateField       <- dateConstraint.dateFormat.cast[DateField].toSeq
-      formComponent   <- formComponentList
-      if formComponent.id === dateField.value
-    } yield formComponent).headOption
 
-  val validationSuccess = ().valid
+  val validationSuccess: ValidatedType[Unit] = ().valid
 
-  def validationFailure(fieldValue: FormComponent, messageKey: String, vars: Option[List[String]])(
-    implicit l: LangADT,
+  def validationFailure[A](
+    fieldValue: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]]
+  )(
+    implicit
+    l: LangADT,
     messages: Messages,
-    sse: SmartStringEvaluator) =
-    getError(fieldValue, messageKey, vars)
+    sse: SmartStringEvaluator
+  ): ValidatedType[A] = validationFailure(fieldValue.modelComponentId, fieldValue, messageKey, vars)
+
+  def validationFailure[A](
+    modelComponentId: ModelComponentId,
+    fieldValue: FormComponent,
+    messageKey: String,
+    vars: Option[List[String]]
+  )(
+    implicit
+    l: LangADT,
+    messages: Messages,
+    sse: SmartStringEvaluator
+  ): ValidatedType[A] =
+    Map(modelComponentId -> ComponentsValidatorHelper.errors(fieldValue, messageKey, vars)).invalid
+
 }

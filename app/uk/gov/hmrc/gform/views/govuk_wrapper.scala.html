@@ -16,7 +16,7 @@
 
 @import play.twirl.api.HtmlFormat
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.components._
 @import uk.gov.hmrc.govukfrontend.views.html.layouts._
@@ -49,7 +49,6 @@
     <script src='@routes.Assets.versioned("javascripts/gformGAEvents.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformRepeatingGroups.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformErrorSummary.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformToggleAddressDivsAndLabels.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFormActionHandlers.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformSummaryLayout.js")'></script>

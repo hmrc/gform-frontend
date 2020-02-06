@@ -94,7 +94,8 @@ class RoutingModule(
     new testOnlyDoNotUseInAppConf.Routes(
       errorHandler,
       prodRoutes,
-      testOnlyModule.testOnlyController
+      testOnlyModule.testOnlyController,
+      testOnlyModule.debugController
     )
 
   val router: Router = {

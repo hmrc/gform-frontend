@@ -17,11 +17,12 @@
 package uk.gov.hmrc.gform.graph
 
 import cats.data.NonEmptyList
+import uk.gov.hmrc.gform.models.Basic
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
 import uk.gov.hmrc.gform.sharedmodel.ExampleData._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.Log
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
@@ -36,20 +37,37 @@ object FormTemplateBuilder {
       None
     )
 
-  def mkSection(formComponents: FormComponent*): Section = mkSection(formComponents.toList)
-  def mkSection(formComponents: List[FormComponent]) =
-    Section.NonRepeatingPage(
-      Page(
-        toSmartString("Section Name"),
-        None,
-        None,
-        None,
-        None,
-        None,
-        formComponents,
-        None,
-        None
-      ))
+  private def page(formComponents: List[FormComponent]): Page[Basic] = Page(
+    toSmartString("Section Name"),
+    None,
+    None,
+    None,
+    None,
+    None,
+    formComponents,
+    None,
+    None
+  )
+
+  def mkAddToListSection(addAnotherQuestionName: String, formComponents: List[FormComponent]*): Section.AddToList =
+    Section.AddToList(
+      toSmartString("Pet owner title"),
+      toSmartString("Pet owner description"),
+      toSmartString("Pet owner shortName"),
+      None,
+      None,
+      NonEmptyList.fromListUnsafe(formComponents.toList.map(page)),
+      addToListQuestion(addAnotherQuestionName)
+    )
+
+  def mkRepeatingPageSection(formComponents: List[FormComponent]): Section.RepeatingPage =
+    mkRepeatingPageSection(formComponents, Constant("1"))
+
+  def mkRepeatingPageSection(formComponents: List[FormComponent], expr: Expr): Section.RepeatingPage =
+    Section.RepeatingPage(page(formComponents), expr)
+
+  def mkSection(formComponents: FormComponent*): Section.NonRepeatingPage = mkSection(formComponents.toList)
+  def mkSection(formComponents: List[FormComponent]) = Section.NonRepeatingPage(page(formComponents))
 
   def mkSectionIncludeIf(formComponents: List[FormComponent], includeIf: IncludeIf) =
     Section.NonRepeatingPage(
@@ -84,6 +102,25 @@ object FormTemplateBuilder {
       None
     )
 
+  def mkFormComponentValidIf(fcId: String, expr: Expr, validIf: ValidIf): FormComponent =
+    mkFormComponentValidIf(fcId, Text(BasicText, expr), validIf)
+  def mkFormComponentValidIf(fcId: String, ct: ComponentType, validIf: ValidIf) =
+    FormComponent(
+      FormComponentId(fcId),
+      ct,
+      ls,
+      None,
+      None,
+      Some(validIf),
+      true,
+      false,
+      true,
+      false,
+      false,
+      None,
+      None
+    )
+
   def mkFormComponentEditable(fcId: String, ct: ComponentType) =
     FormComponent(
       FormComponentId(fcId),
@@ -108,7 +145,7 @@ object FormTemplateBuilder {
     mkFormComponentEditable(fcId, Text(BasicText, expr))
 
   def mkFormTemplate(sections: Section*): FormTemplate = mkFormTemplate(sections.toList)
-  def mkFormTemplate(sections: List[Section]) = FormTemplate(
+  def mkFormTemplate(sections: List[Section], declarationSection: Option[DeclarationSection] = None) = FormTemplate(
     FormTemplateId("tst1"),
     toLocalisedString("Dependecy heavy experiment"),
     Some(BetaBanner),
@@ -116,24 +153,14 @@ object FormTemplateBuilder {
     OnePerUser(ContinueOrDeletePage.Show),
     DestinationList(
       NonEmptyList.of(
-        HmrcDms(
-          DestinationId("TestHmrcDmsId"),
-          "TestHmrcDmsFormId",
-          TextExpression(Constant("TestHmrcDmsCustomerId")),
-          "TestHmrcDmsClassificationType",
-          "TestHmrcDmsBusinessArea",
-          "",
-          true,
-          true,
-          Some(true)
-        )),
+        Log(DestinationId("TestHmrcDmsId"))
+      ),
       ackSection,
-      DeclarationSection(toSmartString("Declaration"), None, None, Nil)
+      declarationSection.getOrElse(DeclarationSection(toSmartString("Declaration"), None, None, Nil))
     ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
-    Some(NonEmptyList
-      .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email")))),
+    None,
     None,
     sections,
     Nil,
@@ -141,5 +168,10 @@ object FormTemplateBuilder {
     None,
     SummarySection(toSmartString("Title"), toSmartString("Header"), toSmartString("Footer"))
   )
+
+  def addToListQuestion(addAnotherQuestionName: String): FormComponent =
+    mkFormComponent(
+      addAnotherQuestionName,
+      Choice(YesNo, NonEmptyList.of(toSmartString("yes"), toSmartString("no")), Vertical, List.empty, None))
 
 }

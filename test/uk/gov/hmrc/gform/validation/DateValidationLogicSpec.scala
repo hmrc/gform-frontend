@@ -25,43 +25,43 @@ class DateValidationLogicSpec(implicit messages: Messages) extends FlatSpec with
   "DateValidationLogic.incorrectDate with precisely yyyy-04-dd" should "return message: must be in April" in {
 
     DateValidationLogic
-      .incorrectDateMessage(Precisely, ConcreteDate(AnyYear, ExactMonth(4), AnyDay), OffsetDate(0)) shouldBe
+      .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Exact(4), Day.Any), OffsetDate(0)) shouldBe
       "must be in April"
   }
 
   "DateValidationLogic.incorrectDate with precisely next-mm-dd" should "return message must be in April" in {
     DateValidationLogic
-      .incorrectDateMessage(Precisely, ConcreteDate(Next, AnyMonth, AnyDay), OffsetDate(0)) shouldBe
+      .incorrectDateMessage(Precisely, ConcreteDate(Year.Next, Month.Any, Day.Any), OffsetDate(0)) shouldBe
       s"must be in ${DateValidationLogic.getNextYear}"
   }
 
   "DateValidationLogic.incorrectDate with precisely previous-mm-dd" should "return message must be in April" in {
     DateValidationLogic
-      .incorrectDateMessage(Precisely, ConcreteDate(Previous, AnyMonth, AnyDay), OffsetDate(0)) shouldBe
+      .incorrectDateMessage(Precisely, ConcreteDate(Year.Previous, Month.Any, Day.Any), OffsetDate(0)) shouldBe
       s"must be in ${DateValidationLogic.getPreviousYear}"
   }
 
   "DateValidationLogic.incorrectDate with precisely yyyy-mm-firstDay" should "return message: must be the first day of the month" in {
     DateValidationLogic
-      .incorrectDateMessage(Precisely, ConcreteDate(AnyYear, AnyMonth, FirstDay), OffsetDate(0)) shouldBe
+      .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Any, Day.First), OffsetDate(0)) shouldBe
       s"must be the first day of the month"
   }
 
   "DateValidationLogic.incorrectDate with precisely yyyy-mm-lastDay" should "return message: must be the last day of the month" in {
     DateValidationLogic
-      .incorrectDateMessage(Precisely, ConcreteDate(AnyYear, AnyMonth, LastDay), OffsetDate(0)) shouldBe
+      .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Last), OffsetDate(0)) shouldBe
       s"must be the last day of the month"
   }
 
   "DateValidationLogic.incorrectDate with precisely 2018-mm-dd" should "return message: must be in 2018" in {
     DateValidationLogic
-      .incorrectDateMessage(Precisely, ConcreteDate(ExactYear(2018), AnyMonth, AnyDay), OffsetDate(0)) shouldBe
+      .incorrectDateMessage(Precisely, ConcreteDate(Year.Exact(2018), Month.Any, Day.Any), OffsetDate(0)) shouldBe
       s"must be in 2018"
   }
 
   "DateValidationLogic.incorrectDate with precisely yyyy-mm-3" should "return message: must be the third day of the month" in {
     DateValidationLogic
-      .incorrectDateMessage(Precisely, ConcreteDate(AnyYear, AnyMonth, ExactDay(3)), OffsetDate(0)) shouldBe
+      .incorrectDateMessage(Precisely, ConcreteDate(Year.Any, Month.Any, Day.Exact(3)), OffsetDate(0)) shouldBe
       s"must be the 3rd of any month"
   }
 

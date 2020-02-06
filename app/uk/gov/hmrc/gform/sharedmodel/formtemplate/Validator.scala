@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 import uk.gov.hmrc.gform.sharedmodel.SmartString
 
 sealed trait Validator {
@@ -26,49 +25,33 @@ sealed trait Validator {
 }
 
 case object Validator {
-  private val templateReads: Reads[Validator] = Reads { json =>
-    (json \ "validatorName").as[String] match {
-      case "hmrcRosmRegistrationCheck" => json.validate[HmrcRosmRegistrationCheckValidator]
-      case "bankAccountModulusCheck"   => json.validate[BankAccoutnModulusCheck]
-      case unsupported                 => JsError("Unsupported '" + unsupported + "' kind of validator.")
-    }
-  }
-  implicit val format: OFormat[Validator] = OFormatWithTemplateReadFallback(templateReads)
+  implicit val format: OFormat[Validator] = derived.oformat
 }
 
 case class HmrcRosmRegistrationCheckValidator(
   errorMessage: SmartString,
   regime: String,
   utr: FormCtx,
-  postcode: FormCtx)
-    extends Validator {
-  val utrFieldId = FormComponentId(utr.value)
-  val postcodeFieldId = FormComponentId(postcode.value)
+  postcode: FormCtx
+) extends Validator {
+  val utrFieldId = utr.formComponentId
+  val postcodeFieldId = postcode.formComponentId
 }
 
 object HmrcRosmRegistrationCheckValidator {
-  private val readCustom: Reads[HmrcRosmRegistrationCheckValidator] =
-    ((JsPath \ "errorMessage").read[SmartString] and
-      (JsPath \ "parameters" \ "regime").read[String] and
-      (JsPath \ "parameters" \ "utr").read(FormCtx.readsForTemplateJson) and
-      (JsPath \ "parameters" \ "postcode")
-        .read(FormCtx.readsForTemplateJson))(HmrcRosmRegistrationCheckValidator.apply _)
-
-  implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = OFormatWithTemplateReadFallback(readCustom)
+  implicit val format: OFormat[HmrcRosmRegistrationCheckValidator] = derived.oformat
 }
 
-case class BankAccoutnModulusCheck(errorMessage: SmartString, accountNumber: FormCtx, sortCode: FormCtx)
-    extends Validator {
+case class BankAccountModulusCheck(
+  errorMessage: SmartString,
+  accountNumber: FormCtx,
+  sortCode: FormCtx
+) extends Validator {
 
-  val accountNumberId = accountNumber.toFieldId
-  val sortCodeId = sortCode.toFieldId
+  val accountNumberId = accountNumber.formComponentId
+  val sortCodeId = sortCode.formComponentId
 }
 
-object BankAccoutnModulusCheck {
-  private val readCustom: Reads[BankAccoutnModulusCheck] =
-    ((JsPath \ "errorMessage").read[SmartString] and
-      (JsPath \ "parameters" \ "accountNumber").read(FormCtx.readsForTemplateJson) and
-      (JsPath \ "parameters" \ "sortCode").read(FormCtx.readsForTemplateJson))(BankAccoutnModulusCheck.apply _)
-
-  implicit val format: OFormat[BankAccoutnModulusCheck] = OFormatWithTemplateReadFallback(readCustom)
+object BankAccountModulusCheck {
+  implicit val format: OFormat[BankAccountModulusCheck] = derived.oformat
 }

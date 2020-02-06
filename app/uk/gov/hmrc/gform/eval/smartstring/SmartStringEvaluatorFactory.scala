@@ -24,9 +24,10 @@ import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
 import uk.gov.hmrc.gform.commons.ExprFormat
 import uk.gov.hmrc.gform.commons.FormatType
 import uk.gov.hmrc.gform.commons.FormatType.{ Default, FromText }
-import uk.gov.hmrc.gform.graph.Evaluator
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormDataRecalculated, ThirdPartyData }
+import uk.gov.hmrc.gform.models.FormModel
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
+import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SourceOrigin }
+import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormModelOptics, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
@@ -34,14 +35,14 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 trait SmartStringEvaluatorFactory {
   def apply(
-    recalculatedFormData: FormDataRecalculated,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     retrievals: MaterialisedRetrievals,
     maybeAccessCode: Option[AccessCode],
     form: Form,
     formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 
   def apply(
-    recalculatedFormData: FormDataRecalculated,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     maybeAccessCode: Option[AccessCode],
@@ -49,26 +50,36 @@ trait SmartStringEvaluatorFactory {
     formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator
 }
 
-class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStringEvaluatorFactory {
+class RealSmartStringEvaluatorFactory() extends SmartStringEvaluatorFactory {
 
   private val markdownControlCharacters =
     List("""\""", "/", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
 
   def apply(
-    recalculatedFormData: FormDataRecalculated,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     retrievals: MaterialisedRetrievals,
     maybeAccessCode: Option[AccessCode],
     form: Form,
-    formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator =
-    apply(recalculatedFormData, retrievals, form.thirdPartyData, maybeAccessCode, form.envelopeId, formTemplate)
+    formTemplate: FormTemplate
+  )(
+    implicit
+    l: LangADT,
+    hc: HeaderCarrier
+  ): SmartStringEvaluator =
+    apply(formModelVisibilityOptics, retrievals, form.thirdPartyData, maybeAccessCode, form.envelopeId, formTemplate)
 
   def apply(
-    recalculatedFormData: FormDataRecalculated,
+    formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Mongo],
     retrievals: MaterialisedRetrievals,
     thirdPartyData: ThirdPartyData,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
-    formTemplate: FormTemplate)(implicit l: LangADT, hc: HeaderCarrier): SmartStringEvaluator =
+    formTemplate: FormTemplate
+  )(
+    implicit
+    l: LangADT,
+    hc: HeaderCarrier
+  ): SmartStringEvaluator =
     new SmartStringEvaluator {
       override def apply(s: SmartString, markDown: Boolean): String = {
         import scala.collection.JavaConverters._
@@ -77,12 +88,7 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
             s.interpolations
               .map { interpolation =>
                 val interpolated = eval(interpolation)
-                val formatType =
-                  ExprFormat.formatForExpr(
-                    interpolation,
-                    formTemplate
-                      .expandFormTemplate(recalculatedFormData.data)
-                      .formComponentsLookup(recalculatedFormData.data))
+                val formatType = ExprFormat.formatForExpr(interpolation, formModelVisibilityOptics.formModel)
                 val formatted = formatType match {
                   case FormatType.Default        => interpolated
                   case FormatType.FromText(text) => TextFormatter.componentText(interpolated, text)
@@ -99,18 +105,7 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
 
       }
 
-      private def eval(expr: Expr): String =
-        evaluator
-          .evalAsString(
-            recalculatedFormData,
-            FormComponentId("dummy"),
-            expr,
-            retrievals,
-            formTemplate,
-            thirdPartyData,
-            maybeAccessCode,
-            envelopeId)
-          .getOrElse("")
+      private def eval(expr: Expr): String = formModelVisibilityOptics.eval(expr)
 
       private def escapeMarkdown(s: String): String = {
         val replacedEntities = EntityConverter.INSTANCE.replaceEntities(s.replace("\n", ""), true, false)

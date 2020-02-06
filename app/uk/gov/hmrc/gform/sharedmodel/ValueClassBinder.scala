@@ -20,7 +20,7 @@ import cats.implicits._
 import play.api.libs.json.{ JsError, JsString, JsSuccess, Reads }
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormId, FormStatus }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateRawId, SeNo, SeYes, SectionNumber, SuppressErrors }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormTemplateRawId, SectionNumber, SuppressErrors }
 
 import scala.util.Try
 
@@ -50,13 +50,13 @@ object ValueClassBinder {
 
   implicit val suppressErrorsBinder: PathBindable[SuppressErrors] = new PathBindable[SuppressErrors] {
     override def bind(key: String, value: String): Either[String, SuppressErrors] = value match {
-      case SuppressErrors.seYes => SeYes.asRight
-      case SuppressErrors.seNo  => SeNo.asRight
+      case SuppressErrors.seYes => SuppressErrors.Yes.asRight
+      case SuppressErrors.seNo  => SuppressErrors.No.asRight
       case _                    => s"No valid value in path $key: $value".asLeft
     }
     override def unbind(key: String, suppressErrors: SuppressErrors): String = suppressErrors match {
-      case SeYes => SuppressErrors.seYes
-      case SeNo  => SuppressErrors.seNo
+      case SuppressErrors.Yes => SuppressErrors.seYes
+      case SuppressErrors.No  => SuppressErrors.seNo
     }
   }
 

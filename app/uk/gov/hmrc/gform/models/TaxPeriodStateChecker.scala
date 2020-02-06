@@ -34,46 +34,55 @@ trait TaxPeriodStateChecker[F[_], E] {
   def callDesIfNeeded(
     getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
     evaluatedTaxPeriod: Option[NonEmptyList[HmrcTaxPeriodWithEvaluatedId]],
-    obligations: Obligations,
-    newState: Map[RecalculatedTaxPeriodKey, IdNumberValue],
-    oldState: Map[RecalculatedTaxPeriodKey, IdNumberValue],
+    cachedObligations: Obligations,
     obligationsAction: ObligationsAction
   )(
     implicit
     me: MonadError[F, E]
-  ): F[Obligations] =
-    (
-      evaluatedTaxPeriod,
-      needRefresh(newState, oldState) || obligations.isNotChecked || forceObligationReload(obligationsAction)) match {
-      case (None, _)        => obligations.pure[F]
-      case (Some(_), false) => obligations.pure[F]
-      case (Some(hmrcTaxPeriodWithEvaluatedIds), true) =>
-        val agentWorkaround: Boolean = hmrcTaxPeriodWithEvaluatedIds.exists(_.idNumberValue.value === "0")
-        if (agentWorkaround) {
-          (NotChecked: Obligations).pure[F]
-        } else {
-          getAllTaxPeriods(hmrcTaxPeriodWithEvaluatedIds).flatMap { nel =>
-            nel.sequence match {
-              case CannotRetrieveResponse => me.raiseError[Obligations](error)
-              case NotFound               => me.raiseError[Obligations](error) // NotFound case is handled on backend.
-              case ServiceResponse(a)     => (RetrievedObligations(a): Obligations).pure[F]
-            }
-          }
+  ): F[Obligations] = {
+
+    def refresh(hmrcTaxPeriodWithEvaluatedIds: NonEmptyList[HmrcTaxPeriodWithEvaluatedId]) =
+      getAllTaxPeriods(hmrcTaxPeriodWithEvaluatedIds).flatMap { nel =>
+        nel.sequence match {
+          case CannotRetrieveResponse => me.raiseError[Obligations](error)
+          case NotFound               => me.raiseError[Obligations](error) // NotFound case is handled on backend.
+          case ServiceResponse(a)     => (RetrievedObligations(a): Obligations).pure[F]
+        }
+      }
+
+    (evaluatedTaxPeriod, cachedObligations) match {
+      case (None, _)                                         => cachedObligations.pure[F]
+      case (Some(hmrcTaxPeriodWithEvaluatedIds), NotChecked) => refresh(hmrcTaxPeriodWithEvaluatedIds)
+      case (Some(hmrcTaxPeriodWithEvaluatedIds), RetrievedObligations(taxResponses)) =>
+        val mongoTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] = taxResponses.map(_.id)
+        val needRefresh = forceObligationReload(obligationsAction) ||
+          hasDifferentValues(hmrcTaxPeriodWithEvaluatedIds, mongoTaxPeriods)
+
+        if (needRefresh)
+          refresh(hmrcTaxPeriodWithEvaluatedIds)
+        else cachedObligations.pure[F]
+    }
+  }
+
+  private val hasDifferentValues
+    : (NonEmptyList[HmrcTaxPeriodWithEvaluatedId], NonEmptyList[HmrcTaxPeriodWithEvaluatedId]) => Boolean =
+    (newState, oldState) => {
+      val newStateMap = toMap(newState)
+      val oldStateMap = toMap(oldState)
+      newStateMap
+        .exists {
+          case (hmrcTaxPeriod, idNumberValue) =>
+            oldStateMap.get(hmrcTaxPeriod).fold(true)(_ =!= idNumberValue)
         }
     }
 
-  val needRefresh
-    : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
-    (newState, oldState) => (oldState.isEmpty && newState.nonEmpty) || hasDifferentValue(newState, oldState)
-
-  private val hasDifferentValue
-    : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
-    (newState, oldState) =>
-      newState
-        .exists {
-          case (hmrcTaxPeriod, idNumberValue) =>
-            oldState.get(hmrcTaxPeriod).fold(true)(_ =!= idNumberValue)
-      }
+  private def toMap(hmrcTaxPeriodWithEvaluatedIds: NonEmptyList[HmrcTaxPeriodWithEvaluatedId])
+    : Map[RecalculatedTaxPeriodKey, IdNumberValue] =
+    hmrcTaxPeriodWithEvaluatedIds
+      .map(hmrcTaxPeriodWithEvaluatedId =>
+        hmrcTaxPeriodWithEvaluatedId.recalculatedTaxPeriodKey -> hmrcTaxPeriodWithEvaluatedId.idNumberValue)
+      .toList
+      .toMap
 
   private val forceObligationReload: ObligationsAction => Boolean = {
     case ForceReload => true

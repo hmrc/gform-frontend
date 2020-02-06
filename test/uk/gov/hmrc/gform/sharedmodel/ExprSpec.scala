@@ -18,15 +18,15 @@ package uk.gov.hmrc.gform.sharedmodel
 
 import play.api.libs.json._
 import uk.gov.hmrc.gform._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Expr, FormCtx }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Add, Constant, Expr, FormComponentId, FormCtx }
 
 class ExprSpec extends Spec {
 
-  private val add = Add(FormCtx("fieldA"), FormCtx("fieldB"))
+  private val add = Add(FormCtx(FormComponentId("fieldA")), FormCtx(FormComponentId("fieldB")))
   private val addJson = Json.obj(
     "Add" -> Json.obj(
-      "field1" -> Json.obj("FormCtx" -> Json.obj("value" -> "fieldA")),
-      "field2" -> Json.obj("FormCtx" -> Json.obj("value" -> "fieldB"))))
+      "field1" -> Json.obj("FormCtx" -> Json.obj("formComponentId" -> "fieldA")),
+      "field2" -> Json.obj("FormCtx" -> Json.obj("formComponentId" -> "fieldB"))))
 
   "Expr" should "write Add case class to json" in {
     val res: JsValue = implicitly[Writes[Expr]].writes(add)
@@ -51,8 +51,8 @@ class ExprSpec extends Spec {
     res should beJsSuccess[Expr](constant)
   }
 
-  private val formCtx = FormCtx("form")
-  private val formJson = Json.obj("FormCtx" -> Json.obj("value" -> "form"))
+  private val formCtx = FormCtx(FormComponentId("form"))
+  private val formJson = Json.obj("FormCtx" -> Json.obj("formComponentId" -> "form"))
 
   it should "write FormCtx to json" in {
     val res: JsValue = implicitly[Writes[Expr]].writes(formCtx)

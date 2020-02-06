@@ -22,14 +22,15 @@ import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
-import uk.gov.hmrc.gform.fileupload.FileUploadService
+import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gform.handlers.FormControllerRequestHandler
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.{ FastForward, ProcessData, ProcessDataService, SectionSelector, SectionSelectorType }
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.models.gform.ForceReload
-import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormStatus, InProgress, QueryParams, Summary, UserData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SeYes, SectionNumber }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormModelOptics, FormStatus, InProgress, QueryParams, Summary, UserData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SectionNumber, SuppressErrors }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationService
@@ -41,80 +42,122 @@ class FastForwardService(
   fileUploadService: FileUploadService,
   validationService: ValidationService,
   gformConnector: GformConnector,
-  processDataService: ProcessDataService[Future, Throwable],
+  processDataService: ProcessDataService[Future],
   handler: FormControllerRequestHandler,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(implicit ec: ExecutionContext) {
 
-  def redirectContinue(
+  def redirectContinue2[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT) = {
-    val dataRaw = cache.variadicFormData
-    redirectWithRecalculation(cache, dataRaw, maybeAccessCode)
-  }
+    maybeAccessCode: Option[AccessCode],
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(
+    implicit
+    messages: Messages,
+    hc: HeaderCarrier,
+    l: LangADT
+  ): Future[Result] =
+    redirectWithRecalculation(cache, maybeAccessCode, FastForward.Yes, formModelOptics)
 
-  private def redirectWithRecalculation(
+  private def redirectWithRecalculation[U <: SectionSelectorType: SectionSelector](
     cache: AuthCacheWithForm,
-    dataRaw: VariadicFormData,
-    maybeAccessCode: Option[AccessCode])(implicit messages: Messages, hc: HeaderCarrier, l: LangADT): Future[Result] =
+    maybeAccessCode: Option[AccessCode],
+    fastForward: FastForward,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  )(
+    implicit
+    messages: Messages,
+    hc: HeaderCarrier,
+    l: LangADT
+  ): Future[Result] =
     processDataService
-      .getProcessData(dataRaw, cache, gformConnector.getAllTaxPeriods, ForceReload, maybeAccessCode)
+      .getProcessData(cache.variadicFormData, cache, formModelOptics, gformConnector.getAllTaxPeriods, ForceReload)
       .flatMap { processData =>
-        implicit val sse = smartStringEvaluatorFactory(
-          processData.data,
+        // This formModelVisibilityOptics comes from Mongo, not from Browser
+        val formModelVisibilityOptics: FormModelVisibilityOptics[DataOrigin.Browser] =
+          processData.formModelOptics.formModelVisibilityOptics
+        implicit val sse: SmartStringEvaluator = smartStringEvaluatorFactory(
+          DataOrigin.swapDataOrigin(formModelVisibilityOptics),
           cache.retrievals,
           cache.form.thirdPartyData,
           maybeAccessCode,
           cache.form.envelopeId,
-          cache.formTemplate)
-        updateUserData(cache, processData, maybeAccessCode)(redirectResult(cache, maybeAccessCode, processData, _))
+          cache.formTemplate
+        )
+        for {
+          envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
+          res <- updateUserData(cache, processData, maybeAccessCode, fastForward, envelope)(
+                  redirectResult(cache, maybeAccessCode, processData, _))
+        } yield res
+
       }
 
   private def redirectResult(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
     processData: ProcessData,
-    maybeSectionNumber: Option[SectionNumber])(implicit l: LangADT, sse: SmartStringEvaluator): Result =
+    maybeSectionNumber: Option[SectionNumber]
+  )(
+    implicit
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Result =
     maybeSectionNumber match {
       case Some(sn) =>
-        val section = processData.sections(sn.value)
-        val sectionTitle4Ga = sectionTitle4GaFactory(section, sn)
+        val pageModel = processData.formModel(sn)
+        val sectionTitle4Ga = sectionTitle4GaFactory(pageModel.title, sn)
         Redirect(
           routes.FormController
-            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SeYes))
+            .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors.Yes, FastForward.Yes))
       case None =>
         Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
     }
 
-  def deleteForm(cache: AuthCacheWithForm, queryParams: QueryParams)(implicit hc: HeaderCarrier): Future[Result] = {
+  def deleteForm(
+    cache: AuthCacheWithForm,
+    queryParams: QueryParams
+  )(
+    implicit
+    hc: HeaderCarrier
+  ): Future[Result] = {
     val formTemplateId = cache.formTemplate._id
     gformConnector
       .deleteForm(cache.form._id)
       .map(_ => Redirect(routes.NewFormController.dashboard(formTemplateId).url, queryParams.toPlayQueryParams))
   }
 
-  def updateUserData(cache: AuthCacheWithForm, processData: ProcessData, maybeAccessCode: Option[AccessCode])(
-    toResult: Option[SectionNumber] => Result)(
-    implicit messages: Messages,
+  def updateUserData(
+    cache: AuthCacheWithForm,
+    processData: ProcessData,
+    maybeAccessCode: Option[AccessCode],
+    fastForward: FastForward,
+    envelope: Envelope
+  )(
+    toResult: Option[SectionNumber] => Result
+  )(
+    implicit
+    messages: Messages,
     hc: HeaderCarrier,
     l: LangADT,
-    sse: SmartStringEvaluator): Future[Result] =
+    sse: SmartStringEvaluator
+  ): Future[Result] =
     for {
-      envelope <- fileUploadService.getEnvelope(cache.form.envelopeId)
       maybeSn <- handler.handleFastForwardValidate(
                   processData,
-                  cache,
+                  cache.toCacheData,
                   envelope,
-                  FormService.extractedValidateFormHelper,
-                  validationService.validateFormComponents,
-                  validationService.evaluateValidation,
-                  maybeAccessCode
+                  validationService.validatePageModel,
+                  fastForward
                 )
       userData = UserData(
         cache.form.formData,
         maybeSn.fold(Summary: FormStatus)(_ => InProgress),
         processData.visitsIndex,
-        cache.form.thirdPartyData.modify(_.obligations).setTo(processData.obligations)
+        cache.form.thirdPartyData
+          .modify(_.obligations)
+          .setTo(processData.obligations)
+          .modify(_.booleanExprCache)
+          .setTo(processData.booleanExprCache)
       )
       res <- gformConnector
               .updateUserData(FormIdData.fromForm(cache.form, maybeAccessCode), userData)

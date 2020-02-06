@@ -19,7 +19,8 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import julienrf.json.derived
 import play.api.libs.json.OFormat
 
-case class ValidIf(expr: BooleanExpr)
+case class ValidIf(booleanExpr: BooleanExpr) extends AnyVal
+
 object ValidIf {
   implicit val format: OFormat[ValidIf] = derived.oformat
 }

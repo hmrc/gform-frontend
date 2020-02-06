@@ -18,54 +18,67 @@ package uk.gov.hmrc.gform.gform
 
 import cats.instances.int._
 import cats.syntax.eq._
+import uk.gov.hmrc.gform.models.{ AddToListUtils, ExpandUtils, PageMode }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class FormComponentUpdater(formComponent: FormComponent, index: Int, baseIds: List[FormComponentId]) {
 
-  private def expandFcId(fcId: FormComponentId): FormComponentId =
-    if (baseIds.contains(fcId) && index =!= 0) FormComponentId(index + "_" + fcId.value) else fcId
+  private def expandExpr(expr: Expr): Expr = ExprUpdater(expr, index, baseIds)
 
-  private def expandExpr(expr: Expr): Expr = expr match {
-    case Add(field1, field2)         => Add(expandExpr(field1), expandExpr(field2))
-    case Multiply(field1, field2)    => Multiply(expandExpr(field1), expandExpr(field2))
-    case Subtraction(field1, field2) => Subtraction(expandExpr(field1), expandExpr(field2))
-    case Else(field1, field2)        => Else(expandExpr(field1), expandExpr(field2))
-    case f @ FormCtx(value)          => FormCtx(expandFcId(f.toFieldId).value)
-    case Sum(field1)                 => Sum(expandExpr(field1))
-    case otherwise                   => otherwise
-  }
+  private def expandBooleanExpr(booleanExpr: BooleanExpr): BooleanExpr = BooleanExprUpdater(booleanExpr, index, baseIds)
 
-  private def expandBooleanExpr(expr: BooleanExpr): BooleanExpr = expr match {
-    case Equals(left, right)              => Equals(expandExpr(left), expandExpr(right))
-    case NotEquals(left, right)           => NotEquals(expandExpr(left), expandExpr(right))
-    case GreaterThan(left, right)         => GreaterThan(expandExpr(left), expandExpr(right))
-    case GreaterThanOrEquals(left, right) => GreaterThanOrEquals(expandExpr(left), expandExpr(right))
-    case LessThan(left, right)            => LessThan(expandExpr(left), expandExpr(right))
-    case LessThanOrEquals(left, right)    => LessThanOrEquals(expandExpr(left), expandExpr(right))
-    case Not(e)                           => Not(expandBooleanExpr(e))
-    case Or(left, right)                  => Or(expandBooleanExpr(left), expandBooleanExpr(right))
-    case And(left, right)                 => And(expandBooleanExpr(left), expandBooleanExpr(right))
-    case otherwise                        => otherwise
-  }
+  private def expandeRevealingChoice(revealingChoice: RevealingChoice): RevealingChoice =
+    revealingChoice.copy(options = revealingChoice.options.map { revealingChoiceElement =>
+      revealingChoiceElement.copy(
+        choice = expandSmartString(revealingChoiceElement.choice),
+        revealingFields = revealingChoiceElement.revealingFields.map { revealingField =>
+          new FormComponentUpdater(revealingField, index, baseIds).updatedWithId
+        }
+      )
+    })
 
-  val updated = formComponent.copy(
-    validIf = formComponent.validIf.map(vi => ValidIf(expandBooleanExpr(vi.expr))),
-    `type` = formComponent.`type` match {
-      case t: Text          => t.copy(value = expandExpr(t.value))
-      case t: TextArea      => t.copy(value = expandExpr(t.value))
-      case t: UkSortCode    => t.copy(value = expandExpr(t.value))
-      case t: HmrcTaxPeriod => t.copy(idNumber = expandExpr(t.idNumber))
-      case otherwise        => otherwise
-    },
-    validators = formComponent.validators.map { fcv =>
-      fcv.copy(validIf = ValidIf(expandBooleanExpr(fcv.validIf.expr)))
-    }
+  private def expandGroup(group: Group): Group = group.copy(
+    fields = group.fields.map(field => new FormComponentUpdater(field, index, baseIds).updatedWithId),
+    repeatLabel = group.repeatLabel.map(expandSmartString),
+    repeatAddAnotherText = group.repeatAddAnotherText.map(expandSmartString)
   )
-}
 
-object FormComponentUpdater {
-  def apply(formComponent: FormComponent, index: Int, group: Group) =
-    new FormComponentUpdater(formComponent, index, group.fields.map(_.id))
-  def apply(formComponent: FormComponent, index: Int, section: Section) =
-    new FormComponentUpdater(formComponent, index, section.fields.map(_.id))
+  private def expandChoice(choice: Choice): Choice = choice.copy(
+    options = choice.options.map(expandSmartString),
+    optionHelpText = choice.optionHelpText.map(_.map(expandSmartString))
+  )
+
+  private def expandValidId(validIf: ValidIf) = ValidIf(expandBooleanExpr(validIf.booleanExpr))
+
+  private def expandFormComponentValidator(formComponentValidator: FormComponentValidator) =
+    formComponentValidator.copy(
+      validIf = expandValidId(formComponentValidator.validIf),
+      errorMessage = expandSmartString(formComponentValidator.errorMessage)
+    )
+
+  private def expandSmartString(smartString: SmartString) = smartString.expand(index, baseIds)
+
+  private val updated = formComponent.copy(
+    validIf = formComponent.validIf.map(expandValidId),
+    `type` = formComponent.`type` match {
+      case t: Text               => t.copy(value = expandExpr(t.value))
+      case t: TextArea           => t.copy(value = expandExpr(t.value))
+      case t: UkSortCode         => t.copy(value = expandExpr(t.value))
+      case t: HmrcTaxPeriod      => t.copy(idNumber = expandExpr(t.idNumber))
+      case t: Choice             => expandChoice(t)
+      case t: RevealingChoice    => expandeRevealingChoice(t)
+      case t: Group              => expandGroup(t)
+      case t: InformationMessage => t.copy(infoText = expandSmartString(t.infoText))
+      case otherwise             => otherwise
+    },
+    label = expandSmartString(formComponent.label),
+    helpText = formComponent.helpText.map(expandSmartString),
+    shortName = formComponent.shortName.map(expandSmartString),
+    errorMessage = formComponent.errorMessage.map(expandSmartString),
+    validators = formComponent.validators.map(expandFormComponentValidator)
+  )
+
+  val updatedWithId: FormComponent = updated.copy(id = ExpandUtils.addPrefix(index, formComponent.id))
+
 }

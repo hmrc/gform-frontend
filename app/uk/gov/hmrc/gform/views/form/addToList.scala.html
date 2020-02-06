@@ -1,0 +1,128 @@
+@*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.sharedmodel.form._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
+@import uk.gov.hmrc.gform.models._
+@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import views.html.helper.CSRF
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.HasErrors
+@import uk.gov.hmrc.gform.views.html.{main_template, specimen}
+@import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.{hmrcPageHeading, PageHeading}
+
+@(
+    repeater: Repeater[DataExpanded],
+    formTemplate: FormTemplate,
+    recordTable: List[(String, Int)],
+    pageLevelError: HasErrors,
+    frontendAppConfig: FrontendAppConfig,
+    formAction: Call,
+    renderComeBackLater: Boolean,
+    snippets: Html,
+    hiddenFieldsSnippets: List[Html]
+)(
+    implicit
+    request: Request[_],
+    messages: Messages,
+    l:LangADT,
+    evaluator: SmartStringEvaluator
+)
+
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+@hmrcPageHeading = @{new hmrcPageHeading}
+
+@heading = @{repeater.title.value}
+
+@buttonLabel = @{
+    messages("button.saveAndContinue")
+}
+
+@backLink = @{
+  val (href, attributes) = ("#", Map("id" -> "backButton"))
+  new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
+}
+
+@main_template(
+  title = heading,
+  serviceName = formTemplate.formName.value,
+  containsErrors = pageLevelError.hasErrors,
+  developmentPhase = formTemplate.developmentPhase,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  webChat = formTemplate.webChat,
+  formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages,
+  templateId = formTemplate._id,
+  backLink = Some(backLink)
+) {
+
+    @pageLevelError.render
+
+    @hmrcPageHeading(PageHeading(text = heading))
+
+    <div class="govuk-form-group">
+      <ul class="hmrc-add-to-a-list hmrc-add-to-a-list--short">
+        @for(record <- recordTable) {
+          <li class="hmrc-add-to-a-list__contents">
+            <span class="hmrc-add-to-a-list__identifier hmrc-add-to-a-list__identifier--light">
+              @record._1
+            </span>
+            <span class="hmrc-add-to-a-list__change">
+              <a class="govuk-link" href="EditAddToList-@{record._2}-@{repeater.source.id.formComponentId.value}" id="editAddToList">
+                <span aria-hidden="true">@messages("addToList.change")</span>
+                <span class="govuk-visually-hidden">@messages("addToList.change.visually.hidden", record._1)</span>
+              </a>
+            </span>
+            <span class="hmrc-add-to-a-list__remove">
+              @if(recordTable.size > 1) {
+                <a class="govuk-link" href="RemoveAddToList-@{record._2}-@{repeater.source.id.formComponentId.value}" id="removeAddToList">
+                  <span aria-hidden="true">@messages("addToList.remove")</span>
+                  <span class="govuk-visually-hidden">@messages("addToList.remove.visually.hidden", record._1)</span>
+                </a>
+              }
+            </span>
+          </li>
+	}
+      </ul>
+    </div>
+
+    @formWithCSRF(action = formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
+
+      @{snippets}
+
+      @{hiddenFieldsSnippets}
+
+      <input type="hidden" id="gform-action" name="save" value="Continue" />
+
+      @govukButton(Button(content = Text(buttonLabel), value=Some("Continue")))
+
+      @if(renderComeBackLater) {
+        <p class="govuk-body">
+          <a href="#" id="saveComeBackLater" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
+        </p>
+      }
+    }
+
+    @* @if(formTemplate.isSpecimen) {
+       @specimen.navigation(formTemplate, page)
+    } *@
+
+
+}

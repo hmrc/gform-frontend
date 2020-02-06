@@ -16,52 +16,18 @@
 
 package uk.gov.hmrc.gform.models.javascript
 
-import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.graph.{ DependencyGraph, GraphNode, SimpleGN }
+import uk.gov.hmrc.gform.models.optics.DataOrigin
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionNumber
 
 object JavascriptMaker {
 
-  def generateJs(sectionNumber: SectionNumber, dynamicSections: List[Section], formTemplate: FormTemplate): String = {
-    val section = dynamicSections(sectionNumber.value)
-    val jsFormComponentModels = section.jsFormComponentModels
-    val allAtomicFields = dynamicSections.flatMap(RepeatingComponentService.atomicFieldsFull)
-
-    createJavascript(jsFormComponentModels, allAtomicFields, mkDependencies(formTemplate))
-
-  }
-
-  private def mkDependencies(formTemplate: FormTemplate): Dependencies = {
-    val graph = DependencyGraph.toGraphFull(formTemplate)
-
-    val graphTopologicalOrder: Either[graph.NodeT, Traversable[(Int, List[GraphNode])]] =
-      DependencyGraph.constructDependencyGraph(graph)
-
-    graphTopologicalOrder match {
-      case Left(_) => Dependencies(List.empty[FormComponentIdDeps])
-      case Right(lto) =>
-        val depLayers: Traversable[List[FormComponentId]] =
-          lto.map(_._2).map(_.collect { case SimpleGN(fcId) => fcId })
-        val (deps, _) =
-          depLayers
-            .foldRight((List.empty[FormComponentIdDeps], List.empty[FormComponentId])) {
-              case (layer, (deps, acc)) =>
-                val newDeps = layer.map { fcId =>
-                  FormComponentIdDeps(fcId, acc) // all of acc depends on fcId
-                }
-                (deps ++ newDeps, acc ++ layer)
-            }
-        Dependencies(deps)
-    }
-  }
-
-  private def createJavascript(
-    jsFormComponentModels: List[JsFormComponentModel],
-    allAtomicFields: List[FormComponent],
-    dependencies: Dependencies): String = {
-
-    val repeatFormComponentIds = RepeatingComponentService.getRepeatFormComponentIds(allAtomicFields)
-
-    Javascript.fieldJavascript(jsFormComponentModels, allAtomicFields, repeatFormComponentIds, dependencies)
+  def generateJs(
+    sectionNumber: SectionNumber,
+    formModelOptics: FormModelOptics[DataOrigin.Mongo]
+  ): String = {
+    val formModel = formModelOptics.formModelRenderPageOptics.formModel
+    val pageModel = formModel(sectionNumber)
+    Javascript.fieldJavascript(pageModel, formModelOptics)
   }
 }

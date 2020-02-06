@@ -21,6 +21,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 
 class FormComponentUpdaterSpec extends Spec {
+
+  implicit def implicitToFormComponentId(str: String): FormComponentId = FormComponentId(str)
+
   "FormComponentUpdater" should "update reference to group's field in ValidIf expression" in {
 
     val validIf = ValidIf(Equals(FormCtx("choice"), FormCtx("notInGroup")))
@@ -75,12 +78,12 @@ class FormComponentUpdaterSpec extends Spec {
   private def updateGroup(formComponent: FormComponent) = {
     val group = mkGroup(2, List(mkFormComponent("choice", Value)))
 
-    FormComponentUpdater(formComponent, 11, group).updated
+    new FormComponentUpdater(formComponent, 11, group.fields.map(_.id)).updatedWithId
   }
 
   private def updateSection(formComponent: FormComponent) = {
     val section = mkSection(List(mkFormComponent("choice", Value)))
 
-    FormComponentUpdater(formComponent, 11, section).updated
+    new FormComponentUpdater(formComponent, 11, section.page.fields.map(_.id)).updatedWithId
   }
 }

@@ -17,37 +17,15 @@
 package uk.gov.hmrc.gform.sharedmodel.form
 
 import cats.Semigroup
-import cats.syntax.eq._
-import com.softwaremill.quicklens._
 import play.api.libs.json._
-import uk.gov.hmrc.gform.graph.RecData
-import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, Section }
-import uk.gov.hmrc.gform.sharedmodel.graph.{ GraphNode, IncludeIfGN, SimpleGN }
-
-case class FormDataRecalculated(invisible: Set[GraphNode], recData: RecData) {
-
-  val data: VariadicFormData = recData.data // ToDo JoVl Rename to recalculatedData
-
-  def isVisible(section: Section): Boolean =
-    !invisible.exists {
-      case SimpleGN(_)               => false
-      case IncludeIfGN(_, includeIf) => section.includeIf.exists(_ === includeIf)
-    }
-}
-
-object FormDataRecalculated {
-  val empty = FormDataRecalculated(Set.empty, RecData.empty)
-
-  def clearTaxResponses(data: FormDataRecalculated): FormDataRecalculated =
-    data
-      .modify(_.recData.data)
-      .setTo(data.recData.cleared)
-}
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 
 case class FormData(fields: Seq[FormField]) {
-  lazy val toData: Map[FormComponentId, String] = fields.map(x => x.id -> x.value).toMap
-  def find(id: FormComponentId): Option[String] = toData.get(id)
+  val toData: Map[ModelComponentId, String] = {
+    val a: List[(ModelComponentId, String)] = fields.toList.map(x => x.id -> x.value)
+    a.toMap
+  }
+  def find(id: ModelComponentId): Option[String] = toData.get(id)
 }
 
 object FormData {

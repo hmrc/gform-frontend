@@ -20,7 +20,7 @@ import cats.syntax.eq._
 import org.scalatest._
 import org.scalatest.matchers.{ BeMatcher, MatchResult, Matcher }
 import play.api.libs.json.JsResult
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, HasExpr, SingleExpr }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponent, HasExpr }
 
 trait FormComponentMatcher {
 
@@ -30,8 +30,8 @@ trait FormComponentMatcher {
     def apply(fc: FormComponent): MatchResult =
       MatchResult(
         fc match {
-          case HasExpr(SingleExpr(expr)) => expr === expected
-          case _                         => false
+          case HasExpr(expr) => expr === expected
+          case _             => false
         },
         s"'${fc.`type`}' do not contains an expression matching '$expected'.",
         s"'${fc.`type`}' contains an expression '$expected', but should not have."

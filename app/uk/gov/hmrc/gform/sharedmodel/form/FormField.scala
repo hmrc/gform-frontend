@@ -16,23 +16,30 @@
 
 package uk.gov.hmrc.gform.sharedmodel.form
 
+import julienrf.json.derived
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.gform.models.ExpandUtils
+import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
 // Contains the *value* of a FormComponentId, where the FormComponentId is either:
 //   * the FormComponentId of a FormComponent with a singular value ComponentType, such as a Text or TextArea, OR
 //   * the synthesised FormComponentId of a MultiField ComponentType, such as Date (see MultiField.fields)
-case class FormField(id: FormComponentId, value: String)
+case class FormField(id: ModelComponentId, value: String)
 
 object FormField {
 
-  implicit val reads: Reads[FormField] = ((FormComponentId.oformat: Reads[FormComponentId]) and
+  implicit val reads: Reads[FormField] = ((JsPath \ "id")
+    .read[String]
+    .map(ExpandUtils.toModelComponentId) and
     (JsPath \ "value").read[String])(FormField.apply _)
 
   implicit val writes = OWrites[FormField] { formField =>
-    Json.obj("id"      -> formField.id) ++
-      Json.obj("value" -> formField.value)
+    Json.obj(
+      "id"    -> formField.id.toMongoIdentifier,
+      "value" -> formField.value
+    )
   }
 
   implicit val format: OFormat[FormField] = OFormat(reads, writes)

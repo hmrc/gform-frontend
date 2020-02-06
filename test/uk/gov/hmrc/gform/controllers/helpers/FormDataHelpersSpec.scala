@@ -17,17 +17,24 @@
 package uk.gov.hmrc.gform.controllers.helpers
 
 import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.sharedmodel.BooleanExprCache
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplateId }
 import uk.gov.hmrc.gform.sharedmodel.{ NotChecked, UserId }
 
 class FormDataHelpersSpec extends Spec {
 
+  private def toFormFields(xs: Seq[(String, String)]): Seq[FormField] = xs.map {
+    case (fcId, value) => FormField(FormComponentId(fcId).modelComponentId, value)
+  }
+
   "updateFormField" should "update FormField in form data" in {
-    val formFields = Seq(
-      FormField(FormComponentId("1"), "one"),
-      FormField(FormComponentId("2"), "two"),
-      FormField(FormComponentId("3"), "three"))
+    val formFields = toFormFields(
+      Seq(
+        "1" -> "one",
+        "2" -> "two",
+        "3" -> "three"
+      ))
 
     val existingForm = Form(
       FormId("666"),
@@ -37,15 +44,14 @@ class FormDataHelpersSpec extends Spec {
       FormData(formFields),
       Accepted,
       VisitIndex(Set.empty),
-      ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty),
+      ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty, None, BooleanExprCache.empty),
       None
+      //EvaluationResults.empty
     )
 
-    val updatedForm = FormDataHelpers.updateFormField(existingForm, FormField(FormComponentId("2"), "xxx"))
+    val updatedForm =
+      FormDataHelpers.updateFormField(existingForm, FormField(FormComponentId("2").modelComponentId, "xxx"))
 
-    updatedForm.formData.fields contains Seq(
-      FormField(FormComponentId("1"), "one"),
-      FormField(FormComponentId("2"), "xxx"),
-      FormField(FormComponentId("3"), "three"))
+    updatedForm.formData.fields contains toFormFields(Seq(("1", "one"), ("2", "xxx"), ("3", "three")))
   }
 }

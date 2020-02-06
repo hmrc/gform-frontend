@@ -15,6 +15,12 @@ linkText.addRepeatingGroup=Add another
 linkText.signOut=Sign out
 linkText.signBackIn=Sign back in
 
+addToList.change=Change
+addToList.change.visually.hidden=Change {0}
+addToList.remove=Remove
+addToList.remove.visually.hidden=Remove {0} from the list
+addToList.addOrRemove=Add or remove
+
 button.continue=Continue
 button.saveAndContinue=Save and continue
 button.acceptAndSubmit=Accept and submit
@@ -160,6 +166,7 @@ internationalAddress.line2.label=line 2
 internationalAddress.line3.label=line 3
 internationalAddress.line4.label=line 4
 internationalAddress.country.label=country
+internationalAddress.country.error.maxLength={0} country must be no more than {1} characters
 
 # Generic address
 address.isUK=Is this a UK address?
@@ -183,7 +190,7 @@ date.inMonth=in {0}
 date.ofMonth=of {0}
 date.before={0} must be before {1}
 date.after={0} must be after {1}
-date.exactDate={0} must be {1}
+date.precisely={0} must be {1}
 date.isMissing={0} is missing
 date.invalid={0} must be a valid date
 
@@ -323,7 +330,6 @@ submission.date=Submission date
 submission.reference=Submission reference
 submission.mark=Submission mark
 submission.details=Submission details
-submission.declaration.details=Declaration details
 
 # Save4later
 save4later.saved.title=Your {0} has been saved

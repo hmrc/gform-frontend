@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.gform
 
-import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString, VariadicFormData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
+import uk.gov.hmrc.gform.sharedmodel.{ LangADT, LocalisedString, SmartString, SourceOrigin, VariadicFormData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId }
 
 object Helpers {
-  def mkData(fields: (String, String)*): VariadicFormData =
-    fields.foldLeft(VariadicFormData.empty) { case (acc, (fcId, value)) => acc addOne (FormComponentId(fcId) -> value) }
+  def mkData(fields: (String, String)*): VariadicFormData[SourceOrigin.OutOfDate] =
+    fields.foldLeft(VariadicFormData.empty[SourceOrigin.OutOfDate]) {
+      case (acc, (fcId, value)) => acc addOne (FormComponentId(fcId).modelComponentId -> value)
+    }
 
   def toLocalisedString(string: String): LocalisedString =
     LocalisedString(Map(LangADT.En -> string))
@@ -30,5 +32,8 @@ object Helpers {
 
   def toSmartString(string: String): SmartString =
     SmartString(toLocalisedString(string), Nil)
+
+  def toSmartStringExpression(string: String, expression: Expr): SmartString =
+    SmartString(toLocalisedString(string), expression :: Nil)
 
 }

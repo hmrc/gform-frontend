@@ -19,8 +19,10 @@ import cats.Monoid
 import cats.data.Validated
 import cats.implicits._
 import play.api.i18n.Messages
+import uk.gov.hmrc.gform.models.ids.IndexedComponentId
+import uk.gov.hmrc.gform.models.optics.{ DataOrigin, FormModelVisibilityOptics }
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
+import uk.gov.hmrc.gform.sharedmodel.form.FormModelOptics
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponentId, UkSortCode }
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
@@ -28,29 +30,46 @@ import uk.gov.hmrc.gform.validation.ValidationServiceHelper.{ validationFailure,
 
 object SortCodeValidation {
 
-  def validateSortCode(fieldValue: FormComponent, sC: UkSortCode, mandatory: Boolean)(data: FormDataRecalculated)(
-    implicit messages: Messages,
+  def validateSortCode[D <: DataOrigin](
+    fieldValue: FormComponent,
+    sC: UkSortCode,
+    mandatory: Boolean
+  )(
+    formModelVisibilityOptics: FormModelVisibilityOptics[D]
+  )(
+    implicit
+    messages: Messages,
     l: LangADT,
-    sse: SmartStringEvaluator): ValidatedType[Unit] =
-    Monoid[ValidatedType[Unit]].combineAll(
-      UkSortCode
-        .fields(fieldValue.id)
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] =
+    Monoid[ValidatedType[Unit]].combineAll {
+      val indexedComponentId
+        : IndexedComponentId = fieldValue.modelComponentId.indexedComponentId // TODO JoVl, this is weird, let's use MultiValueId istead here to create `fieldIdList`
+      val fieldIdList = UkSortCode
+        .fields(indexedComponentId)
         .toList
-        .map { fieldId =>
-          val sortCode: Option[String] = data.data.one(fieldId).filterNot(_.isEmpty)
-          (sortCode, mandatory) match {
-            case (None, true) =>
-              validationFailure(fieldValue, "generic.error.sortcode", None)
-            case (None, false)    => validationSuccess
-            case (Some(value), _) => checkLength(fieldValue, value, 2)
-          }
+      fieldIdList.map { fieldId =>
+        val sortCode: Option[String] =
+          formModelVisibilityOptics.data.one(fieldId).filterNot(_.isEmpty)
+        (sortCode, mandatory) match {
+          case (None, true) =>
+            validationFailure(fieldValue, "generic.error.sortcode", None)
+          case (None, false)    => validationSuccess
+          case (Some(value), _) => checkLength(fieldValue, value, 2)
         }
-    )
+      }
+    }
 
-  def checkLength(fieldValue: FormComponent, value: String, desiredLength: Int)(
-    implicit messages: Messages,
+  def checkLength(
+    fieldValue: FormComponent,
+    value: String,
+    desiredLength: Int
+  )(
+    implicit
+    messages: Messages,
     l: LangADT,
-    sse: SmartStringEvaluator): Validated[Map[FormComponentId, Set[String]], Unit] = {
+    sse: SmartStringEvaluator
+  ): ValidatedType[Unit] = {
     val WholeShape = s"[0-9]{$desiredLength}".r
     val x = "y"
     val FractionalShape = "([+-]?)(\\d*)[.](\\d+)".r

@@ -14,8 +14,8 @@
  * limitations under the License.
  *@
 
-@(title: String)
+@(title: SmartString)(implicit l: LangADT, sse: SmartStringEvaluator)
 
 <h2 class="govuk-heading-m">
-  @title
+  @{title.value}
 </h2>
