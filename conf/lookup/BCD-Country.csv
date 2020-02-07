@@ -52,7 +52,6 @@ CM,	Cameroon, 0, Camerŵn
 CN,	China, 0, Tsieina
 CO,	Colombia, 0, Colombia
 CR,	Costa Rica,	0, Costa Rica
-CS,	Czechoslovakia,	0, Tsiecoslofacia
 CU,	Cuba, 0, Cuba
 CV,	Cape Verde, 0, Cabo Verde
 CW,	Curacao, 0, Curaçao
@@ -78,7 +77,6 @@ FK,	Falklands Islands and dependencies,	0, Ynysoedd Falkland a'r tiriogaethau di
 FM,	Micronesia,	0, Micronesia
 FO,	Faroe Islands, 0, Ynysoedd Føroyar
 FR,	France,	1, Ffrainc
-FX,	"France, Metropolitan",	1, "Ffrainc, Métropolitan"
 GA,	Gabon, 0, Gabon
 GD,	Grenada, 0, Grenada
 GE,	Georgia, 0, Georgia
@@ -103,7 +101,6 @@ HN,	Honduras, 0, Honduras
 HR,	Croatia, 1, Croatia
 HT,	Haiti, 0, Haiti
 HU,	Hungary, 1, Hwngari
-IC,	Canary Islands, 0, Yr Ynysoedd Dedwydd
 ID,	Indonesia, 0, Indonesia
 IE,	Ireland, 1, Iwerddon
 IL,	Israel, 0, Israel
@@ -169,12 +166,10 @@ NE,	Niger, 0, Niger
 NF,	Norfolk Island, 0, Ynys Norfolk
 NG,	Nigeria, 0, Nigeria
 NI,	Nicaragua, 0, Nicaragua
-NK,	NOT KNOWN, 0, DDIM YN HYSBYS
 NL,	Netherlands, 1, Yr Iseldiroedd
 NO,	Norway, 0, Norwy
 NP,	Nepal, 0, Nepal
 NR,	Nauru, 0, Nauru
-NT,	Neutral Zone, 0, Parth Niwtral
 NU,	Niue, 0, Niue
 NZ,	New Zealand, 0, Seland Newydd
 OM,	Oman, 0, Oman
@@ -252,15 +247,9 @@ VN,	Vietnam, 0, Viet Nam
 VU,	Vanuatu, 0, Vanuatu
 WF,	Wallis and Futuna, 0, Wallis a Futuna
 WS,	Samoa, 0, Samoa
-XC,	Ceuta, 0, Ceuta
 XK,	Kosovo, 0, Kosovo
-XL,	Melilla, 0,  Melilla
-XS,	Serbia, 0, Serbia
 YE,	Yemen, 0, Yemen
 YT,	Mayotte, 0, Mayotte
-YU,	Yugoslavia, 0,Iwgoslafia
 ZA,	South Africa, 0, De Affrica
 ZM,	Zambia, 0, Zambia
-ZR,	Zaire, 0, Zaire
 ZW,	Zimbabwe, 0, Zimbabwe
-ZZ,	Missing, 0, Ddim yma
