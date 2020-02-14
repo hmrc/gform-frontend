@@ -32,6 +32,7 @@ DELETE        /submissions/test-only/proxy-to-save4later/*path         uk.gov.hm
 
 GET           /submissions/test-only/whats-in-session                  uk.gov.hmrc.gform.testonly.TestOnlyController.whatsInSession()
 GET           /submissions/test-only/clear-session                     uk.gov.hmrc.gform.testonly.TestOnlyController.clearSession()
+GET           /submissions/test-only/config                            uk.gov.hmrc.gform.testonly.TestOnlyController.config()
 
 GET           /submissions/test-only/envelope-id/:formId               uk.gov.hmrc.gform.testonly.TestOnlyController.getEnvelopeId(formId: FormId)
 

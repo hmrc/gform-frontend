@@ -21,6 +21,8 @@ import akka.util.ByteString
 import cats.MonadError
 import cats.data.EitherT
 import cats.instances.future._
+import com.typesafe.config.{ ConfigFactory, ConfigRenderOptions }
+import play.api.libs.json.JsValue
 import play.api.{ Configuration, Mode }
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -69,6 +71,11 @@ class TestOnlyController(
 
   def clearSession(): Action[AnyContent] = Action { implicit request =>
     Ok("session cleared").withSession()
+  }
+
+  def config() = Action { r =>
+    val result: JsValue = Json.parse(ConfigFactory.load().root().render(ConfigRenderOptions.concise()))
+    Ok(result)
   }
 
   def getEnvelopeId(formId: FormId) = Action.async { implicit request =>
