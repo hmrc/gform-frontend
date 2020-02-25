@@ -68,6 +68,6 @@ class CustomerIdRecalculation[F[_]: Monad](
       case Constant(value) => value.pure[F]
 
       case _ => "".pure[F] //TODO change this to AuthExpr.
-    }).map(CustomerId(_))
+    }).map(customerId => CustomerId(customerId.take(64)))
 
 }
