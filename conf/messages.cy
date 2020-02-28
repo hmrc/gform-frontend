@@ -246,6 +246,9 @@ ack.feedbackText1=Rydym yn defnyddio adborth i wella ein gwasanaethau. Cwblhewch
 ack.feedbackLink=arolwg adborth
 ack.feedbackText2=nawr
 
+# PrintPage
+printPage.printLinkText=Crynodeb PDF
+
 # Access code start page
 accessCode.p1=Bob tro y byddwch yn dechrau {0} newydd ar gyfer y gwasanaeth hwn, rhoddir allwedd cyrchu dros dro i chi
 accessCode.p2=Gallwch ddechrau a chadw un {0} neu fwy a dod yn ôl i weithio arnynt yn ddiweddarach. Gofynnir i chi am allwedd cyrchu dros dro pan fyddwch yn dod yn ôl i weithio ar {0} a gadwyd gennych.

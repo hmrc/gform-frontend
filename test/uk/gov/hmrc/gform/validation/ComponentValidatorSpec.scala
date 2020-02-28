@@ -65,8 +65,8 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
   private val numberWithPlus = FormatExprGen.telephoneNumberGen(FormatExprGen.International)
   private val numberWithoutPlus = FormatExprGen.telephoneNumberGen(FormatExprGen.UK)
   private val telephoneConstraint = Text(TelephoneNumber, Value)
-  private val formComponent = FormComponent(
-    FormComponentId("formComponent"),
+  private val testFormComponent = FormComponent(
+    FormComponentId("testFormComponent"),
     telephoneConstraint,
     toSmartString("formComponentLabel"),
     None,
@@ -83,7 +83,7 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
   "validatePhoneNumber" should "return valid when character count is less than 7 and contains a special character" in {
     val lessThan7WithPlus = numberWithPlus.map(string => string.substring(0, 7))
     forAll(lessThan7WithPlus) { phoneNumber =>
-      val result = ComponentValidator.validatePhoneNumber(formComponent, phoneNumber)
+      val result = ComponentValidator.validatePhoneNumber(testFormComponent, phoneNumber)
       result.isValid shouldBe true
     }
   }
@@ -91,7 +91,7 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
   it should "return invalid when a string contains a '$' symbol" in {
     forAll(numberWithPlus) { phoneNumber =>
       val result = ComponentValidator.validatePhoneNumber(
-        formComponent,
+        testFormComponent,
         phoneNumber + "$"
       )
       result.isInvalid shouldBe true
@@ -100,7 +100,7 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
 
   it should "return valid when character count is between 7-25" in {
     forAll(numberWithoutPlus) { phoneNumber =>
-      val result = ComponentValidator.validatePhoneNumber(formComponent, phoneNumber)
+      val result = ComponentValidator.validatePhoneNumber(testFormComponent, phoneNumber)
       result.isValid shouldBe true
     }
   }
@@ -108,13 +108,13 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
   it should "return invalid when character count is less than 7" in {
     val invalidNumber = numberWithoutPlus.map(string => string.substring(0, 6))
     forAll(invalidNumber) { phoneNumber =>
-      val result = ComponentValidator.validatePhoneNumber(formComponent, phoneNumber)
+      val result = ComponentValidator.validatePhoneNumber(testFormComponent, phoneNumber)
       result.isInvalid shouldBe true
     }
   }
 
   val shortTextComponent = FormComponent(
-    FormComponentId("formComponent"),
+    FormComponentId("testFormComponent"),
     Text(ShortText(3, 5), Value),
     toSmartString("formComponentLabel"),
     None,
@@ -151,32 +151,32 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
   }
   /*
   "validateRevealingChoice" should "be invalid when one of the choices is not selected" in {
-    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(formComponent, revealingChoice) =>
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(testFormComponent, revealingChoice) =>
       {
-        val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
-        whenever(isFormComponentMandatory(formComponent, true)) {
-           val res = ComponentValidator.validateRevealingChoice(revealingChoiceComponent, data)(emptyData(true, formComponent))
+        val revealingChoiceComponent = convertFormComponent(testFormComponent, revealingChoice)
+        whenever(isFormComponentMandatory(testFormComponent, true)) {
+           val res = ComponentValidator.validateRevealingChoice(revealingChoiceComponent, data)(emptyData(true, testFormComponent))
             res.isInvalid shouldBe true
         }
       }
     }
   }
   it should "be valid when the form component is not mandatory and the data associated with the id is empty" in {
-    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen) { (formComponent, revealingChoice) =>
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen) { (testFormComponent, revealingChoice) =>
     {
-      val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
-      whenever(isFormComponentMandatory(formComponent, false)) {
-        val res = ComponentValidator.validateRevealingChoice(choiceComponent)(emptyData(true, formComponent))
+      val revealingChoiceComponent = convertFormComponent(testFormComponent, revealingChoice)
+      whenever(isFormComponentMandatory(testFormComponent, false)) {
+        val res = ComponentValidator.validateRevealingChoice(choiceComponent)(emptyData(true, testFormComponent))
         res.isValid shouldBe true
       }
     }
     }
   }
   it should "be invalid if one of the choices is sleceted and it's hidden field is invalid" in {
-    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(formComponent, revealingChoice) =>
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(testFormComponent, revealingChoice) =>
       {
-        val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
-        whenever(isFormComponentMandatory(formComponent, true)){
+        val revealingChoiceComponent = convertFormComponent(testFormComponent, revealingChoice)
+        whenever(isFormComponentMandatory(testFormComponent, true)){
           val res = ComponentValidator.validateRevealingChoice(revealingChoiceComponent)(formComponentData(revealingChoiceComponent, true))
           res.isValid shouldBe true
         }
@@ -184,10 +184,10 @@ class ComponentValidatorSpec(implicit messages: Messages, l: LangADT) extends Sp
     }
   }
   it should "be valid if one of the choices is selected and it's hidden field is valid" in {
-    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(formComponent, revealingChoice) =>
+    forAll(FormComponentGen.formComponentGen(), revealingChoiceGen){(testFormComponent, revealingChoice) =>
       {
-        val revealingChoiceComponent = convertFormComponent(formComponent, revealingChoice)
-        whenever(isFormComponentMandatory(formComponent, true)){
+        val revealingChoiceComponent = convertFormComponent(testFormComponent, revealingChoice)
+        whenever(isFormComponentMandatory(testFormComponent, true)){
           val res = ComponentValidator.validateRevealingChoice(revealingChoiceComponent)(formComponentData(revealingChoiceComponent, false))
           res.isValid shouldBe true
         }

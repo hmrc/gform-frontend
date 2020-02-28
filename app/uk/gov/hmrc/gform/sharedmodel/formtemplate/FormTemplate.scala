@@ -21,6 +21,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import uk.gov.hmrc.gform.sharedmodel.{ AvailableLanguages, LocalisedString, VariadicFormData, formtemplate }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
 case class ExpandedFormTemplate(expandedSection: List[ExpandedSection]) {
   val allFormComponents: List[FormComponent] =
@@ -47,7 +48,6 @@ case class FormTemplate(
   emailParameters: Option[NonEmptyList[EmailParameter]],
   webChat: Option[WebChat],
   sections: List[Section],
-  acknowledgementSection: AcknowledgementSection,
   declarationSection: DeclarationSection,
   parentFormSubmissionRefs: List[FormComponentId],
   GFC579Ready: Option[String],
@@ -58,7 +58,12 @@ case class FormTemplate(
   val isSpecimen: Boolean = _id.value.startsWith("specimen-")
 
   def listAllSections: List[BaseSection] =
-    sections ::: List(declarationSection, acknowledgementSection)
+    destinations match {
+      case destinationList: DestinationList =>
+        sections ::: List(declarationSection, destinationList.acknowledgementSection)
+      case _ =>
+        sections :+ declarationSection
+    }
 
   def expandFormTemplate(data: VariadicFormData): ExpandedFormTemplate =
     ExpandedFormTemplate(sections.map(_.expandSection(data)))

@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils.submittedFCs
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormData, FormDataRecalculated, FormField }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 
 object VisibleFieldCalculator {
   def apply(
@@ -30,10 +31,16 @@ object VisibleFieldCalculator {
     envelope: Envelope): (Seq[FormField], Attachments) = {
     val allSections = RepeatingComponentService.getAllSections(template, formDataRecalculated)
     val visibleSections = allSections.filter(formDataRecalculated.isVisible)
-    val formComponentsInVisibleSections =
+    val formComponentsInVisibleSections = {
+      val acknowledgementSectionFields = template.destinations match {
+        case destinationList: DestinationList => destinationList.acknowledgementSection.fields
+        case _                                => Nil
+      }
+
       visibleSections.flatMap(_.expandSectionRc(formDataRecalculated.data).allFCs) :::
         template.declarationSection.fields :::
-        template.acknowledgementSection.fields
+        acknowledgementSectionFields
+    }
 
     val visibleFormComponents: List[FormComponent] = submittedFCs(
       formDataRecalculated,

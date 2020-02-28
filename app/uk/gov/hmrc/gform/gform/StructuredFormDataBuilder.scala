@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.lookup._
 import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.sharedmodel.form.Form
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.structuredform.StructuredFormValue.{ ArrayNode, ObjectStructure, TextNode }
 import uk.gov.hmrc.gform.sharedmodel.structuredform.{ Field, FieldName, StructuredFormValue }
 
@@ -54,8 +55,17 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
   private val multiChoiceFieldIds: Set[FormComponentId] = extractMultiChoiceFieldIds(template)
 
   def build()(implicit l: LangADT): F[List[Field]] =
-    (buildSections, buildBaseSection(template.acknowledgementSection), buildBaseSection(template.declarationSection))
-      .mapN(_ ++ _ ++ _)
+    template.destinations match {
+      case destinationList: DestinationList =>
+        (
+          buildSections,
+          buildBaseSection(destinationList.acknowledgementSection),
+          buildBaseSection(template.declarationSection))
+          .mapN(_ ++ _ ++ _)
+      case _ =>
+        (buildSections, buildBaseSection(template.declarationSection))
+          .mapN(_ ++ _)
+    }
 
   private def buildSections()(implicit l: LangADT): F[List[Field]] = {
     val fields: List[F[List[Field]]] =
