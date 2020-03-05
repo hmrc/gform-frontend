@@ -53,7 +53,7 @@ templateId = formTemplate._id
             @summaryPdf
         </p>
         <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url" target="_blank">@messages("printPage.printLinkText")</a>
+            <a href="@uk.gov.hmrc.gform.gform.routes.PrintSectionController.downloadPDF(formTemplate._id, maybeAccessCode).url" target="_blank">@messages("printPage.printLinkText")</a>
         </p>
 
     </div>

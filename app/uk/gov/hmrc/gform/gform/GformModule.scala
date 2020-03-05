@@ -139,6 +139,15 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
+  val printSectionController: PrintSectionController = new PrintSectionController(
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    pdfGeneratorModule.pdfGeneratorService,
+    sectionRenderingService,
+    summaryRenderingService,
+    controllersModule.messagesControllerComponents
+  )
+
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,

@@ -322,6 +322,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   def renderAcknowledgementSection(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
+    destinationList: DestinationList,
     retrievals: MaterialisedRetrievals,
     envelopeId: EnvelopeId)(
     implicit hc: HeaderCarrier,
@@ -330,29 +331,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     l: LangADT,
     sse: SmartStringEvaluator): Future[Html] = {
 
-    val (
-      acknowledgementSectionList,
-      acknowledgementSectionFieldsList,
-      acknowledgementSectionTitleValue: String,
-      acknowledgementSectionDescriptionValue: Option[String]) =
-      formTemplate.destinations match {
-        case destinationList: DestinationList =>
-          (
-            List(destinationList.acknowledgementSection),
-            destinationList.acknowledgementSection.fields,
-            destinationList.acknowledgementSection.title.value,
-            destinationList.acknowledgementSection.description.map(ls => ls.value))
-        case _ =>
-          (Nil, Nil, "", None)
-      }
-
     val ei = ExtraInfo(
       maybeAccessCode,
       SectionNumber(0),
       FormDataRecalculated.empty,
       formTemplate,
       Envelope.empty,
-      acknowledgementSectionList,
+      List(destinationList.acknowledgementSection),
       0,
       formTemplate.declarationSection,
       retrievals,
@@ -365,7 +350,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val now = ZonedDateTime.now(ZoneId.of("Europe/London"))
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
-      snippets <- Future.traverse(acknowledgementSectionFieldsList)(
+      snippets <- Future.traverse(destinationList.acknowledgementSection.fields)(
                    formComponent =>
                      Future.successful(
                        htmlFor(
@@ -380,8 +365,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formTemplate._id,
         maybeAccessCode,
         SectionNumber(0),
-        acknowledgementSectionTitleValue,
-        acknowledgementSectionDescriptionValue,
+        destinationList.acknowledgementSection.title.value,
+        destinationList.acknowledgementSection.description.map(ls => ls.value),
         Nil,
         snippets,
         "",

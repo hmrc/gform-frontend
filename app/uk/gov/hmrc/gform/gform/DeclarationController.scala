@@ -198,8 +198,12 @@ class DeclarationController(
             case (_, customerId) => showAcknowledgement(updatedCache, maybeAccessCode, customerId)
           }
       }
-      case printSection: PrintSection =>
-        Future.successful(Ok(renderer.renderPrintSection(maybeAccessCode, cache.formTemplate, printSection)))
+
+      case _: PrintSection =>
+        Future.successful(
+          Redirect(
+            uk.gov.hmrc.gform.gform.routes.PrintSectionController
+              .showPrintSection(cache.form.formTemplateId, maybeAccessCode)))
     }
   }
 
