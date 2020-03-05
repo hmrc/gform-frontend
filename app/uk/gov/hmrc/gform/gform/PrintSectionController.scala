@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.Prin
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
+import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -52,7 +53,7 @@ class PrintSectionController(
           case printSection: PrintSection =>
             Future.successful(Ok(renderPrintSection(cache, maybeAccessCode, printSection)))
           case _ =>
-            Future.successful(BadRequest)
+            throw new BadRequestException(s"Print section is not defined for $formTemplateId")
         }
     }
 
@@ -81,7 +82,7 @@ class PrintSectionController(
                 body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
               )
 
-          case _ => Future.successful(BadRequest)
+          case _ => throw new BadRequestException(s"Print section is not defined for $formTemplateId")
         }
     }
 
