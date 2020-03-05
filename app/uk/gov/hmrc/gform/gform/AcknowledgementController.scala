@@ -28,8 +28,10 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
+import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -55,9 +57,21 @@ class AcknowledgementController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewAcknowledgement) {
       implicit request => implicit l => cache => implicit sse =>
         import i18nSupport._
-        renderer
-          .renderAcknowledgementSection(maybeAccessCode, cache.formTemplate, cache.retrievals, cache.form.envelopeId)
-          .map(Ok(_))
+
+        cache.formTemplate.destinations match {
+          case destinationList: DestinationList =>
+            renderer
+              .renderAcknowledgementSection(
+                maybeAccessCode,
+                cache.formTemplate,
+                destinationList,
+                cache.retrievals,
+                cache.form.envelopeId)
+              .map(Ok(_))
+
+          case _ =>
+            Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
+        }
     }
 
   def downloadPDF(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =

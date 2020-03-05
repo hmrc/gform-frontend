@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.Helpers.{ toLocalisedString, toSmartString }
 import uk.gov.hmrc.gform.sharedmodel.AvailableLanguages
+import uk.gov.hmrc.gform.sharedmodel.ExampleData._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.HmrcDms
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DestinationId
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
@@ -115,28 +116,25 @@ object FormTemplateBuilder {
     Default,
     OnePerUser(ContinueOrDeletePage.Show),
     DestinationList(
-      NonEmptyList.of(HmrcDms(
-        DestinationId("TestHmrcDmsId"),
-        "TestHmrcDmsFormId",
-        TextExpression(Constant("TestHmrcDmsCustomerId")),
-        "TestHmrcDmsClassificationType",
-        "TestHmrcDmsBusinessArea",
-        "",
-        true,
-        true
-      ))),
+      NonEmptyList.of(
+        HmrcDms(
+          DestinationId("TestHmrcDmsId"),
+          "TestHmrcDmsFormId",
+          TextExpression(Constant("TestHmrcDmsCustomerId")),
+          "TestHmrcDmsClassificationType",
+          "TestHmrcDmsBusinessArea",
+          "",
+          true,
+          true
+        )),
+      ackSection
+    ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
     Some(NonEmptyList
       .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email")))),
     None,
     sections,
-    AcknowledgementSection(
-      toSmartString("Acknowledgement Page"),
-      Some(toSmartString("this page is to acknowledge submission")),
-      Some(toSmartString("shortName for acknowledgement")),
-      List.empty[FormComponent]
-    ),
     DeclarationSection(toSmartString("Declaration"), None, None, Nil),
     Nil,
     Some("false"),

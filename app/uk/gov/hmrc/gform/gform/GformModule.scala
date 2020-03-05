@@ -32,7 +32,7 @@ import uk.gov.hmrc.gform.models.ProcessDataService
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
+import uk.gov.hmrc.gform.summarypdf.{ PdfGeneratorConnector, PdfGeneratorService }
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
@@ -42,7 +42,7 @@ class GformModule(
   configModule: ConfigModule,
   wSHttpModule: WSHttpModule,
   controllersModule: ControllersModule,
-  pdfGeneratorModule: PdfGeneratorModule,
+  pdfGeneratorConnector: PdfGeneratorConnector,
   authModule: AuthModule,
   gformBackendModule: GformBackendModule,
   fileUploadModule: FileUploadModule,
@@ -125,12 +125,18 @@ class GformModule(
     configModule.frontendAppConfig
   )
 
+  val pdfGeneratorService = new PdfGeneratorService(
+    playBuiltInsModule.i18nSupport,
+    pdfGeneratorConnector,
+    summaryRenderingService
+  )
+
   val summaryController: SummaryController = new SummaryController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     fileUploadModule.fileUploadService,
     validationModule.validationService,
-    pdfGeneratorModule.pdfGeneratorService,
+    pdfGeneratorService,
     gformBackendModule.gformConnector,
     configModule.frontendAppConfig,
     errorResponder,
@@ -139,10 +145,19 @@ class GformModule(
     controllersModule.messagesControllerComponents
   )
 
+  val printSectionController: PrintSectionController = new PrintSectionController(
+    playBuiltInsModule.i18nSupport,
+    controllersModule.authenticatedRequestActions,
+    pdfGeneratorService,
+    sectionRenderingService,
+    summaryRenderingService,
+    controllersModule.messagesControllerComponents
+  )
+
   val acknowledgementController: AcknowledgementController = new AcknowledgementController(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
-    pdfGeneratorModule.pdfGeneratorService,
+    pdfGeneratorService,
     sectionRenderingService,
     summaryRenderingService,
     gformBackendModule.gformConnector,
@@ -178,7 +193,7 @@ class GformModule(
     playBuiltInsModule.i18nSupport,
     controllersModule.authenticatedRequestActions,
     auditingModule.auditService,
-    pdfGeneratorModule.pdfGeneratorService,
+    pdfGeneratorService,
     sectionRenderingService,
     validationModule.validationService,
     authModule.authService,

@@ -254,6 +254,9 @@ ack.feedbackText1=We use feedback to make our services better. Please take the
 ack.feedbackLink=feedback survey
 ack.feedbackText2=now
 
+# PrintPage
+printPage.printLinkText=Summary PDF
+
 # Access code links
 accessCodeLinks.p1=The following {0}s have been saved for you to continue:
 accessCodeLinks.label=Submission Reference

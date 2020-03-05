@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationServi
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -186,12 +187,24 @@ class DeclarationController(
     request: Request[_],
     l: LangADT,
     lise: SmartStringEvaluator): Future[Result] = {
-    val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
-    gformBackEnd
-      .submitWithUpdatedFormStatus(Signed, updatedCache, maybeAccessCode, None, attachments)
-      .map {
-        case (_, customerId) => showAcknowledgement(updatedCache, maybeAccessCode, customerId)
+    import i18nSupport._
+
+    cache.formTemplate.destinations match {
+      case _: DestinationList => {
+        val updatedCache = cache.copy(form = updateFormWithDeclaration(cache.form, cache.formTemplate, data))
+        gformBackEnd
+          .submitWithUpdatedFormStatus(Signed, updatedCache, maybeAccessCode, None, attachments)
+          .map {
+            case (_, customerId) => showAcknowledgement(updatedCache, maybeAccessCode, customerId)
+          }
       }
+
+      case _: PrintSection =>
+        Future.successful(
+          Redirect(
+            uk.gov.hmrc.gform.gform.routes.PrintSectionController
+              .showPrintSection(cache.form.formTemplateId, maybeAccessCode)))
+    }
   }
 
   private def showAcknowledgement(

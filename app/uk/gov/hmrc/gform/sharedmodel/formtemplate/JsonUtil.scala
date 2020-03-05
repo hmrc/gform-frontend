@@ -59,6 +59,8 @@ trait JsonUtils {
     }, _.map {
       case (k, v) => aToString(k) -> v
     })
+
+  def safeCast[A, B >: A](reads: Reads[A]): Reads[B] = reads.asInstanceOf[Reads[B]]
 }
 
 object JsonUtils extends JsonUtils

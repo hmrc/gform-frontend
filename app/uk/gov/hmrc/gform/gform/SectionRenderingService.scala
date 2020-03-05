@@ -51,6 +51,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
@@ -299,9 +300,29 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     )
   }
 
+  def renderPrintSection(maybeAccessCode: Option[AccessCode], formTemplate: FormTemplate, printSection: PrintSection)(
+    implicit hc: HeaderCarrier,
+    request: Request[_],
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator): Html = {
+    val parsedTitle = printSection.title
+    val parsedSummaryPdf = markDownParser(printSection.summaryPdf)
+
+    uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
+      .print_section(
+        formTemplate,
+        frontendAppConfig,
+        parsedTitle,
+        parsedSummaryPdf,
+        maybeAccessCode
+      )
+  }
+
   def renderAcknowledgementSection(
     maybeAccessCode: Option[AccessCode],
     formTemplate: FormTemplate,
+    destinationList: DestinationList,
     retrievals: MaterialisedRetrievals,
     envelopeId: EnvelopeId)(
     implicit hc: HeaderCarrier,
@@ -316,7 +337,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       FormDataRecalculated.empty,
       formTemplate,
       Envelope.empty,
-      List(formTemplate.acknowledgementSection),
+      List(destinationList.acknowledgementSection),
       0,
       formTemplate.declarationSection,
       retrievals,
@@ -329,7 +350,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val now = ZonedDateTime.now(ZoneId.of("Europe/London"))
     val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
-      snippets <- Future.traverse(formTemplate.acknowledgementSection.fields)(
+      snippets <- Future.traverse(destinationList.acknowledgementSection.fields)(
                    formComponent =>
                      Future.successful(
                        htmlFor(
@@ -344,8 +365,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         formTemplate._id,
         maybeAccessCode,
         SectionNumber(0),
-        formTemplate.acknowledgementSection.title.value,
-        formTemplate.acknowledgementSection.description.map(ls => ls.value),
+        destinationList.acknowledgementSection.title.value,
+        destinationList.acknowledgementSection.description.map(ls => ls.value),
         Nil,
         snippets,
         "",
