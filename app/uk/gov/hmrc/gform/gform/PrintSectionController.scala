@@ -70,29 +70,15 @@ class PrintSectionController(
       implicit request => implicit l => cache => implicit sse =>
         cache.formTemplate.destinations match {
           case _: PrintSection =>
-            for {
-              summaryHtml <- summaryRenderingService
-                              .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)
-              htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = false)
-              withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
-              pdfStream <- pdfService.generatePDF(PdfHtml(withPDFHeader))
-            } yield
-              Result(
-                header = ResponseHeader(200, Map.empty),
-                body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-              )
+            pdfService.generateSummaryPDF(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser) map {
+              pdfStream =>
+                Result(
+                  header = ResponseHeader(200, Map.empty),
+                  body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+                )
+            }
 
           case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
         }
     }
-
-  private def pdfHeader(
-    summaryHtml: String,
-    formTemplate: FormTemplate)(implicit ec: ExecutionContext, l: LangADT, messages: Messages): String = {
-    val headerHtml = pdf_header(formTemplate).toString()
-    val doc = Jsoup.parse(summaryHtml)
-    doc.select("article[class*=content__body]").prepend(headerHtml)
-    doc.html
-  }
-
 }

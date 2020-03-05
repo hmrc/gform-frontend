@@ -306,7 +306,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator): Html = {
-    val parsedTitle = markDownParser(printSection.title)
+    val parsedTitle = printSection.title
     val parsedSummaryPdf = markDownParser(printSection.summaryPdf)
 
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials

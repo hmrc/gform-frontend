@@ -133,25 +133,12 @@ class SummaryController(
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadSummaryPdf) {
       implicit request => implicit l => cache => implicit sse =>
-        for {
-          summaryHml <- summaryRenderingService
-                         .getSummaryHTML(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser)
-          htmlForPDF = HtmlSanitiser.sanitiseHtmlForPDF(summaryHml, submitted = false)
-          withPDFHeader = pdfHeader(htmlForPDF, cache.formTemplate)
-          pdfStream <- pdfService.generatePDF(PdfHtml(withPDFHeader))
-        } yield
-          Result(
-            header = ResponseHeader(200, Map.empty),
-            body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-          )
+        pdfService.generateSummaryPDF(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser) map {
+          pdfStream =>
+            Result(
+              header = ResponseHeader(200, Map.empty),
+              body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+            )
+        }
     }
-
-  private def pdfHeader(
-    summaryHtml: String,
-    formTemplate: FormTemplate)(implicit ec: ExecutionContext, l: LangADT, messages: Messages): String = {
-    val headerHtml = pdf_header(formTemplate).toString()
-    val doc = Jsoup.parse(summaryHtml)
-    doc.select("article[class*=content__body]").prepend(headerHtml)
-    doc.html
-  }
 }

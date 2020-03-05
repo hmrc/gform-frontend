@@ -23,14 +23,15 @@
 @(
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
-  title: Html,
+  title: SmartString,
   summaryPdf: Html,
   maybeAccessCode: Option[AccessCode]
 )(implicit
   request: Request[_],
   messages: Messages,
   l:LangADT,
-  viewHelpers: ViewHelpersAlgebra)
+  viewHelpers: ViewHelpersAlgebra,
+ sse: SmartStringEvaluator)
 
 @heading = @{messages("printPage.title")}
 
@@ -45,7 +46,7 @@ languages = formTemplate.languages,
 templateId = formTemplate._id
 ) {
     <h1 class="h1-heading">
-        @title
+        @title.value
     </h1>
 
     <div class="print-hidden">

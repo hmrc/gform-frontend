@@ -43,7 +43,7 @@ import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.metrics.{ GraphiteModule, MetricsModule }
 import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsModule, RoutingModule }
-import uk.gov.hmrc.gform.summarypdf.PdfGeneratorModule
+import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
 import uk.gov.hmrc.gform.views.{ ViewHelpers, ViewHelpersAlgebra }
@@ -114,7 +114,8 @@ class ApplicationModule(context: Context)
 
   private val authModule = new AuthModule(configModule, wSHttpModule, gformBackendModule)
 
-  private val pdfGeneratorModule = new PdfGeneratorModule(configModule, wSHttpModule)
+  protected val pdfGeneratorConnector =
+    new PdfGeneratorConnector(configModule.serviceConfig, wSHttpModule.auditableWSHttp)
 
   private val lookupRegistry = new LookupRegistry(new uk.gov.hmrc.gform.LookupLoader().registerLookup)
 
@@ -163,7 +164,7 @@ class ApplicationModule(context: Context)
     configModule,
     wSHttpModule,
     controllersModule,
-    pdfGeneratorModule,
+    pdfGeneratorConnector,
     authModule,
     gformBackendModule,
     fileUploadModule,
