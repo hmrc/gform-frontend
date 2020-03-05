@@ -31,6 +31,7 @@ import uk.gov.hmrc.gform.graph.CustomerIdRecalculation
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.summary.{ SubmissionDetails, SummaryRenderingService }
+import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -69,7 +70,7 @@ class AcknowledgementController(
               .map(Ok(_))
 
           case _ =>
-            Future.successful(BadRequest("Acknowledgement is not available"))
+            Future.failed(new BadRequestException(s"Acknowledgement is not defined for $formTemplateId"))
         }
     }
 

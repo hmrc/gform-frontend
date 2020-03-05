@@ -53,7 +53,7 @@ class PrintSectionController(
           case printSection: PrintSection =>
             Future.successful(Ok(renderPrintSection(cache, maybeAccessCode, printSection)))
           case _ =>
-            throw new BadRequestException(s"Print section is not defined for $formTemplateId")
+            Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
         }
     }
 
@@ -82,7 +82,7 @@ class PrintSectionController(
                 body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
               )
 
-          case _ => throw new BadRequestException(s"Print section is not defined for $formTemplateId")
+          case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
         }
     }
 
