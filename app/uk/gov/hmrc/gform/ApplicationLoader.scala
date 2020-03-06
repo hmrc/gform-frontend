@@ -23,7 +23,7 @@ import play.api.http._
 import play.api.i18n.I18nComponents
 import play.api.inject.{ Injector, SimpleInjector }
 import play.api.libs.ws.ahc.AhcWSComponents
-import play.api.mvc.{ DefaultSessionCookieBaker, EssentialFilter, SessionCookieBaker }
+import play.api.mvc.{ EssentialFilter, LegacySessionCookieBaker, SessionCookieBaker }
 import play.api.routing.Router
 import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.gform.akka.AkkaModule
@@ -123,10 +123,8 @@ class ApplicationModule(context: Context)
     val httpConfiguration: HttpConfiguration =
       new HttpConfiguration.HttpConfigurationProvider(configModule.playConfiguration, configModule.environment).get
 
-    val secretConfiguration: SecretConfiguration = httpConfiguration.secret
     val config: SessionConfiguration = httpConfiguration.session
-    val cookieSigner: CookieSigner = new DefaultCookieSigner(secretConfiguration)
-    new DefaultSessionCookieBaker(config, secretConfiguration, cookieSigner)
+    new LegacySessionCookieBaker(config, cookieSigner)
   }
 
   private val graphModule = new GraphModule(
