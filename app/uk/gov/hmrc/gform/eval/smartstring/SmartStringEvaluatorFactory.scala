@@ -21,10 +21,14 @@ import java.text.MessageFormat
 import cats.Id
 import org.intellij.markdown.html.entities.EntityConverter
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.commons.ExprFormat
+import uk.gov.hmrc.gform.commons.FormatType
+import uk.gov.hmrc.gform.commons.FormatType.{ Default, FromText }
 import uk.gov.hmrc.gform.graph.Evaluator
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, Form, FormDataRecalculated, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Expr, FormComponentId, FormTemplate }
 import uk.gov.hmrc.gform.sharedmodel.{ LangADT, SmartString }
+import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait SmartStringEvaluatorFactory {
@@ -68,10 +72,21 @@ class RealSmartStringEvaluatorFactory(evaluator: Evaluator[Id]) extends SmartStr
             s.interpolations
               .map { interpolation =>
                 val interpolated = eval(interpolation)
+                val formatType =
+                  ExprFormat.formatForExpr(
+                    interpolation,
+                    formTemplate
+                      .expandFormTemplate(recalculatedFormData.data)
+                      .formComponentsLookup(recalculatedFormData.data))
+                val formatted = formatType match {
+                  case FormatType.Default        => interpolated
+                  case FormatType.FromText(text) => TextFormatter.componentText(interpolated, text)
+                }
+
                 if (markDown) {
-                  escapeMarkdown(interpolated)
+                  escapeMarkdown(formatted)
                 } else {
-                  interpolated
+                  formatted
                 }
               }
               .asJava
