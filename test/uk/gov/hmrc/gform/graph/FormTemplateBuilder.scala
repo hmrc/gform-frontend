@@ -139,7 +139,8 @@ object FormTemplateBuilder {
     Nil,
     Some("false"),
     AvailableLanguages.default,
-    None
+    None,
+    SummarySection(toSmartString("Title"), toSmartString("Header"), toSmartString("Footer"))
   )
 
 }

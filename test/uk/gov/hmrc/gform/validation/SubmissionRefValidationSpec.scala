@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IsUpperCase, SubmissionRefFormat, SubmissionReference, Text }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateCtx, FormTemplateProp, IsUpperCase, SubmissionRefFormat, Text }
 
 class SubmissionRefValidationSpec extends Spec {
   "A valid submission reference" should "be accepted" in {
@@ -35,7 +35,7 @@ class SubmissionRefValidationSpec extends Spec {
         val formComponent = generatedComponent.copy(
           `type` = Text(
             SubmissionRefFormat,
-            SubmissionReference,
+            FormTemplateCtx(FormTemplateProp.SubmissionReference),
             toUpperCase = IsUpperCase
           ),
           shortName = None)
@@ -59,7 +59,7 @@ class SubmissionRefValidationSpec extends Spec {
         val formComponent = generatedComponent.copy(
           `type` = Text(
             SubmissionRefFormat,
-            SubmissionReference,
+            FormTemplateCtx(FormTemplateProp.SubmissionReference),
             toUpperCase = IsUpperCase
           ),
           shortName = None)

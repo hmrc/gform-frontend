@@ -235,12 +235,6 @@ sortcode.part=Sort code part {0}
 assistive.text.sterling=in pounds sterling, do not enter the pound sign
 
 # Summary
-summary.title=Check your answers
-summary.intro=Make sure the information you have given is correct
-summary.nowSend=Now send your {0}
-summary.printMsg=You need to submit your {0} on the next screen
-summary.printLinkTextForeword=Before you do this you can
-summary.printLinkText=print or save a PDF copy of your answers (opens in a new window or tab)
 summary.change=Change
 
 # Acknowledgement

@@ -25,6 +25,7 @@ import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.Request
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadAlgebra }
@@ -193,6 +194,8 @@ object SummaryRenderingService {
     l: LangADT,
     viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): Html = {
+    val headerHtml = markDownParser(formTemplate.summarySection.header)
+    val footerHtml = markDownParser(formTemplate.summarySection.footer)
     val sfr =
       summaryForRender(
         validatedType,
@@ -213,7 +216,9 @@ object SummaryRenderingService {
       retrievals.continueLabelKey,
       frontendAppConfig,
       summaryPagePurpose,
-      reviewerComments
+      reviewerComments,
+      headerHtml,
+      footerHtml
     )
   }
 

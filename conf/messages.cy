@@ -227,12 +227,6 @@ sortcode.part=Cod didoli rhan {0}
 assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 
 # Summary
-summary.title=Gwiriwch eich atebion
-summary.intro=Gwnewch yn siŵr bod yr wybodaeth a roddwyd gennych yn gywir
-summary.nowSend=Nawr anfonwch eich {0}
-summary.printMsg=Mae angen i chi gyflwyno’ch {0} ar y sgrin nesaf
-summary.printLinkTextForeword=Cyn i chi wneud hyn,
-summary.printLinkText=gallwch argraffu neu gadw copi PDF o’ch atebion (yn agor ffenestr neu dab newydd)
 summary.change=Newid
 
 # Acknowledgement
