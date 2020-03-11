@@ -30,8 +30,11 @@ class MarkDownUtilSpec extends Spec with GeneratorDrivenPropertyChecks {
       ("input", "output"),
       ("", ""),
       (
+        "link [making a claim](/submissions/new-form/)",
+        """<p>link <a href="/submissions/new-form/">making a claim</a></p>"""),
+      (
         "link [making a claim](/some/relative/path)",
-        """<p>link <a href="/some/relative/path">making a claim</a></p>"""),
+        """<p>link <a href="/some/relative/path" target="_blank">making a claim</a></p>"""),
       (
         "link [making a claim](https://www.gov.uk/government)",
         """<p>link <a href="https://www.gov.uk/government" target="_blank">making a claim</a></p>""")

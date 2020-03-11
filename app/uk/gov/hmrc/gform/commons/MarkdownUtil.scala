@@ -29,9 +29,8 @@ object MarkDownUtil {
 
   private def addTargetToLinks(html: String): String = {
     val doc: Document = Jsoup.parse(html)
-    doc
-      .getElementsByAttributeValueStarting("href", "http")
-      .attr("target", "_blank")
+    doc.getElementsByAttribute("href").attr("target", "_blank")
+    doc.getElementsByAttributeValueStarting("href", "/submissions/new-form/").removeAttr("target")
     doc.body().html()
   }
 

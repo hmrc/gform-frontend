@@ -32,10 +32,12 @@
     continueLabelKey: String,
     frontendAppConfig: FrontendAppConfig,
     summaryPagePurpose: SummaryPagePurpose,
-    reviewerComments : Option[String]
-)(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra)
+    reviewerComments : Option[String],
+    header: Html,
+    footer: Html
+)(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
-@heading = @{messages("summary.title")}
+@heading = @{formTemplate.summarySection.title.value}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -50,12 +52,12 @@
   templateId = formTemplate._id
 ) {
 
-    <div class="cya-intro">
+    <div class="cya-intro subsection">
       <h1 class="h1-heading">
         @heading
       </h1>
       <p>
-        @messages("summary.intro")
+	  @header
       </p>
     </div>
 
@@ -69,16 +71,8 @@
 
       	@snippets
 
-        <div class="print-hidden">
-          <h2>
-            @messages("summary.nowSend", messages(s"formCategory.${formCategory.getString}"))
-          </h2>
-          <p>
-            @messages("summary.printMsg", messages(s"formCategory.${formCategory.getString}")).
-          </p>
-          <p>
-            @messages("summary.printLinkTextForeword") <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.downloadPDF(formTemplate._id, maybeAccessCode).url" target="_blank">@messages("summary.printLinkText")</a>.
-          </p>
+        <div class="print-hidden subsection">
+	  @footer
         </div>
 
         <input type="hidden" id="gform-action" name="save" value="Declaration" />

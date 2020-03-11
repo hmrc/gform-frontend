@@ -41,7 +41,7 @@ object ExprFormat {
     case UserCtx(_)                          => FormatType.Default
     case AuthCtx(_)                          => FormatType.Default
     case EeittCtx(_)                         => FormatType.Default
-    case SubmissionReference                 => FormatType.Default
+    case FormTemplateCtx(_)                  => FormatType.Default
     case Constant(_)                         => FormatType.Default
     case fc: FormCtx                         => formatForFormCtx(fc, componentLookup)
     case Sum(fc: FormCtx)                    => formatForFormCtx(fc, componentLookup)

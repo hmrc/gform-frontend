@@ -66,7 +66,7 @@ class CustomerIdRecalculation[F[_]: Monad](
 
       case id: FormCtx => data.oneOrElse(id.toFieldId, "").pure[F]
 
-      case SubmissionReference => SubmissionRef(envelopeId).toString.pure[F]
+      case FormTemplateCtx(FormTemplateProp.SubmissionReference) => SubmissionRef(envelopeId).toString.pure[F]
 
       case Constant(value) => value.pure[F]
 

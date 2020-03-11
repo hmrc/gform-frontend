@@ -41,7 +41,7 @@ object DependencyGraph {
     def edges(fc: FormComponent): List[DiEdge[GraphNode]] = {
       def fcIds(fc: FormComponent): List[FormComponentId] = fc match {
         case HasExpr(
-            SingleExpr(AuthCtx(_) | EeittCtx(_) | UserCtx(_) | SubmissionReference | HmrcRosmRegistrationCheck(_))) =>
+            SingleExpr(AuthCtx(_) | EeittCtx(_) | UserCtx(_) | FormTemplateCtx(_) | HmrcRosmRegistrationCheck(_))) =>
           fc.id :: Nil
         case HasExpr(SingleExpr(expr)) => eval(expr)
         case _                         => List.empty

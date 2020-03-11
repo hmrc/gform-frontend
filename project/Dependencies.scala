@@ -31,7 +31,8 @@ object Dependencies {
     "org.scala-graph" %% "graph-core" % "1.12.5",
     "com.softwaremill.quicklens" %% "quicklens" % "1.4.11",
     "com.nrinaudo" %% "kantan.csv" % "0.5.1",
-    "com.miguelfonseca.completely" % "completely-core" % "0.8.0"
+    "com.miguelfonseca.completely" % "completely-core" % "0.8.0",
+    "org.jsoup" % "jsoup" % "1.13.1"
   )
 
   def test(scope: String = "test") = Seq(
@@ -42,7 +43,6 @@ object Dependencies {
     "com.ironcorelabs" %% "cats-scalatest" % "2.4.0" % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
-    "org.mockito" % "mockito-all" % "1.10.19" % scope,
-    "org.jsoup" % "jsoup" % "1.11.3"
+    "org.mockito" % "mockito-all" % "1.10.19" % scope
   )
 }

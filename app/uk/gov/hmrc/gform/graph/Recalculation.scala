@@ -366,9 +366,12 @@ class Evaluator[F[_]: Monad](
         NonConvertible(RecalculationOp.newValue(AuthContextPrepop.values(value, retrievals)).pure[F])
       case EeittCtx(eeitt) =>
         NonConvertible(eeittPrepop(eeitt, retrievals, formTemplate, hc).map(RecalculationOp.newValue))
-      case SubmissionReference => NonConvertible(RecalculationOp.newValue(SubmissionRef(envelopeId).toString).pure[F])
-      case Constant(fc)        => MaybeConvertible(fc.pure[F])
-      case fc: FormCtx         => evalFormCtx(visSet, fc, dataLookup)
+      case FormTemplateCtx(FormTemplateProp.SubmissionReference) =>
+        NonConvertible(RecalculationOp.newValue(SubmissionRef(envelopeId).toString).pure[F])
+      case FormTemplateCtx(FormTemplateProp.Id) =>
+        NonConvertible(RecalculationOp.newValue(formTemplate._id.value).pure[F])
+      case Constant(fc) => MaybeConvertible(fc.pure[F])
+      case fc: FormCtx  => evalFormCtx(visSet, fc, dataLookup)
       case Sum(fc: FormCtx) =>
         if (isHidden(fc.toFieldId, visSet)) MaybeConvertibleHidden(defaultF, fc.toFieldId)
         else sum(visSet, fcId, fc.toFieldId, dataLookup, retrievals, formTemplate, thirdPartyData, envelopeId)
