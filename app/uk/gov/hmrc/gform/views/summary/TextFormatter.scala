@@ -31,10 +31,10 @@ object TextFormatter {
       text.constraint match {
         case PositiveNumber(_, _, _, Some(unit)) => currentValue + " " + unit
         case Number(_, _, _, Some(unit))         => currentValue + " " + unit
-        case PositiveNumber(_, _, rm, None) =>
-          getNumberConstraint(currentValue, bd => NumberFormatUtil.roundAndFormat(bd, bd.scale, rm))
-        case Number(_, _, rm, None) =>
-          getNumberConstraint(currentValue, bd => NumberFormatUtil.roundAndFormat(bd, bd.scale, rm))
+        case PositiveNumber(_, maxFractionalDigits, rm, None) =>
+          getNumberConstraint(currentValue, bd => NumberFormatUtil.roundAndFormat(bd, maxFractionalDigits, rm))
+        case Number(_, maxFractionalDigits, rm, None) =>
+          getNumberConstraint(currentValue, bd => NumberFormatUtil.roundAndFormat(bd, maxFractionalDigits, rm))
         case s: Sterling =>
           getNumberConstraint(currentValue, bd => currencyFormat.format(NumberSetScale.setScale(bd, 2, s.roundingMode)))
         case _ =>
