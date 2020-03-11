@@ -48,7 +48,6 @@ case class FormTemplate(
   emailParameters: Option[NonEmptyList[EmailParameter]],
   webChat: Option[WebChat],
   sections: List[Section],
-  declarationSection: DeclarationSection,
   parentFormSubmissionRefs: List[FormComponentId],
   GFC579Ready: Option[String],
   languages: AvailableLanguages,
@@ -60,9 +59,9 @@ case class FormTemplate(
   def listAllSections: List[BaseSection] =
     destinations match {
       case destinationList: DestinationList =>
-        sections ::: List(declarationSection, destinationList.acknowledgementSection)
+        sections ::: List(destinationList.declarationSection, destinationList.acknowledgementSection)
       case _ =>
-        sections :+ declarationSection
+        sections
     }
 
   def expandFormTemplate(data: VariadicFormData): ExpandedFormTemplate =

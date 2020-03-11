@@ -320,16 +320,14 @@ class StructuredFormDataBuilderSpec extends Spec {
       createFormTemplate(
         createNonRepeatingSection(
           createNonGroupField("field")
-        ),
-        Some(DeclarationSection(null, None, None, List(createNonGroupField("decField"))))
+        )
       ),
       createForm(
         "field"    -> "fieldValue",
         "decField" -> "decFieldValue"
       ),
       objectStructure(
-        field("field", textNode("fieldValue")),
-        field("decField", textNode("decFieldValue"))
+        field("field", textNode("fieldValue"))
       ).asRight
     )
   }
@@ -422,7 +420,7 @@ class StructuredFormDataBuilderSpec extends Spec {
       None
     )
 
-  def createFormTemplate(section: Section, declarationSection: Option[DeclarationSection] = None): FormTemplate =
+  def createFormTemplate(section: Section): FormTemplate =
     FormTemplate(
       FormTemplateId(""),
       null,
@@ -435,7 +433,6 @@ class StructuredFormDataBuilderSpec extends Spec {
       null,
       null,
       List(section),
-      declarationSection.getOrElse(DeclarationSection(toSmartString("Decl"), None, None, Nil)),
       Nil,
       null,
       AvailableLanguages.default,

@@ -439,6 +439,7 @@ class SectionRenderingServiceSpec extends Spec {
         Some(accessCode),
         form,
         formTemplate,
+        decSection,
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
@@ -452,7 +453,7 @@ class SectionRenderingServiceSpec extends Spec {
     val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
 
     hiddenFieldNames should be(List("csrfToken", "save"))
-    visibleFields should be(List())
+    visibleFields should be(List("fieldInDeclarationSections"))
     buttons should be(List(messages("button.acceptAndSubmit")))
   }
 
@@ -462,6 +463,7 @@ class SectionRenderingServiceSpec extends Spec {
         Some(accessCode),
         form,
         formTemplate.copy(formCategory = HMRCClaimForm),
+        decSection,
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
@@ -475,7 +477,7 @@ class SectionRenderingServiceSpec extends Spec {
     val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
 
     hiddenFieldNames should be(List("csrfToken", "save"))
-    visibleFields should be(List())
+    visibleFields should be(List("fieldInDeclarationSections"))
     buttons should be(List(messages("button.acceptAndSubmitForm")))
   }
 
@@ -485,6 +487,7 @@ class SectionRenderingServiceSpec extends Spec {
         Some(accessCode),
         form,
         formTemplate.copy(formCategory = HMRCReturnForm),
+        decSection,
         retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
@@ -498,7 +501,7 @@ class SectionRenderingServiceSpec extends Spec {
     val buttons = toList(doc.getElementsByTag("BUTTON")).map(_.childNode(0).outerHtml())
 
     hiddenFieldNames should be(List("csrfToken", "save"))
-    visibleFields should be(List())
+    visibleFields should be(List("fieldInDeclarationSections"))
     buttons should be(List(messages("button.acceptAndSubmitForm")))
   }
 

@@ -26,8 +26,7 @@
   prepop: Set[String],
   validationResult: Option[FormFieldValidationResult],
   optionHelpText: NonEmptyList[Html],
-  index: Int,
-  sectionTitle: SmartString
+  index: Int
 )(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
 
 @hasErrors = @{

@@ -25,7 +25,9 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.Prin
 trait DestinationsGen {
 
   def destinationListGen: Gen[Destinations.DestinationList] =
-    PrimitiveGen.oneOrMoreGen(DestinationGen.destinationGen).map(Destinations.DestinationList(_, ackSection))
+    PrimitiveGen
+      .oneOrMoreGen(DestinationGen.destinationGen)
+      .map(Destinations.DestinationList(_, ackSection, decSection))
 
   def printSectionGen: Gen[Destinations.PrintSection] =
     PrimitiveGen

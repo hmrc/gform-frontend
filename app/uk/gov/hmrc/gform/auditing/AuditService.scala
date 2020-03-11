@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetriev
 import uk.gov.hmrc.gform.gform.CustomerId
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormField }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BaseSection, FormComponent, FormTemplate, Group, UkSortCode }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.audit.model.{ DataEvent, ExtendedDataEvent }
@@ -92,7 +93,17 @@ trait AuditService {
     formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     customerId: CustomerId)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: Request[_]): ExtendedDataEvent =
-    eventFor(form, formToMap(form, formTemplate.sections :+ formTemplate.declarationSection), retrievals, customerId)
+    formTemplate.destinations match {
+      case destinationList: DestinationList =>
+        eventFor(
+          form,
+          formToMap(form, formTemplate.sections :+ destinationList.declarationSection),
+          retrievals,
+          customerId)
+
+      case _ =>
+        eventFor(form, formToMap(form, formTemplate.sections), retrievals, customerId)
+    }
 
   private def eventFor(
     form: Form,

@@ -33,6 +33,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, PrintSection }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
@@ -80,7 +81,7 @@ class SummaryController(
 
           val isFormValidF: Future[Boolean] = formFieldValidationResultsF.map(x => ValidationUtil.isFormValid(x._2))
 
-          lazy val redirectToDeclaration = gformConnector
+          lazy val redirectToDeclarationOrPrint = gformConnector
             .updateUserData(
               FormIdData(cache.retrievals, formTemplateId, maybeAccessCode),
               UserData(
@@ -91,16 +92,25 @@ class SummaryController(
               )
             )
             .map { _ =>
-              Redirect(
-                routes.DeclarationController
-                  .showDeclaration(maybeAccessCode, formTemplateId))
+              cache.formTemplate.destinations match {
+                case _: DestinationList =>
+                  Redirect(
+                    routes.DeclarationController
+                      .showDeclaration(maybeAccessCode, formTemplateId))
+
+                case _: PrintSection =>
+                  Redirect(
+                    routes.PrintSectionController
+                      .showPrintSection(formTemplateId, maybeAccessCode))
+              }
+
             }
 
           lazy val redirectToSummary =
             Redirect(routes.SummaryController.summaryById(formTemplateId, maybeAccessCode))
-          lazy val handleDeclaration = for {
+          lazy val handleSummaryContinue = for {
             result <- isFormValidF.ifM(
-                       redirectToDeclaration,
+                       redirectToDeclarationOrPrint,
                        redirectToSummary.pure[Future]
                      )
           } yield result
@@ -123,9 +133,9 @@ class SummaryController(
             }
 
           dataRaw.one(FormComponentId("save")) match {
-            case Some("Exit")        => handleExit
-            case Some("Declaration") => handleDeclaration
-            case _                   => BadRequest("Cannot determine action").pure[Future]
+            case Some("Exit")            => handleExit
+            case Some("SummaryContinue") => handleSummaryContinue
+            case _                       => BadRequest("Cannot determine action").pure[Future]
           }
         }
     }

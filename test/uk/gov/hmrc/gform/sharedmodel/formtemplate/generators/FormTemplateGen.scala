@@ -73,8 +73,6 @@ trait FormTemplateGen {
       emailParameters          <- emailParameterListGen
       webChat                  <- Gen.option(webChatGen)
       sections                 <- PrimitiveGen.oneOrMoreGen(SectionGen.sectionGen)
-      acknowledgementSection   <- SectionGen.acknowledgementSectionGen
-      declarationSection       <- SectionGen.declarationSectionGen
       parentFormSubmissionRefs <- PrimitiveGen.zeroOrMoreGen(FormComponentGen.formComponentIdGen)
       gFC579Ready              <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
       save4LaterInfoText       <- Gen.option(Save4LaterInfoTextGen.save4LaterInfoTextGen)
@@ -91,7 +89,6 @@ trait FormTemplateGen {
         emailParameters,
         webChat,
         sections.toList,
-        declarationSection,
         parentFormSubmissionRefs,
         gFC579Ready,
         AvailableLanguages.default,
