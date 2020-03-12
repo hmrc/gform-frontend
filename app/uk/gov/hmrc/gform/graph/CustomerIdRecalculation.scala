@@ -48,6 +48,9 @@ class CustomerIdRecalculation[F[_]: Monad](
   private def customerIdExpressions(destinations: Destinations) = destinations match {
     case ds: Destinations.DestinationList =>
       ds.destinations.collect { case d: DestinationWithCustomerId => d.customerId }
+
+    case _ =>
+      Nil
   }
 
   private def recalculateCustomerId(

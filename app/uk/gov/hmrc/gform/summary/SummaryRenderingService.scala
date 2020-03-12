@@ -39,6 +39,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResu
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
@@ -102,10 +103,16 @@ class SummaryRenderingService(
 
     val extraData = cya_section(messages("submission.details"), HtmlFormat.fill(rows)).toString()
 
-    val declaration: List[(FormComponent, Seq[String])] = for {
-      formTemplateDecField <- flattenGroups(cache.formTemplate.declarationSection.fields)
-      formData             <- cache.variadicFormData.get(formTemplateDecField.id)
-    } yield (formTemplateDecField, formData.toSeq)
+    val declaration: List[(FormComponent, Seq[String])] = cache.formTemplate.destinations match {
+      case destinationList: DestinationList =>
+        for {
+          formTemplateDecField <- flattenGroups(destinationList.declarationSection.fields)
+          formData             <- cache.variadicFormData.get(formTemplateDecField.id)
+        } yield (formTemplateDecField, formData.toSeq)
+
+      case _ =>
+        Nil
+    }
 
     val declarationExtraData = cya_section(
       messages("submission.declaration.details"),

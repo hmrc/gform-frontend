@@ -127,7 +127,8 @@ object FormTemplateBuilder {
           true,
           true
         )),
-      ackSection
+      ackSection,
+      DeclarationSection(toSmartString("Declaration"), None, None, Nil)
     ),
     HmrcAgentModule(AllowAnyAgentAffinityUser),
     "randd_confirmation_submission",
@@ -135,7 +136,6 @@ object FormTemplateBuilder {
       .of(EmailParameter("fullNameVariable", FormCtx("fullName")), EmailParameter("emailVariable", FormCtx("email")))),
     None,
     sections,
-    DeclarationSection(toSmartString("Declaration"), None, None, Nil),
     Nil,
     Some("false"),
     AvailableLanguages.default,

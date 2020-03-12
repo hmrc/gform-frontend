@@ -165,7 +165,12 @@ object VariadicFormData {
       case _ => Set.empty
     }
 
-    acknowledgementSectionFields ++ listVariadicFormComponentIds(template.declarationSection.fields) ++
+    val declarationSectionFields = template.destinations match {
+      case destinationList: DestinationList => listVariadicFormComponentIds(destinationList.declarationSection.fields)
+      case _                                => Set.empty
+    }
+
+    acknowledgementSectionFields ++ declarationSectionFields ++
       template.sections.foldMap {
         case s: NonRepeatingPage => listVariadicFormComponentIds(s.page)
         case s: RepeatingPage    => listVariadicFormComponentIds(s.page)

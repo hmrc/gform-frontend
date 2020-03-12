@@ -60,11 +60,11 @@ class StructuredFormDataBuilder[F[_]](form: Form, template: FormTemplate, lookup
         (
           buildSections,
           buildBaseSection(destinationList.acknowledgementSection),
-          buildBaseSection(template.declarationSection))
+          buildBaseSection(destinationList.declarationSection))
           .mapN(_ ++ _ ++ _)
+
       case _ =>
-        (buildSections, buildBaseSection(template.declarationSection))
-          .mapN(_ ++ _)
+        buildSections.map(l => l)
     }
 
   private def buildSections()(implicit l: LangADT): F[List[Field]] = {

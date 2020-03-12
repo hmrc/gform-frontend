@@ -36,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ BadRequestException, HeaderCarrier }
 import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
@@ -62,12 +62,22 @@ class DeclarationController(
   def showDeclaration(maybeAccessCode: Option[AccessCode], formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewDeclaration) {
       implicit request => implicit l => cache => implicit sse =>
-        Future.successful(Ok(renderDeclarationSection(cache, maybeAccessCode)))
+        cache.formTemplate.destinations match {
+          case destinationList: DestinationList =>
+            Future.successful(Ok(renderDeclarationSection(cache, maybeAccessCode, destinationList.declarationSection)))
+
+          case _ =>
+            Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+        }
     }
 
   private def renderDeclarationSection(
     cache: AuthCacheWithForm,
-    maybeAccessCode: Option[AccessCode])(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
+    maybeAccessCode: Option[AccessCode],
+    declarationSectionValue: DeclarationSection)(
+    implicit request: Request[_],
+    l: LangADT,
+    sse: SmartStringEvaluator) = {
     import i18nSupport._
 
     renderer
@@ -75,6 +85,7 @@ class DeclarationController(
         maybeAccessCode,
         cache.form,
         cache.formTemplate,
+        declarationSectionValue,
         cache.retrievals,
         ValidationResult.empty.valid,
         FormDataRecalculated.empty,
@@ -87,10 +98,21 @@ class DeclarationController(
         val envelopeId = cacheOrig.form.envelopeId
         fileUploadService.getEnvelope(envelopeId).flatMap { envelope =>
           processResponseDataFromBody(request, cacheOrig.formTemplate) { dataRaw =>
-            dataRaw.one(FormComponentId("save")) match {
-              case Some("Continue") =>
-                continueToSubmitDeclaration(cacheOrig, dataRaw, maybeAccessCode, envelopeId, envelope)
-              case _ => Future.successful(BadRequest("Cannot determine action"))
+            (dataRaw.one(FormComponentId("save")), cacheOrig.formTemplate.destinations) match {
+              case (Some("Continue"), destinationList: DestinationList) =>
+                continueToSubmitDeclaration(
+                  cacheOrig,
+                  dataRaw,
+                  maybeAccessCode,
+                  envelopeId,
+                  envelope,
+                  destinationList.declarationSection)
+
+              case (Some("Continue"), _) =>
+                Future.failed(new BadRequestException(s"Declaration Section is not defined for $formTemplateId"))
+
+              case _ =>
+                Future.successful(BadRequest("Cannot determine action"))
             }
           }
         }
@@ -101,7 +123,8 @@ class DeclarationController(
     dataRaw: VariadicFormData,
     maybeAccessCode: Option[AccessCode],
     envelopeId: EnvelopeId,
-    envelope: Envelope)(
+    envelope: Envelope,
+    declarationSectionValue: DeclarationSection)(
     implicit
     request: Request[_],
     l: LangADT,
@@ -121,7 +144,8 @@ class DeclarationController(
                    maybeAccessCode,
                    cacheWithHiddenSectionDataRemoved,
                    declarationData,
-                   attachments)
+                   attachments,
+                   declarationSectionValue)
     } yield response
   }
 
@@ -162,21 +186,25 @@ class DeclarationController(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    attachments: Attachments
+    attachments: Attachments,
+    declarationSectionValue: DeclarationSection
   )(implicit request: Request[_], l: LangADT, lise: SmartStringEvaluator) = valType match {
-    case Valid(())                     => processValid(cache, data, maybeAccessCode, attachments)
-    case validationResult @ Invalid(_) => processInvalid(maybeAccessCode, cache, data, validationResult)
+    case Valid(()) => processValid(cache, data, maybeAccessCode, attachments)
+    case validationResult @ Invalid(_) =>
+      processInvalid(maybeAccessCode, cache, data, validationResult, declarationSectionValue)
   }
 
   private def processInvalid(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     data: FormDataRecalculated,
-    validationResult: Invalid[GformError])(
+    validationResult: Invalid[GformError],
+    declarationSectionValue: DeclarationSection)(
     implicit request: Request[_],
     l: LangADT,
     sse: SmartStringEvaluator): Future[Result] =
-    Future.successful(Ok(createHtmlForInvalidSubmission(maybeAccessCode, cache, data, validationResult)))
+    Future.successful(
+      Ok(createHtmlForInvalidSubmission(maybeAccessCode, cache, declarationSectionValue, data, validationResult)))
 
   private def processValid(
     cache: AuthCacheWithForm,
@@ -222,15 +250,22 @@ class DeclarationController(
   }
 
   private def auditSubmissionEvent(cache: AuthCacheWithForm, customerId: CustomerId)(implicit request: Request[_]) =
-    auditService.sendSubmissionEvent(
-      cache.form,
-      cache.formTemplate.sections :+ cache.formTemplate.declarationSection,
-      cache.retrievals,
-      customerId)
+    cache.formTemplate.destinations match {
+      case destinationList: DestinationList =>
+        auditService.sendSubmissionEvent(
+          cache.form,
+          cache.formTemplate.sections :+ destinationList.declarationSection,
+          cache.retrievals,
+          customerId)
+
+      case _ =>
+        auditService.sendSubmissionEvent(cache.form, cache.formTemplate.sections, cache.retrievals, customerId)
+    }
 
   private def createHtmlForInvalidSubmission(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
+    declarationSectionValue: DeclarationSection,
     data: FormDataRecalculated,
     validationResult: Invalid[GformError])(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
     import i18nSupport._
@@ -239,15 +274,22 @@ class DeclarationController(
       maybeAccessCode,
       cache.form,
       cache.formTemplate,
+      declarationSectionValue,
       cache.retrievals,
       validationResult,
       data,
-      getErrorMap(validationResult, data, cache.formTemplate))
+      getErrorMap(validationResult, data, cache.formTemplate)
+    )
   }
 
   private def updateFormWithDeclaration(form: Form, formTemplate: FormTemplate, data: FormDataRecalculated) = {
     val fieldNames = data.data.keySet.map(_.value)
-    val allDeclarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
+
+    val allDeclarationFields = formTemplate.destinations match {
+      case destinationList: DestinationList => Fields.flattenGroups(destinationList.declarationSection.fields)
+      case _                                => Nil
+    }
+
     val submissibleFormFields = allDeclarationFields.flatMap { fieldValue =>
       fieldNames
         .filter(_.startsWith(fieldValue.id.value))
@@ -264,7 +306,12 @@ class DeclarationController(
     validationResult: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
     formTemplate: FormTemplate): List[(FormComponent, FormFieldValidationResult)] = {
-    val declarationFields = Fields.flattenGroups(formTemplate.declarationSection.fields)
+
+    val declarationFields = formTemplate.destinations match {
+      case destinationList: DestinationList => Fields.flattenGroups(destinationList.declarationSection.fields)
+      case _                                => Nil
+    }
+
     validationService.evaluateValidation(validationResult, declarationFields, data, Envelope.empty)
   }
 }

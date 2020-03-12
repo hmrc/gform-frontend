@@ -37,8 +37,13 @@ object VisibleFieldCalculator {
         case _                                => Nil
       }
 
+      val declarationSectionFields = template.destinations match {
+        case destinationList: DestinationList => destinationList.declarationSection.fields
+        case _                                => Nil
+      }
+
       visibleSections.flatMap(_.expandSectionRc(formDataRecalculated.data).allFCs) :::
-        template.declarationSection.fields :::
+        declarationSectionFields :::
         acknowledgementSectionFields
     }
 

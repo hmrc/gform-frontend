@@ -38,6 +38,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Validated => _, _ }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.notifier.NotifierEmailAddress
 import uk.gov.hmrc.gform.eval.smartstring._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, LangADT, NotFound, ServiceResponse }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.http.HeaderCarrier
@@ -116,7 +117,10 @@ class ValidationService(
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator): Future[ValidatedType[Unit]] = {
-    val fieldValues: List[FormComponent] = Fields.flattenGroups(cache.formTemplate.declarationSection.fields)
+    val fieldValues: List[FormComponent] = cache.formTemplate.destinations match {
+      case destinationList: DestinationList => Fields.flattenGroups(destinationList.declarationSection.fields)
+      case _                                => Nil
+    }
     fieldValues
       .traverse(
         fv =>
