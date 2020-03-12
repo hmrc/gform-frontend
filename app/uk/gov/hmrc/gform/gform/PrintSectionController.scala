@@ -70,13 +70,15 @@ class PrintSectionController(
       implicit request => implicit l => cache => implicit sse =>
         cache.formTemplate.destinations match {
           case _: PrintSection =>
-            pdfService.generateSummaryPDF(formTemplateId, maybeAccessCode, cache, SummaryPagePurpose.ForUser) map {
-              pdfStream =>
-                Result(
-                  header = ResponseHeader(200, Map.empty),
-                  body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
-                )
-            }
+            for {
+              htmlForPDF <- summaryRenderingService
+                             .createHtmlForPrintPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser)
+              pdfStream <- pdfService.generatePDF(htmlForPDF)
+            } yield
+              Result(
+                header = ResponseHeader(200, Map.empty),
+                body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+              )
 
           case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
         }
