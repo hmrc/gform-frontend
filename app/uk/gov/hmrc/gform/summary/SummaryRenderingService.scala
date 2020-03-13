@@ -311,7 +311,7 @@ object SummaryRenderingService {
 
               }
 
-              repeating_group(htmlList)
+              flatten(htmlList)
             case groupField: Group
                 if presentationHint.contains(SummariseGroupAsGrid) => // TODO unify this case with previous one after new group_grid template is in place
               val fcs: List[FormComponent] =
@@ -377,22 +377,16 @@ object SummaryRenderingService {
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
                     .map { _ =>
-                      val revealingFieldsWithoutInfos = element.revealingFields.filter {
-                        case IsInformationMessage(_) => false
-                        case _                       => true
+                      val selections: List[Html] = element.revealingFields.map {
+                        valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
                       }
-                      if (revealingFieldsWithoutInfos.isEmpty)
-                        Seq(revealingChoiceElementNameRow(element.choice.value, changeButton))
-                      else
-                        element.revealingFields.map {
-                          valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
-                        }
+
+                      revealingChoice(element.choice, fieldValue, selections, changeButton)
                     }
               }
               .collect { case Some(html) => html }
-              .flatten
 
-            revealingChoice(fieldValue, selections, changeButton)
+            flatten(selections)
 
           case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton, summaryPagePurpose)
           case InformationMessage(_, _) => Html("")
