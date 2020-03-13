@@ -86,6 +86,23 @@ class SummaryRenderingService(
         ))
   }
 
+  def createHtmlForPrintPdf(
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    summaryPagePurpose: SummaryPagePurpose)(
+    implicit request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    ec: ExecutionContext,
+    lise: SmartStringEvaluator): Future[PdfHtml] = {
+    import i18nSupport._
+    for {
+      summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, summaryPagePurpose)
+    } yield {
+      PdfHtml(addDataToPrintPdfHTML(HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true), cache))
+    }
+  }
+
   private def addExtraDataToHTML(html: String, submissionDetails: Option[SubmissionDetails], cache: AuthCacheWithForm)(
     implicit hc: HeaderCarrier,
     messages: Messages,
@@ -128,6 +145,17 @@ class SummaryRenderingService(
     doc.select("article[class*=content__body]").prepend(headerHtml)
     doc.select("article[class*=content__body]").append(extraData)
     doc.select("article[class*=content__body]").append(declarationExtraData)
+    doc.html.replace("£", "&pound;")
+  }
+
+  private def addDataToPrintPdfHTML(html: String, cache: AuthCacheWithForm)(
+    implicit hc: HeaderCarrier,
+    messages: Messages,
+    curLang: LangADT,
+    lise: SmartStringEvaluator) = {
+    val headerHtml = pdf_header(cache.formTemplate).toString()
+    val doc = Jsoup.parse(html)
+    doc.select("article[class*=content__body]").prepend(headerHtml)
     doc.html.replace("£", "&pound;")
   }
 
