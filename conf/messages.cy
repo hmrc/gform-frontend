@@ -228,6 +228,7 @@ assistive.text.sterling=mewn punnoedd sterling, peidiwch â nodi’r arwydd punt
 
 # Summary
 summary.change=Newid
+summary.view=Bwrw golwg
 
 # Acknowledgement
 ack.title=Cyflwynwyd eich {0}
