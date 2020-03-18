@@ -58,7 +58,8 @@ case class FormComponent(
   validators: List[FormComponentValidator] = Nil
 ) {
 
-  def hideOnSummary = presentationHint.fold(false)(x => x.contains(InvisibleInSummary))
+  def hideOnSummary: Boolean =
+    presentationHint.fold(false)(x => x.contains(InvisibleInSummary)) || IsInformationMessage.unapply(this).isDefined
 
   private def updateField(i: Int, fc: FormComponent): FormComponent =
     fc.copy(

@@ -422,7 +422,12 @@ object SummaryRenderingService {
                     section.shortName.getOrElse(section.title).value,
                     SectionNumber(index),
                     sectionTitle4Ga))
-            begin +: middle :+ end
+            if (middle.isEmpty) {
+              Nil
+            } else {
+              begin +: middle :+ end
+            }
+
         }
 
     }
