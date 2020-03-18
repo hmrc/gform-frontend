@@ -377,7 +377,7 @@ object SummaryRenderingService {
                   validate(fieldValue)
                     .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
                     .map { _ =>
-                      val selections: List[Html] = element.revealingFields.map {
+                      val selections: List[Html] = element.revealingFields.filterNot(_.hideOnSummary).map {
                         valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
                       }
 
@@ -399,10 +399,6 @@ object SummaryRenderingService {
         }
       }
 
-      def showOnSummary(fieldValue: FormComponent) =
-        fieldValue.presentationHint
-          .fold(false)(x => x.contains(InvisibleInSummary))
-
       val sectionsToRender =
         sections.zipWithIndex.collect {
           case (section, index) if data.isVisible(section) => (section, index)
@@ -417,7 +413,7 @@ object SummaryRenderingService {
 
             val middle =
               section.fields
-                .filterNot(showOnSummary)
+                .filterNot(_.hideOnSummary)
                 .map(
                   valueToHtml(
                     _,

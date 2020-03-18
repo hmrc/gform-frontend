@@ -57,6 +57,9 @@ case class FormComponent(
   presentationHint: Option[List[PresentationHint]] = None,
   validators: List[FormComponentValidator] = Nil
 ) {
+
+  def hideOnSummary = presentationHint.fold(false)(x => x.contains(InvisibleInSummary))
+
   private def updateField(i: Int, fc: FormComponent): FormComponent =
     fc.copy(
       label = LabelHelper.buildRepeatingLabel(fc.label, i),
