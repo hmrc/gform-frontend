@@ -27,8 +27,10 @@
         sectionTitle4Ga: SectionTitle4Ga,
         fieldValue: FormComponent)(implicit messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
-@defining(if(fieldValue.editable) "summary.change" else "summary.view") { key =>
- <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes).url}">
-  @messages(key) <span class="visuallyhidden">@fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)</span>
- </a>
+@if(!fieldValue.onlyShowOnSummary) {
+  @defining(if(fieldValue.editable) "summary.change" else "summary.view") { key =>
+    <a class="print-hidden" href="@{uk.gov.hmrc.gform.gform.routes.FormController.form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes).url}">
+     @messages(key) <span class="visuallyhidden">@fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)</span>
+    </a>
+  }
 }
