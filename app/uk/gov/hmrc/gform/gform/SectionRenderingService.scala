@@ -633,7 +633,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           o.choice,
           isSelected,
           o.revealingFields
-            .filterNot(_.hideOnSummary)
+            .filterNot(_.onlyShowOnSummary)
             .map(htmlFor(_, formTemplateId, index, nestedEi, data, validatedType, obligations = obligations)))
       }
 
