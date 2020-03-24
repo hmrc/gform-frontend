@@ -23,7 +23,7 @@ import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals }
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.graph.{ NonConvertible, RecalculationOp }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllowAnyAgentAffinityUser, Always, AuthConfig, DoCheck, EnrolledIdentifier, EnrolmentAuth, EnrolmentSection, FormCtx, HmrcAgentWithEnrolmentModule, HmrcEnrolmentModule, HmrcSimpleModule, IdentifierRecipe, Never, NoAction, RegimeId, RegimeIdCheck, RequireEnrolment, ServiceId, UserCtx, AffinityGroup => FTAffinityGroup }
 import uk.gov.hmrc.http.logging.SessionId
@@ -76,13 +76,11 @@ class UserCtxEvaluatorProcessorTest extends Spec {
 
   lazy val materialisedRetrievalsAgent =
     AuthenticatedRetrievals(
-      OneTimeLogin,
+      GovernmentGatewayId(""),
       Enrolments(Set(irsaEnrolment)),
-      None,
-      None,
-      userDetails.copy(affinityGroup = AffinityGroup.Agent),
-      None,
-      None)
+      AffinityGroup.Agent,
+      "TestGroupId"
+    )
 
   lazy val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
   lazy val irctEnrolment = Enrolment("IR-CT").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "CT value")))

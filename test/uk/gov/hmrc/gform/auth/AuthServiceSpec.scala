@@ -75,44 +75,19 @@ class AuthServiceSpec extends ExampleData with Spec {
 
   implicit val request: Request[AnyContent] = null
 
-  val legacyCredentials = OneTimeLogin
+  val governmentGatewayId = GovernmentGatewayId("")
 
   val getAffinityGroup: Unit => Future[Option[AffinityGroup]] = const(Future.successful(None))
 
   private def materialisedRetrievalsBuilder(affinityGroup: AffinityGroup, enrolments: Enrolments) =
-    AuthenticatedRetrievals(
-      legacyCredentials,
-      enrolments,
-      None,
-      None,
-      userDetails.copy(affinityGroup = affinityGroup),
-      None,
-      None)
+    AuthenticatedRetrievals(governmentGatewayId, enrolments, affinityGroup, "TestGroupId")
 
   val materialisedRetrievalsOfsted =
     AuthenticatedRetrievals(
-      authProviderId = legacyCredentials,
+      governmentGatewayId = governmentGatewayId,
       enrolments = enrolments,
-      internalId = Some("20e9b243-7471-4081-be1e-fcb5da33fd5a"),
-      externalId = Some("20e9b243-7471-4081-be1e-fcb5da33fd5a"),
-      userDetails = UserDetails(
-        None,
-        None,
-        "20e9b243-7471-4081-be1e-fcb5da33fd5a",
-        None,
-        None,
-        None,
-        Some(""),
-        uk.gov.hmrc.auth.core.AffinityGroup.Individual,
-        None,
-        None,
-        None,
-        None,
-        None,
-        "20e9b243-7471-4081-be1e-fcb5da33fd5a"
-      ),
-      credentialStrength = None,
-      agentCode = None
+      affinityGroup = uk.gov.hmrc.auth.core.AffinityGroup.Individual,
+      groupIdentifier = "20e9b243-7471-4081-be1e-fcb5da33fd5a"
     )
 
   val materialisedRetrievalsAgent =

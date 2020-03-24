@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.auth
 
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.connectors.{ EeittConnector, Verification }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.RegimeId
@@ -25,11 +26,11 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class EeittAuthorisationDelegate(eeittConnector: EeittConnector, baseUrl: String) {
 
-  def authenticate(regimeId: RegimeId, userDetails: UserDetails, requestUri: String)(
+  def authenticate(regimeId: RegimeId, affinityGroup: AffinityGroup, groupIdentifier: String, requestUri: String)(
     implicit hc: HeaderCarrier,
     ex: ExecutionContext): Future[EeittAuth] = {
 
-    val authResultF = eeittConnector.isAllowed(userDetails.groupIdentifier, regimeId, userDetails.affinityGroup)
+    val authResultF = eeittConnector.isAllowed(groupIdentifier, regimeId, affinityGroup)
 
     authResultF.map {
       case Verification(true)  => EeittAuthorisationSuccessful

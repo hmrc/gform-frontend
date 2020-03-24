@@ -126,20 +126,10 @@ class AuthService(
 
   private def awsAlbAuthenticatedRetrieval(affinityGroup: AffinityGroup, identity: String): AuthenticatedRetrievals =
     AuthenticatedRetrievals(
-      OneTimeLogin,
+      GovernmentGatewayId(""),
       Enrolments(Set.empty),
-      Some(identity),
-      Some(identity),
-      UserDetails(
-        None,
-        None,
-        identity,
-        email = Some(""),
-        affinityGroup = affinityGroup,
-        groupIdentifier = identity
-      ),
-      None,
-      None
+      affinityGroup,
+      identity
     )
 
   private def performEnrolment(
@@ -216,7 +206,7 @@ class AuthService(
     continuation: AuthResult => Future[AuthResult])(implicit hc: HeaderCarrier, l: LangADT): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .map {
-        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _, _, _, _), _)
+        case ggSuccessfulAuth @ AuthSuccessful(ar @ AuthenticatedRetrievals(_, enrolments, _, _), _)
             if ar.affinityGroup == AffinityGroup.Agent =>
           ggAgentAuthorise(agentAccess, formTemplate, enrolments) match {
             case HMRCAgentAuthorisationSuccessful                => ggSuccessfulAuth
@@ -235,8 +225,8 @@ class AuthService(
   )(implicit hc: HeaderCarrier): Future[AuthResult] =
     performGGAuth(ggAuthorised)
       .flatMap {
-        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, _, _, _, userDetails, _, _), _) =>
-          eeittDelegate.authenticate(regimeId, userDetails, requestUri).map {
+        case ggSuccessfulAuth @ AuthSuccessful(AuthenticatedRetrievals(_, _, affinityGroup, groupIdentifier), _) =>
+          eeittDelegate.authenticate(regimeId, affinityGroup, groupIdentifier, requestUri).map {
             case EeittAuthorisationSuccessful            => ggSuccessfulAuth
             case EeittAuthorisationFailed(eeittLoginUrl) => AuthRedirectFlashingFormName(eeittLoginUrl)
           }
@@ -257,8 +247,8 @@ class AuthService(
 
   def eeitReferenceNumber(retrievals: MaterialisedRetrievals): String =
     retrievals match {
-      case AuthenticatedRetrievals(_, enrolments, _, _, userDetails, _, _) =>
-        val identifier = userDetails.affinityGroup match {
+      case AuthenticatedRetrievals(_, enrolments, affinityGroup, _) =>
+        val identifier = affinityGroup match {
           case AffinityGroup.Agent => EEITTAuthConfig.agentIdName
           case _                   => EEITTAuthConfig.nonAgentIdName
         }

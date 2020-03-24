@@ -18,10 +18,11 @@ package uk.gov.hmrc.gform.gform
 
 import com.softwaremill.quicklens._
 import play.api.libs.json.Json
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
 import uk.gov.hmrc.auth.core.{ Enrolment, EnrolmentIdentifier, Enrolments }
 import uk.gov.hmrc.gform.Spec
-import uk.gov.hmrc.gform.auth.models.AuthenticatedRetrievals
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.graph.processor.IdentifierExtractor
 import FrontEndSubmissionVariablesBuilder._
 import uk.gov.hmrc.gform.formtemplate.SectionSyntax
@@ -83,12 +84,9 @@ class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
   val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))
 
   val materialisedRetrievalsAgent = AuthenticatedRetrievals(
-    OneTimeLogin,
+    GovernmentGatewayId(""),
     Enrolments(Set(irsaEnrolment)),
-    None,
-    None,
-    userDetails,
-    None,
-    None
+    AffinityGroup.Individual,
+    "TestGroupId"
   )
 }

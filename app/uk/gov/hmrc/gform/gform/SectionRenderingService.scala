@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.Enrolments
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId, MaterialisedRetrievals }
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.Origin
@@ -927,19 +927,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   }
 
   private def emptyRetrievals = AuthenticatedRetrievals(
-    authProviderId = OneTimeLogin,
+    governmentGatewayId = GovernmentGatewayId(""),
     enrolments = Enrolments(Set.empty),
-    internalId = None,
-    externalId = None,
-    userDetails = UserDetails(
-      authProviderId = None,
-      authProviderType = None,
-      name = "",
-      affinityGroup = Individual,
-      groupIdentifier = ""
-    ),
-    credentialStrength = None,
-    agentCode = None
+    affinityGroup = Individual,
+    groupIdentifier = ""
   )
 
   private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean =
