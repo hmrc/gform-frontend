@@ -25,12 +25,12 @@ import uk.gov.hmrc.http.logging.SessionId
 
 sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
-    case AnonymousRetrievals(sessionId)                         => sessionId.value
-    case AuthenticatedRetrievals(_, _, _, _, userDetails, _, _) => userDetails.groupIdentifier
+    case AnonymousRetrievals(sessionId)                    => sessionId.value
+    case AuthenticatedRetrievals(_, _, _, groupIdentifier) => groupIdentifier
   }
 
   def ggCredId = this match {
-    case AuthenticatedRetrievals(GGCredId(credId), _, _, _, _, _, _) => credId
+    case AuthenticatedRetrievals(GovernmentGatewayId(ggId), _, _, _) => ggId
     case _                                                           => ""
   }
 
@@ -46,7 +46,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 
   def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {
     case AnonymousRetrievals(_) => ""
-    case AuthenticatedRetrievals(_, enrolments, _, _, _, _, _) =>
+    case AuthenticatedRetrievals(_, enrolments, _, _) =>
       val maybeEnrolmentIdentifier = taxIdName match {
         case IRSA(name, id)         => valueByNameAndId(name, id, enrolments)
         case IRCT(name, id)         => valueByNameAndId(name, id, enrolments)
@@ -68,18 +68,16 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
     enrolments.getEnrolment(name).flatMap(_.getIdentifier(id))
 }
 
+case class GovernmentGatewayId(ggId: String) extends AnyVal
+
 case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
 
 case class AuthenticatedRetrievals(
-  authProviderId: LegacyCredentials,
+  governmentGatewayId: GovernmentGatewayId,
   enrolments: Enrolments,
-  internalId: Option[String],
-  externalId: Option[String],
-  userDetails: UserDetails,
-  credentialStrength: Option[String],
-  agentCode: Option[String]
+  affinityGroup: AffinityGroup,
+  groupIdentifier: String
 ) extends MaterialisedRetrievals {
-  def affinityGroup: AffinityGroup = userDetails.affinityGroup
   val affinityGroupName: String = AffinityGroupUtil.affinityGroupName(affinityGroup)
 }
 

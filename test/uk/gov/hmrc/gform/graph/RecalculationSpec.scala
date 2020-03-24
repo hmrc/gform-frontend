@@ -239,8 +239,7 @@ class RecalculationSpec extends FlatSpec with Matchers with GraphSpec {
       inputData,
       mkFormTemplate(sections),
       ExampleData.authContext.copy(
-        userDetails =
-          ExampleData.authContext.userDetails.copy(affinityGroup = uk.gov.hmrc.auth.core.AffinityGroup.Individual)
+        affinityGroup = uk.gov.hmrc.auth.core.AffinityGroup.Individual
       ),
       ThirdPartyData.empty,
       EnvelopeId("")

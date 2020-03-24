@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.auth
 
 import play.api.{ Configuration, Mode }
 import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.gform.auth.models.UserDetails
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.gform.wshttp.WSHttp
@@ -33,7 +32,4 @@ class AuthConnector(
     extends PlayAuthConnector with ServicesConfig {
   val serviceUrl = baseUrl
   lazy val http = wsHttp
-
-  def getUserDetails(uri: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UserDetails] =
-    http.GET[UserDetails](uri)
 }

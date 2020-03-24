@@ -22,7 +22,7 @@ import cats.data.NonEmptyList
 import uk.gov.hmrc.auth.core.AffinityGroup.Organisation
 import uk.gov.hmrc.auth.core.{ AffinityGroup, Enrolments }
 import uk.gov.hmrc.auth.core.retrieve.OneTimeLogin
-import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, UserDetails }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, GovernmentGatewayId }
 import uk.gov.hmrc.gform.config.{ AuthModule, FrontendAppConfig, JSConfig }
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.graph.RecData
@@ -478,12 +478,8 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
 
   def userId = UserId("James007")
 
-  def materialisedRetrievals = {
-    val legacyCredentials = OneTimeLogin
-    val userDetails =
-      UserDetails(None, None, name = "Bond", affinityGroup = AffinityGroup.Individual, groupIdentifier = userId.value)
-    AuthenticatedRetrievals(legacyCredentials, Enrolments(Set()), None, None, userDetails, None, None)
-  }
+  def materialisedRetrievals =
+    AuthenticatedRetrievals(GovernmentGatewayId(""), Enrolments(Set()), AffinityGroup.Individual, userId.value)
 
   def formId = FormId(materialisedRetrievals, formTemplateId, None)
 
@@ -519,17 +515,11 @@ trait ExampleAuthContext {
 
   def authContext =
     AuthenticatedRetrievals(
-      authProviderId = authProviderId,
+      governmentGatewayId = GovernmentGatewayId(""),
       enrolments = enrolments,
-      internalId = internalId,
-      externalId = externalId,
-      userDetails = userDetails,
-      credentialStrength = credentialStrength,
-      agentCode = agentCode
+      affinityGroup = affinityGroup,
+      groupIdentifier = "TestGroupId"
     )
-
-  def authProviderId =
-    OneTimeLogin
 
   def affinityGroup: AffinityGroup = Organisation
 
@@ -548,14 +538,6 @@ trait ExampleAuthContext {
   def enrolments =
     Enrolments(Set())
 
-  def userDetails =
-    UserDetails(
-      authProviderId = None,
-      authProviderType = None,
-      name = "test details",
-      affinityGroup = affinityGroup,
-      groupIdentifier = "TestGroupId"
-    )
 }
 import play.api.i18n.Lang
 

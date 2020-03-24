@@ -37,7 +37,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.SessionKeys
-import uk.gov.hmrc.auth.core.retrieve.{ Retrievals => _ }
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.InsufficientEnrolments
@@ -348,10 +348,10 @@ class AuthenticatedRequestActions(
     case _ => request
   }
 
-  val defaultRetrievals = Retrievals.authProviderId and Retrievals.allEnrolments and
-    Retrievals.internalId and
-    Retrievals.externalId and Retrievals.userDetailsUri and
-    Retrievals.credentialStrength and Retrievals.agentCode
+  val defaultRetrievals = Retrievals.credentials and
+    Retrievals.allEnrolments and
+    Retrievals.affinityGroup and
+    Retrievals.groupIdentifier
 
   private def ggAuthorised(
     request: Request[AnyContent]
@@ -367,21 +367,37 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
-        case authProviderId ~ enrolments ~ internalId ~ externalId ~ userDetailsUri ~ credentialStrength ~ agentCode =>
-          for {
-            userDetails <- authConnector.getUserDetails(userDetailsUri.get)
-            retrievals = AuthenticatedRetrievals(
-              authProviderId,
-              enrolments,
-              internalId,
-              externalId,
-              userDetails,
-              credentialStrength,
-              agentCode)
-            result <- AuthSuccessful(retrievals, ggRoleFromAffinityGroup(userDetails.affinityGroup)).pure[Future]
-          } yield result
+        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier =>
+          val maybeRetrievals =
+            for {
+              govermentGatewayId <- maybeCredentials.flatMap(toGovernmentGatewayId)
+              affinityGroup      <- maybeAffinityGroup
+              groupIdentifier    <- maybeGroupIdentifier
+            } yield {
+              AuthenticatedRetrievals(
+                govermentGatewayId,
+                enrolments,
+                affinityGroup,
+                groupIdentifier
+              )
+            }
+
+          maybeRetrievals
+            .fold[AuthResult](
+              AuthForbidden(s"""|Missing affinityGroup or groupIdentifier or govermentGateway credentials:
+                                |AffinityGroup: $maybeAffinityGroup
+                                |Credentials: $maybeCredentials
+                                |GroupIdentifier: $maybeGroupIdentifier""".stripMargin))(retrievals =>
+              AuthSuccessful(retrievals, ggRoleFromAffinityGroup(retrievals.affinityGroup)))
+            .pure[Future]
+
       }
       .recover(recoverPF orElse RecoverAuthResult.basicRecover(request, appConfig))
+  }
+
+  private def toGovernmentGatewayId(credentials: Credentials): Option[GovernmentGatewayId] = credentials match {
+    case Credentials(ggId, "GovernmentGateway") => Some(GovernmentGatewayId(ggId))
+    case _                                      => None
   }
 
   private def ggRoleFromAffinityGroup(affinityGroup: AffinityGroup) = affinityGroup match {
