@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestAc
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, FormTemplateId }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.PrintSection
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationPrint
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
@@ -50,8 +50,8 @@ class PrintSectionController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.ViewPrintSection) {
       implicit request => implicit l => cache => implicit sse =>
         cache.formTemplate.destinations match {
-          case printSection: PrintSection =>
-            Future.successful(Ok(renderPrintSection(cache, maybeAccessCode, printSection)))
+          case destinationPrint: DestinationPrint =>
+            Future.successful(Ok(renderPrintSection(cache, maybeAccessCode, destinationPrint)))
           case _ =>
             Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
         }
@@ -60,16 +60,16 @@ class PrintSectionController(
   private def renderPrintSection(
     cache: AuthCacheWithForm,
     maybeAccessCode: Option[AccessCode],
-    printSection: PrintSection)(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
+    destinationPrint: DestinationPrint)(implicit request: Request[_], l: LangADT, sse: SmartStringEvaluator) = {
     import i18nSupport._
-    renderer.renderPrintSection(maybeAccessCode, cache.formTemplate, printSection)
+    renderer.renderPrintSection(maybeAccessCode, cache.formTemplate, destinationPrint)
   }
 
   def downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadPrintSectionPdf) {
       implicit request => implicit l => cache => implicit sse =>
         cache.formTemplate.destinations match {
-          case _: PrintSection =>
+          case _: DestinationPrint =>
             for {
               htmlForPDF <- summaryRenderingService
                              .createHtmlForPrintPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser)
@@ -83,4 +83,24 @@ class PrintSectionController(
           case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
         }
     }
+
+  def downloadNotificationPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode]): Action[AnyContent] =
+    auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadPrintSectionPdf) {
+      implicit request => implicit l => cache => implicit sse =>
+        cache.formTemplate.destinations match {
+          case _: DestinationPrint =>
+            for {
+              htmlForPDF <- summaryRenderingService
+                             .createHtmlForNotificationPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser)
+              pdfStream <- pdfService.generatePDF(htmlForPDF)
+            } yield
+              Result(
+                header = ResponseHeader(200, Map.empty),
+                body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
+              )
+
+          case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
+        }
+    }
+
 }
