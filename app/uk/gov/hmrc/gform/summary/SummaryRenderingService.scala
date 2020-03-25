@@ -837,9 +837,9 @@ object SummaryRenderingService {
 
       val sortedSections = fieldIdsWithIndex
         .map(r => (r._2, r._1))
-        .sortBy(_._1) map { formComponentId =>
-        sectionsToRender.find(_._1.fields.map(_.id) contains formComponentId._2) match {
-          case Some(v) => (formComponentId._2, v._1, v._2)
+        .sortBy(_._1) flatMap { formComponentId =>
+        sectionsToRender.find(_._1.fields.map(_.id) contains formComponentId._2) map { v =>
+          (formComponentId._2, v._1, v._2)
         }
       }
 
