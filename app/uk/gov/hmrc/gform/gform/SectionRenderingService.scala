@@ -298,14 +298,17 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     )
   }
 
-  def renderPrintSection(maybeAccessCode: Option[AccessCode], formTemplate: FormTemplate, printSection: PrintSection)(
+  def renderPrintSection(
+    maybeAccessCode: Option[AccessCode],
+    formTemplate: FormTemplate,
+    destinationPrint: DestinationPrint)(
     implicit hc: HeaderCarrier,
     request: Request[_],
     messages: Messages,
     l: LangADT,
     sse: SmartStringEvaluator): Html = {
-    val parsedTitle = printSection.title
-    val parsedSummaryPdf = markDownParser(printSection.summaryPdf)
+    val parsedTitle = destinationPrint.page.title
+    val parsedSummaryPdf = markDownParser(destinationPrint.page.instructions)
 
     uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
       .print_section(
