@@ -22,15 +22,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
 
 trait SummaryPagePurpose extends Product with Serializable {
   def forUser = this === SummaryPagePurpose.ForUser
-  def fileName(maybeFileName: Option[String], fc: FormComponent): Option[String] =
-    maybeFileName
-      .map { fileName =>
-        this match {
-          case SummaryPagePurpose.ForUser => fileName.replace(fc.id + "_", "")
-          case SummaryPagePurpose.ForDms  => fileName
-        }
-      }
-
 }
 
 object SummaryPagePurpose {

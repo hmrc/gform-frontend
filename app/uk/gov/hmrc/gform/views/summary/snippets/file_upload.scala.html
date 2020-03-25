@@ -14,7 +14,6 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
@@ -24,8 +23,7 @@
 @(
     fieldValue: FormComponent,
     validationResult: Option[FormFieldValidationResult],
-    changeButton: Html,
-    summaryPagePurpose: SummaryPagePurpose
+    changeButton: Html
 )(
     implicit
     l:LangADT,
@@ -44,7 +42,7 @@
     @fieldValue.shortName.map(ls=>ls.value).getOrElse(fieldValue.label.value)
   </dt>
   <dd class="cya-answer">
-    @{if(hasErrors) errors else validationResult.flatMap(result => summaryPagePurpose.fileName(result.getCurrentValue, fieldValue)).getOrElse("")}
+    @{if(hasErrors) errors else validationResult.flatMap(_.getCurrentValue).getOrElse("")}
   </dd>
   <dd class="cya-change">
     @changeButton
