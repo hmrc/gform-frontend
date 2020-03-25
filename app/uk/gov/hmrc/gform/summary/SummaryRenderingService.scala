@@ -224,15 +224,20 @@ object SummaryRenderingService {
     lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
+
+    val envelopeUpd =
+      summaryPagePurpose match {
+        case SummaryPagePurpose.ForUser => envelope.withUserFileNames
+        case SummaryPagePurpose.ForDms  => envelope
+      }
     val sfr =
       summaryForRender(
         validatedType,
         formFields,
         maybeAccessCode,
         formTemplate,
-        envelope,
+        envelopeUpd,
         obligations,
-        summaryPagePurpose,
         reviewerComments
       )
     summary(
@@ -257,7 +262,6 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     envelope: Envelope,
     obligations: Obligations,
-    summaryPagePurpose: SummaryPagePurpose,
     reviewerComments: Option[String] = None
   )(
     implicit
@@ -388,7 +392,7 @@ object SummaryRenderingService {
 
             flatten(selections)
 
-          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton, summaryPagePurpose)
+          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton)
           case InformationMessage(_, _) => Html("")
           case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
 

@@ -26,7 +26,7 @@ import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.formtemplate.SectionSyntax
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
-import uk.gov.hmrc.gform.gform.{ SummaryPagePurpose, routes }
+import uk.gov.hmrc.gform.gform.routes
 import uk.gov.hmrc.gform.graph.RecData
 import uk.gov.hmrc.gform.models.helpers.Extractors._
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
@@ -158,14 +158,7 @@ class SummarySpec extends Spec {
 
   "Summary" should "display the summary sections" in new Test {
     val render = SummaryRenderingService
-      .summaryForRender(
-        f,
-        formDataRecalculated,
-        Some(accessCode),
-        formTemplate,
-        envelope,
-        NotChecked,
-        SummaryPagePurpose.ForUser)
+      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, NotChecked)
     render.size should be(9)
     extractAllTestStringValues(render) should be(List("Your details", "About you", "Business details"))
   }
@@ -175,14 +168,7 @@ class SummarySpec extends Spec {
 
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
 
     val testStringValues = extractAllHrefs(render)
 
@@ -292,14 +278,7 @@ class SummarySpec extends Spec {
 
     override def fieldValues = formTemplate.sections.flatMap(_.fields)
     val render = SummaryRenderingService
-      .summaryForRender(
-        f,
-        formDataRecalculated,
-        Some(accessCode),
-        formTemplate,
-        envelope,
-        NotChecked,
-        SummaryPagePurpose.ForUser)
+      .summaryForRender(f, formDataRecalculated, Some(accessCode), formTemplate, envelope, NotChecked)
     val testStringValues = extractAllTestStringValues(render)
     testStringValues should be(
       List("Saxe-Coburg-Gotha", "Street", "Second Street", "Third Street", "Town", "PO32 6JX", "UK"))
@@ -309,14 +288,7 @@ class SummarySpec extends Spec {
   it should "display the title when shortName is not present in the section" in new Test {
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toLowerCase should include("your details")
@@ -328,14 +300,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
 
     val doc = Jsoup.parse(render.head.toString())
     doc.getElementsByTag("H2").text().toUpperCase should include(shortName)
@@ -362,14 +327,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(shortName) shouldBe true
   }
@@ -394,14 +352,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").text().equals(label) shouldBe true
   }
@@ -427,14 +378,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -460,14 +404,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -493,14 +430,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -527,14 +457,7 @@ class SummarySpec extends Spec {
     //    override val f: FieldValue => Option[FormFieldValidationResult] = okValues(Map.empty, fieldValues, envelope)
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -560,14 +483,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(shortName) shouldBe true
   }
@@ -593,14 +509,7 @@ class SummarySpec extends Spec {
     override val formTemplate = super.formTemplate.copy(sections = List(section))
     val render =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     val doc = Jsoup.parse(render.mkString)
     doc.getElementsByTag("DT").first().text().equals(label) shouldBe true
   }
@@ -619,8 +528,7 @@ class SummarySpec extends Spec {
       Some(accessCode),
       formTemplate,
       envelope,
-      NotChecked,
-      SummaryPagePurpose.ForUser
+      NotChecked
     )
     renderWithDataMatching.size shouldBe 3
     val renderWithDataMismatch = SummaryRenderingService.summaryForRender(
@@ -631,8 +539,7 @@ class SummarySpec extends Spec {
       Some(accessCode),
       formTemplate,
       envelope,
-      NotChecked,
-      SummaryPagePurpose.ForUser
+      NotChecked
     )
     renderWithDataMismatch.size shouldBe 0
   }
@@ -661,14 +568,7 @@ class SummarySpec extends Spec {
     override def formTemplate = super.formTemplate.copy(sections = List(section0))
     val render0 =
       SummaryRenderingService
-        .summaryForRender(
-          f,
-          FormDataRecalculated.empty,
-          Some(accessCode),
-          formTemplate,
-          envelope,
-          NotChecked,
-          SummaryPagePurpose.ForUser)
+        .summaryForRender(f, FormDataRecalculated.empty, Some(accessCode), formTemplate, envelope, NotChecked)
     extractAllTestStringValues(render0) should be(List("group-label"))
     val formTemplateWGroupWithShortname = formTemplate.copy(
       sections = List(
@@ -694,8 +594,7 @@ class SummarySpec extends Spec {
         Some(accessCode),
         formTemplateWGroupWithShortname,
         envelope,
-        NotChecked,
-        SummaryPagePurpose.ForUser)
+        NotChecked)
     extractAllTestStringValues(render1) should be(List("group-shortname"))
   }
 
@@ -714,8 +613,7 @@ class SummarySpec extends Spec {
       Some(accessCode),
       formTemplate,
       envelope,
-      NotChecked,
-      SummaryPagePurpose.ForUser
+      NotChecked
     )
 
     {

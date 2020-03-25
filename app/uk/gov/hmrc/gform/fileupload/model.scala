@@ -33,6 +33,10 @@ case class Envelope(
 ) {
   def contains(formComponentId: FormComponentId): Boolean =
     files.exists(file => file.fileId.toFieldId === formComponentId)
+
+  def withUserFileNames: Envelope = Envelope(
+    files.map(file => file.copy(fileName = file.fileName.replace(file.fileId.value + "_", "")))
+  )
 }
 
 object Envelope {
