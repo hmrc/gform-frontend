@@ -21,6 +21,7 @@ import uk.gov.hmrc.gform.commons.{ NumberFormatUtil, NumberSetScale }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.commons.NumberFormatUtil._
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 object TextFormatter {
 
@@ -65,9 +66,9 @@ object TextFormatter {
       .getOrElse("")
   }
 
-  def appendUnit(constraint: TextConstraint): String = constraint match {
-    case PositiveNumber(_, _, _, Some(unit)) => unit
-    case Number(_, _, _, Some(unit))         => unit
+  def appendUnit(constraint: TextConstraint)(implicit l: LangADT): String = constraint match {
+    case PositiveNumber(_, _, _, Some(unit)) => unit.value
+    case Number(_, _, _, Some(unit))         => unit.value
     case _                                   => ""
   }
 
