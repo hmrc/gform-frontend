@@ -41,6 +41,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.Pdf
+import uk.gov.hmrc.gform.sharedmodel.graph.SimpleGN
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
@@ -107,7 +109,8 @@ class SummaryRenderingService(
   def createHtmlForNotificationPdf(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
-    summaryPagePurpose: SummaryPagePurpose)(
+    summaryPagePurpose: SummaryPagePurpose,
+    pdf: Pdf)(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
@@ -115,44 +118,9 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator): Future[PdfHtml] = {
     import i18nSupport._
 
-    val pdfFieldIds: Option[List[FormComponentId]] = cache.formTemplate.destinations match {
-      case destinationPrint: DestinationPrint => {
-        destinationPrint.pdf.flatMap { v =>
-          if (v.fieldIds.nonEmpty)
-            Some(v.fieldIds)
-          else
-            None
-        }
-      }
-
-      case _ => None
-    }
-
-    val pdfHeader: Option[SmartString] = cache.formTemplate.destinations match {
-      case destinationPrint: DestinationPrint => {
-        destinationPrint.pdf.flatMap { v =>
-          if (v.header.value.nonEmpty)
-            Some(v.header)
-          else
-            None
-        }
-      }
-
-      case _ => None
-    }
-
-    val pdfFooter: Option[SmartString] = cache.formTemplate.destinations match {
-      case destinationPrint: DestinationPrint => {
-        destinationPrint.pdf.flatMap { v =>
-          if (v.footer.value.nonEmpty)
-            Some(v.footer)
-          else
-            None
-        }
-      }
-
-      case _ => None
-    }
+    val pdfFieldIds = pdf.fieldIds
+    val pdfHeader = pdf.header
+    val pdfFooter = pdf.footer
 
     for {
       pdfHtml <- getNotificationPdfHTML(
@@ -231,59 +199,28 @@ class SummaryRenderingService(
   private def addDataToNotificationPdfHTML(
     html: String,
     cache: AuthCacheWithForm,
-    pdfFieldIds: Option[List[FormComponentId]],
-    pdfHeader: Option[SmartString],
-    pdfFooter: Option[SmartString])(
+    pdfFieldIds: List[FormComponentId],
+    pdfHeader: SmartString,
+    pdfFooter: SmartString)(
     implicit hc: HeaderCarrier,
     messages: Messages,
     curLang: LangADT,
     lise: SmartStringEvaluator) = {
 
-    val headerHtml = pdfHeader.map { h =>
-      notification_pdf_header(cache.formTemplate, markDownParser(h))
-        .toString()
-    }
+    val doc = Jsoup.parse(html)
 
-    val footerHtml = pdfFooter.map { f =>
-      notification_pdf_footer(cache.formTemplate, markDownParser(f))
-        .toString()
-    }
+    val headerHtml =
+      if (pdfHeader.value.nonEmpty)
+        notification_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
+      else
+        Html("").toString
 
-    (cache.formTemplate.destinations, pdfFieldIds, headerHtml, footerHtml) match {
-      case (_: DestinationPrint, Some(_), Some(h), Some(f)) =>
-        val doc = Jsoup.parse(html)
-        doc.select("article[class*=content__body]").prepend(h)
-        doc.select("article[class*=content__body]").append(f)
-        doc.html.replace("£", "&pound;")
+    val footerHtml =
+      notification_pdf_footer(cache.formTemplate, markDownParser(pdfFooter)).toString
 
-      case (_: DestinationPrint, Some(_), Some(h), None) =>
-        val doc = Jsoup.parse(html)
-        doc.select("article[class*=content__body]").prepend(h)
-        doc.html.replace("£", "&pound;")
-
-      case (_: DestinationPrint, Some(_), None, Some(f)) =>
-        val doc = Jsoup.parse(html)
-        doc.select("article[class*=content__body]").append(f)
-        doc.html.replace("£", "&pound;")
-
-      case (_: DestinationPrint, None, Some(h), Some(f)) =>
-        val doc = Jsoup.parse(h ++ f)
-        doc.html.replace("£", "&pound;")
-
-      case (_: DestinationPrint, Some(_), None, None) =>
-        val doc = Jsoup.parse(html)
-        doc.html.replace("£", "&pound;")
-
-      case (_: DestinationPrint, None, Some(h), None) =>
-        val doc = Jsoup.parse(h)
-        doc.html.replace("£", "&pound;")
-
-      case (_: DestinationPrint, None, None, Some(f)) =>
-        val doc = Jsoup.parse(f)
-        doc.html.replace("£", "&pound;")
-
-      case _ => Jsoup.parse("").html
-    }
+    doc.select("article[class*=content__body]").prepend(headerHtml)
+    doc.select("article[class*=content__body]").append(footerHtml)
+    doc.html.replace("£", "&pound;")
   }
 
   def getSummaryHTML(
@@ -334,7 +271,7 @@ class SummaryRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    pdfFieldIds: Option[List[FormComponentId]]
+    pdfFieldIds: List[FormComponentId]
   )(
     implicit
     request: Request[_],
@@ -348,41 +285,30 @@ class SummaryRenderingService(
 
     import i18nSupport._
 
-    def pdfSummary(data: VariadicFormData, fieldIdsWithIndex: List[(FormComponentId, Int)]) =
-      for {
-        data <- recalculation
-                 .recalculateFormData(
-                   data,
-                   cache.formTemplate,
-                   cache.retrievals,
-                   cache.form.thirdPartyData,
-                   cache.form.envelopeId)
-        envelope <- envelopeF
-        (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals)
-      } yield
-        SummaryRenderingService.renderNotificationPdfSummary(
-          cache.formTemplate,
-          v,
-          data,
-          maybeAccessCode,
-          envelope,
-          cache.retrievals,
-          frontendAppConfig,
-          cache.form.thirdPartyData.obligations,
-          cache.form.thirdPartyData.reviewComments,
-          summaryPagePurpose,
-          fieldIdsWithIndex
-        )
-
-    pdfFieldIds.map(v => v.flatMap(l => dataRaw.data.filter(_._1 == l)).toMap) match {
-      case Some(v) => {
-        val fieldIdsWithIndex = pdfFieldIds.get.zipWithIndex
-
-        pdfSummary(VariadicFormData(v), fieldIdsWithIndex)
-      }
-
-      case _ => Future.successful(Html(""))
-    }
+    for {
+      data <- recalculation
+               .recalculateFormData(
+                 dataRaw,
+                 cache.formTemplate,
+                 cache.retrievals,
+                 cache.form.thirdPartyData,
+                 cache.form.envelopeId)
+      envelope <- envelopeF
+      (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals)
+    } yield
+      SummaryRenderingService.renderNotificationPdfSummary(
+        cache.formTemplate,
+        v,
+        data,
+        maybeAccessCode,
+        envelope,
+        cache.retrievals,
+        frontendAppConfig,
+        cache.form.thirdPartyData.obligations,
+        cache.form.thirdPartyData.reviewComments,
+        summaryPagePurpose,
+        pdfFieldIds
+      )
   }
 }
 
@@ -449,7 +375,7 @@ object SummaryRenderingService {
     obligations: Obligations,
     reviewerComments: Option[String],
     summaryPagePurpose: SummaryPagePurpose,
-    fieldIdsWithIndex: List[(FormComponentId, Int)]
+    pdfFieldIds: List[FormComponentId]
   )(
     implicit
     request: Request[_],
@@ -469,7 +395,7 @@ object SummaryRenderingService {
         obligations,
         summaryPagePurpose,
         reviewerComments,
-        fieldIdsWithIndex
+        pdfFieldIds
       )
     summary(
       formTemplate,
@@ -683,7 +609,7 @@ object SummaryRenderingService {
     obligations: Obligations,
     summaryPagePurpose: SummaryPagePurpose,
     reviewerComments: Option[String] = None,
-    fieldIdsWithIndex: List[(FormComponentId, Int)]
+    pdfFieldIds: List[FormComponentId]
   )(
     implicit
     messages: Messages,
@@ -691,7 +617,7 @@ object SummaryRenderingService {
     viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): List[Html] = {
 
-    def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
+    def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
       def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
         val gformErrors = validatedType match {
           case Invalid(errors) => errors
@@ -756,7 +682,7 @@ object SummaryRenderingService {
                   fv,
                   formTemplateId,
                   maybeAccessCode,
-                  title,
+                  "",
                   sectionNumber,
                   sectionTitle4Ga
                 )
@@ -823,58 +749,27 @@ object SummaryRenderingService {
         }
       }
 
-      def showOnSummary(fieldValue: FormComponent) =
-        fieldValue.presentationHint
-          .fold(false)(x => x.contains(InvisibleInSummary))
-
-      def showOnPdf(fieldValue: FormComponent) =
-        fieldIdsWithIndex.map(_._1).contains(fieldValue.id)
-
-      val sectionsToRender =
-        sections.zipWithIndex.collect {
-          case (section, index) if data.isVisible(section) => (section, index)
-        }
-
-      val sortedSections = fieldIdsWithIndex
-        .map(r => (r._2, r._1))
-        .sortBy(_._1) flatMap { formComponentId =>
-        sectionsToRender.find(_._1.fields.map(_.id) contains formComponentId._2) map { v =>
-          (formComponentId._2, v._1, v._2)
-        }
-      }
-
-      sortedSections
-        .flatMap {
-          case (formComponentId, section, index) =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title.value)
-
-            val middle =
-              section.fields
-                .filter(_.id == formComponentId)
-                .filter(showOnPdf)
-                .filterNot(showOnSummary)
-                .map(
-                  valueToHtml(
-                    _,
-                    formTemplate._id,
-                    maybeAccessCode,
-                    section.shortName.getOrElse(section.title).value,
-                    SectionNumber(index),
-                    sectionTitle4Ga))
-            middle
-        }
-
+      fields
+        .map(formComponent =>
+          valueToHtml(formComponent, formTemplate._id, maybeAccessCode, "", SectionNumber(0), SectionTitle4Ga("")))
     }
 
-    val sections = RepeatingComponentService.getAllSections(formTemplate, data)
+    val allFormComponents =
+      formTemplate.expandFormTemplateFull.formComponentsLookupFull
 
-    val fieldIds = data.data.data.keys.toList
+    val nonEmptyFormComponentIds =
+      data.data.data.toList.filter { _._2.toSeq.map(_.nonEmpty).head }.map(_._1)
 
-    val fields = sections.flatMap(RepeatingComponentService.atomicFields(_, data.data))
+    val nonEmptyFormComponents: List[(FormComponentId, FormComponent)] = nonEmptyFormComponentIds.flatMap { fcId =>
+      allFormComponents.find(_._1 == fcId)
+    }
 
-    val filteredSections =
-      sections.filter(section => fieldIds.exists(section.expandedFormComponents().map(_.id).contains))
+    val filteredFormComponents: List[FormComponent] = pdfFieldIds
+      .flatMap { fcId =>
+        nonEmptyFormComponents.find(_._1.value.startsWith(fcId.value))
+      }
+      .map(_._2)
 
-    renderHtmls(filteredSections, fields)
+    renderHtmls(filteredFormComponents)
   }
 }
