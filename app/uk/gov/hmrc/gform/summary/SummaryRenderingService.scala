@@ -210,7 +210,7 @@ class SummaryRenderingService(
     val doc = Jsoup.parse(html)
 
     val headerHtml =
-      if (pdfHeader.value.nonEmpty)
+      if (pdfHeader.value().nonEmpty)
         notification_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
       else
         Html("").toString
@@ -393,7 +393,6 @@ object SummaryRenderingService {
         formTemplate,
         envelope,
         obligations,
-        summaryPagePurpose,
         reviewerComments,
         pdfFieldIds
       )
@@ -428,137 +427,6 @@ object SummaryRenderingService {
     lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
-      def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
-        val gformErrors = validatedType match {
-          case Invalid(errors) => errors
-          case Valid(_)        => Map.empty[FormComponentId, Set[String]]
-        }
-        Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
-      }
-
-      def valueToHtml(
-        fieldValue: FormComponent,
-        formTemplateId: FormTemplateId,
-        maybeAccessCode: Option[AccessCode],
-        title: String,
-        sectionNumber: SectionNumber,
-        sectionTitle4Ga: SectionTitle4Ga): Html = {
-
-        val changeButton = change_button(
-          formTemplateId,
-          maybeAccessCode,
-          title,
-          sectionNumber,
-          sectionTitle4Ga,
-          fieldValue
-        )
-
-        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(
-          implicit l: LangADT): Html = {
-          val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
-
-          fieldValue.`type` match {
-            case groupField: Group
-                if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
-              val htmlList: List[Html] = {
-
-                val groups: List[GroupList] =
-                  getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
-
-                for {
-                  group <- groups
-                  value = group.componentList.map(validate)
-                } yield group_grid(fieldValue, value, false, changeButton)
-
-              }
-
-              flatten(htmlList)
-            case groupField: Group
-                if presentationHint.contains(SummariseGroupAsGrid) => // TODO unify this case with previous one after new group_grid template is in place
-              val fcs: List[FormComponent] =
-                getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
-
-              val value = fcs.map(validate).filterNot(_.isEmpty)
-
-              if (value.nonEmpty) {
-                group_grid(fieldValue, value, isLabel, changeButton)
-              } else Html("")
-
-            case groupField @ Group(_, orientation, _, _, _, _) =>
-              val fvs: List[GroupList] =
-                getAllFieldsInGroup(fieldValue, groupField, data)
-
-              val htmlList = fvs.flatMap(_.componentList.map { fv =>
-                valueToHtml(
-                  fv,
-                  formTemplateId,
-                  maybeAccessCode,
-                  title,
-                  sectionNumber,
-                  sectionTitle4Ga
-                )
-              })
-              group(fieldValue, htmlList, orientation, isLabel)
-
-            case _ =>
-              valueToHtml(
-                fieldValue,
-                formTemplateId,
-                maybeAccessCode,
-                title,
-                sectionNumber,
-                sectionTitle4Ga
-              )
-          }
-        }
-
-        fieldValue.`type` match {
-          case UkSortCode(_)     => sort_code(fieldValue, validate(fieldValue), changeButton)
-          case Date(_, _, _)     => date(fieldValue, validate(fieldValue), changeButton)
-          case Address(_)        => address(fieldValue, validate(fieldValue), changeButton)
-          case Text(_, _, _, _)  => text(fieldValue, validate(fieldValue), changeButton)
-          case TextArea(_, _, _) => textarea(fieldValue, validate(fieldValue), changeButton)
-
-          case Choice(_, options, _, _, _) =>
-            val selections = options.toList.zipWithIndex
-              .map {
-                case (option, index) =>
-                  validate(fieldValue)
-                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option.value)
-              }
-              .collect { case Some(selection) => selection }
-
-            choice(fieldValue, selections, changeButton)
-
-          case rc: RevealingChoice =>
-            val selections = rc.options.zipWithIndex
-              .map {
-                case (element, index) =>
-                  validate(fieldValue)
-                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map { _ =>
-                      val selections: List[Html] = element.revealingFields.filterNot(_.hideOnSummary).map {
-                        valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
-                      }
-
-                      revealingChoice(element.choice, fieldValue, selections, changeButton)
-                    }
-              }
-              .collect { case Some(html) => html }
-
-            flatten(selections)
-
-          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton)
-          case InformationMessage(_, _) => Html("")
-          case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
-
-          case h @ HmrcTaxPeriod(_, _, _) =>
-            val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue))
-            val maybeObligation = obligations.findByPeriodKey(h, periodId)
-            hmrc_tax_period(fieldValue, validate(fieldValue), changeButton, maybeObligation)
-        }
-      }
 
       val sectionsToRender =
         sections.zipWithIndex.collect {
@@ -575,22 +443,25 @@ object SummaryRenderingService {
             val middle =
               section.fields
                 .filterNot(_.hideOnSummary)
-                .map(
-                  valueToHtml(
-                    _,
-                    formTemplate._id,
-                    maybeAccessCode,
-                    section.shortName.getOrElse(section.title).value,
-                    SectionNumber(index),
-                    sectionTitle4Ga))
+                .map(valueToHtml(
+                  _,
+                  formTemplate._id,
+                  data,
+                  maybeAccessCode,
+                  section.shortName.getOrElse(section.title).value,
+                  SectionNumber(index),
+                  sectionTitle4Ga,
+                  obligations,
+                  fields,
+                  validatedType,
+                  envelope
+                ))
             if (middle.isEmpty) {
               Nil
             } else {
               begin +: middle :+ end
             }
-
         }
-
     }
 
     val sections = RepeatingComponentService.getAllSections(formTemplate, data)
@@ -607,7 +478,6 @@ object SummaryRenderingService {
     formTemplate: FormTemplate,
     envelope: Envelope,
     obligations: Obligations,
-    summaryPagePurpose: SummaryPagePurpose,
     reviewerComments: Option[String] = None,
     pdfFieldIds: List[FormComponentId]
   )(
@@ -617,142 +487,22 @@ object SummaryRenderingService {
     viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): List[Html] = {
 
-    def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
-      def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
-        val gformErrors = validatedType match {
-          case Invalid(errors) => errors
-          case Valid(_)        => Map.empty[FormComponentId, Set[String]]
-        }
-        Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
-      }
-
-      def valueToHtml(
-        fieldValue: FormComponent,
-        formTemplateId: FormTemplateId,
-        maybeAccessCode: Option[AccessCode],
-        title: String,
-        sectionNumber: SectionNumber,
-        sectionTitle4Ga: SectionTitle4Ga): Html = {
-
-        val changeButton = change_button(
-          formTemplateId,
-          maybeAccessCode,
-          title,
-          sectionNumber,
-          sectionTitle4Ga,
-          fieldValue
-        )
-
-        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(
-          implicit l: LangADT): Html = {
-          val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
-
-          fieldValue.`type` match {
-            case groupField: Group
-                if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
-              val htmlList: List[Html] = {
-
-                val groups: List[GroupList] =
-                  getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
-
-                for {
-                  group <- groups
-                  value = group.componentList.map(validate)
-                } yield notification_pdf_fields(fieldValue, value)
-
-              }
-
-              flatten(htmlList)
-            case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
-              val fcs: List[FormComponent] =
-                getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
-
-              val value = fcs.map(validate).filterNot(_.isEmpty)
-
-              if (value.nonEmpty) {
-                notification_pdf_fields(fieldValue, value)
-              } else Html("")
-
-            case groupField @ Group(_, orientation, _, _, _, _) =>
-              val fvs: List[GroupList] =
-                getAllFieldsInGroup(fieldValue, groupField, data)
-
-              val htmlList = fvs.flatMap(_.componentList.map { fv =>
-                valueToHtml(
-                  fv,
-                  formTemplateId,
-                  maybeAccessCode,
-                  "",
-                  sectionNumber,
-                  sectionTitle4Ga
-                )
-              })
-              group(fieldValue, htmlList, orientation, isLabel)
-
-            case _ =>
-              valueToHtml(
-                fieldValue,
-                formTemplateId,
-                maybeAccessCode,
-                title,
-                sectionNumber,
-                sectionTitle4Ga
-              )
-          }
-        }
-
-        fieldValue.`type` match {
-          case UkSortCode(_)     => sort_code(fieldValue, validate(fieldValue), changeButton)
-          case Date(_, _, _)     => date(fieldValue, validate(fieldValue), changeButton)
-          case Address(_)        => address(fieldValue, validate(fieldValue), changeButton)
-          case Text(_, _, _, _)  => text(fieldValue, validate(fieldValue), changeButton)
-          case TextArea(_, _, _) => textarea(fieldValue, validate(fieldValue), changeButton)
-
-          case Choice(_, options, _, _, _) =>
-            val selections = options.toList.zipWithIndex
-              .map {
-                case (option, index) =>
-                  validate(fieldValue)
-                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option.value)
-              }
-              .collect { case Some(selection) => selection }
-
-            choice(fieldValue, selections, changeButton)
-
-          case rc: RevealingChoice =>
-            val selections = rc.options.zipWithIndex
-              .map {
-                case (element, index) =>
-                  validate(fieldValue)
-                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map { _ =>
-                      val selections: List[Html] = element.revealingFields.map {
-                        valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
-                      }
-
-                      revealingChoice(element.choice, fieldValue, selections, changeButton)
-                    }
-              }
-              .collect { case Some(html) => html }
-
-            flatten(selections)
-
-          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton, summaryPagePurpose)
-          case InformationMessage(_, _) => Html("")
-          case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
-
-          case h @ HmrcTaxPeriod(_, _, _) =>
-            val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue))
-            val maybeObligation = obligations.findByPeriodKey(h, periodId)
-            hmrc_tax_period(fieldValue, validate(fieldValue), changeButton, maybeObligation)
-        }
-      }
-
+    def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] =
       fields
-        .map(formComponent =>
-          valueToHtml(formComponent, formTemplate._id, maybeAccessCode, "", SectionNumber(0), SectionTitle4Ga("")))
-    }
+        .map(
+          formComponent =>
+            valueToHtml(
+              formComponent,
+              formTemplate._id,
+              data,
+              maybeAccessCode,
+              "",
+              SectionNumber(0),
+              SectionTitle4Ga(""),
+              obligations,
+              fields,
+              validatedType,
+              envelope))
 
     val allFormComponents =
       formTemplate.expandFormTemplateFull.formComponentsLookupFull
@@ -771,5 +521,180 @@ object SummaryRenderingService {
       .map(_._2)
 
     renderHtmls(filteredFormComponents)
+  }
+
+  private def validate(
+    formComponent: FormComponent,
+    validatedType: ValidatedType[ValidationResult],
+    data: FormDataRecalculated,
+    fields: List[FormComponent],
+    envelope: Envelope): Option[FormFieldValidationResult] = {
+    val gformErrors = validatedType match {
+      case Invalid(errors) => errors
+      case Valid(_)        => Map.empty[FormComponentId, Set[String]]
+    }
+    Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
+  }
+
+  private def valueToHtml(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    title: String,
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    obligations: Obligations,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    lise: SmartStringEvaluator): Html = {
+
+    val changeButton = change_button(
+      formTemplateId,
+      maybeAccessCode,
+      title,
+      sectionNumber,
+      sectionTitle4Ga,
+      fieldValue
+    )
+
+    def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(implicit l: LangADT): Html = {
+      val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
+
+      fieldValue.`type` match {
+        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
+          val htmlList: List[Html] = {
+
+            val groups: List[GroupList] =
+              getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
+
+            for {
+              group <- groups
+              value = group.componentList.map(v => validate(v, validatedType, data, fields, envelope))
+            } yield notification_pdf_fields(fieldValue, value)
+
+          }
+
+          flatten(htmlList)
+        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
+          val fcs: List[FormComponent] =
+            getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
+
+          val value = fcs.map(v => validate(v, validatedType, data, fields, envelope)).filterNot(_.isEmpty)
+
+          if (value.nonEmpty) {
+            notification_pdf_fields(fieldValue, value)
+          } else Html("")
+
+        case groupField @ Group(_, orientation, _, _, _, _) =>
+          val fvs: List[GroupList] =
+            getAllFieldsInGroup(fieldValue, groupField, data)
+
+          val htmlList = fvs.flatMap(_.componentList.map { fv =>
+            valueToHtml(
+              fv,
+              formTemplateId,
+              data,
+              maybeAccessCode,
+              "",
+              sectionNumber,
+              sectionTitle4Ga,
+              obligations,
+              fields,
+              validatedType,
+              envelope
+            )
+          })
+          group(fieldValue, htmlList, orientation, isLabel)
+
+        case _ =>
+          valueToHtml(
+            fieldValue,
+            formTemplateId,
+            data,
+            maybeAccessCode,
+            "",
+            sectionNumber,
+            sectionTitle4Ga,
+            obligations,
+            fields,
+            validatedType,
+            envelope
+          )
+      }
+    }
+
+    fieldValue.`type` match {
+      case UkSortCode(_) =>
+        sort_code(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case Date(_, _, _) => date(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case Address(_)    => address(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case Text(_, _, _, _) =>
+        text(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case TextArea(_, _, _) =>
+        textarea(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+
+      case Choice(_, options, _, _, _) =>
+        val selections = options.toList.zipWithIndex
+          .map {
+            case (option, index) =>
+              validate(fieldValue, validatedType, data, fields, envelope)
+                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
+                .map(_ => option.value)
+          }
+          .collect { case Some(selection) => selection }
+
+        choice(fieldValue, selections, changeButton)
+
+      case rc: RevealingChoice =>
+        val selections = rc.options.zipWithIndex
+          .map {
+            case (element, index) =>
+              validate(fieldValue, validatedType, data, fields, envelope)
+                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
+                .map { _ =>
+                  val selections: List[Html] = element.revealingFields.map {
+                    valueToHtml(
+                      _,
+                      formTemplateId,
+                      data,
+                      maybeAccessCode,
+                      "",
+                      sectionNumber,
+                      sectionTitle4Ga,
+                      obligations,
+                      fields,
+                      validatedType,
+                      envelope
+                    )
+                  }
+
+                  revealingChoice(element.choice, fieldValue, selections, changeButton)
+                }
+          }
+          .collect { case Some(html) => html }
+
+        flatten(selections)
+
+      case f @ FileUpload() =>
+        file_upload(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case InformationMessage(_, _) => Html("")
+      case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
+
+      case h @ HmrcTaxPeriod(_, _, _) =>
+        val periodId =
+          TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue, validatedType, data, fields, envelope))
+        val maybeObligation = obligations.findByPeriodKey(h, periodId)
+        hmrc_tax_period(
+          fieldValue,
+          validate(fieldValue, validatedType, data, fields, envelope),
+          changeButton,
+          maybeObligation)
+    }
   }
 }
