@@ -24,7 +24,7 @@
   formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
   title: SmartString,
-  summaryPdf: Html,
+  instructions: Html,
   maybeAccessCode: Option[AccessCode]
 )(implicit
   request: Request[_],
@@ -51,11 +51,7 @@ templateId = formTemplate._id
 
     <div class="subsection">
         <p>
-            @summaryPdf
+            @instructions
         </p>
-        <p>
-            <a href="@uk.gov.hmrc.gform.gform.routes.PrintSectionController.downloadPDF(formTemplate._id, maybeAccessCode).url" target="_blank">@messages("printPage.printLinkText")</a>
-        </p>
-
     </div>
 }

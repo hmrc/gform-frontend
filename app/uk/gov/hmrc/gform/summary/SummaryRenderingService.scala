@@ -35,17 +35,20 @@ import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.helpers.Fields.flattenGroups
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
-import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, Obligations, PdfHtml, SubmissionRef }
+import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.Pdf
+import uk.gov.hmrc.gform.sharedmodel.graph.SimpleGN
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
+import uk.gov.hmrc.gform.views.html.form.snippets.{ notification_pdf_fields, notification_pdf_header }
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -100,6 +103,40 @@ class SummaryRenderingService(
       summaryHtml <- getSummaryHTML(cache.form.formTemplateId, maybeAccessCode, cache, summaryPagePurpose)
     } yield {
       PdfHtml(addDataToPrintPdfHTML(HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true), cache))
+    }
+  }
+
+  def createHtmlForNotificationPdf(
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    summaryPagePurpose: SummaryPagePurpose,
+    pdf: Pdf)(
+    implicit request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    ec: ExecutionContext,
+    lise: SmartStringEvaluator): Future[PdfHtml] = {
+    import i18nSupport._
+
+    val pdfFieldIds = pdf.fieldIds
+    val pdfHeader = pdf.header
+    val pdfFooter = pdf.footer
+
+    for {
+      pdfHtml <- getNotificationPdfHTML(
+                  cache.form.formTemplateId,
+                  maybeAccessCode,
+                  cache,
+                  summaryPagePurpose,
+                  pdfFieldIds)
+    } yield {
+      PdfHtml(
+        addDataToNotificationPdfHTML(
+          HtmlSanitiser.sanitiseHtmlForPDF(pdfHtml, submitted = true),
+          cache,
+          pdfFieldIds,
+          pdfHeader,
+          pdfFooter))
     }
   }
 
@@ -159,6 +196,27 @@ class SummaryRenderingService(
     doc.html.replace("£", "&pound;")
   }
 
+  private def addDataToNotificationPdfHTML(
+    html: String,
+    cache: AuthCacheWithForm,
+    pdfFieldIds: List[FormComponentId],
+    pdfHeader: SmartString,
+    pdfFooter: SmartString)(
+    implicit hc: HeaderCarrier,
+    messages: Messages,
+    curLang: LangADT,
+    lise: SmartStringEvaluator) = {
+
+    val doc = Jsoup.parse(html)
+
+    val headerHtml =
+      notification_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
+
+    doc.select("article[class*=content__body]").prepend(headerHtml)
+    doc.select("article[class*=content__body]").append(markDownParser(pdfFooter).toString)
+    doc.html.replace("£", "&pound;")
+  }
+
   def getSummaryHTML(
     formTemplateId: FormTemplateId,
     maybeAccessCode: Option[AccessCode],
@@ -200,6 +258,51 @@ class SummaryRenderingService(
         summaryPagePurpose
       )
 
+  }
+
+  def getNotificationPdfHTML(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode],
+    cache: AuthCacheWithForm,
+    summaryPagePurpose: SummaryPagePurpose,
+    pdfFieldIds: List[FormComponentId]
+  )(
+    implicit
+    request: Request[_],
+    l: LangADT,
+    hc: HeaderCarrier,
+    ec: ExecutionContext,
+    lise: SmartStringEvaluator) = {
+
+    val dataRaw: VariadicFormData = cache.variadicFormData
+    val envelopeF = fileUploadAlgebra.getEnvelope(cache.form.envelopeId)
+
+    import i18nSupport._
+
+    for {
+      data <- recalculation
+               .recalculateFormData(
+                 dataRaw,
+                 cache.formTemplate,
+                 cache.retrievals,
+                 cache.form.thirdPartyData,
+                 cache.form.envelopeId)
+      envelope <- envelopeF
+      (v, _)   <- validationService.validateForm(cache, envelope, cache.retrievals)
+    } yield
+      SummaryRenderingService.renderNotificationPdfSummary(
+        cache.formTemplate,
+        v,
+        data,
+        maybeAccessCode,
+        envelope,
+        cache.retrievals,
+        frontendAppConfig,
+        cache.form.thirdPartyData.obligations,
+        cache.form.thirdPartyData.reviewComments,
+        summaryPagePurpose,
+        pdfFieldIds
+      )
   }
 }
 
@@ -255,6 +358,53 @@ object SummaryRenderingService {
     )
   }
 
+  def renderNotificationPdfSummary(
+    formTemplate: FormTemplate,
+    validatedType: ValidatedType[ValidationResult],
+    formFields: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    envelope: Envelope,
+    retrievals: MaterialisedRetrievals,
+    frontendAppConfig: FrontendAppConfig,
+    obligations: Obligations,
+    reviewerComments: Option[String],
+    summaryPagePurpose: SummaryPagePurpose,
+    pdfFieldIds: List[FormComponentId]
+  )(
+    implicit
+    request: Request[_],
+    messages: Messages,
+    l: LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    lise: SmartStringEvaluator): Html = {
+    val headerHtml = markDownParser(formTemplate.summarySection.header)
+    val footerHtml = markDownParser(formTemplate.summarySection.footer)
+    val sfr =
+      summaryForNotificationPdf(
+        validatedType,
+        formFields,
+        maybeAccessCode,
+        formTemplate,
+        envelope,
+        obligations,
+        reviewerComments,
+        pdfFieldIds
+      )
+    summary(
+      formTemplate,
+      sfr,
+      maybeAccessCode,
+      formTemplate.formCategory,
+      retrievals.renderSaveAndComeBackLater,
+      retrievals.continueLabelKey,
+      frontendAppConfig,
+      summaryPagePurpose,
+      reviewerComments,
+      headerHtml,
+      footerHtml
+    )
+  }
+
   def summaryForRender(
     validatedType: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
@@ -271,137 +421,6 @@ object SummaryRenderingService {
     lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
-      def validate(formComponent: FormComponent): Option[FormFieldValidationResult] = {
-        val gformErrors = validatedType match {
-          case Invalid(errors) => errors
-          case Valid(_)        => Map.empty[FormComponentId, Set[String]]
-        }
-        Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
-      }
-
-      def valueToHtml(
-        fieldValue: FormComponent,
-        formTemplateId: FormTemplateId,
-        maybeAccessCode: Option[AccessCode],
-        title: String,
-        sectionNumber: SectionNumber,
-        sectionTitle4Ga: SectionTitle4Ga): Html = {
-
-        val changeButton = change_button(
-          formTemplateId,
-          maybeAccessCode,
-          title,
-          sectionNumber,
-          sectionTitle4Ga,
-          fieldValue
-        )
-
-        def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(
-          implicit l: LangADT): Html = {
-          val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
-
-          fieldValue.`type` match {
-            case groupField: Group
-                if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
-              val htmlList: List[Html] = {
-
-                val groups: List[GroupList] =
-                  getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
-
-                for {
-                  group <- groups
-                  value = group.componentList.map(validate)
-                } yield group_grid(fieldValue, value, false, changeButton)
-
-              }
-
-              flatten(htmlList)
-            case groupField: Group
-                if presentationHint.contains(SummariseGroupAsGrid) => // TODO unify this case with previous one after new group_grid template is in place
-              val fcs: List[FormComponent] =
-                getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
-
-              val value = fcs.map(validate).filterNot(_.isEmpty)
-
-              if (value.nonEmpty) {
-                group_grid(fieldValue, value, isLabel, changeButton)
-              } else Html("")
-
-            case groupField @ Group(_, orientation, _, _, _, _) =>
-              val fvs: List[GroupList] =
-                getAllFieldsInGroup(fieldValue, groupField, data)
-
-              val htmlList = fvs.flatMap(_.componentList.map { fv =>
-                valueToHtml(
-                  fv,
-                  formTemplateId,
-                  maybeAccessCode,
-                  title,
-                  sectionNumber,
-                  sectionTitle4Ga
-                )
-              })
-              group(fieldValue, htmlList, orientation, isLabel)
-
-            case _ =>
-              valueToHtml(
-                fieldValue,
-                formTemplateId,
-                maybeAccessCode,
-                title,
-                sectionNumber,
-                sectionTitle4Ga
-              )
-          }
-        }
-
-        fieldValue.`type` match {
-          case UkSortCode(_)     => sort_code(fieldValue, validate(fieldValue), changeButton)
-          case Date(_, _, _)     => date(fieldValue, validate(fieldValue), changeButton)
-          case Address(_)        => address(fieldValue, validate(fieldValue), changeButton)
-          case Text(_, _, _, _)  => text(fieldValue, validate(fieldValue), changeButton)
-          case TextArea(_, _, _) => textarea(fieldValue, validate(fieldValue), changeButton)
-
-          case Choice(_, options, _, _, _) =>
-            val selections = options.toList.zipWithIndex
-              .map {
-                case (option, index) =>
-                  validate(fieldValue)
-                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option.value)
-              }
-              .collect { case Some(selection) => selection }
-
-            choice(fieldValue, selections, changeButton)
-
-          case rc: RevealingChoice =>
-            val selections = rc.options.zipWithIndex
-              .map {
-                case (element, index) =>
-                  validate(fieldValue)
-                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map { _ =>
-                      val selections: List[Html] = element.revealingFields.filterNot(_.hideOnSummary).map {
-                        valueToHtml(_, formTemplateId, maybeAccessCode, title, sectionNumber, sectionTitle4Ga)
-                      }
-
-                      revealingChoice(element.choice, fieldValue, selections, changeButton)
-                    }
-              }
-              .collect { case Some(html) => html }
-
-            flatten(selections)
-
-          case f @ FileUpload()         => file_upload(fieldValue, validate(fieldValue), changeButton)
-          case InformationMessage(_, _) => Html("")
-          case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
-
-          case h @ HmrcTaxPeriod(_, _, _) =>
-            val periodId = TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue))
-            val maybeObligation = obligations.findByPeriodKey(h, periodId)
-            hmrc_tax_period(fieldValue, validate(fieldValue), changeButton, maybeObligation)
-        }
-      }
 
       val sectionsToRender =
         sections.zipWithIndex.collect {
@@ -418,22 +437,25 @@ object SummaryRenderingService {
             val middle =
               section.fields
                 .filterNot(_.hideOnSummary)
-                .map(
-                  valueToHtml(
-                    _,
-                    formTemplate._id,
-                    maybeAccessCode,
-                    section.shortName.getOrElse(section.title).value,
-                    SectionNumber(index),
-                    sectionTitle4Ga))
+                .map(valueToHtml(
+                  _,
+                  formTemplate._id,
+                  data,
+                  maybeAccessCode,
+                  section.shortName.getOrElse(section.title).value,
+                  SectionNumber(index),
+                  sectionTitle4Ga,
+                  obligations,
+                  fields,
+                  validatedType,
+                  envelope
+                ))
             if (middle.isEmpty) {
               Nil
             } else {
               begin +: middle :+ end
             }
-
         }
-
     }
 
     val sections = RepeatingComponentService.getAllSections(formTemplate, data)
@@ -441,5 +463,232 @@ object SummaryRenderingService {
     val fields = sections.flatMap(RepeatingComponentService.atomicFields(_, data.data))
 
     renderHtmls(sections, fields)
+  }
+
+  def summaryForNotificationPdf(
+    validatedType: ValidatedType[ValidationResult],
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    formTemplate: FormTemplate,
+    envelope: Envelope,
+    obligations: Obligations,
+    reviewerComments: Option[String] = None,
+    pdfFieldIds: List[FormComponentId]
+  )(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    lise: SmartStringEvaluator): List[Html] = {
+
+    def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] =
+      fields
+        .map(
+          formComponent =>
+            valueToHtml(
+              formComponent,
+              formTemplate._id,
+              data,
+              maybeAccessCode,
+              "",
+              SectionNumber(0),
+              SectionTitle4Ga(""),
+              obligations,
+              fields,
+              validatedType,
+              envelope))
+
+    val allFormComponents =
+      formTemplate.expandFormTemplateFull.formComponentsLookupFull
+
+    val nonEmptyFormComponentIds =
+      data.data.data.toList.filter { _._2.toSeq.map(_.nonEmpty).head }.map(_._1)
+
+    val nonEmptyFormComponents: List[(FormComponentId, FormComponent)] = nonEmptyFormComponentIds.flatMap { fcId =>
+      allFormComponents.find(_._1 == fcId)
+    }
+
+    val filteredFormComponents: List[FormComponent] = pdfFieldIds
+      .flatMap { fcId =>
+        nonEmptyFormComponents.find(_._1.value.startsWith(fcId.value))
+      }
+      .map(_._2)
+
+    renderHtmls(filteredFormComponents)
+  }
+
+  private def validate(
+    formComponent: FormComponent,
+    validatedType: ValidatedType[ValidationResult],
+    data: FormDataRecalculated,
+    fields: List[FormComponent],
+    envelope: Envelope): Option[FormFieldValidationResult] = {
+    val gformErrors = validatedType match {
+      case Invalid(errors) => errors
+      case Valid(_)        => Map.empty[FormComponentId, Set[String]]
+    }
+    Fields.getValidationResult(data, fields, envelope, gformErrors)(formComponent)
+  }
+
+  private def valueToHtml(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    title: String,
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    obligations: Obligations,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    viewHelpers: ViewHelpersAlgebra,
+    lise: SmartStringEvaluator): Html = {
+
+    val changeButton = change_button(
+      formTemplateId,
+      maybeAccessCode,
+      title,
+      sectionNumber,
+      sectionTitle4Ga,
+      fieldValue
+    )
+
+    def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(implicit l: LangADT): Html = {
+      val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
+
+      fieldValue.`type` match {
+        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
+          val htmlList: List[Html] = {
+
+            val groups: List[GroupList] =
+              getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
+
+            for {
+              group <- groups
+              value = group.componentList.map(v => validate(v, validatedType, data, fields, envelope))
+            } yield notification_pdf_fields(fieldValue, value)
+
+          }
+
+          flatten(htmlList)
+        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
+          val fcs: List[FormComponent] =
+            getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
+
+          val value = fcs.map(v => validate(v, validatedType, data, fields, envelope)).filterNot(_.isEmpty)
+
+          if (value.nonEmpty) {
+            notification_pdf_fields(fieldValue, value)
+          } else Html("")
+
+        case groupField @ Group(_, orientation, _, _, _, _) =>
+          val fvs: List[GroupList] =
+            getAllFieldsInGroup(fieldValue, groupField, data)
+
+          val htmlList = fvs.flatMap(_.componentList.map { fv =>
+            valueToHtml(
+              fv,
+              formTemplateId,
+              data,
+              maybeAccessCode,
+              "",
+              sectionNumber,
+              sectionTitle4Ga,
+              obligations,
+              fields,
+              validatedType,
+              envelope
+            )
+          })
+          group(fieldValue, htmlList, orientation, isLabel)
+
+        case _ =>
+          valueToHtml(
+            fieldValue,
+            formTemplateId,
+            data,
+            maybeAccessCode,
+            "",
+            sectionNumber,
+            sectionTitle4Ga,
+            obligations,
+            fields,
+            validatedType,
+            envelope
+          )
+      }
+    }
+
+    fieldValue.`type` match {
+      case UkSortCode(_) =>
+        sort_code(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case Date(_, _, _) => date(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case Address(_)    => address(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case Text(_, _, _, _) =>
+        text(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case TextArea(_, _, _) =>
+        textarea(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+
+      case Choice(_, options, _, _, _) =>
+        val selections = options.toList.zipWithIndex
+          .map {
+            case (option, index) =>
+              validate(fieldValue, validatedType, data, fields, envelope)
+                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
+                .map(_ => option.value)
+          }
+          .collect { case Some(selection) => selection }
+
+        choice(fieldValue, selections, changeButton)
+
+      case rc: RevealingChoice =>
+        val selections = rc.options.zipWithIndex
+          .map {
+            case (element, index) =>
+              validate(fieldValue, validatedType, data, fields, envelope)
+                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
+                .map { _ =>
+                  val selections: List[Html] = element.revealingFields.map {
+                    valueToHtml(
+                      _,
+                      formTemplateId,
+                      data,
+                      maybeAccessCode,
+                      "",
+                      sectionNumber,
+                      sectionTitle4Ga,
+                      obligations,
+                      fields,
+                      validatedType,
+                      envelope
+                    )
+                  }
+
+                  revealingChoice(element.choice, fieldValue, selections, changeButton)
+                }
+          }
+          .collect { case Some(html) => html }
+
+        flatten(selections)
+
+      case f @ FileUpload() =>
+        file_upload(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+      case InformationMessage(_, _) => Html("")
+      case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
+
+      case h @ HmrcTaxPeriod(_, _, _) =>
+        val periodId =
+          TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue, validatedType, data, fields, envelope))
+        val maybeObligation = obligations.findByPeriodKey(h, periodId)
+        hmrc_tax_period(
+          fieldValue,
+          validate(fieldValue, validatedType, data, fields, envelope),
+          changeButton,
+          maybeObligation)
+    }
   }
 }

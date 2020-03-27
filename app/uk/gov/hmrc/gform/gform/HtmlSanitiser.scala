@@ -31,10 +31,12 @@ object HtmlSanitiser {
     doc.getElementsByTag("header").remove()
     doc.getElementsByClass("service-info").remove()
     doc.getElementsByClass("footer-wrapper").remove()
-    doc.getElementById("global-cookie-message").remove()
+    if (html.body.nonEmpty) {
+      doc.getElementById("global-cookie-message").remove()
+      doc.getElementById("global-app-error").remove()
+    }
     doc.getElementsByClass("print-hidden").remove()
     doc.getElementsByClass("report-error").remove()
-    doc.getElementById("global-app-error").remove()
     doc
       .getElementsByTag("head")
       .append(s"<style>${PdfGeneratorService.css}</style>")
