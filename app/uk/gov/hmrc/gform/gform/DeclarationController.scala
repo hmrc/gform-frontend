@@ -227,7 +227,7 @@ class DeclarationController(
           }
       }
 
-      case _: PrintSection =>
+      case _: DestinationPrint =>
         Future.successful(
           Redirect(
             uk.gov.hmrc.gform.gform.routes.PrintSectionController

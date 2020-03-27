@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, PdfHtml }
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, PrintSection }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ DestinationList, DestinationPrint }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
@@ -98,7 +98,7 @@ class SummaryController(
                     routes.DeclarationController
                       .showDeclaration(maybeAccessCode, formTemplateId))
 
-                case _: PrintSection =>
+                case _: DestinationPrint =>
                   Redirect(
                     routes.PrintSectionController
                       .showPrintSection(formTemplateId, maybeAccessCode))
