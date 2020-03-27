@@ -362,8 +362,8 @@ accessibility.content.block7.h22=Diffyg cydymffurfio â’r rheoliadau hygyrched
 accessibility.content.block7.h22.p1=Mae’n bosibl na fydd darllenydd sgrin yn darllen yn awtomatig rannau bach o wybodaeth sydd i’w gweld ar y tudalennau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.2 (labels or instructions) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
 accessibility.content.block7.h22.p2=Mae’n bosibl y bydd rhywfaint o wybodaeth wedi ei threfnu mewn ffordd sy’n anoddach ei defnyddio i bobl sy’n defnyddio darllenydd sgrin. Nid yw hyn yn bodloni maen prawf llwyddiant 1.3.2 (meaningful sequence) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
 accessibility.content.block7.h22.p3=Mae’n bosibl na fydd rhai negeseuon gwall yn cynnwys yr wybodaeth lawn sydd ei hangen i helpu pobl i ateb cwestiynau. Nid yw hyn yn bodloni maen prawf llwyddiant 3.3.3 (error suggestion) Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
-accessibility.content.block7.h22.p4=Rydym yn gweithio ar y materion hyn a byddwn yn eu trwsio erbyn 31 Mawrth 2020.
+accessibility.content.block7.h22.p4=Rydym yn gweithio ar y materion hyn a byddwn yn eu trwsio erbyn 30 Mehefin 2020.
 
 accessibility.subheading8=Sut gwnaethom brofi’r gwasanaeth hwn
 accessibility.content.block8.p1=Adeiladwyd y gwasanaeth hwn gan ddefnyddio rhannau a brofwyd gan y Ganolfan Hygyrchedd Digidol ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â<a href="http://www.digitalaccessibilitycentre.org/">Ganolfan Hygyrchedd Digidol</a> ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
-accessibility.content.block8.p2=Paratowyd y dudalen hon ar 23 Medi 2019. Cafodd ei diweddaru ddiwethaf ar 23 Medi 2019.
+accessibility.content.block8.p2=Paratowyd y dudalen hon ar 23 Medi 2019. Cafodd ei diweddaru ddiwethaf ar 26 Mawrth 2019.
