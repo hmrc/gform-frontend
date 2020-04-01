@@ -42,7 +42,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.Pdf
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.{ Pdf, PdfNotification }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
@@ -93,7 +93,8 @@ class SummaryRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    page: PrintSection.Page)(
+    page: PrintSection.Page,
+    pdf: PrintSection.Pdf)(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
@@ -107,8 +108,8 @@ class SummaryRenderingService(
         addDataToPrintPdfHTML(
           HtmlSanitiser.sanitiseHtmlForPDF(summaryHtml, submitted = true),
           cache,
-          page.pdfHeader.getOrElse(SmartString.empty),
-          page.pdfFooter.getOrElse(SmartString.empty)
+          pdf.header,
+          pdf.footer
         ))
     }
   }
@@ -117,7 +118,7 @@ class SummaryRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    pdf: Pdf)(
+    pdfNotification: PdfNotification)(
     implicit request: Request[_],
     l: LangADT,
     hc: HeaderCarrier,
@@ -125,9 +126,9 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator): Future[PdfHtml] = {
     import i18nSupport._
 
-    val pdfFieldIds = pdf.fieldIds
-    val pdfHeader = pdf.header
-    val pdfFooter = pdf.footer
+    val pdfFieldIds = pdfNotification.fieldIds
+    val pdfHeader = pdfNotification.header
+    val pdfFooter = pdfNotification.footer
 
     for {
       pdfHtml <- getNotificationPdfHTML(
