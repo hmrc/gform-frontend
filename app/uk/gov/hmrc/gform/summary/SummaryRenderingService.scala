@@ -42,11 +42,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4G
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.DestinationList
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.{ Pdf, PdfNotification }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfNotification
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
-import uk.gov.hmrc.gform.views.html.form.snippets.{ notification_pdf_fields, notification_pdf_header, print_pdf_header }
+import uk.gov.hmrc.gform.views.html.form.snippets.{ notification_pdf_fields, print_pdf_header }
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.http.HeaderCarrier
@@ -93,7 +93,6 @@ class SummaryRenderingService(
     maybeAccessCode: Option[AccessCode],
     cache: AuthCacheWithForm,
     summaryPagePurpose: SummaryPagePurpose,
-    page: PrintSection.Page,
     pdf: PrintSection.Pdf)(
     implicit request: Request[_],
     l: LangADT,
@@ -139,12 +138,7 @@ class SummaryRenderingService(
                   pdfFieldIds)
     } yield {
       PdfHtml(
-        addDataToNotificationPdfHTML(
-          HtmlSanitiser.sanitiseHtmlForPDF(pdfHtml, submitted = true),
-          cache,
-          pdfFieldIds,
-          pdfHeader,
-          pdfFooter))
+        addDataToPrintPdfHTML(HtmlSanitiser.sanitiseHtmlForPDF(pdfHtml, submitted = true), cache, pdfHeader, pdfFooter))
     }
   }
 
@@ -206,27 +200,6 @@ class SummaryRenderingService(
 
     val headerHtml =
       print_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
-
-    doc.select("article[class*=content__body]").prepend(headerHtml)
-    doc.select("article[class*=content__body]").append(markDownParser(pdfFooter).toString)
-    doc.html.replace("£", "&pound;")
-  }
-
-  private def addDataToNotificationPdfHTML(
-    html: String,
-    cache: AuthCacheWithForm,
-    pdfFieldIds: List[FormComponentId],
-    pdfHeader: SmartString,
-    pdfFooter: SmartString)(
-    implicit hc: HeaderCarrier,
-    messages: Messages,
-    curLang: LangADT,
-    lise: SmartStringEvaluator) = {
-
-    val doc = Jsoup.parse(html)
-
-    val headerHtml =
-      notification_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
 
     doc.select("article[class*=content__body]").prepend(headerHtml)
     doc.select("article[class*=content__body]").append(markDownParser(pdfFooter).toString)
@@ -518,7 +491,11 @@ object SummaryRenderingService {
       formTemplate.expandFormTemplateFull.formComponentsLookupFull
 
     val nonEmptyFormComponentIds =
-      data.data.data.toList.filter { _._2.toSeq.map(_.nonEmpty).head }.map(_._1)
+      data.data.data.toList
+        .filter {
+          _._2.toSeq.map(_.nonEmpty).head
+        }
+        .map(_._1)
 
     val nonEmptyFormComponents: List[(FormComponentId, FormComponent)] = nonEmptyFormComponentIds.flatMap { fcId =>
       allFormComponents.find(_._1 == fcId)

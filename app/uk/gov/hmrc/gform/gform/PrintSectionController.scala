@@ -65,10 +65,10 @@ class PrintSectionController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadPrintSectionPdf) {
       implicit request => implicit l => cache => implicit sse =>
         cache.formTemplate.destinations match {
-          case DestinationPrint(page, pdf, _) =>
+          case DestinationPrint(_, pdf, _) =>
             for {
               htmlForPDF <- summaryRenderingService
-                             .createHtmlForPrintPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser, page, pdf)
+                             .createHtmlForPrintPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser, pdf)
               pdfStream <- pdfService.generatePDF(htmlForPDF)
             } yield
               Result(
