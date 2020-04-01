@@ -65,10 +65,10 @@ class PrintSectionController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadPrintSectionPdf) {
       implicit request => implicit l => cache => implicit sse =>
         cache.formTemplate.destinations match {
-          case _: DestinationPrint =>
+          case DestinationPrint(_, pdf, _) =>
             for {
               htmlForPDF <- summaryRenderingService
-                             .createHtmlForPrintPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser)
+                             .createHtmlForPrintPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser, pdf)
               pdfStream <- pdfService.generatePDF(htmlForPDF)
             } yield
               Result(
@@ -84,10 +84,14 @@ class PrintSectionController(
     auth.authAndRetrieveForm(formTemplateId, maybeAccessCode, OperationWithForm.DownloadPrintSectionPdf) {
       implicit request => implicit l => cache => implicit sse =>
         cache.formTemplate.destinations match {
-          case DestinationPrint(_, Some(pdf)) =>
+          case DestinationPrint(_, _, Some(pdfNotification)) =>
             for {
               htmlForPDF <- summaryRenderingService
-                             .createHtmlForNotificationPdf(maybeAccessCode, cache, SummaryPagePurpose.ForUser, pdf)
+                             .createHtmlForNotificationPdf(
+                               maybeAccessCode,
+                               cache,
+                               SummaryPagePurpose.ForUser,
+                               pdfNotification)
               pdfStream <- pdfService.generatePDF(htmlForPDF)
             } yield
               Result(
@@ -95,7 +99,7 @@ class PrintSectionController(
                 body = HttpEntity.Streamed(pdfStream, None, Some("application/pdf"))
               )
 
-          case DestinationPrint(_, None) =>
+          case DestinationPrint(_, _, None) =>
             Future.failed(new BadRequestException(s"Pdf in print section is not defined for $formTemplateId"))
 
           case _ => Future.failed(new BadRequestException(s"Print section is not defined for $formTemplateId"))
