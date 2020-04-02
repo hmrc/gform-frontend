@@ -645,7 +645,7 @@ object SummaryRenderingService {
               validate(fieldValue, validatedType, data, fields, envelope)
                 .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
                 .map { _ =>
-                  val selections: List[Html] = element.revealingFields.map {
+                  val selections: List[Html] = element.revealingFields.filterNot(_.hideOnSummary).map {
                     valueToHtml(
                       _,
                       formTemplateId,
