@@ -46,7 +46,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfN
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
-import uk.gov.hmrc.gform.views.html.form.snippets.{ notification_pdf_fields, print_pdf_header }
+import uk.gov.hmrc.gform.views.html.form.snippets.print_pdf_header
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.http.HeaderCarrier
@@ -563,7 +563,7 @@ object SummaryRenderingService {
             for {
               group <- groups
               value = group.componentList.map(v => validate(v, validatedType, data, fields, envelope))
-            } yield notification_pdf_fields(fieldValue, value)
+            } yield group_grid(fieldValue, value, false, changeButton)
 
           }
 
@@ -575,7 +575,7 @@ object SummaryRenderingService {
           val value = fcs.map(v => validate(v, validatedType, data, fields, envelope)).filterNot(_.isEmpty)
 
           if (value.nonEmpty) {
-            notification_pdf_fields(fieldValue, value)
+            group_grid(fieldValue, value, isLabel, changeButton)
           } else Html("")
 
         case groupField @ Group(_, orientation, _, _, _, _) =>
