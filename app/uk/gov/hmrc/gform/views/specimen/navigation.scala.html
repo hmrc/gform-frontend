@@ -17,7 +17,7 @@
 @import cats.syntax.eq._
 @import cats.instances.int._
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionTitle4Ga }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, SectionTitle4Ga, SectionNumber }
 @import uk.gov.hmrc.gform.models.SectionRenderingInformation
 
 @(formTemplate: FormTemplate,
@@ -26,7 +26,7 @@
 
 @navigationLink(sectionIndex: Int, label: String, templateId: String) = {
   @defining(formTemplate.sections(sectionIndex)) { section =>
-    @defining(SectionTitle4Ga.sectionTitle4GaFactory(section.title.value).value) { sectionTitle4Ga =>
+    @defining(SectionTitle4Ga.sectionTitle4GaFactory(section, SectionNumber(sectionIndex)).value) { sectionTitle4Ga =>
       <a href="/submissions/form/@templateId/@sectionTitle4Ga?n=@sectionIndex&se=t">@label</a>
     }
   }
@@ -48,7 +48,7 @@
     @formTemplate.sections.zipWithIndex.map { case (section, sectionIndex) =>
       @defining(section.title.value, if(sectionNumber === sectionIndex) "selected" else "") { case (title, selected) =>
 	@defining(
-	  SectionTitle4Ga.sectionTitle4GaFactory(title).value,
+	  SectionTitle4Ga.sectionTitle4GaFactory(section, SectionNumber(sectionIndex)).value,
 	  title.substring(0, Math.min(title.length, 80))) { case (sectionTitle4Ga, titleTrimmed) =>
           <option value="@sectionIndex" data-title="@sectionTitle4Ga"  @selected>@{sectionIndex + 1}/@total - @titleTrimmed</option>
         }

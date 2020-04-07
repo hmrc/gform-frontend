@@ -419,7 +419,7 @@ object SummaryRenderingService {
       sectionsToRender
         .flatMap {
           case (section, index) =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index).title.value)
+            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index), SectionNumber(index))
             val begin = begin_section(section.shortName.getOrElse(section.title).value)
             val end = end_section()
 
