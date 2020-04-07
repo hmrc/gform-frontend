@@ -179,7 +179,7 @@ class FormController(
         ): Future[Result] =
           validateAndUpdateData(cache, processData) {
             case Some(sn) =>
-              val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value)
+              val sectionTitle4Ga = mkSectionTitle4Ga(processData, sn)
               Redirect(
                 routes.FormController
                   .form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SuppressErrors(sectionNumber < sn)))
@@ -197,7 +197,7 @@ class FormController(
               case None =>
                 val call = maybeSn match {
                   case Some(sn) =>
-                    val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value)
+                    val sectionTitle4Ga = mkSectionTitle4Ga(processData, sn)
                     routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SeYes)
                   case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode)
                 }
@@ -207,19 +207,22 @@ class FormController(
 
         def processBack(processData: ProcessData, sn: SectionNumber): Future[Result] =
           validateAndUpdateData(cache, processData) { _ =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sn.value).title.value)
+            val sectionTitle4Ga = mkSectionTitle4Ga(processData, sn)
             Redirect(routes.FormController.form(formTemplateId, maybeAccessCode, sn, sectionTitle4Ga, SeYes))
           }
 
         def handleGroup(processData: ProcessData, anchor: String): Future[Result] =
           validateAndUpdateData(cache, processData) { _ =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(processData.sections(sectionNumber.value).title.value)
+            val sectionTitle4Ga = mkSectionTitle4Ga(processData, sectionNumber)
             Redirect(
               routes.FormController
                 .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes)
                 .url + anchor
             )
           }
+
+        def mkSectionTitle4Ga(processData: ProcessData, sectionNumber: SectionNumber): SectionTitle4Ga =
+          sectionTitle4GaFactory(processData.sections(sectionNumber.value), sectionNumber)
 
         def processAddGroup(processData: ProcessData, groupId: String): Future[Result] = {
           val startPos = groupId.indexOf('-') + 1

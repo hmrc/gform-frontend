@@ -17,14 +17,23 @@
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
 import play.api.libs.json.Format
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 // For Google Analytics only. Sole purpose of this value is to be present in URLs.
 case class SectionTitle4Ga(value: String) extends AnyVal
 
 object SectionTitle4Ga {
 
-  def sectionTitle4GaFactory(title: String) =
-    SectionTitle4Ga(title.replace(' ', '-').replaceAll("[^-A-Za-z0-9]", ""))
+  def sectionTitle4GaFactory(section: Section, sectionNumber: SectionNumber) = {
+    val sectionTitle = section.title.localised.value(LangADT.En)
+    val finalSectionTitle =
+      if (sectionTitle.isEmpty) {
+        "section" + sectionNumber.value
+      } else {
+        sectionTitle
+      }
+    SectionTitle4Ga(finalSectionTitle.replace(' ', '-').replaceAll("[^-A-Za-z0-9]", ""))
+  }
 
   implicit val format: Format[SectionTitle4Ga] =
     uk.gov.hmrc.gform.models.ValueClassFormat.format(SectionTitle4Ga.apply)(_.value)

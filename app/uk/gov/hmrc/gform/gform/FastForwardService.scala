@@ -76,7 +76,7 @@ class FastForwardService(
     maybeSectionNumber match {
       case Some(sn) =>
         val section = processData.sections(sn.value)
-        val sectionTitle4Ga = sectionTitle4GaFactory(section.title.value)
+        val sectionTitle4Ga = sectionTitle4GaFactory(section, sn)
         Redirect(
           routes.FormController
             .form(cache.formTemplate._id, maybeAccessCode, sn, sectionTitle4Ga, SeYes))
