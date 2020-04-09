@@ -24,7 +24,7 @@ trait FormatExprGen {
       maxWholeDigits      <- Gen.posNum[Int]
       maxFractionalDigits <- Gen.posNum[Int]
       round               <- FormatExprGen.roundingModeGen
-      units               <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
+      units               <- Gen.option(LocalisedStringGen.localisedStringGen)
     } yield Number(maxWholeDigits, maxFractionalDigits, round, units)
 
   def positiveNumberGen: Gen[PositiveNumber] =
@@ -32,7 +32,7 @@ trait FormatExprGen {
       maxWholeDigits      <- Gen.posNum[Int]
       maxFractionalDigits <- Gen.posNum[Int]
       round               <- FormatExprGen.roundingModeGen
-      units               <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
+      units               <- Gen.option(LocalisedStringGen.localisedStringGen)
     } yield PositiveNumber(maxWholeDigits, maxFractionalDigits, round, units)
 
   def textWithRestrictions: Gen[TextWithRestrictions] =
