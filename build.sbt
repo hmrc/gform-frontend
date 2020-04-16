@@ -8,10 +8,13 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import uk.gov.hmrc.versioning.SbtGitVersioning
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
+import org.irundaia.sbt.sass._
 
 lazy val microservice = (project in file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
   .settings(
+    SassKeys.cssStyle := Maxified,
+    SassKeys.generateSourceMaps := true,
     organization := "uk.gov.hmrc",
     name := "gform-frontend",
     majorVersion := 0,
@@ -36,7 +39,9 @@ lazy val microservice = (project in file("."))
       "uk.gov.hmrc.gform.sharedmodel._",
       "uk.gov.hmrc.gform.eval.smartstring._",
       "uk.gov.hmrc.csp.WebchatClient",
-      "uk.gov.hmrc.gform.views.ViewHelpersAlgebra"
+      "uk.gov.hmrc.gform.views.ViewHelpersAlgebra",
+      "uk.gov.hmrc.govukfrontend.views.html.components._",
+      "uk.gov.hmrc.govukfrontend.views.html.helpers._"
     )
 
 //TODO enable it and fix errors in code!!!
@@ -62,12 +67,13 @@ lazy val microservice = (project in file("."))
     testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
     parallelExecution in IntegrationTest := false
   )
-  .settings(
-    resolvers ++= Seq(
-      Resolver.bintrayRepo("jetbrains", "markdown"),
-      Resolver.jcenterRepo,
-      "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven"
-    ))
+  .settings(resolvers ++= Seq(
+    Resolver.bintrayRepo("jetbrains", "markdown"),
+    Resolver.jcenterRepo,
+    "bintray-djspiewak-maven" at "https://dl.bintray.com/djspiewak/maven",
+    "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/",
+    "bintray" at "https://dl.bintray.com/webjars/maven"
+  ))
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
   tests map { test =>

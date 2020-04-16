@@ -11,9 +11,8 @@ object Dependencies {
   val compile = Seq(
     ws,
     "uk.gov.hmrc"                  %% "bootstrap-play-26"        % "1.3.0",
-    "uk.gov.hmrc"                  %% "play-ui"                  % "8.3.0-play-26",
     "uk.gov.hmrc"                  %% "play-language"            % "4.2.0-play-26",
-    "uk.gov.hmrc"                  %% "govuk-template"           % "5.44.0-play-26",
+    "uk.gov.hmrc"                  %% "play-frontend-govuk"      % "0.40.0-play-26",
     "uk.gov.hmrc"                  %% "auth-client"              % "2.31.0-play-26",
     "uk.gov.hmrc"                  %% "domain"                   % "5.3.0",
     "uk.gov.hmrc"                  %% "play-partials"            % "6.9.0-play-26",
@@ -32,7 +31,8 @@ object Dependencies {
     "com.softwaremill.quicklens"   %% "quicklens"                % "1.4.11",
     "com.nrinaudo"                 %% "kantan.csv"               % "0.5.1",
     "com.miguelfonseca.completely" % "completely-core"           % "0.8.0",
-    "org.jsoup"                    % "jsoup"                     % "1.13.1"
+    "org.jsoup"                    % "jsoup"                     % "1.13.1",
+    "org.webjars.npm"              % "govuk-frontend"            % "3.6.0"
   )
 
   def test(scope: String = "test") = Seq(

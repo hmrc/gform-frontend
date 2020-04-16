@@ -16,7 +16,6 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.play.views.html.helpers._
 @import uk.gov.hmrc.gform.ops.FormComponentOps
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
@@ -24,7 +23,7 @@
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @(fieldValue: FormComponent,
-  text: Text,
+  text: uk.gov.hmrc.gform.sharedmodel.formtemplate.Text,
   prepop: Option[String],
   validationResult: Option[FormFieldValidationResult],
   index: Int,
@@ -41,7 +40,7 @@
 }
 @inputBoxSize = @{
     fieldValue.`type` match {
-        case Text(TextWithRestrictions(_, max), _, _,_) if  max<5 => "input--xsmall"
+        case uk.gov.hmrc.gform.sharedmodel.formtemplate.Text(TextWithRestrictions(_, max), _, _,_) if  max<5 => "input--xsmall"
         case _ => ""
     }
 }

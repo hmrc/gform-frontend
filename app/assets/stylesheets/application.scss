@@ -1,0 +1,8 @@
+$govuk-assets-path: "/gform-frontend/assets/lib/govuk-frontend/govuk/assets/";
+
+@import "lib/govuk-frontend/govuk/all";
+
+.app-reference-number {
+  display: block;
+  font-weight: bold;
+}

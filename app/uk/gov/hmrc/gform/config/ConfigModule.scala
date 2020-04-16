@@ -66,7 +66,6 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
     FrontendAppConfig(
       albAdminIssuerUrl =
         playConfiguration.getOptional[String]("albAdminIssuerUrl").getOrElse("idp-url-variable-not-set"),
-      assetsPrefix = typesafeConfig.getString(s"assets.url") + typesafeConfig.getString(s"assets.version"),
       analyticsToken = typesafeConfig.getString(s"google-analytics.token"),
       analyticsHost = typesafeConfig.getString(s"google-analytics.host"),
       reportAProblemPartialUrl = s"/contact/problem_reports_ajax?service=$contactFormServiceIdentifier",

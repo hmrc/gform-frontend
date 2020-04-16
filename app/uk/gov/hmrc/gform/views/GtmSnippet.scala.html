@@ -16,21 +16,12 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-@(
-  pageTitle: String,
-  heading: String,
-  message: String,
-  frontendAppConfig: FrontendAppConfig
-)(implicit messages: Messages, viewHelpers: ViewHelpersAlgebra)
+@this()
+
+@()(implicit request: Request[_], messages: Messages, appConfig: FrontendAppConfig)
 
 
-@errorContentHeader = {
-  <h1>@heading</h1>
+@if(appConfig.googleTagManagerIdAvailable) {
+ <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
 }
 
-@mainContent = {
-  <p>@message</p>
-}
-
-@*govuk_wrapper(appConfig = frontendAppConfig, title = pageTitle, serviceTitle = pageTitle, headTitle = pageTitle, contentHeader = Some(errorContentHeader), mainContent = mainContent, authConfig = None, includeHMRCBranding = false, templateId = FormTemplateId(""))*@

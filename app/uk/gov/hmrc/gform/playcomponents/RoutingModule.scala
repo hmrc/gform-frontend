@@ -29,6 +29,7 @@ import uk.gov.hmrc.gform.gform.GformModule
 import uk.gov.hmrc.gform.metrics.MetricsModule
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.play.health.HealthController
+import uk.gov.hmrc.govukfrontend.controllers._
 
 class RoutingModule(
   playBuiltInsModule: PlayBuiltInsModule,
@@ -42,14 +43,20 @@ class RoutingModule(
   frontendFiltersModule: FrontendFiltersModule,
   controllersModule: ControllersModule,
   assetsComponents: AssetsComponents,
-  errorHandler: ErrorHandler
+  errorHandler: ErrorHandler,
+  assetsMetadata: _root_.controllers.AssetsMetadata
 ) { self =>
 
   //This must be called before `controllers.template.routes` gets read be classloader ...
-  template.RoutesPrefix.setPrefix("/template")
+
+  val abc =
+    new Assets(errorHandler, assetsMetadata)
+
+  val govuk_Routes_0: govuk.Routes = new govuk.Routes(errorHandler, abc)
 
   private val appRoutes: app.Routes = new app.Routes(
     errorHandler,
+    govuk_Routes_0,
     gformModule.newFormController,
     gformModule.formController,
     gformModule.summaryController,
@@ -72,7 +79,6 @@ class RoutingModule(
   private val prodRoutes: prod.Routes = new prod.Routes(
     errorHandler,
     appRoutes,
-    new controllers.template.Template(errorHandler, assetsComponents.assetsMetadata),
     new HealthController(
       configModule.playConfiguration,
       configModule.environment,

@@ -19,6 +19,12 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.config.JSConfig
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
+@import uk.gov.hmrc.gform.views.html.components._
+@import uk.gov.hmrc.gform.views.components.FooterLinks
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
+@import uk.gov.hmrc.govukfrontend.views.html.layouts._
+
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -38,7 +44,7 @@
   includeHMRCBranding: Boolean,
   formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId
-)(implicit messages: Messages, viewHelpers: ViewHelpersAlgebra)
+)(implicit messages: Messages, request: Request[_], viewHelpers: ViewHelpersAlgebra)
 
 @scriptElement = {
   @scriptElem
@@ -71,9 +77,11 @@
 }
 
 @head = {
-    @viewHelpers.head(
+    @*viewHelpers.head(
       linkElem = Some(linkElement),
-      headScripts = None)
+      headScripts = None)*@
+    <!--[if lte IE 8]><link href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if gt IE 8]><!--><link href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
     @if(appConfig.googleTagManagerIdAvailable) {
       <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
     }
@@ -187,12 +195,12 @@
 }
 
 @serviceInfo = {
-    @viewHelpers.serviceInfo(
+    @*viewHelpers.serviceInfo(
       betaBanner = betaBanner,
       includeGridWrapper = false,
       includeHMRCBranding = includeHMRCBranding,
       setLang = messages("global.lang"),
-      serviceInfoContent = Some(serviceHeader))
+      serviceInfoContent = Some(serviceHeader))*@
 }
 
 @mainContentHeader = {
@@ -214,7 +222,7 @@
       sidebar = sidebar)
 }
 
-@{viewHelpers.govUkTemplate(Some(headTitle), bodyClasses)(
+@*{viewHelpers.govUkTemplate(Some(headTitle), bodyClasses)(
     head = head,
     bodyEnd = bodyEnd,
     insideHeader = insideHeader,
@@ -224,4 +232,17 @@
     nav = true
 )(
     content
-)}
+)}*@
+
+@{new govukLayout(GovukTemplate, GovukHeader, GovukFooter, GovukBackLink)(
+    pageTitle = Some("pageTitle"),
+    headBlock = Some(head),
+    beforeContentBlock = None,
+    bodyEndBlock = None,
+    scriptsBlock = Some(scriptElement),
+    headerBlock = Some(siteHeader(appConfig, authConfig, templateId, serviceTitle)),
+    footerItems = FooterLinks.items(appConfig)
+)(content)
+}
+
+

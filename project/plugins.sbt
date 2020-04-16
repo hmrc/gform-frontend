@@ -23,3 +23,11 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 addSbtPlugin("org.lyranthe.sbt" % "partial-unification" % "1.1.2")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.2")
+
+addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.11")
+
+addSbtPlugin("net.ground5hark.sbt" % "sbt-concat" % "0.1.9")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-uglify" % "2.0.0")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.1.2")
