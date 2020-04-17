@@ -331,6 +331,12 @@ footer.links.accessibility.title=Accessibility
 footer.links.accessibility.text=Accessibility
 accessibility.page.title=accessibility statement
 
+# Footer links
+footer.links.Cookies=Cookies
+footer.links.PrivacyPolicy=Privacy policy
+footer.links.TermsConditions=Terms and conditions
+footer.links.Help=Help using GOV.UK
+
 accessibility.heading=Accessibility statement for
 accessibility.description1=This accessibility statement explains how accessible this service is, what to do if you have difficulty using it, and how to report accessibility problems with the service.
 accessibility.description2=This service is also part of the wider GOV.UK website. There is a separate

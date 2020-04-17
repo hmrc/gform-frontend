@@ -43,7 +43,7 @@
                          else {
                                 Some(Seq(
                                     HeaderNavigation(
-                                        href = Some("@{authTimeout.signOutUrl}/@{templateId.value}"),
+                                        href = Some(s"${authTimeout.signOutUrl}/${templateId.value}"),
                                         text = Some(messages("linkText.signOut"))
                                     )
                                 ))
