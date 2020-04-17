@@ -35,6 +35,8 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormCompon
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationUtil }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 
 class EnrolmentResultProcessor(
   renderEnrolmentSection: RenderEnrolmentSection,
@@ -62,7 +64,7 @@ class EnrolmentResultProcessor(
       .evaluateValidationResult(fields, v, data, envelope)
       .map(ffvr => ffvr.fieldValue -> ffvr)
 
-  private def getResult(validationResult: ValidatedType[ValidationResult], globalErrors: List[Html]): Result = {
+  private def getResult(validationResult: ValidatedType[ValidationResult], globalErrors: List[ErrorLink]): Result = {
     val errorMap = getErrorMap(validationResult)
     Ok(
       renderEnrolmentSection(
@@ -80,15 +82,18 @@ class EnrolmentResultProcessor(
   def recoverEnrolmentError(implicit request: Request[AnyContent], messages: Messages): SubmitEnrolmentError => Result =
     enrolmentError => {
 
-      def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[Html]) = see match {
-        case RegimeIdNotMatch(identifierRecipe) =>
-          val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set(messages("enrolment.error.regimeId")))
-          (Invalid(regimeIdError), List.empty)
-        case NoIdentifierProvided =>
-          val globalError = html.form.errors.error_global(messages("enrolment.error.missingIdentifier"))
-          (ValidationResult.empty.valid, globalError :: Nil)
-        case EnrolmentFormNotValid(invalid) => (Invalid(invalid), List.empty)
-      }
+      def convertEnrolmentError(see: SubmitEnrolmentError): (ValidatedType[ValidationResult], List[ErrorLink]) =
+        see match {
+          case RegimeIdNotMatch(identifierRecipe) =>
+            val regimeIdError = Map(identifierRecipe.value.toFieldId -> Set(messages("enrolment.error.regimeId")))
+            (Invalid(regimeIdError), List.empty)
+          case NoIdentifierProvided =>
+            val globalError = ErrorLink(
+              content = content.Text(messages("enrolment.error.missingIdentifier"))
+            )
+            (ValidationResult.empty.valid, globalError :: Nil)
+          case EnrolmentFormNotValid(invalid) => (Invalid(invalid), List.empty)
+        }
 
       val (validationResult, globalErrors) = convertEnrolmentError(enrolmentError)
       getResult(validationResult, globalErrors)
@@ -104,7 +109,9 @@ class EnrolmentResultProcessor(
         Redirect(uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplate._id).url)
       case CheckEnrolmentsResult.InvalidIdentifiers | CheckEnrolmentsResult.InvalidCredentials |
           CheckEnrolmentsResult.InsufficientEnrolments =>
-        val globalError = html.form.errors.error_global_enrolment(formTemplate._id)
+        val globalError: ErrorLink = ErrorLink(
+          content = content.HtmlContent(html.form.errors.error_global_enrolment(formTemplate._id)))
+
         val globalErrors = globalError :: Nil
         val validationResult = ValidationResult.empty.valid
         getResult(validationResult, globalErrors)

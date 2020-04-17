@@ -65,6 +65,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.Radios
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -192,7 +193,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
   private def generatePageLevelErrorHtml(
     listValidation: List[FormFieldValidationResult],
-    globalErrors: List[Html]
+    globalErrors: List[ErrorLink]
   )(implicit messages: Messages): HasErrors = {
 
     val allValidationResults = listValidation.flatMap {
@@ -200,16 +201,28 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case others                         => List(others)
     }
 
-    val errorsHtml: List[Html] = globalErrors ++ allValidationResults
+    val errorsHtml: List[ErrorLink] = globalErrors ++ allValidationResults
       .filter(_.isNotOk)
       .flatMap { validationResult =>
         validationResult.fieldErrors
-          .map(errorMessage => html.form.errors.error_message_component(validationResult, errorMessage))
+          .map(
+            errorMessage =>
+              ErrorLink(
+                href = Some("#" + validationResult.fieldValue.id.value),
+                content = content.Text(errorMessage)
+            ))
       }
 
-    if (errorsHtml.nonEmpty)
-      Errors(html.form.errors.page_level_error(errorsHtml, listValidation))
-    else
+    if (errorsHtml.nonEmpty) {
+
+      val errorSummary = ErrorSummary(
+        errorList = errorsHtml,
+        title = content.Text(messages("error.summary.heading"))
+      )
+
+      val errorHtml: Html = new components.govukErrorSummary()(errorSummary)
+      Errors(errorHtml)
+    } else
       NoErrors
   }
 
@@ -399,7 +412,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     enrolmentSection: EnrolmentSection,
     fieldData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
-    globalErrors: List[Html],
+    globalErrors: List[ErrorLink],
     validatedType: ValidatedType[ValidationResult]
   )(
     implicit hc: HeaderCarrier,

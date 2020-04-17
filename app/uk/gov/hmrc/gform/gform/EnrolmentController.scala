@@ -48,6 +48,7 @@ import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, GetEmailCodeFieldMatcher, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -134,7 +135,7 @@ class EnrolmentController(
     enrolmentSection: EnrolmentSection,
     recalculatedFormData: FormDataRecalculated,
     errors: List[(FormComponent, FormFieldValidationResult)],
-    globalErrors: List[Html],
+    globalErrors: List[ErrorLink],
     validatedType: ValidatedType[ValidationResult])(implicit request: Request[_], l: LangADT) = {
     implicit val sse = smartStringEvaluatorFactory(
       recalculatedFormData,

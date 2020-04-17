@@ -17,12 +17,12 @@
 @import uk.gov.hmrc.gform.sharedmodel.LangADT
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
-@(formTemplateId: FormTemplateId)(implicit request: Request[_], messages: Messages, l: LangADT)
+@(formTemplateId: FormTemplateId)(implicit messages: Messages, l: LangADT)
 
 <p>@messages("enrolment.error.failed")</p>
 
 
-<ul class="bullets">
+<ul class="govuk-list govuk-list--bullet">
   <li>@messages("enrolment.error.failed.step1")</li>
   <li>
     <a href="@uk.gov.hmrc.gform.gform.routes.StaticPagesController.helpWithRegistrationPage(formTemplateId)" target="_blank">

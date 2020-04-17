@@ -22,6 +22,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResu
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormComponent, FormTemplate }
 import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 
 package object processor {
   type RenderEnrolmentSection = (
@@ -30,6 +31,6 @@ package object processor {
     EnrolmentSection,
     FormDataRecalculated,
     List[(FormComponent, FormFieldValidationResult)],
-    List[Html],
+    List[ErrorLink],
     ValidatedType[ValidationResult]) => Html
 }
