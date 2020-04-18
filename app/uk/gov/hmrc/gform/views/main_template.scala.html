@@ -36,8 +36,9 @@
   webChat: Option[WebChat] = None,
   formCategory: FormCategory = Default,
   languages: AvailableLanguages = AvailableLanguages.default,
-  templateId: FormTemplateId
-)(mainContent: Html)(implicit request : Request[_], messages: Messages, viewHelpers: ViewHelpersAlgebra)
+  templateId: FormTemplateId,
+  backLink: Option[BackLink] = None
+)(content: Html)(implicit request : Request[_], messages: Messages, viewHelpers: ViewHelpersAlgebra)
 
 @serviceInfo = {}
 
@@ -101,11 +102,12 @@
   bodyClasses = bodyClasses,
   sidebar = sidebar,
   contentHeader = contentHeader,
-  mainContent = mainContent,
+  content = content,
   serviceInfoContent = serviceInfo,
   scriptElem = Some(mainScripts),
   authConfig = authConfig,
   includeHMRCBranding = formCategory.isHmrc,
   formLanguages = languages,
-  templateId = templateId
+  templateId = templateId,
+  backLink = backLink
 )

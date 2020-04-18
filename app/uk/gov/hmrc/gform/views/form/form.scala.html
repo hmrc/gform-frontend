@@ -22,6 +22,8 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
 @import uk.gov.hmrc.gform.views.html.specimen
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 
 @(
   formTemplate: FormTemplate,
@@ -51,12 +53,14 @@
     }
   }
 
-@backLink = {
-  @if(isDeclaration) {
-    <a href="@uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode)" class="link-back">@messages("linkText.back")</a>
-  } else {
-    <a href="#" class="link-back js-visible" id="backButton">@messages("linkText.back")</a>
-  }
+@backLink = @{
+  val href =
+    if(isDeclaration) {
+      uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url
+    } else {
+      "#"
+    }
+  new BackLink(attributes=Map("id" -> "backButton"), href = href, content = new Text(messages("linkText.back")))
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -69,10 +73,9 @@
   webChat = formTemplate.webChat,
   formCategory = formTemplate.formCategory,
   languages = formTemplate.languages,
-  templateId = formTemplate._id
+  templateId = formTemplate._id,
+  backLink = if(shouldDisplayBack) Some(backLink) else None
 ) {
-
-    @if(shouldDisplayBack) { @backLink }
 
     @pageLevelError.render
 

@@ -1,9 +1,9 @@
 ;(function (global) {
     'use strict'
-  
+
     var $ = global.jQuery
     var GOVUK = global.GOVUK || {}
-  
+
     function GformFormActionHandlers () {
       var self = this;
 
@@ -21,13 +21,13 @@
           $('#gf-form').submit();
         }
       }
-      
+
       function handleFormSubmit(action, submit) {
         return function (e) {
           setAction(e, action, submit);
         };
       }
-  
+
       // Set up event handlers
       function init () {
         // Prevent form submissions while submit button is disabled (covers form submission by hitting Enter)
@@ -37,7 +37,8 @@
           }
         })
 
-        $('#content')
+	$("#main-content")
+          .parent()
           .on('click', '[type="submit"]', setAction)
           .on('click', '.removeRepeatingSection, #addRepeatingGroup', handleFormSubmit(null, true))
           .on('click', '#backButton', handleFormSubmit('Back', true))
@@ -59,17 +60,17 @@
 
           })
       }
-      
+
       self.GformFormActionHandlers = function () {
         init()
       }
-  
+
     }
-  
+
     GformFormActionHandlers.prototype.init = function () {
       this.GformFormActionHandlers()
     }
-  
+
     GOVUK.GformFormActionHandlers = GformFormActionHandlers
     global.GOVUK = GOVUK
   })(window)

@@ -67,15 +67,6 @@ trait ViewHelpersAlgebra {
   def reportAProblemLink(ajaxFormPartialUrl: scala.Predef.String, nonJSFormPageUrl: scala.Predef.String)(
     implicit messages: play.api.i18n.Messages): play.twirl.api.HtmlFormat.Appendable
 
-  def mainContent(
-    article: play.twirl.api.Html,
-    mainClass: scala.Option[scala.Predef.String],
-    mainDataAttributes: scala.Option[play.twirl.api.Html],
-    mainContentHeader: play.twirl.api.Html,
-    serviceInfo: play.twirl.api.Html,
-    sidebar: play.twirl.api.Html,
-    getHelpForm: play.twirl.api.Html): play.twirl.api.HtmlFormat.Appendable
-
   def mainContentHeader(contentHeader: play.twirl.api.Html): play.twirl.api.HtmlFormat.Appendable
 
   def serviceInfo(
@@ -135,15 +126,6 @@ class ViewHelpers(webChatClient: WebchatClient) extends ViewHelpersAlgebra {
   def reportAProblemLink(ajaxFormPartialUrl: scala.Predef.String, nonJSFormPageUrl: scala.Predef.String)(
     implicit messages: play.api.i18n.Messages): play.twirl.api.HtmlFormat.Appendable =
     play.twirl.api.HtmlFormat.empty
-
-  def mainContent(
-    article: play.twirl.api.Html,
-    mainClass: scala.Option[scala.Predef.String],
-    mainDataAttributes: scala.Option[play.twirl.api.Html],
-    mainContentHeader: play.twirl.api.Html,
-    serviceInfo: play.twirl.api.Html,
-    sidebar: play.twirl.api.Html,
-    getHelpForm: play.twirl.api.Html): play.twirl.api.HtmlFormat.Appendable = article
 
   def mainContentHeader(contentHeader: play.twirl.api.Html): play.twirl.api.HtmlFormat.Appendable = ???
 

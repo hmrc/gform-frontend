@@ -19,13 +19,12 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.config.JSConfig
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
-@import uk.gov.hmrc.gform.views.html.components._
-@import uk.gov.hmrc.gform.views.components.FooterLinks
+@import uk.gov.hmrc.gform.views.components.{FooterLinks, SiteHeader}
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import uk.gov.hmrc.govukfrontend.views.html.layouts._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
-
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -37,14 +36,15 @@
   bodyClasses: Option[String] = None,
   sidebar: Html = HtmlFormat.empty,
   contentHeader: Option[Html] = None,
-  mainContent: Html = HtmlFormat.empty,
+  content: Html = HtmlFormat.empty,
   serviceInfoContent: Html = HtmlFormat.empty,
   scriptElem: Option[Html] = None,
   authConfig: Option[AuthConfig],
   navLinks: Option[Html] = None,
   includeHMRCBranding: Boolean,
   formLanguages: AvailableLanguages = AvailableLanguages.default,
-  templateId: FormTemplateId
+  templateId: FormTemplateId,
+  backLink: Option[BackLink]
 )(implicit messages: Messages, request: Request[_], viewHelpers: ViewHelpersAlgebra)
 
 @authTimeout = @{
@@ -58,6 +58,7 @@
 
 @scripts = {
     @scriptElem
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src='@routes.Assets.versioned("javascripts/gformGAEvents.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformRepeatingGroups.js")'></script>
@@ -202,29 +203,6 @@
 
 @getHelpForm = @{viewHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
 
-@content = {
-    @viewHelpers.mainContent(
-      article = mainContent,
-      mainClass = mainClass,
-      mainDataAttributes = mainDataAttributes,
-      mainContentHeader = mainContentHeader,
-      serviceInfo = serviceInfo,
-      getHelpForm = getHelpForm,
-      sidebar = sidebar)
-}
-
-@*{viewHelpers.govUkTemplate(Some(headTitle), bodyClasses)(
-    head = head,
-    bodyEnd = bodyEnd,
-    insideHeader = insideHeader,
-    afterHeader = afterHeader,
-    footerTop = footerTop,
-    footerLinks = Some(viewHelpers.footerLinks(additionalLinks = Some(footerLinks))),
-    nav = true
-)(
-    content
-)}*@
-
 @accessibilityFooterHref = @{uk.gov.hmrc.gform.gform.routes.StaticPagesController.accessibilityPage(templateId)}
 
 @accessibilityFooterLink = @{
@@ -233,19 +211,20 @@
         attributes = Map("target" -> "_blank", "data-sso" -> "false", "data-journey-click" -> "footer:Click:Accessibility") )
 }
 
-@footerDefault = {
-    @{new govukFooter()(new Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig) :+ accessibilityFooterLink)))))}
-}
+@govukHeader = @{new govukHeader()}
+@govukFooter = @{new govukFooter()}
+@govukBackLink = @{new govukBackLink()}
+@govukSkipLink = @{new govukSkipLink()}
+@govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
+@govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink)}
 
-@{new govukLayout(GovukTemplate, GovukHeader, GovukFooter, GovukBackLink)(
+@{govukLayout(
     pageTitle = Some(headTitle),
     headBlock = Some(head),
-    beforeContentBlock = None,
+    headerBlock = Some(govukHeader(SiteHeader(appConfig, authConfig, templateId, serviceTitle))),
+    beforeContentBlock = backLink.map(govukBackLink.apply),
     bodyEndBlock = None,
     scriptsBlock = Some(scripts),
-    headerBlock = Some(siteHeader(appConfig, authConfig, templateId, serviceTitle)),
-    footerBlock = Some(footerDefault)
+    footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig) :+ accessibilityFooterLink))))))
 )(content)
 }
-
-

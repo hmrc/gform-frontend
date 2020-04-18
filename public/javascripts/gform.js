@@ -1,8 +1,8 @@
 ;(function(window){
-  var showHideContent = new GOVUK.ShowHideContent();
-  showHideContent.init();
+  //var showHideContent = new GOVUK.ShowHideContent	();
+  //showHideContent.init();
 
-  GOVUK.details.init()
+  //GOVUK.details.init()
 
   var gformFileUpload = new GOVUK.GformFileUpload();
   gformFileUpload.init();
@@ -12,7 +12,7 @@
 
   var errorSummary = new GOVUK.GformErrorSummary();
   errorSummary.init();
-  
+
   var toggleAddressLabels = new GOVUK.GformToggleAddressLabels();
   toggleAddressLabels.init();
 
