@@ -58,18 +58,43 @@
 
 @scripts = {
     @scriptElem
+    <script src='@routes.Assets.versioned("javascripts/gformGAEvents.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformFileUpload.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformRepeatingGroups.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformErrorSummary.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformToggleAddressLabels.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformFormActionHandlers.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformSummaryLayout.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/accessible-autocomplete.min.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gformAutoComplete.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/gform.js")'></script>
+    <script src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
     <script src='@controllers.routes.Assets.versioned("lib/govuk-frontend/govuk/all.js")'></script>
     <script src='@controllers.routes.Assets.versioned("javascripts/application.min.js")'></script>
     <script>window.GOVUKFrontend.initAll();</script>
+}
+
+@linkElement = {
+  <link href='@routes.Assets.versioned("stylesheets/accessible-autocomplete.min.css")' rel="stylesheet" />
+  <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
+}
+
+@head = {
+    <!--[if lte IE 8]><link href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if gt IE 8]><!--><link href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
+    @if(appConfig.googleTagManagerIdAvailable) {
+      <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
+    }
     <script>
-      window.getCookie = function (name) {
-        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        if (match) return match[2];
-      };
-      window.gform = window.gform || {};
-      window.gform.baseLookupUrl = "/submissions/lookup/";
-      window.gform.lang = window.getCookie("PLAY_LANG") || "en";
-    </script>
+          window.getCookie = function (name) {
+            var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            if (match) return match[2];
+          };
+          window.gform = window.gform || {};
+          window.gform.baseLookupUrl = "/submissions/lookup/";
+          window.gform.lang = window.getCookie("PLAY_LANG") || "en";
+        </script>
     @if(authTimeout.timeoutEnabled) {
     <script>
               window.gform = window.gform || {};
@@ -82,22 +107,8 @@
               }
           </script>
     }
-}
 
-@linkElement = {
-  <link href='@routes.Assets.versioned("stylesheets/accessible-autocomplete.min.css")' rel="stylesheet" />
-  <link href='@routes.Assets.versioned("stylesheets/gform.css")' rel="stylesheet" />
-}
-
-@head = {
-    @*viewHelpers.head(
-      linkElem = Some(linkElement),
-      headScripts = None)*@
-    <!--[if lte IE 8]><link href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
-    <!--[if gt IE 8]><!--><link href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
-    @if(appConfig.googleTagManagerIdAvailable) {
-      <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','@{appConfig.googleTagManagerId}');</script>
-    }
+    <meta name="format-detection" content="telephone=no" />
 }
 
 @signOutLink = {
@@ -227,7 +238,7 @@
 }
 
 @{new govukLayout(GovukTemplate, GovukHeader, GovukFooter, GovukBackLink)(
-    pageTitle = Some("pageTitle"),
+    pageTitle = Some(headTitle),
     headBlock = Some(head),
     beforeContentBlock = None,
     bodyEndBlock = None,
