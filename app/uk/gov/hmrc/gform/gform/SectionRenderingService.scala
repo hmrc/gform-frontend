@@ -792,8 +792,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case Some(xs) if xs.contains(TotalValue) =>
           asTotalValue(formComponent, t, prepopValue, validatedValue, index, ei.formLevelHeading)
         case _ =>
+          val isPageHeading = !ei.formLevelHeading
           val label = Label(
-            isPageHeading = ei.formLevelHeading,
+            isPageHeading = isPageHeading,
+            classes = if (isPageHeading) "govuk-label--l" else "",
             content = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
           )
           val hint = formComponent.helpText.map { ls =>

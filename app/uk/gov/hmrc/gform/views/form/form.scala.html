@@ -18,12 +18,14 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.models._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.HasErrors
-@import uk.gov.hmrc.gform.views.html.specimen
+@import uk.gov.hmrc.gform.views.html.{main_template, specimen}
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
+@import uk.gov.hmrc.govukfrontend.views.html.components.govukButton
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 
 @(
   formTemplate: FormTemplate,
@@ -45,13 +47,13 @@
 
 @heading = @{page.sectionTitle}
 
-  @buttonLabel = @{
-    if(page.continueLabel.isEmpty) {
-      messages("button.saveAndContinue")
-    } else {
-      page.continueLabel
-    }
+@buttonLabel = @{
+  if(page.continueLabel.isEmpty) {
+    messages("button.saveAndContinue")
+  } else {
+    page.continueLabel
   }
+}
 
 @backLink = @{
   val href =
@@ -63,7 +65,10 @@
   new BackLink(attributes=Map("id" -> "backButton"), href = href, content = new Text(messages("linkText.back")))
 }
 
-@uk.gov.hmrc.gform.views.html.main_template(
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+
+@main_template(
   title = heading,
   serviceName = formTemplate.formName.value,
   containsErrors = pageLevelError.hasErrors,
@@ -79,21 +84,20 @@
 
     @pageLevelError.render
 
-    @if(page.progressIndicator.isDefined){
-      <span id="progress-indicator" class="heading-caption">@{page.progressIndicator.get}</span>
+    @page.progressIndicator.fold[Html](Html("")){ progressIndicator =>
+      <span id="progress-indicator" class="govuk-caption-l">@progressIndicator</span>
     }
 
     @if(shouldDisplayHeading) {
-      <h1 class="h1-heading form-title">
+      <h1 class="govuk-heading-l">
         @heading
       </h1>
       @if(page.sectionDescription.exists(_.trim.nonEmpty)){
-        <p class="page-description">@{page.sectionDescription.get}</p>
+        <p class="govuk-body">@{page.sectionDescription.get}</p>
       }
     }
 
-    <form action="@page.formAction.url" method="POST" class="js-form" autocomplete="on" novalidate="novalidate" id="gf-form">
-      @{CSRF.formField}
+    @formWithCSRF(action = page.formAction, args = 'class -> "js-form", 'autocomplete -> "on", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
       @{page.snippets}
 
@@ -102,18 +106,14 @@
       <input type="hidden" id="gform-action" name="save" value="Continue" />
 
       @if(shouldDisplayContinue) {
-        <div class="form-group">
-            <button type="submit" class="button" value="Continue">@{buttonLabel}</button>
-        </div>
+        @govukButton(Button(content = Text(buttonLabel), value=Some("Continue")))
       }
-      <div class="js-visible">
-        @if(page.renderComeBackLater) {
-          <div class="form-group">
-            <a href="#" id="saveComeBackLater">@messages("linkText.saveAndComeBackLater")</a>
-          </div>
-        }
-      </div>
-    </form>
+      @if(page.renderComeBackLater) {
+        <p class="govuk-body">
+          <a href="#" id="saveComeBackLater" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
+        </p>
+      }
+    }
 
     @if(formTemplate.isSpecimen) {
       @specimen.navigation(formTemplate, page)
