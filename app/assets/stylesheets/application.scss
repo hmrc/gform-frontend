@@ -1,6 +1,9 @@
 $govuk-assets-path: "/submissions/assets/lib/govuk-frontend/govuk/assets/";
+$hmrc-assets-path: "/submissions/assets/lib/hmrc-frontend/hmrc/";
 
 @import "lib/govuk-frontend/govuk/all";
+
+@import "lib/hmrc-frontend/hmrc/all";
 
 .app-reference-number {
   display: block;

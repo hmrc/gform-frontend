@@ -1,6 +1,7 @@
 # microservice specific routes
 
 ->            /govuk-frontend                                                                                    govuk.Routes
+->            /hmrc-frontend                                                                                     hmrcfrontend.Routes
 
 GET           /new-form/:formTemplateId                                                                          uk.gov.hmrc.gform.gform.NewFormController.dashboard(formTemplateId: FormTemplateId)
 GET           /new-form/:formTemplateId/session                                                                  uk.gov.hmrc.gform.gform.NewFormController.dashboardWithNewSession(formTemplateId: FormTemplateId)

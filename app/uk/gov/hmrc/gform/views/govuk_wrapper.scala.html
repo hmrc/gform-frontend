@@ -25,6 +25,9 @@
 @import uk.gov.hmrc.govukfrontend.views.html.layouts._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
+@import uk.gov.hmrc.hmrcfrontend.views.html.components
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, Language, LanguageToggle, LanguageSelect}
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.reporttechnicalissue.ReportTechnicalIssue
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -146,7 +149,6 @@
       gaCalls = None)
 }
 
-
 @size = @{formLanguages.languages.size}
 @formLanguageSet = @{formLanguages.languages.map(l => l.langADTToString)}
 @appLanguageSet = @{appConfig.availableLanguages.map{case(s,l) => l.code}.toSet}
@@ -218,11 +220,27 @@
 @govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
 @govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink)}
 
+@header = {
+  @govukHeader(SiteHeader(appConfig, authConfig, templateId, serviceTitle))
+
+}
+
+@before = {
+  @{new components.hmrcHeader(new components.hmrcBanner())(components.Header(displayHmrcBanner = true, signOutHref=Some("dsadsad"), serviceName=Some("Gform")))}
+}
+
+@language = {
+  <span class="gform-language-container">
+    @{new components.hmrcLanguageSelect()(LanguageSelect(En, En -> "English", Cy -> "Welsch"))}
+  </span>
+  @{new components.hmrcReportTechnicalIssue()(ReportTechnicalIssue(language = Some("JHJHHJ")))}
+}
+
 @{govukLayout(
     pageTitle = Some(headTitle),
     headBlock = Some(head),
-    headerBlock = Some(govukHeader(SiteHeader(appConfig, authConfig, templateId, serviceTitle))),
-    beforeContentBlock = backLink.map(govukBackLink.apply),
+    headerBlock = Some(before),
+    beforeContentBlock = Some(language),
     bodyEndBlock = None,
     scriptsBlock = Some(scripts),
     footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig) :+ accessibilityFooterLink))))))
