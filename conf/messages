@@ -27,6 +27,11 @@ signedOut.title=You have been signed out
 # Error summary
 error.summary.heading=There is a problem
 
+# BETA Banner
+feedback.before = This is a new service - your
+feedback.link = feedback
+feedback.after = will help us to improve it.
+
 # Generic words
 generic.From=From
 generic.to=to
@@ -325,17 +330,16 @@ helper.order={0} {1}
 # Summary alert
 summary.alert.title=Issues with your form
 
-
-# Accessibility statement link
-footer.links.accessibility.title=Accessibility
-footer.links.accessibility.text=Accessibility
-accessibility.page.title=accessibility statement
-
 # Footer links
 footer.links.Cookies=Cookies
 footer.links.PrivacyPolicy=Privacy policy
 footer.links.TermsConditions=Terms and conditions
 footer.links.Help=Help using GOV.UK
+
+# Accessibility statement link
+footer.links.accessibility.title=Accessibility
+footer.links.accessibility.text=Accessibility
+accessibility.page.title=accessibility statement
 
 accessibility.heading=Accessibility statement for
 accessibility.description1=This accessibility statement explains how accessible this service is, what to do if you have difficulty using it, and how to report accessibility problems with the service.

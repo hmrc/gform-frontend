@@ -26,6 +26,11 @@ signedOut.title=Rydych wedi cael eich allgofnodi
 # Error summary
 error.summary.heading=Mae problem wedi codi
 
+# BETA Banner
+feedback.before =Mae hwn yn wasanaeth newydd – bydd eich
+feedback.link =adborth
+feedback.after =yn ein helpu i'w wella.
+
 # Generic words
 generic.From=O
 generic.to=hyd at
@@ -308,6 +313,11 @@ helper.order={1} {0}
 # Summary alert
 summary.alert.title=Problemau gyda’ch ffurflen
 
+# Footer links
+footer.links.Cookies=Cwcis
+footer.links.PrivacyPolicy=Polisi preifatrwydd
+footer.links.TermsConditions=Telerau ac Amodau
+footer.links.Help=Help wrth ddefnyddio GOV.UK
 
 # Accessibility statement link
 footer.links.accessibility.title=Datganiad

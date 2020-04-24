@@ -88,7 +88,8 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
         getJSConfig("auth-module.awsAlbAuth")
       ),
       availableLanguages = availableLanguages,
-      routeToSwitchLanguage = routeToSwitchLanguage
+      routeToSwitchLanguage = routeToSwitchLanguage,
+      contactFormServiceIdentifier = contactFormServiceIdentifier
     )
   }
 }

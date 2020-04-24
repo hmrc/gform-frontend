@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.config.JSConfig
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
-@import uk.gov.hmrc.gform.views.components.{FooterLinks, SiteHeader}
+@import uk.gov.hmrc.gform.views.components._
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import uk.gov.hmrc.govukfrontend.views.html.layouts._
@@ -85,6 +85,7 @@
 }
 
 @head = {
+    @linkElement
     <!--[if lte IE 8]><link href='@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css")' rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if gt IE 8]><!--><link href='@controllers.routes.Assets.versioned("stylesheets/application.css")' media="screen" rel="stylesheet" type="text/css" /><!--<![endif]-->
     @if(appConfig.googleTagManagerIdAvailable) {
@@ -98,9 +99,9 @@
           window.gform = window.gform || {};
           window.gform.baseLookupUrl = "/submissions/lookup/";
           window.gform.lang = window.getCookie("PLAY_LANG") || "en";
-        </script>
+    </script>
     @if(authTimeout.timeoutEnabled) {
-    <script>
+        <script>
               window.gform = window.gform || {};
               window.gform.config = {
                 timeoutEnabled: @authTimeout.timeoutEnabled,
@@ -109,101 +110,40 @@
                 keep_alive_url: "@authTimeout.keepAliveUrl",
                 logout_url: "@authTimeout.signOutUrl/@templateId.value"
               }
-          </script>
+        </script>
     }
 
     <meta name="format-detection" content="telephone=no" />
 }
 
-@signOutLink = {
-  <li><a href="@{authTimeout.signOutUrl}/@{templateId.value}" id="signOut">@messages("linkText.signOut")</a></li>
-}
-
-@insideHeader = {
-  @defining(if(authTimeout.signOutUrl.isEmpty) None else Some(signOutLink)) { navLinks =>
-    @viewHelpers.headerNav(
-      navTitle = Some(serviceTitle),
-      navTitleLink = None,
-      showBetaLink = false,
-      navLinks = navLinks
-    )
-  }
-}
-
 @afterHeader = {
-@if(appConfig.googleTagManagerIdAvailable) {
-  <noscript>
-    <iframe src="https://www.googletagmanager.com/ns.html?id=@{appConfig.googleTagManagerId}" height="0" width="0" style="display: none;
-      visibility: hidden">
-    </iframe>
-  </noscript>
-}
-}
-
-@bodyEnd = {
-    @viewHelpers.footer(
-      analyticsToken = Some(appConfig.analyticsToken),
-      analyticsHost = appConfig.analyticsHost,
-      ssoUrl = None,
-      scriptElem = Some(scripts),
-      gaCalls = None)
+    @if(appConfig.googleTagManagerIdAvailable) {
+      <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=@{appConfig.googleTagManagerId}" height="0" width="0" style="display: none;
+          visibility: hidden">
+        </iframe>
+      </noscript>
+    }
 }
 
 @size = @{formLanguages.languages.size}
-@formLanguageSet = @{formLanguages.languages.map(l => l.langADTToString)}
-@appLanguageSet = @{appConfig.availableLanguages.map{case(s,l) => l.code}.toSet}
 
-@betaBanner = {
-  @developmentPhase match {
-    case x if x == BetaBanner || x == ResearchBanner || x == AlphaBanner => {
-      <div class="@{x.banner}-banner">
-          <p>
-              <strong class="phase-tag">@x.banner</strong>
-              @if(x.equals(BetaBanner) || x.equals(AlphaBanner)){
-                <span>
-                  @Messages("label.beta.newservice")
-                  @Messages("label.beta.yours")
-                  <a id="feedback-link"
-                     href="@{appConfig.betaFeedbackUrlNoAuth}"
-                     data-sso="false"
-                     data-journey-click="other-global:Click:Feedback">@Messages("label.beta.feedback")</a> @Messages("label.beta.improve")
-                </span>
-              }
-          </p>
-      </div>
-      }
-    case _ => {}
-  }
-}
+@formLanguageSet = @{formLanguages.languages.map(l => l.langADTToString)}
+
+@appLanguageSet = @{appConfig.availableLanguages.map{case(s,l) => l.code}.toSet}
 
 @formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
-@serviceHeader = {
-  @serviceInfoContent
-  @if(formSupportsLanguages) {
-    @views.html.language_selection(
-      appConfig.availableLanguages,
-      appConfig.routeToSwitchLanguage,
-      Some("label--inline-right"))
-  }
+@feedbackBanner = {
+    @developmentPhase match {
+        case x if x == BetaBanner || x == AlphaBanner => {
+            @messages("feedback.before")
+            <a class='govuk-link' href='@{appConfig.betaFeedbackUrlNoAuth}'>@messages("feedback.link")</a>
+            @messages("feedback.after")
+        }
+        case _ => {}
+    }
 }
-
-@serviceInfo = {
-    @*viewHelpers.serviceInfo(
-      betaBanner = betaBanner,
-      includeGridWrapper = false,
-      includeHMRCBranding = includeHMRCBranding,
-      setLang = messages("global.lang"),
-      serviceInfoContent = Some(serviceHeader))*@
-}
-
-@mainContentHeader = {
-  @if(contentHeader.nonEmpty) {
-    @viewHelpers.mainContentHeader(contentHeader = contentHeader.getOrElse(Html("")))
-  }
-}
-
-@getHelpForm = @{viewHelpers.reportAProblemLink(appConfig.reportAProblemPartialUrl, appConfig.reportAProblemNonJSUrl)}
 
 @accessibilityFooterHref = @{uk.gov.hmrc.gform.gform.routes.StaticPagesController.accessibilityPage(templateId)}
 
@@ -217,32 +157,65 @@
 @govukFooter = @{new govukFooter()}
 @govukBackLink = @{new govukBackLink()}
 @govukSkipLink = @{new govukSkipLink()}
+@govukTag = @{new govukTag()}
+@hmrcBanner = @{new components.hmrcBanner()}
+@govukPhaseBanner = @{new govukPhaseBanner(govukTag)}
 @govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
 @govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink)}
 
-@header = {
-  @govukHeader(SiteHeader(appConfig, authConfig, templateId, serviceTitle))
+@serviceName = @{
+    if(serviceTitle.nonEmpty)
+        Some(serviceTitle)
+    else
+        None
+}
+
+@signOutHref = @{
+    if(templateId.value.nonEmpty)
+        Some(s"${authTimeout.signOutUrl}/${templateId.value}")
+    else
+        None
+}
+
+@language = @{
+    if(messages("global.lang") == "en")
+        En
+    else
+        Cy
+}
+
+@headerBlock = {
+  @{new components.hmrcHeader(hmrcBanner)(components.Header(homepageUrl = "https://www.gov.uk/", language = language, signOutHref = signOutHref, serviceName = serviceName))}
+}
+
+@beforeContentBlock = {
+   @afterHeader
+   @developmentPhase match {
+        case x if x == BetaBanner || x == ResearchBanner || x == AlphaBanner => {
+            @{govukPhaseBanner(SiteBanner(developmentPhase.banner, HtmlContent(feedbackBanner)))}
+        }
+        case _ => {}
+   }
+  @hmrcBanner(Banner(if (messages("global.lang") == "en") En else Cy))
+  @{new components.hmrcLanguageSelect()(LanguageSelect(if (messages("global.lang") == "en") En else Cy, En -> "/submissions/language/english", Cy -> "/submissions/language/cymraeg"))}
+  @backLink.map(govukBackLink.apply)
 
 }
 
-@before = {
-  @{new components.hmrcHeader(new components.hmrcBanner())(components.Header(displayHmrcBanner = true, signOutHref=Some("dsadsad"), serviceName=Some("Gform")))}
-}
 
-@language = {
-  <span class="gform-language-container">
-    @{new components.hmrcLanguageSelect()(LanguageSelect(En, En -> "English", Cy -> "Welsch"))}
-  </span>
-  @backLink.map(govukBackLink.apply).getOrElse(HtmlFormat.empty)
+@contentBlock = {
+    @content
+    <br><br><br>
+    @{new components.hmrcReportTechnicalIssue()(ReportTechnicalIssue(serviceCode = appConfig.contactFormServiceIdentifier, language = Some(messages("global.lang"))))}
 }
 
 @{govukLayout(
     pageTitle = Some(headTitle),
     headBlock = Some(head),
-    headerBlock = Some(before),
-    beforeContentBlock = Some(language),
+    headerBlock = Some(headerBlock),
+    beforeContentBlock = Some(beforeContentBlock),
     bodyEndBlock = None,
     scriptsBlock = Some(scripts),
     footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig) :+ accessibilityFooterLink))))))
-)(content)
+  )(contentBlock)
 }
