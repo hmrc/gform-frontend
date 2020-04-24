@@ -233,7 +233,7 @@
   <span class="gform-language-container">
     @{new components.hmrcLanguageSelect()(LanguageSelect(En, En -> "English", Cy -> "Welsch"))}
   </span>
-  @{new components.hmrcReportTechnicalIssue()(ReportTechnicalIssue(language = Some("JHJHHJ")))}
+  @backLink.map(govukBackLink.apply).getOrElse(HtmlFormat.empty)
 }
 
 @{govukLayout(

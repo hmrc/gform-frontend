@@ -36,6 +36,8 @@ lazy val microservice = (project in file("."))
       "uk.gov.hmrc.gform.models._"
     ),
     TwirlKeys.templateImports ++= Seq(
+      "play.twirl.api.Html",
+      "play.twirl.api.HtmlFormat",
       "uk.gov.hmrc.gform.sharedmodel._",
       "uk.gov.hmrc.gform.eval.smartstring._",
       "uk.gov.hmrc.csp.WebchatClient",

@@ -52,9 +52,11 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.Register
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
+import uk.gov.hmrc.gform.ops.FormComponentOps
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
+import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
@@ -792,11 +794,24 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case Some(xs) if xs.contains(TotalValue) =>
           asTotalValue(formComponent, t, prepopValue, validatedValue, index, ei.formLevelHeading)
         case _ =>
+          val sizeClasses = t.asInstanceOf[Text].displayWidth match {
+            case DisplayWidth.XS  => "govuk-input--width-2"
+            case DisplayWidth.S   => "govuk-input--width-3"
+            case DisplayWidth.M   => "govuk-input--width-4"
+            case DisplayWidth.L   => "govuk-input--width-10"
+            case DisplayWidth.XL  => "govuk-input--width-20"
+            case DisplayWidth.XXL => "govuk-input--width-30"
+            case DisplayWidth.DEFAULT =>
+              if (TextFormatter.isNumber(formComponent) || formComponent.isSterling) "govuk-input--width-10"
+              else "govuk-input--width-5"
+          }
+
           val isPageHeading = !ei.formLevelHeading
+          val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
           val label = Label(
             isPageHeading = isPageHeading,
-            classes = if (isPageHeading) "govuk-label--l" else "",
-            content = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
+            classes = if (isPageHeading) "govuk-label--xl" else "",
+            content = labelContent
           )
           val hint = formComponent.helpText.map { ls =>
             Hint(
@@ -820,7 +835,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             label = label,
             hint = hint,
             value = prepopValue.orElse(validatedValue.flatMap(_.getCurrentValue)),
-            errorMessage = errorMessage
+            errorMessage = errorMessage,
+            classes = sizeClasses
           )
           val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
           val govukHint: components.govukHint = new components.govukHint()

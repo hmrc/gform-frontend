@@ -26,6 +26,7 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 @import uk.gov.hmrc.govukfrontend.views.html.components.govukButton
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcPageHeading
 
 @(
   formTemplate: FormTemplate,
@@ -67,6 +68,7 @@
 
 @formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
+@hmrcPageHeading = @{new hmrcPageHeading}
 
 @main_template(
   title = heading,
@@ -84,16 +86,16 @@
 
     @pageLevelError.render
 
-    @page.progressIndicator.fold[Html](Html("")){ progressIndicator =>
-      <span id="progress-indicator" class="govuk-caption-l">@progressIndicator</span>
-    }
-
     @if(shouldDisplayHeading) {
-      <h1 class="govuk-heading-l">
-        @heading
-      </h1>
+      @hmrcPageHeading(PageHeading(text = heading, section = page.progressIndicator))
+
       @if(page.sectionDescription.exists(_.trim.nonEmpty)){
         <p class="govuk-body">@{page.sectionDescription.get}</p>
+      }
+    } else {
+      @* This is here to support caption in case of isPageHading case *@
+      @page.progressIndicator.fold(HtmlFormat.empty){ caption =>
+        <span class="govuk-caption-xl">@caption</span>
       }
     }
 
