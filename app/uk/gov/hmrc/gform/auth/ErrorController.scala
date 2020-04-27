@@ -21,6 +21,8 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.MessagesControllerComponents
 import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -29,16 +31,15 @@ import scala.concurrent.Future
 class ErrorController(
   frontendAppConfig: FrontendAppConfig,
   i18nSupport: I18nSupport,
-  messagesControllerComponents: MessagesControllerComponents
+  messagesControllerComponents: MessagesControllerComponents,
+  nonAuth: NonAuthenticatedRequestActionsAlgebra[Future]
 )(implicit viewHelpers: ViewHelpersAlgebra)
     extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
 
-  def insufficientEnrolments = Action.async { implicit request =>
+  def insufficientEnrolments = nonAuth { implicit request => implicit l =>
     val pageTitle = request.flash.get("formTitle").getOrElse("")
-    Future.successful(
-      Ok(views.html.hardcoded.pages.insufficient_enrolments(pageTitle, frontendAppConfig))
-    )
+    Ok(views.html.hardcoded.pages.insufficient_enrolments(pageTitle, frontendAppConfig))
   }
 }

@@ -45,6 +45,11 @@ class ControllersModule(
 
   private implicit val messagesApi = builtInComponents.messagesApi
 
+  val nonAuthenticatedRequestActions: NonAuthenticatedRequestActions = new NonAuthenticatedRequestActions(
+    playBuiltInsModule.langs,
+    builtInComponents.defaultActionBuilder
+  )
+
   val authenticatedRequestActions: AuthenticatedRequestActions = new AuthenticatedRequestActions(
     gformBackendModule.gformConnector,
     authModule.authService,

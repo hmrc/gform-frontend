@@ -16,20 +16,15 @@
 
 package uk.gov.hmrc.gform.views.components
 
-import play.api.i18n.Messages
-import play.api.mvc.Request
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{ Content, Text }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.phasebanner.PhaseBanner
 import uk.gov.hmrc.govukfrontend.views.viewmodels.tag.Tag
+import uk.gov.hmrc.govukfrontend.views.html.components.Empty
 
 object SiteBanner {
   def apply(
     phase: String,
-    feedbackBanner: Content
-  )(
-    implicit
-    request: Request[_],
-    messages: Messages
+    feedbackBanner: Content = Empty
   ): PhaseBanner =
     PhaseBanner(
       tag = Some(Tag(content = Text(phase))),

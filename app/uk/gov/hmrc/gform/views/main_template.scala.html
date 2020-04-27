@@ -38,7 +38,7 @@
   languages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId,
   backLink: Option[BackLink] = None
-)(content: Html)(implicit request : Request[_], messages: Messages, viewHelpers: ViewHelpersAlgebra)
+)(content: Html)(implicit request : Request[_], messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @serviceInfo = {}
 

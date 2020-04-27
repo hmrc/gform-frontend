@@ -15,14 +15,20 @@
  */
 
 package uk.gov.hmrc.gform.sharedmodel
+import play.api.i18n.{ Lang, Langs, MessagesApi }
 import play.api.libs.json._
-import uk.gov.hmrc.gform.sharedmodel.LangADT.{ Cy, En }
+import play.api.mvc.Request
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OFormatWithTemplateReadFallback
+import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language
 
 sealed trait LangADT {
-  def langADTToString: String = this match {
-    case Cy => "cy"
-    case En => "en"
+  def langADTToString: String = fold(_ => "en")(_ => "cy")
+
+  def toLanguage: language.Language = fold[language.Language](_ => language.En)(_ => language.Cy)
+
+  def fold[B](f: LangADT.En.type => B)(g: LangADT.Cy.type => B): B = this match {
+    case l: LangADT.En.type => f(l)
+    case l: LangADT.Cy.type => g(l)
   }
 }
 
@@ -35,6 +41,12 @@ object LangADT {
   def stringToLangADT(string: String): LangADT = string match {
     case "cy" => Cy
     case _    => En
+  }
+
+  def fromRequest(request: Request[_], langs: Langs)(implicit messagesApi: MessagesApi): LangADT = {
+    val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
+    val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
+    stringToLangADT(lang.code)
   }
 
   private def convertToLang(jsValue: JsValue): JsResult[LangADT] = jsValue match {

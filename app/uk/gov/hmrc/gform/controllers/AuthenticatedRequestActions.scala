@@ -141,11 +141,7 @@ class AuthenticatedRequestActions(
     } yield result
   }
 
-  def getCurrentLanguage(request: Request[AnyContent]) = {
-    val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
-    val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
-    LangADT.stringToLangADT(lang.code)
-  }
+  def getCurrentLanguage(request: Request[AnyContent]) = LangADT.fromRequest(request, langs)
 
   private def getCaseWorkerIdentity(request: Request[AnyContent]): Option[Cookie] =
     request.cookies.get(appConfig.`case-worker-assumed-identity-cookie`)

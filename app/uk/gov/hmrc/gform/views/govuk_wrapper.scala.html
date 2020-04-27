@@ -26,7 +26,7 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 @import uk.gov.hmrc.hmrcfrontend.views.html.components
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, Language, LanguageToggle, LanguageSelect}
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, LanguageSelect}
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.reporttechnicalissue.ReportTechnicalIssue
 
 @(appConfig: FrontendAppConfig,
@@ -48,7 +48,7 @@
   formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId,
   backLink: Option[BackLink]
-)(implicit messages: Messages, request: Request[_], viewHelpers: ViewHelpersAlgebra)
+)(implicit messages: Messages, request: Request[_], l: LangADT)
 
 @authTimeout = @{
     authConfig match {
@@ -134,17 +134,6 @@
 
 @formSupportsLanguages = @{size > 1 && formLanguageSet.subsetOf(appLanguageSet)}
 
-@feedbackBanner = {
-    @developmentPhase match {
-        case x if x == BetaBanner || x == AlphaBanner => {
-            @messages("feedback.before")
-            <a class='govuk-link' href='@{appConfig.betaFeedbackUrlNoAuth}'>@messages("feedback.link")</a>
-            @messages("feedback.after")
-        }
-        case _ => {}
-    }
-}
-
 @accessibilityFooterHref = @{uk.gov.hmrc.gform.gform.routes.StaticPagesController.accessibilityPage(templateId)}
 
 @accessibilityFooterLink = @{
@@ -171,42 +160,50 @@
 }
 
 @signOutHref = @{
-    if(templateId.value.nonEmpty)
-        Some(s"${authTimeout.signOutUrl}/${templateId.value}")
-    else
-        None
+  if(authTimeout.signOutUrl.isEmpty) None else Some(s"${authTimeout.signOutUrl}/${templateId.value}")
 }
 
-@language = @{
-    if(messages("global.lang") == "en")
-        En
-    else
-        Cy
-}
+@language = @{l.toLanguage}
 
 @headerBlock = {
   @{new components.hmrcHeader(hmrcBanner)(components.Header(homepageUrl = "https://www.gov.uk/", language = language, signOutHref = signOutHref, serviceName = serviceName))}
 }
 
-@beforeContentBlock = {
-   @afterHeader
-   @developmentPhase match {
-        case x if x == BetaBanner || x == ResearchBanner || x == AlphaBanner => {
-            @{govukPhaseBanner(SiteBanner(developmentPhase.banner, HtmlContent(feedbackBanner)))}
-        }
-        case _ => {}
-   }
-  @hmrcBanner(Banner(if (messages("global.lang") == "en") En else Cy))
-  @{new components.hmrcLanguageSelect()(LanguageSelect(if (messages("global.lang") == "en") En else Cy, En -> "/submissions/language/english", Cy -> "/submissions/language/cymraeg"))}
-  @backLink.map(govukBackLink.apply)
+@languageSwitch = @{
+  if(formSupportsLanguages) {
+    new components.hmrcLanguageSelect()(LanguageSelect(language, En -> "/submissions/language/english", Cy -> "/submissions/language/cymraeg"))
+  } else HtmlFormat.empty
+}
 
+@feedbackContent = {
+   @messages("feedback.before")
+   <a class='govuk-link' href='@{appConfig.betaFeedbackUrlNoAuth}'>@messages("feedback.link")</a>
+   @messages("feedback.after")
+}
+
+@phaseBanner = @{
+  developmentPhase match {
+    case AlphaBanner | BetaBanner =>
+      govukPhaseBanner(SiteBanner(developmentPhase.banner, HtmlContent(feedbackContent)))
+    case ResearchBanner =>
+      govukPhaseBanner(SiteBanner(developmentPhase.banner))
+    case _ => HtmlFormat.empty
+  }
+}
+
+@beforeContentBlock = {
+  @afterHeader
+  @phaseBanner
+  @hmrcBanner(Banner(language))
+  @languageSwitch
+  @backLink.map(govukBackLink.apply)
 }
 
 
 @contentBlock = {
     @content
     <br><br><br>
-    @{new components.hmrcReportTechnicalIssue()(ReportTechnicalIssue(serviceCode = appConfig.contactFormServiceIdentifier, language = Some(messages("global.lang"))))}
+    @{new components.hmrcReportTechnicalIssue()(ReportTechnicalIssue(serviceCode = appConfig.contactFormServiceIdentifier, language = Some(language.code)))}
 }
 
 @{govukLayout(

@@ -170,7 +170,8 @@ class GformModule(
   val errorController = new ErrorController(
     configModule.frontendAppConfig,
     playBuiltInsModule.i18nSupport,
-    controllersModule.messagesControllerComponents
+    controllersModule.messagesControllerComponents,
+    controllersModule.nonAuthenticatedRequestActions
   )
 
   val agentEnrolmentController = new AgentEnrolmentController(
@@ -229,7 +230,8 @@ class GformModule(
   val signOutController: SignOutController =
     new SignOutController(
       configModule.frontendAppConfig,
-      controllersModule.messagesControllerComponents
+      controllersModule.messagesControllerComponents,
+      controllersModule.nonAuthenticatedRequestActions
     )
 
   val staticPagesController: StaticPagesController =
