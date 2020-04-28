@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.views.summary
 
+import cats.syntax.option._
 import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalSafe
 import uk.gov.hmrc.gform.commons.{ NumberFormatUtil, NumberSetScale }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -67,10 +68,10 @@ object TextFormatter {
       .getOrElse("")
   }
 
-  def appendUnit(constraint: TextConstraint)(implicit l: LangADT): String = constraint match {
-    case PositiveNumber(_, _, _, Some(unit)) => unit.value
-    case Number(_, _, _, Some(unit))         => unit.value
-    case _                                   => ""
+  def appendUnit(constraint: TextConstraint)(implicit l: LangADT): Option[String] = constraint match {
+    case PositiveNumber(_, _, _, Some(unit)) => unit.value.some
+    case Number(_, _, _, Some(unit))         => unit.value.some
+    case _                                   => none
   }
 
   def isNumber(formComponent: FormComponent) = formComponent.`type` match {

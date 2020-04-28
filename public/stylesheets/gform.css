@@ -394,3 +394,8 @@ select:focus {
     position: relative;
     top: -54px;
 }
+
+.govuk-form-group span.gform-unit {
+    font-family: "GDS Transport", Arial, sans-serif;
+    font-size: 1.1875rem;
+}

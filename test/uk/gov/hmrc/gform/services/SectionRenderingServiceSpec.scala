@@ -69,7 +69,7 @@ class SectionRenderingServiceSpec extends Spec {
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  private implicit val viewHelpers: ViewHelpersAlgebra = new ViewHelpers(null, null, null, null) {
+  private implicit val viewHelpers: ViewHelpersAlgebra = new ViewHelpers(null) {
     override def head(linkElem: Option[Html], headScripts: Option[Html]): HtmlFormat.Appendable = null
 
     override def footer(

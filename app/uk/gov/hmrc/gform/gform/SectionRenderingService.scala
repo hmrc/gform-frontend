@@ -794,7 +794,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case Some(xs) if xs.contains(TotalValue) =>
           asTotalValue(formComponent, t, prepopValue, validatedValue, index, ei.formLevelHeading)
         case _ =>
-          val sizeClasses = t.asInstanceOf[Text].displayWidth match {
+          val text = t.asInstanceOf[Text]
+
+          val maybeUnit = TextFormatter.appendUnit(text.constraint)
+          val sizeClasses = text.displayWidth match {
             case DisplayWidth.XS  => "govuk-input--width-2"
             case DisplayWidth.S   => "govuk-input--width-3"
             case DisplayWidth.M   => "govuk-input--width-4"
@@ -841,7 +844,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
           val govukHint: components.govukHint = new components.govukHint()
           val govukLabel: components.govukLabel = new components.govukLabel()
-          new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+          val govukInput: Html = new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+
+          maybeUnit.fold(govukInput)(GovukExtensions.insertUnit(govukInput))
       }
     }
   }

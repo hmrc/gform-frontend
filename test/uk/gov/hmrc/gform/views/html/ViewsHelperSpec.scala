@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.gform.views.html
 
-import org.scalatest._
+import org.scalatest.{ FlatSpec, Matchers }
 
 class ViewsHelperSpec extends FlatSpec with Matchers {
 

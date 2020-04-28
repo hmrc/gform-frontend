@@ -545,7 +545,6 @@ import play.api.i18n.Lang
 trait ExampleFrontendAppConfig {
   val frontendAppConfig = FrontendAppConfig(
     albAdminIssuerUrl = "",
-    assetsPrefix = "assetsPrefix",
     analyticsToken = "analyticsToken",
     analyticsHost = "analyticsHost",
     reportAProblemPartialUrl = "http://reportProblem.url",
@@ -554,6 +553,10 @@ trait ExampleFrontendAppConfig {
     gformFrontendBaseUrl = "gform.frontend.base.url",
     betaFeedbackUrlNoAuth = "beta.feedback.url.no.auth",
     signOutUrl = "http://localhost:9025/loggedout",
+    footerCookiesUrl = "",
+    footerPrivacyPolicyUrl = "",
+    footerTermsConditionsUrl = "",
+    footerHelpUrl = "",
     whitelistEnabled = true,
     googleTagManagerIdAvailable = false,
     googleTagManagerId = "",
@@ -563,6 +566,7 @@ trait ExampleFrontendAppConfig {
       JSConfig(false, 0, 0, "", ""),
       JSConfig(false, 0, 0, "", "")),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
-    routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage
+    routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
+    contactFormServiceIdentifier = ""
   )
 }
