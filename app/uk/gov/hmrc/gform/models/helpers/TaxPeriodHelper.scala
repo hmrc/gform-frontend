@@ -17,12 +17,14 @@
 package uk.gov.hmrc.gform.models.helpers
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.validation.{ ComponentField, FormFieldValidationResult }
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 object TaxPeriodHelper {
 
-  def formatTaxPeriodOutput(valResult: Option[FormFieldValidationResult]) =
+  def formatTaxPeriodOutput(valResult: Option[FormFieldValidationResult])(implicit l: LangADT) =
     valResult match {
       case Some(ComponentField(a, b)) => TextFormatter.formatText(b.values.headOption)
       case _                          => ""
