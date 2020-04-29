@@ -15,42 +15,25 @@
  *@
 
 @import uk.gov.hmrc.gform.gform.FormRender
-@import uk.gov.hmrc.gform.ops.FormComponentOps
-@import uk.gov.hmrc.gform.sharedmodel.LabelHelper
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.Text
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponent
-@import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
-@import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
-@import uk.gov.hmrc.gform.views.summary.TextFormatter
-@import java.text.NumberFormat
-@import uk.gov.hmrc.gform.commons.BigDecimalUtil.toBigDecimalDefault
-@import uk.gov.hmrc.gform.commons.NumberFormatUtil.currencyFormat
+@import uk.gov.hmrc.gform.views.components.TotalText
 
-@(fieldValue: FormComponent,
-  text: Text,
-  prepop: Option[String],
-  validationResult: Option[FormFieldValidationResult],
-  index: Int,
-  formLevelHeading: Boolean)(
-  implicit
-    l:LangADT,
-    viewHelpers: ViewHelpersAlgebra,
-    sse: SmartStringEvaluator)
+@(
+  totalText: TotalText
+)
+@id = @{totalText.id}
+@govukHint = @{new govukHint()}
+@govukErrorMessage = @{new govukErrorMessage()}
 
-@validatedValue = @{prepop.orElse(validationResult.flatMap(_.getCurrentValue)).getOrElse("")}
-@currentSterling = @{ toBigDecimalDefault(validatedValue) }
-@validatedSterling = @{ currencyFormat.format(currentSterling) }
-@label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
+<div class="@toClasses("govuk-form-group", totalText.errorMessage.fold("")(_ => "govuk-form-group--error"))">
+    @totalText.hint.fold(HtmlFormat.empty)(govukHint(_))
+    @totalText.errorMessage.fold(HtmlFormat.empty)(govukErrorMessage(_))
 
-<div class="form-group @if(validationResult.map(_.isOk).contains(false)) {form-group-error}">
-  @inline_error_map(fieldValue, validationResult)
-  <span class="heading-small" aria-live="polite">
-    @if(label.nonEmpty) { @label } else { @fieldValue.label.value}
-
-    <span id="@{fieldValue.id}-total">
-      @if(fieldValue.isSterling){ @validatedSterling } else { @validatedValue }
+    <span class="govuk-label govuk-!-font-weight-bold" aria-live="polite">
+	@totalText.label.asHtml
+	<span id="@id-total">@totalText.formatedValue</span>
+	@totalText.unit
     </span>
-    @if(!fieldValue.isSterling){ @TextFormatter.appendUnit(text.constraint) }
-  </span>
-  @(hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepop.getOrElse("")))))
+
+
+    @(hidden_field_populated(List(FormRender(id, id, totalText.currentValue))))
 </div>

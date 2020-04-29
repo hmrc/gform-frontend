@@ -58,6 +58,7 @@ import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
+import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
@@ -485,9 +486,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       case Text(Lookup(register), _, _, _) =>
         renderLookup(formComponent, register, index, maybeValidated, ei, data, isHidden)
       case t @ Text(_, _, _, _) =>
-        renderText(messages, l, sse)(t, formComponent, index, maybeValidated, ei, data, isHidden)
-      case t @ TextArea(_, _, _) =>
-        renderTextArea(messages, l, sse)(t, formComponent, index, maybeValidated, ei, data, isHidden)
+        renderText(t, formComponent, index, maybeValidated, ei, data, isHidden)
+      case t @ TextArea(_, _, _) => ???
+      // renderTextArea(messages, l, sse)(t, formComponent, index, maybeValidated, ei, data, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(
           formComponent,
@@ -756,26 +757,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       }
   }
 
-  private type RenderTemplate[T] =
-    (FormComponent, T, Option[String], Option[FormFieldValidationResult], Int, Boolean) => Html
+  private def renderTextArea(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = ???
 
-  private def renderTextArea(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
-    renderField[TextArea](
-      html.form.snippets.field_template_textarea.apply _,
-      html.form.snippets.field_template_textarea.apply _
-    ) _
-
-  private def renderText(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) =
-    renderField[Text](
-      html.form.snippets.field_template_text_total.apply _,
-      html.form.snippets.field_template_text.apply _
-    ) _
-
-  private def renderField[T](
-    asTotalValue: RenderTemplate[T],
-    asStandard: RenderTemplate[T]
-  )(
-    t: T,
+  private def renderText(
+    text: Text,
     formComponent: FormComponent,
     index: Int,
     validatedType: ValidatedType[ValidationResult],
@@ -790,13 +775,35 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         .hidden_field_populated(
           List(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
     else {
+
+      val maybeUnit = TextFormatter.appendUnit(text.constraint)
+      val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
+
+      val map: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+      val errors: Option[String] = ValidationUtil.printErrors(map).headOption
+
+      val errorMessage: Option[ErrorMessage] = errors.map(
+        error =>
+          ErrorMessage(
+            content = content.Text(error)
+        ))
+
+      val hint: Option[Hint] = formComponent.helpText.map { ls =>
+        Hint(
+          content = content.Text(ls.value)
+        )
+      }
+
+      val maybeCurrentValue: Option[String] = prepopValue.orElse(validatedValue.flatMap(_.getCurrentValue))
+
       formComponent.presentationHint match {
         case Some(xs) if xs.contains(TotalValue) =>
-          asTotalValue(formComponent, t, prepopValue, validatedValue, index, ei.formLevelHeading)
-        case _ =>
-          val text = t.asInstanceOf[Text]
+          val totalText = new TotalText(formComponent, labelContent, maybeUnit, hint, errorMessage, maybeCurrentValue)
 
-          val maybeUnit = TextFormatter.appendUnit(text.constraint)
+          html.form.snippets.field_template_text_total(totalText)
+
+        case _ =>
           val sizeClasses = text.displayWidth match {
             case DisplayWidth.XS  => "govuk-input--width-2"
             case DisplayWidth.S   => "govuk-input--width-3"
@@ -810,34 +817,18 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           }
 
           val isPageHeading = !ei.formLevelHeading
-          val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
           val label = Label(
             isPageHeading = isPageHeading,
             classes = if (isPageHeading) "govuk-label--xl" else "",
             content = labelContent
           )
-          val hint = formComponent.helpText.map { ls =>
-            Hint(
-              content = content.Text(ls.value)
-            )
-          }
-
-          val map: Map[String, Set[String]] =
-            validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-          val errors: Option[String] = ValidationUtil.printErrors(map).headOption
-
-          val errorMessage = errors.map(
-            error =>
-              ErrorMessage(
-                content = content.Text(error)
-            ))
 
           val input = Input(
             id = formComponent.id.value,
             name = formComponent.id.value,
             label = label,
             hint = hint,
-            value = prepopValue.orElse(validatedValue.flatMap(_.getCurrentValue)),
+            value = maybeCurrentValue,
             errorMessage = errorMessage,
             classes = sizeClasses
           )
