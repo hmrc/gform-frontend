@@ -25,13 +25,13 @@ import uk.gov.hmrc.gform.sharedmodel.LangADT
 
 object TextFormatter {
 
-  def componentText(currentValue: String, text: Text): String =
+  def componentText(currentValue: String, text: Text)(implicit l: LangADT): String =
     if (currentValue.isEmpty) {
       currentValue
     } else {
       text.constraint match {
-        case PositiveNumber(_, _, _, Some(unit)) => currentValue + " " + unit
-        case Number(_, _, _, Some(unit))         => currentValue + " " + unit
+        case PositiveNumber(_, _, _, Some(unit)) => currentValue + " " + unit.value
+        case Number(_, _, _, Some(unit))         => currentValue + " " + unit.value
         case PositiveNumber(_, maxFractionalDigits, rm, None) =>
           getNumberConstraint(currentValue, bd => NumberFormatUtil.roundAndFormat(bd, maxFractionalDigits, rm))
         case Number(_, maxFractionalDigits, rm, None) =>
@@ -50,7 +50,7 @@ object TextFormatter {
     maybeBigDecimal.fold(currentValue)(f)
   }
 
-  def formatText(validationResult: Option[FormFieldValidationResult]): String = {
+  def formatText(validationResult: Option[FormFieldValidationResult])(implicit l: LangADT): String = {
     val currentValue = validationResult match {
       case Some(result) => result.getCurrentValue.getOrElse("")
       case None         => ""
@@ -58,7 +58,8 @@ object TextFormatter {
 
     def getValue(componentType: ComponentType): String = componentType match {
       case x: Text => componentText(currentValue, x)
-      case _       => currentValue
+
+      case _ => currentValue
     }
 
     validationResult
