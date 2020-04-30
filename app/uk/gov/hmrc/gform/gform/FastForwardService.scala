@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.models.{ ProcessData, ProcessDataService }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormStatus, InProgress, Summary, UserData }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FormIdData, FormStatus, InProgress, QueryParams, Summary, UserData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ SeYes, SectionNumber }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SectionTitle4Ga.sectionTitle4GaFactory
 import uk.gov.hmrc.gform.eval.smartstring._
@@ -84,11 +84,11 @@ class FastForwardService(
         Redirect(routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode))
     }
 
-  def deleteForm(cache: AuthCacheWithForm)(implicit hc: HeaderCarrier): Future[Result] = {
+  def deleteForm(cache: AuthCacheWithForm, queryParams: QueryParams)(implicit hc: HeaderCarrier): Future[Result] = {
     val formTemplateId = cache.formTemplate._id
     gformConnector
       .deleteForm(cache.form._id)
-      .map(_ => Redirect(routes.NewFormController.dashboard(formTemplateId)))
+      .map(_ => Redirect(routes.NewFormController.dashboard(formTemplateId).url, queryParams.toPlayQueryParams))
   }
 
   def updateUserData(cache: AuthCacheWithForm, processData: ProcessData, maybeAccessCode: Option[AccessCode])(

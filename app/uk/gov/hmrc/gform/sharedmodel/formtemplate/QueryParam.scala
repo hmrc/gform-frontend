@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.views.hardcoded
+package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
-import play.api.mvc.{ Call, Request }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import play.api.libs.json.{ Format, Json }
 
-package object pages {
+case class QueryParam(value: String) extends AnyVal
 
-  def formCategory(formTemplate: FormTemplate): String =
-    formTemplate.formCategory match {
-      case HMRCClaimForm  => "claim"
-      case HMRCReturnForm => "return"
-      case _              => "form"
-    }
-
-  def withQueryParams(call: Call)(implicit request: Request[_]): Call =
-    if (request.rawQueryString.isEmpty)
-      call
-    else
-      call.copy(url = call.url + "?" + request.rawQueryString)
-
+object QueryParam {
+  implicit val format: Format[QueryParam] = Json.format
 }

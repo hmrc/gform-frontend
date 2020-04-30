@@ -28,14 +28,15 @@ case class ThirdPartyData(
   desRegistrationResponse: Option[DesRegistrationResponse],
   obligations: Obligations,
   emailVerification: Map[EmailFieldId, EmailAndCode],
+  queryParams: QueryParams,
   reviewData: Option[Map[String, String]] = None
 ) {
   def updateFrom(vr: ValidatedType[ValidationResult]): ThirdPartyData =
     vr match {
       case Valid(ValidationResult(Some(desRegistrationResponse), m)) =>
-        ThirdPartyData(Some(desRegistrationResponse), obligations, emailVerification ++ m, reviewData)
+        ThirdPartyData(Some(desRegistrationResponse), obligations, emailVerification ++ m, queryParams, reviewData)
       case Valid(ValidationResult(None, m)) =>
-        ThirdPartyData(desRegistrationResponse, obligations, emailVerification ++ m, reviewData)
+        ThirdPartyData(desRegistrationResponse, obligations, emailVerification ++ m, queryParams, reviewData)
       case _ => this
     }
 
@@ -43,7 +44,7 @@ case class ThirdPartyData(
 }
 
 object ThirdPartyData {
-  val empty = ThirdPartyData(None, NotChecked, Map.empty)
+  val empty = ThirdPartyData(None, NotChecked, Map.empty, QueryParams.empty)
   implicit val formatMap: Format[Map[EmailFieldId, EmailAndCode]] =
     JsonUtils.formatMap(a => emailFieldId(FormComponentId(a)), _.value)
   implicit val format: OFormat[ThirdPartyData] = Json.format

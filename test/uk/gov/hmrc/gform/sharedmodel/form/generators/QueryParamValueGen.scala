@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.gform.views.hardcoded
+package uk.gov.hmrc.gform.sharedmodel.form.generators
 
-import play.api.mvc.{ Call, Request }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import org.scalacheck.Gen
+import uk.gov.hmrc.gform.sharedmodel.form.QueryParamValue
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.PrimitiveGen
 
-package object pages {
-
-  def formCategory(formTemplate: FormTemplate): String =
-    formTemplate.formCategory match {
-      case HMRCClaimForm  => "claim"
-      case HMRCReturnForm => "return"
-      case _              => "form"
-    }
-
-  def withQueryParams(call: Call)(implicit request: Request[_]): Call =
-    if (request.rawQueryString.isEmpty)
-      call
-    else
-      call.copy(url = call.url + "?" + request.rawQueryString)
-
+trait QueryParamValueGen {
+  def queryParamValueGen: Gen[QueryParamValue] =
+    for {
+      paramValue <- PrimitiveGen.nonEmptyAlphaNumStrGen
+    } yield QueryParamValue(paramValue)
 }
+
+object QueryParamValueGen extends QueryParamValueGen
