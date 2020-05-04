@@ -19,6 +19,9 @@ package uk.gov.hmrc.gform.views
 import play.api.mvc.Request
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.csp.WebchatClient
+import uk.gov.hmrc.govukfrontend.views.html.components.govukErrorMessage
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage._
 
 trait ViewHelpersAlgebra {
   def errorInline(errorKey: String, errorMessage: String, classes: Seq[String] = Seq.empty): HtmlFormat.Appendable
@@ -80,7 +83,9 @@ trait ViewHelpersAlgebra {
 }
 
 class ViewHelpers(webChatClient: WebchatClient) extends ViewHelpersAlgebra {
-  def errorInline(errorKey: String, errorMessage: String, classes: Seq[String] = Seq.empty): HtmlFormat.Appendable = ???
+  def errorInline(errorKey: String, errorMessage: String, classes: Seq[String] = Seq.empty): HtmlFormat.Appendable =
+    new govukErrorMessage()(
+      ErrorMessage(id = Some(errorKey), classes = classes.mkString(" "), content = Text(errorMessage)))
 
   def article(
     content: Html,

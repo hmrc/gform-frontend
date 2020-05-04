@@ -1,0 +1,96 @@
+@*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.gform.sharedmodel.AccessCode
+@import uk.gov.hmrc.gform.sharedmodel.form.FormId
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import views.html.helper.CSRF
+@import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.SummaryPagePurpose
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
+@import uk.gov.hmrc.gform.views.html.summary.snippets.alert
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
+
+@(
+  formTemplate: FormTemplate,
+  summaryListRows: Seq[SummaryListRow],
+  maybeAccessCode: Option[AccessCode],
+  formCategory: FormCategory,
+  renderComeBackLater: Boolean,
+  continueLabelKey: String,
+  frontendAppConfig: FrontendAppConfig,
+  summaryPagePurpose: SummaryPagePurpose,
+  reviewerComments : Option[String],
+  header: Html,
+  footer: Html
+)(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
+
+@heading = @{formTemplate.summarySection.title.value}
+
+@govukSummaryList = @{new govukSummaryList()}
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+
+@uk.gov.hmrc.gform.views.html.main_template(
+  title = heading,
+  serviceName = formTemplate.formName.value,
+  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  bodyClasses = None,
+  frontendAppConfig = frontendAppConfig,
+  authConfig = Some(formTemplate.authConfig),
+  webChat = formTemplate.webChat,
+  formCategory = formTemplate.formCategory,
+  languages = formTemplate.languages,
+  templateId = formTemplate._id
+) {
+    <div class="govuk-body">
+     <h2 class="govuk-heading-l">
+      @heading
+     </h2>
+     @header
+    </div>
+
+    @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
+
+    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
+
+     @if(summaryPagePurpose.forUser) {
+        @CSRF.formField
+     }
+
+     @govukSummaryList(SummaryList(summaryListRows))
+
+     <div class="govuk-body">
+      @footer
+     </div>
+
+
+     <input type="hidden" id="gform-action" name="save" value="Declaration" />
+
+      @govukButton(Button(content = Text(messages(continueLabelKey)), value=Some("SummaryContinue"), inputType = Some("submit")))
+
+       @if(renderComeBackLater) {
+           <p class="govuk-body">
+               <a href="#" id="saveComeBackLaterExit" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
+           </p>
+       }
+    </form>
+}
