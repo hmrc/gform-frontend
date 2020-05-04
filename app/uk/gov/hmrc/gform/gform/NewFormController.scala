@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.fileupload.{ Envelope, FileUploadService }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
 import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, Submitted }
+import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, QueryParams, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -61,7 +61,9 @@ class NewFormController(
         (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
           case (BySubmissionReference, _)                    => showAccesCodePage(cache, BySubmissionReference)
           case (drm @ FormAccessCodeForAgents(_), IsAgent()) => showAccesCodePage(cache, drm)
-          case _                                             => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
+          case _ =>
+            Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString)
+              .pure[Future]
         }
     }
 
@@ -134,6 +136,7 @@ class NewFormController(
   def decision(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authAndRetrieveForm(formTemplateId, noAccessCode, OperationWithForm.EditForm) {
       implicit request => implicit l => cache => implicit sse =>
+        val queryParams = QueryParams.fromRequest(request)
         choice.bindFromRequest
           .fold(
             _ =>
@@ -141,9 +144,11 @@ class NewFormController(
                 continue_form_page(
                   cache.formTemplate,
                   choice.bindFromRequest().withError("decision", "error.required"),
-                  frontendAppConfig)).pure[Future], {
+                  frontendAppConfig,
+                  queryParams
+                )).pure[Future], {
               case "continue" => fastForwardService.redirectContinue(cache, noAccessCode)
-              case "delete"   => fastForwardService.deleteForm(cache)
+              case "delete"   => fastForwardService.deleteForm(cache, queryParams)
               case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
             }
           )
@@ -152,23 +157,26 @@ class NewFormController(
   def newSubmissionReference(formTemplateId: FormTemplateId) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
-        newForm(formTemplateId, cache)
+        newForm(formTemplateId, cache, QueryParams.empty)
     }
 
-  def newOrContinue(formTemplateId: FormTemplateId) =
+  def newOrContinue(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.EditForm) {
       implicit request => implicit l => cache =>
+        val queryParams: QueryParams = QueryParams.fromRequest(request)
+
         val formIdData = FormIdData.Plain(UserId(cache.retrievals), formTemplateId)
-        handleForm(formIdData)(newForm(formTemplateId, cache)) { form =>
+        handleForm(formIdData)(newForm(formTemplateId, cache, queryParams)) { form =>
           cache.formTemplate.draftRetrievalMethod match {
             case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
               redirectContinue(cache, form, noAccessCode)
-            case _ => Ok(continue_form_page(cache.formTemplate, choice, frontendAppConfig)).pure[Future]
+            case _ =>
+              Ok(continue_form_page(cache.formTemplate, choice, frontendAppConfig, queryParams)).pure[Future]
           }
         }
     }
 
-  private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm)(
+  private def newForm(formTemplateId: FormTemplateId, cache: AuthCacheWithoutForm, queryParams: QueryParams)(
     implicit
     request: Request[AnyContent],
     l: LangADT) = {
@@ -177,7 +185,7 @@ class NewFormController(
       Future.failed(new NotFoundException(s"Form with id ${formIdData.toFormId} not found."))
 
     for {
-      formIdData <- startFreshForm(formTemplateId, cache.retrievals)
+      formIdData <- startFreshForm(formTemplateId, cache.retrievals, queryParams)
       res <- handleForm(formIdData)(notFound(formIdData)) { form =>
               redirectContinue(cache, form, formIdData.maybeAccessCode)
             }
@@ -237,7 +245,7 @@ class NewFormController(
             accessCodeForm.accessOption match {
               case AccessCodePage.optionNew =>
                 for {
-                  formIdData <- startFreshForm(formTemplateId, cache.retrievals)
+                  formIdData <- startFreshForm(formTemplateId, cache.retrievals, QueryParams.empty)
                   result     <- processNewFormData(formIdData, drm)
                 } yield result
               case AccessCodePage.optionAccess =>
@@ -291,11 +299,17 @@ class NewFormController(
                                     }
     } yield mayBeFormExceptWithEnvelope
 
-  private def startFreshForm(formTemplateId: FormTemplateId, retrievals: MaterialisedRetrievals)(
-    implicit hc: HeaderCarrier): Future[FormIdData] =
+  private def startFreshForm(
+    formTemplateId: FormTemplateId,
+    retrievals: MaterialisedRetrievals,
+    queryParams: QueryParams)(implicit hc: HeaderCarrier): Future[FormIdData] =
     for {
       newFormData <- gformConnector
-                      .newForm(formTemplateId, UserId(retrievals), AffinityGroupUtil.fromRetrievals(retrievals))
+                      .newForm(
+                        formTemplateId,
+                        UserId(retrievals),
+                        AffinityGroupUtil.fromRetrievals(retrievals),
+                        queryParams)
     } yield newFormData
 
   private def handleForm[A](formIdData: FormIdData)(notFound: => Future[A])(found: Form => Future[A])(

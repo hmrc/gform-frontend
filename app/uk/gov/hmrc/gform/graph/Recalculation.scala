@@ -362,6 +362,8 @@ class Evaluator[F[_]: Monad](
       case HmrcRosmRegistrationCheck(rosmProp) => NonConvertible(evalRosm(thirdPartyData, rosmProp).pure[F])
       case ctx @ UserCtx(_) =>
         new UserCtxEvaluatorProcessor[F].processEvaluation(retrievals, ctx, formTemplate.authConfig)
+      case ParamCtx(queryParam) =>
+        NonConvertible(RecalculationOp.newValue(thirdPartyData.queryParams(queryParam)).pure[F])
       case AuthCtx(value) =>
         NonConvertible(RecalculationOp.newValue(AuthContextPrepop.values(value, retrievals)).pure[F])
       case EeittCtx(eeitt) =>

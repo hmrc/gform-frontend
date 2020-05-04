@@ -38,6 +38,7 @@ object ExprFormat {
   def formatForExpr(expr: Expr, componentLookup: Map[FormComponentId, FormComponent]): FormatType = expr match {
     case Value                               => FormatType.Default
     case HmrcRosmRegistrationCheck(rosmProp) => FormatType.Default
+    case ParamCtx(_)                         => FormatType.Default
     case UserCtx(_)                          => FormatType.Default
     case AuthCtx(_)                          => FormatType.Default
     case EeittCtx(_)                         => FormatType.Default

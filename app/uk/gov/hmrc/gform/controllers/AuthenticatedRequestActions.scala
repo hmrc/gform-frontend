@@ -291,7 +291,7 @@ class AuthenticatedRequestActions(
         onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))(role)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
       case AuthAnonymousSession(redirectUrl) =>
-        Redirect(redirectUrl)
+        Redirect(redirectUrl.url, request.queryString)
           .withSession(SessionKeys.sessionId -> s"anonymous-session-${UUID.randomUUID()}")
           .pure[Future]
       case AuthRedirectFlashingFormName(loginUrl) =>
