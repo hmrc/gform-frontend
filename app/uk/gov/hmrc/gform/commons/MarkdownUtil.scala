@@ -31,6 +31,7 @@ object MarkDownUtil {
     val doc: Document = Jsoup.parse(html)
     doc.getElementsByAttribute("href").attr("target", "_blank")
     doc.getElementsByAttributeValueStarting("href", "/submissions/new-form/").removeAttr("target")
+    doc.getElementsByAttributeValueStarting("href", "/submissions/form/").removeAttr("target")
     doc.body().html()
   }
 
