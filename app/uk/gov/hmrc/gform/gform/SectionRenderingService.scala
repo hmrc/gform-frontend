@@ -60,7 +60,9 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
+import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
+import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.{ Textarea => govukTextArea }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
@@ -487,8 +489,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         renderLookup(formComponent, register, index, maybeValidated, ei, data, isHidden)
       case t @ Text(_, _, _, _) =>
         renderText(t, formComponent, index, maybeValidated, ei, data, isHidden)
-      case t @ TextArea(_, _, _) => ???
-      // renderTextArea(messages, l, sse)(t, formComponent, index, maybeValidated, ei, data, isHidden)
+      case t @ TextArea(_, _, _) =>
+        renderTextArea(t, formComponent, index, maybeValidated, ei, data, isHidden)
       case Choice(choice, options, orientation, selections, optionalHelpText) =>
         htmlForChoice(
           formComponent,
@@ -757,7 +759,101 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       }
   }
 
-  private def renderTextArea(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = ???
+  private def renderTextArea(
+    text: TextArea,
+    formComponent: FormComponent,
+    index: Int,
+    validatedType: ValidatedType[ValidationResult],
+    ei: ExtraInfo,
+    data: FormDataRecalculated,
+    isHidden: Boolean
+  )(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+    val prepopValue = ei.fieldData.data.one(formComponent.id)
+    val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
+    if (isHidden)
+      html.form.snippets
+        .hidden_field_populated(
+          List(FormRender(formComponent.id.value, formComponent.id.value, prepopValue.getOrElse(""))))
+    else {
+      val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
+
+      val map: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+      val errors: Option[String] = ValidationUtil.printErrors(map).headOption
+
+      val errorMessage: Option[ErrorMessage] = errors.map(
+        error =>
+          ErrorMessage(
+            content = content.Text(error)
+        ))
+
+      val hint: Option[Hint] = formComponent.helpText.map { ls =>
+        Hint(
+          content = content.Text(ls.value)
+        )
+      }
+
+      val characterMaxLength = text.constraint match {
+        case ShortText(_, max)            => Some(max)
+        case TextWithRestrictions(_, max) => Some(max)
+        case _                            => None
+      }
+
+      val maybeCurrentValue: Option[String] = prepopValue.orElse(validatedValue.flatMap(_.getCurrentValue))
+
+      val sizeClasses = text.displayWidth match {
+        case DisplayWidth.XS      => "govuk-input--width-3"
+        case DisplayWidth.S       => "govuk-input--width-10"
+        case DisplayWidth.M       => "govuk-input--width-20"
+        case DisplayWidth.L       => "govuk-input--width-30"
+        case DisplayWidth.XL      => "govuk-input--width-40"
+        case DisplayWidth.XXL     => "govuk-input--width-50"
+        case DisplayWidth.DEFAULT => "govuk-input--width-30"
+      }
+
+      val isPageHeading = !ei.formLevelHeading
+
+      val label = Label(
+        isPageHeading = isPageHeading,
+        classes = if (isPageHeading) "govuk-label--xl" else "",
+        content = labelContent
+      )
+
+      val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
+      val govukHint: components.govukHint = new components.govukHint()
+      val govukLabel: components.govukLabel = new components.govukLabel()
+      val govukTextarea = new components.govukTextarea(govukErrorMessage, govukHint, govukLabel)
+
+      characterMaxLength match {
+        case Some(maxLength) =>
+          val characterCount = CharacterCount(
+            id = formComponent.id.value,
+            name = formComponent.id.value,
+            label = label,
+            hint = hint,
+            value = maybeCurrentValue,
+            maxLength = Some(maxLength),
+            errorMessage = errorMessage,
+            classes = sizeClasses
+          )
+
+          new components.govukCharacterCount(govukTextarea, govukHint)(characterCount)
+
+        case _ =>
+          val textArea = govukTextArea(
+            id = formComponent.id.value,
+            name = formComponent.id.value,
+            label = label,
+            hint = hint,
+            value = maybeCurrentValue,
+            errorMessage = errorMessage,
+            classes = sizeClasses
+          )
+
+          govukTextarea(textArea)
+      }
+    }
+  }
 
   private def renderText(
     text: Text,
@@ -1044,12 +1140,14 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     maybeNino = None
   )
 
-  private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean =
-    section.fields
+  private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean = {
+    val filteredSections = section.fields
       .filter {
         case IsGroup(g)     => false
         case IsFileUpload() => false
         case _              => true
       }
-      .count(field => field.editable && field.label == section.title) != 1 || GFC579Ready == "false"
+
+    filteredSections.count(field => field.editable && field.label == section.title) != 1 || filteredSections.size != 1 || GFC579Ready == "false"
+  }
 }

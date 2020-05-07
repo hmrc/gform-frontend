@@ -12,7 +12,7 @@ object Dependencies {
     ws,
     "uk.gov.hmrc"                  %% "bootstrap-play-26"        % "1.3.0",
     "uk.gov.hmrc"                  %% "play-language"            % "4.2.0-play-26",
-    "uk.gov.hmrc"                  %% "play-frontend-govuk"      % "0.41.0-play-26",
+    "uk.gov.hmrc"                  %% "play-frontend-govuk"      % "0.44.0-play-26",
     "uk.gov.hmrc"                  %% "play-frontend-hmrc"       % "0.13.0-play-26",
     "uk.gov.hmrc"                  %% "auth-client"              % "2.31.0-play-26",
     "uk.gov.hmrc"                  %% "domain"                   % "5.3.0",
