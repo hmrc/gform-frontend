@@ -24,6 +24,8 @@ case class SmartString(localised: LocalisedString, interpolations: List[Expr]) {
     copy(localised = localised.replace(toReplace, replaceWith))
 
   def rawValue(implicit l: LangADT): String = localised.value(l)
+
+  def isEmpty(implicit l: LangADT): Boolean = rawValue.isEmpty
 }
 
 object SmartString {

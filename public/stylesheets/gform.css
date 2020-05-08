@@ -399,3 +399,10 @@ select:focus {
     font-family: "GDS Transport", Arial, sans-serif;
     font-size: 1.1875rem;
 }
+
+
+.gform-checkbox--inline .govuk-checkboxes__item {
+    margin-right: 20px;
+    float: left;
+    clear: none;
+}

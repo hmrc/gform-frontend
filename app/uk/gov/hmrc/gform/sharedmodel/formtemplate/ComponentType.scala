@@ -118,7 +118,6 @@ sealed trait ChoiceType
 final case object Radio extends ChoiceType
 final case object Checkbox extends ChoiceType
 final case object YesNo extends ChoiceType
-final case object Inline extends ChoiceType
 
 object ChoiceType {
   implicit val format: OFormat[ChoiceType] = derived.oformat
@@ -169,7 +168,7 @@ sealed trait Orientation
 case object Vertical extends Orientation
 case object Horizontal extends Orientation
 object Orientation {
-
+  implicit val catsEq: Eq[Orientation] = Eq.fromUniversalEquals
   implicit val format: OFormat[Orientation] = derived.oformat
 }
 

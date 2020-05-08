@@ -61,16 +61,16 @@ import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
-import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
-import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.{ Textarea => govukTextArea }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
-import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
-import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
-import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.Radios
-import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
-import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
+import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
+import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
+import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.{ Textarea => govukTextArea }
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -605,74 +605,98 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         helpTexts.map(ht => markDownParser(ht))
       }
 
+    val optionsWithHelpText: NonEmptyList[(SmartString, Option[Html])] =
+      optionalHelpText
+        .map(_.zipWith(options)((helpText, option) =>
+          (option, if (helpText.isEmpty) None else Some(markDownParser(helpText)))))
+        .getOrElse(options.map(option => (option, None)))
+
     val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
+
+    val hint = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
+    val errors: Option[String] = {
+      val lookup: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+      ValidationUtil.printErrors(lookup).headOption
+    }
+
+    val errorMessage = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
+
+    val isPageHeading = !ei.formLevelHeading
+    val fieldset = Some(
+      Fieldset(
+        legend = Some(
+          Legend(
+            content = content.Text(formComponent.label.value),
+            isPageHeading = isPageHeading,
+            classes = if (isPageHeading) "govuk-label--xl" else ""
+          ))
+      ))
+
+    def isChecked(index: Int): Boolean =
+      validatedValue
+        .flatMap(_.getOptionalCurrentValue(formComponent.id.appendIndex(index).value))
+        .orElse(prepopValues.find(_ === index.toString))
+        .isDefined
+
+    def helpTextHtml(maybeHelpText: Option[Html]): Option[Html] =
+      maybeHelpText.map(helpText => html.form.snippets.markdown_wrapper(helpText))
+
     choice match {
       case Radio | YesNo =>
-        val items = options.zipWithIndex.map {
-          case (option, index) =>
+        val items = optionsWithHelpText.zipWithIndex.map {
+          case ((option, maybeHelpText), index) =>
             RadioItem(
-              id = Some(formComponent.id.appendIndex(index).value),
               value = Some(index.toString),
               content = content.Text(option.value),
-              checked = validatedValue
-                .flatMap(_.getOptionalCurrentValue(formComponent.id.value + index.toString))
-                .orElse(prepopValues.find(_ === index.toString))
-                .isDefined
+              checked = isChecked(index),
+              conditionalHtml = helpTextHtml(maybeHelpText)
             )
         }
 
-        val hint = formComponent.helpText.map { ls =>
-          Hint(
-            content = content.Text(ls.value)
-          )
-        }
-
-        val fieldset = Some(
-          Fieldset(
-            legend = Some(
-              Legend(
-                content = content.Text(formComponent.label.value),
-                isPageHeading = ei.formLevelHeading
-              ))
-          ))
-
-        val map: Map[String, Set[String]] =
-          validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
-        val errors: Option[String] = ValidationUtil.printErrors(map).headOption
-
         val radios = Radios(
+          idPrefix = Some(formComponent.id.value),
           fieldset = fieldset,
           hint = hint,
-          errorMessage = errors.map(
-            error =>
-              ErrorMessage(
-                content = content.Text(error)
-            )),
+          errorMessage = errorMessage,
           name = formComponent.id.value,
-          items = items.toList
+          items = items.toList,
+          classes = if (orientation === Horizontal) "govuk-radios--inline" else ""
         )
 
-        val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
-        val govukFieldset: components.govukFieldset = new components.govukFieldset()
-        val govukHint: components.govukHint = new components.govukHint()
-        val govukLabel: components.govukLabel = new components.govukLabel()
         new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
 
       case Checkbox =>
-        html.form.snippets.choice(
-          "checkbox",
-          formComponent,
-          options,
-          orientation,
-          prepopValues,
-          validatedValue,
-          optionalHelpTextMarkDown,
-          index,
-          ei.formLevelHeading
+        val items = optionsWithHelpText.zipWithIndex.map {
+          case ((option, maybeHelpText), index) =>
+            CheckboxItem(
+              value = index.toString,
+              content = content.Text(option.value),
+              checked = isChecked(index),
+              conditionalHtml = helpTextHtml(maybeHelpText)
+            )
+        }
+
+        val checkboxes: Checkboxes = Checkboxes(
+          idPrefix = Some(formComponent.id.value),
+          fieldset = fieldset,
+          hint = hint,
+          errorMessage = errorMessage,
+          name = formComponent.id.value,
+          items = items.toList,
+          classes = if (orientation === Horizontal && optionalHelpText.isEmpty) "gform-checkbox--inline" else ""
         )
-      case Inline =>
-        html.form.snippets
-          .choiceInline(formComponent, options, prepopValues, validatedValue, optionalHelpTextMarkDown, index)
+
+        new components.govukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
     }
   }
 
@@ -819,9 +843,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         content = labelContent
       )
 
-      val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
-      val govukHint: components.govukHint = new components.govukHint()
-      val govukLabel: components.govukLabel = new components.govukLabel()
       val govukTextarea = new components.govukTextarea(govukErrorMessage, govukHint, govukLabel)
 
       characterMaxLength match {
@@ -928,9 +949,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             errorMessage = errorMessage,
             classes = sizeClasses
           )
-          val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
-          val govukHint: components.govukHint = new components.govukHint()
-          val govukLabel: components.govukLabel = new components.govukLabel()
           val govukInput: Html = new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
 
           maybeUnit.fold(govukInput)(GovukExtensions.insertUnit(govukInput))
@@ -1150,4 +1168,10 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     filteredSections.count(field => field.editable && field.label == section.title) != 1 || filteredSections.size != 1 || GFC579Ready == "false"
   }
+
+  private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
+  private val govukFieldset: components.govukFieldset = new components.govukFieldset()
+  private val govukHint: components.govukHint = new components.govukHint()
+  private val govukLabel: components.govukLabel = new components.govukLabel()
+
 }
