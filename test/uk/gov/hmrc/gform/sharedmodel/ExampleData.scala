@@ -567,6 +567,7 @@ trait ExampleFrontendAppConfig {
       JSConfig(false, 0, 0, "", "")),
     availableLanguages = Map("english" -> Lang("en"), "cymraeg" -> Lang("cy")),
     routeToSwitchLanguage = uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage,
-    contactFormServiceIdentifier = ""
+    contactFormServiceIdentifier = "",
+    optimizelyUrl = None
   )
 }

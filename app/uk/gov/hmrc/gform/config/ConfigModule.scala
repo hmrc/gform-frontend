@@ -89,7 +89,11 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       ),
       availableLanguages = availableLanguages,
       routeToSwitchLanguage = routeToSwitchLanguage,
-      contactFormServiceIdentifier = contactFormServiceIdentifier
+      contactFormServiceIdentifier = contactFormServiceIdentifier,
+      optimizelyUrl = for {
+        url       <- playConfiguration.getOptional[String]("optimizely.url")
+        projectId <- playConfiguration.getOptional[String]("optimizely.projectId")
+      } yield s"$url$projectId.js"
     )
   }
 }

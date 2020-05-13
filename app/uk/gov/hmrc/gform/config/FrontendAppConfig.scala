@@ -37,5 +37,6 @@ case class FrontendAppConfig(
   authModule: AuthModule,
   availableLanguages: Map[String, Lang],
   routeToSwitchLanguage: String => play.api.mvc.Call,
-  contactFormServiceIdentifier: String
+  contactFormServiceIdentifier: String,
+  optimizelyUrl: Option[String]
 )
