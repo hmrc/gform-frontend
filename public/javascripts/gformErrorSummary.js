@@ -25,13 +25,11 @@
         });
         // focus on the error summary
         $el.trigger('focus');
-        // remove subsequent inline error messages for same field
-        $('.error-message + .error-message').remove()
       }
   
       // Set up event handlers
       function init () {
-        setUpErrorSummary($('.error-summary'));
+        setUpErrorSummary($('.govuk-error-summary'));
       }
       
       self.GformErrorSummary = function () {

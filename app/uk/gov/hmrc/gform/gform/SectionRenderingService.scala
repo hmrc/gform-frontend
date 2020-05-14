@@ -60,15 +60,18 @@ import uk.gov.hmrc.gform.views.summary.TextFormatter
 import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
+import uk.gov.hmrc.govukfrontend.views.html.components.govukInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.charactercount.CharacterCount
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.{ CheckboxItem, Checkboxes }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
+import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.{ Textarea => govukTextArea }
 
@@ -210,12 +213,19 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       .filter(_.isNotOk)
       .flatMap { validationResult =>
         validationResult.fieldErrors
-          .map(
-            errorMessage =>
-              ErrorLink(
-                href = Some("#" + validationResult.fieldValue.id.value),
-                content = content.Text(errorMessage)
-            ))
+          .map(errorMessage =>
+            ErrorLink(
+              href = Some("#" + validationResult.fieldValue.id.value),
+              content = content.Text(errorMessage),
+              attributes = Map(
+                "data-context" -> validationResult.fieldValue.id.value
+                  .replace("-day", "")
+                  .replace("-month", "")
+                  .replace("-year", ""),
+                "class"        -> "js-hidden",
+                "data-focuses" -> validationResult.fieldValue.id.value
+              )
+          ))
       }
 
     if (errorsHtml.nonEmpty) {
@@ -1018,8 +1028,86 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         )
       )
     } else {
-      val fieldValues = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
-      html.form.snippets.field_template_date(formComponent, fieldValues, prepopValues, index, ei.formLevelHeading)
+      val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
+
+      val map: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+
+      val errors: Option[String] = ValidationUtil.printErrors(map).headOption
+
+      val errorMessage: Option[ErrorMessage] = errors.map(
+        error =>
+          ErrorMessage(
+            content = content.Text(error)
+        ))
+
+      val hint: Option[Hint] = formComponent.helpText.map { ls =>
+        Hint(
+          content = content.Text(ls.value)
+        )
+      }
+
+      def safeId(id: String): String =
+        formComponent.id.withSuffix(id).toString
+
+      val hasErrors = validatedValue.exists(_.isNotOk)
+
+      val inputClasses = if (hasErrors) "govuk-input--error" else ""
+
+      val items = Seq(
+        InputItem(
+          id = s"${formComponent.id.value}-day",
+          name = s"${formComponent.id.value}-day",
+          label = Some(messages("date.Day")),
+          value = validatedValue
+            .flatMap(_.getOptionalCurrentValue(safeId("day")))
+            .orElse(prepopValues.map(_.day.toString)),
+          classes = s"$inputClasses govuk-input--width-2"
+        ),
+        InputItem(
+          id = s"${formComponent.id.value}-month",
+          name = s"${formComponent.id.value}-month",
+          label = Some(messages("date.Month")),
+          value = Some(
+            validatedValue
+              .flatMap(_.getOptionalCurrentValue(safeId("month")))
+              .orElse(prepopValues.map(_.month.toString))
+              .getOrElse("")),
+          classes = s"$inputClasses govuk-input--width-2"
+        ),
+        InputItem(
+          id = s"${formComponent.id.value}-year",
+          name = s"${formComponent.id.value}-year",
+          label = Some(messages("date.Year")),
+          value = Some(
+            validatedValue
+              .flatMap(_.getOptionalCurrentValue(safeId("year")))
+              .orElse(prepopValues.map(_.year.toString))
+              .getOrElse("")),
+          classes = s"$inputClasses govuk-input--width-4"
+        )
+      )
+
+      val isPageHeading = !ei.formLevelHeading
+
+      val fieldset = Fieldset(
+        legend = Some(
+          Legend(
+            content = content.Text(formComponent.label.value),
+            classes = if (isPageHeading) "govuk-label--xl" else "",
+            isPageHeading = isPageHeading
+          ))
+      )
+
+      val dateInput = DateInput(
+        id = formComponent.id.value,
+        items = items,
+        hint = hint,
+        errorMessage = errorMessage,
+        fieldset = Some(fieldset)
+      )
+
+      new components.govukDateInput(govukErrorMessage, govukHint, govukFieldset, govukInput)(dateInput)
     }
   }
 
@@ -1173,5 +1261,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
   private val govukHint: components.govukHint = new components.govukHint()
   private val govukLabel: components.govukLabel = new components.govukLabel()
+  private val govukInput: components.govukInput = new components.govukInput(govukErrorMessage, govukHint, govukLabel)
 
 }
