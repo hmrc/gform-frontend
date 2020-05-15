@@ -287,6 +287,8 @@ class AuthenticatedRequestActions(
     result match {
       case AuthSuccessful(retrievals: AnonymousRetrievals, role) =>
         onSuccess(retrievals)(role)
+      case AuthSuccessful(retrievals: VerifyRetrievals, role) =>
+        onSuccess(retrievals)(role)
       case AuthSuccessful(retrievals: AuthenticatedRetrievals, role) =>
         onSuccess(updateEnrolments(formTemplate.authConfig, retrievals, request))(role)
       case AuthRedirect(loginUrl, flashing) => Redirect(loginUrl).flashing(flashing: _*).pure[Future]
@@ -351,7 +353,8 @@ class AuthenticatedRequestActions(
   val defaultRetrievals = Retrievals.credentials and
     Retrievals.allEnrolments and
     Retrievals.affinityGroup and
-    Retrievals.groupIdentifier
+    Retrievals.groupIdentifier and
+    Retrievals.nino
 
   private def ggAuthorised(
     request: Request[AnyContent]
@@ -367,7 +370,7 @@ class AuthenticatedRequestActions(
 
     authorised(predicate)
       .retrieve(defaultRetrievals) {
-        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier =>
+        case maybeCredentials ~ enrolments ~ maybeAffinityGroup ~ maybeGroupIdentifier ~ maybeNino =>
           val maybeRetrievals =
             for {
               govermentGatewayId <- maybeCredentials.flatMap(toGovernmentGatewayId)
@@ -382,13 +385,20 @@ class AuthenticatedRequestActions(
               )
             }
 
+          val maybeVerifyRetrievals =
+            for {
+              verifyId <- maybeCredentials.flatMap(toVerifyId)
+              nino     <- maybeNino
+            } yield VerifyRetrievals(verifyId, nino)
+
           maybeRetrievals
+            .orElse(maybeVerifyRetrievals)
             .fold[AuthResult](
               AuthForbidden(s"""|Missing affinityGroup or groupIdentifier or govermentGateway credentials:
                                 |AffinityGroup: $maybeAffinityGroup
                                 |Credentials: $maybeCredentials
                                 |GroupIdentifier: $maybeGroupIdentifier""".stripMargin))(retrievals =>
-              AuthSuccessful(retrievals, ggRoleFromAffinityGroup(retrievals.affinityGroup)))
+              AuthSuccessful(retrievals, roleFromMaterialisedRetrievals(retrievals)))
             .pure[Future]
 
       }
@@ -399,8 +409,17 @@ class AuthenticatedRequestActions(
     case Credentials(ggId, "GovernmentGateway") => Some(GovernmentGatewayId(ggId))
     case _                                      => None
   }
+  private def toVerifyId(credentials: Credentials): Option[VerifyId] = credentials match {
+    case Credentials(id, "Verify") => Some(VerifyId(id))
+    case _                         => None
+  }
 
-  private def ggRoleFromAffinityGroup(affinityGroup: AffinityGroup) = affinityGroup match {
+  private def roleFromMaterialisedRetrievals(affinityGroup: MaterialisedRetrievals): Role = affinityGroup match {
+    case x: AuthenticatedRetrievals => ggRoleFromAffinityGroup(x.affinityGroup)
+    case _                          => Role.Customer
+  }
+
+  private def ggRoleFromAffinityGroup(affinityGroup: AffinityGroup): Role = affinityGroup match {
     case AffinityGroup.Individual   => Role.Customer
     case AffinityGroup.Organisation => Role.Customer
     case AffinityGroup.Agent        => Role.Agent

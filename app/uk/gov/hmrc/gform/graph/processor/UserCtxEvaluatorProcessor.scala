@@ -18,7 +18,7 @@ package uk.gov.hmrc.gform.graph.processor
 
 import cats.Monad
 import cats.syntax.applicative._
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals, VerifyRetrievals }
 import uk.gov.hmrc.gform.graph.{ Convertible, NonConvertible, RecalculationOp }
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil
 import uk.gov.hmrc.gform.sharedmodel.AffinityGroupUtil.affinityGroupNameO
@@ -35,13 +35,15 @@ class UserCtxEvaluatorProcessor[F[_]: Monad] extends IdentifierExtractor {
   ): Convertible[F] = {
     val result =
       (retrievals, userCtx) match {
-        case (AnonymousRetrievals(_), _) => RecalculationOp.noChange
         case (AuthenticatedRetrievals(_, enrolments, _, _), UserCtx(EnrolledIdentifier)) =>
           RecalculationOp.newValue(authorizedEnrolmentValue(enrolments, authConfig))
         case (AuthenticatedRetrievals(_, enrolments, _, _), UserCtx(Enrolment(sn, in))) =>
           RecalculationOp.newValue(extractIdentifier(enrolments, sn, in))
         case (_, UserCtx(AffinityGroup)) =>
           RecalculationOp.newValue(affinityGroupNameO(AffinityGroupUtil.fromRetrievals(retrievals)))
+        case (AnonymousRetrievals(_), _) => RecalculationOp.noChange
+        case (VerifyRetrievals(_, _), _) => RecalculationOp.noChange
+
       }
     NonConvertible(result.pure[F])
   }

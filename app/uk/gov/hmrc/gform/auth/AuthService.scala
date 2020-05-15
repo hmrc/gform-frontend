@@ -265,7 +265,7 @@ class AuthService(
           .flatMap(_.getIdentifier(identifier))
           .fold("")(_.value)
 
-      case _: AnonymousRetrievals => ""
+      case _ => ""
     }
 
 }

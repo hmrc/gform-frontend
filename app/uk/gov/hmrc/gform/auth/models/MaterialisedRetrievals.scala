@@ -27,6 +27,7 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
   def groupId = this match {
     case AnonymousRetrievals(sessionId)                    => sessionId.value
     case AuthenticatedRetrievals(_, _, _, groupIdentifier) => groupIdentifier
+    case VerifyRetrievals(verifyId, _)                     => verifyId.id
   }
 
   def ggCredId = this match {
@@ -46,6 +47,11 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 
   def getTaxIdValue(taxIdName: ServiceNameAndTaxId) = this match {
     case AnonymousRetrievals(_) => ""
+    case VerifyRetrievals(_, nino) =>
+      taxIdName match {
+        case NINO(_) => nino
+        case _       => ""
+      }
     case AuthenticatedRetrievals(_, enrolments, _, _) =>
       val maybeEnrolmentIdentifier = taxIdName match {
         case IRSA(name, id)         => valueByNameAndId(name, id, enrolments)
@@ -69,8 +75,11 @@ sealed trait MaterialisedRetrievals extends Product with Serializable {
 }
 
 case class GovernmentGatewayId(ggId: String) extends AnyVal
+case class VerifyId(id: String) extends AnyVal
 
 case class AnonymousRetrievals(sessionId: SessionId) extends MaterialisedRetrievals
+
+case class VerifyRetrievals(verifyIde: VerifyId, nino: String) extends MaterialisedRetrievals
 
 case class AuthenticatedRetrievals(
   governmentGatewayId: GovernmentGatewayId,

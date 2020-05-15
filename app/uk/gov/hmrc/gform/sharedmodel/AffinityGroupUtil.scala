@@ -17,14 +17,14 @@
 package uk.gov.hmrc.gform.sharedmodel
 
 import uk.gov.hmrc.auth.core.AffinityGroup
-import uk.gov.hmrc.gform.auth.models.{ AnonymousRetrievals, AuthenticatedRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.auth.models.{ AuthenticatedRetrievals, MaterialisedRetrievals }
 
 object AffinityGroupUtil {
 
   def fromRetrievals(materialisedRetrievals: MaterialisedRetrievals): Option[AffinityGroup] =
     materialisedRetrievals match {
-      case AnonymousRetrievals(_)     => None
       case a: AuthenticatedRetrievals => Some(a.affinityGroup)
+      case _                          => None
     }
 
   def affinityGroupNameO(affinityGroup: Option[AffinityGroup]): String = affinityGroup.fold("")(affinityGroupName)
