@@ -43,8 +43,6 @@ trait AuthConfigGen {
 
   def enrolmentCheckVerbGen: Gen[EnrolmentCheckVerb] = Gen.oneOf(NeverVerb, AlwaysVerb, ForNonAgentsVerb)
 
-  def authModuleGen: Gen[AuthModule] = Gen.oneOf(Hmrc, EeittLegacy)
-
   def doCheckGen: Gen[DoCheck] =
     for {
       predicate     <- enrolmentCheckPredicateGen
