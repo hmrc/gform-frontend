@@ -89,29 +89,10 @@ object EnrolmentCheckVerb {
   }
 }
 
-sealed trait AuthModule extends Product with Serializable
-case object Hmrc extends AuthModule
-case object EeittLegacy extends AuthModule
-
-object AuthModule {
-
-  private val hmrc = "hmrc"
-  private val legacyEEITTAuth = "legacyEEITTAuth"
-
-  implicit val format: Format[AuthModule] = ADTFormat.formatEnumeration(
-    hmrc            -> Hmrc,
-    legacyEEITTAuth -> EeittLegacy
-  )
-
-  def asString(o: AuthModule): String = o match {
-    case Hmrc        => hmrc
-    case EeittLegacy => legacyEEITTAuth
-  }
-}
-
 sealed trait AuthConfig extends Product with Serializable
 case object Anonymous extends AuthConfig
 case class EeittModule(regimeId: RegimeId) extends AuthConfig
+case object HmrcAny extends AuthConfig
 case object HmrcSimpleModule extends AuthConfig
 case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
@@ -167,52 +148,7 @@ object AuthConfig {
       case (Some(NeverVerb) | None, _) => EnrolmentAuth(serviceId, Never)
     }
 
-  implicit val format: OFormat[AuthConfig] = {
-    val rawTemplateReads = Reads[AuthConfig] { json =>
-      for {
-        authModule                     <- (json \ "authModule").validate[AuthModule]
-        maybeRegimeId                  <- (json \ "regimeId").validateOpt[RegimeId]
-        maybeLegacyFcEnrolmentVerifier <- (json \ "legacyFcEnrolmentVerifier").validateOpt[LegacyFcEnrolmentVerifier]
-        maybeServiceId                 <- (json \ "serviceId").validateOpt[ServiceId]
-        maybeAgentAccess               <- (json \ "agentAccess").validateOpt[AgentAccess]
-        maybeEnrolmentSection          <- (json \ "enrolmentSection").validateOpt[EnrolmentSection]
-        maybeEnrolmentCheck            <- (json \ "enrolmentCheck").validateOpt[EnrolmentCheckVerb]
-        authConfig <- authModule match {
-                       case EeittLegacy =>
-                         maybeRegimeId match {
-                           case None =>
-                             JsError(s"Missing regimeId (regimeId is mandatory for legacyEEITTAuth)")
-                           case Some(regimeId) => JsSuccess(EeittModule(regimeId))
-                         }
-                       case Hmrc =>
-                         maybeServiceId match {
-                           case None =>
-                             maybeAgentAccess.fold(JsSuccess(HmrcSimpleModule: AuthConfig))(agentAccess =>
-                               JsSuccess(HmrcAgentModule(agentAccess)))
-                           case Some(serviceId) =>
-                             val enrolmentAuth =
-                               toEnrolmentAuth(
-                                 serviceId,
-                                 maybeRegimeId,
-                                 maybeEnrolmentCheck,
-                                 maybeEnrolmentSection,
-                                 maybeLegacyFcEnrolmentVerifier)
-
-                             JsSuccess(
-                               maybeAgentAccess.fold(HmrcEnrolmentModule(enrolmentAuth): AuthConfig)(
-                                 HmrcAgentWithEnrolmentModule(_, enrolmentAuth)))
-
-                         }
-                     }
-      } yield authConfig
-
-    }
-
-    val writes: OWrites[AuthConfig] = derived.owrites
-    val reads: Reads[AuthConfig] = derived.reads
-
-    OFormat(reads | rawTemplateReads, writes)
-  }
+  implicit val format: OFormat[AuthConfig] = derived.oformat
 
   val missingRegimeIdForLegacyEEITTAuth: String = "Missing regimeId (regimeId is mandatory for legacyEEITTAuth)"
 }

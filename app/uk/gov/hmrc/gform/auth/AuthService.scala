@@ -61,6 +61,7 @@ class AuthService(
           .pure[Future]
       case AWSALBAuth            => performAWSALBAuth(assumedIdentity).pure[Future]
       case EeittModule(regimeId) => performEEITTAuth(regimeId, requestUri, ggAuthorised(RecoverAuthResult.noop))
+      case HmrcAny               => performHmrcAny(ggAuthorised(RecoverAuthResult.noop))
       case HmrcSimpleModule      => performGGAuth(ggAuthorised(RecoverAuthResult.noop))
       case HmrcEnrolmentModule(enrolmentAuth) =>
         performEnrolment(formTemplate, enrolmentAuth, getAffinityGroup, ggAuthorised)
@@ -193,6 +194,12 @@ class AuthService(
         performGGAuth(ggAuthorised(RecoverAuthResult.noop))
     }
 
+  private def performHmrcAny(ggAuthorised: Predicate => Future[AuthResult])(
+    implicit hc: HeaderCarrier): Future[AuthResult] = {
+    val predicate = EmptyPredicate
+    ggAuthorised(predicate)
+  }
+
   private def performGGAuth(ggAuthorised: Predicate => Future[AuthResult])(
     implicit hc: HeaderCarrier): Future[AuthResult] = {
     val predicate = AuthProviders(AuthProvider.GovernmentGateway)
@@ -258,7 +265,7 @@ class AuthService(
           .flatMap(_.getIdentifier(identifier))
           .fold("")(_.value)
 
-      case _: AnonymousRetrievals => ""
+      case _ => ""
     }
 
 }
