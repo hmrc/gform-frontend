@@ -27,7 +27,7 @@ import cats.syntax.eq._
 import cats.syntax.validated._
 import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
@@ -68,6 +68,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.DateInput
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.fieldset.{ Fieldset, Legend }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.fileupload
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.Input
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
@@ -582,16 +583,56 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     sse: SmartStringEvaluator) = {
     val validationResult = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
 
-    html.form.snippets.field_template_file_upload(
-      FormId(materialisedRetrievals, formTemplateId, ei.maybeAccessCode),
-      ei.maybeAccessCode,
-      formTemplateId,
-      ei.sectionNumber,
-      formComponent,
-      validationResult,
-      index,
-      ei.formMaxAttachmentSizeMB
+    val hint = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
+    val errors: Option[String] = {
+      val lookup: Map[String, Set[String]] =
+        validationResult.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+      ValidationUtil.printErrors(lookup).headOption
+    }
+
+    val errorMessage = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
+
+    val currentValue =
+      for {
+        vr <- validationResult
+        cv <- vr.getCurrentValue
+      } yield cv
+
+    val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
+
+    val isPageHeading = !ei.formLevelHeading
+
+    val label = Label(
+      isPageHeading = isPageHeading,
+      classes = if (isPageHeading) "govuk-label--xl" else "",
+      content = labelContent
     )
+
+    val fileUpload: fileupload.FileUpload = fileupload.FileUpload(
+      id = formComponent.id.value,
+      name = formComponent.id.value,
+      value = currentValue,
+      label = label,
+      hint = hint,
+      errorMessage = errorMessage
+    )
+
+    val fileInput: Html = new components.govukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
+
+    val uploadedFiles: Html =
+      html.form.snippets.uploaded_files(ei.maybeAccessCode, formTemplateId, formComponent, currentValue)
+
+    HtmlFormat.fill(List(fileInput, uploadedFiles))
+
   }
 
   private def htmlForChoice(
@@ -1249,9 +1290,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean = {
     val filteredSections = section.fields
       .filter {
-        case IsGroup(g)     => false
-        case IsFileUpload() => false
-        case _              => true
+        case IsGroup(g) => false
+        case _          => true
       }
 
     filteredSections.count(field => field.editable && field.label == section.title) != 1 || filteredSections.size != 1 || GFC579Ready == "false"
