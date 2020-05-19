@@ -213,20 +213,33 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val errorsHtml: List[ErrorLink] = globalErrors ++ allValidationResults
       .filter(_.isNotOk)
       .flatMap { validationResult =>
+        val fieldId = validationResult match {
+          case _: FieldGlobalError =>
+            validationResult.fieldValue.`type` match {
+              case _: UkSortCode => UkSortCode.fields(validationResult.fieldValue.id).toList.head.value
+              case _: Date       => Date.fields(validationResult.fieldValue.id).toList.head.value
+              case _             => validationResult.fieldValue.id.value
+            }
+          case _ => validationResult.fieldValue.id.value
+        }
+
+        val dataContext = validationResult.fieldValue.id.value
+          .replace("-day", "")
+          .replace("-month", "")
+          .replace("-year", "")
+
         validationResult.fieldErrors
-          .map(errorMessage =>
-            ErrorLink(
-              href = Some("#" + validationResult.fieldValue.id.value),
-              content = content.Text(errorMessage),
-              attributes = Map(
-                "data-context" -> validationResult.fieldValue.id.value
-                  .replace("-day", "")
-                  .replace("-month", "")
-                  .replace("-year", ""),
-                "class"        -> "js-hidden",
-                "data-focuses" -> validationResult.fieldValue.id.value
-              )
-          ))
+          .map(
+            errorMessage =>
+              ErrorLink(
+                href = Some("#" + fieldId),
+                content = content.Text(errorMessage),
+                attributes = Map(
+                  "data-context" -> dataContext,
+                  "class"        -> "js-hidden",
+                  "data-focuses" -> fieldId
+                )
+            ))
       }
 
     if (errorsHtml.nonEmpty) {

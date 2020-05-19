@@ -406,3 +406,12 @@ select:focus {
     float: left;
     clear: none;
 }
+
+.gform-sortcode {
+    border-style: none;
+    padding: 0px;
+}
+
+div.gform-date-input__item {
+    margin-right: 5px;
+}
