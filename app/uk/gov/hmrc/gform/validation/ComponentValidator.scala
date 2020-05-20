@@ -205,7 +205,7 @@ object ComponentValidator {
     l: LangADT,
     sse: SmartStringEvaluator) = {
     val ValidText =
-      """[A-Za-z0-9\(\)\,\'\’\“\”\%\•\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}\–\—]+""".r
+      """[A-Za-z0-9\(\)\,\'\’\“\”\%\•\-\.\r\s\£\\n\+\;\:\*\?\=\/\&\!\@\#\$\€\`\~\"\<\>\_\§\±\[\]\{\}\–\—\‘\’\“\”]+""".r
     val messageKey = "generic.longText.error.pattern"
     sharedTextComponentValidator(fieldValue, value, min, max, ValidText, messageKey)
   }
