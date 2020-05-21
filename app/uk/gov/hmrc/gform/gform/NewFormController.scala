@@ -55,16 +55,24 @@ class NewFormController(
 
   private val noAccessCode = Option.empty[AccessCode]
 
+  private def formTemplateIdCookie(formTemplateId: FormTemplateId) =
+    Cookie(CookieNames.formTemplateIdCookieName, formTemplateId.value)
+
   def dashboard(formTemplateId: FormTemplateId) =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ViewDashboard) {
       implicit request => implicit lang => cache =>
-        (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
-          case (BySubmissionReference, _)                    => showAccesCodePage(cache, BySubmissionReference)
-          case (drm @ FormAccessCodeForAgents(_), IsAgent()) => showAccesCodePage(cache, drm)
-          case _ =>
-            Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString)
-              .pure[Future]
-        }
+        val cookie = formTemplateIdCookie(formTemplateId)
+
+        val result =
+          (cache.formTemplate.draftRetrievalMethod, cache.retrievals) match {
+            case (BySubmissionReference, _)                    => showAccesCodePage(cache, BySubmissionReference)
+            case (drm @ FormAccessCodeForAgents(_), IsAgent()) => showAccesCodePage(cache, drm)
+            case _ =>
+              Redirect(routes.NewFormController.newOrContinue(formTemplateId).url, request.queryString)
+                .pure[Future]
+          }
+
+        result.map(_.withCookies(cookie))
     }
 
   /**

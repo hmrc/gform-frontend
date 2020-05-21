@@ -30,10 +30,10 @@ import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.AuthModule
 import uk.gov.hmrc.gform.config.ConfigModule
-import controllers.{ ControllersModule, ErrResponder, ErrorHandler }
+import controllers.{ CSRFErrorHandler, ControllersModule, ErrResponder, ErrorHandler }
 import _root_.controllers.AssetsComponents
 import play.api.libs.crypto.{ CookieSigner, DefaultCookieSigner }
-import play.filters.csrf.CSRFComponents
+import play.filters.csrf.{ CSRF, CSRFComponents }
 import uk.gov.hmrc.csp.{ CachedStaticHtmlPartialProvider, WebchatClient }
 import uk.gov.hmrc.csp.config.ApplicationConfig
 import uk.gov.hmrc.gform.fileupload.FileUploadModule
@@ -103,6 +103,16 @@ class ApplicationModule(context: Context)
     configModule.context.sourceMapper,
     errResponder
   )
+
+  val csrfHttpErrorHandler: CSRFErrorHandler = new CSRFErrorHandler(
+    configModule.environment,
+    configModule.playConfiguration,
+    configModule.context.sourceMapper,
+    errResponder,
+    configModule.appConfig
+  )
+
+  override lazy val csrfErrorHandler: CSRF.ErrorHandler = new CSRF.CSRFHttpErrorHandler(csrfHttpErrorHandler)
 
   private val metricsModule = new MetricsModule(configModule, akkaModule, controllerComponents, executionContext)
   private val graphiteModule =
