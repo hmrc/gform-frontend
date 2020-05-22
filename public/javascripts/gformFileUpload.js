@@ -204,7 +204,7 @@
     // Error handling
     function handleError ($input, msg) {
       enableSubmitButton()
-      var errorEl = '<span class="error-message file-upload-error" role="alert">' + msg + '</span>';
+      var errorEl = '<span class="govuk-error-message" role="alert">' + msg + '</span>';
       $(errorEl).insertBefore($input)
     }
 
@@ -261,7 +261,6 @@
       input.removeAttr('aria-busy')
 
       $('#' + fileId + '-files')
-        .addClass('subsection')
         .empty()
         .append(makeFileEntry(name, fileId, formTemplateId, accessCode))
         .attr('tabIndex', '-1')

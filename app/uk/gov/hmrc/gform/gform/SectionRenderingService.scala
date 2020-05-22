@@ -617,7 +617,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     val currentValue =
       for {
         vr <- validationResult
-        cv <- vr.getCurrentValue
+        cv <- vr.getCurrentValue.filterNot(_ === "")
       } yield cv
 
     val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
@@ -636,7 +636,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       value = currentValue,
       label = label,
       hint = hint,
-      errorMessage = errorMessage
+      errorMessage = errorMessage,
+      attributes = Map(
+        "data-form-template-id" -> formTemplateId.value,
+        "data-max-file-size-MB" -> ei.formMaxAttachmentSizeMB.toString,
+        "data-access-code"      -> ei.maybeAccessCode.fold("-")(_.value)
+      )
     )
 
     val fileInput: Html = new components.govukFileUpload(govukErrorMessage, govukHint, govukLabel)(fileUpload)
