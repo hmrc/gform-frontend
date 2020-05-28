@@ -52,11 +52,6 @@ object FormDataHelpers {
   def anyFormId(data: Map[FormComponentId, Seq[String]]): Option[FormId] =
     data.get(FormComponentId("formId")).flatMap(_.filterNot(_.isEmpty()).headOption).map(FormId.apply)
 
-  def dataEnteredInGroup(group: Group, fieldData: VariadicFormData): Boolean =
-    group.fields
-      .map(_.id)
-      .exists(id => fieldData.get(id).exists(_.exists(!_.isEmpty)))
-
   def updateFormField(form: Form, updatedFormField: FormField): Form = {
     val updated: Seq[FormField] = form.formData.fields.filterNot(_.id === updatedFormField.id).+:(updatedFormField)
     form.modify(_.formData.fields).setTo(updated)

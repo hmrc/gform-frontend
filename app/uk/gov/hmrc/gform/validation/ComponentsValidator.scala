@@ -175,7 +175,7 @@ class ComponentsValidator(
         validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
       case _: RevealingChoice =>
         validIf(formComponent, ComponentValidator.validateChoice(formComponent)(data))
-      case Group(_, _, _, _, _, _)  => cvh.validF //a group is read-only
+      case Group(_, _, _, _, _)     => cvh.validF //a group is read-only
       case FileUpload()             => validateFileUpload(data, formComponent, envelope).pure[Future]
       case InformationMessage(_, _) => cvh.validF
       case HmrcTaxPeriod(_, _, _) =>

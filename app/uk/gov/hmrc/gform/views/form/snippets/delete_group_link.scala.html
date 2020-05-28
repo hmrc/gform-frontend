@@ -1,4 +1,4 @@
-/*
+@*
  * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *@
 
-package uk.gov.hmrc.gform.sharedmodel.formtemplate
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormComponentId
 
-import julienrf.json.derived
-import play.api.libs.json._
+@(
+    formComponentId: FormComponentId,
+    label: String,
+    instance: Int,
+    disableRemoveButton: Boolean
+)(
+    implicit
+    messages: Messages
+)
 
-sealed trait PresentationHint
-case object InvisibleInSummary extends PresentationHint
-case object SummariseGroupAsGrid extends PresentationHint
-case object TotalValue extends PresentationHint
-
-object PresentationHint {
-  implicit val format: OFormat[PresentationHint] = derived.oformat[PresentationHint]
+@if(!disableRemoveButton) {
+    <a class="removeRepeatingSection govuk-link" href="RemoveGroup-@{instance}_@{formComponentId}">
+	@messages("linkText.removeRepeatedGroup", label)
+    </a>
 }

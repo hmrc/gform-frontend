@@ -73,7 +73,7 @@ object RepeatingComponentService {
         case rc: RevealingChoice =>
           val optionsUpd = rc.options.map(rce => rce.copy(revealingFields = rce.revealingFields.map(copyField)))
           rc.copy(options = optionsUpd)
-        case grp @ Group(fields, _, _, _, _, _) =>
+        case grp @ Group(fields, _, _, _, _) =>
           grp.copy(fields = fields.map(copyField))
         case t => t
       }
@@ -164,7 +164,7 @@ object RepeatingComponentService {
     def findRepeatingGroups(groupField: Option[FormComponent], fieldList: List[FormComponent]): Set[FormComponent] =
       fieldList.flatMap { field =>
         field.`type` match {
-          case Group(fields, _, repMax, _, _, _) if repMax.isDefined          => findRepeatingGroups(Some(field), fields)
+          case Group(fields, repMax, _, _, _) if repMax.isDefined             => findRepeatingGroups(Some(field), fields)
           case othertype if groupField.isDefined && field.id.value.equals(id) => List(groupField.get)
           case _                                                              => Nil
         }
@@ -178,7 +178,7 @@ object RepeatingComponentService {
       fields
         .flatMap { fv =>
           fv.`type` match {
-            case groupField @ Group(_, _, _, _, _, _) =>
+            case groupField @ Group(_, _, _, _, _) =>
               section match {
                 case DeclarationSection(_, _, _, _) => loop(groupField.fields)
                 case _                              => List.empty

@@ -30,7 +30,6 @@ object FormTemplateBuilder {
   def mkGroup(max: Int, formComponents: List[FormComponent]): Group =
     Group(
       formComponents,
-      Vertical,
       Some(max),
       None,
       None,
@@ -137,7 +136,6 @@ object FormTemplateBuilder {
     None,
     sections,
     Nil,
-    Some("false"),
     AvailableLanguages.default,
     None,
     SummarySection(toSmartString("Title"), toSmartString("Header"), toSmartString("Footer"))

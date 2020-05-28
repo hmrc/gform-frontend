@@ -549,8 +549,7 @@ class SummarySpec extends Spec {
     val groupFieldValue = FormComponent(
       FormComponentId("gid"),
       Group(
-        List(),
-        Horizontal
+        List()
       ),
       toSmartString("Test!group-label!Test"),
       None,

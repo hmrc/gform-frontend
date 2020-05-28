@@ -344,7 +344,6 @@ class SectionRenderingServiceSpec extends Spec {
 
     override def `group - type` = Group(
       fields = List(`fieldValue - firstName`),
-      orientation = Horizontal,
       repeatsMax = Some(3),
       repeatsMin = Some(1),
       repeatLabel = Some(toSmartString("REPEAT_LABEL")),
@@ -390,7 +389,6 @@ class SectionRenderingServiceSpec extends Spec {
 
     override def `group - type` = Group(
       fields = List(`fieldValue - firstName`),
-      orientation = Horizontal,
       repeatsMax = Some(2),
       repeatsMin = Some(1),
       repeatLabel = Some(toSmartString("REPEAT_LABEL")),

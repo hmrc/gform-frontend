@@ -27,11 +27,7 @@ object JavascriptMaker {
     val jsFormComponentModels = section.jsFormComponentModels
     val allAtomicFields = dynamicSections.flatMap(RepeatingComponentService.atomicFieldsFull)
 
-    createJavascript(
-      dynamicSections.flatMap(_.fields),
-      jsFormComponentModels,
-      allAtomicFields,
-      mkDependencies(formTemplate))
+    createJavascript(jsFormComponentModels, allAtomicFields, mkDependencies(formTemplate))
 
   }
 
@@ -60,19 +56,12 @@ object JavascriptMaker {
   }
 
   private def createJavascript(
-    fieldList: List[FormComponent],
     jsFormComponentModels: List[JsFormComponentModel],
     allAtomicFields: List[FormComponent],
     dependencies: Dependencies): String = {
-    val groups: List[(FormComponentId, Group)] = fieldList
-      .filter(_.presentationHint.getOrElse(Nil).contains(CollapseGroupUnderLabel))
-      .collect {
-        case fc @ IsGroup(group) => (fc.id, group)
-      }
 
     val repeatFormComponentIds = RepeatingComponentService.getRepeatFormComponentIds(allAtomicFields)
 
-    groups.map((Javascript.collapsingGroupJavascript _).tupled).mkString("\n") +
-      Javascript.fieldJavascript(jsFormComponentModels, allAtomicFields, repeatFormComponentIds, dependencies)
+    Javascript.fieldJavascript(jsFormComponentModels, allAtomicFields, repeatFormComponentIds, dependencies)
   }
 }

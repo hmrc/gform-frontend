@@ -52,7 +52,7 @@ object Fields {
             case None         => (fieldId, FieldOk(fieldValue, data(fieldId)))
           }
         }
-      case FileUpload() | Group(_, _, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) |
+      case FileUpload() | Group(_, _, _, _, _) | InformationMessage(_, _) | Text(_, _, _, _) | TextArea(_, _, _) |
           Choice(_, _, _, _, _) | RevealingChoice(_, _) | HmrcTaxPeriod(_, _, _) =>
         List[(FormComponentId, FormFieldValidationResult)]()
     }
@@ -94,7 +94,7 @@ object Fields {
       case Address(_)    => componentField(Address.fields(fieldValue.id).toList)
       case Date(_, _, _) => componentField(Date.fields(fieldValue.id).toList)
       case UkSortCode(_) => componentField(UkSortCode.fields(fieldValue.id).toList)
-      case Text(_, _, _, _) | TextArea(_, _, _) | Group(_, _, _, _, _, _) =>
+      case Text(_, _, _, _) | TextArea(_, _, _) | Group(_, _, _, _, _) =>
         formFields.get(fieldValue.id).map { formField =>
           gformErrors
             .get(fieldValue.id)
@@ -143,7 +143,7 @@ object Fields {
 
     def getFormFields(templateFields: List[FormComponent]): List[FormField] = templateFields.flatMap { fv =>
       fv.`type` match {
-        case Group(_, _, _, _, _, _) =>
+        case Group(_, _, _, _, _) =>
           require(true, "There shouldn't be Group fields here")
           Nil // For completion, there shouldn't be Groups here
         case Address(_)    => Address.fields(fv.id).toList.map(getFieldData)

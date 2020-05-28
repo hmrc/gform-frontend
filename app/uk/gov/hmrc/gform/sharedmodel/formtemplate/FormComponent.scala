@@ -68,7 +68,7 @@ case class FormComponent(
 
   private def loop(fc: FormComponent): List[FormComponent] =
     fc.`type` match {
-      case Group(fields, _, max, _, _, _) =>
+      case Group(fields, max, _, _, _) =>
         val expandedFields =
           for {
             field <- fields
@@ -124,9 +124,9 @@ case class FormComponent(
     expandRc: RevealingChoice => List[FormComponent]
   ): List[FormComponent] =
     fc.`type` match {
-      case g @ Group(fields, _, max, _, _, _) => (0 until max.getOrElse(1)).toList.flatMap(expandGroup(g))
-      case rc: RevealingChoice                => fc :: expandRc(rc)
-      case _                                  => fc :: Nil
+      case g @ Group(fields, max, _, _, _) => (0 until max.getOrElse(1)).toList.flatMap(expandGroup(g))
+      case rc: RevealingChoice             => fc :: expandRc(rc)
+      case _                               => fc :: Nil
     }
 
   private def mkJsFormComponentModels(fc: FormComponent): List[JsFormComponentModel] =
@@ -136,7 +136,7 @@ case class FormComponent(
           case (option, index) =>
             option.revealingFields.map(rf => JsRevealingChoiceModel(fc.id, index, rf))
         }
-      case group @ Group(fields, _, max, _, _, _) =>
+      case group @ Group(fields, max, _, _, _) =>
         (0 until max.getOrElse(1)).toList.flatMap(index =>
           fields.map(field => JsFormComponentWithCtx(FormComponentWithGroup(addFieldIndex(field, index, group), fc))))
       case _ => JsFormComponentWithCtx(FormComponentSimple(fc)) :: Nil

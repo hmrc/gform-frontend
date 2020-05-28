@@ -233,7 +233,6 @@ trait ExampleFieldValue { dependecies: ExampleFieldId =>
 
   def `group - type` = Group(
     fields = List(`fieldValue - firstName`),
-    orientation = Horizontal,
     repeatsMax = None,
     repeatsMin = None,
     repeatLabel = None,
@@ -426,7 +425,6 @@ trait ExampleFormTemplate {
     webChat,
     allSections,
     Nil,
-    Some("false"),
     AvailableLanguages.default,
     None,
     summarySection

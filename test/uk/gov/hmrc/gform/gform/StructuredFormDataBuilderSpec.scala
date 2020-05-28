@@ -434,7 +434,6 @@ class StructuredFormDataBuilderSpec extends Spec {
       null,
       List(section),
       Nil,
-      null,
       AvailableLanguages.default,
       null,
       null

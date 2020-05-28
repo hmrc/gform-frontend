@@ -722,7 +722,6 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
   def mkGroup(groupIds: List[FormComponentId]) =
     Group(
       groupIds.map(fcId => mkFormComponent(fcId, Text(BasicText, Value))),
-      Vertical,
       repeatsMax = Some(5),
       repeatsMin = None,
       None,
@@ -732,7 +731,6 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
   def mkGroupWithDate(groupIds: List[FormComponentId]) =
     Group(
       groupIds.map(fcId => mkFormComponent(fcId, Date(AnyDate, Offset(0), None))),
-      Vertical,
       repeatsMax = Some(5),
       repeatsMin = None,
       None,
@@ -742,7 +740,6 @@ class ExpandUtilsSpec extends FlatSpec with Matchers with PropertyChecks {
   def mkGroupWith(fcIds: List[FormComponent]) =
     Group(
       fcIds,
-      Vertical,
       repeatsMax = Some(5),
       repeatsMin = None,
       None,

@@ -74,7 +74,6 @@ trait FormTemplateGen {
       webChat                  <- Gen.option(webChatGen)
       sections                 <- PrimitiveGen.oneOrMoreGen(SectionGen.sectionGen)
       parentFormSubmissionRefs <- PrimitiveGen.zeroOrMoreGen(FormComponentGen.formComponentIdGen)
-      gFC579Ready              <- Gen.option(PrimitiveGen.nonEmptyAlphaNumStrGen)
       save4LaterInfoText       <- Gen.option(Save4LaterInfoTextGen.save4LaterInfoTextGen)
       summarySection           <- SummarySectionGen.summarySectionGen
     } yield
@@ -91,7 +90,6 @@ trait FormTemplateGen {
         webChat,
         sections.toList,
         parentFormSubmissionRefs,
-        gFC579Ready,
         AvailableLanguages.default,
         save4LaterInfoText,
         summarySection

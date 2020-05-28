@@ -86,23 +86,10 @@ object Javascript {
           (formComponent, expr)
       }
 
-    val groupFoldButtons: List[(FormComponentId, FormComponentWithGroup)] =
-      sectionFields.collect {
-        case wg @ FormComponentWithGroup(fc, parent)
-            if parent.presentationHint.fold(false)(_.exists(_ == CollapseGroupUnderLabel)) =>
-          fc.id -> wg
-      }
-
     fieldIdWithExpr
       .map {
         case (formComponentWithCtx, expr) =>
-          toJavascriptFn(
-            formComponentWithCtx,
-            expr,
-            repeatFormComponentIds,
-            dependencies.toLookup,
-            groupFoldButtons.toMap,
-            mkEvents)
+          toJavascriptFn(formComponentWithCtx, expr, repeatFormComponentIds, dependencies.toLookup, mkEvents)
       }
       .mkString("\n") +
       isHiddenScripts.mkString("\n") +
@@ -148,7 +135,6 @@ object Javascript {
     expr: Expr,
     repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
-    groupFoldButtonLookup: Map[FormComponentId, FormComponentWithGroup],
     radioAndCheckboxes: JsFunction => List[String]
   ): String = {
 
@@ -192,38 +178,8 @@ object Javascript {
       }
     }
 
-    def listeners(functionName: JsFunction) = {
-
-      def hasFoldButton(id: FormComponentId) =
-        groupFoldButtonLookup.get(id) match {
-          case None => ""
-          case Some(FormComponentWithGroup(_, parent)) =>
-            val id = parent.id
-            s"""|var element$id = document.getElementById("$id")
-                |element$id.addEventListener("change",$functionName);
-                |""".stripMargin
-        }
-
-      val windowEl = s"""window.addEventListener("load", $functionName);"""
-
-      val componentEls =
-        dependenciesLookup.get(field.id) match {
-          case None => ""
-          case Some(deps) =>
-            deps
-              .map { id =>
-                s"""|${hasFoldButton(id)}
-                    |var element$id = document.getElementById("$id");
-                    |if (element$id) {
-                    |  element$id.addEventListener("change",$functionName);
-                    |  element$id.addEventListener("keyup",$functionName);
-                    |}
-                    |""".stripMargin
-              }
-              .mkString("\n")
-        }
-      componentEls + windowEl
-    }
+    def listeners(functionName: JsFunction) =
+      s"""window.addEventListener("load", $functionName);"""
 
     val elementRoundingMode = roundingMode match {
       case Some(RoundingMode.Up)       => "ROUND_UP"
@@ -264,9 +220,4 @@ object Javascript {
     case FormComponentSimple(fc)       => extractMaxFractionalDigits(fc).maxDigits
   }
 
-  def collapsingGroupJavascript(fieldId: FormComponentId, group: Group) =
-    s"""|function removeOnClick$fieldId() {
-        |${group.fields.map(fv => s"""  document.getElementById("${fv.id}").value = '';""").mkString("\n")}
-        |}
-        |""".stripMargin
 }

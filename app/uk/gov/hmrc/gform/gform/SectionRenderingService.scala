@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
 import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.models.GroupHelper
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
 import uk.gov.hmrc.gform.models.helpers.{ Fields, TaxPeriodHelper }
@@ -132,7 +133,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   )(implicit request: Request[_], messages: Messages, l: LangADT, sse: SmartStringEvaluator): Html = {
 
     val section = dynamicSections(sectionNumber.value)
-    val formLevelHeading = shouldDisplayHeading(section, formTemplate.GFC579Ready.getOrElse("false"))
+    val formLevelHeading = shouldDisplayHeading(section)
 
     val ei = ExtraInfo(
       maybeAccessCode,
@@ -192,7 +193,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       pageLevelErrorHtml,
       renderingInfo,
       shouldDisplayBack = sectionNumber > originSection,
-      shouldDisplayHeading = formLevelHeading,
+      shouldDisplayHeading = !formLevelHeading,
       shouldDisplayContinue = !section.continueIf.contains(Stop),
       frontendAppConfig,
       isDeclaration = false
@@ -504,7 +505,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent.`type` match {
       case sortCode @ UkSortCode(expr) =>
         htmlForSortCode(formComponent, sortCode, expr, formComponent.id, index, maybeValidated, ei, data, isHidden)
-      case g @ Group(_, _, _, _, _, _) =>
+      case g @ Group(_, _, _, _, _) =>
         htmlForGroup(g, formTemplateId, formComponent, index, ei, data, maybeValidated, obligations)
       case Date(_, offset, dateValue) =>
         htmlForDate(formComponent, offset, dateValue, index, maybeValidated, ei, data, isHidden)
@@ -622,7 +623,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val labelContent = content.Text(LabelHelper.buildRepeatingLabel(formComponent.label, index).value)
 
-    val isPageHeading = !ei.formLevelHeading
+    val isPageHeading = ei.formLevelHeading
 
     val label = Label(
       isPageHeading = isPageHeading,
@@ -700,7 +701,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           content = content.Text(error)
       ))
 
-    val isPageHeading = !ei.formLevelHeading
+    val isPageHeading = ei.formLevelHeading
     val fieldset = Some(
       Fieldset(
         legend = Some(
@@ -904,7 +905,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case DisplayWidth.DEFAULT => "govuk-input--width-30"
       }
 
-      val isPageHeading = !ei.formLevelHeading
+      val isPageHeading = ei.formLevelHeading
 
       val label = Label(
         isPageHeading = isPageHeading,
@@ -1002,7 +1003,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               else "govuk-input--width-5"
           }
 
-          val isPageHeading = !ei.formLevelHeading
+          val isPageHeading = ei.formLevelHeading
           val label = Label(
             isPageHeading = isPageHeading,
             classes = if (isPageHeading) "govuk-label--xl" else "",
@@ -1147,7 +1148,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         )
       )
 
-      val isPageHeading = !ei.formLevelHeading
+      val isPageHeading = ei.formLevelHeading
 
       val fieldset = Fieldset(
         legend = Some(
@@ -1171,31 +1172,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   }
 
   private def htmlForGroup(
-    grp: Group,
-    formTemplateId: FormTemplateId,
-    formComponent: FormComponent,
-    index: Int,
-    ei: ExtraInfo,
-    data: FormDataRecalculated,
-    validatedType: ValidatedType[ValidationResult],
-    obligations: Obligations)(
-    implicit request: RequestHeader,
-    messages: Messages,
-    l: LangADT,
-    sse: SmartStringEvaluator): Html = {
-    val grpHtml = htmlForGroup0(grp, formTemplateId, formComponent, index, ei, data, validatedType, obligations)
-
-    val isChecked = FormDataHelpers
-      .dataEnteredInGroup(grp, ei.fieldData.data)
-
-    formComponent.presentationHint match {
-      case Some(list) if list.contains(CollapseGroupUnderLabel) =>
-        html.form.snippets.collapsable(formComponent.id, formComponent.label.value, grpHtml, isChecked)
-      case _ => grpHtml
-    }
-  }
-
-  private def htmlForGroup0(
     groupField: Group,
     formTemplateId: FormTemplateId,
     formComponent: FormComponent,
@@ -1209,20 +1185,12 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     l: LangADT,
     sse: SmartStringEvaluator) = {
     val maybeHint =
-      formComponent.helpText.map(markDownParser)
+      formComponent.helpText.map(markDownParser).map(markDown => Hint(content = content.HtmlContent(markDown)))
 
     val (lhtml, limitReached) =
-      getGroupForRendering(
-        formComponent,
-        formTemplateId,
-        groupField,
-        groupField.orientation,
-        validatedType,
-        ei,
-        data,
-        obligations)
+      getGroupForRendering(formComponent, formTemplateId, groupField, validatedType, ei, data, obligations)
 
-    html.form.snippets.group(formComponent, maybeHint, groupField, lhtml, groupField.orientation, limitReached, index)
+    html.form.snippets.group(formComponent, maybeHint, groupField, lhtml, limitReached, index)
   }
 
   private def getRepeatingGroupsForRendering(
@@ -1246,7 +1214,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     formComponent: FormComponent,
     formTemplateId: FormTemplateId,
     groupField: Group,
-    orientation: Orientation,
     validatedType: ValidatedType[ValidationResult],
     ei: ExtraInfo,
     data: FormDataRecalculated,
@@ -1268,7 +1235,26 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
               groupField.repeatsMax.getOrElse(0) == groupField.repeatsMin.getOrElse(0) ||
               groupList.size <= groupField.repeatsMin.getOrElse(1)
             }
-            html.form.snippets.group_element(formComponent, groupField, lhtml, orientation, count + 1, showButton)
+
+            val instance = count + 1
+
+            val label =
+              if (groupField.repeatLabel.isDefined) GroupHelper.buildRepeatLabel(groupField, instance).value else ""
+
+            val removeButtonHtml = html.form.snippets.delete_group_link(formComponent.id, label, instance, showButton)
+            val dividerHtml = html.form.snippets.divider()
+
+            val fieldSet = Fieldset(
+              legend = Some(
+                Legend(
+                  content = content.Text(label),
+                  classes = "govuk-label--m"
+                )
+              ),
+              html = HtmlFormat.fill(lhtml ++ List(removeButtonHtml, dividerHtml))
+            )
+
+            govukFieldset(fieldSet)
 
         }
 
@@ -1305,14 +1291,23 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     maybeNino = None
   )
 
-  private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean = {
-    val filteredSections = section.fields
-      .filter {
-        case IsGroup(g) => false
-        case _          => true
+  private def shouldDisplayHeading(section: Section): Boolean = {
+
+    def loop(formComponents: List[FormComponent]): Boolean = {
+      val filteredSections = formComponents.filter {
+        case IsInformationMessage(g) => false
+        case _                       => true
       }
 
-    filteredSections.count(field => field.editable && field.label == section.title) != 1 || filteredSections.size != 1 || GFC579Ready == "false"
+      filteredSections match {
+        case IsGroup(g) :: Nil    => loop(g.fields)
+        case formComponent :: Nil => formComponent.editable && formComponent.label == section.title
+        case _                    => false
+      }
+    }
+
+    loop(section.fields)
+
   }
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()

@@ -731,7 +731,7 @@ object SummaryRenderingService {
             group_grid(fieldValue, value, isLabel, changeButton)
           } else Html("")
 
-        case groupField @ Group(_, orientation, _, _, _, _) =>
+        case groupField @ Group(_, _, _, _, _) =>
           val fvs: List[GroupList] =
             getAllFieldsInGroup(fieldValue, groupField, data)
 
@@ -750,7 +750,7 @@ object SummaryRenderingService {
               envelope
             )
           })
-          group(fieldValue, htmlList, orientation, isLabel)
+          group(fieldValue, htmlList, isLabel)
 
         case _ =>
           valueToHtml(
@@ -824,7 +824,7 @@ object SummaryRenderingService {
       case f @ FileUpload() =>
         file_upload(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
       case InformationMessage(_, _) => Html("")
-      case Group(_, _, _, _, _, _)  => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
+      case Group(_, _, _, _, _)     => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
 
       case h @ HmrcTaxPeriod(_, _, _) =>
         val periodId =

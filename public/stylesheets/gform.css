@@ -415,3 +415,7 @@ select:focus {
 div.gform-date-input__item {
     margin-right: 5px;
 }
+
+.gform-group {
+    margin-bottom: 30px;
+}

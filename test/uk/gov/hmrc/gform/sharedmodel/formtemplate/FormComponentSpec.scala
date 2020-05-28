@@ -61,7 +61,6 @@ class FormComponentSpec extends Spec {
         "group-id",
         Group(
           List(mkFormComponent("text-id", exprText, "$n. Some label", "Short name for $n.")),
-          Vertical,
           Some(max),
           None,
           None,
@@ -113,7 +112,6 @@ class FormComponentSpec extends Spec {
           mkFormComponent("info-message", exprInformationMessage, labelNoCounter, shortNameNoCounter),
           mkFormComponent("file-upload", exprFileUpload, labelNoCounter, shortNameNoCounter)
         ),
-        Vertical,
         Some(max),
         None,
         None,
