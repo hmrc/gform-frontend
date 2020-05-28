@@ -216,7 +216,7 @@
         return false;
       }
       disableSubmitButton();
-      $('.file-upload-error').remove();
+      $('.govuk-error-message').remove();
       var $input = $(e.currentTarget);
       var formTemplateId = $input[0].dataset.formTemplateId;
       var accessCode = $input[0].dataset.accessCode;
