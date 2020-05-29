@@ -33,6 +33,11 @@ sealed trait VariadicValue extends Product with Serializable {
     case VariadicValue.Many(vs) => vs
   }
 
+  def isEmpty: Boolean = this match {
+    case VariadicValue.One(v)   => v.isEmpty
+    case VariadicValue.Many(vs) => vs.forall(_.isEmpty)
+  }
+
   def toSet: Set[String] = toSeq.toSet
 
   def exists(pred: String => Boolean): Boolean = toSeq.exists(pred)
