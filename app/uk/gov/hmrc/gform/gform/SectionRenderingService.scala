@@ -1291,7 +1291,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     maybeNino = None
   )
 
-  private def shouldDisplayHeading(section: Section): Boolean = {
+  private def shouldDisplayHeading(section: Section)(implicit l: LangADT, sse: SmartStringEvaluator): Boolean = {
 
     def loop(formComponents: List[FormComponent]): Boolean = {
       val filteredSections = formComponents.filter {
@@ -1301,7 +1301,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
       filteredSections match {
         case IsGroup(g) :: Nil    => loop(g.fields)
-        case formComponent :: Nil => formComponent.editable && formComponent.label == section.title
+        case formComponent :: Nil => formComponent.editable && formComponent.label.value() == section.title.value()
         case _                    => false
       }
     }

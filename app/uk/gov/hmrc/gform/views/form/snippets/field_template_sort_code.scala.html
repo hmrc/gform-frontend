@@ -44,7 +44,7 @@
 
 @label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
 
-@if(!formLevelHeading) {
+@if(formLevelHeading) {
     <legend class="govuk-fieldset__legend govuk-label--xl">
         <h1 class="govuk-fieldset__heading">
             @label

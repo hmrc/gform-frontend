@@ -15,6 +15,15 @@
         $label.addClass('js-hidden').attr('aria-hidden', true)
         $('#' + $label.parent().attr('for')).val('')
       }
+
+      function showDiv($div) {
+        $div.removeClass('js-hidden').attr('aria-hidden', false)
+      }
+
+      function hideDiv($div) {
+        $div.addClass('js-hidden').attr('aria-hidden', true)
+        $('#' + $div.parent().attr('for')).val('')
+      }
     
       function toggleAddressLabels(e) {
 
@@ -23,6 +32,10 @@
 
         scopeVar.find('span[data-address-label]').each(function (i, label) {
           $(label).attr('data-address-label') === choice ? showLabel($(label)) : hideLabel($(label))
+        })
+
+        scopeVar.find('div[data-address-div]').each(function (i, div) {
+          $(div).attr('data-address-div') === choice ? showDiv($(div)) : hideDiv($(div))
         })
       }
 
