@@ -199,7 +199,9 @@ class ComponentsValidator(
       case Some(File(fileId, _, _)) => ValidationServiceHelper.validationSuccess
       case None if fieldValue.mandatory =>
         validationFailure(fieldValue, "generic.error.upload", None)
-      case None => validationSuccess
+      case None =>
+        val dataEmpty: Boolean = data.data.get(fieldValue.id).forall(_.isEmpty)
+        if (dataEmpty) validationSuccess else validationFailure(fieldValue, "generic.error.upload", None)
     }
   }
 }

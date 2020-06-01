@@ -176,7 +176,7 @@ object ValidationUtil {
 
       case _: FileUpload =>
         val fileName =
-          envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("Upload document")
+          envelope.files.find(_.fileId.value == fieldValue.id.value).map(_.fileName).getOrElse("")
         gFormErrors.get(fieldValue.id) match {
           case Some(errors) => FieldError(fieldValue, fileName, errors)
           case None         => FieldOk(fieldValue, fileName)
