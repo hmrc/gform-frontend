@@ -20,5 +20,5 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponent, FormComponent
 
 sealed trait JsFormComponentModel extends Product with Serializable
 
-case class JsRevealingChoiceModel(fcId: FormComponentId, index: Int, fc: FormComponent) extends JsFormComponentModel
+case class JsRevealingChoiceModel(fcId: FormComponentId, fc: FormComponent) extends JsFormComponentModel
 case class JsFormComponentWithCtx(fcWithCtx: FormComponentWithCtx) extends JsFormComponentModel

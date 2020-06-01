@@ -59,9 +59,10 @@ object Javascript {
     val previousSectionIds: List[FormComponentId] = dependencies.all.filterNot(sectionFieldIds.contains)
 
     val isHiddenScripts = jsRevealingChoiceModels.map {
-      case JsRevealingChoiceModel(rcFc, index, fc) =>
-        s"""|var isHidden${fc.id.value} = function () {
-            |  return document.getElementById("fields-${rcFc.value + index.toString}").classList.contains("js-hidden");
+      case JsRevealingChoiceModel(_, fc) =>
+        val id = fc.id.value
+        s"""|var isHidden$id = function () {
+            |  return document.getElementById("$id").parentNode.parentNode.parentNode.classList.contains("govuk-checkboxes__conditional--hidden");
             |};""".stripMargin
     }
     val isHiddenScripts2 = (previousSectionIds ++ sectionFields.map(_.id)).map { fcId =>
@@ -89,11 +90,17 @@ object Javascript {
     fieldIdWithExpr
       .map {
         case (formComponentWithCtx, expr) =>
-          toJavascriptFn(formComponentWithCtx, expr, repeatFormComponentIds, dependencies.toLookup, mkEvents)
+          toJavascriptFn(
+            formComponentWithCtx,
+            expr,
+            repeatFormComponentIds,
+            dependencies.toLookup,
+            mkEvents,
+            jsRevealingChoiceModels)
       }
       .mkString("\n") +
-      isHiddenScripts.mkString("\n") +
       isHiddenScripts2.mkString("\n") +
+      isHiddenScripts.mkString("\n") +
       """|function getValue(elementId, identity, isHidden) {
          |   var el = document.getElementById(elementId);
          |   var isVisible = !isHidden();
@@ -135,7 +142,8 @@ object Javascript {
     expr: Expr,
     repeatFormComponentIds: RepeatFormComponentIds,
     dependenciesLookup: Map[FormComponentId, List[FormComponentId]],
-    radioAndCheckboxes: JsFunction => List[String]
+    radioAndCheckboxes: JsFunction => List[String],
+    jsRevealingChoiceModel: List[JsRevealingChoiceModel]
   ): String = {
 
     def getRoundingMode(fc: FormComponent) =
@@ -178,8 +186,23 @@ object Javascript {
       }
     }
 
-    def listeners(functionName: JsFunction) =
-      s"""window.addEventListener("load", $functionName);"""
+    def listeners(functionName: JsFunction) = {
+
+      val components = dependenciesLookup.get(field.id).getOrElse(Nil) ++ jsRevealingChoiceModel.map(_.fc.id)
+
+      val componentEls = components.map { fcId =>
+        val id = fcId.value
+        s"""|var element$id = document.getElementById("$id");
+            |if (element$id) {
+            |  element$id.addEventListener("change",$functionName);
+            |  element$id.addEventListener("keyup",$functionName);
+            |}""".stripMargin
+      }
+
+      s"""|window.addEventListener("load", $functionName);
+          |${componentEls.mkString("\n")}
+          |""".stripMargin
+    }
 
     val elementRoundingMode = roundingMode match {
       case Some(RoundingMode.Up)       => "ROUND_UP"

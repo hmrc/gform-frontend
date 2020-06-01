@@ -670,11 +670,6 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       if (ei.fieldData.data.contains(formComponent.id)) Set.empty[String] // Don't prepop something we already submitted
       else selections.map(_.toString).toSet
 
-    val optionalHelpTextMarkDown: NonEmptyList[Html] =
-      optionalHelpText.fold(options.map(_ => Html(""))) { helpTexts =>
-        helpTexts.map(ht => markDownParser(ht))
-      }
-
     val optionsWithHelpText: NonEmptyList[(SmartString, Option[Html])] =
       optionalHelpText
         .map(_.zipWith(options)((helpText, option) =>
@@ -771,7 +766,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   }
 
   private def htmlForRevealingChoice(
-    fieldValue: FormComponent,
+    formComponent: FormComponent,
     multiValue: Boolean,
     formTemplateId: FormTemplateId,
     options: NonEmptyList[RevealingChoiceElement],
@@ -784,31 +779,105 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     message: Messages,
     l: LangADT,
     sse: SmartStringEvaluator) = {
-    val validatedValue = buildFormFieldValidationResult(fieldValue, extraInfo, validatedType, data)
-    val nestedEi = extraInfo.copy(formLevelHeading = true)
-    val revealingChoicesList =
+    val validatedValue = buildFormFieldValidationResult(formComponent, extraInfo, validatedType, data)
+    val nestedEi = extraInfo.copy(formLevelHeading = false)
+    val revealingChoicesList: NonEmptyList[(SmartString, Int => Boolean, Option[NonEmptyList[Html]])] =
       options.map { o =>
         val isSelected: Int => Boolean =
           index =>
             extraInfo.fieldData.data
-              .get(fieldValue.id)
+              .get(formComponent.id)
               .fold(o.selected)(_.contains(index.toString))
-        (
-          o.choice,
-          isSelected,
-          o.revealingFields
-            .filterNot(_.onlyShowOnSummary)
-            .map(htmlFor(_, formTemplateId, index, nestedEi, data, validatedType, obligations = obligations)))
+
+        val revealingFieldsHtml = o.revealingFields
+          .filterNot(_.onlyShowOnSummary)
+          .map(htmlFor(_, formTemplateId, index, nestedEi, data, validatedType, obligations = obligations))
+
+        val maybeRevealingFieldsHtml = revealingFieldsHtml match {
+          case x :: xs => Some(NonEmptyList(x, xs))
+          case Nil     => None
+        }
+
+        (o.choice, isSelected, maybeRevealingFieldsHtml)
       }
 
-    html.form.snippets
-      .revealingChoice(
-        fieldValue,
-        if (multiValue) "checkbox" else "radio",
-        revealingChoicesList,
-        validatedValue,
-        index,
-        extraInfo.formLevelHeading)
+    val hint = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
+    val errors: Option[String] = {
+      val lookup: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+      ValidationUtil.printErrors(lookup).headOption
+    }
+
+    val errorMessage = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
+
+    val isPageHeading = extraInfo.formLevelHeading
+    val fieldset = Some(
+      Fieldset(
+        legend = Some(
+          Legend(
+            content = content.Text(formComponent.label.value),
+            isPageHeading = isPageHeading,
+            classes = if (isPageHeading) "govuk-label--xl" else ""
+          ))
+      ))
+
+    def revealingFieldsHtml(maybeRevealingFieldsHtml: Option[NonEmptyList[Html]]): Option[Html] =
+      maybeRevealingFieldsHtml.map(htmls => html.form.snippets.markdown_wrapper(HtmlFormat.fill(htmls.toList)))
+
+    if (multiValue) {
+      val items = revealingChoicesList.zipWithIndex.map {
+        case ((option, isChecked, maybeRevealingFieldsHtml), index) =>
+          CheckboxItem(
+            value = index.toString,
+            content = content.Text(option.value),
+            checked = isChecked(index),
+            conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml)
+          )
+      }
+
+      val checkboxes = Checkboxes(
+        idPrefix = Some(formComponent.id.value),
+        fieldset = fieldset,
+        hint = hint,
+        errorMessage = errorMessage,
+        name = formComponent.id.value,
+        items = items.toList
+      )
+
+      new components.govukCheckboxes(govukErrorMessage, govukFieldset, govukHint, govukLabel)(checkboxes)
+    } else {
+
+      val items = revealingChoicesList.zipWithIndex.map {
+        case ((option, isChecked, maybeRevealingFieldsHtml), index) =>
+          RadioItem(
+            value = Some(index.toString),
+            content = content.Text(option.value),
+            checked = isChecked(index),
+            conditionalHtml = revealingFieldsHtml(maybeRevealingFieldsHtml)
+          )
+      }
+
+      val radios = Radios(
+        idPrefix = Some(formComponent.id.value),
+        fieldset = fieldset,
+        hint = hint,
+        errorMessage = errorMessage,
+        name = formComponent.id.value,
+        items = items.toList
+      )
+
+      new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+    }
+
   }
   case class RevealingChoiceComponents(option: String, hiddenField: List[FormComponent])
 

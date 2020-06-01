@@ -132,9 +132,8 @@ case class FormComponent(
   private def mkJsFormComponentModels(fc: FormComponent): List[JsFormComponentModel] =
     fc.`type` match {
       case RevealingChoice(options, _) =>
-        options.toList.zipWithIndex.flatMap {
-          case (option, index) =>
-            option.revealingFields.map(rf => JsRevealingChoiceModel(fc.id, index, rf))
+        options.toList.flatMap { option =>
+          option.revealingFields.map(rf => JsRevealingChoiceModel(fc.id, rf))
         }
       case group @ Group(fields, max, _, _, _) =>
         (0 until max.getOrElse(1)).toList.flatMap(index =>
