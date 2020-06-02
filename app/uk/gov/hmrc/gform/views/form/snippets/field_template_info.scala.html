@@ -30,45 +30,49 @@
 <div class="subsection">
   @infoType match {
     case StandardInfo => {
-      <div class="panel panel-border-wide">
+      <div class="govuk-inset-text">
         @text
       </div>
     }
 
     case LongInfo => {
-      <details class="details" role="group">
-        <summary class="summary" role="button" aria-controls="details-content-@{fieldValue.id}" aria-expanded="false">@{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}</summary>
-
-        <div class="details__inner" id="details-content-@{fieldValue.id}" aria-hidden="true">
-          <div class="panel panel-border-narrow">
+      <details class="govuk-details" data-module="govuk-details">
+        <summary class="govuk-details__summary">
+            <span class="govuk-details__summary-text">
+              @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
+            </span>
+        </summary>
+        <div class="govuk-details__text">
             @text
-          </div>
         </div>
       </details>
     }
 
     case ImportantInfo => {
-      <div class="notice">
-        <i class="icon icon-important">
-          <span class="visually-hidden">@messages("generic.Warning")</span>
-        </i>
-        <div class="notice-content">
-          @text
-        </div>
+      <div class="govuk-warning-text">
+        <span class="govuk-warning-text__icon gform-warning-text__icon_adjustment" aria-hidden="true">!</span>
+        <strong class="govuk-warning-text__text">
+            <span class="govuk-warning-text__assistive">@messages("generic.Warning")</span>
+            @text
+        </strong>
       </div>
     }
 
     case BannerInfo => {
-      <div class="transaction-banner--complete panel-info">
-        <p>
-          <strong class="text--bold">@{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}</strong><br />
-          @text
-        </p>
+      <div class="govuk-panel govuk-panel--confirmation">
+        <h1 class="govuk-panel__title">
+            @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
+        </h1>
+        <div class="govuk-panel__body">
+            @text
+        </div>
       </div>
     }
 
-  case NoFormat => {
-    @text
-  }
+    case NoFormat => {
+      <div class="govuk-body govuk-!-font-size-19">
+            @text
+      </div>
+    }
   }
 </div>
