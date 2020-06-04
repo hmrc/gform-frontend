@@ -556,22 +556,80 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     obligations: Obligations,
     hmrcTP: HmrcTaxPeriod)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
 
-    val taxPeriodOptions: List[OptionParams] = obligations match {
+    val maybeTaxPeriodOptions: Option[NonEmptyList[OptionParams]] = obligations match {
       case RetrievedObligations(listOfObligations) =>
-        listOfObligations
+        val params: Option[List[OptionParams]] = listOfObligations
           .find(_.id.recalculatedTaxPeriodKey.hmrcTaxPeriod === hmrcTP)
           .map(_.obligation.obligations.flatMap(_.obligationDetails.map(od =>
             OptionParams(od.periodKey, od.inboundCorrespondenceFromDate, od.inboundCorrespondenceToDate, false))))
-          .getOrElse(List.empty[OptionParams])
-      case _ => List.empty[OptionParams]
+
+        params match {
+          case Some(x :: xs) => Some(NonEmptyList(x, xs))
+          case _             => None
+        }
+      case _ => None
     }
 
     val validatedValue = buildFormFieldValidationResult(formComponent, ei, validatedType, data)
 
     val setValue = TaxPeriodHelper.formatTaxPeriodOutput(validatedValue)
+    val errors: Option[String] = {
+      val lookup: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+      ValidationUtil.printErrors(lookup).headOption
+    }
 
-    html.form.snippets
-      .hmrc_tax_period("radio", formComponent, taxPeriodOptions, Set[String](), validatedValue, index, true, setValue)
+    val errorMessage = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
+
+    val isPageHeading = ei.formLevelHeading
+
+    val fieldset = Some(
+      Fieldset(
+        legend = Some(
+          Legend(
+            content = content.Text(formComponent.label.value),
+            isPageHeading = isPageHeading,
+            classes = if (isPageHeading) "govuk-label--xl" else ""
+          ))
+      ))
+
+    val hint: Option[Hint] = formComponent.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
+    def dateRangeLabel(optionParams: OptionParams): String =
+      messages("generic.From") + " " + TaxPeriodHelper.formatDate(optionParams.fromDate) + " " + messages("generic.to") + " " + TaxPeriodHelper
+        .formatDate(optionParams.toDate)
+
+    def renderOption(optionParams: OptionParams) = RadioItem(
+      value = Some(optionParams.value),
+      content = content.Text(dateRangeLabel(optionParams)),
+      checked = optionParams.value === setValue
+    )
+
+    def renderOptions(optionParams: NonEmptyList[OptionParams]) = {
+      val items = optionParams.toList.map(renderOption)
+
+      val radios = Radios(
+        idPrefix = Some(formComponent.id.value),
+        fieldset = fieldset,
+        hint = hint,
+        errorMessage = errorMessage,
+        name = formComponent.id.value,
+        items = items.toList
+      )
+
+      new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+
+    }
+
+    maybeTaxPeriodOptions.fold(html.form.snippets.h3(messages("taxPeriod.noResults")))(renderOptions)
   }
 
   private def htmlForInformationMessage(
