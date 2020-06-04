@@ -25,7 +25,7 @@ import uk.gov.hmrc.gform.auth.models.Role
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder._
 import uk.gov.hmrc.gform.graph.{ GraphException, Recalculation }
-import uk.gov.hmrc.gform.models.ProcessDataService
+import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, VariadicFormData }
 import uk.gov.hmrc.gform.sharedmodel.form.FormDataRecalculated
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.Section
@@ -34,12 +34,18 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class JavascriptMakerSpec extends Spec with GraphSpec {
 
-  type EitherEffect[A] = Either[GraphException, A]
+  type EitherEffect[A] = Either[Exception, A]
 
-  val recalculation: Recalculation[EitherEffect, GraphException] =
-    new Recalculation[EitherEffect, GraphException](booleanExprEval, (s: GraphException) => s)
+  val recalculation: Recalculation[EitherEffect, Exception] =
+    new Recalculation[EitherEffect, Exception](booleanExprEval, (s: GraphException) => new Exception(s.reportProblem))
+  new Recalculation[EitherEffect, GraphException](booleanExprEval, (s: GraphException) => s)
 
-  val processDataService = new ProcessDataService(recalculation)
+  val taxPeriodStateChecker: TaxPeriodStateChecker[EitherEffect, Exception] =
+    new TaxPeriodStateChecker[EitherEffect, Exception] {
+      def error = new Exception("Obligation retrieval failed")
+    }
+
+  val processDataService = new ProcessDataService(recalculation, taxPeriodStateChecker)
 
   private def javascript(formTemplate: FormTemplate, sectionNumber: SectionNumber): String = {
     implicit val hc: HeaderCarrier = HeaderCarrier()

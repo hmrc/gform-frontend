@@ -28,7 +28,7 @@ import uk.gov.hmrc.gform.gform.handlers.{ FormControllerRequestHandler, FormVali
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndService, GformBackendModule }
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.lookup.LookupRegistry
-import uk.gov.hmrc.gform.models.ProcessDataService
+import uk.gov.hmrc.gform.models.{ ProcessDataService, TaxPeriodStateChecker }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
@@ -77,8 +77,12 @@ class GformModule(
     graphModule.smartStringEvaluatorFactory
   )
 
+  val taxPeriodStateChecker = new TaxPeriodStateChecker[Future, Throwable] {
+    def error: Throwable = new Exception("Call to des to retrieve obligation-data has failed")
+  }
+
   val processDataService: ProcessDataService[Future, Throwable] =
-    new ProcessDataService[Future, Throwable](graphModule.recalculation)
+    new ProcessDataService[Future, Throwable](graphModule.recalculation, taxPeriodStateChecker)
 
   val formControllerRequestHandler = new FormControllerRequestHandler(new FormValidator())
 

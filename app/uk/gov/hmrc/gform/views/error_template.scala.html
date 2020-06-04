@@ -15,15 +15,16 @@
  *@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
+@import uk.gov.hmrc.govukfrontend.views.html.layouts._
+
 @(
   pageTitle: String,
   heading: String,
   message: String,
   frontendAppConfig: FrontendAppConfig
-)(implicit messages: Messages, viewHelpers: ViewHelpersAlgebra)
-
+)(implicit messages: Messages, request: Request[_], l: LangADT)
 
 @errorContentHeader = {
   <h1>@heading</h1>
@@ -33,4 +34,15 @@
   <p>@message</p>
 }
 
-@*govuk_wrapper(appConfig = frontendAppConfig, title = pageTitle, serviceTitle = pageTitle, headTitle = pageTitle, contentHeader = Some(errorContentHeader), mainContent = mainContent, authConfig = None, includeHMRCBranding = false, templateId = FormTemplateId(""))*@
+@govuk_wrapper(
+    appConfig = frontendAppConfig,
+    title = pageTitle,
+    serviceTitle = pageTitle,
+    headTitle = pageTitle,
+    contentHeader = Some(errorContentHeader),
+    content = mainContent,
+    authConfig = None,
+    includeHMRCBranding = false,
+    templateId = FormTemplateId(""),
+    backLink = None
+)

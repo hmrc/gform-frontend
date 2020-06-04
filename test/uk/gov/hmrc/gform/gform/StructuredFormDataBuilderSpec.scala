@@ -466,7 +466,7 @@ class StructuredFormDataBuilderSpec extends Spec {
     createFormComponent(id, Text(Lookup(Register.Origin), Value))
 
   def createGroup(fields: FormComponent*): FormComponent =
-    createFormComponent("a group", Group(fields.toList, null))
+    createFormComponent("a group", Group(fields.toList, None))
 
   def createFormComponent(id: String, componentType: ComponentType): FormComponent =
     FormComponent(

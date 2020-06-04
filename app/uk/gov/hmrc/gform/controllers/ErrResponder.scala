@@ -19,10 +19,12 @@ package controllers
 
 import play.api.Logger
 import play.api.i18n.{ I18nSupport, Messages }
+import play.api.mvc.Request
 import play.api.mvc.Results.{ BadRequest, Forbidden, InternalServerError, NotFound }
 import play.api.mvc.{ RequestHeader, Result }
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
+import uk.gov.hmrc.gform.sharedmodel.LangADT
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.concurrent.Future
@@ -75,35 +77,34 @@ class ErrResponder(
   private def renderInternalServerError(implicit request: RequestHeader) = renderErrorPage(
     pageTitle = Messages("global.error.InternalServerError500.title"),
     heading = Messages("global.error.InternalServerError500.heading"),
-    message = Messages("global.error.InternalServerError500.message"),
-    frontendAppConfig = frontendAppConfig
+    message = Messages("global.error.InternalServerError500.message")
   )
 
   private def renderForbidden(implicit request: RequestHeader) = renderErrorPage(
     "Access forbidden",
     "We're sorry, but this page is restricted.",
-    "We're sorry, but this page is restricted.",
-    frontendAppConfig
+    "We're sorry, but this page is restricted."
   )
 
   private def renderNotFound(implicit request: RequestHeader) = renderErrorPage(
     pageTitle = Messages("global.error.pageNotFound404.title"),
     heading = Messages("global.error.pageNotFound404.heading"),
-    message = Messages("global.error.pageNotFound404.message"),
-    frontendAppConfig = frontendAppConfig
+    message = Messages("global.error.pageNotFound404.message")
   )
 
   private def renderBadRequest(implicit request: RequestHeader) = renderErrorPage(
     pageTitle = Messages("global.error.badRequest400.title"),
     heading = Messages("global.error.badRequest400.heading"),
-    message = Messages("global.error.badRequest400.message"),
-    frontendAppConfig = frontendAppConfig
+    message = Messages("global.error.badRequest400.message")
   )
 
   private def renderErrorPage(
     pageTitle: String,
     heading: String,
-    message: String,
-    frontendAppConfig: FrontendAppConfig
-  )(implicit request: RequestHeader) = views.html.error_template(pageTitle, heading, message, frontendAppConfig)
+    message: String
+  )(implicit requestHeader: RequestHeader) = {
+    implicit val request = Request(requestHeader, "")
+    implicit val l = LangADT.En
+    views.html.error_template(pageTitle, heading, message, frontendAppConfig)
+  }
 }

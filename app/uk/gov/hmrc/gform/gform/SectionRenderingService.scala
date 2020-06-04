@@ -76,6 +76,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
 import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.{ Textarea => govukTextArea }
+import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -585,13 +586,15 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
           content = content.Text(error)
       ))
 
+    val label = formComponent.label.value
+
     val isPageHeading = ei.formLevelHeading
 
     val fieldset = Some(
       Fieldset(
         legend = Some(
           Legend(
-            content = content.Text(formComponent.label.value),
+            content = content.Text(label),
             isPageHeading = isPageHeading,
             classes = if (isPageHeading) "govuk-label--xl" else ""
           ))
@@ -629,7 +632,16 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     }
 
-    maybeTaxPeriodOptions.fold(html.form.snippets.h3(messages("taxPeriod.noResults")))(renderOptions)
+    val warningText = WarningText(content = content.Text(messages("taxPeriod.noResults.warning")))
+
+    val labelContent =
+      if (isPageHeading) {
+        content.HtmlContent(s"""<h1 class="govuk-label--xl">$label</h1>""")
+      } else {
+        content.HtmlContent(s"""<p class="govuk-body">$label</p>""")
+      }
+
+    maybeTaxPeriodOptions.fold(html.form.snippets.no_open_tax_period(labelContent, warningText))(renderOptions)
   }
 
   private def htmlForInformationMessage(

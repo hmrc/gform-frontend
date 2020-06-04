@@ -296,12 +296,7 @@ class AuthenticatedRequestActions(
       case AuthRedirectFlashingFormName(loginUrl) =>
         Redirect(loginUrl).flashing("formTitle" -> formTemplate.formName.value).pure[Future]
       case AuthBlocked(message) =>
-        Ok(
-          views.html.error_template(
-            pageTitle = "Access denied",
-            heading = "Access denied",
-            message = message,
-            frontendAppConfig = frontendAppConfig)(request.messages, viewHelpers)).pure[Future]
+        errResponder.forbidden(request, "Access denied")
       case AuthForbidden(message) =>
         errResponder.forbidden(request, message)
     }

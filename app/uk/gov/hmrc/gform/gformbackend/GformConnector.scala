@@ -190,9 +190,9 @@ class GformConnector(ws: WSHttp, baseUrl: String) {
   /****** Tax Period ******/
   def getAllTaxPeriods(htps: NonEmptyList[HmrcTaxPeriodWithEvaluatedId])(
     implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[NonEmptyList[TaxResponse]] = {
+    ec: ExecutionContext): Future[NonEmptyList[ServiceCallResponse[TaxResponse]]] = {
     import JsonUtils._
-    ws.POST[NonEmptyList[HmrcTaxPeriodWithEvaluatedId], NonEmptyList[TaxResponse]](
+    ws.POST[NonEmptyList[HmrcTaxPeriodWithEvaluatedId], NonEmptyList[ServiceCallResponse[TaxResponse]]](
       s"$baseUrl/obligation/tax-period",
       htps)
   }

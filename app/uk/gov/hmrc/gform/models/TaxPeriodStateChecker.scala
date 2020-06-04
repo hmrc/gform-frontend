@@ -16,24 +16,30 @@
 
 package uk.gov.hmrc.gform.models
 
-import cats.Monad
+import cats.MonadError
 import cats.data.NonEmptyList
 import cats.syntax.applicative._
 import cats.syntax.eq._
-import cats.syntax.functor._
+import cats.syntax.flatMap._
+import cats.syntax.traverse._
 import uk.gov.hmrc.gform.models.gform.ObligationsAction
 import uk.gov.hmrc.gform.models.gform.ForceReload
 import uk.gov.hmrc.gform.sharedmodel._
 
-class TaxPeriodStateChecker[F[_]: Monad] {
+trait TaxPeriodStateChecker[F[_], E] {
+
+  def error: E
 
   def callDesIfNeeded(
-    getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[TaxResponse]],
+    getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
     evaluatedTaxPeriod: Option[NonEmptyList[HmrcTaxPeriodWithEvaluatedId]],
     obligations: Obligations,
     newState: Map[RecalculatedTaxPeriodKey, IdNumberValue],
     oldState: Map[RecalculatedTaxPeriodKey, IdNumberValue],
     obligationsAction: ObligationsAction
+  )(
+    implicit
+    me: MonadError[F, E]
   ): F[Obligations] =
     (
       evaluatedTaxPeriod,
@@ -41,7 +47,13 @@ class TaxPeriodStateChecker[F[_]: Monad] {
       case (None, _)        => obligations.pure[F]
       case (Some(_), false) => obligations.pure[F]
       case (Some(hmrcTaxPeriodWithEvaluatedIds), true) =>
-        getAllTaxPeriods(hmrcTaxPeriodWithEvaluatedIds).map(RetrievedObligations.apply)
+        getAllTaxPeriods(hmrcTaxPeriodWithEvaluatedIds).flatMap { nel =>
+          nel.sequence match {
+            case CannotRetrieveResponse => me.raiseError[Obligations](error)
+            case NotFound               => me.raiseError[Obligations](error) // NotFound case is handled on backend.
+            case ServiceResponse(a)     => (RetrievedObligations(a): Obligations).pure[F]
+          }
+        }
     }
 
   val needRefresh

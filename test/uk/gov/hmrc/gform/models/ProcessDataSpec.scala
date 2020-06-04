@@ -28,12 +28,17 @@ import uk.gov.hmrc.gform.sharedmodel.VariadicFormData
 
 class ProcessDataSpec extends FlatSpec with Matchers with GraphSpec with TableDrivenPropertyChecks {
 
-  type EitherEffect[A] = Either[GraphException, A]
+  type EitherEffect[A] = Either[Exception, A]
 
-  val recalculation: Recalculation[EitherEffect, GraphException] =
-    new Recalculation[EitherEffect, GraphException](booleanExprEval, (s: GraphException) => s)
+  val recalculation: Recalculation[EitherEffect, Exception] =
+    new Recalculation[EitherEffect, Exception](booleanExprEval, (s: GraphException) => new Exception(s.reportProblem))
 
-  val processDataService = new ProcessDataService[EitherEffect, GraphException](recalculation)
+  val taxPeriodStateChecker: TaxPeriodStateChecker[EitherEffect, Exception] =
+    new TaxPeriodStateChecker[EitherEffect, Exception] {
+      def error = new Exception("Obligation retrieval failed")
+    }
+
+  val processDataService = new ProcessDataService[EitherEffect, Exception](recalculation, taxPeriodStateChecker)
 
   "updateSectionVisits" should "reindex visits when repeated section shrinked" in {
 

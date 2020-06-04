@@ -27,69 +27,84 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 
 class TaxPeriodStateCheckerTest extends Spec {
 
+  type EitherEffect[A] = Either[Exception, A]
+
+  val obligationError = new Exception("Obligation retrieval failed")
+
   it should "trigger a call to DES if tax period can be evaluated and needs to be refreshed" in
-    new TaxPeriodStateChecker[Id] {
+    new TaxPeriodStateChecker[EitherEffect, Exception] {
+
+      def error = obligationError
+
       override val needRefresh
         : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
         (_, _) => true
 
-      withFixture { (state, evaluatedTaxPeriod, desResponse, obligations) =>
-        val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
-          _ => desResponse.pure[Id]
+      withFixture { (state, evaluatedTaxPeriod, desResponse, desData, obligations) =>
+        val getAllTaxPeriods
+          : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
+          _ => desResponse.pure[EitherEffect]
 
         callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty, NoSpecificAction) should be(
-          RetrievedObligations(desResponse)
+          Right(RetrievedObligations(desData))
         )
       }
     }
 
   it should "trigger a call to DES if obligations are NotChecked" in
-    new TaxPeriodStateChecker[Id] {
+    new TaxPeriodStateChecker[EitherEffect, Exception] {
+      def error = obligationError
       override val needRefresh
         : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
         (_, _) => false
 
-      withFixture { (state, evaluatedTaxPeriod, desResponse, _) =>
-        val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
-          _ => desResponse.pure[Id]
+      withFixture { (state, evaluatedTaxPeriod, desResponse, desData, _) =>
+        val getAllTaxPeriods
+          : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
+          _ => desResponse.pure[EitherEffect]
 
         callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), NotChecked, state, Map.empty, NoSpecificAction) should be(
-          RetrievedObligations(desResponse)
+          Right(RetrievedObligations(desData))
         )
       }
     }
 
   it should "do not trigger a call to DES if tax period can be evaluated but do not need to be refreshed" in
-    new TaxPeriodStateChecker[Id] {
+    new TaxPeriodStateChecker[EitherEffect, Exception] {
+      def error = obligationError
       override val needRefresh
         : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
         (_, _) => false
 
-      withFixture { (state, evaluatedTaxPeriod, desResponse, obligations) =>
-        val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
-          _ => desResponse.pure[Id]
+      withFixture { (state, evaluatedTaxPeriod, desResponse, _, obligations) =>
+        val getAllTaxPeriods
+          : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
+          _ => desResponse.pure[EitherEffect]
 
         callDesIfNeeded(getAllTaxPeriods, Some(evaluatedTaxPeriod), obligations, state, Map.empty, NoSpecificAction) should be(
-          obligations
+          Right(obligations)
         )
       }
     }
 
-  it should "do not call DES if tax period can not be evaluated" in new TaxPeriodStateChecker[Id] {
+  it should "do not call DES if tax period can not be evaluated" in new TaxPeriodStateChecker[EitherEffect, Exception] {
+    def error = obligationError
     override val needRefresh
       : (Map[RecalculatedTaxPeriodKey, IdNumberValue], Map[RecalculatedTaxPeriodKey, IdNumberValue]) => Boolean =
       (_, _) => true
 
-    withFixture { (state, _, desResponse, obligations) =>
-      val getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => Id[NonEmptyList[TaxResponse]] =
-        _ => desResponse.pure[Id]
+    withFixture { (state, _, desResponse, _, obligations) =>
+      val getAllTaxPeriods
+        : NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => EitherEffect[NonEmptyList[ServiceCallResponse[TaxResponse]]] =
+        _ => desResponse.pure[EitherEffect]
 
-      callDesIfNeeded(getAllTaxPeriods, None, obligations, state, Map.empty, ForceReload) should be(obligations)
+      callDesIfNeeded(getAllTaxPeriods, None, obligations, state, Map.empty, ForceReload) should be(Right(obligations))
     }
   }
 
-  it should "check if new state differ from old state" in new TaxPeriodStateChecker[Id] {
-    withFixture { (state, _, _, _) =>
+  it should "check if new state differ from old state" in new TaxPeriodStateChecker[EitherEffect, Exception] {
+    def error = obligationError
+    withFixture { (state, _, _, _, _) =>
       needRefresh(state, state) should be(false)
       needRefresh(state, state.map { case (periodKey, _) => periodKey -> IdNumberValue("666") }) should be(true)
       needRefresh(state, Map.empty) should be(true)
@@ -100,6 +115,7 @@ class TaxPeriodStateCheckerTest extends Spec {
     fn: (
       Map[RecalculatedTaxPeriodKey, IdNumberValue],
       NonEmptyList[HmrcTaxPeriodWithEvaluatedId],
+      NonEmptyList[ServiceCallResponse[TaxResponse]],
       NonEmptyList[TaxResponse],
       RetrievedObligations) => Assertion): Unit = {
     val taxPeriod = HmrcTaxPeriod(IdType("id"), FormCtx("ctx"), RegimeType("AAA"))
@@ -110,8 +126,11 @@ class TaxPeriodStateCheckerTest extends Spec {
     val recalculatedTaxPeriod: RecalculatedTaxPeriodKey =
       RecalculatedTaxPeriodKey(FormComponentId("123"), taxPeriod)
 
-    val desResponse =
+    val desData =
       NonEmptyList.one(TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber1), Obligation(Nil)))
+
+    val desResponse = desData.map(ServiceResponse(_))
+
     val desResponse2 =
       NonEmptyList.one(TaxResponse(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber2), Obligation(Nil)))
 
@@ -120,6 +139,6 @@ class TaxPeriodStateCheckerTest extends Spec {
     val evaluatedTaxPeriod: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] =
       NonEmptyList.one(HmrcTaxPeriodWithEvaluatedId(recalculatedTaxPeriod, idNumber1))
 
-    fn(state, evaluatedTaxPeriod, desResponse, RetrievedObligations(desResponse2))
+    fn(state, evaluatedTaxPeriod, desResponse, desData, RetrievedObligations(desResponse2))
   }
 }

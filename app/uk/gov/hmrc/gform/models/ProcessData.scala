@@ -39,7 +39,10 @@ case class ProcessData(
   visitsIndex: VisitIndex,
   obligations: Obligations)
 
-class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
+class ProcessDataService[F[_]: Monad, E](
+  recalculation: Recalculation[F, E],
+  taxPeriodStateChecker: TaxPeriodStateChecker[F, E]
+) {
 
   def updateSectionVisits(
     dataRaw: VariadicFormData,
@@ -69,7 +72,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
   def getProcessData(
     dataRaw: VariadicFormData,
     cache: AuthCacheWithForm,
-    getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[TaxResponse]],
+    getAllTaxPeriods: NonEmptyList[HmrcTaxPeriodWithEvaluatedId] => F[NonEmptyList[ServiceCallResponse[TaxResponse]]],
     obligationsAction: ObligationsAction
   )(
     implicit hc: HeaderCarrier,
@@ -81,7 +84,7 @@ class ProcessDataService[F[_]: Monad, E](recalculation: Recalculation[F, E]) {
       mongoRecalculated   <- recalculateDataAndSections(cache.variadicFormData, cache)
       (data, sections) = browserRecalculated
       (oldData, mongoSections) = mongoRecalculated
-      obligations <- new TaxPeriodStateChecker[F]().callDesIfNeeded(
+      obligations <- taxPeriodStateChecker.callDesIfNeeded(
                       getAllTaxPeriods,
                       hmrcTaxPeriodWithId(data.recData),
                       cache.form.thirdPartyData.obligations,

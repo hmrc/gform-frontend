@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel
 
+import cats.Applicative
 import play.api.libs.json._
 
 sealed trait ServiceCallResponse[+A] extends Product with Serializable
@@ -25,12 +26,24 @@ case object CannotRetrieveResponse extends ServiceCallResponse[Nothing]
 case class ServiceResponse[A](value: A) extends ServiceCallResponse[A]
 
 object ServiceCallResponse {
-  implicit def format[A: OWrites: Reads]: OFormat[ServiceCallResponse[A]] = new OFormat[ServiceCallResponse[A]] {
+
+  implicit val applicative: Applicative[ServiceCallResponse] = new Applicative[ServiceCallResponse] {
+    def ap[A, B](ff: ServiceCallResponse[A => B])(fa: ServiceCallResponse[A]): ServiceCallResponse[B] = (ff, fa) match {
+      case (ServiceResponse(f), ServiceResponse(a)) => ServiceResponse(f(a))
+      case (CannotRetrieveResponse, _)              => CannotRetrieveResponse
+      case (_, CannotRetrieveResponse)              => CannotRetrieveResponse
+      case (NotFound, _)                            => NotFound
+      case (_, NotFound)                            => NotFound
+    }
+    def pure[A](a: A): ServiceCallResponse[A] = ServiceResponse(a)
+  }
+
+  implicit def format[A: Writes: Reads]: OFormat[ServiceCallResponse[A]] = new OFormat[ServiceCallResponse[A]] {
     override def writes(o: ServiceCallResponse[A]): JsObject =
       o match {
         case NotFound               => Json.obj("det" -> "NotFound")
         case CannotRetrieveResponse => Json.obj("det" -> "CannotRetrieveResponse")
-        case ServiceResponse(a)     => Json.obj("det" -> implicitly[OWrites[A]].writes(a))
+        case ServiceResponse(a)     => Json.obj("det" -> implicitly[Writes[A]].writes(a))
       }
 
     override def reads(json: JsValue): JsResult[ServiceCallResponse[A]] =
@@ -39,7 +52,7 @@ object ServiceCallResponse {
           js match {
             case JsString("NotFound")               => JsSuccess(NotFound: ServiceCallResponse[A])
             case JsString("CannotRetrieveResponse") => JsSuccess(CannotRetrieveResponse: ServiceCallResponse[A])
-            case jsObject: JsObject                 => implicitly[Reads[A]].reads(jsObject).map(ServiceResponse.apply)
+            case jsObject: JsValue                  => implicitly[Reads[A]].reads(jsObject).map(ServiceResponse.apply)
             case _                                  => JsError("Not Supported json: " + Json.prettyPrint(json))
           }
 
