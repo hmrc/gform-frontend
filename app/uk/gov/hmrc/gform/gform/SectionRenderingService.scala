@@ -1418,24 +1418,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     maybeNino = None
   )
 
-  private def shouldDisplayHeading(section: Section)(implicit l: LangADT, sse: SmartStringEvaluator): Boolean = {
-
-    def loop(formComponents: List[FormComponent]): Boolean = {
-      val filteredSections = formComponents.filter {
-        case IsInformationMessage(g) => false
-        case _                       => true
-      }
-
-      filteredSections match {
-        case IsGroup(g) :: Nil    => loop(g.fields)
-        case formComponent :: Nil => formComponent.editable && formComponent.label.value() == section.title.value()
-        case _                    => false
-      }
+  private def shouldDisplayHeading(section: Section)(implicit l: LangADT, sse: SmartStringEvaluator): Boolean =
+    section.fields match {
+      case IsGroup(g) :: _              => false
+      case IsInformationMessage(_) :: _ => false
+      case formComponent :: _           => formComponent.editable && formComponent.label.value() == section.title.value()
+      case _                            => false
     }
-
-    loop(section.fields)
-
-  }
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
   private val govukFieldset: components.govukFieldset = new components.govukFieldset()
