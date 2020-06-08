@@ -40,7 +40,7 @@ import uk.gov.hmrc.gform.controllers.Origin
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers
 import uk.gov.hmrc.gform.fileupload.Envelope
 import uk.gov.hmrc.gform.keystore.RepeatingComponentService
-import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupRegistry, RadioLookup }
+import uk.gov.hmrc.gform.lookup.{ AjaxLookup, LookupLabel, LookupRegistry, RadioLookup }
 import uk.gov.hmrc.gform.models.GroupHelper
 import uk.gov.hmrc.gform.models.ExpandUtils._
 import uk.gov.hmrc.gform.models.javascript.JavascriptMaker
@@ -963,6 +963,35 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
     val prepopValue = ei.fieldData.data.one(fieldValue.id)
     val validatedValue = buildFormFieldValidationResult(fieldValue, ei, validatedType, data)
+
+    val labelString = LabelHelper.buildRepeatingLabel(fieldValue.label, index).value
+    val isPageHeading = ei.formLevelHeading
+
+    val errors: Option[String] = {
+      val lookup: Map[String, Set[String]] =
+        validatedValue.map(x => ValidationUtil.renderErrors("", x)).getOrElse(Map.empty)
+      ValidationUtil.printErrors(lookup).headOption
+    }
+
+    val errorMessage = errors.map(
+      error =>
+        ErrorMessage(
+          content = content.Text(error)
+      ))
+
+    val label = Label(
+      forAttr = Some(fieldValue.id.value),
+      isPageHeading = isPageHeading,
+      classes = if (isPageHeading) "govuk-label--xl" else "",
+      content = content.Text(labelString)
+    )
+
+    val hint: Option[Hint] = fieldValue.helpText.map { ls =>
+      Hint(
+        content = content.Text(ls.value)
+      )
+    }
+
     if (isHidden)
       html.form.snippets
         .hidden_field_populated(List(FormRender(fieldValue.id.value, fieldValue.id.value, prepopValue.getOrElse(""))))
@@ -971,24 +1000,53 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
         case None => Html("") // Ups
         case Some(AjaxLookup(_, _, showAll)) =>
           html.form.snippets.lookup_autosuggest(
+            label,
             fieldValue,
             showAll,
             register,
             ei.formTemplate._id,
-            ei.formLevelHeading,
             prepopValue,
             validatedValue,
-            index
+            hint,
+            errorMessage
           )
         case Some(RadioLookup(options)) =>
-          html.form.snippets.lookup_radios(
-            fieldValue,
-            options.process(_.sorted),
-            ei.formLevelHeading,
-            prepopValue,
-            validatedValue,
-            index
+          val isPageHeading = ei.formLevelHeading
+          val fieldset = Some(
+            Fieldset(
+              legend = Some(
+                Legend(
+                  content = content.Text(fieldValue.label.value),
+                  isPageHeading = isPageHeading,
+                  classes = if (isPageHeading) "govuk-label--xl" else ""
+                ))
+            ))
+
+          val currentValue = validatedValue.flatMap(_.getCurrentValue)
+
+          val selectedValue = prepopValue.orElse(currentValue).getOrElse("")
+
+          def renderOption(lookupLabel: LookupLabel) = RadioItem(
+            value = Some(lookupLabel.label),
+            content = content.Text(lookupLabel.label),
+            checked = lookupLabel.label === selectedValue
           )
+
+          val lookupLabels: List[LookupLabel] = options.process(_.sorted)
+
+          val items = lookupLabels.map(renderOption)
+
+          val radios = Radios(
+            idPrefix = Some(fieldValue.id.value),
+            fieldset = fieldset,
+            hint = hint,
+            errorMessage = errorMessage,
+            name = fieldValue.id.value,
+            items = items.toList
+          )
+
+          new components.govukRadios(govukErrorMessage, govukFieldset, govukHint, govukLabel)(radios)
+
       }
   }
 

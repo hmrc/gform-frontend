@@ -19,7 +19,7 @@
 @(
   validationResult: Option[FormFieldValidationResult]
 )(
-  content: Html
+  content: Boolean => Html
 )
 
 @hasErrors = @{
@@ -27,10 +27,10 @@
 }
 
 @formGroupClass = @{
-  if(hasErrors) "form-group form-group-error"
-  else "form-group"
+  if(hasErrors) "govuk-form-group govuk-form-group--error"
+  else "govuk-form-group"
 }
 
 <div class="@formGroupClass">
-  @content
+  @content(hasErrors)
 </div>

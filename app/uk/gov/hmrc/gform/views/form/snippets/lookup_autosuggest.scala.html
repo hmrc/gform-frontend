@@ -15,62 +15,41 @@
  *@
 
 @import uk.gov.hmrc.gform.lookup.ShowAll
-@import uk.gov.hmrc.gform.sharedmodel.LabelHelper
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, FormComponent, Register, FormComponentId}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplateId, FormComponent, Register }
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
-@import uk.gov.hmrc.gform.views.html.form.errors.inline_error_map
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
+@import uk.gov.hmrc.govukfrontend.views.html.components.{ govukHint, govukLabel }
 
 @(
+  label: Label,
   fieldValue: FormComponent,
   showAll: ShowAll,
   register: Register,
   formTemplateId: FormTemplateId,
-  formLevelHeading: Boolean,
   prepop: Option[String],
   validationResult: Option[FormFieldValidationResult],
-  index: Int
-)(implicit l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
+  hint: Option[Hint],
+  errorMessage: Option[ErrorMessage]
+)
 
 @currentValue = @{validationResult.flatMap(_.getCurrentValue)}
-@label = @{LabelHelper.buildRepeatingLabel(fieldValue.label, index).value}
 
-@display(fcId: FormComponentId) = {
-  <label class="@{if(formLevelHeading) { "form-label" } else { "h1-heading" }}" for="@fcId.value">
-    @label
-  </label>
-}
-
-@form_group(validationResult) {
-  @defining(fieldValue.id, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>
+@form_group(validationResult) { hasErrors =>
+  @defining(fieldValue.id.value, prepop.orElse(currentValue).getOrElse("")) { case (fcId, prepopValue) =>
 
     @if(!fieldValue.editable) {
-      <input type="hidden" id="@{fcId.value}" name="@{fcId.value}" value="@prepopValue" />
+      <input type="hidden" id="@fcId" name="@fcId" value="@prepopValue" />
     } else {
 
-      @if(formLevelHeading) {
-        @display(fcId)
-      } else {
-        <h1>@display(fcId)</h1>
-      }
+      @{new govukLabel()(label)}
 
-      @if(fieldValue.helpText.nonEmpty) {
-        <span class="form-hint" id="@{
-          fcId.value
-        }-hint">
-        @{
-          fieldValue.helpText.map(ls => ls.value)
-        }
-        </span>
-      }
-
-      @inline_error_map(fieldValue, validationResult)
+      @hint.map{ h => @{new govukHint()(h)} }
+      @errorMessage.map{ e => @{new govukErrorMessage()(e)} }
 
       <div
-      id="@{
-        fcId.value
-      }"
-      class="lookup"
-      data-field-id="@fcId.value"
+      class="lookup @{if(hasErrors) "gform-lookup-error"}"
+      data-field-id="@fcId"
       data-value="@prepopValue"
       data-lookup="@register.asString"
       data-formTemplateId="@formTemplateId.value"
