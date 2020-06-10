@@ -221,13 +221,13 @@ date.ordinal.30=ain
 date.ordinal.31=ain
 
 # hmrcTaxPeriod
-taxPeriod.noResults.warning=No open tax periods can be found for this registration.
-taxPeriod.noResults.listHeader=This may be because:
-taxPeriod.noResults.reason1=returns have already been submitted for all relevant tax periods
-taxPeriod.noResults.reason2=the next tax period is not open for filing yet
-taxPeriod.noResults.exit=You will need to exit this service. You can come back when a tax period is open.
-taxPeriod.noResults.think=If you think a tax period should be open for this registration
-taxPeriod.noResults.getHelp=Contact HMRC to get help.
+taxPeriod.noResults.warning=Ni ellir dod o hyd i gyfnodau treth agored ar gyfer y cofrestriad hwn.
+taxPeriod.noResults.listHeader=Gall hyn fod oherwydd y canlynol:
+taxPeriod.noResults.reason1=mae datganiadau eisoes wedi’u cyflwyno ar gyfer yr holl gyfnodau treth perthnasol
+taxPeriod.noResults.reason2=nid yw’r cyfnod treth nesaf ar agor hyd yn hyn er mwyn cyflwyno datganiadau
+taxPeriod.noResults.exit=YBydd yn rhaid i chi adael y gwasanaeth hwn. Gallwch ddod yn ôl pan fydd cyfnod treth ar agor.
+taxPeriod.noResults.think=Os ydych o’r farn y dylai cyfnod treth fod ar agor ar gyfer y cofrestriad hwn
+taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 
 # File upload
 file.upload=Uwchlwytho ffeil
