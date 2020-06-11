@@ -225,7 +225,7 @@ taxPeriod.noResults.warning=Ni ellir dod o hyd i gyfnodau treth agored ar gyfer 
 taxPeriod.noResults.listHeader=Gall hyn fod oherwydd y canlynol:
 taxPeriod.noResults.reason1=mae datganiadau eisoes wedi’u cyflwyno ar gyfer yr holl gyfnodau treth perthnasol
 taxPeriod.noResults.reason2=nid yw’r cyfnod treth nesaf ar agor hyd yn hyn er mwyn cyflwyno datganiadau
-taxPeriod.noResults.exit=YBydd yn rhaid i chi adael y gwasanaeth hwn. Gallwch ddod yn ôl pan fydd cyfnod treth ar agor.
+taxPeriod.noResults.exit=Bydd yn rhaid i chi adael y gwasanaeth hwn. Gallwch ddod yn ôl pan fydd cyfnod treth ar agor.
 taxPeriod.noResults.think=Os ydych o’r farn y dylai cyfnod treth fod ar agor ar gyfer y cofrestriad hwn
 taxPeriod.noResults.getHelp=Cysylltwch â CThEM i gael help.
 

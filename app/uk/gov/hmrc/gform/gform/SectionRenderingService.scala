@@ -77,6 +77,8 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.dateinput.InputItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.textarea.{ Textarea => govukTextArea }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.warningtext.WarningText
+import uk.gov.hmrc.hmrcfrontend.views.html.components.hmrcCurrencyInput
+import uk.gov.hmrc.hmrcfrontend.views.viewmodels.currencyinput.CurrencyInput
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -1207,18 +1209,35 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
             content = labelContent
           )
 
-          val input = Input(
-            id = formComponent.id.value,
-            name = formComponent.id.value,
-            label = label,
-            hint = hint,
-            value = maybeCurrentValue,
-            errorMessage = errorMessage,
-            classes = sizeClasses
-          )
-          val govukInput: Html = new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+          if (formComponent.isSterling) {
+            val currencyInput = CurrencyInput(
+              id = formComponent.id.value,
+              name = formComponent.id.value,
+              label = label,
+              hint = hint,
+              value = maybeCurrentValue,
+              errorMessage = errorMessage,
+              classes = sizeClasses
+            )
 
-          maybeUnit.fold(govukInput)(GovukExtensions.insertUnit(govukInput))
+            new hmrcCurrencyInput(govukErrorMessage, govukHint, govukLabel)(currencyInput)
+
+          } else {
+            val input = Input(
+              id = formComponent.id.value,
+              name = formComponent.id.value,
+              label = label,
+              hint = hint,
+              value = maybeCurrentValue,
+              errorMessage = errorMessage,
+              classes = sizeClasses
+            )
+            val govukInput: Html = new components.govukInput(govukErrorMessage, govukHint, govukLabel)(input)
+
+            maybeUnit.fold(govukInput)(GovukExtensions.insertUnit(govukInput))
+
+          }
+
       }
     }
   }
@@ -1492,8 +1511,9 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     section.fields match {
       case IsGroup(g) :: _              => false
       case IsInformationMessage(_) :: _ => false
-      case formComponent :: _           => formComponent.editable && formComponent.label.value() == section.title.value()
-      case _                            => false
+      case formComponent :: IsNilOrInfoOnly() =>
+        formComponent.editable && formComponent.label.value() === section.title.value()
+      case _ => false
     }
 
   private val govukErrorMessage: components.govukErrorMessage = new components.govukErrorMessage()
@@ -1502,4 +1522,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
   private val govukLabel: components.govukLabel = new components.govukLabel()
   private val govukInput: components.govukInput = new components.govukInput(govukErrorMessage, govukHint, govukLabel)
 
+}
+
+object IsNilOrInfoOnly {
+  def unapply(xs: List[FormComponent]): Boolean =
+    xs match {
+      case Nil                             => true
+      case IsInformationMessage(_) :: tail => unapply(tail)
+      case _                               => false
+    }
 }
