@@ -14,18 +14,15 @@
  * limitations under the License.
  *@
 
-@import helper._
-@import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
+@import uk.gov.hmrc.gform.gform.routes.NewFormController
 @import uk.gov.hmrc.gform.models.AccessCodePage
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.views.html._
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
+@import uk.gov.hmrc.gform.views.hardcoded.DisplayAccessCode
 
 @(
-        formTemplate: FormTemplate,
-        accessCode: AccessCodePage,
-        frontendAppConfig: FrontendAppConfig
+  displayAccessCode: DisplayAccessCode,
+  frontendAppConfig: FrontendAppConfig
 )(
   implicit
   request: Request[_],
@@ -33,61 +30,43 @@
   l:LangADT,
   viewHelpers: ViewHelpersAlgebra
 )
-@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
-  case BySubmissionReference => "submissionReference"
-  case _                     => "formAccessCodeForAgents"
-}}
-@accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}
-@heading = @{messages("accessCode.new.title", accessCodeName)}
+
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+@button = @{messages("button.continue")}
+
+@heading = @{messages("accessCode.new.title", displayAccessCode.accessCodeName)}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName.value,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  serviceName = displayAccessCode.formTemplate.formName.value,
+  developmentPhase = displayAccessCode.formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id
+  authConfig = Some(displayAccessCode.formTemplate.authConfig),
+  formCategory = displayAccessCode.formTemplate.formCategory,
+  languages = displayAccessCode.formTemplate.languages,
+  templateId = displayAccessCode.formTemplate._id
 ) {
 
-  <div class = "transaction-banner--complete">
-    <h1 class ="transaction-banner__heading">
-      @{heading}:
-    </h1>
-    <span class="h1-heading">
-      @{accessCode.value}
-    </span>
-  </div>
+  @displayAccessCode.panelHtml
 
-  <h2>
+  <h2 class="govuk-heading-l">
     @messages("accessCode.whatYouCanDoNext")
   </h2>
 
-  <div class="panel panel-border-wide">
-    <p>
-      @messages("accessCode.new.keepNote", accessCodeName).
-      <strong>@{accessCode.value}</strong>.
-      @messages("accessCode.new.youWillBeAsked", formCat).
-    </p>
-  </div>
+  @displayAccessCode.insetHtml
 
-
-  <p>
-    @messages("accessCode.new.validFor", accessCodeName).
+  <p class="govuk-body">
+    @messages("accessCode.new.validFor", displayAccessCode.accessCodeName).
   </p>
 
-  <p>
-    @messages("accessCode.new.willExpire", formCat, accessCodeName).
+  <p class="govuk-body">
+    @messages("accessCode.new.willExpire", displayAccessCode.formCat, displayAccessCode.accessCodeName).
   </p>
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newFormPost(formTemplate._id)}" method="POST">
-    @{CSRF.formField}
-    <input type="hidden" name="@{AccessCodePage.key}" value="@{accessCode.value}">
+  @formWithCSRF(action = NewFormController.newFormPost(displayAccessCode.formTemplate._id)) {
+    <input type="hidden" name="@{AccessCodePage.key}" value="@{displayAccessCode.accessCode.value}">
     <input type="hidden" name="@{AccessCodePage.optionKey}" value="@{AccessCodePage.optionAccess}">
-    <div class="form-group">
-      <input type="submit" class="button" value="@{messages("button.continue")}" />
-    </div>
-  </form>
+    @govukButton(Button(content = Text(button), value = Some(button)))
+  }
 }

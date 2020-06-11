@@ -21,6 +21,7 @@ import cats.syntax.applicative._
 import play.api.{ Logger, data }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc._
+import play.twirl.api.Html
 import uk.gov.hmrc.gform.auth.models.{ IsAgent, MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers._
@@ -32,6 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, QueryParams, Submi
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
+import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -100,7 +102,9 @@ class NewFormController(
       draftRetrievalMethod match {
         case BySubmissionReference => showAccessCodeList(cache, userId, formTemplateId)
         case _ =>
-          Ok(access_code_start(cache.formTemplate, AccessCodePage.form(draftRetrievalMethod), frontendAppConfig))
+          val form = AccessCodePage.form(draftRetrievalMethod)
+          val accessCodeStart = new AccessCodeStart(cache.formTemplate, form)
+          Ok(access_code_start(frontendAppConfig, accessCodeStart))
             .pure[Future]
       }
 
@@ -130,7 +134,8 @@ class NewFormController(
           val accessCode = request.flash.get(AccessCodePage.key)
           accessCode match {
             case Some(code) =>
-              Ok(start_new_form(cache.formTemplate, AccessCodePage(code), frontendAppConfig))
+              val displayAccessCode = new DisplayAccessCode(cache.formTemplate, AccessCodePage(code))
+              Ok(start_new_form(displayAccessCode, frontendAppConfig))
             case None => Redirect(routes.NewFormController.dashboard(formTemplateId))
           }
         }
@@ -147,14 +152,17 @@ class NewFormController(
         val queryParams = QueryParams.fromRequest(request)
         choice.bindFromRequest
           .fold(
-            _ =>
+            errorForm => {
+
+              val continueFormPage = new ContinueFormPage(cache.formTemplate, errorForm)
+
               BadRequest(
                 continue_form_page(
                   cache.formTemplate,
-                  choice.bindFromRequest().withError("decision", "error.required"),
                   frontendAppConfig,
-                  queryParams
-                )).pure[Future], {
+                  continueFormPage
+                )).pure[Future]
+            }, {
               case "continue" => fastForwardService.redirectContinue(cache, noAccessCode)
               case "delete"   => fastForwardService.deleteForm(cache, queryParams)
               case _          => Redirect(routes.NewFormController.newOrContinue(formTemplateId)).pure[Future]
@@ -179,7 +187,8 @@ class NewFormController(
             case OnePerUser(ContinueOrDeletePage.Skip) | FormAccessCodeForAgents(ContinueOrDeletePage.Skip) =>
               redirectContinue(cache, form, noAccessCode)
             case _ =>
-              Ok(continue_form_page(cache.formTemplate, choice, frontendAppConfig, queryParams)).pure[Future]
+              val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)
+              Ok(continue_form_page(cache.formTemplate, frontendAppConfig, continueFormPage)).pure[Future]
           }
         }
     }
@@ -203,8 +212,11 @@ class NewFormController(
   def newFormPost(formTemplateId: FormTemplateId): Action[AnyContent] = {
     def badRequest(formTemplate: FormTemplate, errors: play.api.data.Form[AccessCodeForm])(
       implicit request: Request[AnyContent],
-      lang: LangADT) =
-      BadRequest(access_code_start(formTemplate, errors, frontendAppConfig))
+      lang: LangADT
+    ) = {
+      val accessCodeStart = new AccessCodeStart(formTemplate, errors)
+      BadRequest(access_code_start(frontendAppConfig, accessCodeStart))
+    }
 
     def notFound(formTemplate: FormTemplate)(implicit request: Request[AnyContent], lang: LangADT) =
       badRequest(

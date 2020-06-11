@@ -14,20 +14,17 @@
  * limitations under the License.
  *@
 
-@import helper._
-@import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.gform.AccessCodeForm
-@import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.views.html.form.errors._
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.gform.routes.NewFormController
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, ResearchBanner }
+@import uk.gov.hmrc.gform.views.hardcoded.AccessCodeStart
+@import uk.gov.hmrc.govukfrontend.views.html.components.govukButton
+@import uk.gov.hmrc.govukfrontend.views.html.components.govukErrorSummary
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 
 @(
-  formTemplate: FormTemplate,
-  accessCodeForm: play.api.data.Form[AccessCodeForm],
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  accessCodeStart: AccessCodeStart
 )(
   implicit
   request: Request[_],
@@ -36,155 +33,46 @@
   viewHelpers: ViewHelpersAlgebra
 )
 
-@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@heading = @{formTemplate.formName.value}
-@hasErrors = @{accessCodeForm.hasGlobalErrors | accessCodeForm.hasErrors}
-@optionValue = @{accessCodeForm(AccessCodePage.optionKey).value.getOrElse("")}
-@accessCodeValue = @{accessCodeForm(AccessCodePage.key).value.getOrElse("")}
-@optionError = @{accessCodeForm.error(AccessCodePage.optionKey)}
-@accessCodeError = @{accessCodeForm.error(AccessCodePage.key)}
-@draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
-  case BySubmissionReference => "submissionReference"
-  case _                     => "formAccessCodeForAgents"
-}}
-@accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+@govukErrorSummary = @{new govukErrorSummary()}
+@button = @{messages("button.continue")}
+
+@heading = @{accessCodeStart.formTemplate.formName.value}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName.value,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  serviceName = heading,
+  developmentPhase = accessCodeStart.formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
-  containsErrors = hasErrors,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id
+  containsErrors = accessCodeStart.hasErrors,
+  authConfig = Some(accessCodeStart.formTemplate.authConfig),
+  formCategory = accessCodeStart.formTemplate.formCategory,
+  languages = accessCodeStart.formTemplate.languages,
+  templateId = accessCodeStart.formTemplate._id
 ) {
 
-  @if(hasErrors) {
-    @error_summary(accessCodeForm, formCat)
+  @if(accessCodeStart.hasErrors) {
+     @govukErrorSummary(accessCodeStart.errorSummary)
   }
 
-  <h1>
+  <h1 class="govuk-label--l">
     @heading
   </h1>
 
-  <p>
-    @messages("accessCode.p1", formCat, accessCodeName).
+  <p class="govuk-body">
+    @messages("accessCode.p1", accessCodeStart.formCat, accessCodeStart.accessCodeName).
   </p>
 
-  <p>
-    @messages("accessCode.p2", formCat, accessCodeName)
+  <p class="govuk-body govuk-!-margin-bottom-9">
+    @messages("accessCode.p2", accessCodeStart.formCat, accessCodeStart.accessCodeName)
   </p>
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newFormPost(formTemplate._id)}" method="POST" novalidate="novalidate">
+  @formWithCSRF(action = NewFormController.newFormPost(accessCodeStart.formTemplate._id)) {
 
-    @{CSRF.formField}
+    @accessCodeStart.render
 
-    <fieldset id="@{AccessCodePage.optionKey}-fieldset">
+    @govukButton(Button(content = Text(button), value = Some(button)))
+  }
 
-      <legend>
-        <h2>
-          @messages("accessCode.p3", formCat)
-        </h2>
-      </legend>
-
-      <div class="form-group@if(optionError.nonEmpty){ form-group-error}">
-
-        @if(accessCodeForm.error(AccessCodePage.optionKey).nonEmpty){
-          <span class="error-message" id="@{AccessCodePage.optionKey}-inline-error">
-            @messages(s"${optionError.get.key}.${optionError.get.message}", formCat)
-          </span>
-        }
-
-        <div class="multiple-choice group">
-          <input
-          id="@{AccessCodePage.optionKey}-@{AccessCodePage.optionNew}"
-          class="form-control@if(optionError.nonEmpty){ form-control-error}"
-          type="radio"
-          name="@{AccessCodePage.optionKey}"
-          value="@{AccessCodePage.optionNew}"
-            @if(accessCodeValue == AccessCodePage.optionNew){
-              checked="checked"
-              }
-          >
-          <label for="@{AccessCodePage.optionKey}-@{AccessCodePage.optionNew}">
-            @messages("accessCode.startNew", formCat)
-          </label>
-        </div>
-
-        <div class="multiple-choice group" data-target="@{AccessCodePage.key}-container">
-          <input
-            id="@{AccessCodePage.optionKey}-@{AccessCodePage.optionAccess}"
-            class="form-control"
-            type="radio"
-            name="@{AccessCodePage.optionKey}"
-            value="@{AccessCodePage.optionAccess}"
-            required="required"
-            @if(optionValue == AccessCodePage.optionAccess){
-              checked="checked"
-            }
-          >
-          <label for="@{AccessCodePage.optionKey}-@{AccessCodePage.optionAccess}">
-            @messages("accessCode.useExisting", formCat)
-          </label>
-
-        </div>
-        <div class="js-hidden panel-indent form-group@if(accessCodeError.nonEmpty){ form-group-error}" id="@{AccessCodePage.key}-container">
-          <div class="form-group">
-            <label for="@{AccessCodePage.key}" class="form-label">
-              @messages("accessCode.enterKey", accessCodeName)
-            </label>
-            <span class="form-hint">
-              @messages(s"accessCode.${draftRetrievalMethod}.keyHintText")
-            </span>
-            @if(accessCodeError.nonEmpty) {
-              <span class="error-message" id="@{AccessCodePage.key}-inline-error">
-                @messages(s"${accessCodeError.get.key}.${accessCodeError.get.message}")
-              </span>
-            }
-            <input
-            type="text"
-            name="@{AccessCodePage.key}"
-            id="@{AccessCodePage.key}"
-            value="@accessCodeValue"
-            class="form-control form-control-1-2@if(accessCodeError.nonEmpty){ form-control-error}">
-          </div>
-
-          <details class="details" role="group">
-            <summary class="summary">
-              <span>
-                @messages("accessCode.help.title", accessCodeName)
-              </span>
-            </summary>
-            <div class="panel-indent">
-              <p>
-                @messages("accessCode.help.p1", formCat, accessCodeName).
-              </p>
-
-              <p>
-                @messages("accessCode.help.p2", formCat, accessCodeName).
-              </p>
-
-              <p>
-                @messages(s"accessCode.$draftRetrievalMethod.help.p3")
-              </p>
-
-              <p>
-                @messages("accessCode.help.p4", formCat, accessCodeName).
-              </p>
-
-            </div>
-          </details>
-        </div>
-
-      </div>
-
-    </fieldset>
-
-    <div class="form-group">
-      <input type="submit" class="button" value="@{messages("button.continue")}" />
-    </div>
-
-  </form>
 }

@@ -14,21 +14,19 @@
  * limitations under the License.
  *@
 
-@import play.api.data
-@import helper._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
-@import uk.gov.hmrc.gform.views.html.form.errors._
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, ResearchBanner }
+@import uk.gov.hmrc.gform.views.hardcoded.ContinueFormPage
+@import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
+@import uk.gov.hmrc.govukfrontend.views.html.components.govukButton
+@import uk.gov.hmrc.govukfrontend.views.html.components.govukErrorSummary
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 
 @(
   formTemplate: FormTemplate,
-  form: data.Form[_],
   frontendAppConfig: FrontendAppConfig,
-  queryParams: QueryParams
+  continueFormPage: ContinueFormPage
 )(
   implicit
   request: Request[_],
@@ -37,57 +35,34 @@
   viewHelpers: ViewHelpersAlgebra
 )
 
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+@govukErrorSummary = @{new govukErrorSummary()}
+
 @formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 @heading = @{messages("continueDelete.title", formCat)}
+@button = @{messages("button.continue")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = formTemplate.formName.value,
   developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
+  containsErrors = continueFormPage.hasErrors,
   authConfig = Some(formTemplate.authConfig),
   formCategory = formTemplate.formCategory,
   languages = formTemplate.languages,
   templateId = formTemplate._id
 ) {
 
-  @if(form.hasErrors) {
-      @error_summary(form, formCat)
+  @if(continueFormPage.hasErrors) {
+     @govukErrorSummary(continueFormPage.errorSummary)
   }
 
-    <form action="@{withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.decision(formTemplate._id)).url}" method="POST">
+  @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.decision(formTemplate._id))) {
 
-    @{CSRF.formField}
+    @continueFormPage.render
 
-    <div class="form-group @if(form.hasErrors){form-group-error}">
-        <fieldset id="options">
-            <legend>
-              <h1>
-                @heading
-              </h1>
-            </legend>
-            @if(form.hasErrors) {
-              <span class="error-message" id="decision-inline-error">
-                  @messages(s"${form.error("decision").get.key}.${form.error("decision").get.message}",formCat)
-             </span>
-            }
-            <div class="multiple-choice">
-                <input id="continue" type="radio" name="decision" value="continue" />
-
-                <label for="continue">@messages("continueDelete.continue", formCat)</label>
-            </div>
-
-            <div class="multiple-choice">
-                <input id="delete" type="radio" name="decision" value="delete" />
-
-                <label for="delete">@messages("continueDelete.delete")</label>
-            </div>
-        </fieldset>
-    </div>
-
-    <div class="form-group">
-        <input type="submit" class="button" value="@{messages("button.continue")}" />
-    </div>
-
-  </form>
+    @govukButton(Button(content = Text(button), value = Some(button)))
+  }
 }
