@@ -33,7 +33,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, QueryParams, Submi
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
-import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeStart, ContinueFormPage, DisplayAccessCode }
+import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -118,14 +118,15 @@ class NewFormController(
     l: LangADT) =
     for {
       formOverviews <- gformConnector.getAllForms(userId, formTemplateId)
-    } yield
+    } yield {
+      val accessCodeList = new AccessCodeList(cache.formTemplate, formOverviews)
       Ok(
         access_code_list(
-          cache.formTemplate,
-          formOverviews,
+          accessCodeList,
           frontendAppConfig
         )
       )
+    }
 
   def showAccessCode(formTemplateId: FormTemplateId): Action[AnyContent] =
     auth.authWithoutRetrievingForm(formTemplateId, OperationWithoutForm.ShowAccessCode) {
@@ -134,7 +135,7 @@ class NewFormController(
           val accessCode = request.flash.get(AccessCodePage.key)
           accessCode match {
             case Some(code) =>
-              val displayAccessCode = new DisplayAccessCode(cache.formTemplate, AccessCodePage(code))
+              val displayAccessCode = new DisplayAccessCode(cache.formTemplate, AccessCode(code))
               Ok(start_new_form(displayAccessCode, frontendAppConfig))
             case None => Redirect(routes.NewFormController.dashboard(formTemplateId))
           }
@@ -158,7 +159,6 @@ class NewFormController(
 
               BadRequest(
                 continue_form_page(
-                  cache.formTemplate,
                   frontendAppConfig,
                   continueFormPage
                 )).pure[Future]
@@ -188,7 +188,7 @@ class NewFormController(
               redirectContinue(cache, form, noAccessCode)
             case _ =>
               val continueFormPage = new ContinueFormPage(cache.formTemplate, choice)
-              Ok(continue_form_page(cache.formTemplate, frontendAppConfig, continueFormPage)).pure[Future]
+              Ok(continue_form_page(frontendAppConfig, continueFormPage)).pure[Future]
           }
         }
     }

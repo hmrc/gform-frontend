@@ -14,62 +14,45 @@
  * limitations under the License.
  *@
 
-@import play.api.i18n.Messages.Implicits._
 @import play.api.mvc.Call
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.views.html.localisedDateString
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
-@import java.time.format.DateTimeFormatter
-
+@import uk.gov.hmrc.gform.gform.routes.FormController
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
+@import uk.gov.hmrc.gform.views.hardcoded.SaveAcknowledgement
 
 @(
-    envelopeExpiryDate: Option[EnvelopeExpiryDate],
-    formTemplate: FormTemplate,
+    saveAcknowledgement: SaveAcknowledgement,
     call: Call,
     frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages,l:LangADT, viewHelpers: ViewHelpersAlgebra)
-
-@formatter = @{DateTimeFormatter.ofPattern("dd MMMM yyyy")}
-@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@heading = @{messages("save4later.saved.title", formCat)}
-@expiryDate = @{envelopeExpiryDate.fold(
-  messages("save4later.for30days")
-)(
-  exD => messages("save4later.until") + " " + localisedDateString(exD.ldt.format(formatter))
-)}
+)(implicit request: Request[_], messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = heading,
-  serviceName = formTemplate.formName.value,
+  title = saveAcknowledgement.heading,
+  serviceName = saveAcknowledgement.formTemplate.formName.value,
   bodyClasses = None,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  developmentPhase = saveAcknowledgement.formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id
+  authConfig = Some(saveAcknowledgement.formTemplate.authConfig),
+  formCategory = saveAcknowledgement.formTemplate.formCategory,
+  languages = saveAcknowledgement.formTemplate.languages,
+  templateId = saveAcknowledgement.formTemplate._id
 ) {
-<div class = "transaction-banner--complete">
-    <h1 class ="transaction-banner__heading">@heading</h1>
-    <p>@messages("save4later.infoHeld") <br /> @expiryDate.</p>
-</div>
 
-<p>@messages("save4later.retrieve", formCat)</p>
-<div class="panel-indent panel-indent--gutter bold-small">
-    @messages("save4later.mustSubmit", formCat)
-</div>
+@saveAcknowledgement.panelHtml
 
-<p>@messages("save4later.youCan")</p>
-<ul class="bullets save4later">
-    @formTemplate.save4LaterInfoText.map(v => Html(s"""<li>${v.asHtml}</li>""")).getOrElse(Html(""))
+<p class="govuk-body">@messages("save4later.retrieve", saveAcknowledgement.formCat)</p>
+
+@saveAcknowledgement.insetHtml
+
+<p class="govuk-body">@messages("save4later.youCan")</p>
+
+<ul class="govuk-list govuk-list--bullet save4later">
+   @saveAcknowledgement.formTemplate.save4LaterInfoText.fold(Html(""))(v => Html(s"""<li>${v.asHtml}</li>"""))
    <li>
-      <a href="@call">@messages("save4later.continue", formCat)</a>
+      <a href="@call" class="govuk-link">@messages("save4later.continue", saveAcknowledgement.formCat)</a>
    </li>
    <li>
-      <a href="@uk.gov.hmrc.gform.gform.routes.FormController.deleteOnExit(formTemplate._id)">
+      <a href="@FormController.deleteOnExit(saveAcknowledgement.formTemplate._id)" class="govuk-link">
         @messages("save4later.delete")
       </a>
    </li>

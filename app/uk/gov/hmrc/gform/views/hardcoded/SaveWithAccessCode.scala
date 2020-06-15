@@ -17,21 +17,39 @@
 package uk.gov.hmrc.gform.views.hardcoded
 
 import play.api.i18n.Messages
-import play.twirl.api.Html
+import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
 import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, FormTemplate }
+import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ p, strong }
 
-class DisplayAccessCode(val formTemplate: FormTemplate, val accessCode: AccessCode)(implicit messages: Messages)
+class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)(implicit messages: Messages)
     extends CommonAgentPageProperties(formTemplate, accessCode) {
 
-  val heading = messages("accessCode.new.title", accessCodeName) + ":"
+  val heading = messages("accessCode.saved.title", formCat)
 
   private val panel = Panel(
     title = Text(heading),
-    content = HtmlContent(acStrong)
+    content = HtmlContent(
+      HtmlFormat.fill(
+        List(
+          p(messages("accessCode.new.keepNote", accessCodeName)),
+          strong(accessCode.value)
+        )
+      )
+    )
   )
 
   val panelHtml: Html = new govukPanel()(panel)
+
+  val p3 = p(
+    messages("accessCode.new.validFor", accessCodeName)
+      + "." +
+      messages("accessCode.new.willExpire", formCat, accessCodeName),
+    "govuk-body")
+
+  private val warningText = WarningText(content = Text(messages("accessCode.mustSubmit", formCat)))
+
+  val warningHtml = new govukWarningText()(warningText)
 
 }

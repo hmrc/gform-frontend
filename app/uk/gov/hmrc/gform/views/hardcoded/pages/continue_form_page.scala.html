@@ -15,16 +15,12 @@
  *@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormTemplate, ResearchBanner }
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.views.hardcoded.ContinueFormPage
 @import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
-@import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
-@import uk.gov.hmrc.govukfrontend.views.html.components.govukButton
-@import uk.gov.hmrc.govukfrontend.views.html.components.govukErrorSummary
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 
 @(
-  formTemplate: FormTemplate,
   frontendAppConfig: FrontendAppConfig,
   continueFormPage: ContinueFormPage
 )(
@@ -39,27 +35,26 @@
 @govukButton = @{new govukButton()}
 @govukErrorSummary = @{new govukErrorSummary()}
 
-@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@heading = @{messages("continueDelete.title", formCat)}
+@heading = @{messages("continueDelete.title", continueFormPage.formCat)}
 @button = @{messages("button.continue")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName.value,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  serviceName = continueFormPage.formTemplate.formName.value,
+  developmentPhase = continueFormPage.formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
   containsErrors = continueFormPage.hasErrors,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id
+  authConfig = Some(continueFormPage.formTemplate.authConfig),
+  formCategory = continueFormPage.formTemplate.formCategory,
+  languages = continueFormPage.formTemplate.languages,
+  templateId = continueFormPage.formTemplate._id
 ) {
 
   @if(continueFormPage.hasErrors) {
      @govukErrorSummary(continueFormPage.errorSummary)
   }
 
-  @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.decision(formTemplate._id))) {
+  @formWithCSRF(action = withQueryParams(uk.gov.hmrc.gform.gform.routes.NewFormController.decision(continueFormPage.formTemplate._id))) {
 
     @continueFormPage.render
 

@@ -41,6 +41,7 @@ import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.validation.ValidationService
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
+import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -193,7 +194,8 @@ class FormController(
             val envelopeExpiryDate = cache.form.envelopeExpiryDate
             maybeAccessCode match {
               case Some(accessCode) =>
-                Ok(save_with_access_code(accessCode, formTemplate, frontendAppConfig))
+                val saveWithAccessCode = new SaveWithAccessCode(formTemplate, accessCode)
+                Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
               case None =>
                 val call = maybeSn match {
                   case Some(sn) =>
@@ -201,7 +203,8 @@ class FormController(
                     routes.FormController.form(formTemplateId, None, sn, sectionTitle4Ga, SeYes)
                   case None => routes.SummaryController.summaryById(formTemplateId, maybeAccessCode)
                 }
-                Ok(save_acknowledgement(envelopeExpiryDate, formTemplate, call, frontendAppConfig))
+                val saveAcknowledgement = new SaveAcknowledgement(formTemplate, envelopeExpiryDate)
+                Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
             }
           }
 

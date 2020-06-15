@@ -27,23 +27,15 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.{ ErrorLink, ErrorSummary }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.{ RadioItem, Radios }
 
-class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm])(implicit messages: Messages) {
+class AccessCodeStart(val formTemplate: FormTemplate, form: Form[AccessCodeForm])(implicit messages: Messages)
+    extends CommonPageProperties(formTemplate) {
+
+  val accessCodeName = messages(s"accessCode.$draftRetrievalMethod")
 
   private val govukErrorMessage: govukErrorMessage = new govukErrorMessage()
   private val govukFieldset: govukFieldset = new govukFieldset()
   private val govukHint: govukHint = new govukHint()
   private val govukLabel: govukLabel = new govukLabel()
-
-  private val formCategory = uk.gov.hmrc.gform.views.hardcoded.pages.formCategory(formTemplate)
-
-  val formCat = messages(s"formCategory.$formCategory")
-
-  private val draftRetrievalMethod = formTemplate.draftRetrievalMethod match {
-    case BySubmissionReference => "submissionReference"
-    case _                     => "formAccessCodeForAgents"
-  }
-
-  val accessCodeName = messages(s"accessCode.$draftRetrievalMethod")
 
   val errorSummary: ErrorSummary = {
 

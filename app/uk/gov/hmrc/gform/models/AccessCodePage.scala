@@ -26,8 +26,6 @@ import uk.gov.hmrc.gform.sharedmodel.AccessCode
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, DraftRetrievalMethod }
 import uk.gov.hmrc.gform.typeclasses.Rnd
 
-case class AccessCodePage(value: String) extends AnyVal
-
 object AccessCodePage {
 
   val key = "accessCode"

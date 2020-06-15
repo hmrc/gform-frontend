@@ -38,6 +38,7 @@ import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
+import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -125,10 +126,12 @@ class SummaryController(
             .map { _ =>
               maybeAccessCode match {
                 case Some(accessCode) =>
-                  Ok(save_with_access_code(accessCode, cache.formTemplate, frontendAppConfig))
+                  val saveWithAccessCode = new SaveWithAccessCode(cache.formTemplate, accessCode)
+                  Ok(save_with_access_code(saveWithAccessCode, frontendAppConfig))
                 case _ =>
                   val call = routes.SummaryController.summaryById(cache.formTemplate._id, maybeAccessCode)
-                  Ok(save_acknowledgement(envelopeExpiryDate, cache.formTemplate, call, frontendAppConfig))
+                  val saveAcknowledgement = new SaveAcknowledgement(cache.formTemplate, envelopeExpiryDate)
+                  Ok(save_acknowledgement(saveAcknowledgement, call, frontendAppConfig))
               }
             }
 

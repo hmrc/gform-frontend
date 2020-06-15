@@ -14,20 +14,15 @@
  * limitations under the License.
  *@
 
-@import helper._
-@import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.models._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate._
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
+@import uk.gov.hmrc.gform.gform.routes.NewFormController
 @import uk.gov.hmrc.gform.sharedmodel.{LangADT, SubmissionRef}
-@import uk.gov.hmrc.gform.sharedmodel.form.FormOverview
-@import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{renderMonth, getMonthValue}
-@import uk.gov.hmrc.gform.views.html.formatInstant
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
+@import uk.gov.hmrc.gform.views.hardcoded.AccessCodeList
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 
 @(
-        formTemplate: FormTemplate,
-        formOverviews: List[FormOverview],
+        accessCodeList: AccessCodeList,
         frontendAppConfig: FrontendAppConfig
 )(
         implicit
@@ -37,65 +32,39 @@
         viewHelpers: ViewHelpersAlgebra
 )
 
-@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@heading = @{formTemplate.formName.value}
+@formWithCSRF = @{new formWithCSRF()}
+@govukButton = @{new govukButton()}
+
+@heading = @{accessCodeList.formTemplate.formName.value}
+@button = @{messages("accessCode.startNew", accessCodeList.formCat)}
 
 @accessLink(submissionRef: SubmissionRef) = {
-  <a href="@{uk.gov.hmrc.gform.gform.routes.NewFormController.continue(formTemplate._id, submissionRef)}">@{submissionRef.value}</a>
+  <a href="@{NewFormController.continue(accessCodeList.formTemplate._id, submissionRef)}">@{submissionRef.value}</a>
 }
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName.value,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  serviceName = accessCodeList.formTemplate.formName.value,
+  developmentPhase = accessCodeList.formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id,
-  mainClass = Some("full-width")
+  authConfig = Some(accessCodeList.formTemplate.authConfig),
+  formCategory = accessCodeList.formTemplate.formCategory,
+  languages = accessCodeList.formTemplate.languages,
+  templateId = accessCodeList.formTemplate._id
 ) {
 
-  <h1>
+  <h1 class="govuk-label--l">
     @heading
   </h1>
 
-  <form action="@{uk.gov.hmrc.gform.gform.routes.NewFormController.newSubmissionReference(formTemplate._id)}" method="POST" novalidate="novalidate">
-    <div class="form-group">
-      @{CSRF.formField}
-      <input type="submit" class="button" value="@{messages("accessCode.startNew", formCat)}" />
-    </div>
-  </form>
+  @formWithCSRF(action = NewFormController.newSubmissionReference(accessCodeList.formTemplate._id)) {
+    @govukButton(Button(content = Text(button), value = Some(button)))
+  }
 
-  <p>
-    @messages("accessCodeLinks.p1", formCat)
+  <p class="govuk-body">
+    @messages("accessCodeLinks.p1", accessCodeList.formCat)
   </p>
 
-  <dl class="govuk-check-your-answers cya-questions-long">
-    <div>
-      <dt class="cya-question">
-        @messages("accessCodeLinks.label")
-      </dt>
-      <dd class="cya-answer">
-      @{messages("accessCodeLinks.created")}
-      </dd>
-      <dd class="cya-change">
-      @{messages("accessCodeLinks.modified")}
-      </dd>
-    </div>
-    @for(formOverview <- formOverviews) {
-        <div>
-          <dt class="cya-question">
-	  @{formOverview.submissionRef.fold(Html(""))(ac => accessLink(ac))}
-          </dt>
-          <dd class="cya-answer">
-            @{formatInstant(formOverview.createdAt)}
-          </dd>
-          <dd class="cya-change">
-            @{formatInstant(formOverview.updatedAt)}
-          </dd>
-        </div>
-    }
-  </dl>
+  @accessCodeList.render
 
 }

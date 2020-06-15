@@ -17,21 +17,16 @@
 package uk.gov.hmrc.gform.views.hardcoded
 
 import play.api.i18n.Messages
-import play.twirl.api.Html
-import uk.gov.hmrc.gform.sharedmodel.AccessCode
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplate
-import uk.gov.hmrc.govukfrontend.views.html.components._
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BySubmissionReference, FormTemplate }
 
-class DisplayAccessCode(val formTemplate: FormTemplate, val accessCode: AccessCode)(implicit messages: Messages)
-    extends CommonAgentPageProperties(formTemplate, accessCode) {
+class CommonPageProperties(formTemplate: FormTemplate)(implicit messages: Messages) {
+  protected val formCategory = uk.gov.hmrc.gform.views.hardcoded.pages.formCategory(formTemplate)
 
-  val heading = messages("accessCode.new.title", accessCodeName) + ":"
+  val formCat = messages(s"formCategory.$formCategory")
 
-  private val panel = Panel(
-    title = Text(heading),
-    content = HtmlContent(acStrong)
-  )
-
-  val panelHtml: Html = new govukPanel()(panel)
+  val draftRetrievalMethod = formTemplate.draftRetrievalMethod match {
+    case BySubmissionReference => "submissionReference"
+    case _                     => "formAccessCodeForAgents"
+  }
 
 }

@@ -14,79 +14,52 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.AccessCode
-@import uk.gov.hmrc.gform.sharedmodel.form._
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormTemplateId, _}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.views.hardcoded.pages._
-@import uk.gov.hmrc.gform.views.html.hardcoded.pages.partials._
+@import uk.gov.hmrc.gform.gform.routes.NewFormController
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
+@import uk.gov.hmrc.gform.views.hardcoded.SaveWithAccessCode
 
 @(
-        accessCode: AccessCode,
-        formTemplate: FormTemplate,
-        frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra)
-
-@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
-@draftRetrievalMethod = @{formTemplate.draftRetrievalMethod match {
-  case BySubmissionReference => "submissionReference"
-  case _                     => "formAccessCodeForAgents"
-}}
-@accessCodeName=@{messages(s"accessCode.$draftRetrievalMethod")}
-@heading = @{messages("accessCode.saved.title", formCat)}
+  saveWithAccessCode: SaveWithAccessCode,
+  frontendAppConfig: FrontendAppConfig
+)(implicit request: Request[_], messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
 
 @uk.gov.hmrc.gform.views.html.main_template(
-  title = heading,
-  serviceName = formTemplate.formName.value,
+  title = saveWithAccessCode.heading,
+  serviceName = saveWithAccessCode.formTemplate.formName.value,
   bodyClasses = None,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  developmentPhase = saveWithAccessCode.formTemplate.developmentPhase.getOrElse(ResearchBanner),
   frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id
+  authConfig = Some(saveWithAccessCode.formTemplate.authConfig),
+  formCategory = saveWithAccessCode.formTemplate.formCategory,
+  languages = saveWithAccessCode.formTemplate.languages,
+  templateId = saveWithAccessCode.formTemplate._id
 ) {
-  <div class = "transaction-banner--complete">
-    <h1 class ="transaction-banner__heading">
-      @heading
-    </h1>
-    <span class="h1-heading">
-      @messages("accessCode.new.keepNote", accessCodeName)
-      <br>
-      @accessCode.value
-    </span>
-  </div>
 
-  <h2>
+  @saveWithAccessCode.panelHtml
+
+  <h2 class="govuk-label--l">
     @messages("accessCode.whatYouCanDoNext")
   </h2>
 
-  <div class="panel panel-border-wide">
-    <p>
-      @messages("accessCode.new.keepNote", accessCodeName)
-      <strong>@accessCode.value</strong>.
-      @messages("accessCode.new.youWillBeAsked", formCat)
-    </p>
-  </div>
+  @saveWithAccessCode.insetHtml
 
-  <p>
-    @messages("accessCode.new.validFor", accessCodeName). @messages("accessCode.new.willExpire", formCat, accessCodeName)
-  </p>
+  @saveWithAccessCode.p3
 
-  @govuk_warning_text(messages("accessCode.mustSubmit", formCat))
+  @saveWithAccessCode.warningHtml
 
-  <p>
+  <p class="govuk-body">
     @messages("accessCode.youCan")
   </p>
 
-  <ul class="bullets save4later">
-    @formTemplate.save4LaterInfoText.map(v => Html(s"""<li>${v.asHtml}</li>""")).getOrElse(Html(""))
+  <ul class="govuk-list govuk-list--bullet save4later">
+    @saveWithAccessCode.formTemplate.save4LaterInfoText.fold(Html(""))(v => Html(s"""<li>${v.asHtml}</li>"""))
     <li>
       @messages("accessCode.exit")
     </li>
     <li>
-      <a href="@uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplate._id)">
-        @messages("accessCode.workOnAnother", formCat)
+      <a href="@NewFormController.dashboard(saveWithAccessCode.formTemplate._id)" class="govuk-link">
+        @messages("accessCode.workOnAnother", saveWithAccessCode.formCat)
       </a>
     </li>
   </ul>
