@@ -20,6 +20,11 @@ button.acceptAndSubmit=Derbyn a chyflwyno
 button.acceptAndSubmitForm=Derbyn a chyflwyno {0}
 button.confirmAndSend=Cadarnhau ac anfon
 
+timeout.dialog.title=Rydych ar fin cael eich allgofnodi
+timeout.dialog.message=Am resymau diogelwch, cewch eich allgofnodi o’r gwasanaeth hwn mewn
+timeout.dialog.keepAliveButton=Parhau i fod wedi’ch mewngofnodi
+timeout.dialog.signOutButton=Allgofnodi
+
 # Signed Out
 signedOut.title=Rydych wedi cael eich allgofnodi
 

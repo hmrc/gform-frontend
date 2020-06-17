@@ -28,6 +28,7 @@
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.Banner
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En, LanguageSelect}
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.reporttechnicalissue.ReportTechnicalIssue
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 @(appConfig: FrontendAppConfig,
   title: String,
@@ -50,14 +51,7 @@
   backLink: Option[BackLink]
 )(implicit messages: Messages, request: Request[_], l: LangADT)
 
-@authTimeout = @{
-    authConfig match {
-        case Some(EeittModule(_)) => appConfig.authModule.legacyEEITTAuth
-        case Some(Anonymous) => appConfig.authModule.anonymous
-        case Some(_) => appConfig.authModule.hmrc
-        case None => JSConfig(timeoutEnabled = false, 0, 0, "", "")
-    }
-}
+@timeoutDialog = @{appConfig.timeoutDialog(templateId, authConfig)}
 
 @scripts = {
     @scriptElem
@@ -68,14 +62,18 @@
     <script src='@routes.Assets.versioned("javascripts/gformErrorSummary.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformToggleAddressDivsAndLabels.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformFormActionHandlers.js")'></script>
-    <script src='@routes.Assets.versioned("javascripts/gformSessionTimeout.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformSummaryLayout.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/accessible-autocomplete.min.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gformAutoComplete.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/gform.js")'></script>
     <script src='@routes.Assets.versioned("javascripts/bignumber.min.js")'></script>
     <script src='@controllers.routes.Assets.versioned("lib/govuk-frontend/govuk/all.js")'></script>
+    <script src='@controllers.routes.Assets.versioned("lib/hmrc-frontend/hmrc/all.js")'></script>
+
+    @{timeoutDialog.fold(HtmlFormat.empty)(timeoutDialog => hmrcTimeoutDialog(timeoutDialog))}
+
     <script>window.GOVUKFrontend.initAll();</script>
+    <script>window.HMRCFrontend.initAll();</script>
 }
 
 @linkElement = {
@@ -102,19 +100,6 @@
           window.gform.baseLookupUrl = "/submissions/lookup/";
           window.gform.lang = window.getCookie("PLAY_LANG") || "en";
     </script>
-    @if(authTimeout.timeoutEnabled) {
-        <script>
-              window.gform = window.gform || {};
-              window.gform.config = {
-                timeoutEnabled: @authTimeout.timeoutEnabled,
-                timeout: @authTimeout.timeout,
-                countdown: @authTimeout.countdown,
-                keep_alive_url: "@authTimeout.keepAliveUrl",
-                logout_url: "@authTimeout.signOutUrl/@templateId.value"
-              }
-        </script>
-    }
-
     <meta name="format-detection" content="telephone=no" />
 }
 
@@ -161,14 +146,10 @@
         None
 }
 
-@signOutHref = @{
-  if(authTimeout.signOutUrl.isEmpty) None else Some(s"${authTimeout.signOutUrl}/${templateId.value}")
-}
-
 @language = @{l.toLanguage}
 
 @headerBlock = {
-  @{new components.hmrcHeader(hmrcBanner)(components.Header(homepageUrl = "https://www.gov.uk/", language = language, signOutHref = signOutHref, serviceName = serviceName))}
+  @{new components.hmrcHeader(hmrcBanner)(components.Header(homepageUrl = "https://www.gov.uk/", language = language, signOutHref = timeoutDialog.flatMap(_.signOutUrl), serviceName = serviceName))}
 }
 
 @languageSwitch = @{

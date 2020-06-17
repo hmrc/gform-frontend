@@ -42,7 +42,7 @@ class SaveWithAccessCode(val formTemplate: FormTemplate, accessCode: AccessCode)
 
   val panelHtml: Html = new govukPanel()(panel)
 
-  val p3 = p(
+  val paragraph = p(
     messages("accessCode.new.validFor", accessCodeName)
       + "." +
       messages("accessCode.new.willExpire", formCat, accessCodeName),

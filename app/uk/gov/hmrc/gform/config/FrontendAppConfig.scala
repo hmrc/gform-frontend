@@ -15,7 +15,10 @@
  */
 
 package uk.gov.hmrc.gform.config
-import play.api.i18n.Lang
+
+import play.api.i18n.{ Lang, Messages }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EeittModule, FormTemplateId }
+import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 case class FrontendAppConfig(
   albAdminIssuerUrl: String,
@@ -39,4 +42,31 @@ case class FrontendAppConfig(
   routeToSwitchLanguage: String => play.api.mvc.Call,
   contactFormServiceIdentifier: String,
   optimizelyUrl: Option[String]
-)
+) {
+  def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(
+    implicit messages: Messages): Option[TimeoutDialog] = {
+    val authTimeout = authConfig match {
+      case Some(EeittModule(_)) => authModule.legacyEEITTAuth
+      case Some(Anonymous)      => authModule.anonymous
+      case Some(_)              => authModule.hmrc
+      case None                 => JSConfig(timeoutEnabled = false, 0, 0, "", "")
+    }
+
+    if (authTimeout.timeoutEnabled) {
+      Some(
+        TimeoutDialog(
+          timeout = Some(authTimeout.timeout),
+          countdown = Some(authTimeout.countdown),
+          keepAliveUrl = Some(authTimeout.keepAliveUrl),
+          keepAliveButtonText = Some(messages("timeout.dialog.keepAliveButton")),
+          signOutUrl = Some(authTimeout.signOutUrl + "/" + templateId.value),
+          signOutButtonText = Some(messages("timeout.dialog.signOutButton")),
+          title = Some(messages("timeout.dialog.title")),
+          message = Some(messages("timeout.dialog.message"))
+        ))
+    } else {
+      None
+    }
+
+  }
+}

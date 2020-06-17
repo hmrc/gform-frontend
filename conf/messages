@@ -21,6 +21,11 @@ button.acceptAndSubmit=Accept and submit
 button.acceptAndSubmitForm=Accept and submit {0}
 button.confirmAndSend=Confirm and send
 
+timeout.dialog.title=You’re about to be signed out
+timeout.dialog.message=For security reasons, you will be signed out of this service in
+timeout.dialog.keepAliveButton=Stay signed in
+timeout.dialog.signOutButton=Sign out
+
 # Signed Out
 signedOut.title=You have been signed out
 
