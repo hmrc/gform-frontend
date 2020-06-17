@@ -22,6 +22,12 @@
 @import uk.gov.hmrc.gform.gform.SummaryPagePurpose
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+@import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 
 @(
     formTemplate: FormTemplate,
@@ -39,6 +45,8 @@
 
 @heading = @{formTemplate.summarySection.title.value}
 
+@govukButton = @{new govukButton()}
+
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = formTemplate.formName.value,
@@ -52,13 +60,12 @@
   templateId = formTemplate._id
 ) {
 
-    <div class="cya-intro subsection">
-      <h1 class="h1-heading">
+
+    <h1 class="govuk-heading-l">
         @heading
-      </h1>
-      <p>
+    </h1>
+    <div class="govuk-body govuk-!-margin-bottom-9">
 	  @header
-      </p>
     </div>
 
     @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
@@ -71,23 +78,18 @@
 
       	@snippets
 
-        <div class="print-hidden subsection">
-	  @footer
+        <div class="govuk-body">
+            @footer
         </div>
 
         <input type="hidden" id="gform-action" name="save" value="Declaration" />
 
-        <div class="print-hidden">
-            <div class="form-group">
-                <button type="submit" class="button" value="SummaryContinue">@messages(continueLabelKey)</button>
-            </div>
-            <div class="js-visible">
-            @if(renderComeBackLater) {
-            <div class="form-group">
-                <a href="#" id="saveComeBackLaterExit">@messages("linkText.saveAndComeBackLater")</a>
-            </div>
-            }
-        </div>
-        </div>
+        @govukButton(Button(content = Text(messages(continueLabelKey)), value=Some("SummaryContinue"), inputType = Some("submit")))
+
+        @if(renderComeBackLater) {
+        <p class="govuk-body">
+            <a href="#" id="saveComeBackLaterExit" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
+        </p>
+        }
     </form>
 }
