@@ -50,7 +50,7 @@ import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationServi
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.form.snippets.print_pdf_header
 import uk.gov.hmrc.gform.views.html.summary.snippets._
-import uk.gov.hmrc.gform.views.html.summary.{ newsummary, summary }
+import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
@@ -494,23 +494,7 @@ object SummaryRenderingService {
             val begin = begin_section(section.shortName.getOrElse(section.title).value)
             val end = end_section()
 
-            val middleRows: Seq[SummaryListRow] = section.fields
-              .filterNot(_.hideOnSummary)
-              .flatMap(getSummaryListRows(
-                _,
-                formTemplate._id,
-                data,
-                maybeAccessCode,
-                section.shortName.getOrElse(section.title).value,
-                SectionNumber(index),
-                sectionTitle4Ga,
-                obligations,
-                fields,
-                validatedType,
-                envelope
-              ))
-
-            val middleRows2: Seq[HtmlFormat.Appendable] = section.fields
+            val middleRows = section.fields
               .filterNot(_.hideOnSummary)
               .map(v =>
                 new govukSummaryList()(SummaryList(getSummaryListRows(
@@ -527,12 +511,11 @@ object SummaryRenderingService {
                   envelope
                 ))))
 
-            if (middleRows2.isEmpty) {
+            if (middleRows.isEmpty) {
               Nil
             } else {
-              begin +: middleRows2 :+ end
+              begin +: middleRows
             }
-
         }
     }
 

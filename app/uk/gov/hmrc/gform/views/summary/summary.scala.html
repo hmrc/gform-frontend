@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.AccessCode
 @import uk.gov.hmrc.gform.sharedmodel.form.FormId
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.gform.routes.SummaryController
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.SummaryPagePurpose
@@ -45,6 +46,7 @@
 
 @heading = @{formTemplate.summarySection.title.value}
 
+@formWithCSRF = @{new formWithCSRF()}
 @govukButton = @{new govukButton()}
 
 @uk.gov.hmrc.gform.views.html.main_template(
@@ -70,7 +72,7 @@
 
     @reviewerComments.map(c => alert(messages("summary.alert.title"), c))
 
-    <form action="@uk.gov.hmrc.gform.gform.routes.SummaryController.submit(formTemplate._id, maybeAccessCode).url" method="POST" class="js-form" autocomplete="off" novalidate="novalidate" id="gf-form">
+    @formWithCSRF(action = SummaryController.submit(formTemplate._id, maybeAccessCode), args =  'method -> "POST", 'class -> "js-form govuk-!-margin-bottom-9", 'autocomplete -> "off", 'novalidate -> "novalidate", 'id -> "gf-form") {
 
         @if(summaryPagePurpose.forUser) {
             @CSRF.formField
@@ -87,9 +89,10 @@
         @govukButton(Button(content = Text(messages(continueLabelKey)), value=Some("SummaryContinue"), inputType = Some("submit")))
 
         @if(renderComeBackLater) {
-        <p class="govuk-body">
-            <a href="#" id="saveComeBackLaterExit" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
-        </p>
+            <p class="govuk-body">
+                <a href="#" id="saveComeBackLaterExit" class="govuk-link">@messages("linkText.saveAndComeBackLater")</a>
+            </p>
         }
-    </form>
+
+    }
 }

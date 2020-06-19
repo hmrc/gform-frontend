@@ -23,25 +23,32 @@ import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 object HtmlSanitiser {
   def sanitiseHtmlForPDF(html: Html, submitted: Boolean): String = {
     val doc: Document = Jsoup.parse(html.body)
+    val formName = doc.select(".govuk-header__link--service-name").first().text()
+    val hmrcLogoText = doc.select(".govuk-body-s").first().text()
+    val headerName = doc.select(".govuk-heading-l").first().text()
+    val message = doc.select(".govuk-body").first().text()
+    doc.prepend(s"<p>$message</p>")
+    doc.prepend(s"<h1>$headerName</h1>")
+    doc.prepend(s"<h1>$formName</h1>")
+    doc.prepend(s"<p>$hmrcLogoText</p>")
     removeComments(doc)
     doc.getElementsByTag("link").remove()
     doc.getElementsByTag("meta").remove()
     doc.getElementsByTag("script").remove()
     doc.getElementsByTag("a").remove()
     doc.getElementsByTag("header").remove()
-    doc.getElementsByClass("service-info").remove()
-    doc.getElementsByClass("footer-wrapper").remove()
-    if (html.body.nonEmpty) {
-      doc.getElementById("global-cookie-message").remove()
-      doc.getElementById("global-app-error").remove()
-    }
-    doc.getElementsByClass("print-hidden").remove()
-    doc.getElementsByClass("report-error").remove()
+    doc.getElementsByTag("button").remove()
+    doc.getElementsByClass("govuk-heading-l").remove()
+    doc.getElementsByClass("govuk-phase-banner").remove()
+    doc.getElementsByClass("hmrc-language-select").remove()
+    doc.getElementsByClass("govuk-body-s").remove()
+    doc.getElementsByClass("govuk-body").remove()
+    doc.getElementsByClass("govuk-footer").remove()
     doc
       .getElementsByTag("head")
       .append(s"<style>${PdfGeneratorService.css}</style>")
     if (submitted) {
-      doc.getElementsByClass("cya-intro").remove()
+      doc.getElementsByClass("govuk-heading-l").remove()
     }
     doc.html.replace("£", "&pound;")
   }
