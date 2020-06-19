@@ -17,11 +17,11 @@
 @import uk.gov.hmrc.gform.views.hardcoded.pages.formCategory
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+@import uk.gov.hmrc.gform.views.hardcoded.AgentEnrolmentProlog
 
 @(
-  formTemplate: FormTemplate,
-  frontendAppConfig: FrontendAppConfig,
-  url: String
+  agentEnrolmentProlog: AgentEnrolmentProlog,
+  frontendAppConfig: FrontendAppConfig
 )(
   implicit
   request: Request[_],
@@ -31,31 +31,29 @@
 )
 
 @heading = @{messages("agentsPrologue.title")}
-@formCat = @{messages(s"formCategory.${formCategory(formTemplate)}")}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
-  serviceName = formTemplate.formName.value,
+  serviceName = agentEnrolmentProlog.formTemplate.formName.value,
   bodyClasses = None,
   frontendAppConfig = frontendAppConfig,
-  authConfig = Some(formTemplate.authConfig),
-  formCategory = formTemplate.formCategory,
-  languages = formTemplate.languages,
-  templateId = formTemplate._id
+  authConfig = Some(agentEnrolmentProlog.formTemplate.authConfig),
+  formCategory = agentEnrolmentProlog.formTemplate.formCategory,
+  languages = agentEnrolmentProlog.formTemplate.languages,
+  templateId = agentEnrolmentProlog.formTemplate._id
 ) {
-  <h1>
+  <h1 class="govuk-label--l">
     @heading
   </h1>
-  <p>
-    @messages("agentsPrologue.p1", formCat, formTemplate.formName).
+  <p class="govuk-body">
+    @messages("agentsPrologue.p1", agentEnrolmentProlog.formCat, agentEnrolmentProlog.formTemplate.formName.value).
   </p>
-  <p class="panel">
-    @messages("agentsPrologue.p2").
+
+  @agentEnrolmentProlog.inset
+
+  <p class="govuk-body">
+    @messages("agentsPrologue.p3", agentEnrolmentProlog.formCat).
   </p>
-  <p>
-    @messages("agentsPrologue.p3", formCat).
-  </p>
-  <p>
-    <a class="button" role="button" href="@url">@messages("agentsPrologue.linkText")</a>
-  </p>
+
+  @agentEnrolmentProlog.button
 }

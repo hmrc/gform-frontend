@@ -465,7 +465,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       List(enrolmentSection),
       0,
       emptyRetrievals,
-      formLevelHeading = true
+      formLevelHeading = false
     )
     val listResult = errors.map { case (_, validationResult) => validationResult }
     val snippets =
@@ -1191,15 +1191,13 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
 
         case _ =>
           val sizeClasses = text.displayWidth match {
-            case DisplayWidth.XS  => "govuk-input--width-2"
-            case DisplayWidth.S   => "govuk-input--width-3"
-            case DisplayWidth.M   => "govuk-input--width-4"
-            case DisplayWidth.L   => "govuk-input--width-10"
-            case DisplayWidth.XL  => "govuk-input--width-20"
-            case DisplayWidth.XXL => "govuk-input--width-30"
-            case DisplayWidth.DEFAULT =>
-              if (TextFormatter.isNumber(formComponent) || formComponent.isSterling) "govuk-input--width-10"
-              else "govuk-input--width-5"
+            case DisplayWidth.XS      => "govuk-input--width-2"
+            case DisplayWidth.S       => "govuk-input--width-3"
+            case DisplayWidth.M       => "govuk-input--width-4"
+            case DisplayWidth.L       => "govuk-input--width-10"
+            case DisplayWidth.XL      => "govuk-input--width-20"
+            case DisplayWidth.XXL     => "govuk-input--width-30"
+            case DisplayWidth.DEFAULT => "govuk-input--width-10"
           }
 
           val isPageHeading = ei.formLevelHeading

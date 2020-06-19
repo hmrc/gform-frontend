@@ -31,7 +31,6 @@ viewHelpers: ViewHelpersAlgebra
 
 @heading = @{"You need to request access to use this service"}
 
-
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = formTemplate.formName.value,
@@ -43,10 +42,10 @@ viewHelpers: ViewHelpersAlgebra
   templateId = formTemplate._id
 ) {
 
-<h1>@heading</h1>
+<h1 class="govuk-label--l">@heading</h1>
 
 
-<div class="form-group">
+<div class="govuk-body">
 
     <p>Someone has already enrolled in this service using these details. </p>
 
@@ -58,16 +57,14 @@ viewHelpers: ViewHelpersAlgebra
 
     <p>Contact an administrator, or if you have an administrator account: </p>
 
-    1. <a href="https://www.gov.uk/log-in-register-hmrc-online-services">Sign in</a> to your Business Tax Account or
+    1. <a href="https://www.gov.uk/log-in-register-hmrc-online-services" class="govuk-link">Sign in</a> to your Business Tax Account or
     Personal Tax Account. </p>
 
     2. Select Manage Users, then choose who has permission to access the service. </p>
 
-    <p>If you cannot do this, <a href="https://www.gov.uk/log-in-register-hmrc-online-services/problems-signing-in">get
+    <p>If you cannot do this, <a href="https://www.gov.uk/log-in-register-hmrc-online-services/problems-signing-in" class="govuk-link">get
         help with signing in.</a></p>
 
 </div>
 
-<div class="form-group">
-</div>
 }

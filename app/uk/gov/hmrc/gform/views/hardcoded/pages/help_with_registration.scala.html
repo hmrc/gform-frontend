@@ -14,7 +14,6 @@
  * limitations under the License.
  *@
 
-@import play.api.i18n.Messages.Implicits._
 @import uk.gov.hmrc.gform.sharedmodel.form._
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
@@ -35,24 +34,22 @@
     languages = formTemplate.languages,
     templateId = formTemplate._id
 ) {
-    <h1 class="heading-large">@title</h1>
+    <h1 class="govuk-label--l">@title</h1>
 
-    <p>@messages("enrolment.help.description")</p>
+    <p class="govuk-body">@messages("enrolment.help.description")</p>
 
-    <h2>@messages("enrolment.help.contact.title")</h2>
+    <h2 class="govuk-label--m">@messages("enrolment.help.contact.title")</h2>
 
-    <div class="panel">
+    <div class="govuk-inset-text">
       <p>@messages("enrolment.help.contact.telephone")<br/><strong>0300 200 3701</strong></p>
       <p>@messages("enrolment.help.contact.textphone")<br/><strong>0300 200 3719</strong></p>
       <p>@messages("enrolment.help.contact.outside")<br/><strong>+44 2920 501 261</strong></p>
     </div>
 
-    <div>
-      <h3>@messages("enrolment.help.opening.times")</h3>
-      <p>@messages("enrolment.help.open.days")</p>
-      <p>@messages("enrolment.help.closed.days")</p>
-    </div>
+    <h3 class="govuk-label--s">@messages("enrolment.help.opening.times")</h3>
+    <p class="govuk-body">@messages("enrolment.help.open.days")</p>
+    <p class="govuk-body">@messages("enrolment.help.closed.days")</p>
 
-    <a href="https://www.gov.uk/call-charges">@messages("enrolment.help.call.charges")</a>
+    <a href="https://www.gov.uk/call-charges" class="govuk-link">@messages("enrolment.help.call.charges")</a>
 
 }

@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
+import uk.gov.hmrc.gform.views.hardcoded.AgentEnrolmentProlog
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.Future
@@ -47,10 +48,11 @@ class AgentEnrolmentController(
   def prologue(formTemplateId: FormTemplateId, formName: String) =
     auth.asyncGGAuth(formTemplateId) { implicit request => implicit l => formWithoutData =>
       val continueUrl = uk.gov.hmrc.gform.gform.routes.NewFormController.dashboard(formTemplateId).url
+      val agentEnrolmentProlog = new AgentEnrolmentProlog(formWithoutData.formTemplate, agentSubscribeUrl(continueUrl))
       Future.successful(
         Ok(
           uk.gov.hmrc.gform.views.html.hardcoded.pages
-            .agent_enrolment_prologue(formWithoutData.formTemplate, frontendAppConfig, agentSubscribeUrl(continueUrl)))
+            .agent_enrolment_prologue(agentEnrolmentProlog, frontendAppConfig))
       )
     }
 }

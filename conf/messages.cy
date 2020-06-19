@@ -367,12 +367,12 @@ accessibility.subheading4=Rhoi gwybod am broblemau hygyrchedd gyda’r gwasanaet
 accessibility.content.block4.p1=Rydym bob amser yn ceisio gwella hygyrchedd y gwasanaeth hwn. Os byddwch yn dod o hyd i unrhyw broblemau nad ydynt wedi’u rhestru ar y dudalen hon, neu os ydych o’r farn nad ydym yn bodloni gofynion hygyrchedd,
 accessibility.form.link=rhowch wybod am y broblem hygyrchedd
 accessibility.subheading5=Beth i’w wneud os nad ydych yn hapus â sut rydym yn ateb eich cwyn
-accessibility.content.block5.p1=Mae’r Comisiwn Cydraddoldeb a Hawliau Dynol (EHRC) yn gyfrifol am orfodi Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018 (y ‘rheoliadau hygyrchedd’). Os nad ydych yn hapus â sut rydym yn ateb eich cwyn, cysylltwch â’r <a href="https://www.equalityadvisoryservice.com/">Gwasanaeth Cynghori a Chymorth Cydraddoldeb</a> (EASS), neu’r <a href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) os ydych yn byw yng Ngogledd Iwerddon.
+accessibility.content.block5.p1=Mae’r Comisiwn Cydraddoldeb a Hawliau Dynol (EHRC) yn gyfrifol am orfodi Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018 (y ‘rheoliadau hygyrchedd’). Os nad ydych yn hapus â sut rydym yn ateb eich cwyn, cysylltwch â’r <a class="govuk-link" href="https://www.equalityadvisoryservice.com/">Gwasanaeth Cynghori a Chymorth Cydraddoldeb</a> (EASS), neu’r <a class="govuk-link" href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) os ydych yn byw yng Ngogledd Iwerddon.
 
 accessibility.subheading6=Cysylltu â ni dros y ffôn neu gael ymweliad personol gennym
 accessibility.content.block6.p1=Rydym yn cynnig gwasanaeth text relay os ydych yn fyddar, â nam ar eich clyw neu os oes gennych nam ar eich lleferydd.
 accessibility.content.block6.p2=Gallwn ddarparu dehonglydd Iaith Arwyddion Prydain (BSL), neu gallwch drefnu ymweliad gan ymgynghorydd CThEM i’ch helpu i gwblhau’r gwasanaeth..
-accessibility.content.block6.p3=Gwybodaeth am sut i <a href="https://www.gov.uk/dealing-hmrc-additional-needs">gysylltu â ni</a>.
+accessibility.content.block6.p3=Gwybodaeth am sut i <a class="govuk-link" href="https://www.gov.uk/dealing-hmrc-additional-needs">gysylltu â ni</a>.
 
 accessibility.subheading7=Gwybodaeth dechnegol am hygyrchedd y gwasanaeth hwn
 accessibility.content.block7.p1=Mae CThEM wedi ymrwymo i wneud y gwasanaeth hwn yn hygyrch, yn unol â Rheoliadau Hygyrchedd Cyrff Sector Cyhoeddus (Gwefannau a Chymwysiadau Symudol) (Rhif 2) 2018.
@@ -386,7 +386,7 @@ accessibility.content.block7.h22.p3=Mae’n bosibl na fydd rhai negeseuon gwall 
 accessibility.content.block7.h22.p4=Rydym yn gweithio ar y materion hyn a byddwn yn eu trwsio erbyn 30 Mehefin 2020.
 
 accessibility.subheading8=Sut gwnaethom brofi’r gwasanaeth hwn
-accessibility.content.block8.p1=Adeiladwyd y gwasanaeth hwn gan ddefnyddio rhannau a brofwyd gan y Ganolfan Hygyrchedd Digidol ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â<a href="http://www.digitalaccessibilitycentre.org/">Ganolfan Hygyrchedd Digidol</a> ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
+accessibility.content.block8.p1=Adeiladwyd y gwasanaeth hwn gan ddefnyddio rhannau a brofwyd gan y Ganolfan Hygyrchedd Digidol ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â<a class="govuk-link" href="http://www.digitalaccessibilitycentre.org/">Ganolfan Hygyrchedd Digidol</a> ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
 accessibility.content.block8.p2=Paratowyd y dudalen hon ar 23 Medi 2019. Cafodd ei diweddaru ddiwethaf ar 26 Mawrth 2019.
 
 identity.verification=Identity verification

@@ -384,12 +384,12 @@ accessibility.subheading4=Reporting accessibility problems with this service
 accessibility.content.block4.p1=We are always looking to improve the accessibility of this service. If you find any problems that are not listed on this page or think we are not meeting accessibility requirements,
 accessibility.form.link=report the accessibility problem
 accessibility.subheading5=What to do if you are not happy with how we respond to your complaint
-accessibility.content.block5.p1=The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’). If you are not happy with how we respond to your complaint, <a href="https://www.equalityadvisoryservice.com/">contact the Equality Advisory and Support Service</a> (EASS), or the <a href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) if you live in Northern Ireland.
+accessibility.content.block5.p1=The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’). If you are not happy with how we respond to your complaint, <a class="govuk-link" href="https://www.equalityadvisoryservice.com/">contact the Equality Advisory and Support Service</a> (EASS), or the <a class="govuk-link" href="https://www.equalityni.org/Home">Equality Commission for Northern Ireland</a> (ECNI) if you live in Northern Ireland.
 
 accessibility.subheading6=Contact us by phone or get a visit from us in person
 accessibility.content.block6.p1=We provide a text relay service if you are deaf, hearing impaired or have a speech impediment.
 accessibility.content.block6.p2=We can provide a British Sign Language (BSL) interpreter, or you can arrange a visit from an HMRC advisor to help you complete the service.
-accessibility.content.block6.p3=Find out how to <a href="https://www.gov.uk/dealing-hmrc-additional-needs">contact us</a>.
+accessibility.content.block6.p3=Find out how to <a class="govuk-link" href="https://www.gov.uk/dealing-hmrc-additional-needs">contact us</a>.
 
 accessibility.subheading7=Technical information about this service’s accessibility
 accessibility.content.block7.p1=HMRC is committed to making this service accessible, in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.
@@ -403,7 +403,7 @@ accessibility.content.block7.h22.p3=Some error messages may not contain the full
 accessibility.content.block7.h22.p4=We are working on these issues and will fix them by 30 June 2020.
 
 accessibility.subheading8=How we tested this service
-accessibility.content.block8.p1=This service was built using parts that were tested by <a href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
+accessibility.content.block8.p1=This service was built using parts that were tested by <a class="govuk-link" href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
 accessibility.content.block8.p2=This page was prepared on 23 September 2019. It was last updated on 26 March 2020.
 
 identity.verification=Identity verification
