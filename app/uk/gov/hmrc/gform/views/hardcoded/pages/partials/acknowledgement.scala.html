@@ -21,7 +21,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ OfstedDefault, Default => FormCatDefault }
 
 @(
-  timeMessage: String,
   supportContents: SectionRenderingInformation,
   formCategory: FormCategory,
   formTemplate: FormTemplate,
@@ -34,6 +33,7 @@
 @formCat = @{messages(s"formCategory.${formCategory.getString}")}
 @heading = @{messages("ack.title", formCat)}
 
+@govukPanel = @{new govukPanel()}
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
@@ -47,47 +47,40 @@
   templateId = formTemplate._id
 ) {
 
-  <div class="govuk-box-highlight">
 
-    <h1 class="bold-medium ack-header">
-      @heading
-    </h1>
+  @govukPanel(Panel(
+    title = Text(heading),
+    content = HtmlContent(submission_reference(SubmissionRef(supportContents.envelopeId)))
+  ))
 
-    <p class="ack-subheader">
-        @messages("ack.submissionReference")
-        <span class="submission-reference">
-          @{SubmissionRef(supportContents.envelopeId).toString}
-        </span>
-    </p>
-
-  </div>
-
-  <p>
+  <p class="govuk-body">
     @messages("ack.sentEmail").
   </p>
 
-  <p>
+  <p class="govuk-body">
     <a
       href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.downloadPDF(supportContents.maybeAccessCode, formTemplate._id).url"
-      class="print-link print-hidden js-visible">
+      class="print-hidden govuk-link">
         @messages("ack.pdfLink", formCat)
     </a>
   </p>
 
-  <h2 class="heading-medium">
+  <h2 class="govuk-heading-l">
     @messages("ack.whatHappensNext")
   </h2>
 
   @{supportContents.snippets}
 
   @if(formCategory.isHmrc) {
-    <h2 class="heading-medium">
+    <h2 class="govuk-heading-m">
       @messages("ack.beforeYouGo")
     </h2>
 
-    <p>
+    <p class="govuk-body">
       @messages("ack.feedbackText1")
-      <a href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, supportContents.maybeAccessCode).url">@messages("ack.feedbackLink")</a>
+      <a
+        href="@uk.gov.hmrc.gform.gform.routes.AcknowledgementController.exitSurvey(formTemplate._id, supportContents.maybeAccessCode).url"
+	class="govuk-link">@messages("ack.feedbackLink")</a>
       @messages("ack.feedbackText2").
     </p>
   }

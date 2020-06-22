@@ -400,10 +400,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     )
 
     val formCategory = formTemplate.formCategory
-    val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
-    val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy")
     val now = ZonedDateTime.now(ZoneId.of("Europe/London"))
-    val timeMessage = s""" at ${now.format(timeFormat)} on ${now.format(dateFormat)}"""
     for {
       snippets <- Future.traverse(destinationList.acknowledgementSection.fields)(
                    formComponent =>
@@ -435,7 +432,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       )
     } yield
       uk.gov.hmrc.gform.views.html.hardcoded.pages.partials
-        .acknowledgement(timeMessage, renderingInfo, formCategory, formTemplate, frontendAppConfig)
+        .acknowledgement(renderingInfo, formCategory, formTemplate, frontendAppConfig)
   }
 
   def renderEnrolmentSection(
