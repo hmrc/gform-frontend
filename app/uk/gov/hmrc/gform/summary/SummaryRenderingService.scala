@@ -404,65 +404,6 @@ object SummaryRenderingService {
     )
   }
 
-  def summaryForRender(
-    validatedType: ValidatedType[ValidationResult],
-    data: FormDataRecalculated,
-    maybeAccessCode: Option[AccessCode],
-    formTemplate: FormTemplate,
-    envelope: Envelope,
-    obligations: Obligations,
-    reviewerComments: Option[String] = None
-  )(
-    implicit
-    messages: Messages,
-    l: LangADT,
-    lise: SmartStringEvaluator): List[Html] = {
-
-    def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
-
-      val sectionsToRender =
-        sections.zipWithIndex.collect {
-          case (section, index) if data.isVisible(section) => (section, index)
-        }
-
-      sectionsToRender
-        .flatMap {
-          case (section, index) =>
-            val sectionTitle4Ga = sectionTitle4GaFactory(sections(index), SectionNumber(index))
-            val begin = begin_section(section.shortName.getOrElse(section.title).value)
-            val end = end_section()
-
-            val middle =
-              section.fields
-                .filterNot(_.hideOnSummary)
-                .map(valueToHtml(
-                  _,
-                  formTemplate._id,
-                  data,
-                  maybeAccessCode,
-                  section.shortName.getOrElse(section.title).value,
-                  SectionNumber(index),
-                  sectionTitle4Ga,
-                  obligations,
-                  fields,
-                  validatedType,
-                  envelope
-                ))
-            if (middle.isEmpty) {
-              Nil
-            } else {
-              begin +: middle :+ end
-            }
-        }
-    }
-
-    val sections = RepeatingComponentService.getAllSections(formTemplate, data)
-
-    val fields = sections.flatMap(RepeatingComponentService.atomicFields(_, data.data))
-
-    renderHtmls(sections, fields)
-  }
-
   def summaryRowsForRender(
     validatedType: ValidatedType[ValidationResult],
     data: FormDataRecalculated,
@@ -489,29 +430,31 @@ object SummaryRenderingService {
           case (section, index) =>
             val sectionTitle4Ga = sectionTitle4GaFactory(sections(index), SectionNumber(index))
             val begin = begin_section(section.shortName.getOrElse(section.title).value)
-            val end = end_section()
 
             val middleRows = section.fields
               .filterNot(_.hideOnSummary)
-              .map(v =>
-                new govukSummaryList()(SummaryList(getSummaryListRows(
-                  v,
-                  formTemplate._id,
-                  data,
-                  maybeAccessCode,
-                  section.shortName.getOrElse(section.title).value,
-                  SectionNumber(index),
-                  sectionTitle4Ga,
-                  obligations,
-                  fields,
-                  validatedType,
-                  envelope
-                ))))
+              .flatMap(
+                v =>
+                  getSummaryListRows(
+                    v,
+                    formTemplate._id,
+                    data,
+                    maybeAccessCode,
+                    section.shortName.getOrElse(section.title).value,
+                    SectionNumber(index),
+                    sectionTitle4Ga,
+                    obligations,
+                    fields,
+                    validatedType,
+                    envelope
+                )
+              )
 
             if (middleRows.isEmpty) {
               Nil
             } else {
-              begin +: middleRows
+              val middleRowsHtml = new govukSummaryList()(SummaryList(middleRows, "govuk-!-margin-bottom-9"))
+              List(begin, middleRowsHtml)
             }
         }
     }
@@ -542,18 +485,21 @@ object SummaryRenderingService {
       fields
         .map(
           formComponent =>
-            valueToHtml(
-              formComponent,
-              formTemplate._id,
-              data,
-              maybeAccessCode,
-              "",
-              SectionNumber(0),
-              SectionTitle4Ga(""),
-              obligations,
-              fields,
-              validatedType,
-              envelope))
+            new govukSummaryList()(
+              SummaryList(
+                getSummaryListRows(
+                  formComponent,
+                  formTemplate._id,
+                  data,
+                  maybeAccessCode,
+                  "",
+                  SectionNumber(0),
+                  SectionTitle4Ga(""),
+                  obligations,
+                  fields,
+                  validatedType,
+                  envelope
+                ))))
 
     val allFormComponents =
       formTemplate.expandFormTemplateFull.formComponentsLookupFull
@@ -608,571 +554,659 @@ object SummaryRenderingService {
     l: LangADT,
     lise: SmartStringEvaluator): List[SummaryListRow] = {
 
-    def groupHelper(fieldValue: FormComponent, presentationHint: List[PresentationHint])(
-      implicit l: LangADT): List[SummaryListRow] = {
-      val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
-
-      fieldValue.`type` match {
-        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
-          val summaryListRows = {
-            val groups =
-              getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
-
-            for {
-              group <- groups
-
-              validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-              hasErrors = validationResult.exists(_.isNotOk)
-
-              errors = {
-                validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-                  errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
-                }
-              }
-
-              label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-              visuallyHiddenText = Some(fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value))
-
-              keyClasses = if (hasErrors)
-                "summary--error"
-              else
-                ""
-
-              value = if (hasErrors)
-                errors.mkString(" ")
-              else
-                group.componentList
-                  .map(v => validate(v, validatedType, data, fields, envelope))
-                  .map(f => s"${TextFormatter.formatText(f)}<br>")
-                  .mkString
-
-            } yield
-              summaryListRow(
-                label,
-                value,
-                visuallyHiddenText,
-                keyClasses,
-                "",
-                "",
-                (
-                  uk.gov.hmrc.gform.gform.routes.FormController
-                    .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-                  if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-              )
-          }
-
-          summaryListRows
-
-        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
-          val fcs: List[FormComponent] =
-            getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
-
-          val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-          val hasErrors = validationResult.exists(_.isNotOk)
-
-          val errors = {
-            validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-              errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
-            }
-          }
-
-          val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-          val visuallyHiddenText = Some(fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value))
-
-          val keyClasses =
-            if (hasErrors)
-              "summary--error"
-            else
-              ""
-
-          val value =
-            if (hasErrors)
-              errors.mkString(" ")
-            else
-              fcs
-                .map(v => validate(v, validatedType, data, fields, envelope))
-                .filterNot(_.isEmpty)
-                .map(f => s"${TextFormatter.formatText(f)}<br>")
-                .mkString
-
-          if (value.nonEmpty) {
-            List(
-              summaryListRow(
-                label,
-                value,
-                visuallyHiddenText,
-                keyClasses,
-                "",
-                "",
-                (
-                  uk.gov.hmrc.gform.gform.routes.FormController
-                    .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-                  if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-              ))
-
-          } else List(SummaryListRow())
-
-        case groupField @ Group(_, _, _, _, _) =>
-          val fvs: List[GroupList] =
-            getAllFieldsInGroup(fieldValue, groupField, data)
-
-          val summaryListRows = fvs.flatMap(_.componentList.flatMap { fv =>
-            getSummaryListRows(
-              fv,
-              formTemplateId,
-              data,
-              maybeAccessCode,
-              "",
-              sectionNumber,
-              sectionTitle4Ga,
-              obligations,
-              fields,
-              validatedType,
-              envelope
-            )
-          })
-
-          val groupSummaryListRow = if (isLabel) {
-            val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-            val keyClasses = "summary-group-label"
-
-            List(
-              summaryListRow(label, "", None, keyClasses, "", "")
-            )
-          } else Nil
-
-          groupSummaryListRow ++ summaryListRows
-
-        case _ =>
-          getSummaryListRows(
-            fieldValue,
-            formTemplateId,
-            data,
-            maybeAccessCode,
-            "",
-            sectionNumber,
-            sectionTitle4Ga,
-            obligations,
-            fields,
-            validatedType,
-            envelope
-          )
-      }
-    }
-
     fieldValue.`type` match {
       case Text(_, _, _, _) =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-        val hasErrors = validationResult.exists(_.isNotOk)
-        val errors = {
-          validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-            errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
-          }
-        }
-        val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-        val value = if (hasErrors) errors.mkString(" ") else formatText(validationResult)
-        val visuallyHiddenText = Some(fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value))
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            visuallyHiddenText,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getTextSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope)
 
       case TextArea(_, _, _) =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-        val hasErrors = validationResult.exists(_.isNotOk)
-
-        val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          errorInline("summary", e, Seq())
-        }
-
-        val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-        val currentValueLines = formatText(validationResult).split("\\R")
-
-        val currentValue = if (currentValueLines.nonEmpty) {
-          currentValueLines.init.map { line =>
-            s"$line<br>"
-          }
-          currentValueLines.last
-        } else ""
-
-        val value = if (hasErrors) errors.mkString(" ") else currentValue
-        val visuallyHiddenText = Some(fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value))
-
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            visuallyHiddenText,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getTextAreaSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope)
 
       case UkSortCode(_) =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-        val hasErrors = validationResult.exists(_.isNotOk)
-
-        val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          errorInline("summary", e, Seq())
-        }
-
-        val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-        val currentValue = UkSortCode
-          .fields(fieldValue.id)
-          .toList
-          .map { fieldId =>
-            validationResult.map(_.getCurrentValue(fieldId.toString)).getOrElse("")
-          }
-          .mkString("-")
-
-        val value = if (hasErrors) errors.mkString(" ") else currentValue
-
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            None,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getUkSortCodeSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope)
 
       case Date(_, _, _) =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-        val hasErrors = validationResult.exists(_.isNotOk)
-
-        val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          errorInline("summary", e, Seq())
-        }
-
-        def safeId(id: String) = fieldValue.id.withSuffix(id).toString
-
-        def monthKey = getMonthValue(validationResult.map(_.getCurrentValue(safeId("month")))).getOrElse("")
-
-        val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-        val value =
-          if (hasErrors)
-            errors.head.toString
-          else {
-            val day = renderMonth(validationResult.map(_.getCurrentValue(safeId("day")))).getOrElse("")
-            val month = messages(s"date.$monthKey")
-            val year = validationResult.map(_.getCurrentValue(safeId("year"))).getOrElse("")
-
-            s"$day $month $year"
-          }
-
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            None,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getDateSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope)
 
       case Address(_) =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-        val hasErrors = validationResult.exists(_.isNotOk)
-
-        val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          errorInline("summary", e, Seq())
-        }
-
-        def safeId(id: String) = fieldValue.id.withSuffix(id).value
-
-        def showError(e: String) = errorInline(e, e, Seq("error-message"))
-
-        val label = fieldValue.shortName.map(ls => ls.value.capitalize).getOrElse(fieldValue.label.value)
-
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        val value = if (hasErrors) {
-          errors.mkString(" ")
-        } else {
-          List(
-            "street1",
-            "street2",
-            "street3",
-            "street4",
-            "postcode",
-            "country"
-          ).map { suffix =>
-            if (validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
-              validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("") + "<br>"
-            } else ""
-          }.mkString
-        }
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            None,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getAddressSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope)
 
       case InformationMessage(_, _) =>
         List(SummaryListRow())
 
       case f @ FileUpload() =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-        val hasErrors = validationResult.exists(_.isNotOk)
-
-        val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          errorInline("summary", e, Seq("error-message"))
-        }
-
-        val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-        val value = if (hasErrors) errors.mkString(" ") else validationResult.flatMap(_.getCurrentValue).getOrElse("")
-
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            None,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getFileUploadSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope)
 
       case h @ HmrcTaxPeriod(_, _, _) =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-        val hasErrors = validationResult.exists(_.isNotOk)
-
-        val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          errorInline("summary", e, Seq())
-        }
-
-        val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-        val periodId =
-          TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue, validatedType, data, fields, envelope))
-        val maybeObligation = obligations.findByPeriodKey(h, periodId)
-
-        val value =
-          if (hasErrors)
-            errors.mkString(" ")
-          else
-            maybeObligation.fold("Value Lost!") { od =>
-              messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
-                messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
-            }
-
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            None,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getHmrcTaxPeriodSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope,
+          obligations,
+          h)
 
       case Choice(_, options, _, _, _) =>
-        val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
-
-        val hasErrors = validationResult.exists(_.isNotOk)
-
-        val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          errorInline("summary", e, Seq())
-        }
-
-        val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-        val value =
-          if (hasErrors)
-            errors.mkString(" ")
-          else
-            options.toList.zipWithIndex
-              .map {
-                case (option, index) =>
-                  validate(fieldValue, validatedType, data, fields, envelope)
-                    .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                    .map(_ => option.value)
-              }
-              .collect { case Some(selection) => selection }
-              .map(s => s"<p>$s</p>")
-              .mkString
-
-        val keyClasses =
-          if (hasErrors)
-            "summary--error"
-          else
-            ""
-
-        List(
-          summaryListRow(
-            label,
-            value,
-            None,
-            keyClasses,
-            "",
-            "",
-            (
-              uk.gov.hmrc.gform.gform.routes.FormController
-                .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-              if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-          ))
+        getChoiceSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope,
+          options)
 
       case rc: RevealingChoice =>
-        val selections: NonEmptyList[Option[List[SummaryListRow]]] = rc.options.zipWithIndex
-          .map {
-            case (element, index) =>
-              val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+        getRevealingChoiceSummaryListRows(
+          fieldValue,
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          sectionNumber,
+          sectionTitle4Ga,
+          fields,
+          validatedType,
+          envelope,
+          rc,
+          obligations)
 
-              val hasErrors = validationResult.exists(_.isNotOk)
-
-              val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-                errorInline("summary", e, Seq())
-              }
-
-              val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
-
-              val value =
-                if (hasErrors)
-                  errors.mkString(" ")
-                else
-                  element.choice.value
-
-              val keyClasses =
-                if (hasErrors)
-                  "summary--error"
-                else
-                  ""
-
-              validationResult
-                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                .map { _ =>
-                  val revealingFields = element.revealingFields.filterNot(_.hideOnSummary).flatMap {
-                    getSummaryListRows(
-                      _,
-                      formTemplateId,
-                      data,
-                      maybeAccessCode,
-                      "",
-                      sectionNumber,
-                      sectionTitle4Ga,
-                      obligations,
-                      fields,
-                      validatedType,
-                      envelope
-                    )
-                  }
-
-                  summaryListRow(
-                    label,
-                    value,
-                    None,
-                    keyClasses,
-                    "",
-                    "",
-                    (
-                      uk.gov.hmrc.gform.gform.routes.FormController
-                        .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
-                      if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
-                  ) +: revealingFields
-                }
-          }
-
-        selections.collect { case Some(v) => v }.flatten
-
-      case Group(_, _, _, _, _) => groupHelper(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
+      case Group(_, _, _, _, _) =>
+        getGroupSummaryListRows(
+          fieldValue: FormComponent,
+          formTemplateId: FormTemplateId,
+          data: FormDataRecalculated,
+          maybeAccessCode: Option[AccessCode],
+          title: String,
+          sectionNumber: SectionNumber,
+          sectionTitle4Ga: SectionTitle4Ga,
+          obligations: Obligations,
+          fields: List[FormComponent],
+          validatedType: ValidatedType[ValidationResult],
+          envelope: Envelope,
+          fieldValue.presentationHint.getOrElse(Nil)
+        )
 
     }
   }
 
-  private def valueToHtml(
+  private def checkErrors(fieldValue: FormComponent, validationResult: Option[FormFieldValidationResult]) =
+    validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
+      errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
+    }
+
+  private def getLabel(fieldValue: FormComponent)(implicit lise: SmartStringEvaluator) =
+    fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
+
+  private def getVisuallyHiddenText(fieldValue: FormComponent)(implicit lise: SmartStringEvaluator) =
+    Some(fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value))
+
+  private def getKeyClasses(hasErrors: Boolean) =
+    if (hasErrors)
+      "summary--error"
+    else
+      ""
+
+  private def getTextSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = checkErrors(fieldValue, validationResult)
+
+    val label = getLabel(fieldValue)
+
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val value = if (hasErrors) errors.mkString(" ") else formatText(validationResult)
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        visuallyHiddenText,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+
+  }
+
+  private def getTextAreaSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = checkErrors(fieldValue, validationResult)
+
+    val label = getLabel(fieldValue)
+
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val currentValueLines = formatText(validationResult).split("\\R")
+
+    val currentValue = if (currentValueLines.nonEmpty) {
+      currentValueLines.init.map { line =>
+        s"$line<br>"
+      }
+      currentValueLines.last
+    } else ""
+
+    val value = if (hasErrors) errors.mkString(" ") else currentValue
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        visuallyHiddenText,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+  }
+
+  private def getUkSortCodeSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = checkErrors(fieldValue, validationResult)
+
+    val label = getLabel(fieldValue)
+
+    val visuallyHiddenText = getVisuallyHiddenText(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val currentValue = UkSortCode
+      .fields(fieldValue.id)
+      .toList
+      .map { fieldId =>
+        validationResult.map(_.getCurrentValue(fieldId.toString)).getOrElse("")
+      }
+      .mkString("-")
+
+    val value = if (hasErrors) errors.mkString(" ") else currentValue
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+  }
+
+  private def getDateSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = checkErrors(fieldValue, validationResult)
+
+    val label = getLabel(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    def safeId(id: String) = fieldValue.id.withSuffix(id).toString
+
+    def monthKey = getMonthValue(validationResult.map(_.getCurrentValue(safeId("month")))).getOrElse("")
+
+    val value =
+      if (hasErrors)
+        errors.head.toString
+      else {
+        val day = renderMonth(validationResult.map(_.getCurrentValue(safeId("day")))).getOrElse("")
+        val month = messages(s"date.$monthKey")
+        val year = validationResult.map(_.getCurrentValue(safeId("year"))).getOrElse("")
+
+        s"$day $month $year"
+      }
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+  }
+
+  private def getAddressSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = checkErrors(fieldValue, validationResult)
+
+    val label = fieldValue.shortName.map(ls => ls.value.capitalize).getOrElse(fieldValue.label.value)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    def safeId(id: String) = fieldValue.id.withSuffix(id).value
+
+    val value = if (hasErrors) {
+      errors.mkString(" ")
+    } else {
+      List(
+        "street1",
+        "street2",
+        "street3",
+        "street4",
+        "postcode",
+        "country"
+      ).map { suffix =>
+        if (validationResult.map(_.getCurrentValue(safeId(suffix)).isEmpty).contains(false)) {
+          validationResult.map(_.getCurrentValue(safeId(suffix))).getOrElse("") + "<br>"
+        } else ""
+      }.mkString
+    }
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+  }
+
+  private def getFileUploadSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
+      errorInline("summary", e, Seq("error-message"))
+    }
+
+    val label = getLabel(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val value = if (hasErrors) errors.mkString(" ") else validationResult.flatMap(_.getCurrentValue).getOrElse("")
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+  }
+
+  private def getHmrcTaxPeriodSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope,
+    obligations: Obligations,
+    h: HmrcTaxPeriod)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
+      errorInline("summary", e, Seq())
+    }
+
+    val label = getLabel(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val periodId =
+      TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue, validatedType, data, fields, envelope))
+
+    val maybeObligation = obligations.findByPeriodKey(h, periodId)
+
+    val value =
+      if (hasErrors)
+        errors.mkString(" ")
+      else
+        maybeObligation.fold("Value Lost!") { od =>
+          messages("generic.From") + " " + formatDate(od.inboundCorrespondenceFromDate) + " " +
+            messages("generic.to") + " " + formatDate(od.inboundCorrespondenceToDate)
+        }
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+  }
+
+  private def getChoiceSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope,
+    options: NonEmptyList[SmartString])(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+    val hasErrors = validationResult.exists(_.isNotOk)
+
+    val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
+      errorInline("summary", e, Seq())
+    }
+
+    val label = getLabel(fieldValue)
+
+    val keyClasses = getKeyClasses(hasErrors)
+
+    val value =
+      if (hasErrors)
+        errors.mkString(" ")
+      else
+        options.toList.zipWithIndex
+          .map {
+            case (option, index) =>
+              validate(fieldValue, validatedType, data, fields, envelope)
+                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
+                .map(_ => option.value)
+          }
+          .collect { case Some(selection) => selection }
+          .map(s => s"<p>$s</p>")
+          .mkString
+
+    List(
+      summaryListRow(
+        label,
+        value,
+        None,
+        keyClasses,
+        "",
+        "",
+        (
+          uk.gov.hmrc.gform.gform.routes.FormController
+            .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+          if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+      ))
+  }
+
+  private def getRevealingChoiceSummaryListRows(
+    fieldValue: FormComponent,
+    formTemplateId: FormTemplateId,
+    data: FormDataRecalculated,
+    maybeAccessCode: Option[AccessCode],
+    sectionNumber: SectionNumber,
+    sectionTitle4Ga: SectionTitle4Ga,
+    fields: List[FormComponent],
+    validatedType: ValidatedType[ValidationResult],
+    envelope: Envelope,
+    rc: RevealingChoice,
+    obligations: Obligations)(
+    implicit
+    messages: Messages,
+    l: LangADT,
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
+
+    val selections: NonEmptyList[Option[List[SummaryListRow]]] = rc.options.zipWithIndex
+      .map {
+        case (element, index) =>
+          val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
+
+          val hasErrors = validationResult.exists(_.isNotOk)
+
+          val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
+            errorInline("summary", e, Seq())
+          }
+
+          val label = getLabel(fieldValue)
+
+          val keyClasses = getKeyClasses(hasErrors)
+
+          val value =
+            if (hasErrors)
+              errors.mkString(" ")
+            else
+              element.choice.value
+
+          validationResult
+            .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
+            .map { _ =>
+              val revealingFields = element.revealingFields.filterNot(_.hideOnSummary).flatMap {
+                getSummaryListRows(
+                  _,
+                  formTemplateId,
+                  data,
+                  maybeAccessCode,
+                  "",
+                  sectionNumber,
+                  sectionTitle4Ga,
+                  obligations,
+                  fields,
+                  validatedType,
+                  envelope
+                )
+              }
+
+              summaryListRow(
+                label,
+                value,
+                None,
+                keyClasses,
+                "",
+                "",
+                (
+                  uk.gov.hmrc.gform.gform.routes.FormController
+                    .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+                  if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+              ) +: revealingFields
+            }
+      }
+
+    selections.collect { case Some(v) => v }.flatten
+  }
+
+  private def getGroupSummaryListRows(
     fieldValue: FormComponent,
     formTemplateId: FormTemplateId,
     data: FormDataRecalculated,
@@ -1183,73 +1217,100 @@ object SummaryRenderingService {
     obligations: Obligations,
     fields: List[FormComponent],
     validatedType: ValidatedType[ValidationResult],
-    envelope: Envelope)(
+    envelope: Envelope,
+    presentationHint: List[PresentationHint]
+  )(
     implicit
     messages: Messages,
     l: LangADT,
-    lise: SmartStringEvaluator): Html = {
+    lise: SmartStringEvaluator): List[SummaryListRow] = {
 
-    val changeButton = change_button(
-      formTemplateId,
-      maybeAccessCode,
-      title,
-      sectionNumber,
-      sectionTitle4Ga,
-      fieldValue
-    )
+    val validationResult = validate(fieldValue, validatedType, data, fields, envelope)
 
-    def groupToHtml(fieldValue: FormComponent, presentationHint: List[PresentationHint])(implicit l: LangADT): Html = {
-      val isLabel = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value).nonEmpty
+    val hasErrors = validationResult.exists(_.isNotOk)
 
-      fieldValue.`type` match {
-        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
-          val htmlList: List[Html] = {
+    val errors = checkErrors(fieldValue, validationResult)
 
-            val groups: List[GroupList] =
-              getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
+    val label = getLabel(fieldValue)
 
-            for {
-              group <- groups
-              value = group.componentList.map(v => validate(v, validatedType, data, fields, envelope))
-            } yield group_grid(fieldValue, value, false, changeButton)
+    val isLabel = label.nonEmpty
 
-          }
+    val visuallyHiddenText = Some(label)
 
-          flatten(htmlList)
-        case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
-          val fcs: List[FormComponent] =
-            getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
+    val keyClasses = getKeyClasses(hasErrors)
 
-          val value = fcs.map(v => validate(v, validatedType, data, fields, envelope)).filterNot(_.isEmpty)
+    fieldValue.`type` match {
+      case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) && groupField.repeatsMax.isDefined =>
+        val summaryListRows = {
+          val groups =
+            getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data))
 
-          if (value.nonEmpty) {
-            group_grid(fieldValue, value, isLabel, changeButton)
-          } else Html("")
+          for {
+            group <- groups
 
-        case groupField @ Group(_, _, _, _, _) =>
-          val fvs: List[GroupList] =
-            getAllFieldsInGroup(fieldValue, groupField, data)
+            value = if (hasErrors)
+              errors.mkString(" ")
+            else
+              group.componentList
+                .map(v => validate(v, validatedType, data, fields, envelope))
+                .map(f => s"${TextFormatter.formatText(f)}<br>")
+                .mkString
 
-          val htmlList = fvs.flatMap(_.componentList.map { fv =>
-            valueToHtml(
-              fv,
-              formTemplateId,
-              data,
-              maybeAccessCode,
+          } yield
+            summaryListRow(
+              label,
+              value,
+              visuallyHiddenText,
+              keyClasses,
               "",
-              sectionNumber,
-              sectionTitle4Ga,
-              obligations,
-              fields,
-              validatedType,
-              envelope
+              "",
+              (
+                uk.gov.hmrc.gform.gform.routes.FormController
+                  .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+                if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
             )
-          })
-          group(fieldValue, htmlList, isLabel)
+        }
 
-        case _ =>
-          valueToHtml(
-            fieldValue,
+        summaryListRows
+
+      case groupField: Group if presentationHint.contains(SummariseGroupAsGrid) =>
+        val fcs: List[FormComponent] =
+          getAllFieldsInGroup(fieldValue, groupField, data).filter(_.hasData(data)).flatMap(_.componentList)
+
+        val value =
+          if (hasErrors)
+            errors.mkString(" ")
+          else
+            fcs
+              .map(v => validate(v, validatedType, data, fields, envelope))
+              .filterNot(_.isEmpty)
+              .map(f => s"${TextFormatter.formatText(f)}<br>")
+              .mkString
+
+        if (value.nonEmpty) {
+          List(
+            summaryListRow(
+              label,
+              value,
+              visuallyHiddenText,
+              keyClasses,
+              "",
+              "",
+              (
+                uk.gov.hmrc.gform.gform.routes.FormController
+                  .form(formTemplateId, maybeAccessCode, sectionNumber, sectionTitle4Ga, SeYes),
+                if (fieldValue.editable) messages("summary.change") else messages("summary.view"))
+            ))
+
+        } else List(SummaryListRow())
+
+      case groupField @ Group(_, _, _, _, _) =>
+        val fvs: List[GroupList] =
+          getAllFieldsInGroup(fieldValue, groupField, data)
+
+        val summaryListRows = fvs.flatMap(_.componentList.flatMap { fv =>
+          getSummaryListRows(
+            fv,
             formTemplateId,
             data,
             maybeAccessCode,
@@ -1261,75 +1322,34 @@ object SummaryRenderingService {
             validatedType,
             envelope
           )
-      }
-    }
+        })
 
-    fieldValue.`type` match {
-      case UkSortCode(_) =>
-        sort_code(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
-      case Date(_, _, _) => date(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
-      case Address(_)    => address(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
-      case Text(_, _, _, _) =>
-        text(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
-      case TextArea(_, _, _) =>
-        textarea(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
+        val groupSummaryListRow = if (isLabel) {
 
-      case Choice(_, options, _, _, _) =>
-        val selections = options.toList.zipWithIndex
-          .map {
-            case (option, index) =>
-              validate(fieldValue, validatedType, data, fields, envelope)
-                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                .map(_ => option.value)
-          }
-          .collect { case Some(selection) => selection }
+          val customKeyClasses = "summary-group-label"
 
-        choice(fieldValue, selections, changeButton)
+          List(
+            summaryListRow(label, "", None, customKeyClasses, "", "")
+          )
+        } else Nil
 
-      case rc: RevealingChoice =>
-        val selections = rc.options.zipWithIndex
-          .map {
-            case (element, index) =>
-              validate(fieldValue, validatedType, data, fields, envelope)
-                .flatMap(_.getOptionalCurrentValue(fieldValue.id.value + index.toString))
-                .map { _ =>
-                  val selections: List[Html] = element.revealingFields.filterNot(_.hideOnSummary).map {
-                    valueToHtml(
-                      _,
-                      formTemplateId,
-                      data,
-                      maybeAccessCode,
-                      "",
-                      sectionNumber,
-                      sectionTitle4Ga,
-                      obligations,
-                      fields,
-                      validatedType,
-                      envelope
-                    )
-                  }
+        groupSummaryListRow ++ summaryListRows
 
-                  revealingChoice(element.choice, fieldValue, selections, changeButton)
-                }
-          }
-          .collect { case Some(html) => html }
-
-        flatten(selections)
-
-      case f @ FileUpload() =>
-        file_upload(fieldValue, validate(fieldValue, validatedType, data, fields, envelope), changeButton)
-      case InformationMessage(_, _) => Html("")
-      case Group(_, _, _, _, _)     => groupToHtml(fieldValue, fieldValue.presentationHint.getOrElse(Nil))
-
-      case h @ HmrcTaxPeriod(_, _, _) =>
-        val periodId =
-          TaxPeriodHelper.formatTaxPeriodOutput(validate(fieldValue, validatedType, data, fields, envelope))
-        val maybeObligation = obligations.findByPeriodKey(h, periodId)
-        hmrc_tax_period(
+      case _ =>
+        getSummaryListRows(
           fieldValue,
-          validate(fieldValue, validatedType, data, fields, envelope),
-          changeButton,
-          maybeObligation)
+          formTemplateId,
+          data,
+          maybeAccessCode,
+          "",
+          sectionNumber,
+          sectionTitle4Ga,
+          obligations,
+          fields,
+          validatedType,
+          envelope
+        )
     }
   }
+
 }
