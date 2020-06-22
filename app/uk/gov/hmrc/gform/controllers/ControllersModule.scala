@@ -26,7 +26,6 @@ import uk.gov.hmrc.gform.config.ConfigModule
 import uk.gov.hmrc.gform.gformbackend.GformBackendModule
 import uk.gov.hmrc.gform.graph.GraphModule
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 class ControllersModule(
   configModule: ConfigModule,
@@ -39,8 +38,7 @@ class ControllersModule(
   errResponder: ErrResponder,
   graphModule: GraphModule
 )(
-  implicit ec: ExecutionContext,
-  viewHelpers: ViewHelpersAlgebra
+  implicit ec: ExecutionContext
 ) {
 
   private implicit val messagesApi = builtInComponents.messagesApi

@@ -18,8 +18,8 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
+@import uk.gov.hmrc.gform.views.html.errorInline
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
-
 @(
     fieldValue: FormComponent,
     validationResult: Option[FormFieldValidationResult],
@@ -27,14 +27,13 @@
 )(
     implicit
     l:LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     sse: SmartStringEvaluator
 )
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    viewHelpers.errorInline("summary", e, Seq("error-message"))
+errorInline("summary", e, Seq("error-message"))
 }}
 
 <div>

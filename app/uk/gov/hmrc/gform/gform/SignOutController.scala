@@ -22,7 +22,6 @@ import uk.gov.hmrc.gform.config.FrontendAppConfig
 import play.api.i18n.I18nSupport
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.signed_out
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -30,8 +29,6 @@ class SignOutController(
   frontendConfig: FrontendAppConfig,
   messagesControllerComponents: MessagesControllerComponents,
   nonAuth: NonAuthenticatedRequestActionsAlgebra[Future]
-)(
-  implicit viewHelpers: ViewHelpersAlgebra
 ) extends FrontendController(messagesControllerComponents) with I18nSupport {
 
   def signOut(formTemplateId: FormTemplateId): Action[AnyContent] = nonAuth { implicit request => implicit l =>

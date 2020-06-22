@@ -18,6 +18,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
+@import uk.gov.hmrc.gform.views.html.errorInline
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @(fieldValue: FormComponent,
@@ -25,7 +26,6 @@
   changeButton: Html)(
   implicit
     l:LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     sse: SmartStringEvaluator)
 
 @currentValueLines = @{TextFormatter.formatText(validationResult).split("\\R")}
@@ -40,7 +40,7 @@
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    viewHelpers.errorInline("summary", e, Seq())
+    errorInline("summary", e, Seq())
 }}
 
 <div>

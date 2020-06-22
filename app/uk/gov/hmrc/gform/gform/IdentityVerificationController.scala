@@ -29,7 +29,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.Dest
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT }
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
@@ -41,8 +40,7 @@ class IdentityVerificationController(
   i18nSupport: I18nSupport,
   frontendAppConfig: FrontendAppConfig,
   messagesControllerComponents: MessagesControllerComponents
-)(implicit viewHelpers: ViewHelpersAlgebra)
-    extends FrontendController(messagesControllerComponents) {
+) extends FrontendController(messagesControllerComponents) {
 
   def failure(formTemplateId: FormTemplateId): Action[AnyContent] = pageWithContent(_.ivFailure)(formTemplateId)
 

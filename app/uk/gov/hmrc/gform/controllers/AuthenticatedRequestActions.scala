@@ -45,7 +45,6 @@ import uk.gov.hmrc.auth.core.InsufficientEnrolments
 import uk.gov.hmrc.gform.graph.Recalculation
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluator, SmartStringEvaluatorFactory }
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.concurrent.Future
 import uk.gov.hmrc.http.HeaderCarrier
@@ -80,8 +79,7 @@ class AuthenticatedRequestActions(
 )(
   implicit
   ec: ExecutionContext,
-  messagesApi: MessagesApi,
-  viewHelpers: ViewHelpersAlgebra
+  messagesApi: MessagesApi
 ) extends AuthenticatedRequestActionsAlgebra[Future] with AuthorisedFunctions {
 
   def getAffinityGroup(implicit request: Request[AnyContent]): Unit => Future[Option[AffinityGroup]] =

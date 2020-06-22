@@ -17,10 +17,12 @@
 package uk.gov.hmrc.gform.config
 
 import play.api.i18n.{ Lang, Messages }
+import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Anonymous, AuthConfig, EeittModule, FormTemplateId }
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 case class FrontendAppConfig(
+  webchatClient: WebchatClient,
   albAdminIssuerUrl: String,
   analyticsToken: String,
   analyticsHost: String,
@@ -43,15 +45,17 @@ case class FrontendAppConfig(
   contactFormServiceIdentifier: String,
   optimizelyUrl: Option[String]
 ) {
+
+  def jsConfig(authConfig: Option[AuthConfig]): JSConfig = authConfig match {
+    case Some(EeittModule(_)) => authModule.legacyEEITTAuth
+    case Some(Anonymous)      => authModule.anonymous
+    case Some(_)              => authModule.hmrc
+    case None                 => JSConfig(timeoutEnabled = false, 0, 0, "", "")
+  }
+
   def timeoutDialog(templateId: FormTemplateId, authConfig: Option[AuthConfig])(
     implicit messages: Messages): Option[TimeoutDialog] = {
-    val authTimeout = authConfig match {
-      case Some(EeittModule(_)) => authModule.legacyEEITTAuth
-      case Some(Anonymous)      => authModule.anonymous
-      case Some(_)              => authModule.hmrc
-      case None                 => JSConfig(timeoutEnabled = false, 0, 0, "", "")
-    }
-
+    val authTimeout = jsConfig(authConfig)
     if (authTimeout.timeoutEnabled) {
       Some(
         TimeoutDialog(
@@ -67,6 +71,6 @@ case class FrontendAppConfig(
     } else {
       None
     }
-
   }
+
 }

@@ -25,8 +25,7 @@
         implicit
         request: Request[_],
         messages: Messages,
-	l: LangADT,
-        viewHelpers: ViewHelpersAlgebra
+	l: LangADT
 )
 
 @heading = @{messages("signedOut.title")}
@@ -35,8 +34,7 @@
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = "",
-  developmentPhase = BetaBanner,
-  bodyClasses = None,
+  developmentPhase = Some(BetaBanner),
   frontendAppConfig = frontendAppConfig,
   authConfig = None,
   templateId = FormTemplateId("")

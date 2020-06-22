@@ -23,7 +23,6 @@ import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.NonAuthenticatedRequestActionsAlgebra
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
 import scala.concurrent.Future
@@ -33,8 +32,7 @@ class ErrorController(
   i18nSupport: I18nSupport,
   messagesControllerComponents: MessagesControllerComponents,
   nonAuth: NonAuthenticatedRequestActionsAlgebra[Future]
-)(implicit viewHelpers: ViewHelpersAlgebra)
-    extends FrontendController(messagesControllerComponents) {
+) extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
 

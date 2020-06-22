@@ -18,15 +18,18 @@ package uk.gov.hmrc.gform.config
 
 import com.typesafe.config.{ ConfigFactory, Config => TypeSafeConfig }
 import net.ceedubs.ficus.Ficus._
+import play.api.libs.ws.WSClient
 import play.api.{ ApplicationLoader, Configuration, Environment }
 import play.api.Mode
 import play.api.i18n.Lang
 import play.api.mvc.Call
+import uk.gov.hmrc.csp.config.ApplicationConfig
+import uk.gov.hmrc.csp.{ CachedStaticHtmlPartialProvider, WebchatClient }
 import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.bootstrap.config.{ AuditingConfigProvider, ControllerConfig, ControllerConfigs, RunMode, ServicesConfig }
 
-class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule) {
+class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: PlayBuiltInsModule, wsClient: WSClient) {
 
   val playConfiguration: Configuration = context.initialConfiguration
   val typesafeConfig: TypeSafeConfig = ConfigFactory.load()
@@ -53,6 +56,15 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
   def routeToSwitchLanguage: String => Call =
     (lang: String) => uk.gov.hmrc.gform.gform.routes.LanguageSwitchController.switchToLanguage(lang)
 
+  private val webchatClient =
+    new WebchatClient(
+      new CachedStaticHtmlPartialProvider(
+        wsClient,
+        context.initialConfiguration,
+        playBuiltInsModule.builtInComponents.actorSystem),
+      new ApplicationConfig(context.initialConfiguration)
+    )
+
   val frontendAppConfig: FrontendAppConfig = {
     def getJSConfig(path: String) =
       JSConfig(
@@ -64,6 +76,7 @@ class ConfigModule(val context: ApplicationLoader.Context, playBuiltInsModule: P
       )
     val contactFormServiceIdentifier = "GForm"
     FrontendAppConfig(
+      webchatClient = webchatClient,
       albAdminIssuerUrl =
         playConfiguration.getOptional[String]("albAdminIssuerUrl").getOrElse("idp-url-variable-not-set"),
       analyticsToken = typesafeConfig.getString(s"google-analytics.token"),

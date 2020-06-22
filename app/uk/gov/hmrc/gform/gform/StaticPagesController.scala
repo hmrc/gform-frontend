@@ -21,7 +21,6 @@ import play.api.mvc.{ Action, AnyContent, MessagesControllerComponents }
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ accessibility_statement, help_with_registration }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -31,7 +30,7 @@ class StaticPagesController(
   auth: AuthenticatedRequestActions,
   i18nSupport: I18nSupport,
   frontendAppConfig: FrontendAppConfig,
-  messagesControllerComponents: MessagesControllerComponents)(implicit viewHelpers: ViewHelpersAlgebra)
+  messagesControllerComponents: MessagesControllerComponents)
     extends FrontendController(messagesControllerComponents) {
 
   def accessibilityPage(formTemplateId: FormTemplateId): Action[AnyContent] =

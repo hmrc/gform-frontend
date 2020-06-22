@@ -16,19 +16,17 @@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.routes.NewFormController
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.views.hardcoded.SaveWithAccessCode
 
 @(
   saveWithAccessCode: SaveWithAccessCode,
   frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
+)(implicit request: Request[_], messages: Messages, l: LangADT)
 
 @uk.gov.hmrc.gform.views.html.main_template(
   title = saveWithAccessCode.heading,
   serviceName = saveWithAccessCode.formTemplate.formName.value,
-  bodyClasses = None,
-  developmentPhase = saveWithAccessCode.formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  developmentPhase = saveWithAccessCode.formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(saveWithAccessCode.formTemplate.authConfig),
   formCategory = saveWithAccessCode.formTemplate.formCategory,

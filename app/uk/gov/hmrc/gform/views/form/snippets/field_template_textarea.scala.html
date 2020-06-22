@@ -30,7 +30,6 @@
   formLevelHeading: Boolean)(
   implicit
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     sse: SmartStringEvaluator)
 @hasErrors = @{
   validationResult.exists(_.isNotOk)

@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.lookup.LookupRegistry
 import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResult }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.{ ExampleData, LangADT, NotChecked, VariadicFormData }
-import uk.gov.hmrc.gform.views.{ ViewHelpers, ViewHelpersAlgebra }
 import uk.gov.hmrc.http.HeaderCarrier
 import play.filters.csrf.CSRF
 import play.filters.csrf.CSRF.{ Token, TokenInfo }
@@ -68,24 +67,6 @@ class SectionRenderingServiceSpec extends Spec {
   }
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  private implicit val viewHelpers: ViewHelpersAlgebra = new ViewHelpers(null) {
-    override def head(linkElem: Option[Html], headScripts: Option[Html]): HtmlFormat.Appendable = null
-
-    override def footer(
-      analyticsToken: scala.Option[scala.Predef.String],
-      analyticsHost: scala.Predef.String,
-      ssoUrl: scala.Option[scala.Predef.String],
-      scriptElem: scala.Option[play.twirl.api.Html],
-      gaCalls: scala.Option[(String, String) => Html],
-      analyticsAnonymizeIp: scala.Boolean,
-      analyticsAdditionalJs: scala.Option[play.twirl.api.Html],
-      allowQueryStringInAnalytics: scala.Boolean): HtmlFormat.Appendable =
-      null
-
-    override def webchatClickToChatScriptPartial(entryPoint: String, template: String)(implicit request: Request[_]) =
-      Html("WebChat stuff goes here")
-  }
 
   val testService = new SectionRenderingService(frontendAppConfig, lookupRegistry)
 

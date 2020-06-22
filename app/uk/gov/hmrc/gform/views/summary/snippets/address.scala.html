@@ -16,13 +16,13 @@
 
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
+@import uk.gov.hmrc.gform.views.html.errorInline
 
 @(fieldValue: FormComponent,
   validationResultO: Option[FormFieldValidationResult],
   changeButton: Html)(
   implicit
     l:LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     sse: SmartStringEvaluator)
 
     @validationResult = @{
@@ -35,7 +35,7 @@
     }
 
     @showError(e: String) = @{
-        viewHelpers.errorInline(e, e, Seq("error-message"))
+        errorInline(e, e, Seq("error-message"))
     }
 
     <div>

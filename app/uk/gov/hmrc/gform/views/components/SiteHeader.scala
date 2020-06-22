@@ -35,13 +35,7 @@ object SiteHeader {
     messages: Messages
   ): Header = {
 
-    val authTimeout =
-      authConfig match {
-        case Some(EeittModule(_)) => appConfig.authModule.legacyEEITTAuth
-        case Some(Anonymous)      => appConfig.authModule.anonymous
-        case Some(_)              => appConfig.authModule.hmrc
-        case None                 => JSConfig(timeoutEnabled = false, 0, 0, "", "")
-      }
+    val authTimeout = appConfig.jsConfig(authConfig)
 
     Header(
       homepageUrl = Some(s"https://www.gov.uk/"),

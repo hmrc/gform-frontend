@@ -18,14 +18,12 @@ package uk.gov.hmrc.gform
 package controllers
 
 import play.api.Logger
-import play.api.i18n.{ I18nSupport, Messages }
-import play.api.mvc.Request
+import play.api.i18n.{ I18nSupport, Langs, Messages, MessagesApi }
 import play.api.mvc.Results.{ BadRequest, Forbidden, InternalServerError, NotFound }
 import play.api.mvc.{ RequestHeader, Result }
 import uk.gov.hmrc.gform.auditing.HttpAuditingService
 import uk.gov.hmrc.gform.config.FrontendAppConfig
 import uk.gov.hmrc.gform.sharedmodel.LangADT
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.concurrent.Future
 
@@ -39,8 +37,12 @@ import scala.concurrent.Future
 class ErrResponder(
   frontendAppConfig: FrontendAppConfig,
   httpAuditingService: HttpAuditingService,
-  i18nSupport: I18nSupport
-)(implicit viewHelpers: ViewHelpersAlgebra) {
+  i18nSupport: I18nSupport,
+  langs: Langs
+)(
+  implicit
+  messagesApi: MessagesApi
+) {
 
   import i18nSupport._
 
@@ -103,8 +105,7 @@ class ErrResponder(
     heading: String,
     message: String
   )(implicit requestHeader: RequestHeader) = {
-    implicit val request = Request(requestHeader, "")
-    implicit val l = LangADT.En
+    implicit val l = LangADT.fromRequest(requestHeader, langs)
     views.html.error_template(pageTitle, heading, message, frontendAppConfig)
   }
 }

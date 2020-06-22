@@ -22,14 +22,14 @@
     titleKey: String,
     formTemplate: FormTemplate,
     frontendAppConfig: FrontendAppConfig
-)(implicit request: Request[_], messages: Messages, l: LangADT, viewHelpers: ViewHelpersAlgebra)
+)(implicit request: Request[_], messages: Messages, l: LangADT)
 
 
 @uk.gov.hmrc.gform.views.html.main_template(
     title = messages(titleKey),
     serviceName = formTemplate.formName.value,
     containsErrors = true,
-    developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+    developmentPhase = formTemplate.developmentPhase,
     frontendAppConfig = frontendAppConfig,
     authConfig = Some(formTemplate.authConfig),
     formCategory = formTemplate.formCategory,

@@ -18,18 +18,19 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.FormFieldValidationResult
 @import uk.gov.hmrc.gform.views._
+@import uk.gov.hmrc.gform.views.html.errorInline
 @import uk.gov.hmrc.gform.views.summary.TextFormatter
 
 @(
- fieldValue: FormComponent,
- validationResult: Option[FormFieldValidationResult],
- changeButton: Html
-)(implicit messages: Messages,l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
+    fieldValue: FormComponent,
+    validationResult: Option[FormFieldValidationResult],
+    changeButton: Html
+)(implicit messages: Messages,l:LangADT, sse: SmartStringEvaluator)
 
 @hasErrors = @{validationResult.exists(_.isNotOk)}
 
 @errors = @{validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map{ e =>
-    viewHelpers.errorInline(fieldValue.id.value, e, Seq("error-message"))
+    errorInline(fieldValue.id.value, e, Seq("error-message"))
 }}
 
 <div>

@@ -34,7 +34,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ FormDataRecalculated, ValidationResu
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ EnrolmentSection, FormComponent, FormTemplate }
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationUtil }
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
+import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 
@@ -45,7 +45,7 @@ class EnrolmentResultProcessor(
   enrolmentSection: EnrolmentSection,
   data: FormDataRecalculated,
   frontendAppConfig: FrontendAppConfig
-)(implicit viewHelpers: ViewHelpersAlgebra) {
+) {
 
   private def getErrorMap(
     validationResult: ValidatedType[ValidationResult]

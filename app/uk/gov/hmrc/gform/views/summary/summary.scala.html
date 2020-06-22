@@ -21,12 +21,10 @@
 @import views.html.helper.CSRF
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.SummaryPagePurpose
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.views.html.summary.snippets.alert
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
 @import uk.gov.hmrc.govukfrontend.views.html.components._
-@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 
@@ -42,7 +40,7 @@
     reviewerComments : Option[String],
     header: Html,
     footer: Html
-)(implicit request: Request[_], messages: Messages, l:LangADT, viewHelpers: ViewHelpersAlgebra, sse: SmartStringEvaluator)
+)(implicit request: Request[_], messages: Messages, l:LangADT, sse: SmartStringEvaluator)
 
 @heading = @{formTemplate.summarySection.title.value}
 
@@ -52,8 +50,7 @@
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = formTemplate.formName.value,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-  bodyClasses = None,
+  developmentPhase = formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,

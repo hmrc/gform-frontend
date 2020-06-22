@@ -35,7 +35,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.graph.IncludeIfGN
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 
 import scala.collection.immutable.List
 import uk.gov.hmrc.http.HeaderCarrier
@@ -56,8 +55,6 @@ class SummarySpec extends Spec {
 
     override def isDefinedAt(key: String): Boolean = true
   }
-
-  private implicit val viewHelpers: ViewHelpersAlgebra = null
 
   trait Test extends ExampleData {
 

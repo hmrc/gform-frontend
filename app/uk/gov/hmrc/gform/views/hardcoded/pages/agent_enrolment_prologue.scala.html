@@ -26,8 +26,7 @@
   implicit
   request: Request[_],
   messages: Messages,
-  l:LangADT,
-  viewHelpers: ViewHelpersAlgebra
+  l:LangADT
 )
 
 @heading = @{messages("agentsPrologue.title")}
@@ -35,7 +34,6 @@
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = agentEnrolmentProlog.formTemplate.formName.value,
-  bodyClasses = None,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(agentEnrolmentProlog.formTemplate.authConfig),
   formCategory = agentEnrolmentProlog.formTemplate.formCategory,

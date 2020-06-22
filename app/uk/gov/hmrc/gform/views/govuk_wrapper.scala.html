@@ -14,13 +14,11 @@
  * limitations under the License.
  *@
 
-@import _root_.play.twirl.api.HtmlFormat
+@import play.twirl.api.HtmlFormat
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
-@import uk.gov.hmrc.gform.config.JSConfig
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthConfig, AlphaBanner, BetaBanner, ResearchBanner, LiveBanner, DevelopmentPhase, EeittModule, Anonymous, FormTemplateId }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.components._
-@import uk.gov.hmrc.govukfrontend.views.html.components.implicits._
 @import uk.gov.hmrc.govukfrontend.views.html.layouts._
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.footer.FooterItem
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
@@ -31,25 +29,17 @@
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.timeoutdialog.TimeoutDialog
 
 @(appConfig: FrontendAppConfig,
-  title: String,
   serviceTitle: String,
   headTitle: String,
-  developmentPhase: DevelopmentPhase = ResearchBanner,
-  mainClass: Option[String] = None,
-  mainDataAttributes: Option[Html] = None,
-  bodyClasses: Option[String] = None,
-  sidebar: Html = HtmlFormat.empty,
-  contentHeader: Option[Html] = None,
+  developmentPhase: Option[DevelopmentPhase] = None,
   content: Html = HtmlFormat.empty,
-  serviceInfoContent: Html = HtmlFormat.empty,
   scriptElem: Option[Html] = None,
   authConfig: Option[AuthConfig],
-  navLinks: Option[Html] = None,
   includeHMRCBranding: Boolean,
   formLanguages: AvailableLanguages = AvailableLanguages.default,
   templateId: FormTemplateId,
   backLink: Option[BackLink]
-)(implicit messages: Messages, request: Request[_], l: LangADT)
+)(implicit messages: Messages, l: LangADT)
 
 @timeoutDialog = @{appConfig.timeoutDialog(templateId, authConfig)}
 
@@ -135,9 +125,11 @@
 @govukSkipLink = @{new govukSkipLink()}
 @govukTag = @{new govukTag()}
 @hmrcBanner = @{new components.hmrcBanner()}
+@hmrcHeader = @{new components.hmrcHeader(hmrcBanner)}
 @govukPhaseBanner = @{new govukPhaseBanner(govukTag)}
 @govukTemplate = @{new govukTemplate(govukHeader, govukFooter, govukSkipLink)}
 @govukLayout = @{new govukLayout(govukTemplate, govukHeader, govukFooter, govukBackLink)}
+@hmrcReportTechnicalIssue = @{new components.hmrcReportTechnicalIssue()}
 
 @serviceName = @{
     if(serviceTitle.nonEmpty)
@@ -149,7 +141,7 @@
 @language = @{l.toLanguage}
 
 @headerBlock = {
-  @{new components.hmrcHeader(hmrcBanner)(components.Header(homepageUrl = "https://www.gov.uk/", language = language, signOutHref = timeoutDialog.flatMap(_.signOutUrl), serviceName = serviceName))}
+  @hmrcHeader(components.Header(homepageUrl = "https://www.gov.uk/", language = language, signOutHref = timeoutDialog.flatMap(_.signOutUrl), serviceName = serviceName))
 }
 
 @languageSwitch = @{
@@ -165,19 +157,23 @@
 }
 
 @phaseBanner = @{
-  developmentPhase match {
-    case AlphaBanner | BetaBanner =>
-      govukPhaseBanner(SiteBanner(developmentPhase.banner, HtmlContent(feedbackContent)))
-    case ResearchBanner =>
-      govukPhaseBanner(SiteBanner(developmentPhase.banner))
-    case _ => HtmlFormat.empty
+  developmentPhase.fold(HtmlFormat.empty){ dp =>
+    dp match {
+      case AlphaBanner | BetaBanner =>
+        govukPhaseBanner(SiteBanner(dp.banner, HtmlContent(feedbackContent)))
+      case ResearchBanner =>
+        govukPhaseBanner(SiteBanner(dp.banner))
+      case LiveBanner => HtmlFormat.empty
+    }
   }
 }
 
 @beforeContentBlock = {
   @afterHeader
   @phaseBanner
-  @hmrcBanner(Banner(language))
+  @if(includeHMRCBranding){
+    @hmrcBanner(Banner(language))
+  }
   @languageSwitch
   @backLink.map(govukBackLink.apply)
 }
@@ -185,16 +181,20 @@
 
 @contentBlock = {
     @content
-    @{new components.hmrcReportTechnicalIssue()(ReportTechnicalIssue(serviceCode = appConfig.contactFormServiceIdentifier, language = Some(language.code)))}
+    @hmrcReportTechnicalIssue(
+      ReportTechnicalIssue(
+        serviceCode = appConfig.contactFormServiceIdentifier,
+        language = Some(language.code)
+      )
+    )
 }
 
-@{govukLayout(
-    pageTitle = Some(headTitle),
-    headBlock = Some(head),
-    headerBlock = Some(headerBlock),
-    beforeContentBlock = Some(beforeContentBlock),
-    bodyEndBlock = None,
-    scriptsBlock = Some(scripts),
-    footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig) :+ accessibilityFooterLink))))))
-  )(contentBlock)
-}
+@govukLayout(
+  pageTitle = Some(headTitle),
+  headBlock = Some(head),
+  headerBlock = Some(headerBlock),
+  beforeContentBlock = Some(beforeContentBlock),
+  bodyEndBlock = None,
+  scriptsBlock = Some(scripts),
+  footerBlock = Some(govukFooter(Footer(meta = Some(Meta(items = Some(FooterLinks.items(appConfig) :+ accessibilityFooterLink))))))
+)(contentBlock)

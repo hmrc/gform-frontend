@@ -17,7 +17,6 @@
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.gform.routes.NewFormController
 @import uk.gov.hmrc.gform.models.AccessCodePage
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.views.hardcoded.DisplayAccessCode
 
 @(
@@ -27,8 +26,7 @@
   implicit
   request: Request[_],
   messages: Messages,
-  l:LangADT,
-  viewHelpers: ViewHelpersAlgebra
+  l:LangADT
 )
 
 @formWithCSRF = @{new formWithCSRF()}
@@ -40,7 +38,7 @@
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = displayAccessCode.formTemplate.formName.value,
-  developmentPhase = displayAccessCode.formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  developmentPhase = displayAccessCode.formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(displayAccessCode.formTemplate.authConfig),
   formCategory = displayAccessCode.formTemplate.formCategory,

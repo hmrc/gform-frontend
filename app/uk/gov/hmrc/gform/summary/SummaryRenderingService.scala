@@ -47,19 +47,19 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.PrintSection.PdfN
 import uk.gov.hmrc.gform.summary.SummaryRenderingService.validate
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, ValidationService }
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.form.snippets.print_pdf_header
 import uk.gov.hmrc.gform.views.html.summary.snippets._
 import uk.gov.hmrc.gform.views.html.summary.summary
 import uk.gov.hmrc.gform.views.summary.SummaryListRowHelper._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ SummaryList, SummaryListRow }
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.gform.views.html.errorInline
 import uk.gov.hmrc.gform.views.summary.TextFormatter._
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.gform.models.helpers.DateHelperFunctions.{ getMonthValue, renderMonth }
 import uk.gov.hmrc.gform.models.helpers.TaxPeriodHelper.formatDate
 import uk.gov.hmrc.gform.views.summary.TextFormatter
-import uk.gov.hmrc.govukfrontend.views.html.components.govukSummaryList
+import uk.gov.hmrc.govukfrontend.views.html.components.{ ErrorMessage, govukErrorMessage, govukSummaryList }
 
 import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
@@ -69,7 +69,7 @@ class SummaryRenderingService(
   fileUploadAlgebra: FileUploadAlgebra[Future],
   recalculation: Recalculation[Future, Throwable],
   validationService: ValidationService,
-  frontendAppConfig: FrontendAppConfig)(implicit viewHelpers: ViewHelpersAlgebra) {
+  frontendAppConfig: FrontendAppConfig) {
 
   def createHtmlForPdf(
     maybeAccessCode: Option[AccessCode],
@@ -307,6 +307,7 @@ class SummaryRenderingService(
 }
 
 object SummaryRenderingService {
+
   def renderSummary(
     formTemplate: FormTemplate,
     validatedType: ValidatedType[ValidationResult],
@@ -323,7 +324,6 @@ object SummaryRenderingService {
     request: Request[_],
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
@@ -375,7 +375,6 @@ object SummaryRenderingService {
     request: Request[_],
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): Html = {
     val headerHtml = markDownParser(formTemplate.summarySection.header)
     val footerHtml = markDownParser(formTemplate.summarySection.footer)
@@ -417,7 +416,6 @@ object SummaryRenderingService {
     implicit
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
@@ -477,7 +475,6 @@ object SummaryRenderingService {
     implicit
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(sections: List[Section], fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
@@ -539,7 +536,6 @@ object SummaryRenderingService {
     implicit
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): List[Html] = {
 
     def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] =
@@ -610,7 +606,6 @@ object SummaryRenderingService {
     implicit
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): List[SummaryListRow] = {
 
     def groupHelper(fieldValue: FormComponent, presentationHint: List[PresentationHint])(
@@ -632,7 +627,7 @@ object SummaryRenderingService {
 
               errors = {
                 validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-                  viewHelpers.errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
+                  errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
                 }
               }
 
@@ -680,7 +675,7 @@ object SummaryRenderingService {
 
           val errors = {
             validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-              viewHelpers.errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
+              errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
             }
           }
 
@@ -776,7 +771,7 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
         val errors = {
           validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-            viewHelpers.errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
+            errorInline(s"${fieldValue.id.value}-error-message", e, Seq("error-message"))
           }
         }
         val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
@@ -808,7 +803,7 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
 
         val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          viewHelpers.errorInline("summary", e, Seq())
+          errorInline("summary", e, Seq())
         }
 
         val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
@@ -851,7 +846,7 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
 
         val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          viewHelpers.errorInline("summary", e, Seq())
+          errorInline("summary", e, Seq())
         }
 
         val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
@@ -892,7 +887,7 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
 
         val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          viewHelpers.errorInline("summary", e, Seq())
+          errorInline("summary", e, Seq())
         }
 
         def safeId(id: String) = fieldValue.id.withSuffix(id).toString
@@ -938,12 +933,12 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
 
         val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          viewHelpers.errorInline("summary", e, Seq())
+          errorInline("summary", e, Seq())
         }
 
         def safeId(id: String) = fieldValue.id.withSuffix(id).value
 
-        def showError(e: String) = viewHelpers.errorInline(e, e, Seq("error-message"))
+        def showError(e: String) = errorInline(e, e, Seq("error-message"))
 
         val label = fieldValue.shortName.map(ls => ls.value.capitalize).getOrElse(fieldValue.label.value)
 
@@ -993,7 +988,7 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
 
         val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          viewHelpers.errorInline("summary", e, Seq("error-message"))
+          errorInline("summary", e, Seq("error-message"))
         }
 
         val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
@@ -1026,7 +1021,7 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
 
         val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          viewHelpers.errorInline("summary", e, Seq())
+          errorInline("summary", e, Seq())
         }
 
         val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
@@ -1070,7 +1065,7 @@ object SummaryRenderingService {
         val hasErrors = validationResult.exists(_.isNotOk)
 
         val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-          viewHelpers.errorInline("summary", e, Seq())
+          errorInline("summary", e, Seq())
         }
 
         val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
@@ -1119,7 +1114,7 @@ object SummaryRenderingService {
               val hasErrors = validationResult.exists(_.isNotOk)
 
               val errors = validationResult.map(_.fieldErrors.toList).getOrElse(Set().toList).map { e =>
-                viewHelpers.errorInline("summary", e, Seq())
+                errorInline("summary", e, Seq())
               }
 
               val label = fieldValue.shortName.map(ls => ls.value).getOrElse(fieldValue.label.value)
@@ -1192,7 +1187,6 @@ object SummaryRenderingService {
     implicit
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     lise: SmartStringEvaluator): Html = {
 
     val changeButton = change_button(

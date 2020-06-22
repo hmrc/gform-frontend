@@ -22,7 +22,6 @@ import uk.gov.hmrc.csp.WebchatClient
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers.AuthenticatedRequestActions
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.hardcoded.AgentEnrolmentProlog
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 
@@ -34,8 +33,7 @@ class AgentEnrolmentController(
   i18nSupport: I18nSupport,
   auth: AuthenticatedRequestActions,
   messagesControllerComponents: MessagesControllerComponents
-)(implicit viewHelpers: ViewHelpersAlgebra)
-    extends FrontendController(messagesControllerComponents) {
+) extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._
 

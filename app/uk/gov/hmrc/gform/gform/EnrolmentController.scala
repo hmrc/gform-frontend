@@ -47,7 +47,6 @@ import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.sharedmodel.taxenrolments.TaxEnrolmentsResponse
 import uk.gov.hmrc.gform.validation.{ FormFieldValidationResult, GetEmailCodeFieldMatcher, ValidationService }
 import uk.gov.hmrc.gform.validation.ValidationUtil.{ GformError, ValidatedType }
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorLink
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -75,8 +74,7 @@ class EnrolmentController(
   messagesControllerComponents: MessagesControllerComponents,
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory
 )(
-  implicit ec: ExecutionContext,
-  viewHelpers: ViewHelpersAlgebra
+  implicit ec: ExecutionContext
 ) extends FrontendController(messagesControllerComponents) {
 
   type Ctx[A] = ReaderT[Future, Env, A]

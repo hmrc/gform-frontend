@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormCategory, FormTemplate, ResearchBanner}
+@import uk.gov.hmrc.gform.sharedmodel.formtemplate.{FormCategory, FormTemplate}
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
 @import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 @import uk.gov.hmrc.gform.models.SectionRenderingInformation
@@ -29,8 +29,7 @@
 )(implicit
   request: Request[_],
   messages: Messages,
-  l:LangADT,
-  iewHelpers: ViewHelpersAlgebra)
+  l: LangADT)
 
 @formCat = @{messages(s"formCategory.${formCategory.getString}")}
 @heading = @{messages("ack.title", formCat)}
@@ -39,8 +38,7 @@
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = formTemplate.formName.value,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
-  bodyClasses = None,
+  developmentPhase = formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,

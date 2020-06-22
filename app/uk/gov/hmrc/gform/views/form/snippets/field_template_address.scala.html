@@ -17,6 +17,7 @@
 @import uk.gov.hmrc.gform.sharedmodel.LabelHelper
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 @import uk.gov.hmrc.gform.validation.{FormFieldValidationResult, ValidationUtil}
+@import uk.gov.hmrc.gform.views.html.errorInline
 
 @(international: Boolean,
   fieldValue: FormComponent,
@@ -26,7 +27,6 @@
   implicit
     messages: Messages,
     l: LangADT,
-    viewHelpers: ViewHelpersAlgebra,
     sse: SmartStringEvaluator)
 
 @safeId(id: String) = @{
@@ -119,7 +119,8 @@
       @safeError(suffix : String) = @{
       val errors: Set[String] = validationResult.map(_.fieldErrorsWithSuffix(suffix)).getOrElse(Set())
 
-      errors.map(e => viewHelpers.errorInline(suffix, e, Seq("error-message")))
+      errors.map(e => errorInline(suffix, e, Seq("error-message")))
+
       }
 
       <div class="govuk-form-group@if(safeError("street1").nonEmpty){ govuk-form-group--error }">

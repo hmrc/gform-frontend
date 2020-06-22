@@ -17,7 +17,7 @@
 package uk.gov.hmrc.gform.sharedmodel
 import play.api.i18n.{ Lang, Langs, MessagesApi }
 import play.api.libs.json._
-import play.api.mvc.Request
+import play.api.mvc.RequestHeader
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.OFormatWithTemplateReadFallback
 import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language
 
@@ -43,7 +43,7 @@ object LangADT {
     case _    => En
   }
 
-  def fromRequest(request: Request[_], langs: Langs)(implicit messagesApi: MessagesApi): LangADT = {
+  def fromRequest(request: RequestHeader, langs: Langs)(implicit messagesApi: MessagesApi): LangADT = {
     val maybeLangFromCookie = request.cookies.get(messagesApi.langCookieName).flatMap(c => Lang.get(c.value))
     val lang: Lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     stringToLangADT(lang.code)

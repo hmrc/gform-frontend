@@ -46,7 +46,6 @@ import uk.gov.hmrc.gform.playcomponents.{ FrontendFiltersModule, PlayBuiltInsMod
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorConnector
 import uk.gov.hmrc.gform.testonly.TestOnlyModule
 import uk.gov.hmrc.gform.validation.ValidationModule
-import uk.gov.hmrc.gform.views.{ ViewHelpers, ViewHelpersAlgebra }
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 
 class ApplicationLoader extends play.api.ApplicationLoader {
@@ -70,27 +69,15 @@ class ApplicationModule(context: Context)
   protected val akkaModule = new AkkaModule(materializer, actorSystem)
   private val playBuiltInsModule = new PlayBuiltInsModule(self)
 
-  private val webchatClient =
-    new WebchatClient(
-      new CachedStaticHtmlPartialProvider(
-        wsClient,
-        context.initialConfiguration,
-        playBuiltInsModule.builtInComponents.actorSystem),
-      new ApplicationConfig(context.initialConfiguration)
-    )
-
-  private implicit val viewHelpers: ViewHelpersAlgebra = new ViewHelpers(
-    webchatClient
-  )
-
-  protected val configModule = new ConfigModule(context, playBuiltInsModule)
+  protected val configModule = new ConfigModule(context, playBuiltInsModule, wsClient)
   protected val auditingModule = new AuditingModule(configModule, akkaModule, playBuiltInsModule)
 
   val errResponder: ErrResponder = new ErrResponder(
     configModule.frontendAppConfig,
     auditingModule.httpAuditingService,
-    playBuiltInsModule.i18nSupport
-  )
+    playBuiltInsModule.i18nSupport,
+    playBuiltInsModule.langs
+  )(messagesApi)
 
   override lazy val httpErrorHandler: ErrorHandler = new ErrorHandler(
     configModule.environment,

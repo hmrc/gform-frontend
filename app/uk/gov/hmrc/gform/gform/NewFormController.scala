@@ -31,7 +31,6 @@ import uk.gov.hmrc.gform.models.AccessCodePage
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData, QueryParams, Submitted }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ UserId => _, _ }
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.hardcoded.{ AccessCodeList, AccessCodeStart, ContinueFormPage, DisplayAccessCode }
 import uk.gov.hmrc.http.{ HeaderCarrier, NotFoundException }
@@ -49,7 +48,7 @@ class NewFormController(
   gformConnector: GformConnector,
   fastForwardService: FastForwardService,
   messagesControllerComponents: MessagesControllerComponents
-)(implicit ec: ExecutionContext, viewHelpers: ViewHelpersAlgebra)
+)(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
 

@@ -24,7 +24,6 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.button.Button
-@import uk.gov.hmrc.govukfrontend.views.html.components.govukButton
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.{hmrcPageHeading, PageHeading}
 
@@ -39,10 +38,9 @@
   isDeclaration: Boolean = false
 )(
   implicit
-  request: Request[_], //required by CSRF.formField
+  request: Request[_],
   messages: Messages,
-  l:LangADT,
-  viewHelpers: ViewHelpersAlgebra,
+  l: LangADT,
   sse: SmartStringEvaluator
 )
 
@@ -74,7 +72,7 @@
   title = heading,
   serviceName = formTemplate.formName.value,
   containsErrors = pageLevelError.hasErrors,
-  developmentPhase = formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  developmentPhase = formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
   authConfig = Some(formTemplate.authConfig),
   webChat = formTemplate.webChat,

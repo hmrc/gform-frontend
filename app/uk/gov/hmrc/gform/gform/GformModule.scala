@@ -34,7 +34,6 @@ import uk.gov.hmrc.gform.playcomponents.PlayBuiltInsModule
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.{ PdfGeneratorConnector, PdfGeneratorService }
 import uk.gov.hmrc.gform.validation.ValidationModule
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.wshttp.WSHttpModule
 import uk.gov.hmrc.play.language.LanguageUtils
 
@@ -53,8 +52,7 @@ class GformModule(
   lookupRegistry: LookupRegistry,
   errorResponder: ErrResponder
 )(
-  implicit ec: ExecutionContext,
-  viewHelpers: ViewHelpersAlgebra
+  implicit ec: ExecutionContext
 ) {
 
   private val sectionRenderingService: SectionRenderingService = new SectionRenderingService(

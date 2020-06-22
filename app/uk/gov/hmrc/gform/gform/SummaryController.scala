@@ -37,7 +37,6 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations.{ De
 import uk.gov.hmrc.gform.summary.SummaryRenderingService
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 import uk.gov.hmrc.gform.validation.{ ValidationService, ValidationUtil }
-import uk.gov.hmrc.gform.views.ViewHelpersAlgebra
 import uk.gov.hmrc.gform.views.hardcoded.{ SaveAcknowledgement, SaveWithAccessCode }
 import uk.gov.hmrc.gform.views.html.hardcoded.pages.{ save_acknowledgement, save_with_access_code }
 import uk.gov.hmrc.gform.views.html.summary.snippets.pdf_header
@@ -57,7 +56,7 @@ class SummaryController(
   recalculation: Recalculation[Future, Throwable],
   summaryRenderingService: SummaryRenderingService,
   messagesControllerComponents: MessagesControllerComponents
-)(implicit ec: ExecutionContext, viewHelpers: ViewHelpersAlgebra)
+)(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
 
   import i18nSupport._

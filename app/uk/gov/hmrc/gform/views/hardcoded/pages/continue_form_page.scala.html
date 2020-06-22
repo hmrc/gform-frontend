@@ -15,7 +15,6 @@
  *@
 
 @import uk.gov.hmrc.gform.config.FrontendAppConfig
-@import uk.gov.hmrc.gform.sharedmodel.formtemplate.ResearchBanner
 @import uk.gov.hmrc.gform.views.hardcoded.ContinueFormPage
 @import uk.gov.hmrc.gform.views.hardcoded.pages.{ formCategory, withQueryParams }
 @import uk.gov.hmrc.govukfrontend.views.html.helpers.formWithCSRF
@@ -27,8 +26,7 @@
   implicit
   request: Request[_],
   messages: Messages,
-  l:LangADT,
-  viewHelpers: ViewHelpersAlgebra
+  l:LangADT
 )
 
 @formWithCSRF = @{new formWithCSRF()}
@@ -41,7 +39,7 @@
 @uk.gov.hmrc.gform.views.html.main_template(
   title = heading,
   serviceName = continueFormPage.formTemplate.formName.value,
-  developmentPhase = continueFormPage.formTemplate.developmentPhase.getOrElse(ResearchBanner),
+  developmentPhase = continueFormPage.formTemplate.developmentPhase,
   frontendAppConfig = frontendAppConfig,
   containsErrors = continueFormPage.hasErrors,
   authConfig = Some(continueFormPage.formTemplate.authConfig),

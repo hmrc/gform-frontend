@@ -58,7 +58,7 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destinations._
 import uk.gov.hmrc.gform.validation.ValidationUtil.ValidatedType
 import uk.gov.hmrc.gform.validation._
 import uk.gov.hmrc.gform.views.summary.TextFormatter
-import uk.gov.hmrc.gform.views.{ ViewHelpersAlgebra, html }
+import uk.gov.hmrc.gform.views.html
 import uk.gov.hmrc.gform.views.components.TotalText
 import uk.gov.hmrc.govukfrontend.views.html.components
 import uk.gov.hmrc.govukfrontend.views.html.components.govukInput
@@ -102,8 +102,7 @@ case class Errors(html: Html) extends HasErrors
 case class FormRender(id: String, name: String, value: String)
 case class OptionParams(value: String, fromDate: LocalDate, toDate: LocalDate, selected: Boolean)
 class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegistry: LookupRegistry)(
-  implicit ec: ExecutionContext,
-  viewHelpers: ViewHelpersAlgebra
+  implicit ec: ExecutionContext
 ) {
 
   case class ExtraInfo(
