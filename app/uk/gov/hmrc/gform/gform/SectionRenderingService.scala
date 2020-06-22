@@ -310,7 +310,7 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
       List(declarationSectionValue),
       0,
       retrievals,
-      formLevelHeading = true
+      formLevelHeading = false
     )
 
     val confirm = formTemplate.formCategory match {
