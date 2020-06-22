@@ -5,6 +5,8 @@ global.error.InternalServerError500.message=Rhowch gynnig arall ar fewngofnodi m
 
 global.lang=cy
 
+branding.hmrc=Cyllid a Thollau EM
+
 linkText.saveAndComeBackLater=Cadw a dod yn ôl yn hwyrach
 linkText.back=Yn ôl
 linkText.removeRepeatedGroup=Dileu {0}
