@@ -21,16 +21,18 @@ import play.twirl.api.Html
 import uk.gov.hmrc.gform.summarypdf.PdfGeneratorService
 
 object HtmlSanitiser {
-  def sanitiseHtmlForPDF(html: Html, submitted: Boolean): String = {
+  def sanitiseHtmlForPDF(html: Html, submitted: Boolean, isNotificationPdf: Boolean = false): String = {
     val doc: Document = Jsoup.parse(html.body)
     val formName = doc.select(".govuk-header__link--service-name").first().text()
     val hmrcLogoText = doc.select(".govuk-body-s").first().text()
     val headerName = doc.select(".govuk-heading-l").first().text()
     val message = doc.select(".govuk-body").first().text()
-    doc.prepend(s"<p>$message</p>")
-    doc.prepend(s"<h2>$headerName</h2>")
-    doc.prepend(s"<h2>$formName</h2>")
-    doc.prepend(s"<p>$hmrcLogoText</p>")
+    if (!isNotificationPdf) {
+      doc.prepend(s"<p>$message</p>")
+      doc.prepend(s"<h2>$headerName</h2>")
+      doc.prepend(s"<h2>$formName</h2>")
+      doc.prepend(s"<p>$hmrcLogoText</p>")
+    }
     removeComments(doc)
     doc.getElementsByTag("link").remove()
     doc.getElementsByTag("meta").remove()

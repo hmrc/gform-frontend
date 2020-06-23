@@ -148,8 +148,7 @@ class SummaryRenderingService(
                   summaryPagePurpose,
                   pdfFieldIds)
     } yield {
-      PdfHtml(
-        addDataToPrintPdfHTML(HtmlSanitiser.sanitiseHtmlForPDF(pdfHtml, submitted = true), cache, pdfHeader, pdfFooter))
+      PdfHtml(addDataToPrintPdfHTML(HtmlSanitiser.sanitiseHtmlForPDF(pdfHtml, true, true), cache, pdfHeader, pdfFooter))
     }
   }
 
@@ -209,11 +208,12 @@ class SummaryRenderingService(
     lise: SmartStringEvaluator) = {
     val doc = Jsoup.parse(html)
 
-    val headerHtml =
-      print_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
+    val headerHtml = print_pdf_header(cache.formTemplate, markDownParser(pdfHeader)).toString
 
-    doc.select("article[class*=content__body]").prepend(headerHtml)
-    doc.select("article[class*=content__body]").append(markDownParser(pdfFooter).toString)
+    val footerHtml = markDownParser(pdfFooter).toString
+
+    doc.prepend(headerHtml)
+    doc.append(footerHtml)
     doc.html.replace("£", "&pound;")
   }
 
@@ -481,25 +481,26 @@ object SummaryRenderingService {
     l: LangADT,
     lise: SmartStringEvaluator): List[Html] = {
 
-    def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] =
-      fields
-        .map(
+    def renderHtmls(fields: List[FormComponent])(implicit l: LangADT): List[Html] = {
+      val rows = fields
+        .flatMap(
           formComponent =>
-            new govukSummaryList()(
-              SummaryList(
-                getSummaryListRows(
-                  formComponent,
-                  formTemplate._id,
-                  data,
-                  maybeAccessCode,
-                  "",
-                  SectionNumber(0),
-                  SectionTitle4Ga(""),
-                  obligations,
-                  fields,
-                  validatedType,
-                  envelope
-                ))))
+            getSummaryListRows(
+              formComponent,
+              formTemplate._id,
+              data,
+              maybeAccessCode,
+              "",
+              SectionNumber(0),
+              SectionTitle4Ga(""),
+              obligations,
+              fields,
+              validatedType,
+              envelope
+          ))
+
+      List(new govukSummaryList()(SummaryList(rows)))
+    }
 
     val allFormComponents =
       formTemplate.expandFormTemplateFull.formComponentsLookupFull
@@ -784,8 +785,7 @@ object SummaryRenderingService {
     val currentValue = if (currentValueLines.nonEmpty) {
       currentValueLines.init.map { line =>
         s"$line<br>"
-      }
-      currentValueLines.last
+      }.mkString + currentValueLines.last
     } else ""
 
     val value = if (hasErrors) errors.mkString(" ") else currentValue
