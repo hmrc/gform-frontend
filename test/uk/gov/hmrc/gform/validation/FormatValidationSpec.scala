@@ -353,6 +353,30 @@ class FormatValidationSpec(implicit messages: Messages, l: LangADT) extends Spec
     UkEORI,
     "sample label is not a valid UK EORI")
 
+  "ChildBenefitNumber" should "return valid ChildBenefitNumber with 8 digits" in createSuccessTest(
+    "CHB12345678AB",
+    ChildBenefitNumber)
+  "ChildBenefitNumber" should "return invalid without one of the previous conditions" in createFailTest(
+    "CHB12345678A",
+    ChildBenefitNumber,
+    "sample label has fewer than 13 characters")
+  "ChildBenefitNumber" should "return invalid as too many characters in data" in createFailTest(
+    "CHB12345678AB1",
+    ChildBenefitNumber,
+    "sample label has more than 13 characters")
+  "ChildBenefitNumber" should "return invalid as starts with number" in createFailTest(
+    "1CHB123456789",
+    ChildBenefitNumber,
+    "sample label is not a valid Child Benefit Number")
+  "ChildBenefitNumber" should "return invalid as too few letters at start" in createFailTest(
+    "CH123456789AB",
+    ChildBenefitNumber,
+    "sample label is not a valid Child Benefit Number")
+  "ChildBenefitNumber" should "return invalid if contains special characters" in createFailTest(
+    "CHB12345678A*",
+    ChildBenefitNumber,
+    "sample label is not a valid Child Benefit Number")
+
   "NonUkCountryCode" should "return valid" in createSuccessTest("US", NonUkCountryCode)
   "NonUkCountryCode" should "return invalid if code is UK" in createFailTest(
     "UK",

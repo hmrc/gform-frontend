@@ -203,6 +203,7 @@ case object NonUkCountryCode extends TextConstraint
 case object CompanyRegistrationNumber extends TextConstraint
 case object EORI extends TextConstraint
 case object UkEORI extends TextConstraint
+case object ChildBenefitNumber extends TextConstraint
 
 object TextConstraint {
   val defaultWholeDigits = 11
