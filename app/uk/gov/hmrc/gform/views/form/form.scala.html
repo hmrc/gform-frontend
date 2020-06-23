@@ -55,13 +55,13 @@
 }
 
 @backLink = @{
-  val href =
+  val (href, attributes) =
     if(isDeclaration) {
-      uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url
+      (uk.gov.hmrc.gform.gform.routes.SummaryController.summaryById(formTemplate._id,page.maybeAccessCode).url, Map.empty[String, String])
     } else {
-      "#"
+      ("#", Map("id" -> "backButton"))
     }
-  new BackLink(attributes=Map("id" -> "backButton"), href = href, content = new Text(messages("linkText.back")))
+  new BackLink(attributes = attributes, href = href, content = new Text(messages("linkText.back")))
 }
 
 @formWithCSRF = @{new formWithCSRF()}
