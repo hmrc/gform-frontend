@@ -66,6 +66,7 @@ generic.error.invalid=Nid yw {0} yn ddilys
 generic.vrn.error.pattern=Rhaid i {0} fod yn rhif 9 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789
 generic.eori.error.pattern=Rhaid i {0} fod rhwng 7 a 15 rhif, a rhaid iddo ddechrau gyda chod eich gwlad, er enghraifft GC164538549000
 generic.ukEori.error.pattern=Rhaid i {0} fod yn rhif 12 digid gyda ‘GB’ ar y dechrau, er enghraifft GB123456789012
+generic.childBenefitNumber.error.pattern={0} must be 8 numbers, preceded by CHB and followed by 2 characters, for example CHB12345678AB //TODO Add in Welsh version.
 generic.crn.error.invalid=Rhaid i {0} fod naill ai’n rhif 8 digid neu’n rhif 6 digid gyda 2 lythyren ar y dechrau, er enghraifft 01234567 neu SC123456
 generic.nonUKCountryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR
 generic.countryCode.error.pattern=Rhaid nodi {0} yn y fformat cywir, er enghraifft FR

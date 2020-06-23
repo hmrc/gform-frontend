@@ -148,7 +148,7 @@ object ValidationUtil {
 
       case IsTextOrTextArea(constraint) =>
         val data = constraint match {
-          case UkVrn | CompanyRegistrationNumber | EORI | UkEORI =>
+          case UkVrn | CompanyRegistrationNumber | EORI | UkEORI | ChildBenefitNumber =>
             dataGetter(fieldValue.id).headOption.getOrElse("").replace(" ", "")
           case _ => dataGetter(fieldValue.id).headOption.getOrElse("")
         }

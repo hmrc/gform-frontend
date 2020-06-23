@@ -102,6 +102,7 @@ object ComponentValidator {
       case (_, value :: Nil, CompanyRegistrationNumber) => checkCompanyRegistrationNumber(fieldValue, value)
       case (_, value :: Nil, EORI)                      => checkEORI(fieldValue, value)
       case (_, value :: Nil, UkEORI)                    => checkUkEORI(fieldValue, value)
+      case (_, value :: Nil, ChildBenefitNumber)        => checkChildBenefitNumber(fieldValue, value)
       case (_, value :: Nil, NonUkCountryCode)          => checkNonUkCountryCode(fieldValue, value)
       case (_, value :: Nil, CountryCode)               => checkCountryCode(fieldValue, value)
       case (_, value :: Nil, TelephoneNumber) =>
@@ -264,6 +265,14 @@ object ComponentValidator {
     val str = value.replace(" ", "")
     val errorMSG = "generic.ukEori.error.pattern"
     sharedTextComponentValidator(fieldValue, str, 14, 14, ValidUkEORI, errorMSG)
+  }
+  private def checkChildBenefitNumber(
+    fieldValue: FormComponent,
+    value: String)(implicit messages: Messages, l: LangADT, sse: SmartStringEvaluator) = {
+    val ValidChildBenefitNumber = "^CHB[0-9]{8}[A-Z]{2}$".r
+    val str = value.replace(" ", "")
+    val errorMSG = "generic.childBenefitNumber.error.pattern"
+    sharedTextComponentValidator(fieldValue, str, 13, 13, ValidChildBenefitNumber, errorMSG)
   }
 
   private def checkNonUkCountryCode(
