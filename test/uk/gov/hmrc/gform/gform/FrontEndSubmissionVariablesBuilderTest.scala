@@ -87,6 +87,7 @@ class FrontEndSubmissionVariablesBuilderTest extends Spec with FormTemplateGen {
     GovernmentGatewayId(""),
     Enrolments(Set(irsaEnrolment)),
     AffinityGroup.Individual,
-    "TestGroupId"
+    "TestGroupId",
+    None
   )
 }

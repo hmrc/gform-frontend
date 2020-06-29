@@ -25,7 +25,7 @@ trait IdentifierExtractor {
 
   def enrolmentIdentifierValue(retrievals: MaterialisedRetrievals, auth: EnrolmentAuth): String =
     retrievals match {
-      case AuthenticatedRetrievals(_, enrolments, _, _) =>
+      case AuthenticatedRetrievals(_, enrolments, _, _, _) =>
         identifierValue(enrolments, auth)
       case _ => ""
     }

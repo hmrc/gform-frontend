@@ -367,3 +367,5 @@ accessibility.content.block7.h22.p4=Rydym yn gweithio ar y materion hyn a byddwn
 accessibility.subheading8=Sut gwnaethom brofi’r gwasanaeth hwn
 accessibility.content.block8.p1=Adeiladwyd y gwasanaeth hwn gan ddefnyddio rhannau a brofwyd gan y Ganolfan Hygyrchedd Digidol ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â<a href="http://www.digitalaccessibilitycentre.org/">Ganolfan Hygyrchedd Digidol</a> ar 6 Mehefin 2019, a gwiriwyd ei fod yn cydymffurfio â safon ‘AA’ Canllawiau Hygyrchedd Cynnwys y We, fersiwn 2.1.
 accessibility.content.block8.p2=Paratowyd y dudalen hon ar 23 Medi 2019. Cafodd ei diweddaru ddiwethaf ar 26 Mawrth 2019.
+
+identity.verification=Identity verification

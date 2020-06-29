@@ -479,7 +479,7 @@ trait ExampleForm { dependsOn: ExampleFormField with ExampleFormTemplate =>
   def userId = UserId("James007")
 
   def materialisedRetrievals =
-    AuthenticatedRetrievals(GovernmentGatewayId(""), Enrolments(Set()), AffinityGroup.Individual, userId.value)
+    AuthenticatedRetrievals(GovernmentGatewayId(""), Enrolments(Set()), AffinityGroup.Individual, userId.value, None)
 
   def formId = FormId(materialisedRetrievals, formTemplateId, None)
 
@@ -518,7 +518,8 @@ trait ExampleAuthContext {
       governmentGatewayId = GovernmentGatewayId(""),
       enrolments = enrolments,
       affinityGroup = affinityGroup,
-      groupIdentifier = "TestGroupId"
+      groupIdentifier = "TestGroupId",
+      maybeNino = None
     )
 
   def affinityGroup: AffinityGroup = Organisation

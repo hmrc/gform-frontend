@@ -79,7 +79,8 @@ class UserCtxEvaluatorProcessorTest extends Spec {
       GovernmentGatewayId(""),
       Enrolments(Set(irsaEnrolment)),
       AffinityGroup.Agent,
-      "TestGroupId"
+      "TestGroupId",
+      None
     )
 
   lazy val irsaEnrolment = Enrolment("IR-SA").copy(identifiers = Seq(EnrolmentIdentifier("UTR", "SA value")))

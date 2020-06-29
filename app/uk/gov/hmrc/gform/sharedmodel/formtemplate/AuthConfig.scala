@@ -20,7 +20,7 @@ import julienrf.json.derived
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import uk.gov.hmrc.auth.core.{ AffinityGroup => CoreAffinityGroup }
-import uk.gov.hmrc.gform.sharedmodel.ValueClassFormat
+import uk.gov.hmrc.gform.sharedmodel.{ LocalisedString, ValueClassFormat }
 
 object EEITTAuthConfig {
   val eeittAuth = "legacyEEITTAuth"
@@ -93,6 +93,7 @@ sealed trait AuthConfig extends Product with Serializable
 case object Anonymous extends AuthConfig
 case class EeittModule(regimeId: RegimeId) extends AuthConfig
 case object HmrcAny extends AuthConfig
+case class HmrcVerified(ivFailure: LocalisedString, notAllowedIn: LocalisedString) extends AuthConfig
 case object HmrcSimpleModule extends AuthConfig
 case class HmrcEnrolmentModule(enrolmentAuth: EnrolmentAuth) extends AuthConfig
 case class HmrcAgentModule(agentAccess: AgentAccess) extends AuthConfig
