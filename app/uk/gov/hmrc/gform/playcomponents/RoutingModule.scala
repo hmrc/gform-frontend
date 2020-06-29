@@ -65,7 +65,8 @@ class RoutingModule(
     gformModule.lookupController,
     gformModule.signOutController,
     gformModule.staticPagesController,
-    gformModule.printSectionController
+    gformModule.printSectionController,
+    gformModule.identityVerificationController
   )
 
   private val prodRoutes: prod.Routes = new prod.Routes(

@@ -80,14 +80,15 @@ class AuthServiceSpec extends ExampleData with Spec {
   val getAffinityGroup: Unit => Future[Option[AffinityGroup]] = const(Future.successful(None))
 
   private def materialisedRetrievalsBuilder(affinityGroup: AffinityGroup, enrolments: Enrolments) =
-    AuthenticatedRetrievals(governmentGatewayId, enrolments, affinityGroup, "TestGroupId")
+    AuthenticatedRetrievals(governmentGatewayId, enrolments, affinityGroup, "TestGroupId", None)
 
   val materialisedRetrievalsOfsted =
     AuthenticatedRetrievals(
       governmentGatewayId = governmentGatewayId,
       enrolments = enrolments,
       affinityGroup = uk.gov.hmrc.auth.core.AffinityGroup.Individual,
-      groupIdentifier = "20e9b243-7471-4081-be1e-fcb5da33fd5a"
+      groupIdentifier = "20e9b243-7471-4081-be1e-fcb5da33fd5a",
+      maybeNino = None
     )
 
   val materialisedRetrievalsAgent =

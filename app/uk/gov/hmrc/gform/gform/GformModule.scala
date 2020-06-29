@@ -239,4 +239,12 @@ class GformModule(
       configModule.frontendAppConfig,
       controllersModule.messagesControllerComponents
     )
+
+  val identityVerificationController: IdentityVerificationController =
+    new IdentityVerificationController(
+      controllersModule.authenticatedRequestActions,
+      playBuiltInsModule.i18nSupport,
+      configModule.frontendAppConfig,
+      controllersModule.messagesControllerComponents
+    )
 }

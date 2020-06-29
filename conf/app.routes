@@ -56,3 +56,6 @@ GET           /help-with-registration/:formTemplateId                           
 GET           /printSection/:formTemplateId                                                                      uk.gov.hmrc.gform.gform.PrintSectionController.showPrintSection(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 GET           /printSection/pdf/:formTemplateId                                                                  uk.gov.hmrc.gform.gform.PrintSectionController.downloadPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
 GET           /printSection/notificationPdf/:formTemplateId                                                      uk.gov.hmrc.gform.gform.PrintSectionController.downloadNotificationPDF(formTemplateId: FormTemplateId, maybeAccessCode: Option[AccessCode])
+
+GET           /identity-verification/failure/:formTemplateId                                                     uk.gov.hmrc.gform.gform.IdentityVerificationController.failure(formTemplateId: FormTemplateId)
+GET           /identity-verification/enrolments-needed/:formTemplateId                                           uk.gov.hmrc.gform.gform.IdentityVerificationController.enrolmentsNeeded(formTemplateId: FormTemplateId)

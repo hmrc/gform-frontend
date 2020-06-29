@@ -34,6 +34,7 @@ import uk.gov.hmrc.gform.auth._
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.gformbackend.GformConnector
+import uk.gov.hmrc.gform.models.userdetails.Nino
 import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormIdData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Enrolment => _, _ }
 import uk.gov.hmrc.http.SessionKeys
@@ -381,7 +382,8 @@ class AuthenticatedRequestActions(
                 govermentGatewayId,
                 enrolments,
                 affinityGroup,
-                groupIdentifier
+                groupIdentifier,
+                maybeNino.map(Nino(_))
               )
             }
 
@@ -389,7 +391,7 @@ class AuthenticatedRequestActions(
             for {
               verifyId <- maybeCredentials.flatMap(toVerifyId)
               nino     <- maybeNino
-            } yield VerifyRetrievals(verifyId, nino)
+            } yield VerifyRetrievals(verifyId, Nino(nino))
 
           maybeRetrievals
             .orElse(maybeVerifyRetrievals)

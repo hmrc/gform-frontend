@@ -933,7 +933,8 @@ class SectionRenderingService(frontendAppConfig: FrontendAppConfig, lookupRegist
     governmentGatewayId = GovernmentGatewayId(""),
     enrolments = Enrolments(Set.empty),
     affinityGroup = Individual,
-    groupIdentifier = ""
+    groupIdentifier = "",
+    maybeNino = None
   )
 
   private def shouldDisplayHeading(section: Section, GFC579Ready: String): Boolean =

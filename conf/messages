@@ -384,3 +384,5 @@ accessibility.content.block7.h22.p4=We are working on these issues and will fix 
 accessibility.subheading8=How we tested this service
 accessibility.content.block8.p1=This service was built using parts that were tested by <a href="http://www.digitalaccessibilitycentre.org/">Digital Accessibility Centre</a> on 6 June 2019, where it was checked for compliance with WCAG 2.1 AA.
 accessibility.content.block8.p2=This page was prepared on 23 September 2019. It was last updated on 26 March 2020.
+
+identity.verification=Identity verification
